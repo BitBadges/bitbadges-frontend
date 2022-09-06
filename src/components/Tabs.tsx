@@ -11,7 +11,7 @@ export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
 }) {
     const widthPerTab = fullWidth
         ? `calc(100% / ${tabInfo.length})`
-        : undefined;
+        : undefined; 
 
     const tabs = tabInfo.map((tab) => {
         const menuItem = (
