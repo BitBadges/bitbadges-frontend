@@ -5,8 +5,17 @@ import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
 import Blockies from 'react-blockies'
 import { Address } from './Address';
-import { signAndSubmitTxn } from '../api/api';
-import { EIP712_REGISTER_ADDRESS_TXN } from '../api/eip712Types';
+import {
+    createTxMsgRegisterAddresses,
+    createTxRawEIP712,
+    signatureToWeb3Extension,
+} from 'bitbadgesjs-transactions';
+
+import { cosmosToEth, ethToCosmos, ethToEthermint, evmosToEth } from 'bitbadgesjs-address-converter'
+import {
+    generateEndpointBroadcast,
+    generatePostBodyBroadcast,
+} from 'bitbadgesjs-provider'
 
 const { Content } = Layout;
 
@@ -59,39 +68,62 @@ export function ConfirmManager({ setCurrStepNumber }: { setCurrStepNumber: (step
                         setTransactionIsLoading(true);
 
                         try {
+                            const chain = {
+                                chainId: 1,
+                                cosmosChainId: 'bitbadges_1-1',
+                            }
 
-                            const data = {
-                                "account_number": 1527075,
-                                "chain_id": "evmos_9001-2",
-                                "fee": {
-                                    "amount": [
-                                        {
-                                            "amount": 0,
-                                            "denom": "aevmos"
-                                        }
-                                    ],
-                                    "gas": 350000,
-                                    "feePayer": "evmos1uqxan5ch2ulhkjrgmre90rr923932w38fjqlj5"
-                                },
-                                "memo": "",
-                                "msgs": [
-                                    {
-                                        "type": "cosmos-sdk/MsgVote",
-                                        "value": {
-                                            "proposal_id": 50,
-                                            "voter": "evmos1uqxan5ch2ulhkjrgmre90rr923932w38fjqlj5",
-                                            "option": 1
-                                        }
-                                    }
-                                ],
-                                "sequence": 0,
-                            };
+                            const sender = {
+                                accountAddress: 'cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu',
+                                sequence: 3,
+                                accountNumber: 10,
+                                pubkey: 'AqkV2EK+E9+ChEbZLCK0NCuWCrtUoMd04/2DANz82l/x',
+                            }
 
-                            console.log(data);
+                            const fee = {
+                                amount: '1',
+                                denom: 'token',
+                                gas: '200000',
+                            }
 
-                            await chain.signTxn(EIP712_REGISTER_ADDRESS_TXN, data)
+                            const memo = "asdjhsdf"
 
-                            await signAndSubmitTxn('/badges/registerAddresses', data);
+                            let msgRegisterAddressesParams = {
+                                creator: 'cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu',
+                                addressesToRegister: ['cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu', 'cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu'],
+                            }
+                            let msgRegisterAddresses = createTxMsgRegisterAddresses(chain, sender, fee, memo, msgRegisterAddressesParams)
+
+                            console.log("BitBadges MsgRegisterAddresses", msgRegisterAddresses)
+                            let msgRegisterAddressesSig = await window.ethereum.request({
+                                method: 'eth_signTypedData_v4',
+                                params: [cosmosToEth(sender.accountAddress), JSON.stringify(msgRegisterAddresses.eipToSign)],
+                            })
+
+                            // The chain and sender objects are the same as the previous example
+                            let msgRegisterAddressesExtension = signatureToWeb3Extension(chain, sender, msgRegisterAddressesSig)
+                            console.log("BitBadges MsgRegisterAddresses Extension", msgRegisterAddressesExtension)
+
+                            // Create the txRaw
+                            let rawTx = createTxRawEIP712(
+                                msgRegisterAddresses.legacyAmino.body,
+                                msgRegisterAddresses.legacyAmino.authInfo,
+                                msgRegisterAddressesExtension,
+                            )
+
+                            // Broadcast it
+                            const postOptions = {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: generatePostBodyBroadcast(rawTx),
+                            }
+
+                            let broadcastPost = await fetch(
+                                `http://localhost:1317${generateEndpointBroadcast()}`,
+                                postOptions,
+                            )
+                            let res = await broadcastPost.json()
+                            console.log("BITBADGES TX MSGREGISTERADDRESSES RESPONSE FROM NODE", res)
 
                             setTransactionIsLoading(false);
                             setAddressNotRegistered(false);

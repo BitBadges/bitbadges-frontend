@@ -4,12 +4,6 @@ import store from '../redux/store';
 import axios from 'axios';
 import { userActions } from '../redux/userSlice';
 import { NODE_URL, PRIVATE_API_URL } from '../constants';
-import {
-    EIP712_TXN_TYPE_IDS,
-    // EIP712_PENDING_TXN,
-    EIP712_BITBADGES_DOMAIN,
-    EIP712_REGISTER_ADDRESS_TXN,
-} from './eip712Types';
 import { message } from 'antd';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
 
@@ -168,130 +162,55 @@ export async function getBadgeDataForAddress(
     };
 }
 
-const txnParamsMap: any = {
-    '/badges/registerAddresses': {
-        txnType: EIP712_TXN_TYPE_IDS.EIP712_REGISTER_ADDRESS_TXN,
-        eip712types: EIP712_REGISTER_ADDRESS_TXN,
-    }
-    // '/badges/accept': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_PENDING_TXN,
-    //     eip712Types: EIP712_PENDING_TXN,
-    // },
-    // '/badges/decline': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_PENDING_TXN,
-    //     eip712Types: EIP712_PENDING_TXN,
-    // },
-    // '/badges/create': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_CREATE_BADGE_TXN,
-    //     eip712Types: EIP712_CREATE_BADGE_TXN,
-    // },
-    // '/badges/lockRevoke': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_LOCK_TXN,
-    //     eip712Types: EIP712_LOCK_TXN,
-    // },
-    // '/badges/lockSupply': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_LOCK_TXN,
-    //     eip712Types: EIP712_LOCK_TXN,
-    // },
-    // '/badges/mint': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINT_TXN,
-    //     eip712Types: EIP712_MINT_TXN,
-    // },
-    // '/badges/burn': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_REVOKE_TXN,
-    //     eip712Types: EIP712_REVOKE_TXN,
-    // },
-    // '/badges/transfer': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINT_TXN,
-    //     eip712Types: EIP712_MINT_TXN,
-    // },
-    // '/badges/transferManager': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_TRANSFERMANAGER_TXN,
-    //     eip712Types: EIP712_TRANSFERMANAGER_TXN,
-    // },
-    // '/badges/addMintRequest': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTREQUEST_TXN,
-    //     eip712Types: EIP712_MINTREQUEST_TXN,
-    // },
-    // '/badges/removeMintRequest': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTREQUEST_TXN,
-    //     eip712Types: EIP712_MINTREQUEST_TXN,
-    // },
-    // '/badges/mintFromMintApproval': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTREQUEST_TXN,
-    //     eip712Types: EIP712_MINTREQUEST_TXN,
-    // },
-    // '/badges/addMintApproval': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTAPPROVAL_TXN,
-    //     eip712Types: EIP712_MINTAPPROVAL_TXN,
-    // },
-    // '/badges/removeMintApproval': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTAPPROVAL_TXN,
-    //     eip712Types: EIP712_MINTAPPROVAL_TXN,
-    // },
-    // '/badges/acceptFromMintRequestToMintApproval': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTAPPROVAL_TXN,
-    //     eip712Types: EIP712_MINTAPPROVAL_TXN,
-    // },
-    // '/badges/approve': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_MINTAPPROVAL_TXN,
-    //     eip712Types: EIP712_MINTAPPROVAL_TXN,
-    // },
-    // '/badges/removeApprovalById': {
-    //     txnType: EIP712_TXN_TYPE_IDS.EIP712_REMOVEAPPROVAL_TXN,
-    //     eip712Types: EIP712_REMOVEAPPROVAL_TXN,
-    // },
-};
-
 export async function signAndSubmitTxn(route: string, data: any) {
-    const currState = store.getState();
+    // const currState = store.getState();
 
-    const address = chain.address
+    // const address = chain.address
 
-    const txnParams = txnParamsMap[route];
+    // const txnParams = txnParamsMap[route];
 
 
-    const transaction = data;
-    console.log(transaction)
+    // const transaction = data;
+    // console.log(transaction)
 
-    console.log(transaction);
-    console.log(txnParams)
-    console.log(transaction)
-    console.log(userSigner); //TODO: userSigner is undefined
-    const signature = await userSigner._signTypedData(
-        EIP712_BITBADGES_DOMAIN,
-        txnParams.eip712Types,
-        transaction
-    );
+    // console.log(transaction);
+    // console.log(txnParams)
+    // console.log(transaction)
+    // console.log(userSigner); //TODO: userSigner is undefined
+    // const signature = await userSigner._signTypedData(
+    //     EIP712_BITBADGES_DOMAIN,
+    //     txnParams.eip712Types,
+    //     transaction
+    // );
 
-    const body = {
-        authentication: {
-            chain,
-            address,
-            signature,
-        },
-        transaction,
-    };
+    // const body = {
+    //     authentication: {
+    //         chain,
+    //         address,
+    //         signature,
+    //     },
+    //     transaction,
+    // };
 
-    let error = false;
-    await axios
-        .post(`${NODE_URL}${route}`, body)
-        .then(() => {
-            message.success(`Successfully submitted transaction.`);
-        })
-        .catch((err) => {
-            message.error(
-                `Failed to Submit Transaction: ${err.response.data.error}`
-            );
-            error = true;
-        });
+    // let error = false;
+    // await axios
+    //     .post(`${NODE_URL}${route}`, body)
+    //     .then(() => {
+    //         message.success(`Successfully submitted transaction.`);
+    //     })
+    //     .catch((err) => {
+    //         message.error(
+    //             `Failed to Submit Transaction: ${err.response.data.error}`
+    //         );
+    //         error = true;
+    //     });
 
-    if (error) {
-        return error;
-    } else {
-        getBadgeDataForAddress(chain, address, true);
-        return error;
-    }
+    // if (error) {
+    //     return error;
+    // } else {
+    //     getBadgeDataForAddress(chain, address, true);
+    //     return error;
+    // }
 }
 
 export async function signAndSubmitPrivateApiTxn(route: any, data: any) {

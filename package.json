@@ -1,5 +1,5 @@
 {
-  "name": "blockin-demo",
+  "name": "bitbadges-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
-    "@fortawesome/fontawesome-svg-core": "^6.1.2",
-    "@fortawesome/free-solid-svg-icons": "^6.1.2",
+    "@fortawesome/fontawesome-svg-core": "^6.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@json-rpc-tools/utils": "^1.7.6",
     "@reduxjs/toolkit": "^1.8.5",
@@ -19,13 +19,15 @@
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/types": "^1.8.0",
     "@walletconnect/web3-provider": "^1.8.0",
-    "antd": "^4.22.7",
-    "bitbadgesjs": "^0.0.1",
+    "antd": "^4.23.0",
+    "bitbadgesjs-address-converter": "^0.0.2",
+    "bitbadgesjs-provider": "^0.0.2",
+    "bitbadgesjs-transactions": "^0.0.34",
     "blockin": "^1.2.12",
     "blockin-algo-driver": "^1.0.2",
     "blockin-eth-driver": "^1.0.9",
     "crypto-browserify": "^3.12.0",
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.0.2",
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.7.0",
     "isuri": "^2.0.3",
@@ -39,16 +41,16 @@
     "react-router-dom": "^6.3.0",
     "tweetnacl": "^1.0.3",
     "web3": "^1.7.5",
-    "web3modal": "^1.9.8"
+    "web3modal": "^1.9.9"
   },
   "devDependencies": {
     "@types/node": "17.0.23",
-    "@types/papaparse": "^5.3.3",
+    "@types/papaparse": "^5.3.5",
     "@types/react": "18.0.1",
     "@types/react-blockies": "^1.4.1",
     "@types/react-dom": "18.0.0",
     "eslint": "8.13.0",
     "eslint-config-next": "12.1.4",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.2"
   }
 }
