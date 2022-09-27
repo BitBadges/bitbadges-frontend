@@ -1,4 +1,4 @@
-import Web3 from 'web3';
+import { ethers } from 'ethers';
 import { PRIMARY_TEXT } from '../constants';
 import {
     getAbbreviatedAddress,
@@ -54,7 +54,7 @@ export function RecipientList({
                                     style={{
                                         color:
                                             showWarnings &&
-                                                !Web3.utils.isAddress(
+                                                !ethers.utils.isAddress(
                                                     getAddressFromPartitionedAddress(
                                                         recipient.to
                                                     )

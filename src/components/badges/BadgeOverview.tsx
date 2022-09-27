@@ -1,4 +1,4 @@
-import { Address } from './Address';
+import { Address } from '../Address';
 import { Avatar, Tooltip, Divider, Alert, Typography } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
@@ -11,17 +11,22 @@ import {
     UnlockFilled,
     RollbackOutlined,
 } from '@ant-design/icons';
-import { MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../constants';
+import { MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;
 
-export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
-    conceptBadge: boolean;
+export function BadgeModalOverview({ conceptBadge, badge, hidePermissions }: {
+    conceptBadge?: boolean;
     badge: any; //TODO
     hidePermissions?: boolean;
 }) {
+    if (!badge) return <></>
+
     return (
-        <>
+        <div
+            style={{
+                color: PRIMARY_TEXT,
+            }}>
             {conceptBadge && (
                 <Alert
                     style={{ textAlign: 'center' }}
@@ -42,17 +47,17 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     style={{
                         verticalAlign: 'middle',
                         border: '3px solid',
-                        borderColor: badge.metadata.color
-                            ? badge.metadata.color
+                        borderColor: badge.metadata?.color
+                            ? badge.metadata?.color
                             : 'black',
                         margin: 4,
-                        backgroundColor: badge.metadata.image
+                        backgroundColor: badge.metadata?.image
                             ? PRIMARY_TEXT
-                            : badge.metadata.color,
+                            : badge.metadata?.color,
                     }}
                     // className="badge-avatar"   //For scaling on hover
                     src={
-                        badge.metadata.image ? badge.metadata.image : undefined
+                        badge.metadata?.image ? badge.metadata?.image : undefined
                     }
                     size={200}
                     onError={() => {
@@ -68,7 +73,7 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                 }}
             >
                 <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
-                    {badge.metadata.name}
+                    {badge.metadata?.name}
                 </Text>
             </div>
             {!hidePermissions && (
@@ -81,16 +86,15 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     }}
                 >
                     <Tooltip
-                        title={`Valid ${
-                            badge.metadata.validFrom.end !== MAX_DATE_TIMESTAMP
-                                ? 'Until ' +
-                                  new Date(
-                                      badge.metadata.validFrom.end
-                                  ).toLocaleDateString()
-                                : 'Forever'
-                        }`}
+                        title={`Valid ${badge.metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
+                            ? 'Until ' +
+                            new Date(
+                                badge.metadata?.validFrom?.end
+                            ).toLocaleDateString()
+                            : 'Forever'
+                            }`}
                     >
-                        {Date.now() <= badge.metadata.validFrom.end ? (
+                        {Date.now() <= badge.metadata?.validFrom?.end ? (
                             <CheckCircleFilled
                                 style={{
                                     fontSize: 30,
@@ -108,11 +112,10 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </Tooltip>
                     <Divider type="vertical" />
                     <Tooltip
-                        title={`${
-                            badge.permissions.canMintMore
-                                ? `Supply (${badge.supply}) is Not Locked`
-                                : `Supply (${badge.supply}) is Locked`
-                        }`}
+                        title={`${badge.permissions.canMintMore
+                            ? `Supply (${badge.supply}) is Not Locked`
+                            : `Supply (${badge.supply}) is Locked`
+                            }`}
                     >
                         {badge.permissions.canMintMore ? (
                             <UnlockFilled style={{ fontSize: 30 }} />
@@ -122,11 +125,10 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </Tooltip>
                     <Divider type="vertical" />
                     <Tooltip
-                        title={`${
-                            badge.permissions.canOwnerTransfer
-                                ? 'Transferable'
-                                : 'Non-Transferable'
-                        }`}
+                        title={`${badge.permissions.canOwnerTransfer
+                            ? 'Transferable'
+                            : 'Non-Transferable'
+                            }`}
                     >
                         {badge.permissions.canOwnerTransfer ? (
                             <SwapOutlined style={{ fontSize: 30 }} />
@@ -139,11 +141,10 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </Tooltip>
                     <Divider type="vertical" />
                     <Tooltip
-                        title={`${
-                            badge.permissions.canRevoke
-                                ? 'Revocable by Manager'
-                                : 'Non-Revocable'
-                        }`}
+                        title={`${badge.permissions.canRevoke
+                            ? 'Revocable by Manager'
+                            : 'Non-Revocable'
+                            }`}
                     >
                         {badge.permissions.canRevoke ? (
                             <RollbackOutlined style={{ fontSize: 30 }} />
@@ -156,7 +157,7 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </Tooltip>
                 </div>
             )}
-            
+
             <div
                 style={{
                     display: 'flex',
@@ -195,7 +196,7 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </div>
                     <div>
                         <Address
-                            address={badge.metadata.creator.split(':')[1]}
+                            address={badge.metadata?.creator?.split(':')[1]}
                             fontColor="lightgrey"
                             fontSize={18}
                             showTooltip
@@ -203,7 +204,7 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                     </div>
                 </div>
             </div>
-            {badge.metadata.url && (
+            {badge.metadata?.url && (
                 <>
                     <div
                         style={{
@@ -214,17 +215,17 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                         }}
                     >
                         <a
-                            href={badge.metadata.url}
+                            href={badge.metadata?.url}
                             target="_blank"
                             rel="noreferrer"
                         >
-                            {badge.metadata.url}
+                            {badge.metadata?.url}
                         </a>
                         <br />
                     </div>
                 </>
             )}
-            {badge.metadata.description && (
+            {badge.metadata?.description && (
                 <>
                     <Divider style={{ margin: '4px 0px' }} />
                     <div
@@ -235,11 +236,11 @@ export function BadgeModalOverview({ conceptBadge, badge, hidePermissions } :{
                             textAlign: 'center',
                         }}
                     >
-                        {badge.metadata.description}
+                        {badge.metadata?.description}
                         <br />
                     </div>
                 </>
             )}
-        </>
+        </div>
     );
 }

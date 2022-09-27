@@ -24,61 +24,68 @@ export const defaultProfileInfo = {
 export const userSlice = createSlice({
     name: 'user',
     initialState: {
-        nonce: 0,
-        chain: 'ETH',
+        sequence: 0,
         address: undefined,
-        userSigner: undefined,
-        injectedProvider: undefined,
-        userPendingBadges: [],
-        userCreatedBadges: [],
-        userReceivedBadges: [],
-        userBalancesMap: {},
-        numPending: 0,
-        badgeMap: {},
+        publicKey: undefined,
+        accountNumber: undefined,
+        isRegistered: false,
+
+
+        // userPendingBadges: [],
+        // userCreatedBadges: [],
+        // userReceivedBadges: [],
+        // userBalancesMap: {},
+        // numPending: 0,
+        // badgeMap: {},
         profileInfo: {
             ...defaultProfileInfo,
         },
     },
     reducers: {
-        incrementNonce: (state) => {
-            state.nonce += 1;
+        incrementSequence: (state: any) => {
+            state.sequence += 1;
         },
-        setNonce: (state, action) => {
-            state.nonce = action.payload;
+        setSequence: (state: any, action: any) => {
+            state.sequence = action.payload;
         },
-        setInjectedProvider: (state, action) => {
-            state.injectedProvider = action.payload;
-        },
-        setUserSigner: (state, action) => {
-            state.userSigner = action.payload;
-        },
-        setAddress: (state, action) => {
+        setAddress: (state: any, action: any) => {
             state.address = action.payload;
         },
-        setUserPendingBadges: (state, action) => {
-            state.userPendingBadges = action.payload;
+        setPublicKey: (state: any, action: any) => {
+            state.publicKey = action.payload;
         },
-        setUserCreatedBadges: (state, action) => {
-            state.userCreatedBadges = action.payload;
+        setAccountNumber: (state: any, action: any) => {
+            state.accountNumber = action.payload;
         },
-        setUserReceivedBadges: (state, action) => {
-            state.userReceivedBadges = action.payload;
+        setIsRegistered: (state: any, action: any) => {
+            state.isRegistered = action.payload;
         },
-        setUserBalancesMap: (state, action) => {
-            state.userBalancesMap = action.payload;
-        },
-        setNumPending: (state, action) => {
-            state.numPending = action.payload;
-        },
-        setBadgeMap: (state, action) => {
-            state.badgeMap = {
-                ...state.badgeMap,
-                ...action.payload,
-            };
-        },
-        setProfileInfo: (state, action) => {
-            state.profileInfo = action.payload;
-        },
+
+
+        // setUserPendingBadges: (state: any, action: any) => {
+        //     state.userPendingBadges = action.payload;
+        // },
+        // setUserCreatedBadges: (state, action) => {
+        //     state.userCreatedBadges = action.payload;
+        // },
+        // setUserReceivedBadges: (state, action) => {
+        //     state.userReceivedBadges = action.payload;
+        // },
+        // setUserBalancesMap: (state, action) => {
+        //     state.userBalancesMap = action.payload;
+        // },
+        // setNumPending: (state, action) => {
+        //     state.numPending = action.payload;
+        // },
+        // setBadgeMap: (state, action) => {
+        //     state.badgeMap = {
+        //         ...state.badgeMap,
+        //         ...action.payload,
+        //     };
+        // },
+        // setProfileInfo: (state, action) => {
+        //     state.profileInfo = action.payload;
+        // },
     },
 });
 

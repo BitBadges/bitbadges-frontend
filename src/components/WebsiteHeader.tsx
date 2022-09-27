@@ -1,7 +1,6 @@
 import Search from 'antd/lib/input/Search';
 import { useSelector } from 'react-redux';
 import { Tabs } from './Tabs';
-import Web3 from 'web3';
 import Blockies from 'react-blockies';
 import {
     GlobalOutlined,
@@ -18,6 +17,7 @@ import { useRouter } from 'next/router';
 import { BlockinDisplay } from './BlockinDisplay';
 import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
+import { ethers } from 'ethers';
 
 const { Header } = Layout;
 const { Option } = Select;
@@ -32,12 +32,12 @@ export function WalletHeader() {
         //TODO: give them options to search for a badge or a user
         if (!value) return;
 
-        if (!Web3.utils.isAddress(value)) {
-            message.warn(`${value} is not a valid ETH address.`, 1);
-            return;
+        if (ethers.utils.isAddress(value)) {
+            router.push('/user/ETH:' + value);
         }
 
-        router.push('/user/ETH:' + value);
+
+        router.push('/badges/' + value);
     };
 
     const HomeTabMenu = <></>

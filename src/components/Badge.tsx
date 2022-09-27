@@ -13,8 +13,7 @@ import { useState } from 'react';
 import React from 'react';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { signAndSubmitPrivateApiTxn } from '../api/api';
-import { BadgeModal } from './BadgeModal';
+// import { signAndSubmitPrivateApiTxn } from '../api/api';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
 
 export function Badge({
@@ -98,21 +97,22 @@ export function Badge({
 
                                 // console.log(data);
 
-                                if (conceptBadge) {
-                                    const error =
-                                        await signAndSubmitPrivateApiTxn(
-                                            '/badges/removeConcept',
-                                            data
-                                        );
-                                    console.log(error);
-                                } else {
-                                    const error =
-                                        await signAndSubmitPrivateApiTxn(
-                                            '/badges/removeOffering',
-                                            data
-                                        );
-                                    console.log(error);
-                                }
+                                // if (conceptBadge) {
+                                //TODO:
+                                //     const error =
+                                //         await signAndSubmitPrivateApiTxn(
+                                //             '/badges/removeConcept',
+                                //             data
+                                //         );
+                                //     console.log(error);
+                                // } else {
+                                //     const error =
+                                //         await signAndSubmitPrivateApiTxn(
+                                //             '/badges/removeOffering',
+                                //             data
+                                //         );
+                                //     console.log(error);
+                                // }
                             } catch (err) {
                                 // setTxnSubmitted(false);
                                 // setTransactionIsLoading(false);
@@ -136,11 +136,12 @@ export function Badge({
                                     badgeId: badge._id,
                                 };
 
-                                const error = await signAndSubmitPrivateApiTxn(
-                                    '/badges/addOffering',
-                                    data
-                                );
-                                console.log(error);
+                                //TODO:
+                                // const error = await signAndSubmitPrivateApiTxn(
+                                //     '/badges/addOffering',
+                                //     data
+                                // );
+                                // console.log(error);
                             } catch (err) {
                                 // setTxnSubmitted(false);
                                 // setTransactionIsLoading(false);
@@ -188,12 +189,13 @@ export function Badge({
                                             badgeId: badge._id,
                                         };
 
-                                        const error =
-                                            await signAndSubmitPrivateApiTxn(
-                                                '/badges/unlike',
-                                                data
-                                            );
-                                        console.log(error);
+                                        //TODO:
+                                        // const error =
+                                        //     await signAndSubmitPrivateApiTxn(
+                                        //         '/badges/unlike',
+                                        //         data
+                                        //     );
+                                        // console.log(error);
                                     } catch (err) {
                                         // setTxnSubmitted(false);
                                         // setTransactionIsLoading(false);
@@ -208,16 +210,18 @@ export function Badge({
                                     event.stopPropagation();
 
                                     try {
-                                        const data = {
-                                            badgeId: badge._id,
-                                        };
+                                        // const data = {
 
-                                        const error =
-                                            await signAndSubmitPrivateApiTxn(
-                                                '/badges/like',
-                                                data
-                                            );
-                                        console.log(error);
+                                        //     badgeId: badge._id,
+                                        // };
+
+                                        //TODO:
+                                        // const error =
+                                        //     await signAndSubmitPrivateApiTxn(
+                                        //         '/badges/like',
+                                        //         data
+                                        //     );
+                                        // console.log(error);
 
                                         // setTransactionIsLoading(false);
                                     } catch (err) {
@@ -233,6 +237,7 @@ export function Badge({
         </>
     );
 
+    console.log(badge)
     return (
         <>
             <Card
@@ -259,18 +264,20 @@ export function Badge({
                             style={{
                                 verticalAlign: 'middle',
                                 border: '3px solid',
-                                borderColor: badge.metadata.color
+                                borderColor: badge.metadata?.color
                                     ? badge.metadata.color
                                     : 'black',
                                 margin: '1rem',
                                 cursor: 'pointer',
-                                backgroundColor: badge.metadata.image
+                                backgroundColor: badge.metadata?.image
                                     ? PRIMARY_TEXT
-                                    : badge.metadata.color,
+                                    : (badge.metadata?.color
+                                        ? badge.metadata.color
+                                        : 'black'),
                             }}
                             // className="badge-avatar"   //For scaling on hover
                             src={
-                                badge.metadata.image
+                                badge.metadata?.image
                                     ? badge.metadata.image
                                     : undefined
                             }
@@ -291,7 +298,7 @@ export function Badge({
                                 fontWeight: 'bolder',
                             }}
                         >
-                            {badge.metadata.name}
+                            {badge.metadata?.name}
                         </div>
                     }
                     description={
@@ -328,16 +335,6 @@ export function Badge({
                     }
                 />
             </Card>
-
-            {!hideModal && (
-                <BadgeModal
-                    modalIsVisible={modalIsVisible}
-                    setModalIsVisible={setModalIsVisible}
-                    conceptBadge={conceptBadge}
-                    badge={badge}
-                    hidePermissions={hidePermissions}
-                />
-            )}
         </>
     );
 }

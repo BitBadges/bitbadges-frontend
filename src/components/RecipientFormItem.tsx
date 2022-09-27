@@ -13,9 +13,9 @@ import {
     message,
 } from 'antd';
 import React from 'react';
-import web3 from 'web3';
 import Papa from 'papaparse';
 import { useState } from 'react';
+import { ethers } from 'ethers';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -63,7 +63,7 @@ export function RecipientFormItem({ setRecipients, recipients }: {
 
                     if (
                         chain !== 'ETH' ||
-                        !web3.utils.isAddress(address) ||
+                        !ethers.utils.isAddress(address) ||
                         amount <= 0
                     ) {
                         illegalEntriesArr.push({
@@ -218,7 +218,7 @@ export function RecipientFormItem({ setRecipients, recipients }: {
                                 }}
                                 disabled={
                                     addedUserAmount <= 0 ||
-                                    !web3.utils.isAddress(addedUserAddress)
+                                    !ethers.utils.isAddress(addedUserAddress)
                                 }
                                 style={{ width: '48%' }}
                             >

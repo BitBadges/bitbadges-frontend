@@ -27,10 +27,10 @@ export function Address({
     let displayAddress = '';
 
     if (address) {
-        displayAddress = getAbbreviatedAddress('ETH: ' + address);
+        displayAddress = 'ETH: ' + getAbbreviatedAddress(address);
 
         if (size === 'long') {
-            displayAddress = address;
+            displayAddress = 'ETH: ' + address;
         }
     } else {
         displayAddress = 'Please Enter an Address';
@@ -39,7 +39,13 @@ export function Address({
     const innerContent = showTooltip ? (
         <Tooltip
             placement="bottom"
-            title={`ETH:${address}`}
+            title={
+                <div style={{
+                    textAlign: 'center',
+                }}>
+                    {`${address}`}
+                </div>
+            }
             style={{
                 display: 'flex',
                 alignItems: 'center',

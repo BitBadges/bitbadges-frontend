@@ -1,5 +1,5 @@
-import { RecipientFormItem } from './RecipientFormItem';
-import { BurnOwnerFormItem } from './BurnOwnerFormItem';
+import { RecipientFormItem } from '../RecipientFormItem';
+import { BurnOwnerFormItem } from '../BurnOwnerFormItem';
 import {
     Avatar,
     Button,
@@ -27,10 +27,9 @@ import {
     DeleteOutlined,
 } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { signAndSubmitTxn } from '../api/api';
-import web3 from 'web3';
-import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
-import { RecipientList } from './RecipientList';
+import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { RecipientList } from '../RecipientList';
+import { ethers } from 'ethers';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -40,7 +39,7 @@ export function BadgeModalManagerActions({
     badge,
     hidePermissions,
 }: {
-    conceptBadge: any; //TODO
+    conceptBadge?: any; //TODO
     badge: any;
     hidePermissions?: boolean;
 }) {
@@ -105,7 +104,8 @@ export function BadgeModalManagerActions({
         setTxnSubmitted(true);
         setTransactionIsLoading(true);
 
-        await signAndSubmitTxn(route, data);
+        // await signAndSubmitTxn(route, data);
+        //TODO:
 
         setTransactionIsLoading(false);
     };
@@ -529,9 +529,9 @@ export function BadgeModalManagerActions({
                                         data,
                                         '/badges/transferManager'
                                     );
-                                }, txnSubmitted || !web3.utils.isAddress(newManagerAddress))}
+                                }, txnSubmitted || !ethers.utils.isAddress(newManagerAddress))}
 
-                                {!web3.utils.isAddress(newManagerAddress) && (
+                                {!ethers.utils.isAddress(newManagerAddress) && (
                                     <Text>*Invalid address specified</Text>
                                 )}
                                 <Divider />

@@ -1,19 +1,10 @@
 import '../styles/index.css'
 import type { AppProps } from 'next/app'
-import { useEffect, useState } from 'react'
-import WalletConnect from '@walletconnect/client'
-import { ChainContextProvider, SignChallengeResponse } from '../chain_handlers_frontend/ChainContext';
-import { connect as algorandConnect } from '../chain_handlers_frontend/algorand/WalletConnect';
-import { AlgorandContext, AlgorandContextProvider } from '../chain_handlers_frontend/algorand/AlgorandContext';
-import { PresetResource } from 'blockin';
-import Web3Modal from "web3modal";
-import { ethers } from "ethers";
-import { EthereumContext, EthereumContextProvider } from '../chain_handlers_frontend/ethereum/EthereumContext';
-import { web3ModalActions } from '../redux/web3ModalSlice';
-import { useDispatch } from 'react-redux';
+import { ChainContextProvider } from '../chain_handlers_frontend/ChainContext';
+import { AlgorandContextProvider } from '../chain_handlers_frontend/algorand/AlgorandContext';
+import { EthereumContextProvider } from '../chain_handlers_frontend/ethereum/EthereumContext';
 import { Layout } from 'antd';
 import { WalletHeader } from '../components/WebsiteHeader';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { WalletFooter } from '../components/WebsiteFooter';
 import store from '../redux/store';
 import { Provider } from 'react-redux';

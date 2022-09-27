@@ -1,33 +1,34 @@
 import { useNavigate } from 'react-router-dom';
-import { Badge } from './Badge';
+import { Badge } from '../Badge';
 import { Typography, Form, Button, Row, Col, Statistic } from 'antd';
 import React from 'react';
 import { useState } from 'react';
-import { signAndSubmitTxn } from '../api/api';
+// import { signAndSubmitTxn } from '../../api/api';
 import { useSelector } from 'react-redux';
-import { LINK_COLOR, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
+import { CHAIN_DETAILS, LINK_COLOR, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
+import { createTxMsgNewBadge, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
+import { getSenderInformation, broadcastTransaction } from '../../api/api';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
-const CURR_TIMELINE_STEP_NUM = 3;
+const CURR_TIMELINE_STEP_NUM = 2;
 
 export function TransactionDetails({
     setTimelineStepNumber,
     badge,
-    recipients,
-    permissions,
 }: {
     setTimelineStepNumber: (stepNum: number) => void;
     badge: any;
-    recipients: any[];
-    permissions: any;
 }) {
     const [stepNum, setStepNum] = useState(1);
     const [transactionIsLoading, setTransactionIsLoading] = useState(false);
     const [txnSubmitted, setTxnSubmitted] = useState(false);
     const address = useSelector((state: any) => state.user.address);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
+    const chain = useChainContext();
 
     const incrementStep = () => {
         if (stepNum === FINAL_STEP_NUM) {
@@ -87,10 +88,10 @@ export function TransactionDetails({
                             }}
                             strong
                         >
-                            Transaction Details
+                            Mint Badge
                         </Typography.Text>
                     </div>
-                    <span
+                    {/* <span
                         style={{
                             verticalAlign: 'middle',
                             fontSize: 12,
@@ -144,7 +145,7 @@ export function TransactionDetails({
                                 {getStatisticElem('Total Fee', 'N/A')}
                             </Col>
                         </Row>
-                    </span>
+                    </span> */}
                 </div>
                 <div
                     style={{
@@ -163,24 +164,60 @@ export function TransactionDetails({
                             setTransactionIsLoading(true);
 
                             try {
-                                const data = {
-                                    metadata: {
-                                        ...badge,
+                                const sender = await getSenderInformation(chain.getPublicKey);
+                                const fee = {
+                                    amount: '1',
+                                    denom: 'token',
+                                    gas: '200000',
+                                }
+
+                                const supplys = [];
+                                const amounts = [];
+                                for (const supplyObj of badge.subassetSupplys) {
+                                    supplys.push(supplyObj.supply);
+                                    amounts.push(supplyObj.amount);
+                                }
+                                //TODO: remove hardcoded stuff
+                                let msgNewBadgeParams = {
+                                    creator: address,
+                                    //IPFS URI (not image or externalUrl)
+                                    uri: {
+                                        uri: 'http://facebook.com', //TODO:
+                                        decodeScheme: 0,
+                                        scheme: 0,
+                                        idxRangeToRemove: {
+                                            start: 0,
+                                            end: 0,
+                                        },
+                                        insertSubassetBytesIdx: 0,
+                                        bytesToInsert: '',
+                                        insertIdIdx: 0,
                                     },
-                                    recipients,
-                                    permissions,
-                                };
+                                    arbitraryBytes: '',
+                                    permissions: badge.permissions,
+                                    defaultSubassetSupply: badge.defaultSubassetSupply,
+                                    freezeAddressRanges: badge.freezeAddressRanges ? badge.freezeAddressRanges : [],
+                                    standard: badge.standard,
+                                    subassetSupplys: supplys,
+                                    subassetAmountsToCreate: amounts,
+                                }
 
-                                console.log(data);
+                                let msgRegisterAddresses = createTxMsgNewBadge(
+                                    CHAIN_DETAILS,
+                                    sender,
+                                    fee,
+                                    '',
+                                    msgNewBadgeParams
+                                )
+                                console.log(msgRegisterAddresses)
 
-                                await signAndSubmitTxn('/badges/create', data);
+                                const rawTx = await chain.signTxn(msgRegisterAddresses)
+                                await broadcastTransaction(rawTx);
 
-                                window.localStorage.setItem(
-                                    'savedBadgeData',
-                                    '{}'
-                                );
                                 setTransactionIsLoading(false);
+                                setTxnSubmitted(false); //TODO: remove this added this for debug
                             } catch (err) {
+                                console.log(err);
                                 setTxnSubmitted(false);
                                 setTransactionIsLoading(false);
                             }
@@ -230,7 +267,7 @@ export function TransactionDetails({
                                     <button
                                         className="link-button-nav"
                                         style={{ color: LINK_COLOR }}
-                                        onClick={() => navigate('/account')}
+                                    // onClick={() => navigate('/account')}
                                     >
                                         your portfolio
                                     </button>{' '}
@@ -245,7 +282,7 @@ export function TransactionDetails({
                                     marginTop: 12,
                                 }}
                             >
-                                <Badge
+                                {/* <Badge
                                     size={150}
                                     badge={{
                                         metadata: {
@@ -254,7 +291,7 @@ export function TransactionDetails({
                                         permissions,
                                         manager: 'ETH:' + address,
                                     }}
-                                />
+                                /> */}
                             </div>
                         </>
                     )}

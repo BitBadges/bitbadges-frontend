@@ -18,19 +18,17 @@ import { BlockinDisplay } from './BlockinDisplay';
 import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
 import ConnectScreen from '../pages/connect';
+import RegisterScreen from '../pages/register';
 
 const { Header } = Layout;
 const { Option } = Select;
 
-export function DisconnectedWrapper({ node, message }: { node: JSX.Element, message?: string }) {
-    const chain = useChainContext();
-    const address = chain.address;
-    // const loggedIn = chain.loggedIn;
-    const loggedIn = true; //TODO: change
-    
+export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
+    const isRegistered = useSelector((state: any) => state.user.isRegistered);
+
     return (
         <>
-            {address && loggedIn ? node : <ConnectScreen message={message} />}
+            {isRegistered ? node : <RegisterScreen message={message} />}
         </>
     );
 }

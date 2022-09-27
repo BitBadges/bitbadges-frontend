@@ -2,9 +2,9 @@ import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { UserAddOutlined } from '@ant-design/icons';
 import { Typography, Form, Button, Input, Select, InputNumber } from 'antd';
 import React from 'react';
-import web3 from 'web3';
 import { useState } from 'react';
 import { RecipientList } from './RecipientList';
+import { ethers } from 'ethers';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -141,7 +141,7 @@ export function BurnOwnerFormItem({ setOwners, owners }: {
                             }}
                             disabled={
                                 addedUserAmount <= 0 ||
-                                !web3.utils.isAddress(addedUserAddress)
+                                !ethers.utils.isAddress(addedUserAddress)
                             }
                         >
                             Revoke {addedUserAmount} from{' '}

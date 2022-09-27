@@ -1,8 +1,8 @@
 import AlgoDriver from 'blockin-algo-driver';
-import EthDriver from 'blockin-eth-driver';
+import EthDriver from 'blockin-eth-driver-minified';
 
 export const getChainDriver = (chain: string) => {
-    const ethDriver = new EthDriver('eth', undefined);
+    const ethDriver = new EthDriver('eth');
     // {
     //     serverUrl: process.env.MORALIS_SERVER_URL ? process.env.MORALIS_SERVER_URL : '',
     //     appId: process.env.MORALIS_APP_ID ? process.env.MORALIS_APP_ID : '',

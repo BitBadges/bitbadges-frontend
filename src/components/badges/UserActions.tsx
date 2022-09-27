@@ -1,4 +1,4 @@
-import { RecipientFormItem } from './RecipientFormItem';
+import { RecipientFormItem } from '../RecipientFormItem';
 import {
     Avatar,
     Button,
@@ -28,9 +28,9 @@ import {
     DeleteOutlined,
 } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { signAndSubmitTxn } from '../api/api';
-import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
-import { RecipientList } from './RecipientList';
+// import { signAndSubmitTxn } from '../../api/api';
+import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { RecipientList } from '../RecipientList';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -138,7 +138,8 @@ export function BadgeModalUserActions({
         setTxnSubmitted(true);
         setTransactionIsLoading(true);
 
-        await signAndSubmitTxn(route, data);
+        TODO:
+        // await signAndSubmitTxn(route, data);
 
         setTransactionIsLoading(false);
     };

@@ -1,4 +1,4 @@
-import { BadgeDataForm } from './BadgeDataForm';
+import { BadgeDataForm } from './mint/BadgeDataForm';
 import { PermissionsForm } from './PermissionsForm';
 import { Badge } from './Badge';
 import { signAndSubmitPrivateApiTxn } from '../api/api';
@@ -6,7 +6,7 @@ import React from 'react';
 import { Button, Form, Typography } from 'antd';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FormNavigationHeader } from './FormNavigationHeader';
+import { FormNavigationHeader } from './mint/FormNavigationHeader';
 
 export function ConceptBadgeForm({ setConceptFormVisible }: { setConceptFormVisible: any }) {
     const [badge, setBadge] = useState<object>();

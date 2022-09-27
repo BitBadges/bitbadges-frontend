@@ -2,6 +2,7 @@
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { TypedDataField } from 'ethers';
 import { createContext, Dispatch, ReactComponentElement, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
+import { getAccountInformation } from '../api/api';
 import { useAlgorandContext } from './algorand/AlgorandContext';
 import { useEthereumContext } from './ethereum/EthereumContext';
 
@@ -35,7 +36,8 @@ export type ChainSpecificContextType = {
     disconnect: () => {},
     connect: () => {},
     signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
-    signTxn: (types: Record<string, TypedDataField[]>, txn: object) => Promise<void>,
+    signTxn: (txn: object) => Promise<any>,
+    getPublicKey: (cosmosAddress: string) => Promise<string>,
     displayedResources: PresetResource[],
     selectedChainInfo: SupportedChainMetadata | undefined,
     ownedAssetIds: string[],
@@ -54,6 +56,7 @@ const ChainContext = createContext<ChainContextType>({
     setAddress: () => { },
     signChallenge: async () => { return {} },
     signTxn: async () => { },
+    getPublicKey: async () => { return '' },
     chain: 'Default',
     setChain: () => { },
     ownedAssetIds: [],

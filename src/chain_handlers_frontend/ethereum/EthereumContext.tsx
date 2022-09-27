@@ -1,10 +1,17 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
+import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
+import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { PresetResource } from 'blockin';
 import { ethers, TypedDataField } from 'ethers';
 import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react';
 import Web3Modal from "web3modal";
-import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
+import { getAccountInformation, getSenderInformation } from '../../api/api';
+import { CHAIN_DETAILS } from '../../constants';
+// import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { ChainSpecificContextType } from '../ChainContext';
+import elliptic from "elliptic";
+import { Secp256k1 } from '@cosmjs/crypto'
+const secp256k1 = new elliptic.ec("secp256k1");
 
 export type EthereumContextType = ChainSpecificContextType & {
     web3Modal?: Web3Modal,
@@ -23,6 +30,7 @@ export const EthereumContext = createContext<EthereumContextType>({
     address: '',
     setAddress: () => { },
     signChallenge: async () => { return {} },
+    getPublicKey: async () => { return '' },
     signTxn: async () => { },
     ownedAssetIds: [],
     displayedResources: [],
@@ -86,9 +94,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         const address = await signer.getAddress();
         console.log("SIGNER", signer, address);
 
+        await getAccountInformation(ethToCosmos(address), true);
+
         setSigner(signer);
         setConnected(true);
         setAddress(await signer.getAddress());
+
+
     }
 
     const disconnect = async () => {
@@ -109,11 +121,46 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
     }
 
-    const signTxn = async (types: Record<string, TypedDataField[]>, txn: object) => {
-        console.log("TESTING")
-        console.log(signer, types, txn)
+    const signTxn = async (txn: any) => {
+        const chain = CHAIN_DETAILS;
+        const sender = await getSenderInformation(getPublicKey);
+        console.log(txn.eipToSign);
 
-        await signer?._signTypedData(EIP712_BITBADGES_DOMAIN, types, txn);
+        let sig = await window.ethereum.request({
+
+            method: 'eth_signTypedData_v4',
+            params: [cosmosToEth(sender.accountAddress), JSON.stringify(txn.eipToSign)],
+        })
+
+        let txnExtension = signatureToWeb3Extension(chain, sender, sig)
+
+        // Create the txRaw
+        let rawTx = createTxRawEIP712(
+            txn.legacyAmino.body,
+            txn.legacyAmino.authInfo,
+            txnExtension,
+        )
+
+        return rawTx;
+    }
+
+    const getPublicKey = async (cosmosAddress: string) => {
+        const message = 'Please sign this message, so we can generate your public key';
+
+        let sig = await window.ethereum.request({
+            method: 'personal_sign',
+            params: [message, cosmosToEth(cosmosAddress)],
+        })
+
+        const msgHash = ethers.utils.hashMessage(message);
+        const msgHashBytes = ethers.utils.arrayify(msgHash);
+        const pubKey = ethers.utils.recoverPublicKey(msgHashBytes, sig);
+
+
+        const pubKeyHex = pubKey.substring(2);
+        const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
+        const base64PubKey = Buffer.from(compressedPublicKey).toString('base64')
+        return base64PubKey;
     }
 
     const ethereumContext: EthereumContextType = {
@@ -134,6 +181,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setWeb3Modal,
         signer,
         setSigner,
+        getPublicKey,
     };
 
     return <EthereumContext.Provider value={ethereumContext}>
