@@ -1,7 +1,7 @@
 import { BadgeDataForm } from './mint/BadgeDataForm';
 import { PermissionsForm } from './PermissionsForm';
 import { Badge } from './Badge';
-import { signAndSubmitPrivateApiTxn } from '../api/api';
+import { signAndSubmitPrivateApiTxn } from '../bitbadges-api/api';
 import React from 'react';
 import { Button, Form, Typography } from 'antd';
 import { useState } from 'react';

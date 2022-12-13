@@ -4,7 +4,7 @@ import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateUrisDigit, ForcefulTransfersDigit, FrozenByDefaultDigit, GetPermissions, Permissions, UpdatePermissions } from '../../utils/permissions';
+import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateUrisDigit, ForcefulTransfersDigit, FrozenByDefaultDigit, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { ConfirmManager } from './ConfirmManager';
 import { CustomizeBadgeForm } from './CustomizeBadgeForm';
 import { Badge } from './MintTimeline';
@@ -89,7 +89,7 @@ export function StandardBadgeForm({
             items={[
                 {
                     title: 'Confirm Manager',
-                    description: 'Every badge needs a manager. Please confirm you are okay with the address below to be this badge\'s manager.',
+                    description: 'Every badge needs a manager. For this badge, the address below will be the manager.',
                     node: <ConfirmManager badge={badge} setBadge={setBadge} />
                 },
                 {
@@ -156,7 +156,7 @@ export function StandardBadgeForm({
                         isOptionTwoSelected={handledPermissions.CanCreate && badge.defaultSubassetSupply == 1}
                         selectedMessage={'Yes. Every minted badge will have its own unique characteristics (non-fungible).'}
                         unselectedMessage={`No. Every minted badge will have the same characteristics (fungible).`}
-                        helperMessage={`Note that if you only intend on creating one badge, this answer will not matter.`}
+                        helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
                     />,
                     disabled: badge.defaultSubassetSupply == undefined //This will change as well
                 },
@@ -761,20 +761,24 @@ export function StandardBadgeForm({
                             />
                         </Form.Item>
                     </div>
-                }
+                },
+                // {
+                //     title: 'Whitelisted Recipients',
+
+                // }
                 // {
                 //     title: 'Confirmations',
                 //     //See Old PermissionsForm.tsx and BadgeDataForm.tsx
                 //     description: ``,
                 //     node: <></>,
                 // },
+                //TODO: whitelist mint
                 //TODO: bytes and updateBytes
+                //TODO: more metadata!!!!!
                 //: TODO: previews
 
                 // {
-
                 // }
-
             ]}
             setCurrStepNumber={setCurrStepNumber}
         />

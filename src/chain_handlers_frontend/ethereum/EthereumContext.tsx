@@ -5,7 +5,7 @@ import { PresetResource } from 'blockin';
 import { ethers, TypedDataField } from 'ethers';
 import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react';
 import Web3Modal from "web3modal";
-import { getAccountInformation, getSenderInformation } from '../../api/api';
+import { getAccountInformation, getSenderInformation } from '../../bitbadges-api/api';
 import { CHAIN_DETAILS } from '../../constants';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { ChainSpecificContextType } from '../ChainContext';

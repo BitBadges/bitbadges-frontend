@@ -1,6 +1,4 @@
 //TODO: add this to bitbadges-js
-import { type } from 'os';
-
 export const NUM_PERMISSIONS = 8;
 
 export type Permissions = {

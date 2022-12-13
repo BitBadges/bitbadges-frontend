@@ -15,7 +15,7 @@ import {
     Input,
     Select,
 } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import {
     PlusOutlined,
@@ -31,18 +31,22 @@ import { useSelector } from 'react-redux';
 // import { signAndSubmitTxn } from '../../api/api';
 import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { RecipientList } from '../RecipientList';
+import { getBadgeBalance } from '../../bitbadges-api/api';
+import { BitBadge, UserBalance } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 const { Option } = Select;
 
-export function BadgeModalUserActions({
+export function UserBalanceDisplay({
     conceptBadge,
     badge,
     hidePermissions,
+    userBalance
 }: {
     conceptBadge?: boolean;
-    badge: any; //TODO
+    badge?: BitBadge;
     hidePermissions?: boolean;
+    userBalance?: UserBalance;
 }) {
     const [recipients, setRecipients] = useState([]);
     const [transactionIsLoading, setTransactionIsLoading] = useState(false);
@@ -64,41 +68,53 @@ export function BadgeModalUserActions({
     const [approveeAddress, setApproveeAddress] = useState('');
     const [approveeAmount, setApproveeAmount] = useState(0);
 
-    const address = useSelector((state: any) => state.user.address);
-    const chain = useSelector((state: any) => state.user.chain);
-    const balanceMap = useSelector((state: any) => state.user.userBalancesMap);
+    const accountNumber = useSelector((state: any) => state.user.accountNumber);
     // const navigate = useNavigate();
 
+    // const address = useSelector((state: any) => state.user.address);
+
+
+
     if (!badge) return <></>;
-
-    let balance =
-        balanceMap && balanceMap[badge._id] && balanceMap[badge._id].received
-            ? balanceMap[badge._id].received
-            : undefined;
-
-    console.log('APPPROOOVE', balanceMap[badge._id]);
-    let approvals =
-        balanceMap && balanceMap[badge._id] && balanceMap[badge._id].approvals
-            ? balanceMap[badge._id].approvals
-            : [];
-
-    let approvedAmountToMint = 0;
-
-    if (badge.mintApprovals && badge.mintApprovals[`${chain}:${address}`]) {
-        approvedAmountToMint = badge.mintApprovals[`${chain}:${address}`];
+    else if (!accountNumber) {
+        return <pre style={{ color: PRIMARY_TEXT, textAlign: 'left' }}>
+            Please connect a wallet to view your balances.
+        </pre>;
     }
+    else return <pre style={{ color: PRIMARY_TEXT, textAlign: 'left' }}>
+        {JSON.stringify(userBalance, null, 2)}
+    </pre>;
 
-    console.log(
-        'BALANCE MAP',
-        badge.mintApprovals,
-        approvedAmountToMint,
-        `${chain}:${address}`
-    );
 
-    let requestedAmount = 0;
-    if (badge.mintRequests && badge.mintRequests[`${chain}:${address}`]) {
-        requestedAmount = badge.mintRequests[`${chain}:${address}`];
-    }
+
+
+    // balanceMap && balanceMap[badge._id] && balanceMap[badge._id].received
+    //     ? balanceMap[badge._id].received
+    //     : undefined;
+
+    // console.log('APPPROOOVE', balanceMap[badge._id]);
+    // let approvals =
+    //     balanceMap && balanceMap[badge._id] && balanceMap[badge._id].approvals
+    //         ? balanceMap[badge._id].approvals
+    //         : [];
+
+    // let approvedAmountToMint = 0;
+
+    // if (badge.mintApprovals && badge.mintApprovals[`${chain}:${address}`]) {
+    //     approvedAmountToMint = badge.mintApprovals[`${chain}:${address}`];
+    // }
+
+    // console.log(
+    //     'BALANCE MAP',
+    //     badge.mintApprovals,
+    //     approvedAmountToMint,
+    //     `${chain}:${address}`
+    // );
+
+    // let requestedAmount = 0;
+    // if (badge.mintRequests && badge.mintRequests[`${chain}:${address}`]) {
+    //     requestedAmount = badge.mintRequests[`${chain}:${address}`];
+    // }
 
     const getStatisticElem = (title: string | JSX.Element, value?: number, suffix?: string | JSX.Element, precision?: number) => {
         return (

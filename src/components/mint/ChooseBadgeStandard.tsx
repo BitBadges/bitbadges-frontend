@@ -2,14 +2,13 @@ import React from 'react';
 import { Card } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import Meta from 'antd/lib/card/Meta';
-import { getBadge, getBadgeBalance } from '../../api/api';
-import { Badge } from './MintTimeline';
-
+import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
+import { BitBadgeMintObject } from '../../bitbadges-api/types';
 const CURR_STEP_NUMBER = 0;
 
 export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    setBadge: (type: Badge) => void;
+    setBadge: (type: BitBadgeMintObject) => void;
     badge: any;
 }) {
     //TODO: add a ton of standards and types here

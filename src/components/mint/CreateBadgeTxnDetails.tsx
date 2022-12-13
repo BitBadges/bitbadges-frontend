@@ -8,9 +8,13 @@ import { useSelector } from 'react-redux';
 import { CHAIN_DETAILS, LINK_COLOR, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 import { createTxMsgNewBadge, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
-import { getSenderInformation, broadcastTransaction } from '../../api/api';
+import { getSenderInformation, broadcastTransaction } from '../../bitbadges-api/api';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { addToIpfs } from '../../chain_handlers_frontend/backend_connectors';
+
+
+
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
@@ -164,6 +168,10 @@ export function TransactionDetails({
                             setTransactionIsLoading(true);
 
                             try {
+
+                                const res = await addToIpfs(badge.metadata);
+                                console.log("CREATEBADGETXNDETAILS", res)
+
                                 const sender = await getSenderInformation(chain.getPublicKey);
                                 const fee = {
                                     amount: '1',
@@ -200,6 +208,22 @@ export function TransactionDetails({
                                     standard: badge.standard,
                                     subassetSupplys: supplys,
                                     subassetAmountsToCreate: amounts,
+                                    whitelistedRecipients: [
+                                        // {
+                                        //     addresses: [0, 1, 2],
+                                        //     balanceAmounts: [
+                                        //         {
+                                        //             balance: 1,
+                                        //             id_ranges: [
+                                        //                 {
+                                        //                     start: 0,
+                                        //                     end: 0,
+                                        //                 }
+                                        //             ]
+                                        //         }
+                                        //     ]
+                                        // }
+                                    ]
                                 }
 
                                 let msgRegisterAddresses = createTxMsgNewBadge(
@@ -211,7 +235,11 @@ export function TransactionDetails({
                                 )
                                 console.log(msgRegisterAddresses)
 
+
                                 const rawTx = await chain.signTxn(msgRegisterAddresses)
+
+
+
                                 await broadcastTransaction(rawTx);
 
                                 setTransactionIsLoading(false);
@@ -296,7 +324,7 @@ export function TransactionDetails({
                         </>
                     )}
                 </div>
-            </Form.Provider>
-        </div>
+            </Form.Provider >
+        </div >
     );
 }

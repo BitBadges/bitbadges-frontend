@@ -2,7 +2,7 @@ import { Badge } from './Badge';
 import React from 'react';
 import { Avatar, Button, Tooltip, Typography } from 'antd';
 import { CheckOutlined, CloseOutlined, MailOutlined } from '@ant-design/icons';
-import { signAndSubmitTxn } from '../api/api';
+import { signAndSubmitTxn } from '../bitbadges-api/api';
 import { PRIMARY_TEXT } from '../constants';
 import { getAddressFromPartitionedAddress } from '../utils/AddressUtils';
 

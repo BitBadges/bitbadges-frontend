@@ -1,26 +1,12 @@
 import store from '../redux/store';
-
-// import { testSiwe, signAndVerifySiwe } from './siwe';
 import axios from 'axios';
 import { userActions } from '../redux/userSlice';
 import { NODE_URL } from '../constants';
 import { generateEndpointBroadcast, generatePostBodyBroadcast } from 'bitbadgesjs-provider';
+import { GetPermissions, Permissions } from './permissions';
+import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
+import { GetBadgeResponse, GetBalanceResponse } from './types';
 
-const GetAccountRoute = (bech32address: string) => {
-    return `/cosmos/auth/v1beta1/accounts/${bech32address}`;
-}
-
-const GetBalanceRoute = (bech32address: string) => {
-    return `/cosmos/bank/balances/${bech32address}`;
-}
-
-const GetBadgeRoute = (badgeId: number) => {
-    return `/bitbadges/bitbadgeschain/badges/get_badge/${badgeId}`;
-}
-
-const GetBadgeBalanceRoute = (badgeId: number, accountNumber: number) => {
-    return `/bitbadges/bitbadgeschain/badges/get_balance/${badgeId}/${accountNumber}`;
-}
 
 export async function getAccountInformation(
     bech32Address: string,
@@ -70,30 +56,62 @@ export async function getBalance(
         return Promise.reject(balance.error);
     }
 
+
     return balance;
 }
 
+
 export async function getBadge(
     badgeId: number
-) {
-    const balance = await axios.get(NODE_URL + GetBadgeRoute(badgeId))
+): Promise<GetBadgeResponse> {
+    const badgeDataResponse = await axios.get(NODE_URL + GetBadgeRoute(badgeId))
         .then((res) => res.data);
 
-    if (balance.error) {
-        return Promise.reject(balance.error);
+    if (badgeDataResponse.error) {
+        console.error("ERROR: ", badgeDataResponse.error);
+        return Promise.reject(badgeDataResponse.error);
     }
 
-    return balance;
+    const badgeData = badgeDataResponse.badge;
+    badgeData.id = badgeId;
+
+    // Convert the permissions (uint) to a Permissions object
+    badgeData.permissions = GetPermissions(badgeData.permissions);
+
+
+    //TODO: Replace manager info with actual account information (i.e. Cosmos address)
+    // const managerAccountInfo = await axios.get(NODE_URL + GetAccountByNumberRoute(badgeData.manager))
+    //     .then((res) => res.data);
+
+    // badgeData.manager = managerAccountInfo;
+
+    //TODO: Normalize subasset supplys with defaultsubassetsupply
+    //TODO: todo when I update mint page
+    //This is just hardcoded right now
+    badgeData.subassetSupplys.push({
+        balance: badgeData.defaultSubassetSupply,
+        idRanges: [
+            {
+                start: 0,
+                end: badgeData.nextSubassetId - 1
+            }
+        ]
+    });
+
+    return {
+        badge: badgeData,
+    };
 }
 
 export async function getBadgeBalance(
     badgeId: number,
     accountNumber: number
-) {
+): Promise<GetBalanceResponse> {
     const balance = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
         .then((res) => res.data);
 
     if (balance.error) {
+        console.error("ERROR: ", balance.error);
         return Promise.reject(balance.error);
     }
 

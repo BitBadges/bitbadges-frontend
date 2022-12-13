@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import React, { useEffect, useState } from 'react';
 import { Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
-import { BlockinDisplay } from '../components/BlockinDisplay';
+import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
 import Image from 'next/image';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
 

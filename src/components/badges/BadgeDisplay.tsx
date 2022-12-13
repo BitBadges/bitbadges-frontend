@@ -3,7 +3,7 @@ import { Typography, Layout, Collapse, Select, Empty } from 'antd';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
-import { PRIMARY_TEXT, TERTIARY_BLUE } from '../constants';
+import { PRIMARY_TEXT, TERTIARY_BLUE } from '../../constants';
 
 const { Text } = Typography;
 const { Content } = Layout;
@@ -13,15 +13,11 @@ export function BadgeDisplay({
     badges,
     balanceMap,
     collected,
-    isOffering,
-    conceptBadges,
     isManaging,
 }: {
     badges: string[]; //TODO
     balanceMap: any; //TODO
     collected: boolean;
-    isOffering: boolean;
-    conceptBadges: any[]; //TODO
     isManaging: boolean;
 }) {
     const badgeMap = useSelector((state: any) => state.user.badgeMap);
@@ -46,14 +42,6 @@ export function BadgeDisplay({
             badgesByType['Other'] = badgesByType['Other']
                 ? [...badgesByType['Other'], badgeMap[badge]]
                 : [badgeMap[badge]];
-        }
-    }
-
-    if (conceptBadges) {
-        for (const badge of conceptBadges) {
-            badgesByType['__concept_badges'] = badgesByType['__concept_badges']
-                ? [...badgesByType['__concept_badges'], badge]
-                : [badge];
         }
     }
 
@@ -102,15 +90,7 @@ export function BadgeDisplay({
                 </Select>
             </div>
             {(!badges || !badges.length) &&
-                (!conceptBadges || !conceptBadges.length) ? (
-                <>
-                    <Empty
-                        style={{ color: PRIMARY_TEXT }}
-                        description="No Badges Found"
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                </>
-            ) : (
+
                 <Collapse
                     accordion
                     style={{
@@ -135,12 +115,8 @@ export function BadgeDisplay({
                                     {badgesByType[type].map((badge: any) => ( //TODO
                                         <Badge
                                             key={badge.id}
-                                            collectedBadge={collected}
                                             managing={isManaging}
-                                            offeredBadge={isOffering}
-                                            conceptBadge={
-                                                type === '__concept_badges'
-                                            }
+
                                             size={100}
                                             badge={badge}
                                         />
@@ -149,7 +125,7 @@ export function BadgeDisplay({
                             ))}
                     </div>
                 </Collapse>
-            )}
+            }
         </Content>
     );
 }

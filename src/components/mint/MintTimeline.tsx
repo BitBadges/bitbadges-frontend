@@ -6,41 +6,13 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ChooseBadgeStandard } from './ChooseBadgeStandard';
 import { StandardBadgeForm } from './StandardBadgeForm';
 import { TransactionDetails } from './CreateBadgeTxnDetails';
+import { BitBadgeMintObject } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 
-export interface ValidFromObject {
-    start: number,
-    end: number,
-}
-
-export interface BadgeMetadata {
-    name: string;
-    description: string;
-    image: string;
-    creator?: string;
-    validFrom?: ValidFromObject;
-    color?: string;
-    type?: number;
-    category?: string;
-    externalUrl?: string;
-}
-
-export interface SubassetSupply {
-    supply: number;
-    amount: number;
-}
-
-export interface Badge {
-    standard?: number;
-    permissions?: number;
-    metadata?: BadgeMetadata;
-    subassetSupplys?: SubassetSupply[];
-}
-
 export function MintTimeline() {
     const [currStepNumber, setCurrStepNumber] = useState(0);
-    const [badge, setBadge] = useState<Badge>({
+    const [badge, setBadge] = useState<BitBadgeMintObject>({
         standard: 0,
         permissions: 0,
         metadata: {

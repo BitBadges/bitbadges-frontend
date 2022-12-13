@@ -2,7 +2,7 @@
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { TypedDataField } from 'ethers';
 import { createContext, Dispatch, ReactComponentElement, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
-import { getAccountInformation } from '../api/api';
+import { getAccountInformation } from '../bitbadges-api/api';
 import { useAlgorandContext } from './algorand/AlgorandContext';
 import { useEthereumContext } from './ethereum/EthereumContext';
 

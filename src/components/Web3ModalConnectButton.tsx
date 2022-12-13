@@ -6,7 +6,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect } from 'react';
 import { userActions } from '../redux/userSlice';
-import { getBadgeDataForAddress } from '../api/api';
+import { getBadgeDataForAddress } from '../bitbadges-api/api';
 
 export function Web3ModalButtons() {
     const web3Modal = useSelector((state: any) => state.web3Modal.web3Modal);

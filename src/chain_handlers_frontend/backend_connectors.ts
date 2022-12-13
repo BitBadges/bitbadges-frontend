@@ -54,3 +54,16 @@ export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uin
 
     return verificationRes;
 }
+
+export const addToIpfs = async (data: any) => {
+    const bodyStr = stringify(data); //hack to preserve uint8 arrays
+    console.log(bodyStr);
+
+    const addToIpfsRes = await fetch('../api/addToIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return addToIpfsRes;
+}

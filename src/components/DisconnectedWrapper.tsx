@@ -14,7 +14,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { BlockinDisplay } from './BlockinDisplay';
+import { BlockinDisplay } from './blockin/BlockinDisplay';
 import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { useChainContext } from '../chain_handlers_frontend/ChainContext';
 import ConnectScreen from '../pages/connect';
@@ -27,7 +27,7 @@ export function DisconnectedWrapper({ node, message }: { node: JSX.Element, mess
     const address = chain.address;
     // const loggedIn = chain.loggedIn;
     const loggedIn = true; //TODO: change
-    
+
     return (
         <>
             {address && loggedIn ? node : <ConnectScreen message={message} />}

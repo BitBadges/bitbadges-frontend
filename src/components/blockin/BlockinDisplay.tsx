@@ -1,15 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react"
-import { SignChallengeResponse, useChainContext } from "../chain_handlers_frontend/ChainContext"
-import { getChallengeParams, verifyChallengeOnBackend } from "../chain_handlers_frontend/backend_connectors"
+import { SignChallengeResponse, useChainContext } from "../../chain_handlers_frontend/ChainContext"
+import { getChallengeParams, verifyChallengeOnBackend } from "../../chain_handlers_frontend/backend_connectors"
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChallengeResponse, SupportedChainMetadata } from 'blockin';
-import { PRIMARY_TEXT } from "../constants";
-import { Address } from "./Address";
+import { PRIMARY_TEXT } from "../../constants";
+import { Address } from "../Address";
 import Blockies from 'react-blockies'
 import { Avatar, Typography } from "antd";
 import Image from 'next/image';
-import { getAbbreviatedAddress } from "../utils/AddressUtils";
+import { getAbbreviatedAddress } from "../../utils/AddressUtils";
 
 const { Text } = Typography;
 
