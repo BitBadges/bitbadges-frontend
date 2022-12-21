@@ -2,6 +2,10 @@
 import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils";
 import { Permissions } from "./permissions";
 
+export enum TransactionStatus {
+    None = 0,
+    AwaitingSignatureOrBroadcast = 1,
+}
 export interface GetBadgeResponse {
     error?: any;
     badge?: BitBadgeCollection;

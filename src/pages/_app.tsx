@@ -10,7 +10,6 @@ import store from '../redux/store';
 import { Provider } from 'react-redux';
 import '../styles/antd-override-styles.css'
 
-
 // const createdWeb3Modal = createWeb3Modal();
 
 const App = ({ Component, pageProps }: AppProps) => {

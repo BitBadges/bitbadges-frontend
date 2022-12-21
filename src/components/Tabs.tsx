@@ -1,6 +1,25 @@
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
-import { Menu, Dropdown, Popover, MenuTheme } from 'antd';
+import { Menu, Dropdown, Popover, MenuTheme, MenuProps } from 'antd';
+import { ItemType } from 'antd/lib/menu/hooks/useItems';
+// import MenuItem from 'antd/lib/menu/MenuItem';
+
+type MenuItem = Required<MenuProps>['items'][number];
+
+function getItem(
+    label: React.ReactNode,
+    key?: React.Key | null,
+    icon?: React.ReactNode,
+    children?: MenuItem[],
+): MenuItem {
+    return {
+        key,
+        icon,
+        children,
+        label,
+    } as MenuItem;
+}
+
 
 export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
     setTab: (tab: string) => void;
@@ -11,9 +30,9 @@ export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
 }) {
     const widthPerTab = fullWidth
         ? `calc(100% / ${tabInfo.length})`
-        : undefined; 
+        : undefined;
 
-    const tabs = tabInfo.map((tab) => {
+    const tabs = tabInfo.map((tab, idx) => {
         const menuItem = (
             <Menu.Item
                 disabled={tab.disabled}
@@ -22,7 +41,7 @@ export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
                     textAlign: 'center',
                     float: 'left',
                 }}
-                key={tab.key}
+                key={`${tab.key}`}
                 onClick={
                     tab.onClick
                         ? tab.onClick
@@ -44,12 +63,13 @@ export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
                     //     navigate(tab.key);
                     // }}
                     trigger={tab.subMenuTrigger}
+                    key={`${tab.key}`}
                 >
                     {menuItem}
                 </Dropdown>
             );
         } else if (tab.popoverContent) {
-            return <Popover content={tab.popoverContent}>{menuItem}</Popover>;
+            return <Popover key={`${tab.key}`} content={tab.popoverContent}>{menuItem}</Popover>;
         } else {
             return menuItem;
         }

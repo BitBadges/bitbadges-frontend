@@ -1,20 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import { Badge } from '../Badge';
-import { Typography, Form, Button, Row, Col, Statistic } from 'antd';
+import { Typography, Form, Button, Statistic } from 'antd';
 import React from 'react';
 import { useState } from 'react';
-// import { signAndSubmitTxn } from '../../api/api';
 import { useSelector } from 'react-redux';
-import { CHAIN_DETAILS, LINK_COLOR, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
-import { createTxMsgNewBadge, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
-import { getSenderInformation, broadcastTransaction } from '../../bitbadges-api/api';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
-import { addToIpfs } from '../../chain_handlers_frontend/backend_connectors';
-
-
-
+import { TransactionStatus } from '../../bitbadges-api/types';
+import { broadcastTransaction } from '../../bitbadges-api/broadcast';
+import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
+import { createTxMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
@@ -28,10 +22,9 @@ export function TransactionDetails({
     badge: any;
 }) {
     const [stepNum, setStepNum] = useState(1);
-    const [transactionIsLoading, setTransactionIsLoading] = useState(false);
-    const [txnSubmitted, setTxnSubmitted] = useState(false);
+    const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
+
     const address = useSelector((state: any) => state.user.address);
-    // const navigate = useNavigate();
     const chain = useChainContext();
 
     const incrementStep = () => {
@@ -50,23 +43,6 @@ export function TransactionDetails({
         }
     };
 
-    const getStatisticElem = (title: string, value: number | string, suffix?: string, precision?: number) => {
-        return (
-            <Statistic
-                title={<div style={{ color: PRIMARY_TEXT }}>{title}</div>}
-                valueStyle={{
-                    color: SECONDARY_TEXT,
-                }}
-                value={value}
-                suffix={suffix}
-                precision={precision}
-                style={{
-                    textAlign: 'center',
-                }}
-            />
-        );
-    };
-
     return (
         <div>
             <Form.Provider>
@@ -74,7 +50,7 @@ export function TransactionDetails({
                     incrementStep={incrementStep}
                     decrementStep={decrementStep}
                     stepNum={stepNum}
-                    backButtonDisabled={txnSubmitted && !transactionIsLoading}
+                    // backButtonDisabled={txnSubmitted && !transactionIsLoading} TODO: instead of this, we redirect to new badge page
                     finalStepNumber={1}
                 />
                 <div style={{ paddingLeft: 5 }}>
@@ -95,63 +71,9 @@ export function TransactionDetails({
                             Mint Badge
                         </Typography.Text>
                     </div>
-                    {/* <span
-                        style={{
-                            verticalAlign: 'middle',
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        <Row gutter={16}>
-                            <Col
-                                span={12}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginBottom: 15,
-                                }}
-                            >
-                                {getStatisticElem(
-                                    'Metadata Size',
-                                    badge
-                                        ? JSON.stringify(badge).length / 1000
-                                        : 0,
-                                    'KB',
-                                    3
-                                )}
-                            </Col>
-                            <Col
-                                span={12}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginBottom: 15,
-                                }}
-                            >
-                                {getStatisticElem('Cost per KB', 'N/A')}
-                            </Col>
-                            <Col
-                                span={12}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                {getStatisticElem('Gas Fee', 'N/A')}
-                            </Col>
-                            <Col
-                                span={12}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                {getStatisticElem('Total Fee', 'N/A')}
-                            </Col>
-                        </Row>
-                    </span> */}
                 </div>
                 <div
+
                     style={{
                         width: '100%',
                         display: 'flex',
@@ -164,20 +86,11 @@ export function TransactionDetails({
                         type="primary"
                         style={{ width: '90%' }}
                         onClick={async () => {
-                            setTxnSubmitted(true);
-                            setTransactionIsLoading(true);
+                            setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
                             try {
-
-                                const res = await addToIpfs(badge.metadata);
-                                console.log("CREATEBADGETXNDETAILS", res)
-
-                                const sender = await getSenderInformation(chain.getPublicKey);
-                                const fee = {
-                                    amount: '1',
-                                    denom: 'token',
-                                    gas: '200000',
-                                }
+                                // const res = await addToIpfs(badge.metadata);
+                                // console.log("CREATEBADGETXNDETAILS", res)
 
                                 const supplys = [];
                                 const amounts = [];
@@ -226,103 +139,23 @@ export function TransactionDetails({
                                     ]
                                 }
 
-                                let msgRegisterAddresses = createTxMsgNewBadge(
-                                    CHAIN_DETAILS,
-                                    sender,
-                                    fee,
-                                    '',
-                                    msgNewBadgeParams
-                                )
-                                console.log(msgRegisterAddresses)
+                                const unsignedTx = await formatAndCreateGenericTx(createTxMsgNewBadge, chain, msgNewBadgeParams);
+                                const rawTx = await chain.signTxn(unsignedTx);
+                                const msgResponse = await broadcastTransaction(rawTx);
 
+                                setTransactionStatus(TransactionStatus.None);
 
-                                const rawTx = await chain.signTxn(msgRegisterAddresses)
-
-
-
-                                await broadcastTransaction(rawTx);
-
-                                setTransactionIsLoading(false);
-                                setTxnSubmitted(false); //TODO: remove this added this for debug
+                                //TODO: redirect here to new badge page
                             } catch (err) {
                                 console.log(err);
-                                setTxnSubmitted(false);
-                                setTransactionIsLoading(false);
+                                setTransactionStatus(TransactionStatus.None);
                             }
                         }}
-                        loading={transactionIsLoading}
-                        disabled={txnSubmitted}
+                        loading={transactionStatus != TransactionStatus.None}
+                        disabled={transactionStatus != TransactionStatus.None}
                     >
                         Create Badge!
                     </Button>
-                </div>
-                <div>
-                    {txnSubmitted && !transactionIsLoading && (
-                        <>
-                            <div
-                                style={{
-                                    justifyContent: 'center',
-                                    display: 'flex',
-                                }}
-                            >
-                                <Typography.Text
-                                    style={{
-                                        color: PRIMARY_TEXT,
-                                        fontSize: 20,
-                                        marginBottom: 10,
-                                        marginTop: 25,
-                                    }}
-                                    strong
-                                >
-                                    Badge Successfully Created!
-                                </Typography.Text>
-                            </div>
-                            <div
-                                style={{
-                                    justifyContent: 'center',
-                                    display: 'flex',
-                                }}
-                            >
-                                <Typography.Text
-                                    style={{
-                                        color: SECONDARY_TEXT,
-                                        fontSize: 15,
-                                        marginBottom: 10,
-                                    }}
-                                    strong
-                                >
-                                    You can view it in{' '}
-                                    <button
-                                        className="link-button-nav"
-                                        style={{ color: LINK_COLOR }}
-                                    // onClick={() => navigate('/account')}
-                                    >
-                                        your portfolio
-                                    </button>{' '}
-                                    or via the preview below!
-                                </Typography.Text>
-                            </div>
-
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginTop: 12,
-                                }}
-                            >
-                                {/* <Badge
-                                    size={150}
-                                    badge={{
-                                        metadata: {
-                                            ...badge,
-                                        },
-                                        permissions,
-                                        manager: 'ETH:' + address,
-                                    }}
-                                /> */}
-                            </div>
-                        </>
-                    )}
                 </div>
             </Form.Provider >
         </div >
