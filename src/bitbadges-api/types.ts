@@ -2,6 +2,11 @@
 import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils";
 import { Permissions } from "./permissions";
 
+export enum SupportedChain {
+    ETH = 0,
+    COSMOS = 1,
+}
+
 export enum TransactionStatus {
     None = 0,
     AwaitingSignatureOrBroadcast = 1,

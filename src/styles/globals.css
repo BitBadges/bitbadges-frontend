@@ -30,6 +30,17 @@ a:visited {
   text-decoration: underline;
 } */
 
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 
 button {
   background: linear-gradient(#98d1fc, #1c8fe7);

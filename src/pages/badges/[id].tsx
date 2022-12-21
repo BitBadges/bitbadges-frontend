@@ -11,6 +11,8 @@ import { UserBalanceDisplay } from '../../components/badges/UserBalanceDisplay';
 import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/BadgePageSubBadgesTab';
+import { TxModal } from '../../components/transactions/TxModal';
+import { CloseOutlined } from '@ant-design/icons';
 
 const { Content } = Layout;
 
@@ -24,6 +26,7 @@ function Badges() {
     const [badgeDetails, setBadgeDetails] = useState<BitBadgeCollection | undefined>()
     const accountNumber = useSelector((state: any) => state.user.accountNumber);
     const [tab, setTab] = useState('overview');
+    const [visible, setVisible] = useState(true);
 
     const tabInfo = [
         { key: 'overview', content: 'Overview', disabled: false },
@@ -96,7 +99,6 @@ function Badges() {
                     minHeight: '100vh',
                 }}
             >
-                {/* <div className="primary-text">Badge</div> */}
                 <div
                     style={{
                         marginLeft: '10vw',
@@ -107,11 +109,6 @@ function Badges() {
                         background: PRIMARY_BLUE,
                     }}
                 >
-                    {/* TEST: {id} */}
-                    {/* <BadgeDisplay
-                        badge={badgeDetails}
-                        size={150}
-                    /> */}
                     <BadgeHeader
                         badge={badgeDetails}
 
@@ -139,11 +136,12 @@ function Badges() {
 
 
                     {tab === 'manageractions' && (
-                        <BadgeModalManagerActions
-                            badge={badgeDetails}
-                        // conceptBadge={conceptBadge}
-                        // hidePermissions={hidePermissions}
-                        />
+                        <>
+                            <BadgeModalManagerActions
+                                badge={badgeDetails}
+                            />
+                        </>
+
                     )}
 
                     {tab === 'activity' && (
