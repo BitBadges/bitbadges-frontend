@@ -1,4 +1,4 @@
-import { Address } from './Address';
+import { Address } from '../Address';
 import Blockies from 'react-blockies';
 import {
     InstagramOutlined,
@@ -7,7 +7,7 @@ import {
     TwitterOutlined,
     MailOutlined,
 } from '@ant-design/icons';
-import { SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../constants';
+import { SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../../constants';
 import React from 'react';
 import { Layout, Avatar, message, Tooltip } from 'antd';
 

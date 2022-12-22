@@ -1,6 +1,6 @@
 import { Web3ModalButtons } from '../components/Web3ModalConnectButton';
 import { getInjectedProviderName } from 'web3modal';
-import { useSelector } from 'react-redux';
+
 import React, { useEffect, useState } from 'react';
 import { Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';

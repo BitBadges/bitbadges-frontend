@@ -1,5 +1,5 @@
-import { RecipientFormItem } from '../RecipientFormItem';
-import { BurnOwnerFormItem } from '../BurnOwnerFormItem';
+import { RecipientFormItem } from '../old/RecipientFormItem';
+import { BurnOwnerFormItem } from '../old/BurnOwnerFormItem';
 import {
     Avatar,
     Button,
@@ -26,14 +26,14 @@ import {
     CloseOutlined,
     DeleteOutlined,
 } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+
 import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { RecipientList } from '../RecipientList';
+import { RecipientList } from '../old/RecipientList';
 import { ethers } from 'ethers';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { CreateTxMsgTransferManagerModal } from '../transactions/CreateTxMsgTransferMangerModal';
-import { CreateTxMsgNewBadgeModal } from '../transactions/CreateTxMsgNewBadgeModal';
-import { CreateTxMsgRevokeBadgeModal } from '../transactions/CreateTxMsgRevokeBadge';
+import { CreateTxMsgTransferManagerModal } from '../txModals/CreateTxMsgTransferManagerModal';
+import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
+import { CreateTxMsgRevokeBadgeModal } from '../txModals/CreateTxMsgRevokeBadge';
 import { useChainContext } from '../../chain/ChainContext';
 
 const { Option } = Select;

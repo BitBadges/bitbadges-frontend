@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { NODE_URL } from '../constants';
-import { GetPermissions, Permissions } from './permissions';
+import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
-import { GetBadgeResponse, GetBalanceResponse } from './types';
+import { CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
 
 
 export async function getAccountInformation(
@@ -11,6 +11,7 @@ export async function getAccountInformation(
     const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
         .then((res) => res.data)
         .catch((err) => {
+            //Handle unregistered case
             if (err.response.data.code === 5) {
                 return {
                     account: {
@@ -22,8 +23,7 @@ export async function getAccountInformation(
             return Promise.reject();
         });
 
-    const accountInformation = accountObject.account;
-
+    const accountInformation: CosmosAccountInformation = accountObject.account;
     return accountInformation;
 }
 

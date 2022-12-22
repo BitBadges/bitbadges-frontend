@@ -1,16 +1,16 @@
 import React from 'react';
 import { Layout, Tooltip, Empty, List, Typography, Avatar } from 'antd';
 import { MailOutlined, WarningOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
-import { ETH_NULL_ADDRESS, PRIMARY_TEXT } from '../constants';
+
+import { ETH_NULL_ADDRESS, PRIMARY_TEXT } from '../../constants';
 import { PendingModalItem } from './PendingModalItem';
-import { getAbbreviatedAddress } from '../utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 
 const { Content } = Layout;
 
 export function Pending({ tab }: { tab: string; }) {
-    const userBalancesMap = useSelector((state: any) => state.user.userBalancesMap);
-    const badgeMap = useSelector((state: any) => state.user.badgeMap);
+    // const userBalancesMap = useSelector((state: any) => state.user.userBalancesMap);
+    // const badgeMap = useSelector((state: any) => state.user.badgeMap);
 
     const inPending = [];
     const outPending = [];

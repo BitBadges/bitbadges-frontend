@@ -1,4 +1,4 @@
-import { RecipientFormItem } from '../RecipientFormItem';
+import { RecipientFormItem } from '../old/RecipientFormItem';
 import {
     Avatar,
     Button,
@@ -27,10 +27,10 @@ import {
     SendOutlined,
     DeleteOutlined,
 } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+
 // import { signAndSubmitTxn } from '../../api/api';
 import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { RecipientList } from '../RecipientList';
+import { RecipientList } from '../old/RecipientList';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { BitBadge, UserBalance } from '../../bitbadges-api/types';
 
@@ -68,7 +68,7 @@ export function UserBalanceDisplay({
     const [approveeAddress, setApproveeAddress] = useState('');
     const [approveeAmount, setApproveeAmount] = useState(0);
 
-    const accountNumber = useSelector((state: any) => state.user.accountNumber);
+    // const accountNumber = useSelector((state: any) => state.user.accountNumber);
     // const navigate = useNavigate();
 
     // const address = useSelector((state: any) => state.user.address);

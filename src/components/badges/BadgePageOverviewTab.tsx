@@ -40,20 +40,20 @@ export function BadgeOverviewTab({ badge, hidePermissions }: {
         endTimestamp
     ).toLocaleDateString();
 
-    let subassetSupplyComponent = <>
-        {
-            badge.subassetSupplys.map((subassetSupply) => {
-                return <div key={subassetSupply.balance}>
-                    <Text style={{ fontSize: 18, color: PRIMARY_TEXT }}>
-                        Supply = {subassetSupply.balance} for IDs {subassetSupply.idRanges.map((idRange) => {
-                            return <>{idRange.start}-{idRange.end}</>
-                        })}
-                    </Text>
-                    <br />
-                </div>
-            })
-        }
-    </>
+    // let subassetSupplyComponent = <>
+    //     {
+    //         badge.subassetSupplys.map((subassetSupply) => {
+    //             return <div key={subassetSupply.balance}>
+    //                 <Text style={{ fontSize: 18, color: PRIMARY_TEXT }}>
+    //                     Supply = {subassetSupply.balance} for IDs {subassetSupply.idRanges.map((idRange) => {
+    //                         return <>{idRange.start}-{idRange.end}</>
+    //                     })}
+    //                 </Text>
+    //                 <br />
+    //             </div>
+    //         })
+    //     }
+    // </>
 
     const getTableRow = (key: any, value: any) => {
         return <Row>

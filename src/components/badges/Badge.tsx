@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import React from 'react';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+
 // import { signAndSubmitPrivateApiTxn } from '../api/api';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';

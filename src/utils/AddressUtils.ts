@@ -14,5 +14,5 @@ export function getAddressFromPartitionedAddress(partitionedAddress: string) {
 }
 
 export function getAbbreviatedAddress(address: string) {
-    return address.substring(0, 5) + '...' + address.substring(address.length - 4, address.length);
+    return address.substring(0, 10) + '...' + address.substring(address.length - 4, address.length);
 }

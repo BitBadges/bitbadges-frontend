@@ -3,9 +3,10 @@ import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badg
 import { Permissions } from "./permissions";
 
 export enum SupportedChain {
-    ETH = 0,
-    COSMOS = 1,
+    ETH = 'Ethereum',
+    COSMOS = 'Cosmos',
 }
+
 
 export enum TransactionStatus {
     None = 0,
@@ -85,4 +86,13 @@ export interface BadgeMetadata {
 export interface SubassetSupply {
     supply: number;
     amount: number;
+}
+
+export interface CosmosAccountInformation {
+    account_number: number;
+    sequence: number;
+    pub_key: {
+        key: string;
+    }
+    address: string;
 }

@@ -1,4 +1,4 @@
-import { PRIMARY_TEXT } from '../constants';
+import { PRIMARY_TEXT } from '../../constants';
 import { RecipientList } from './RecipientList';
 import { UserAddOutlined, UploadOutlined } from '@ant-design/icons';
 import {

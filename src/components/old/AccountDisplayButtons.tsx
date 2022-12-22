@@ -10,14 +10,14 @@ import {
     CloseOutlined,
     SettingOutlined,
 } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../constants';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 export function WalletDisplay() {
-    const numPending = useSelector((state: any) => state.user.numPending);
+    // const numPending = useSelector((state: any) => state.user.numPending);
     const navigate = useNavigate();
     const [pendingModalVisible, setPendingModalVisible] = useState(false);
     const [tab, setTab] = useState('incoming');

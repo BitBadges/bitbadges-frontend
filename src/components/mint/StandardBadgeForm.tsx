@@ -1,15 +1,15 @@
 import { CalendarOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { DatePicker, Divider, Form, Input, Select, Space, Typography } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateUrisDigit, ForcefulTransfersDigit, FrozenByDefaultDigit, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { ConfirmManager } from './ConfirmManager';
 import { CustomizeBadgeForm } from './CustomizeBadgeForm';
-import { Badge } from './MintTimeline';
 import { SubassetSupply } from './SubassetSupply';
 import { SwitchForm } from './SwitchForm';
+import { useChainContext } from '../../chain/ChainContext';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -20,10 +20,11 @@ export function StandardBadgeForm({
     setBadge,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    badge: any;
-    setBadge: (badge: Badge) => void;
+    badge: BitBadgeCollection;
+    setBadge: (badge: BitBadgeCollection) => void;
 }) {
-    const address = useSelector((state: any) => state.user.address);
+    const chain = useChainContext();
+    const address = chain.cosmosAddress;
 
     const [currPermissions, setCurrPermissions] = useState<number>(0);
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
@@ -150,6 +151,8 @@ export function StandardBadgeForm({
                                 let newHandledPermissions = { ...handledPermissions };
                                 newHandledPermissions.CanCreate = true;
                                 setHandledPermissions(newHandledPermissions);
+
+
                             }
                         }}
                         isOptionOneSelected={handledPermissions.CanCreate && badge.defaultSubassetSupply != 1}
@@ -357,13 +360,13 @@ export function StandardBadgeForm({
                             required
                         >
                             <Input
-                                value={badge.metadata?.title}
+                                value={badge.metadata?.name}
                                 onChange={(e: any) => {
                                     setBadge({
                                         ...badge,
                                         metadata: {
                                             ...badge.metadata,
-                                            title: e.target.value
+                                            name: e.target.value
                                         }
                                     });
                                 }}
@@ -499,7 +502,7 @@ export function StandardBadgeForm({
                             />
                         </Form.Item> */}
                     </div>,
-                    disabled: !(badge.metadata?.title)
+                    disabled: !(badge.metadata?.name)
                 },
                 {
                     title: 'Select Image',

@@ -1,7 +1,7 @@
 import { Badge } from './Badge';
 import { Typography, Layout, Collapse, Select, Empty } from 'antd';
 import React from 'react';
-import { useSelector } from 'react-redux';
+
 import { useState } from 'react';
 import { PRIMARY_TEXT, TERTIARY_BLUE } from '../../constants';
 
@@ -20,7 +20,7 @@ export function BadgeDisplay({
     collected: boolean;
     isManaging: boolean;
 }) {
-    const badgeMap = useSelector((state: any) => state.user.badgeMap);
+    // const badgeMap = useSelector((state: any) => state.user.badgeMap);
     const [groupBy, setGroupBy] = useState('all');
     const [sortBy, setSortBy] = useState('date');
 

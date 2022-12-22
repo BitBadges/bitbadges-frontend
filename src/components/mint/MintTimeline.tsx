@@ -12,7 +12,7 @@ const { Text } = Typography;
 
 export function MintTimeline() {
     const [currStepNumber, setCurrStepNumber] = useState(0);
-    const [badge, setBadge] = useState<BitBadgeMintObject>({
+    const [badge, setBadge] = useState<BitBadgeMintObject>({ //TODO: change this to MsgNewBadgeParams
         standard: 0,
         permissions: 0,
         metadata: {

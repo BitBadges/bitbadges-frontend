@@ -21,6 +21,46 @@ export const CanRevokeDigit = 3
 export const CanFreezeDigit = 2
 export const FrozenByDefaultDigit = 1
 
+export function GetPermissionNumberValue(permissions: Permissions) {
+    let permissionNumber = 0;
+    for (let i = 0; i <= NUM_PERMISSIONS; i++) {
+        let permissionDigit = i + 1;
+        let permissionValue = false;
+        switch (permissionDigit) {
+            case CanUpdateBytesDigit:
+                permissionValue = permissions.CanUpdateBytes;
+                break;
+            case CanManagerTransferDigit:
+                permissionValue = permissions.CanManagerTransfer;
+                break;
+            case CanUpdateUrisDigit:
+                permissionValue = permissions.CanUpdateUris;
+                break;
+            case ForcefulTransfersDigit:
+                permissionValue = permissions.ForcefulTransfers;
+                break;
+            case CanCreateDigit:
+                permissionValue = permissions.CanCreate;
+                break;
+            case CanRevokeDigit:
+                permissionValue = permissions.CanRevoke;
+                break;
+            case CanFreezeDigit:
+                permissionValue = permissions.CanFreeze;
+                break;
+            case FrozenByDefaultDigit:
+                permissionValue = permissions.FrozenByDefault;
+                break;
+            default:
+                break;
+        }
+        if (permissionValue) {
+            permissionNumber += 2 ** (permissionDigit - 1);
+        }
+    }
+    return permissionNumber;
+}
+
 export function ValidatePermissions(permissions: number) {
     let tempPermissions = permissions >> NUM_PERMISSIONS;
     if (tempPermissions != 0) {

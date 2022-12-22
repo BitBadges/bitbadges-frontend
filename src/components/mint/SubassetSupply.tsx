@@ -4,7 +4,7 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../chain/ChainContext';
 import Blockies from 'react-blockies'
 import { Address } from '../Address';
-import { useSelector } from 'react-redux';
+
 import { DeleteOutlined } from '@ant-design/icons';
 
 interface SubassetSupply {

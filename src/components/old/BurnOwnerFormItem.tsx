@@ -1,4 +1,4 @@
-import { getAbbreviatedAddress } from '../utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { UserAddOutlined } from '@ant-design/icons';
 import { Typography, Form, Button, Input, Select, InputNumber } from 'antd';
 import React from 'react';

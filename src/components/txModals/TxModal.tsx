@@ -7,7 +7,7 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import Blockies from 'react-blockies';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-import { useSelector } from 'react-redux';
+import { AddressModalDisplay } from './AddressModalDisplay';
 
 export function TxModal(
     { destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle }
@@ -81,44 +81,28 @@ export function TxModal(
             cancelText={"Cancel"}
             destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
-            <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-            }}>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                }}>
-                    <Blockies seed={chain.address.toLowerCase()} />
-                    {chain.address ?
-                        <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(chain.address)}</span>
-                        : <span style={{ marginLeft: 8 }}>...</span>}
-                    {/* TODO: blockin connect if not connected */}
-
-                </div>
-
-                <div>
-                    <span style={{ marginLeft: 8 }}>{chain.chain}</span>
-                </div>
-            </div>
-            {cosmosAddress}
+            <AddressModalDisplay
+                address={chain.address}
+                cosmosAddress={chain.cosmosAddress}
+                accountNumber={chain.accountNumber}
+                title={"Connected Wallet "}
+                chain={chain.chain}
+            />
+            <hr />
+            {children}
             <hr />
             <div style={{ textAlign: 'center' }}>
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center' }}>
+                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
                     {displayMsg}
                 </Typography.Text>
             </div>
-            <hr />
-            {children}
             {error && <div>
                 <hr />
                 <div style={{ color: 'red' }}>
                     {error}
                 </div>
             </div>}
+
 
             {DEV_MODE && <>
                 <hr />

@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
-import { PRIMARY_TEXT } from '../constants';
+import { PRIMARY_TEXT } from '../../constants';
 import {
     getAbbreviatedAddress,
     getAddressFromPartitionedAddress,
-} from '../utils/AddressUtils';
+} from '../../utils/AddressUtils';
 const { DeleteOutlined } = require('@ant-design/icons');
 const { Avatar } = require('antd');
 const React = require('react');

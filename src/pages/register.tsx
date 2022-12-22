@@ -1,5 +1,5 @@
 import { getInjectedProviderName } from 'web3modal';
-import { useSelector } from 'react-redux';
+
 import React, { useEffect, useState } from 'react';
 import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
