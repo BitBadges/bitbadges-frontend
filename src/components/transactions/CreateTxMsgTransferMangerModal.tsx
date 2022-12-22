@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Input, Select, Form } from 'antd';
 import { BitBadgeCollection, SupportedChain } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../../chain/ChainContext';
 import { createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { ethToCosmos, } from 'bitbadgesjs-address-converter';

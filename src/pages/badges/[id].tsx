@@ -10,7 +10,7 @@ import { UserBalanceDisplay } from '../../components/badges/UserBalanceDisplay';
 import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/BadgePageSubBadgesTab';
-import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../../chain/ChainContext';
 
 const { Content } = Layout;
 

@@ -5,7 +5,7 @@ import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
 import Image from 'next/image';
-import { useChainContext } from '../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../chain/ChainContext';
 import { getAccountInformation } from '../bitbadges-api/api';
 
 const { Content } = Layout;

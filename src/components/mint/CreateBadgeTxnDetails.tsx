@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
-import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../../chain/ChainContext';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';

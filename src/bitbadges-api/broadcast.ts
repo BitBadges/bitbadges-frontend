@@ -1,6 +1,6 @@
 import { generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
 import { DEV_MODE, NODE_URL } from "../constants"
-import { ChainContextType } from "../chain_handlers_frontend/ChainContext"
+import { ChainContextType } from "../chain/ChainContext"
 
 
 

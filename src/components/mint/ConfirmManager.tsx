@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, Avatar } from 'antd';
 import { PRIMARY_TEXT } from '../../constants';
-import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../../chain/ChainContext';
 import Blockies from 'react-blockies'
 import { Address } from '../Address';
 import { useSelector } from 'react-redux';
@@ -15,7 +15,7 @@ export function ConfirmManager({
 }) {
     const chain = useChainContext();
     const address = chain.address;
-    
+
 
     return (
         <div>

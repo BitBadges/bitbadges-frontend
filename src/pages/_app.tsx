@@ -1,8 +1,8 @@
 import '../styles/index.css'
 import type { AppProps } from 'next/app'
-import { ChainContextProvider } from '../chain_handlers_frontend/ChainContext';
-import { AlgorandContextProvider } from '../chain_handlers_frontend/algorand/AlgorandContext';
-import { EthereumContextProvider } from '../chain_handlers_frontend/ethereum/EthereumContext';
+import { ChainContextProvider } from '../chain/ChainContext';
+import { AlgorandContextProvider } from '../chain/algorand/AlgorandContext';
+import { EthereumContextProvider } from '../chain/ethereum/EthereumContext';
 import { Layout } from 'antd';
 import { WalletHeader } from '../components/WebsiteHeader';
 import { WalletFooter } from '../components/WebsiteFooter';

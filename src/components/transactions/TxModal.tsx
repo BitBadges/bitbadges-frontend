@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Modal } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';

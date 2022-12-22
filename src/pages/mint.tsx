@@ -2,7 +2,7 @@ import { MintTimeline } from '../components/mint/MintTimeline';
 import React from 'react';
 import { Layout } from 'antd';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../constants';
-import { useChainContext } from '../chain_handlers_frontend/ChainContext';
+import { useChainContext } from '../chain/ChainContext';
 import ConnectScreen from './connect';
 import { useRouter } from 'next/router';
 import { DisconnectedWrapper } from '../components/DisconnectedWrapper';
