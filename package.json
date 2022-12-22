@@ -15,7 +15,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@json-rpc-tools/utils": "^1.7.6",
-    "@reduxjs/toolkit": "^1.8.5",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/types": "^1.8.0",
@@ -41,7 +40,6 @@
     "react-blockies": "^1.4.1",
     "react-cookie": "^4.1.1",
     "react-dom": "18.0.0",
-    "react-redux": "^8.0.2",
     "react-router-dom": "^6.3.0",
     "tweetnacl": "^1.0.3",
     "web3modal": "^1.9.9"

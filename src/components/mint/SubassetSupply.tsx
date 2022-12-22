@@ -20,9 +20,7 @@ export function SubassetSupply({
     setBadge: (badge: any) => void;
 }) {
     const chain = useChainContext();
-    const accountInformation = useSelector((state: any) => state.user);
-    const address = chain.address;
-    const accountNumber = accountInformation.accountNumber;
+
     const [subassetSupplys, setSubassetSupplys] = useState<SubassetSupply[]>([]);
 
     // const [amountToCreate, setAmountToCreate] = useState<number>(0);

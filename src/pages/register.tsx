@@ -1,4 +1,3 @@
-import { Web3ModalButtons } from '../components/Web3ModalConnectButton';
 import { getInjectedProviderName } from 'web3modal';
 import { useSelector } from 'react-redux';
 import React, { useEffect, useState } from 'react';
@@ -13,7 +12,8 @@ const { Content } = Layout;
 const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
-    const address = useSelector((state: any) => state.user.address);
+    const chain = useChainContext();
+    const address = chain.cosmosAddress;
 
     return (
         <Layout>
@@ -46,7 +46,7 @@ function RegisterScreen({ message }: { message?: string }) {
                         <Button
                             type="primary"
                             onClick={async () => {
-                                await getAccountInformation(address, true)
+                                await chain.connect();
                             }}
                         >
                             Refresh

@@ -34,6 +34,7 @@ import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { CreateTxMsgTransferManagerModal } from '../transactions/CreateTxMsgTransferMangerModal';
 import { CreateTxMsgNewBadgeModal } from '../transactions/CreateTxMsgNewBadgeModal';
 import { CreateTxMsgRevokeBadgeModal } from '../transactions/CreateTxMsgRevokeBadge';
+import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -50,7 +51,8 @@ export function BadgeModalManagerActions({
     const [revokeIsVisible, setRevokeIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
 
-    const accountNumber = useSelector((state: any) => state.user.accountNumber);
+    const chain = useChainContext();
+    const accountNumber = chain.accountNumber;
 
     if (!badge) return <></>;
 

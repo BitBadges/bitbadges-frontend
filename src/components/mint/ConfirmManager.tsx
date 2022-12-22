@@ -14,10 +14,7 @@ export function ConfirmManager({
     setBadge: (badge: any) => void;
 }) {
     const chain = useChainContext();
-    const accountInformation = useSelector((state: any) => state.user);
     const address = chain.address;
-    const accountNumber = accountInformation.accountNumber;
-
     
 
     return (

@@ -1,5 +1,4 @@
 import Search from 'antd/lib/input/Search';
-import { useSelector } from 'react-redux';
 import { Tabs } from './Tabs';
 import Blockies from 'react-blockies';
 import {
@@ -24,7 +23,8 @@ const { Header } = Layout;
 const { Option } = Select;
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
-    const isRegistered = useSelector((state: any) => state.user.isRegistered);
+    const chain = useChainContext();
+    const isRegistered = chain.isRegistered;
 
     return (
         <>

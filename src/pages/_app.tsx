@@ -6,7 +6,6 @@ import { EthereumContextProvider } from '../chain_handlers_frontend/ethereum/Eth
 import { Layout } from 'antd';
 import { WalletHeader } from '../components/WebsiteHeader';
 import { WalletFooter } from '../components/WebsiteFooter';
-import store from '../redux/store';
 import { Provider } from 'react-redux';
 import '../styles/antd-override-styles.css'
 
@@ -15,19 +14,17 @@ import '../styles/antd-override-styles.css'
 const App = ({ Component, pageProps }: AppProps) => {
 
     return (
-        <Provider store={store}>
-            <EthereumContextProvider>
-                <AlgorandContextProvider>
-                    <ChainContextProvider>
-                        <Layout className="layout">
-                            <WalletHeader />
-                            <Component {...pageProps} />
-                            <WalletFooter />
-                        </Layout>
-                    </ChainContextProvider>
-                </AlgorandContextProvider>
-            </EthereumContextProvider>
-        </Provider>
+        <EthereumContextProvider>
+            <AlgorandContextProvider>
+                <ChainContextProvider>
+                    <Layout className="layout">
+                        <WalletHeader />
+                        <Component {...pageProps} />
+                        <WalletFooter />
+                    </Layout>
+                </ChainContextProvider>
+            </AlgorandContextProvider>
+        </EthereumContextProvider>
     )
 }
 

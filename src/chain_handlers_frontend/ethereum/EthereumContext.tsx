@@ -39,7 +39,18 @@ export const EthereumContext = createContext<EthereumContextType>({
     connected: false,
     setConnected: () => { },
     signer: undefined,
-    setSigner: () => { }
+    setSigner: () => { },
+    cosmosAddress: '',
+    setCosmosAddress: () => { },
+    sequence: -1,
+    incrementSequence: () => { },
+    setSequence: () => { },
+    publicKey: '',
+    setPublicKey: () => { },
+    accountNumber: -1,
+    setAccountNumber: () => { },
+    isRegistered: false,
+    setIsRegistered: () => { },
 })
 
 
@@ -53,6 +64,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [connected, setConnected] = useState<boolean>(false);
     const [chainId, setChainId] = useState<string>('Mainnet');
     const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
+    const [cosmosAddress, setCosmosAddress] = useState<string>('');
+    const [sequence, setSequence] = useState<number>(-1);
+    const [publicKey, setPublicKey] = useState<string>('');
+    const [accountNumber, setAccountNumber] = useState<number>(-1);
+    const [isRegistered, setIsRegistered] = useState<boolean>(false);
 
     const resolveAddressToENS = async (address: string) => {
         if (address) {
@@ -66,8 +82,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
     //If you would like to support this, you can call this with a useEffect every time connected or address is updated
     const ownedAssetIds: string[] = [];
-
-
 
     const connect = async () => {
         const providerOptions = {
@@ -95,13 +109,20 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         const address = await signer.getAddress();
         console.log("SIGNER", signer, address);
 
-        await getAccountInformation(ethToCosmos(address), true);
+        const accountInformation = await getAccountInformation(ethToCosmos(address));
+        setCosmosAddress(accountInformation.address);
+        setSequence(accountInformation.sequence);
+        setPublicKey(accountInformation.pub_key?.key);
+        setAccountNumber(accountInformation.account_number);
+        setIsRegistered(!!accountInformation.account_number);
 
         setSigner(signer);
         setConnected(true);
         setAddress(await signer.getAddress());
+    }
 
-
+    const incrementSequence = () => {
+        setSequence(sequence + 1);
     }
 
     const disconnect = async () => {
@@ -124,7 +145,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
     const signTxn = async (txn: any) => {
         const chain = CHAIN_DETAILS;
-        const sender = await getSenderInformation(getPublicKey);
+        const sender = {
+            accountAddress: cosmosAddress,
+            sequence: sequence,
+            accountNumber: accountNumber,
+            pubkey: publicKey
+        };
         console.log(txn.eipToSign);
 
         let sig = await window.ethereum.request({
@@ -183,6 +209,17 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         signer,
         setSigner,
         getPublicKey,
+        cosmosAddress,
+        setCosmosAddress,
+        sequence,
+        setSequence,
+        publicKey,
+        setPublicKey,
+        accountNumber,
+        setAccountNumber,
+        isRegistered,
+        setIsRegistered,
+        incrementSequence
     };
 
     return <EthereumContext.Provider value={ethereumContext}>

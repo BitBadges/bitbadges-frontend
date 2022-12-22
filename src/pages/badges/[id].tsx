@@ -4,15 +4,13 @@ import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
 import { BadgeHeader } from '../../components/badges/BadgePageHeader';
-import { useSelector } from 'react-redux';
 import { Tabs } from '../../components/Tabs';
 import { BadgeModalManagerActions } from '../../components/badges/ManagerActions';
 import { UserBalanceDisplay } from '../../components/badges/UserBalanceDisplay';
 import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/BadgePageSubBadgesTab';
-import { TxModal } from '../../components/transactions/TxModal';
-import { CloseOutlined } from '@ant-design/icons';
+import { useChainContext } from '../../chain_handlers_frontend/ChainContext';
 
 const { Content } = Layout;
 
@@ -24,7 +22,8 @@ function Badges() {
     const { id } = router.query;
 
     const [badgeDetails, setBadgeDetails] = useState<BitBadgeCollection | undefined>()
-    const accountNumber = useSelector((state: any) => state.user.accountNumber);
+    const chain = useChainContext();
+    const accountNumber = chain.accountNumber;
     const [tab, setTab] = useState('overview');
     const [visible, setVisible] = useState(true);
 
@@ -40,7 +39,7 @@ function Badges() {
         {
             key: 'manageractions',
             content: 'Manager Actions',
-            disabled: accountNumber !== badgeDetails?.manager
+            // disabled: accountNumber !== badgeDetails?.manager //TODO: uncomment this
         }
     ];
 

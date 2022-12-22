@@ -1,5 +1,4 @@
 import Search from 'antd/lib/input/Search';
-import { useSelector } from 'react-redux';
 import { Tabs } from './Tabs';
 import Blockies from 'react-blockies';
 import {

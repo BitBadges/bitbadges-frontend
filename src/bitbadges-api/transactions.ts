@@ -2,7 +2,7 @@ import { CHAIN_DETAILS, DEV_MODE } from "../constants";
 import { getSenderInformation } from "./broadcast";
 
 async function fetchDefaultTxDetails(chain: any) {
-    const sender = await getSenderInformation(chain.getPublicKey);
+    const sender = await getSenderInformation(chain);
     const fee = {
         amount: '1',
         denom: 'token',

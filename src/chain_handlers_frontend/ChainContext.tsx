@@ -2,7 +2,6 @@
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { TypedDataField } from 'ethers';
 import { createContext, Dispatch, ReactComponentElement, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
-import { getAccountInformation } from '../bitbadges-api/api';
 import { useAlgorandContext } from './algorand/AlgorandContext';
 import { useEthereumContext } from './ethereum/EthereumContext';
 
@@ -31,6 +30,22 @@ export type ChainSpecificContextType = {
 
     address: string,
     setAddress: Dispatch<SetStateAction<string>>,
+
+    cosmosAddress: string,
+    setCosmosAddress: Dispatch<SetStateAction<string>>,
+
+    sequence: number,
+    incrementSequence: () => void,
+    setSequence: Dispatch<SetStateAction<number>>,
+
+    publicKey: string,
+    setPublicKey: Dispatch<SetStateAction<string>>,
+
+    accountNumber: number,
+    setAccountNumber: Dispatch<SetStateAction<number>>,
+
+    isRegistered: boolean,
+    setIsRegistered: Dispatch<SetStateAction<boolean>>,
 
     //These are assumed to remain constant, but included because they are chain-specific
     disconnect: () => {},
@@ -61,7 +76,18 @@ const ChainContext = createContext<ChainContextType>({
     setChain: () => { },
     ownedAssetIds: [],
     displayedResources: [],
-    selectedChainInfo: {}
+    selectedChainInfo: {},
+    cosmosAddress: '',
+    setCosmosAddress: () => { },
+    sequence: -1,
+    incrementSequence: () => { },
+    setSequence: () => { },
+    publicKey: '',
+    setPublicKey: () => { },
+    accountNumber: -1,
+    setAccountNumber: () => { },
+    isRegistered: false,
+    setIsRegistered: () => { },
 });
 
 type Props = {

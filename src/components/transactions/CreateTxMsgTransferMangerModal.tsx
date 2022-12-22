@@ -37,7 +37,6 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
             createTxFunction={createTxMsgTransferManager}
             displayMsg={"You are transfering the managerial privileges of this badge collection (ID: " + badge.id + ", Name: " + badge.metadata.name + ")."}
             disabled={accountNumber === undefined || accountNumber === null || accountNumber < 0}
-            destroyOnClose={true}
         >
             <b>Select New Manager</b>
             <AddressSelect onChange={handleChange} />

@@ -26,7 +26,6 @@ export function TransactionDetails({
     const [stepNum, setStepNum] = useState(1);
     const [visible, setVisible] = useState<boolean>(false);
 
-    const address = useSelector((state: any) => state.user.address);
     const chain = useChainContext();
 
     const incrementStep = () => {
@@ -53,7 +52,7 @@ export function TransactionDetails({
     }
     //TODO: remove hardcoded stuff
     let msgNewBadgeParams = {
-        creator: address,
+        creator: chain.cosmosAddress,
         //IPFS URI (not image or externalUrl)
         uri: {
             uri: 'http://facebook.com', //TODO:

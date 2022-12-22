@@ -7,6 +7,7 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import Blockies from 'react-blockies';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
+import { useSelector } from 'react-redux';
 
 export function TxModal(
     { destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle }
@@ -29,6 +30,8 @@ export function TxModal(
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
 
+    const cosmosAddress = chain.cosmosAddress;
+
     const handleSubmitTx = async () => {
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
         try {
@@ -41,7 +44,6 @@ export function TxModal(
             setTransactionStatus(TransactionStatus.None);
 
             //TODO: way to track tx - link to block explorer
-
 
             setVisible(false);
         } catch (err: any) {
@@ -77,7 +79,7 @@ export function TxModal(
             onCancel={() => setVisible(false)}
             okText={"Sign and Submit Transaction"}
             cancelText={"Cancel"}
-            destroyOnClose={destroyOnClose}
+            destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
             <div style={{
                 display: 'flex',
@@ -91,12 +93,18 @@ export function TxModal(
                     alignItems: 'center',
                 }}>
                     <Blockies seed={chain.address.toLowerCase()} />
-                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(chain.address)}</span>
+                    {chain.address ?
+                        <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(chain.address)}</span>
+                        : <span style={{ marginLeft: 8 }}>...</span>}
+                    {/* TODO: blockin connect if not connected */}
+
                 </div>
+
                 <div>
                     <span style={{ marginLeft: 8 }}>{chain.chain}</span>
                 </div>
             </div>
+            {cosmosAddress}
             <hr />
             <div style={{ textAlign: 'center' }}>
                 <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center' }}>

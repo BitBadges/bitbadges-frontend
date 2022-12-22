@@ -1,8 +1,5 @@
-import store from '../redux/store';
 import axios from 'axios';
-import { userActions } from '../redux/userSlice';
 import { NODE_URL } from '../constants';
-import { generateEndpointBroadcast, generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { GetPermissions, Permissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
 import { GetBadgeResponse, GetBalanceResponse } from './types';
@@ -10,7 +7,6 @@ import { GetBadgeResponse, GetBalanceResponse } from './types';
 
 export async function getAccountInformation(
     bech32Address: string,
-    updateUserInformation: boolean = true,
 ) {
     const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
         .then((res) => res.data)
@@ -27,21 +23,6 @@ export async function getAccountInformation(
         });
 
     const accountInformation = accountObject.account;
-
-    if (updateUserInformation) {
-        store.dispatch(userActions.setSequence(accountInformation.sequence));
-        store.dispatch(userActions.setAddress(accountInformation.address));
-        store.dispatch(userActions.setPublicKey(accountInformation.pub_key?.key));
-        store.dispatch(userActions.setAccountNumber(accountInformation.account_number));
-        store.dispatch(userActions.setIsRegistered(!!accountInformation.account_number));
-
-        // store.dispatch(userActions.setUserCreatedBadges(issuedBadges));
-        // store.dispatch(userActions.setUserReceivedBadges(receivedBadges));
-        // store.dispatch(userActions.setUserPendingBadges(pendingBadges));
-        // store.dispatch(userActions.setUserBalancesMap(newUserBalancesMap));
-        // store.dispatch(userActions.setNumPending(numPendingCount));
-        // store.dispatch(userActions.setProfileInfo(profileInfo));
-    }
 
     return accountInformation;
 }
