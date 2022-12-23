@@ -12,10 +12,13 @@ import {
     RollbackOutlined,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BitBadge, BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { ColumnsType } from 'antd/lib/table';
 import { Permissions } from '../../bitbadges-api/permissions';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
+import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { MessageMsgHandlePendingTransfer } from 'bitbadgesjs-transactions';
+import { CreateTxMsgHandlePendingTransferModal } from '../txModals/CreateTxMsgHandlePendingTransferModal';
 
 const { Text } = Typography;
 
@@ -25,11 +28,20 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
     balanceInfo: UserBalance | undefined;
     badgeId: number | undefined;
 }) {
-    const [visible, setVisible] = useState<boolean>(false);
+    const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
+    const [handlePendingTransferIsVisible, setHandlePendingTransferIsVisible] = useState<boolean>(false);
+    const [accept, setAccept] = useState<boolean>(true);
+    const [forcefulAccept, setForcefulAccept] = useState<boolean>(false);
+    const [nonceRanges, setNonceRanges] = useState<IdRange[]>([]);
+
 
     if (!badge || badgeId === undefined || badgeId === null) return <></>;
 
-    if (!balanceInfo) return <div style={{ color: PRIMARY_TEXT, fontSize: 30 }}>No Balance Info</div>;
+    if (!balanceInfo) return <>
+        <div style={{ color: PRIMARY_TEXT, fontSize: 24 }}>Connect a Wallet to See Your Balances</div>
+        <BlockinDisplay />
+    </>;
+
 
     if (DEV_MODE) console.log("Loading BadgeBalanceTab for The Following Badge: ", badge);
 
@@ -87,7 +99,32 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                     </Row>
                     <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
                     {getTableRow("Approvals", balanceInfo.approvals.length ? JSON.stringify(balanceInfo.approvals) : "N/A")}
-                    {getTableRow("Pending", balanceInfo.pending.length ? JSON.stringify(balanceInfo.pending) : "N/A")}
+                    {getTableRow("Pending", balanceInfo.pending.map((pending) => {
+                        if (pending.end === undefined) pending.end = pending.start;
+
+                        if (pending.subbadgeRange.start <= badgeId && pending.subbadgeRange.end >= badgeId) {
+                            if (pending.sent && !pending.markedAsAccepted) {
+                                return <>
+                                    {"Sending x" + pending.amount + " badges w/ IDs" + pending.subbadgeRange.start + " - " + pending.subbadgeRange.end + " to Account #" + pending.to +
+                                        ""}
+                                    <br />
+                                    <Button type="primary" onClick={() => {
+                                        setAccept(false);
+                                        setForcefulAccept(false);
+                                        setNonceRanges([{
+                                            start: pending.thisPendingNonce,
+                                            end: pending.thisPendingNonce,
+                                        }]);
+                                        setHandlePendingTransferIsVisible(true);
+                                    }}>
+                                        Cancel
+                                    </Button>
+                                </>;
+                            }
+
+                            return JSON.stringify(pending);
+                        }
+                    }))}
                 </Col>
             </Row>
 
@@ -98,7 +135,7 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                 }}
                 type="primary"
                 onClick={() => {
-                    setVisible(true);
+                    setTransferIsVisible(true);
                 }}>
                 <SwapOutlined />
                 <Text strong style={{ fontSize: 18, color: 'white' }}>
@@ -108,20 +145,24 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
 
             <CreateTxMsgTransferBadgeModal
                 badge={badge}
-                visible={visible}
-                setVisible={setVisible}
-            >
+                visible={transferIsVisible}
+                setVisible={setTransferIsVisible}
+            />
 
-            </CreateTxMsgTransferBadgeModal>
-
+            <CreateTxMsgHandlePendingTransferModal
+                badge={badge}
+                visible={handlePendingTransferIsVisible}
+                setVisible={setHandlePendingTransferIsVisible}
+                accept={accept}
+                forcefulAccept={forcefulAccept}
+                nonceRanges={nonceRanges}
+            />
 
             {DEV_MODE &&
                 <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
                     {JSON.stringify(balanceInfo, null, 2)}
                 </pre>
             }
-
-
         </div >
     );
 }
