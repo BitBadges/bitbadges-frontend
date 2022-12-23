@@ -59,6 +59,7 @@ export function BadgeModalManagerActions({
     const managerActions = [];
     const allUserActions = [];
 
+    //TODO: add back permission checks
     if (badge.permissions) {
         if (badge.permissions.CanCreate) {
             // managerActions.push({
@@ -269,77 +270,77 @@ export function BadgeModalManagerActions({
             // });
         }
 
-        if (badge.permissions.CanRevoke) {
-            managerActions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Revoke a badge from an existing owner
-                    </div>
-                ),
-                icon: <UndoOutlined />,
-                showModal: () => {
-                    setRevokeIsVisible(!revokeIsVisible);
-                },
-            });
-            managerActions.push({
-                title: (
-                    <div style={{ color: PRIMARY_TEXT }}>
-                        TODO: Update Permissions
-                    </div>
-                ),
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Disable revoking privileges permanently.
-                    </div>
-                ),
-                icon: <LockOutlined />,
-                visible: lockRevokeIsVisible,
-                // content: (
-                //     <>
-                //         {lockRevokeIsVisible && (
-                //             <div
-                //                 style={{
-                //                     width: '100%',
-                //                     display: 'flex',
-                //                     justifyContent: 'center',
-                //                 }}
-                //             >
-                //                 <Form
-                //                     // labelCol={{ span: 4 }}
-                //                     // wrapperCol={{ span: 14 }}
-                //                     layout="horizontal"
-                //                     style={{ width: '50vw' }}
-                //                 >
-                //                     <Form.Item>
-                //                         <Text style={{ color: PRIMARY_TEXT }}>
-                //                             *Warning: This action is permanent.
-                //                             Once you lock your revoke
-                //                             permission, you will never be able
-                //                             to revoke again.
-                //                         </Text>
-                //                     </Form.Item>
+        // if (badge.permissions.CanRevoke) {
+        managerActions.push({
+            title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
+            description: (
+                <div style={{ color: SECONDARY_TEXT }}>
+                    Revoke a badge from an existing owner
+                </div>
+            ),
+            icon: <UndoOutlined />,
+            showModal: () => {
+                setRevokeIsVisible(!revokeIsVisible);
+            },
+        });
+        // managerActions.push({
+        //     title: (
+        //         <div style={{ color: PRIMARY_TEXT }}>
+        //             TODO: Update Permissions
+        //         </div>
+        //     ),
+        //     description: (
+        //         <div style={{ color: SECONDARY_TEXT }}>
+        //             Disable revoking privileges permanently.
+        //         </div>
+        //     ),
+        //     icon: <LockOutlined />,
+        //     visible: lockRevokeIsVisible,
+        //     // content: (
+        //     //     <>
+        //     //         {lockRevokeIsVisible && (
+        //     //             <div
+        //     //                 style={{
+        //     //                     width: '100%',
+        //     //                     display: 'flex',
+        //     //                     justifyContent: 'center',
+        //     //                 }}
+        //     //             >
+        //     //                 <Form
+        //     //                     // labelCol={{ span: 4 }}
+        //     //                     // wrapperCol={{ span: 14 }}
+        //     //                     layout="horizontal"
+        //     //                     style={{ width: '50vw' }}
+        //     //                 >
+        //     //                     <Form.Item>
+        //     //                         <Text style={{ color: PRIMARY_TEXT }}>
+        //     //                             *Warning: This action is permanent.
+        //     //                             Once you lock your revoke
+        //     //                             permission, you will never be able
+        //     //                             to revoke again.
+        //     //                         </Text>
+        //     //                     </Form.Item>
 
-                //                     {getSignAndSubmitButton(async () => {
-                //                         const data = {
-                //                             badgeId: badge.id,
-                //                         };
-                //                         submitTransaction(
-                //                             data,
-                //                             '/badges/lockRevoke'
-                //                         );
-                //                     }, txnSubmitted)}
-                //                     <Divider />
-                //                 </Form>
-                //             </div>
-                //         )}
-                //     </>
-                // ),
-                showModal: () => {
-                    setLockRevokeIsVisible(!lockRevokeIsVisible);
-                },
-            });
-        }
+        //     //                     {getSignAndSubmitButton(async () => {
+        //     //                         const data = {
+        //     //                             badgeId: badge.id,
+        //     //                         };
+        //     //                         submitTransaction(
+        //     //                             data,
+        //     //                             '/badges/lockRevoke'
+        //     //                         );
+        //     //                     }, txnSubmitted)}
+        //     //                     <Divider />
+        //     //                 </Form>
+        //     //             </div>
+        //     //         )}
+        //     //     </>
+        //     // ),
+        //     showModal: () => {
+        //         setLockRevokeIsVisible(!lockRevokeIsVisible);
+        //     },
+        // });
+        // }
 
         managerActions.push({
             title: (
@@ -447,7 +448,7 @@ export function BadgeModalManagerActions({
             <CreateTxMsgRevokeBadgeModal
                 visible={revokeIsVisible}
                 setVisible={setRevokeIsVisible}
-                txCosmosMsg={{}}
+                badge={badge}
             />
         </div >
     );

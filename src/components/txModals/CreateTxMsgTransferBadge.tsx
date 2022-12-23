@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MessageMsgRevokeBadge, createTxMsgRevokeBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
@@ -8,7 +8,7 @@ import { Button, InputNumber } from 'antd';
 import { AddressModalDisplay } from './AddressModalDisplay';
 
 
-export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, children }
+export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, children }
     : {
         badge: BitBadgeCollection,
         visible: boolean,
@@ -21,20 +21,24 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
     const [currAccountNumber, setCurrAccountNumber] = useState<number>();
     const [currChain, setCurrChain] = useState<string>();
 
-    const [amountToRevoke, setAmountToRevoke] = useState<number>(0);
+    const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
     const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
 
-    const [revokedUsers, setRevokedUsers] = useState<User[]>([]);
+    const [toAddresses, setToAddresses] = useState<User[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
-    const txCosmosMsg: MessageMsgRevokeBadge = {
+
+    const txCosmosMsg: MessageMsgTransferBadge = {
         creator: chain.cosmosAddress,
+        from: chain.accountNumber,
         badgeId: badge.id,
-        addresses: revokedUsers.map((user) => user.accountNumber),
+        toAddresses: toAddresses.map((user) => user.accountNumber),
         amounts,
         subbadgeRanges,
+        expiration_time: 0, //TODO:
+        cantCancelBeforeTime: 0,
     };
 
     const handleChange = (cosmosAddress: string, newManagerAccountNumber: number, chain: string, address: string) => {
@@ -42,13 +46,15 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
         setCurrAccountNumber(newManagerAccountNumber);
         setCurrAddress(address);
         setCurrChain(chain);
+
+        //TODO: can't transfer to self
     }
 
     useEffect(() => {
-        setRevokedUsers([]);
+        setToAddresses([]);
         setAmounts([]);
         setSubbadgeRanges([]);
-        setAmountToRevoke(0);
+        setAmountToTransfer(0);
         setStartSubbadgeId(-1);
         setEndSubbadgeId(-1);
     }, [visible])
@@ -58,11 +64,11 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
-            txName="Revoke Badge"
+            txName="Transfer Badge"
             txCosmosMsg={txCosmosMsg}
-            createTxFunction={createTxMsgRevokeBadge}
+            createTxFunction={createTxMsgTransferBadge}
             displayMsg={<div>You are revoking this badge from these users:
-                {revokedUsers.map((user, index) => {
+                {toAddresses.map((user, index) => {
                     return (
                         <div key={index}>
                             <AddressModalDisplay
@@ -72,25 +78,25 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
                                 chain={user.chain}
                                 address={user.address}
                             />
-                            {/* {index === revokedUsers.length - 1 && <hr />} */}
+                            {/* {index === toAddresses.length - 1 && <hr />} */}
                         </div>
                     )
                 })}
             </div>}
-            disabled={revokedUsers.length === 0}
+            disabled={toAddresses.length === 0}
         >
-            Amount to Revoke: <br />
+            Amount to Transfer: <br />
             <InputNumber
                 min={0}
-                title='Amount to Revoke'
-                value={amountToRevoke} onChange={
+                title='Amount to Transfer'
+                value={amountToTransfer} onChange={
                     (value: number) => {
                         if (!value || value <= 0) {
-                            setAmountToRevoke(0);
+                            setAmountToTransfer(0);
                             setAmounts([0]);
                         }
                         else {
-                            setAmountToRevoke(value);
+                            setAmountToTransfer(value);
                             setAmounts([value]);
                         }
                     }
@@ -112,7 +118,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             SubBadge ID End: <br />
             <InputNumber
                 min={0}
-                title='Amount to Revoke'
+                title='Amount to Trasfer'
                 value={endSubbadgeId} onChange={
                     (value: number) => {
                         setEndSubbadgeId(value);
@@ -123,14 +129,14 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
                     }
                 } />
             <hr />
-            <AddressSelect onChange={handleChange} title={"Add User to Revoke From"} />
+            <AddressSelect onChange={handleChange} title={"Add User to Transfer To"} />
             <Button type="primary"
                 style={{ width: "100%" }}
                 disabled={!currAddress || !currAccountNumber || !currChain || !currCosmosAddress}
                 onClick={() => {
                     if (!currAddress || !currAccountNumber || !currChain || !currCosmosAddress) return;
-                    setRevokedUsers([
-                        ...revokedUsers,
+                    setToAddresses([
+                        ...toAddresses,
                         {
                             cosmosAddress: currCosmosAddress,
                             accountNumber: currAccountNumber,

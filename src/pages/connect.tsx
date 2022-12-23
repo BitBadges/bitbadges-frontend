@@ -1,17 +1,20 @@
-import { Web3ModalButtons } from '../components/Web3ModalConnectButton';
-import { getInjectedProviderName } from 'web3modal';
-
 import React, { useEffect, useState } from 'react';
-import { Layout, Typography } from 'antd';
+import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
-import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { useChainContext } from '../chain/ChainContext';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 function ConnectScreen({ message }: { message?: string }) {
+    const router = useRouter();
+    const {
+        loggedIn,
+        connected
+    } = useChainContext();
+
     return (
         <Layout>
             <Content
@@ -34,6 +37,17 @@ function ConnectScreen({ message }: { message?: string }) {
                         <BlockinDisplay />
                     </Content>
                 </div>
+                {true && connected && //TODO: change to actually loggedIn
+                    <div>
+                        <Content style={{ paddingTop: '15px' }}>
+                            <Button type='primary' style={{ width: '50%' }} onClick={() => {
+                                router.back();
+                            }}>
+                                Go Back to Previous Page
+                            </Button>
+                        </Content>
+                    </div>
+                }
             </Content>
         </Layout>
     );

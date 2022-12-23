@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Typography, Modal } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
-import Blockies from 'react-blockies';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { AddressModalDisplay } from './AddressModalDisplay';
 
 export function TxModal(
@@ -14,7 +12,7 @@ export function TxModal(
         : {
             destroyOnClose?: boolean,
             disabled?: boolean,
-            displayMsg: string,
+            displayMsg: string | ReactNode,
             createTxFunction: any, //TODO
             txCosmosMsg: object,
             visible: boolean,
@@ -81,14 +79,6 @@ export function TxModal(
             cancelText={"Cancel"}
             destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
-            <AddressModalDisplay
-                address={chain.address}
-                cosmosAddress={chain.cosmosAddress}
-                accountNumber={chain.accountNumber}
-                title={"Connected Wallet "}
-                chain={chain.chain}
-            />
-            <hr />
             {children}
             <hr />
             <div style={{ textAlign: 'center' }}>
@@ -96,6 +86,23 @@ export function TxModal(
                     {displayMsg}
                 </Typography.Text>
             </div>
+
+            <hr />
+            <div style={{ textAlign: 'center' }}>
+                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
+                    Please confirm all the above transaction details are correct.
+                    If they are, you may proceed by signing and submitting the transaction
+                    with the following wallet:
+                </Typography.Text>
+            </div>
+            <AddressModalDisplay
+                address={chain.address}
+                cosmosAddress={chain.cosmosAddress}
+                accountNumber={chain.accountNumber}
+                title={"Your Signing Wallet: "}
+                chain={chain.chain}
+            />
+
             {error && <div>
                 <hr />
                 <div style={{ color: 'red' }}>

@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Input, Select, Form } from 'antd';
+import { Input, Select } from 'antd';
 import { SupportedChain } from '../../bitbadges-api/types';
 import { ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
-import Blockies from 'react-blockies';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { AddressModalDisplay, AddressModalDisplayTitle } from './AddressModalDisplay';
 
 const { Option } = Select;
-const { Text } = Typography;
 
 export function AddressSelect({
-    onChange
+    onChange,
+    title,
 }:
     {
-        onChange: (cosmosAddress: string, accountNumber: number) => void,
+        title: string,
+        onChange: (cosmosAddress: string, accountNumber: number, chain: string, address: string) => void,
     }
 ) {
     const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
@@ -36,7 +35,7 @@ export function AddressSelect({
             getAccountInformation(bech32Address).then((accountInfo) => {
                 setAccountNumber(accountInfo.account_number);
                 setCosmosAddress(bech32Address);
-                onChange(bech32Address, accountInfo.account_number);
+                onChange(bech32Address, accountInfo.account_number, chain, address);
             });
         }
     }, [address, chain, setAccountNumber, onChange]);
@@ -44,7 +43,7 @@ export function AddressSelect({
     return <>
         <AddressModalDisplayTitle
             accountNumber={accountNumber ? accountNumber : -1}
-            title="New Manager"
+            title={title}
         />
         <Input.Group compact style={{ display: 'flex' }}>
             <Select

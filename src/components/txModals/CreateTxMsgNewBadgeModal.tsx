@@ -1,11 +1,11 @@
 import React from 'react';
-import { createTxMsgNewBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgNewBadge, createTxMsgNewBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 
 export function CreateTxMsgNewBadgeModal({ txCosmosMsg, visible, setVisible, children }
     :
     {
-        txCosmosMsg: object,
+        txCosmosMsg: MessageMsgNewBadge,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,

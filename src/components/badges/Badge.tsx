@@ -16,6 +16,7 @@ import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 // import { signAndSubmitPrivateApiTxn } from '../api/api';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';
+import { useRouter } from 'next/router';
 
 export function Badge({
     badge,
@@ -33,6 +34,7 @@ export function Badge({
     hideModal?: boolean;
 }) {
     const [modalIsVisible, setModalIsVisible] = useState(false);
+    const router = useRouter();
 
     if (!badge || !collection) return <></>;
 
@@ -52,7 +54,7 @@ export function Badge({
                 }}
                 hoverable
                 onClick={() => {
-                    window.location.href = `/badges/${collection.id}/${badge.badgeId}`;
+                    router.push(`/badges/${collection.id}/${badge.badgeId}`);
                 }}
                 cover={
                     <div

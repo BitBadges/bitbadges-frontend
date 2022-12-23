@@ -20,6 +20,9 @@ export interface GetBadgeResponse {
 export interface BitBadgeCollection {
     permissions: Permissions;
     metadata: BadgeMetadata,
+    badgeMetadataMap: {
+        [key: number]: BadgeMetadata
+    }
     standard: number,
     defaultSubassetSupply: number,
     subassetSupplys: BalanceObject[],
@@ -56,7 +59,7 @@ export interface GetBalanceResponse {
 }
 
 export interface IdRange {
-    start?: number;
+    start: number;
     end?: number;
 }
 
@@ -95,4 +98,11 @@ export interface CosmosAccountInformation {
         key: string;
     }
     address: string;
+}
+
+export interface User {
+    cosmosAddress: string,
+    accountNumber: number,
+    chain: string,
+    address: string,
 }

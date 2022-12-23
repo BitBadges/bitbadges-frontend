@@ -11,7 +11,8 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
-    }) {
+    }
+) {
     const chain = useChainContext();
     const [newManagerAccountNumber, setNewManagerAccountNumber] = useState<number>();
 
@@ -35,7 +36,7 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
             displayMsg={"You are transfering the managerial privileges of this badge collection (ID: " + badge.id + ", Name: " + badge.metadata.name + ") to the address listed above."}
             disabled={newManagerAccountNumber === undefined || newManagerAccountNumber === null || newManagerAccountNumber < 0}
         >
-            <AddressSelect onChange={handleChange} />
+            <AddressSelect onChange={handleChange} title={"New Manager"} />
             {children}
         </TxModal>
     );

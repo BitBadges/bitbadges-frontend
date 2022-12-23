@@ -96,5 +96,15 @@ export async function getBadgeBalance(
         return Promise.reject(balance.error);
     }
 
+    //Normalize end ranges
+    for (const balanceAmount of balance.balanceInfo.balanceAmounts) {
+        for (const idRange of balanceAmount.id_ranges) {
+            console.log("ID RANGE", idRange);
+            if (!idRange.end || idRange.end < idRange.start) {
+                idRange.end = idRange.start;
+            }
+        }
+    }
+
     return balance;
 }

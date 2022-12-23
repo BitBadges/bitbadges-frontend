@@ -25,7 +25,7 @@ export function BadgeOverviewTab({ badge, hidePermissions }: {
 }) {
     if (!badge) return <></>
 
-    console.log("Loading BadgeHeader for The Following Badge: ", badge);
+    if (DEV_MODE) console.log("Loading BadgeOverview for The Following Badge: ", badge);
 
 
 
