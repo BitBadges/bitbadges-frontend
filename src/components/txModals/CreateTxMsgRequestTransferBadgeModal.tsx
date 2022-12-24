@@ -5,7 +5,6 @@ import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
-import { AddressModalDisplay } from './AddressModalDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children }

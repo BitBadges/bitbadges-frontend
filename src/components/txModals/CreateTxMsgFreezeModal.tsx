@@ -4,7 +4,7 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber } from 'antd';
+import { Button, InputNumber, Switch } from 'antd';
 import { AddressModalDisplay } from './AddressModalDisplay';
 
 
@@ -59,6 +59,8 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
             displayMsg={'Are you sure?'}
         >
             {/* TODO: Add freeze/unfreeze button */}
+            Freeze or Unfreeze
+            <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
             <AddressSelect onChange={handleChange} title={"Freeze User"} />
             {children}
         </TxModal>

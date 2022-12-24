@@ -122,7 +122,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const incrementSequence = () => {
-        setSequence(sequence + 1);
+        setSequence(Number(sequence) + 1);
     }
 
     const disconnect = async () => {

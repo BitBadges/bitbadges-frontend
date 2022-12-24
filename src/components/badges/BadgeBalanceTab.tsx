@@ -21,6 +21,7 @@ import { MessageMsgHandlePendingTransfer } from 'bitbadgesjs-transactions';
 import { CreateTxMsgHandlePendingTransferModal } from '../txModals/CreateTxMsgHandlePendingTransferModal';
 import { useChainContext } from '../../chain/ChainContext';
 import { CreateTxMsgRequestTransferBadgeModal } from '../txModals/CreateTxMsgRequestTransferBadgeModal';
+import { CreateTxMsgRequestTransferManagerModal } from '../txModals/CreateTxMsgRequestTransferManagerModal';
 
 const { Text } = Typography;
 
@@ -32,6 +33,7 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
 }) {
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
     const [requestTransferIsVisible, setRequestTransferIsVisible] = useState<boolean>(false);
+    const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState<boolean>(false);
     const [handlePendingTransferIsVisible, setHandlePendingTransferIsVisible] = useState<boolean>(false);
     const [accept, setAccept] = useState<boolean>(true);
     const [forcefulAccept, setForcefulAccept] = useState<boolean>(false);
@@ -202,6 +204,21 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                 </Text>
             </Button>
 
+            <Button
+                style={{
+                    marginTop: '10px',
+                    width: '100%',
+                }}
+                type="primary"
+                onClick={() => {
+                    setRequestTransferManagerIsVisible(true);
+                }}>
+                <SwapOutlined />
+                <Text strong style={{ fontSize: 18, color: 'white' }}>
+                    Request Transfer Manager
+                </Text>
+            </Button>
+
             <CreateTxMsgTransferBadgeModal
                 badge={badge}
                 visible={transferIsVisible}
@@ -221,6 +238,12 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                 accept={accept}
                 forcefulAccept={forcefulAccept}
                 nonceRanges={nonceRanges}
+            />
+
+            <CreateTxMsgRequestTransferManagerModal
+                badge={badge}
+                visible={requestTransferManagerIsVisible}
+                setVisible={setRequestTransferManagerIsVisible}
             />
 
             {DEV_MODE &&

@@ -27,7 +27,7 @@ import {
     DeleteOutlined,
 } from '@ant-design/icons';
 
-import { ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { DEV_MODE, ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { RecipientList } from '../old/RecipientList';
 import { ethers } from 'ethers';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
@@ -37,6 +37,8 @@ import { CreateTxMsgRevokeBadgeModal } from '../txModals/CreateTxMsgRevokeBadge'
 import { useChainContext } from '../../chain/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgFreezeModal } from '../txModals/CreateTxMsgFreezeModal';
+import { CreateTxMsgRegisterAddressesModal } from '../txModals/CreateTxMsgRegisterAddresses';
+import { CreateTxMsgUpdatePermissionsModal } from '../txModals/CreateTxMsgUpdatePermissions';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -53,6 +55,8 @@ export function BadgeModalManagerActions({
     const [revokeIsVisible, setRevokeIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
+    const [registerAddressesIsVisible, setRegisterAddressesIsVisible] = useState(false);
+    const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
 
 
     const chain = useChainContext();
@@ -362,6 +366,19 @@ export function BadgeModalManagerActions({
         // }
 
         managerActions.push({
+            title: <div style={{ color: PRIMARY_TEXT }}>Register</div>,
+            description: (
+                <div style={{ color: SECONDARY_TEXT }}>
+                    Register an address
+                </div>
+            ),
+            icon: <PlusOutlined />,
+            showModal: () => {
+                setRegisterAddressesIsVisible(!registerAddressesIsVisible);
+            },
+        });
+
+        managerActions.push({
             title: (
                 <div style={{ color: PRIMARY_TEXT }}>Transfer Manager Role</div>
             ),
@@ -376,7 +393,20 @@ export function BadgeModalManagerActions({
             },
         });
 
-        console.log(accountNumber, badge);
+        managerActions.push({
+            title: <div style={{ color: PRIMARY_TEXT }}>Update Permissions</div>,
+            description: (
+                <div style={{ color: SECONDARY_TEXT }}>
+                    Update Permissions
+                </div>
+            ),
+            icon: <UndoOutlined />,
+            showModal: () => {
+                setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
+            },
+        });
+
+        if (DEV_MODE) console.log("CHECKING IF MANAGER EQUALS ACCT. NUMBER:", badge.manager, accountNumber,);
         if (accountNumber === badge.manager) {
             allUserActions.push(...managerActions);
         }
@@ -476,6 +506,18 @@ export function BadgeModalManagerActions({
             <CreateTxMsgFreezeModal
                 visible={freezeIsVisible}
                 setVisible={setFreezeIsVisible}
+                badge={badge}
+            />
+
+            <CreateTxMsgRegisterAddressesModal
+                visible={registerAddressesIsVisible}
+                setVisible={setRegisterAddressesIsVisible}
+                badge={badge}
+            />
+
+            <CreateTxMsgUpdatePermissionsModal
+                visible={updatePermissionsIsVisible}
+                setVisible={setUpdatePermissionsIsVisible}
                 badge={badge}
             />
         </div >
