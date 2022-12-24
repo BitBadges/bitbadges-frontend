@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { MessageMsgFreezeAddress, MessageMsgRegisterAddresses, MessageMsgRevokeBadge, createTxMsgFreezeAddress, createTxMsgRegisterAddresses, createTxMsgRevokeBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber, Switch } from 'antd';
+import { Button } from 'antd';
 import { AddressModalDisplay } from './AddressModalDisplay';
 
 
@@ -14,12 +14,11 @@ export function CreateTxMsgRegisterAddressesModal({ badge, visible, setVisible, 
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
-    }) {
+    }
+) {
     const chain = useChainContext();
-    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
-
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
     const [registeredUsers, setRegisteredUsers] = useState<BitBadgesUserInfo[]>([]);
-
 
     const txCosmosMsg: MessageMsgRegisterAddresses = {
         creator: chain.cosmosAddress,
@@ -50,7 +49,6 @@ export function CreateTxMsgRegisterAddressesModal({ badge, visible, setVisible, 
                                 title={"User " + (index + 1)}
                                 userInfo={currUserInfo ? currUserInfo : {} as BitBadgesUserInfo}
                             />
-                            {/* {index === revokedUsers.length - 1 && <hr />} */}
                         </div>
                     )
                 })}
@@ -73,7 +71,7 @@ export function CreateTxMsgRegisterAddressesModal({ badge, visible, setVisible, 
                         }
                     ]);
 
-                    setCurrUserInfo(undefined);
+                    setCurrUserInfo({} as BitBadgesUserInfo);
                 }}>Add Address</Button>
             {children}
         </TxModal>

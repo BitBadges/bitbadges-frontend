@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { MessageMsgHandlePendingTransfer, MessageMsgTransferBadge, createTxMsgHandlePendingTransfer, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
+import React from 'react';
+import { MessageMsgHandlePendingTransfer, createTxMsgHandlePendingTransfer } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection, IdRange } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber } from 'antd';
-import { AddressModalDisplay } from './AddressModalDisplay';
 
 
 export function CreateTxMsgHandlePendingTransferModal({ nonceRanges, forcefulAccept, accept, badge, visible, setVisible, children }

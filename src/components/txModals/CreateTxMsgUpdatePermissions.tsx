@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { MessageMsgFreezeAddress, MessageMsgRevokeBadge, MessageMsgUpdatePermissions, createTxMsgFreezeAddress, createTxMsgRevokeBadge, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
+import { MessageMsgUpdatePermissions,  createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber, Switch } from 'antd';
 import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
@@ -34,36 +33,44 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
             createTxFunction={createTxMsgUpdatePermissions}
             displayMsg={'Are you sure?'}
         >
-            Can Freeze
-            <Switch defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))
-            }} />
-            <br />
-            Can Revoke
-            <Switch defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
-            }} />
-            <br />
-            Can Create
-            <Switch defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanCreateDigit, !GetPermissions(currPermissions).CanCreate))
-            }} />
-            <br />
-            Can Update Uris
-            <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
-            }} />
-            <br />
-            Can Update Bytes
-            <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
-            }} />
-            <br />
-            Can Manager Transfer
-            <Switch defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
-                setCurrPermissions(UpdatePermissions(currPermissions, CanManagerTransferDigit, !GetPermissions(currPermissions).CanManagerTransfer))
-            }} />
-            <br />
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Can Freeze</span>
+                <div>
+                    <Switch defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
+                        setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))
+                    }} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                Can Revoke
+                <Switch defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
+                    setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
+                }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                Can Create
+                <Switch defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
+                    setCurrPermissions(UpdatePermissions(currPermissions, CanCreateDigit, !GetPermissions(currPermissions).CanCreate))
+                }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                Can Update Uris
+                <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
+                    setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
+                }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                Can Update Bytes
+                <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                    setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
+                }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                Can Manager Transfer
+                <Switch defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
+                    setCurrPermissions(UpdatePermissions(currPermissions, CanManagerTransferDigit, !GetPermissions(currPermissions).CanManagerTransfer))
+                }} />
+            </div>
             <hr />
             {children}
         </TxModal>

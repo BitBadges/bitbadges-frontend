@@ -43,7 +43,7 @@ export function AddressModalDisplay(
                 flexDirection: 'row',
                 alignItems: 'center',
             }}>
-                <Blockies seed={userInfo.address.toLowerCase()} />
+                <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
                 {userInfo.address ?
                     <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.address)}</span>
                     : <span style={{ marginLeft: 8 }}>...</span>}
@@ -65,7 +65,7 @@ export function AddressModalDisplay(
                 flexDirection: 'row',
                 alignItems: 'center',
             }}>
-                <Blockies seed={userInfo.cosmosAddress.toLowerCase()} />
+                <Blockies seed={userInfo.cosmosAddress ? userInfo.cosmosAddress.toLowerCase() : ''} />
                 {userInfo.cosmosAddress ?
                     <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.cosmosAddress)}</span>
                     : <span style={{ marginLeft: 8 }}>...</span>}

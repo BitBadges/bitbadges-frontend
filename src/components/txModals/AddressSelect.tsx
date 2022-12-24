@@ -26,7 +26,7 @@ export function AddressSelect({
             accountNumber: -1,
         })
 
-        let bech32Address = currUserInfo.address;
+        let bech32Address = currUserInfo.address ? currUserInfo.address : '';
         if (currUserInfo.chain === SupportedChain.ETH && ethers.utils.isAddress(currUserInfo.address)) {
             bech32Address = ethToCosmos(currUserInfo.address);
         }

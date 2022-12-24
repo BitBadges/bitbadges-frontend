@@ -42,7 +42,6 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
             createTxFunction={createTxMsgFreezeAddress}
             displayMsg={'Are you sure?'}
         >
-            {/* TODO: Add freeze/unfreeze button */}
             Freeze or Unfreeze
             <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
             <AddressSelect onChange={handleChange} title={"Freeze User"} />
