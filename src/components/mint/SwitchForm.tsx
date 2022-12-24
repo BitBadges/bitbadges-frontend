@@ -1,8 +1,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Typography, Switch, Card } from 'antd';
+import { Typography, Card } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import Meta from 'antd/lib/card/Meta';
-const { Text } = Typography;
 
 export function SwitchForm({
     onSwitchChange,
@@ -21,37 +20,6 @@ export function SwitchForm({
 }) {
     return (
         <>
-            {/* <div
-                style={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    fontSize: 100,
-                }}
-            >
-
-                <Switch
-                    checked={value}
-                    onChange={() => {
-                        const currValue = value;
-                        setValue(!currValue);
-                        onSwitchChange(!currValue);
-                    }}
-                />
-            </div>
-            <div
-                style={{
-                    marginTop: 10,
-                    textAlign: 'center',
-                }}
-            >
-                <Text style={{ color: 'white' }}>
-                    {value &&
-                        <>{selectedMessage}</>}
-                    {!value &&
-                        <>{unselectedMessage}</>}
-                </Text>
-            </div> */}
             <div>
                 <div
                     style={{

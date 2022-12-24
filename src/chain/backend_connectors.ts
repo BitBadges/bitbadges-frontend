@@ -67,3 +67,16 @@ export const addToIpfs = async (data: any) => {
 
     return addToIpfsRes;
 }
+
+export const getFromIpfs = async (path: string) => {
+    const bodyStr = stringify({ path }); //hack to preserve uint8 arrays
+    console.log(bodyStr);
+
+    const addToIpfsRes = await fetch('../api/getFromIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return addToIpfsRes;
+}

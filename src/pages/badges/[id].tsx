@@ -11,6 +11,7 @@ import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/t
 import { BadgeOverviewTab } from '../../components/badges/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/BadgePageSubBadgesTab';
 import { useChainContext } from '../../chain/ChainContext';
+import { addToIpfs, getFromIpfs } from '../../chain/backend_connectors';
 
 const { Content } = Layout;
 
@@ -54,17 +55,15 @@ function Badges() {
             const badgeRes = await getBadge(Number(id));
             const badgeInfo = badgeRes.badge;
             if (badgeInfo) {
-                //TODO: Get actual metadata here instead of just hardcoding it
-                badgeInfo.metadata = {
-                    name: 'test',
-                    description: 'test',
-                    image: 'https://bitbadges.web.app/img/icons/logo.png'
-                }
+                const res = await getFromIpfs(badgeInfo.uri.uri);
+                badgeInfo.metadata = JSON.parse(res.file)
 
                 setBadgeDetails(badgeInfo)
             } else {
                 //TODO: add a 404 clause (possibly in /api)
             }
+
+            
         }
         getBadgeFromApi();
     }, [id])

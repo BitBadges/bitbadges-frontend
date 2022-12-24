@@ -4,35 +4,31 @@ import { useState } from 'react';
 
 import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
-import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata, TransactionStatus } from '../../bitbadges-api/types';
-import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
-import { MessageMsgNewBadge, createTxMsgNewBadge } from 'bitbadgesjs-transactions';
-import { TxModal } from '../txModals/TxModal';
-import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
+import { addToIpfs } from '../../chain/backend_connectors';
+import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
-const CURR_TIMELINE_STEP_NUM = 3;
+const CURR_TIMELINE_STEP_NUM = 2;
 
-export function TransactionDetails({
+export function UploadToIPFS({
     setTimelineStepNumber,
+    newBadgeMetadata,
     newBadgeMsg,
-    newBadgeMetadata
+    setNewBadgeMsg,
 }: {
     setTimelineStepNumber: (stepNum: number) => void;
-    newBadgeMsg: MessageMsgNewBadge;
     newBadgeMetadata: BadgeMetadata;
+    newBadgeMsg: MessageMsgNewBadge;
+    setNewBadgeMsg: (newBadgeMsg: MessageMsgNewBadge) => void;
 }) {
     const [stepNum, setStepNum] = useState(1);
-    const [visible, setVisible] = useState<boolean>(false);
-
-    const chain = useChainContext();
+    const [success, setSuccess] = useState(false);
 
     const incrementStep = () => {
         if (stepNum === FINAL_STEP_NUM) {
-            // setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
+            setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
         } else {
             setStepNum(stepNum + 1);
         }
@@ -55,6 +51,7 @@ export function TransactionDetails({
                     stepNum={stepNum}
                     // backButtonDisabled={txnSubmitted && !transactionIsLoading} TODO: instead of this, we redirect to new badge page
                     finalStepNumber={1}
+                // nextButtonDisabled={!success}
                 />
                 <div style={{ paddingLeft: 5 }}>
                     <div
@@ -71,7 +68,7 @@ export function TransactionDetails({
                             }}
                             strong
                         >
-                            Mint Badge
+                            Upload to IPFS
                         </Typography.Text>
                     </div>
                 </div>
@@ -89,18 +86,35 @@ export function TransactionDetails({
                         type="primary"
                         style={{ width: '90%' }}
                         onClick={async () => {
-                            setVisible(true);
+                            let res = await addToIpfs(newBadgeMetadata);
+                            setSuccess(true);
+                            console.log("RESSS", res);
+                            //TODO: set uri
+
+                            console.log("PATH", res.path)
+
+                            setNewBadgeMsg({
+                                ...newBadgeMsg,
+                                uri: {
+                                    ...newBadgeMsg.uri,
+                                    uri: res.path, //TODO:
+                                    decodeScheme: 0,
+                                    scheme: 3,
+                                    idxRangeToRemove: {
+                                        start: 0,
+                                        end: 0,
+                                    },
+                                    insertSubassetBytesIdx: 0,
+                                    bytesToInsert: '',
+                                    insertIdIdx: 0,
+                                },
+                            });
                         }}
                     >
-                        Create Badge!
+                        Upload to IPFS
                     </Button>
-                    <CreateTxMsgNewBadgeModal
-                        visible={visible}
-                        setVisible={setVisible}
-                        txCosmosMsg={newBadgeMsg}
-                    />
                 </div>
-            </Form.Provider >
+            </Form.Provider>
         </div >
     );
 }

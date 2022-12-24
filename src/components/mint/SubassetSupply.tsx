@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
-import { Typography, Avatar, Table, InputNumber, Button } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { useChainContext } from '../../chain/ChainContext';
-import Blockies from 'react-blockies'
-import { Address } from '../Address';
-
-import { DeleteOutlined } from '@ant-design/icons';
+import { Typography, InputNumber } from 'antd';
+import { PRIMARY_TEXT } from '../../constants';
+import { MessageMsgNewBadge, MessageMsgNewSubBadge } from 'bitbadgesjs-transactions';
 
 interface SubassetSupply {
     amount: number;
@@ -13,73 +9,48 @@ interface SubassetSupply {
 }
 
 export function SubassetSupply({
-    badge,
-    setBadge
+    newBadgeMsg,
+    setNewBadgeMsg
 }: {
-    badge: any;
-    setBadge: (badge: any) => void;
+    newBadgeMsg: MessageMsgNewBadge;
+    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
 }) {
-    const chain = useChainContext();
-
-    const [subassetSupplys, setSubassetSupplys] = useState<SubassetSupply[]>([]);
-
-    // const [amountToCreate, setAmountToCreate] = useState<number>(0);
-
     let defaultBadgeSupply = 0;
-    if (badge.subassetSupplys && badge.subassetSupplys[0]) {
-        if (badge.defaultSubassetSupply == 1) {
-            defaultBadgeSupply = badge.subassetSupplys[0].amount;
+    if (newBadgeMsg.subassetSupplys && newBadgeMsg.subassetSupplys[0]) {
+        if (newBadgeMsg.defaultSubassetSupply == 1) {
+            defaultBadgeSupply = newBadgeMsg.subassetAmountsToCreate[0];
         } else {
-            defaultBadgeSupply = badge.subassetSupplys[0].supply;
+            defaultBadgeSupply = newBadgeMsg.subassetSupplys[0];
         }
     }
 
     const [supplyToCreate, setSupplyToCreate] = useState<number>(defaultBadgeSupply);
 
-    const getTotalSupply = () => {
-        let sum = 0;
-        for (const subassetSupply of subassetSupplys) {
-            sum += (subassetSupply.supply * subassetSupply.amount);
-        }
 
-        return sum
-    }
 
     const addTokens = (supply: number) => {
-        // if (supplyToCreate > 0 && amountToCreate > 0) {
-        //     const newValue = [...subassetSupplys, {
-        //         amount: amountToCreate,
-        //         supply: supplyToCreate,
-        //     }]
-        //     setSubassetSupplys(newValue);
-        //     setBadge({
-        //         ...badge,
-        //         subassetSupplys: newValue,
-        //     })
-        // }
 
         if (supply > 0) {
-            let newValue;
-            if (badge.defaultSubassetSupply == 1) {
-                newValue = [{
-                    amount: supply,
-                    supply: 1,
-                }]
-                setBadge({
-                    ...badge,
-                    subassetSupplys: newValue,
+            let newSupplys = newBadgeMsg.subassetSupplys;
+            let newAmounts = newBadgeMsg.subassetAmountsToCreate;
+            if (newBadgeMsg.defaultSubassetSupply == 1) {
+                newSupplys = [1];
+                newAmounts = [supply];
+
+                setNewBadgeMsg({
+                    ...newBadgeMsg,
+                    subassetSupplys: newSupplys,
+                    subassetAmountsToCreate: newAmounts
                 })
             } else {
-                newValue = [{
-                    amount: 1,
-                    supply: supply,
-                }]
-                setBadge({
-                    ...badge,
-                    subassetSupplys: newValue
+                newSupplys = [supply];
+                newAmounts = [1];
+                setNewBadgeMsg({
+                    ...newBadgeMsg,
+                    subassetSupplys: newSupplys,
+                    subassetAmountsToCreate: newAmounts
                 })
             }
-            setSubassetSupplys(newValue);
         }
     }
 
@@ -88,11 +59,6 @@ export function SubassetSupply({
             <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
 
             </Typography >
-            {/* <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
-                For example, if a badge has 1000 recipients and is the same badge for all users, this should be one token with supply = 1000.
-                <br />
-                A badge which has 1000 recipients but is unique for each user should be 1000 tokens with supply = 1.
-            </Typography> */}
             < div
                 style={{
                     padding: '0',
@@ -103,11 +69,6 @@ export function SubassetSupply({
                     marginTop: 20,
                 }}
             >
-                {/* < InputNumber value={amountToCreate} onChange={
-                    (value) => {
-                        setAmountToCreate(value as number);
-                    }
-                } /> */}
                 <InputNumber value={supplyToCreate} onChange={
                     (value) => {
 
@@ -115,13 +76,6 @@ export function SubassetSupply({
                         addTokens(value);
                     }
                 } />
-                {/* < Button
-                    onClick={() => {
-                        addTokens();
-                    }}
-                >
-                    Add
-                </Button > */}
             </div >
         </div >
     )

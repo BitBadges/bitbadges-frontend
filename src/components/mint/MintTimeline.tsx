@@ -1,27 +1,50 @@
 import { Timeline, Typography } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ChooseBadgeStandard } from './ChooseBadgeStandard';
 import { StandardBadgeForm } from './StandardBadgeForm';
 import { TransactionDetails } from './CreateBadgeTxnDetails';
-import { BitBadgeMintObject } from '../../bitbadges-api/types';
+import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+import { useChainContext } from '../../chain/ChainContext';
+import { BadgeMetadata } from '../../bitbadges-api/types';
+import { UploadToIPFS } from './UploadToIpfs';
 
 const { Text } = Typography;
 
 export function MintTimeline() {
+    const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
-    const [badge, setBadge] = useState<BitBadgeMintObject>({ //TODO: change this to MsgNewBadgeParams
-        standard: 0,
-        permissions: 0,
-        metadata: {
-            name: '',
-            description: '',
-            image: 'https://bitbadges.web.app/img/icons/logo.png',
+
+    const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewBadge>({
+        creator: chain.cosmosAddress,
+        //IPFS URI (not image or externalUrl)
+        //TODO: remove hardcoded stuff
+        uri: {
+            uri: 'http://facebook.com', //TODO:
+            decodeScheme: 0,
+            scheme: 0,
+            idxRangeToRemove: {
+                start: 0,
+                end: 0,
+            },
+            insertSubassetBytesIdx: 0,
+            bytesToInsert: '',
+            insertIdIdx: 0,
         },
+        arbitraryBytes: '',
+        permissions: 0,
+        defaultSubassetSupply: 1,
+        freezeAddressRanges: [],
+        standard: 0,
         subassetSupplys: [],
+        subassetAmountsToCreate: [],
+        whitelistedRecipients: []
     });
+
+    const [newBadgeMetadata, setNewBadgeMetadata] = useState<BadgeMetadata>();
+
     const steps = [
         {
             stepNumber: 0,
@@ -31,7 +54,11 @@ export function MintTimeline() {
                 </Text>
             ),
             content: (
-                <ChooseBadgeStandard setCurrStepNumber={setCurrStepNumber} badge={badge} setBadge={setBadge} />
+                <ChooseBadgeStandard
+                    setCurrStepNumber={setCurrStepNumber}
+                    newBadgeMsg={newBadgeMsg}
+                    setNewBadgeMsg={setNewBadgeMsg}
+                />
             ),
         },
         {
@@ -43,55 +70,44 @@ export function MintTimeline() {
             ),
             content: (
                 <>
-                    {badge?.standard == 0 && <StandardBadgeForm setCurrStepNumber={setCurrStepNumber} badge={badge} setBadge={setBadge} />}
+                    {newBadgeMsg?.standard == 0 && <StandardBadgeForm
+                        setCurrStepNumber={setCurrStepNumber}
+                        newBadgeMsg={newBadgeMsg}
+                        setNewBadgeMsg={setNewBadgeMsg}
+                        newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                        setNewBadgeMetadata={setNewBadgeMetadata}
+                    />}
                     {
                         //TODO:
                     }
-                    {badge?.standard != 0 && <StandardBadgeForm setCurrStepNumber={setCurrStepNumber} badge={badge} setBadge={setBadge} />}
+                    {newBadgeMsg?.standard != 0 && <StandardBadgeForm
+                        setCurrStepNumber={setCurrStepNumber}
+                        newBadgeMsg={newBadgeMsg}
+                        setNewBadgeMsg={setNewBadgeMsg}
+                        newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                        setNewBadgeMetadata={setNewBadgeMetadata}
+                    />}
                 </>
             ),
         },
-        // <ConfirmManager setCurrStepNumber={setCurrStepNumber} />
-        // {
-        //     stepNumber: 1,
-        //     title: (
-        //         <Text style={{ color: PRIMARY_TEXT }}>
-        //             Set Badge Permissions
-        //         </Text>
-        //     ),
-        //     content: (
-        //         <PermissionsForm
-        //             setPermissions={(newPermissions: any) => {
-        //                 setPermissions(newPermissions);
-        //             }}
-        //             setTimelineStepNum={setCurrStepNumber}
-        //             recipients={recipients}
-        //         />
-        //     ),
-        // },
-        // {
-        //     stepNumber: 2,
-        //     title: (
-        //         <Text style={{ color: PRIMARY_TEXT }}>Set Badge Metadata</Text>
-        //     ),
-        //     content: (
-        //         <BadgeDataForm
-        //             // setPermissions={(permissions: any) => {
-        //             //     setPermissions(permissions);
-        //             // }}
-        //             setCurrStepNumber={setCurrStepNumber}
-        //             setBadge={(badge) => {
-        //                 setBadge(badge);
-        //             }}
-        //             setRecipients={(recipients: any) => {
-        //                 setRecipients(recipients);
-        //             }}
-        //         />
-        //     ),
-        // },
-
         {
             stepNumber: 2,
+            title: (
+                <Text style={{ color: PRIMARY_TEXT }}>
+                    Upload to IPFS
+                </Text>
+            ),
+            content: (
+                <UploadToIPFS
+                    setTimelineStepNumber={setCurrStepNumber}
+                    newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                    newBadgeMsg={newBadgeMsg}
+                    setNewBadgeMsg={setNewBadgeMsg}
+                />
+            ),
+        },
+        {
+            stepNumber: 3,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
                     Finalize Transaction
@@ -99,10 +115,9 @@ export function MintTimeline() {
             ),
             content: (
                 <TransactionDetails
-                    badge={badge}
+                    newBadgeMsg={newBadgeMsg}
                     setTimelineStepNumber={setCurrStepNumber}
-                // recipients={recipients}
-                // permissions={permissions}
+                    newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
                 />
             ),
         },

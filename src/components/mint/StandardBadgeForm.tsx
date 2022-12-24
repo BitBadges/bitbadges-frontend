@@ -9,24 +9,27 @@ import { CustomizeBadgeForm } from './CustomizeBadgeForm';
 import { SubassetSupply } from './SubassetSupply';
 import { SwitchForm } from './SwitchForm';
 import { useChainContext } from '../../chain/ChainContext';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
+import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const { Text } = Typography;
 const { Option } = Select;
 
 export function StandardBadgeForm({
     setCurrStepNumber,
-    badge,
-    setBadge,
+    newBadgeMsg,
+    setNewBadgeMsg,
+    newBadgeMetadata,
+    setNewBadgeMetadata,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    badge: BitBadgeCollection;
-    setBadge: (badge: BitBadgeCollection) => void;
+    newBadgeMsg: MessageMsgNewBadge;
+    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
+    newBadgeMetadata: BadgeMetadata;
+    setNewBadgeMetadata: (metadata: BadgeMetadata) => void;
 }) {
     const chain = useChainContext();
-    const address = chain.cosmosAddress;
 
-    const [currPermissions, setCurrPermissions] = useState<number>(0);
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
         CanUpdateBytes: false,
         CanUpdateUris: false,
@@ -91,7 +94,7 @@ export function StandardBadgeForm({
                 {
                     title: 'Confirm Manager',
                     description: 'Every badge needs a manager. For this badge, the address below will be the manager.',
-                    node: <ConfirmManager badge={badge} setBadge={setBadge} />
+                    node: <ConfirmManager />
                 },
                 {
                     title: 'Can Manager Be Transferred?',
@@ -99,11 +102,17 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(noTransfersAllowed, transfersAllowed) => {
                             if (noTransfersAllowed) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanManagerTransferDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanManagerTransferDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             } else if (transfersAllowed) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanManagerTransferDigit, true);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanManagerTransferDigit, true);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             }
 
                             //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -111,8 +120,8 @@ export function StandardBadgeForm({
                             newHandledPermissions.CanManagerTransfer = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanManagerTransfer && !GetPermissions(currPermissions).CanManagerTransfer}
-                        isOptionTwoSelected={handledPermissions.CanManagerTransfer && !!GetPermissions(currPermissions).CanManagerTransfer}
+                        isOptionOneSelected={handledPermissions.CanManagerTransfer && !GetPermissions(newBadgeMsg.permissions).CanManagerTransfer}
+                        isOptionTwoSelected={handledPermissions.CanManagerTransfer && !!GetPermissions(newBadgeMsg.permissions).CanManagerTransfer}
                         selectedMessage={'You can transfer managerial privileges to another address in the future, if desired.'}
                         unselectedMessage={`You will permanently be manager of this badge.`}
                         helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}
@@ -126,23 +135,26 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(fungible, nonFungible) => {
                             if (fungible) {
-                                setBadge({
-                                    ...badge,
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
                                     defaultSubassetSupply: 0,
                                     subassetSupplys: [],
                                 });
 
                                 //If fungible, set canCreateMore to false. Will update with further support
-                                const newPermissions = UpdatePermissions(currPermissions, CanCreateDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
 
                                 //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
                                 let newHandledPermissions = { ...handledPermissions };
                                 newHandledPermissions.CanCreate = true;
                                 setHandledPermissions(newHandledPermissions);
                             } else if (nonFungible) {
-                                setBadge({
-                                    ...badge,
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
                                     defaultSubassetSupply: 1,
                                     subassetSupplys: [],
                                 });
@@ -151,23 +163,21 @@ export function StandardBadgeForm({
                                 let newHandledPermissions = { ...handledPermissions };
                                 newHandledPermissions.CanCreate = true;
                                 setHandledPermissions(newHandledPermissions);
-
-
                             }
                         }}
-                        isOptionOneSelected={handledPermissions.CanCreate && badge.defaultSubassetSupply != 1}
-                        isOptionTwoSelected={handledPermissions.CanCreate && badge.defaultSubassetSupply == 1}
+                        isOptionOneSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply != 1}
+                        isOptionTwoSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply == 1}
                         selectedMessage={'Yes. Every minted badge will have its own unique characteristics (non-fungible).'}
                         unselectedMessage={`No. Every minted badge will have the same characteristics (fungible).`}
                         helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
                     />,
-                    disabled: badge.defaultSubassetSupply == undefined //This will change as well
+                    disabled: newBadgeMsg.defaultSubassetSupply == undefined //This will change as well
                 },
                 {
                     //TODO: support creating more if CreateMore is set
                     title: 'Total Supply',
                     description: 'What do you want the total supply of this badge to be? This can not be changed later.',
-                    node: <SubassetSupply badge={badge} setBadge={setBadge} />
+                    node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />
                 },
                 // {
                 //TODO: add support for this
@@ -189,11 +199,17 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(canNotRevoke, canRevoke) => {
                             if (canNotRevoke) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanRevokeDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanRevokeDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             } else if (canRevoke) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanRevokeDigit, true);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanRevokeDigit, true);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             }
 
                             //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -201,8 +217,8 @@ export function StandardBadgeForm({
                             newHandledPermissions.CanRevoke = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanRevoke && !GetPermissions(currPermissions).CanRevoke}
-                        isOptionTwoSelected={handledPermissions.CanRevoke && !!GetPermissions(currPermissions).CanRevoke}
+                        isOptionOneSelected={handledPermissions.CanRevoke && !GetPermissions(newBadgeMsg.permissions).CanRevoke}
+                        isOptionTwoSelected={handledPermissions.CanRevoke && !!GetPermissions(newBadgeMsg.permissions).CanRevoke}
                         selectedMessage={`The manager will be able to forcefully revoke this badge from an owner at anytime.`}
                         unselectedMessage={`The manager will not be able to forcefully revoke this badge.`}
                         helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}
@@ -215,11 +231,17 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(noForceful, forceful) => {
                             if (noForceful) {
-                                const newPermissions = UpdatePermissions(currPermissions, ForcefulTransfersDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, ForcefulTransfersDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             } else if (forceful) {
-                                const newPermissions = UpdatePermissions(currPermissions, ForcefulTransfersDigit, true);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, ForcefulTransfersDigit, true);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             }
 
                             //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -227,8 +249,8 @@ export function StandardBadgeForm({
                             newHandledPermissions.ForcefulTransfers = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.ForcefulTransfers && !GetPermissions(currPermissions).ForcefulTransfers}
-                        isOptionTwoSelected={handledPermissions.ForcefulTransfers && !!GetPermissions(currPermissions).ForcefulTransfers}
+                        isOptionOneSelected={handledPermissions.ForcefulTransfers && !GetPermissions(newBadgeMsg.permissions).ForcefulTransfers}
+                        isOptionTwoSelected={handledPermissions.ForcefulTransfers && !!GetPermissions(newBadgeMsg.permissions).ForcefulTransfers}
                         selectedMessage={`When this badge is transferred, it will be forcefully transferred to the recipient's account without needing approval.`}
                         unselectedMessage={`When this badge is transferred, it will go into a pending queue until the recipient approves or denies the transfer.`}
                         helperMessage={`Note that this site does not display forceful badges by default.`}
@@ -243,11 +265,17 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(canNotFreeze, canFreeze) => {
                             if (canNotFreeze) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanFreezeDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanFreezeDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             } else if (canFreeze) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanFreezeDigit, true);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanFreezeDigit, true);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             }
 
                             //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -255,8 +283,8 @@ export function StandardBadgeForm({
                             newHandledPermissions.CanFreeze = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanFreeze && !GetPermissions(currPermissions).CanFreeze}
-                        isOptionTwoSelected={handledPermissions.CanFreeze && !!GetPermissions(currPermissions).CanFreeze}
+                        isOptionOneSelected={handledPermissions.CanFreeze && !GetPermissions(newBadgeMsg.permissions).CanFreeze}
+                        isOptionTwoSelected={handledPermissions.CanFreeze && !!GetPermissions(newBadgeMsg.permissions).CanFreeze}
                         selectedMessage={`The manager can freeze and unfreeze any owner's ability to transfer this badge.`}
                         unselectedMessage={`The mnager can not freeze and unfreeze any owner's ability to transfer this badge.`}
                         helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}
@@ -270,11 +298,17 @@ export function StandardBadgeForm({
                         <SwitchForm
                             onSwitchChange={(notFrozen, frozen) => {
                                 if (notFrozen) {
-                                    const newPermissions = UpdatePermissions(currPermissions, FrozenByDefaultDigit, false);
-                                    setCurrPermissions(newPermissions);
+                                    const newPermissions = UpdatePermissions(newBadgeMsg.permissions, FrozenByDefaultDigit, false);
+                                    setNewBadgeMsg({
+                                        ...newBadgeMsg,
+                                        permissions: newPermissions
+                                    })
                                 } else if (frozen) {
-                                    const newPermissions = UpdatePermissions(currPermissions, FrozenByDefaultDigit, true);
-                                    setCurrPermissions(newPermissions);
+                                    const newPermissions = UpdatePermissions(newBadgeMsg.permissions, FrozenByDefaultDigit, true);
+                                    setNewBadgeMsg({
+                                        ...newBadgeMsg,
+                                        permissions: newPermissions
+                                    })
                                 }
 
                                 //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -282,12 +316,12 @@ export function StandardBadgeForm({
                                 newHandledPermissions.FrozenByDefault = true;
                                 setHandledPermissions(newHandledPermissions);
                             }}
-                            isOptionOneSelected={handledPermissions.FrozenByDefault && !GetPermissions(currPermissions).FrozenByDefault}
-                            isOptionTwoSelected={handledPermissions.FrozenByDefault && !!GetPermissions(currPermissions).FrozenByDefault}
+                            isOptionOneSelected={handledPermissions.FrozenByDefault && !GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
+                            isOptionTwoSelected={handledPermissions.FrozenByDefault && !!GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
 
                             selectedMessage={`The transfer privileges of users will be frozen by default.`}
                             unselectedMessage={`The transfer privileges of users will be unfrozen by default.`}
-                            helperMessage={GetPermissions(currPermissions).CanFreeze ? `` : `Note that you previously selected that the manager can not freeze or unfreeze any users' transfer privileges.`}
+                            helperMessage={GetPermissions(newBadgeMsg.permissions).CanFreeze ? `` : `Note that you previously selected that the manager can not freeze or unfreeze any users' transfer privileges.`}
                         />
                     </>,
                     disabled: !handledPermissions.FrozenByDefault
@@ -298,11 +332,17 @@ export function StandardBadgeForm({
                     node: <SwitchForm
                         onSwitchChange={(canNotUpdate, canUpdate) => {
                             if (canNotUpdate) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanUpdateUrisDigit, false);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateUrisDigit, false);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             } else if (canUpdate) {
-                                const newPermissions = UpdatePermissions(currPermissions, CanUpdateUrisDigit, true);
-                                setCurrPermissions(newPermissions);
+                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateUrisDigit, true);
+                                setNewBadgeMsg({
+                                    ...newBadgeMsg,
+                                    permissions: newPermissions
+                                })
                             }
 
                             //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
@@ -310,8 +350,8 @@ export function StandardBadgeForm({
                             newHandledPermissions.CanUpdateUris = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanUpdateUris && !GetPermissions(currPermissions).CanUpdateUris}
-                        isOptionTwoSelected={handledPermissions.CanUpdateUris && !!GetPermissions(currPermissions).CanUpdateUris}
+                        isOptionOneSelected={handledPermissions.CanUpdateUris && !GetPermissions(newBadgeMsg.permissions).CanUpdateUris}
+                        isOptionTwoSelected={handledPermissions.CanUpdateUris && !!GetPermissions(newBadgeMsg.permissions).CanUpdateUris}
                         selectedMessage={`The metadata of the badge can be updated in the future.`}
                         unselectedMessage={`Whatever metadata the badge has upon creation is permanent.`}
                         helperMessage={``}
@@ -324,8 +364,8 @@ export function StandardBadgeForm({
                 //     description: `Do you want us to handle the storage or do you want to handle the storage of the metadata (advanced)?`,
                 //     node: <SwitchForm
                 //         onSwitchChange={(ownerControlled, ipfsControlled) => {
-                //             setBadge({
-                //                 ...badge,
+                //             setNewBadgeMsg({
+                //                 ...newBadgeMsg,
                 //                 uri: 'https://facebook.com' //TODO:
                 //             })
                 //         }}
@@ -333,7 +373,7 @@ export function StandardBadgeForm({
                 //         isOptionTwoSelected={true}
                 //         selectedMessage={`You will handle the metadata storage.`}
                 //         unselectedMessage={`BitBadges`}
-                //         helperMessage={!GetPermissions(currPermissions).CanUpdateUris && `Note that you previously selected that metadata can not be updated, so if you handle it yourself, you will never be able to change the URI.`}
+                //         helperMessage={!GetPermissions(newBadgeMsg.permissions).CanUpdateUris && `Note that you previously selected that metadata can not be updated, so if you handle it yourself, you will never be able to change the URI.`}
                 //     />,
                 //     disabled: undefined //TODO:
                 // },
@@ -360,15 +400,12 @@ export function StandardBadgeForm({
                             required
                         >
                             <Input
-                                value={badge.metadata?.name}
+                                value={newBadgeMetadata.name}
                                 onChange={(e: any) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            name: e.target.value
-                                        }
-                                    });
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        name: e.target.value
+                                    })
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -389,16 +426,13 @@ export function StandardBadgeForm({
                         >
                             <Select
                                 className="selector"
-                                value={badge.metadata?.category}
+                                value={newBadgeMetadata?.category}
                                 placeholder="Default: None"
                                 onChange={(e: any) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            category: e
-                                        }
-                                    });
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        category: e
+                                    })
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -455,15 +489,12 @@ export function StandardBadgeForm({
                             }
                         >
                             <Input.TextArea
-                                value={badge.metadata?.description}
+                                value={newBadgeMetadata?.description}
                                 onChange={(e) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            description: e.target.value
-                                        }
-                                    });
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        description: e.target.value
+                                    })
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -485,12 +516,12 @@ export function StandardBadgeForm({
                             }
                         >
                             <Input
-                                value={badge.metadata?.tags}
+                                value={newBadgeMetadata?.tags}
                                 onChange={(e) =>
-                                    setBadge({
-                                        ...badge,
+                                    setNewBadgeMsg({
+                                        ...newBadgeMsg,
                                         metadata: {
-                                            ...badge.metadata,
+                                            ...newBadgeMsg.metadata,
                                             tags: e.target.value
                                         }
                                     });
@@ -502,7 +533,7 @@ export function StandardBadgeForm({
                             />
                         </Form.Item> */}
                     </div>,
-                    disabled: !(badge.metadata?.name)
+                    disabled: !(newBadgeMetadata?.name)
                 },
                 {
                     title: 'Select Image',
@@ -522,14 +553,11 @@ export function StandardBadgeForm({
                         */}
                         <Select
                             className="selector"
-                            value={badge.metadata?.image}
+                            value={newBadgeMetadata?.image}
                             onChange={(e) => {
-                                setBadge({
-                                    ...badge,
-                                    metadata: {
-                                        ...badge.metadata,
-                                        image: e
-                                    }
+                                setNewBadgeMetadata({
+                                    ...newBadgeMetadata,
+                                    image: e
                                 })
                             }}
                             style={{
@@ -596,7 +624,7 @@ export function StandardBadgeForm({
                         <br />
                         <div style={{ fontSize: 12 }}>
                             <Text style={{ color: 'lightgray' }}>
-                                {GetPermissions(currPermissions).CanUpdateUris ? '' :
+                                {GetPermissions(newBadgeMsg.permissions).CanUpdateUris ? '' :
                                     `You have selected that badge metadta is permanent. Make sure this
                                     image URI is permanent as well.`
                                 }
@@ -621,15 +649,12 @@ export function StandardBadgeForm({
                         >
                             <Select
                                 className="selector"
-                                defaultValue={badge.metadata?.color}
+                                defaultValue={newBadgeMetadata?.color}
                                 onSelect={(e: any) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            color: e
-                                        }
-                                    });
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        color: e
+                                    })
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -702,15 +727,12 @@ export function StandardBadgeForm({
                             }
                         >
                             <Input
-                                value={badge.metadata?.externalUrl}
+                                value={newBadgeMetadata?.externalUrl}
                                 onChange={(e) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            externalUrl: e.target.value
-                                        }
-                                    });
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        externalUrl: e.target.value
+                                    })
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -750,14 +772,11 @@ export function StandardBadgeForm({
                                     />
                                 }
                                 onChange={(date, dateString) => {
-                                    setBadge({
-                                        ...badge,
-                                        metadata: {
-                                            ...badge.metadata,
-                                            validFrom: {
-                                                start: Date.now(),
-                                                end: new Date(dateString).valueOf(),
-                                            }
+                                    setNewBadgeMetadata({
+                                        ...newBadgeMetadata,
+                                        validFrom: {
+                                            start: Date.now(),
+                                            end: new Date(dateString).valueOf(),
                                         }
                                     })
                                 }}

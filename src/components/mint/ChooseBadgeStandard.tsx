@@ -2,14 +2,14 @@ import React from 'react';
 import { Card } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import Meta from 'antd/lib/card/Meta';
-import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeMintObject } from '../../bitbadges-api/types';
+import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+
 const CURR_STEP_NUMBER = 0;
 
-export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
+export function ChooseBadgeStandard({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    setBadge: (type: BitBadgeMintObject) => void;
-    badge: any;
+    setNewBadgeMsg: (type: MessageMsgNewBadge) => void;
+    newBadgeMsg: MessageMsgNewBadge;
 }) {
     //TODO: add a ton of standards and types here
     return (
@@ -38,8 +38,8 @@ export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
                     }}
                     hoverable
                     onClick={async () => {
-                        setBadge({
-                            ...badge,
+                        setNewBadgeMsg({
+                            ...newBadgeMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);
@@ -85,8 +85,8 @@ export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
                     }}
                     hoverable
                     onClick={() => {
-                        setBadge({
-                            ...badge,
+                        setNewBadgeMsg({
+                            ...newBadgeMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);
@@ -132,8 +132,8 @@ export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
                     }}
                     hoverable
                     onClick={() => {
-                        setBadge({
-                            ...badge,
+                        setNewBadgeMsg({
+                            ...newBadgeMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);
@@ -166,22 +166,6 @@ export function ChooseBadgeStandard({ setCurrStepNumber, setBadge, badge }: {
                     />
                 </Card>
             </div>
-            {/* <Button
-                type="primary"
-                style={{ width: '100%' }}
-                loading={transactionIsLoading}
-                disabled={!address || txnSubmitted}
-                onClick={async () => {
-                    setCurrStepNumber(CURR_STEP_NUMBER + 1);
-                }}
-            >
-                {'Confirm and Continue'}
-            </Button>
-            <Typography style={{ color: 'lightgrey' }}>
-                *To use a different wallet, please disconnect and
-                reconnect with a new wallet.
-            </Typography> */}
-
 
         </div >
     )

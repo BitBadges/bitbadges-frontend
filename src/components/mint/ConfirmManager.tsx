@@ -6,16 +6,9 @@ import Blockies from 'react-blockies'
 import { Address } from '../Address';
 
 
-export function ConfirmManager({
-    badge,
-    setBadge
-}: {
-    badge: any;
-    setBadge: (badge: any) => void;
-}) {
+export function ConfirmManager() {
     const chain = useChainContext();
     const address = chain.address;
-
 
     return (
         <div>
