@@ -19,6 +19,8 @@ import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBa
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { MessageMsgHandlePendingTransfer } from 'bitbadgesjs-transactions';
 import { CreateTxMsgHandlePendingTransferModal } from '../txModals/CreateTxMsgHandlePendingTransferModal';
+import { useChainContext } from '../../chain/ChainContext';
+import { CreateTxMsgRequestTransferBadgeModal } from '../txModals/CreateTxMsgRequestTransferBadgeModal';
 
 const { Text } = Typography;
 
@@ -29,10 +31,13 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
     badgeId: number | undefined;
 }) {
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
+    const [requestTransferIsVisible, setRequestTransferIsVisible] = useState<boolean>(false);
     const [handlePendingTransferIsVisible, setHandlePendingTransferIsVisible] = useState<boolean>(false);
     const [accept, setAccept] = useState<boolean>(true);
     const [forcefulAccept, setForcefulAccept] = useState<boolean>(false);
     const [nonceRanges, setNonceRanges] = useState<IdRange[]>([]);
+
+    const chain = useChainContext();
 
 
     if (!badge || badgeId === undefined || badgeId === null) return <></>;
@@ -102,14 +107,43 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                     {getTableRow("Pending", balanceInfo.pending.map((pending) => {
                         if (pending.end === undefined) pending.end = pending.start;
 
+
+                        // //An outgoingTransfer is when the balances of the badge are being transferred from the account calling this function.
+                        // //This doesn't depend at all on whether it was sent by this account (could be a request) or if it is being accepted or rejected.
+                        // outgoingTransfer := CurrPendingTransfer.From == CreatorAccountNum
+
+                        // acceptIncomingTransfer := !CurrPendingTransfer.Sent && msg.Accept && !outgoingTransfer
+                        // cancelOwnOutgoingTransfer := CurrPendingTransfer.Sent && !msg.Accept && outgoingTransfer
+                        // rejectIncomingTransfer := !CurrPendingTransfer.Sent && !msg.Accept 
+
+
+                        // finalizeOwnTransferRequestAfterApprovedByOtherParty := CurrPendingTransfer.Sent && msg.Accept && !outgoingTransfer
+                        // //These two are the same scenario but split into forceful and non-forceful transfers, so manager doesn't have to pay gas for every transfer request
+                        // acceptTransferRequestButMarkAsApproved := !msg.ForcefulAccept && !CurrPendingTransfer.Sent && msg.Accept && outgoingTransfer
+                        // acceptTransferRequestForcefully := msg.ForcefulAccept && !CurrPendingTransfer.Sent && msg.Accept && outgoingTransfer
+                        // rejectTransferRequest := !CurrPendingTransfer.Sent && !msg.Accept
+                        // cancelOwnTransferRequest := CurrPendingTransfer.Sent && !msg.Accept && !outgoingTransfer
+
+                        let outgoingTransfer = pending.from === chain.accountNumber;
+
+                        let msg = '';
+                        if (outgoingTransfer) {
+                            msg += 'Sending x' + pending.amount + ' badges w/ IDs' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' to Account #' + pending.to + '';
+                        } else {
+                            msg += 'Receiving x' + pending.amount + ' badges w/ IDs' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' from Account #' + pending.from + '';
+                        }
+
                         if (pending.subbadgeRange.start <= badgeId && pending.subbadgeRange.end >= badgeId) {
-                            if (pending.sent && !pending.markedAsAccepted) {
-                                return <>
-                                    {"Sending x" + pending.amount + " badges w/ IDs" + pending.subbadgeRange.start + " - " + pending.subbadgeRange.end + " to Account #" + pending.to +
-                                        ""}
-                                    <br />
+                            return <>
+                                {msg}
+                                <br />
+                                {
+                                    ((!pending.sent && !outgoingTransfer) ||
+                                        (!pending.sent && outgoingTransfer && !pending.markedAsAccepted) ||
+                                        (pending.sent && !outgoingTransfer)) //TODO: check other party for accepted
+                                    &&
                                     <Button type="primary" onClick={() => {
-                                        setAccept(false);
+                                        setAccept(true);
                                         setForcefulAccept(false);
                                         setNonceRanges([{
                                             start: pending.thisPendingNonce,
@@ -117,12 +151,23 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                                         }]);
                                         setHandlePendingTransferIsVisible(true);
                                     }}>
-                                        Cancel
+                                        Accept
                                     </Button>
-                                </>;
-                            }
-
-                            return JSON.stringify(pending);
+                                }
+                                <br />
+                                <Button type="primary" onClick={() => {
+                                    setAccept(false);
+                                    setForcefulAccept(false);
+                                    setNonceRanges([{
+                                        start: pending.thisPendingNonce,
+                                        end: pending.thisPendingNonce,
+                                    }]);
+                                    setHandlePendingTransferIsVisible(true);
+                                }}>
+                                    Reject / Cancel
+                                </Button>
+                                {/* cosmos1h9k87d2h6hlygq0tgja3ufw2v6638skjcha7qw */}
+                            </>
                         }
                     }))}
                 </Col>
@@ -142,11 +187,31 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                     Transfer
                 </Text>
             </Button>
+            <Button
+                style={{
+                    marginTop: '10px',
+                    width: '100%',
+                }}
+                type="primary"
+                onClick={() => {
+                    setRequestTransferIsVisible(true);
+                }}>
+                <SwapOutlined />
+                <Text strong style={{ fontSize: 18, color: 'white' }}>
+                    Request Transfer
+                </Text>
+            </Button>
 
             <CreateTxMsgTransferBadgeModal
                 badge={badge}
                 visible={transferIsVisible}
                 setVisible={setTransferIsVisible}
+            />
+
+            <CreateTxMsgRequestTransferBadgeModal
+                badge={badge}
+                visible={requestTransferIsVisible}
+                setVisible={setRequestTransferIsVisible}
             />
 
             <CreateTxMsgHandlePendingTransferModal

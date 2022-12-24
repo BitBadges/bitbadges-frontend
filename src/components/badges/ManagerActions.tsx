@@ -35,6 +35,8 @@ import { CreateTxMsgTransferManagerModal } from '../txModals/CreateTxMsgTransfer
 import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
 import { CreateTxMsgRevokeBadgeModal } from '../txModals/CreateTxMsgRevokeBadge';
 import { useChainContext } from '../../chain/ChainContext';
+import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { CreateTxMsgFreezeModal } from '../txModals/CreateTxMsgFreezeModal';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -50,6 +52,8 @@ export function BadgeModalManagerActions({
     const [lockRevokeIsVisible, setLockRevokeIsVisible] = useState(false);
     const [revokeIsVisible, setRevokeIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
+    const [freezeIsVisible, setFreezeIsVisible] = useState(false);
+
 
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
@@ -270,6 +274,21 @@ export function BadgeModalManagerActions({
             // });
         }
 
+
+        // if (badge.permissions.CanFreeze) {
+        managerActions.push({
+            title: <div style={{ color: PRIMARY_TEXT }}>Freeze</div>,
+            description: (
+                <div style={{ color: SECONDARY_TEXT }}>
+                    Freeze a badge from an existing owner
+                </div>
+            ),
+            icon: <UndoOutlined />,
+            showModal: () => {
+                setFreezeIsVisible(!freezeIsVisible);
+            },
+        });
+
         // if (badge.permissions.CanRevoke) {
         managerActions.push({
             title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
@@ -432,11 +451,14 @@ export function BadgeModalManagerActions({
                     )}
                 />
             ) : (
-                <Empty
-                    style={{ color: PRIMARY_TEXT }}
-                    description="There are no actions you can take. To perform an action, you must either own this badge or be the badge manager."
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
+                <>
+                    <Empty
+                        style={{ color: PRIMARY_TEXT }}
+                        description="There are no actions you can take. To perform an action, you must either own this badge or be the badge manager."
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    />
+                    <BlockinDisplay />
+                </>
             )}
 
             <CreateTxMsgTransferManagerModal
@@ -448,6 +470,12 @@ export function BadgeModalManagerActions({
             <CreateTxMsgRevokeBadgeModal
                 visible={revokeIsVisible}
                 setVisible={setRevokeIsVisible}
+                badge={badge}
+            />
+
+            <CreateTxMsgFreezeModal
+                visible={freezeIsVisible}
+                setVisible={setFreezeIsVisible}
                 badge={badge}
             />
         </div >

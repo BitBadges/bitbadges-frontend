@@ -42,6 +42,7 @@ export function TxModal(
             setTransactionStatus(TransactionStatus.None);
 
             //TODO: way to track tx - link to block explorer
+            chain.incrementSequence();
 
             setVisible(false);
         } catch (err: any) {

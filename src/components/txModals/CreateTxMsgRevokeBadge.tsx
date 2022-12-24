@@ -29,6 +29,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
+
     const txCosmosMsg: MessageMsgRevokeBadge = {
         creator: chain.cosmosAddress,
         badgeId: badge.id,
