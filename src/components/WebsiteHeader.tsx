@@ -49,8 +49,8 @@ export function WalletHeader() {
     const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
 
     const MintTabMenu = <></>
-    const MintTabWithIcon = { key: 'mint', content: (<Avatar src={<PlusOutlined />} />), subMenuOverlay: MintTabMenu };
-    const MintTabWithText = { key: 'mint', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
+    const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined />} />), subMenuOverlay: MintTabMenu };
+    const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
     //TODO: Blockin Connect / Sign-In
     //TODO: Add Chain Img if signed In

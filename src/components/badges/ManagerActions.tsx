@@ -39,6 +39,7 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgFreezeModal } from '../txModals/CreateTxMsgFreezeModal';
 import { CreateTxMsgRegisterAddressesModal } from '../txModals/CreateTxMsgRegisterAddresses';
 import { CreateTxMsgUpdatePermissionsModal } from '../txModals/CreateTxMsgUpdatePermissions';
+import { useRouter } from 'next/router';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -48,6 +49,7 @@ export function BadgeModalManagerActions({
 }: {
     badge?: BitBadgeCollection;
 }) {
+    const router = useRouter();
     const [lockSupplyIsVisible, setLockSupplyIsVisible] = useState(false);
     const [mintMoreIsVisible, setMintMoreIsVisible] = useState(false);
     const [mintApprovalIsVisible, setMintApprovalIsVisible] = useState(false);
@@ -403,6 +405,19 @@ export function BadgeModalManagerActions({
             icon: <UndoOutlined />,
             showModal: () => {
                 setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
+            },
+        });
+
+        managerActions.push({
+            title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
+            description: (
+                <div style={{ color: SECONDARY_TEXT }}>
+                    New Badge
+                </div>
+            ),
+            icon: <UndoOutlined />,
+            showModal: () => {
+                router.push(`/mint/badge/${badge.id}`)
             },
         });
 
