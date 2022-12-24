@@ -4,7 +4,6 @@ import { ChainContextType } from "../chain/ChainContext"
 
 
 
-
 // Broadcasts a transaction to the blockchain. Uses NODE_URL from constants.ts.
 export async function broadcastTransaction(txRaw: any) {
     const postOptions = {
@@ -21,6 +20,14 @@ export async function broadcastTransaction(txRaw: any) {
     if (DEV_MODE) console.log("Broadcasting Tx...")
     let res = await broadcastPost.json()
     if (DEV_MODE) console.log("Tx Response:", res)
+
+    if (res.tx_response.code !== 0) {
+        throw {
+            message: `Code ${res.tx_response.code}: ${res.tx_response.raw_log}`,
+        };
+    }
+
+
 
     //Need to reupdate account information (e.g. new nonce / sequence)
     //TODO: this does not work anymore
