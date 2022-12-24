@@ -100,7 +100,7 @@ export interface CosmosAccountInformation {
     address: string;
 }
 
-export interface User {
+export interface BitBadgesUserInfo {
     cosmosAddress: string,
     accountNumber: number,
     chain: string,

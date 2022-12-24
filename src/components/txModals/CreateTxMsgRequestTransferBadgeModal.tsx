@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgRequestTransferBadge, MessageMsgTransferBadge, createTxMsgRequestTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, IdRange } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
@@ -15,7 +15,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
-    const [currAccountNumber, setCurrAccountNumber] = useState<number>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
@@ -26,7 +26,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
 
     const txCosmosMsg: MessageMsgRequestTransferBadge = {
         creator: chain.cosmosAddress,
-        from: currAccountNumber ? currAccountNumber : -1,
+        from: currUserInfo?.accountNumber ? currUserInfo.accountNumber : -1,
         badgeId: badge.id,
         amount: amountToTransfer,
         subbadgeRanges,
@@ -34,8 +34,8 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
         cantCancelBeforeTime: 0,
     };
 
-    const handleChange = (cosmosAddress: string, newManagerAccountNumber: number, chain: string, address: string) => {
-        setCurrAccountNumber(newManagerAccountNumber);
+    const handleChange = (userInfo: BitBadgesUserInfo) => {
+        setCurrUserInfo(userInfo);
 
         //TODO: can't transfer to self
     }

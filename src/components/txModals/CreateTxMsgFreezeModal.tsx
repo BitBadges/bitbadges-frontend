@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { MessageMsgFreezeAddress, MessageMsgRevokeBadge, createTxMsgFreezeAddress, createTxMsgRevokeBadge } from 'bitbadgesjs-transactions';
+import React, { useState } from 'react';
+import { MessageMsgFreezeAddress, createTxMsgFreezeAddress } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber, Switch } from 'antd';
-import { AddressModalDisplay } from './AddressModalDisplay';
-
+import { Switch } from 'antd';
 
 export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
     : {
@@ -16,19 +14,8 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
-    const [currAddress, setCurrAddress] = useState<string>();
-    const [currCosmosAddress, setCurrCosmosAddress] = useState<string>();
-    const [currAccountNumber, setCurrAccountNumber] = useState<number>();
-    const [currChain, setCurrChain] = useState<string>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
     const [freeze, setFreeze] = useState<boolean>(true);
-
-    // const [amountToRevoke, setAmountToRevoke] = useState<number>(0);
-    // const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
-    // const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
-
-    // const [revokedUsers, setRevokedUsers] = useState<User[]>([]);
-    // const [amounts, setAmounts] = useState<number[]>([]);
-    // const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
 
     const txCosmosMsg: MessageMsgFreezeAddress = {
@@ -36,16 +23,13 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
         badgeId: badge.id,
         add: freeze,
         addressRanges: [{
-            start: currAccountNumber ? currAccountNumber : -1,
-            end: currAccountNumber ? currAccountNumber : -1,
+            start: currUserInfo?.accountNumber ? currUserInfo?.accountNumber : -1,
+            end: currUserInfo?.accountNumber ? currUserInfo?.accountNumber : -1,
         }],
     };
 
-    const handleChange = (cosmosAddress: string, newManagerAccountNumber: number, chain: string, address: string) => {
-        setCurrCosmosAddress(cosmosAddress);
-        setCurrAccountNumber(newManagerAccountNumber);
-        setCurrAddress(address);
-        setCurrChain(chain);
+    const handleChange = (userInfo: BitBadgesUserInfo) => {
+        setCurrUserInfo(userInfo);
     }
 
     return (

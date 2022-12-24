@@ -97,11 +97,13 @@ export function TxModal(
                 </Typography.Text>
             </div>
             <AddressModalDisplay
-                address={chain.address}
-                cosmosAddress={chain.cosmosAddress}
-                accountNumber={chain.accountNumber}
+                userInfo={{
+                    chain: chain.chain,
+                    address: chain.address,
+                    cosmosAddress: chain.cosmosAddress,
+                    accountNumber: chain.accountNumber,
+                }}
                 title={"Your Signing Wallet: "}
-                chain={chain.chain}
             />
 
             {error && <div>

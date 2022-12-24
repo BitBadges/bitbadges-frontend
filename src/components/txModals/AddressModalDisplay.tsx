@@ -1,6 +1,6 @@
 import Blockies from 'react-blockies';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-import { SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 
 export function AddressModalDisplayTitle(
     {
@@ -23,21 +23,15 @@ export function AddressModalDisplayTitle(
 
 export function AddressModalDisplay(
     {
-        accountNumber,
-        address,
-        cosmosAddress,
-        chain,
+        userInfo,
         title
     }: {
-        accountNumber: number,
-        address: string,
-        cosmosAddress: string,
-        chain: string,
+        userInfo: BitBadgesUserInfo,
         title?: string
     }
 ) {
     return <>
-        {title && AddressModalDisplayTitle({ accountNumber, title })}
+        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title })}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -49,15 +43,15 @@ export function AddressModalDisplay(
                 flexDirection: 'row',
                 alignItems: 'center',
             }}>
-                <Blockies seed={address.toLowerCase()} />
-                {address ?
-                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(address)}</span>
+                <Blockies seed={userInfo.address.toLowerCase()} />
+                {userInfo.address ?
+                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.address)}</span>
                     : <span style={{ marginLeft: 8 }}>...</span>}
                 {/* TODO: blockin connect if not connected */}
             </div>
 
             <div>
-                <span style={{ marginLeft: 8 }}>{chain}</span>
+                <span style={{ marginLeft: 8 }}>{userInfo.chain}</span>
             </div>
         </div>
         <div style={{
@@ -71,9 +65,9 @@ export function AddressModalDisplay(
                 flexDirection: 'row',
                 alignItems: 'center',
             }}>
-                <Blockies seed={cosmosAddress.toLowerCase()} />
-                {cosmosAddress ?
-                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(cosmosAddress)}</span>
+                <Blockies seed={userInfo.cosmosAddress.toLowerCase()} />
+                {userInfo.cosmosAddress ?
+                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.cosmosAddress)}</span>
                     : <span style={{ marginLeft: 8 }}>...</span>}
                 {/* TODO: blockin connect if not connected */}
             </div>

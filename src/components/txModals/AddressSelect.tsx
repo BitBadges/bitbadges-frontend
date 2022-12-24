@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Select } from 'antd';
-import { SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
@@ -14,42 +14,59 @@ export function AddressSelect({
 }:
     {
         title: string,
-        onChange: (cosmosAddress: string, accountNumber: number, chain: string, address: string) => void,
+        onChange: (userInfo: BitBadgesUserInfo) => void,
     }
 ) {
-    const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
-    const [address, setAddress] = useState<string>('');
-    const [cosmosAddress, setCosmosAddress] = useState<string>('');
-    const [accountNumber, setAccountNumber] = useState<number>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
 
     useEffect(() => {
-        setCosmosAddress('');
-        setAccountNumber(undefined);
-        let bech32Address = address;
-        if (chain === SupportedChain.ETH && ethers.utils.isAddress(address)) {
-            bech32Address = ethToCosmos(address);
+        setCurrUserInfo({
+            ...currUserInfo,
+            cosmosAddress: '',
+            accountNumber: -1,
+        })
+
+        let bech32Address = currUserInfo.address;
+        if (currUserInfo.chain === SupportedChain.ETH && ethers.utils.isAddress(currUserInfo.address)) {
+            bech32Address = ethToCosmos(currUserInfo.address);
         }
 
         //TODO: better check for valid address so we do not spam getAccountInformation requests
         if (bech32Address.startsWith('cosmos')) {
             getAccountInformation(bech32Address).then((accountInfo) => {
-                setAccountNumber(accountInfo.account_number);
-                setCosmosAddress(bech32Address);
-                onChange(bech32Address, accountInfo.account_number, chain, address);
+                const userInfo: BitBadgesUserInfo = {
+                    chain: currUserInfo.chain,
+                    address: currUserInfo.address,
+                    cosmosAddress: bech32Address,
+                    accountNumber: accountInfo.account_number,
+                }
+
+                setCurrUserInfo(userInfo);
+                onChange({
+                    accountNumber: accountInfo.account_number,
+                    cosmosAddress: bech32Address,
+                    chain: currUserInfo.chain,
+                    address: currUserInfo.address,
+                });
             });
         }
-    }, [address, chain, setAccountNumber, onChange]);
+    }, [currUserInfo, setCurrUserInfo, onChange]);
 
     return <>
         <AddressModalDisplayTitle
-            accountNumber={accountNumber ? accountNumber : -1}
+            accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
             title={title}
         />
         <Input.Group compact style={{ display: 'flex' }}>
             <Select
-                value={chain}
+                value={currUserInfo.chain}
                 onSelect={(e: any) =>
-                    setChain(e)
+                    setCurrUserInfo(
+                        {
+                            ...currUserInfo,
+                            chain: e,
+                        }
+                    )
                 }
                 defaultValue={SupportedChain.ETH}
             >
@@ -57,49 +74,20 @@ export function AddressSelect({
                 <Option value={SupportedChain.COSMOS}>Cosmos</Option>
             </Select>
             <Input
-                value={address}
+                value={currUserInfo.address}
                 onChange={(e) =>
-                    setAddress(
-                        e.target.value
+                    setCurrUserInfo(
+                        {
+                            ...currUserInfo,
+                            address: e.target.value,
+                        }
                     )
                 }
             />
         </Input.Group>
         <AddressModalDisplay
-            accountNumber={accountNumber ? accountNumber : -1}
-            address={address}
-            cosmosAddress={cosmosAddress}
-            chain={chain}
+            userInfo={currUserInfo}
         />
-        {/* <div
-            style={{
-                width: '100%',
-                display: 'flex',
-            }}
-        >
-            <Form
-                layout="horizontal"
-            >
-                <Form.Item>
-                    <Text>
-                        Cosmos: {
-                            chain === SupportedChain.ETH
-                                && ethers.utils.isAddress(address) ?
-                                ethToCosmos(address) :
-                                'Invalid Address'
-                        }
-                    </Text>
-                    <br />
-                    <Text>
-                        Account Number: {
-                            chain === SupportedChain.ETH
-                                && ethers.utils.isAddress(address) ?
-                                accountNumber :
-                                'N/A'
-                        }
-                    </Text>
-                </Form.Item>
-            </Form>
-        </div> */}
+        {/* TODO: invalid address  */}
     </>
 }

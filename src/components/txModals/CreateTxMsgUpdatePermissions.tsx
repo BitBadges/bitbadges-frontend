@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgFreezeAddress, MessageMsgRevokeBadge, MessageMsgUpdatePermissions, createTxMsgFreezeAddress, createTxMsgRevokeBadge, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber, Switch } from 'antd';

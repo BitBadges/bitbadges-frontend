@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgRevokeBadge, createTxMsgRevokeBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
@@ -16,16 +16,13 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
-    const [currAddress, setCurrAddress] = useState<string>();
-    const [currCosmosAddress, setCurrCosmosAddress] = useState<string>();
-    const [currAccountNumber, setCurrAccountNumber] = useState<number>();
-    const [currChain, setCurrChain] = useState<string>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
 
     const [amountToRevoke, setAmountToRevoke] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
     const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
 
-    const [revokedUsers, setRevokedUsers] = useState<User[]>([]);
+    const [revokedUsers, setRevokedUsers] = useState<BitBadgesUserInfo[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
@@ -38,11 +35,8 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
         subbadgeRanges,
     };
 
-    const handleChange = (cosmosAddress: string, newManagerAccountNumber: number, chain: string, address: string) => {
-        setCurrCosmosAddress(cosmosAddress);
-        setCurrAccountNumber(newManagerAccountNumber);
-        setCurrAddress(address);
-        setCurrChain(chain);
+    const handleChange = (userInfo: BitBadgesUserInfo) => {
+        setCurrUserInfo(userInfo);
     }
 
     useEffect(() => {
@@ -68,10 +62,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
                         <div key={index}>
                             <AddressModalDisplay
                                 title={"User " + (index + 1)}
-                                cosmosAddress={user.cosmosAddress}
-                                accountNumber={user.accountNumber}
-                                chain={user.chain}
-                                address={user.address}
+                                userInfo={currUserInfo ? currUserInfo : {} as BitBadgesUserInfo}
                             />
                             {/* {index === revokedUsers.length - 1 && <hr />} */}
                         </div>
@@ -127,23 +118,20 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             <AddressSelect onChange={handleChange} title={"Add User to Revoke From"} />
             <Button type="primary"
                 style={{ width: "100%" }}
-                disabled={!currAddress || !currAccountNumber || !currChain || !currCosmosAddress}
+                disabled={!currUserInfo?.address || !currUserInfo?.accountNumber || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
                 onClick={() => {
-                    if (!currAddress || !currAccountNumber || !currChain || !currCosmosAddress) return;
+                    if (!currUserInfo?.address || !currUserInfo?.accountNumber || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) return;
                     setRevokedUsers([
                         ...revokedUsers,
                         {
-                            cosmosAddress: currCosmosAddress,
-                            accountNumber: currAccountNumber,
-                            chain: currChain,
-                            address: currAddress
+                            cosmosAddress: currUserInfo?.cosmosAddress,
+                            accountNumber: currUserInfo?.accountNumber,
+                            chain: currUserInfo?.chain,
+                            address: currUserInfo?.address
                         }
                     ]);
 
-                    setCurrAccountNumber(undefined);
-                    setCurrAddress(undefined);
-                    setCurrChain(undefined);
-                    setCurrCosmosAddress(undefined);
+                    setCurrUserInfo(undefined);
                 }}>Add Address</Button>
             {children}
         </TxModal>
