@@ -122,6 +122,8 @@ export function Badge({
                                     alignItems: 'center',
                                     fontSize: 17,
                                     width: '100%',
+                                    justifyContent: 'center',
+                                    
                                 }}
                             >
                                 ID #: {badge.badgeId}

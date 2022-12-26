@@ -15,12 +15,13 @@ const client = create({
 
 
 export const getFromIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
+    console.log("AFJSDFHKHKJ")
     console.log("TESTING");
     console.log(req.body.cid);
     console.log(req.body.path);
 
-    const getRes = client.cat(req.body.path)
-    console.log(getRes)
+    const getRes = client.cat(req.body.cid + '/' + req.body.path);
+    console.log(getRes);
 
     const decoder = new TextDecoder();
     let fileJson = '';

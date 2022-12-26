@@ -91,13 +91,13 @@ export function UploadToIPFS({
                             console.log("RESSS", res);
                             //TODO: set uri
 
-                            console.log("PATH", res.path)
+                            console.log("CID", res.cid)
 
                             setNewBadgeMsg({
                                 ...newBadgeMsg,
                                 uri: {
                                     ...newBadgeMsg.uri,
-                                    uri: res.path, //TODO:
+                                    uri: res.cid, //TODO:
                                     decodeScheme: 0,
                                     scheme: 3,
                                     idxRangeToRemove: {

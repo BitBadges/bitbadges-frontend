@@ -16,7 +16,7 @@ export const getChallenge = async (chain: string, address: string, assetIds: str
 }
 
 const getChallengeFromBlockin = async (chain: string, address: string, assetIds: string[]): Promise<string> => {
-    const data = await fetch('../api/getChallenge', {
+    const data = await fetch('http://localhost:3000/api/getChallenge', {
         method: 'post',
         body: JSON.stringify({
             address,
@@ -30,7 +30,7 @@ const getChallengeFromBlockin = async (chain: string, address: string, assetIds:
 }
 
 export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
-    const data = await fetch('../api/getChallengeParams', {
+    const data = await fetch('http://localhost:3000/api/getChallengeParams', {
         method: 'post',
         body: JSON.stringify({
             address,
@@ -46,7 +46,7 @@ export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uin
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
-    const verificationRes = await fetch('../api/verifyChallenge', {
+    const verificationRes = await fetch('http://localhost:3000/api/verifyChallenge', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
@@ -59,7 +59,7 @@ export const addToIpfs = async (data: any) => {
     const bodyStr = stringify(data); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
-    const addToIpfsRes = await fetch('../api/addToIpfs', {
+    const addToIpfsRes = await fetch('http://localhost:3000/api/addToIpfs', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
@@ -68,15 +68,22 @@ export const addToIpfs = async (data: any) => {
     return addToIpfsRes;
 }
 
-export const getFromIpfs = async (path: string) => {
-    const bodyStr = stringify({ path }); //hack to preserve uint8 arrays
+export const getFromIpfs = async (cid: string, path: string) => {
+    const bodyStr = stringify({ cid, path }); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
-    const addToIpfsRes = await fetch('../api/getFromIpfs', {
+    //{"cid":"QmeDDMdTpjbRfb5d4QoCb5ZpiLxAjSaetyASPKjpMN6vBS","path":"collection"}
+
+    const addToIpfsRes = await fetch('http://localhost:3000/api/getFromIpfs', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
+    }).then(res => {
+        console.log(res);
+        return res.json()
+    });
+
+    console.log("ADD", addToIpfsRes);
 
     return addToIpfsRes;
 }

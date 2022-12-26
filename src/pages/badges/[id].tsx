@@ -55,15 +55,13 @@ function Badges() {
             const badgeRes = await getBadge(Number(id));
             const badgeInfo = badgeRes.badge;
             if (badgeInfo) {
-                const res = await getFromIpfs(badgeInfo.uri.uri);
+                const res = await getFromIpfs(badgeInfo.uri.uri, 'collection');
                 badgeInfo.metadata = JSON.parse(res.file)
 
                 setBadgeDetails(badgeInfo)
             } else {
                 //TODO: add a 404 clause (possibly in /api)
             }
-
-            
         }
         getBadgeFromApi();
     }, [id])
@@ -109,7 +107,7 @@ function Badges() {
                 >
                     <BadgeHeader
                         badge={badgeDetails}
-
+                        metadata={badgeDetails?.metadata}
                     />
                     <Tabs
                         tabInfo={tabInfo}
@@ -122,6 +120,7 @@ function Badges() {
                     {tab === 'overview' && (<>
                         <BadgeOverviewTab
                             badge={badgeDetails}
+                            metadata={badgeDetails?.metadata}
                         />
                     </>
                     )}

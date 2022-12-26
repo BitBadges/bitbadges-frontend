@@ -6,10 +6,11 @@ import { getBadge, getBadgeBalance } from '../../../bitbadges-api/api';
 import { BadgeHeader } from '../../../components/badges/BadgePageHeader';
 import { Tabs } from '../../../components/Tabs';
 import { BadgeModalManagerActions } from '../../../components/badges/ManagerActions';
-import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../../components/badges/BadgePageOverviewTab';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BadgeBalanceTab } from '../../../components/badges/BadgeBalanceTab';
+import { getFromIpfs } from '../../../chain/backend_connectors';
 
 const { Content } = Layout;
 
@@ -19,6 +20,7 @@ function Badges() {
     const { id, badgeId } = router.query;
 
     const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection | undefined>()
+    const [badgeMetadata, setBadgeMetadata] = useState<BadgeMetadata>();
 
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
@@ -49,13 +51,13 @@ function Badges() {
 
             const badgeRes = await getBadge(Number(id));
             const badgeInfo = badgeRes.badge;
+
+            console.log('badgeInfo', badgeInfo)
+
             if (badgeInfo) {
-                //TODO: Get actual metadata here instead of just hardcoding it
-                badgeInfo.metadata = {
-                    name: 'test',
-                    description: 'test',
-                    image: 'https://bitbadges.web.app/img/icons/logo.png'
-                }
+                console.log('badgeInfo', badgeInfo)
+                const res = await getFromIpfs(badgeInfo.uri.uri, 'collection');
+                badgeInfo.metadata = JSON.parse(res.file)
 
                 setBadgeCollection(badgeInfo)
             } else {
@@ -64,6 +66,23 @@ function Badges() {
         }
         getBadgeFromApi();
     }, [id])
+
+    useEffect(() => {
+        if (isNaN(Number(badgeId)) || !badgeCollection) {
+            return;
+        }
+
+        async function getBadgeFromApi() {
+            if (isNaN(Number(badgeId)) || !badgeCollection) return;
+
+            const res = await getFromIpfs(badgeCollection.uri.uri, `${badgeId}`);
+            const metadata = JSON.parse(res.file);
+            setBadgeMetadata(metadata);
+
+            console.log('metadata', metadata);
+        }
+        getBadgeFromApi();
+    }, [badgeId, badgeCollection])
 
     const [userBalance, setUserBalance] = useState<UserBalance | undefined>();
 
@@ -107,7 +126,7 @@ function Badges() {
                 >
                     <BadgeHeader
                         badge={badgeCollection}
-
+                        metadata={badgeMetadata}
                     />
                     <Tabs
                         tabInfo={tabInfo}
@@ -120,6 +139,7 @@ function Badges() {
                     {tab === 'overview' && (<>
                         <BadgeOverviewTab
                             badge={badgeCollection}
+                            metadata={badgeMetadata}
                         />
                     </>
                     )}

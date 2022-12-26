@@ -12,18 +12,18 @@ import {
     RollbackOutlined,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';
+import { BadgeMetadata, BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';
 import { ColumnsType } from 'antd/lib/table';
 import { Permissions } from '../../bitbadges-api/permissions';
 
 const { Text } = Typography;
 
 
-export function BadgeOverviewTab({ badge, hidePermissions }: {
+export function BadgeOverviewTab({ badge, metadata }: {
     badge: BitBadgeCollection | undefined;
-    hidePermissions?: boolean;
+    metadata: BadgeMetadata | undefined;
 }) {
-    if (!badge) return <></>
+    if (!badge || !metadata) return <></>
 
     if (DEV_MODE) console.log("Loading BadgeOverview for The Following Badge: ", badge);
 
@@ -31,8 +31,8 @@ export function BadgeOverviewTab({ badge, hidePermissions }: {
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
     let validForever = true;
-    if (badge.metadata?.validFrom?.end) {
-        endTimestamp = badge.metadata.validFrom.end;
+    if (metadata?.validFrom?.end) {
+        endTimestamp = metadata.validFrom.end;
         validForever = false;
     }
 
@@ -95,13 +95,13 @@ export function BadgeOverviewTab({ badge, hidePermissions }: {
                         fontSize={18}
                         showTooltip
                     />)}
-                    {badge.metadata?.description && getTableRow("Description", badge.metadata.description)}
+                    {metadata?.description && getTableRow("Description", metadata.description)}
                     {/* {getTableRow("Sub-Badges", subassetSupplyComponent)} */}
                     {badge.uri && getTableRow("URI", <a href={badge.uri.uri} target="_blank" rel="noreferrer">{badge.uri.uri}</a>)}
                     {badge.arbitraryBytes && getTableRow("Arbitrary Bytes", badge.arbitraryBytes)}
                     {getTableRow("Expiration",
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {`Valid ${badge.metadata?.validFrom?.end && badge.metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
+                            {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
                                 ? 'Until ' +
                                 endDateString
                                 : 'Forever'
