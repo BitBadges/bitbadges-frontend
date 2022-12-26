@@ -3,13 +3,13 @@ import { Empty, Layout } from 'antd';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../../constants';
 import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../../bitbadges-api/api';
-import { BadgeHeader } from '../../../components/badges/BadgePageHeader';
+import { PageHeaderWithAvatar } from '../../../components/badges/PageHeaderWithAvatar';
 import { Tabs } from '../../../components/Tabs';
-import { BadgeModalManagerActions } from '../../../components/badges/ManagerActions';
+import { BadgeModalManagerActions } from '../../../components/badges/tabs/ManagerActionsTab';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { BadgeOverviewTab } from '../../../components/badges/BadgePageOverviewTab';
+import { BadgeOverviewTab } from '../../../components/badges/tabs/BadgePageOverviewTab';
 import { useChainContext } from '../../../chain/ChainContext';
-import { BadgeBalanceTab } from '../../../components/badges/BadgeBalanceTab';
+import { BadgeBalanceTab } from '../../../components/badges/tabs/BadgeBalanceTab';
 import { getFromIpfs } from '../../../chain/backend_connectors';
 
 const { Content } = Layout;
@@ -124,7 +124,7 @@ function Badges() {
                         background: PRIMARY_BLUE,
                     }}
                 >
-                    <BadgeHeader
+                    <PageHeaderWithAvatar
                         badge={badgeCollection}
                         metadata={badgeMetadata}
                     />

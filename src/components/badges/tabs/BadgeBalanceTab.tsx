@@ -1,30 +1,18 @@
-import { Address } from '../Address';
-import { Avatar, Tooltip, Divider, Alert, Typography, Col, Row, Table, Button } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { Divider, Typography, Col, Row, Button } from 'antd';
 import React, { useState } from 'react';
 import {
     SwapOutlined,
-    CheckCircleFilled,
-    WarningFilled,
-    LockFilled,
-    UnlockFilled,
-    RollbackOutlined,
 } from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { BitBadge, BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/types';
-import { ColumnsType } from 'antd/lib/table';
-import { Permissions } from '../../bitbadges-api/permissions';
-import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { MessageMsgHandlePendingTransfer } from 'bitbadgesjs-transactions';
-import { CreateTxMsgHandlePendingTransferModal } from '../txModals/CreateTxMsgHandlePendingTransferModal';
-import { useChainContext } from '../../chain/ChainContext';
-import { CreateTxMsgRequestTransferBadgeModal } from '../txModals/CreateTxMsgRequestTransferBadgeModal';
-import { CreateTxMsgRequestTransferManagerModal } from '../txModals/CreateTxMsgRequestTransferManagerModal';
+import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
+import { BitBadgeCollection, IdRange, UserBalance } from '../../../bitbadges-api/types';
+import { CreateTxMsgTransferBadgeModal } from '../../txModals/CreateTxMsgTransferBadge';
+import { BlockinDisplay } from '../../blockin/BlockinDisplay';
+import { CreateTxMsgHandlePendingTransferModal } from '../../txModals/CreateTxMsgHandlePendingTransferModal';
+import { useChainContext } from '../../../chain/ChainContext';
+import { CreateTxMsgRequestTransferBadgeModal } from '../../txModals/CreateTxMsgRequestTransferBadgeModal';
+import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxMsgRequestTransferManagerModal';
 
 const { Text } = Typography;
-
 
 export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
     badge: BitBadgeCollection | undefined;

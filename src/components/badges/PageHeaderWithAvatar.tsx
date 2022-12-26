@@ -1,39 +1,15 @@
-import { Address } from '../Address';
-import { Avatar, Tooltip, Divider, Alert, Typography } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { Avatar, Typography } from 'antd';
 import React from 'react';
-import {
-    SwapOutlined,
-    CheckCircleFilled,
-    WarningFilled,
-    LockFilled,
-    UnlockFilled,
-    RollbackOutlined,
-} from '@ant-design/icons';
-import { MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../../constants';
-import { BadgeMetadata, BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_TEXT } from '../../constants';
+import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 
-export function BadgeHeader({ badge, metadata }: {
+export function PageHeaderWithAvatar({ badge, metadata }: {
     badge: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
 }) {
-    if (!badge || !metadata) return <></>
-
-    console.log("Loading BadgeHeader for The Following Badge: ", badge);
-
-    let endTimestamp = MAX_DATE_TIMESTAMP;
-    let validForever = true;
-    if (metadata?.validFrom?.end) {
-        endTimestamp = metadata.validFrom.end;
-        validForever = false;
-    }
-
-    const endDateString = validForever ? `Forever` : new Date(
-        endTimestamp
-    ).toLocaleDateString();
+    if (!badge || !metadata) return <></>;
 
     return (
         <div

@@ -2,15 +2,25 @@ import { Typography, Form, Button, Statistic } from 'antd';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 
-import { PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 import { BadgeMetadata, TransactionStatus } from '../../bitbadges-api/types';
 import { addToIpfs } from '../../chain/backend_connectors';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+import { saveAs } from 'file-saver';
+import { CheckCircleFilled, WarningFilled } from '@ant-design/icons';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
 const CURR_TIMELINE_STEP_NUM = 3;
+
+function downloadJson(json: object, filename: string) {
+    const blob = new Blob([JSON.stringify(json)], {
+        type: 'application/json'
+    });
+    saveAs(blob, filename);
+}
+
 
 export function UploadToIPFS({
     setTimelineStepNumber,
@@ -29,15 +39,13 @@ export function UploadToIPFS({
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (success) {
-            if (stepNum === FINAL_STEP_NUM) {
-                setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
-            } else {
-                setStepNum(stepNum + 1);
-            }
+    const incrementStep = () => {
+        if (stepNum === FINAL_STEP_NUM) {
+            setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
+        } else {
+            setStepNum(stepNum + 1);
         }
-    }, [success, stepNum, setTimelineStepNumber]);
+    }
 
     const decrementStep = () => {
         if (stepNum === FIRST_STEP_NUM) {
@@ -53,14 +61,14 @@ export function UploadToIPFS({
         <div>
             <Form.Provider>
                 <FormNavigationHeader
-                    incrementStep={() => { }}
+                    incrementStep={incrementStep}
                     decrementStep={decrementStep}
                     stepNum={stepNum}
                     // backButtonDisabled={txnSubmitted && !transactionIsLoading} TODO: instead of this, we redirect to new badge page
                     finalStepNumber={1}
-                    nextButtonDisabled={true}
+                    nextButtonDisabled={!success}
                 />
-                <div style={{ paddingLeft: 5 }}>
+                <div>
                     <div
                         style={{
                             justifyContent: 'center',
@@ -75,12 +83,52 @@ export function UploadToIPFS({
                             }}
                             strong
                         >
-                            Upload to IPFS
+                            Upload
+                        </Typography.Text>
+                    </div>
+                </div>
+
+                <div>
+                    <div
+                        style={{
+                            justifyContent: 'center',
+                            display: 'flex',
+                        }}
+                    >
+                        <Typography.Text
+                            style={{
+                                color: PRIMARY_TEXT,
+                                fontSize: 14,
+                                marginBottom: 10,
+                            }}
+                            strong
+                        >
+                            We will now upload your metadata to our permanent file storage.
+                            For backup purposes, we recommend you save a local copy as well (
+                            <button
+                                style={{
+                                    backgroundColor: 'inherit',
+                                    color: SECONDARY_TEXT,
+                                }}
+                                onClick={() => {
+                                    const today = new Date();
+
+                                    const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                                    const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                                    downloadJson({
+                                        collectionMetadata: newBadgeMetadata,
+                                        individualBadgeMetadata: individualBadgeMetadata,
+                                    }, `metadata-${newBadgeMetadata.name}-${dateString}-${timeString}.json`);
+                                }}
+                                className="opacity link-button"
+                            >
+                                click here to download
+                            </button>).
                         </Typography.Text>
                     </div>
                 </div>
                 <div
-
                     style={{
                         width: '100%',
                         display: 'flex',
@@ -95,6 +143,7 @@ export function UploadToIPFS({
                         style={{ width: '90%' }}
                         onClick={async () => {
                             setLoading(true);
+                            setSuccess(false);
                             let res = await addToIpfs(newBadgeMetadata, individualBadgeMetadata);
 
                             setNewBadgeMsg({
@@ -116,8 +165,13 @@ export function UploadToIPFS({
                             setSuccess(true);
                             setLoading(false);
                         }}
+                        disabled={success}
                     >
-                        Upload to IPFS
+                        Upload Metadata {success && <CheckCircleFilled
+                            style={{
+                                color: 'green',
+                            }}
+                        />}
                     </Button>
                 </div>
             </Form.Provider>

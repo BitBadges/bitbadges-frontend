@@ -11,7 +11,7 @@ import { SwitchForm } from './SwitchForm';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
-import { BadgeSubBadgesTab } from '../badges/BadgePageSubBadgesTab';
+import { BadgeSubBadgesTab } from '../badges/tabs/BadgePageSubBadgesTab';
 import { CustomizeIndividualMetadataForm } from './CustomizeIndividualMetadataForm';
 
 const { Text } = Typography;

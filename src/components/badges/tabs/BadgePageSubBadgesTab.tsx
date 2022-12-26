@@ -1,4 +1,4 @@
-import { Address } from '../Address';
+import { Address } from '../../Address';
 import { Avatar, Tooltip, Divider, Alert, Typography, Col, Row, Table } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
@@ -11,12 +11,12 @@ import {
     UnlockFilled,
     RollbackOutlined,
 } from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { BadgeMetadata, BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';
+import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { BadgeMetadata, BitBadge, BitBadgeCollection } from '../../../bitbadges-api/types';
 import { ColumnsType } from 'antd/lib/table';
-import { Permissions } from '../../bitbadges-api/permissions';
-import { Badge } from './Badge';
-import { getFromIpfs } from '../../chain/backend_connectors';
+import { Permissions } from '../../../bitbadges-api/permissions';
+import { BadgeCard } from '../../BadgeCard';
+import { getFromIpfs } from '../../../chain/backend_connectors';
 import { UriObject } from 'bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils';
 
 const { Text } = Typography;
@@ -104,7 +104,7 @@ export function BadgeSubBadgesTab({ badgeCollection, individualBadgeMetadata, ha
                 {badgeDisplay.map((badge) => {
                     console.log(badge);
                     return <div key={badge.badgeId}>
-                        <Badge collection={badgeCollection} badge={badge} hack={hack} />
+                        <BadgeCard collection={badgeCollection} badge={badge} />
                     </div>
                 })}
             </div>

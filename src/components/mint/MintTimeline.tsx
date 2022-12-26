@@ -126,7 +126,7 @@ export function MintTimeline() {
             stepNumber: 3,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Upload to IPFS
+                    Upload Metadata
                 </Text>
             ),
             content: (
@@ -143,7 +143,7 @@ export function MintTimeline() {
             stepNumber: 4,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Finalize Transaction
+                    Submit Transaction
                 </Text>
             ),
             content: (

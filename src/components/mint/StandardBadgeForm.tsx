@@ -495,6 +495,8 @@ export function StandardBadgeForm({
                     // description: `Will each individual badge have unique characteristics or will they all be identical?`,
                     description: '',
                     node: <SwitchForm
+                        selectedTitle={"Non-Fungible"}
+                        unselectedTitle={"Fungible"}
                         onSwitchChange={(fungible, nonFungible) => {
                             if (fungible) {
 
@@ -526,8 +528,8 @@ export function StandardBadgeForm({
                         }}
                         isOptionOneSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply != 1}
                         isOptionTwoSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply == 1}
-                        selectedMessage={'Yes. Every minted badge will have its own unique characteristics (non-fungible).'}
-                        unselectedMessage={`No. Every minted badge will have the same characteristics (fungible).`}
+                        selectedMessage={'Every minted badge will have its own unique metadata and characteristics.'}
+                        unselectedMessage={`Every minted badge will have the same metadata and characteristics.`}
                     // helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
                     />,
                     disabled: newBadgeMsg.defaultSubassetSupply == undefined //This will change as well
@@ -543,6 +545,8 @@ export function StandardBadgeForm({
                     description: ``,
                     node: <>
                         <SwitchForm
+                            selectedTitle={'Non-Transferable'}
+                            unselectedTitle={'Transferable'}
                             onSwitchChange={(notFrozen, frozen) => {
                                 if (notFrozen) {
                                     const newPermissions = UpdatePermissions(newBadgeMsg.permissions, FrozenByDefaultDigit, false);
@@ -578,6 +582,8 @@ export function StandardBadgeForm({
                     title: 'Forceful Transfers?',
                     description: ``,
                     node: <SwitchForm
+                        selectedTitle={'Forceful Transfers'}
+                        unselectedTitle={'Pending Queue'}
                         onSwitchChange={(noForceful, forceful) => {
                             if (noForceful) {
                                 const newPermissions = UpdatePermissions(newBadgeMsg.permissions, ForcefulTransfersDigit, false);

@@ -1,5 +1,5 @@
-import { RecipientFormItem } from '../old/RecipientFormItem';
-import { BurnOwnerFormItem } from '../old/BurnOwnerFormItem';
+import { RecipientFormItem } from '../../old/RecipientFormItem';
+import { BurnOwnerFormItem } from '../../old/BurnOwnerFormItem';
 import {
     Avatar,
     Button,
@@ -27,18 +27,18 @@ import {
     DeleteOutlined,
 } from '@ant-design/icons';
 
-import { DEV_MODE, ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { RecipientList } from '../old/RecipientList';
+import { DEV_MODE, ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { RecipientList } from '../../old/RecipientList';
 import { ethers } from 'ethers';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { CreateTxMsgTransferManagerModal } from '../txModals/CreateTxMsgTransferManagerModal';
-import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
-import { CreateTxMsgRevokeBadgeModal } from '../txModals/CreateTxMsgRevokeBadge';
-import { useChainContext } from '../../chain/ChainContext';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { CreateTxMsgFreezeModal } from '../txModals/CreateTxMsgFreezeModal';
-import { CreateTxMsgRegisterAddressesModal } from '../txModals/CreateTxMsgRegisterAddresses';
-import { CreateTxMsgUpdatePermissionsModal } from '../txModals/CreateTxMsgUpdatePermissions';
+import { BitBadgeCollection } from '../../../bitbadges-api/types';
+import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
+import { CreateTxMsgNewBadgeModal } from '../../txModals/CreateTxMsgNewBadgeModal';
+import { CreateTxMsgRevokeBadgeModal } from '../../txModals/CreateTxMsgRevokeBadge';
+import { useChainContext } from '../../../chain/ChainContext';
+import { BlockinDisplay } from '../../blockin/BlockinDisplay';
+import { CreateTxMsgFreezeModal } from '../../txModals/CreateTxMsgFreezeModal';
+import { CreateTxMsgRegisterAddressesModal } from '../../txModals/CreateTxMsgRegisterAddresses';
+import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
 import { useRouter } from 'next/router';
 
 const { Option } = Select;

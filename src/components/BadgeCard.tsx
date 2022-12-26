@@ -1,41 +1,21 @@
 import Meta from 'antd/lib/card/Meta';
-import { Avatar, Tooltip, Card } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faSnowflake,
-    faGlobe,
-    faWallet,
-    faCloud,
-    faSquareMinus,
-    faSquarePlus,
-} from '@fortawesome/free-solid-svg-icons';
-import { useState } from 'react';
+import { Avatar, Card } from 'antd';
 import React from 'react';
-import { HeartOutlined, HeartFilled } from '@ant-design/icons';
-
-// import { signAndSubmitPrivateApiTxn } from '../api/api';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { BitBadge, BitBadgeCollection } from '../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
+import { BitBadge, BitBadgeCollection } from '../bitbadges-api/types';
 import { useRouter } from 'next/router';
 
-export function Badge({
+export function BadgeCard({
     badge,
     size,
     collection,
-    // collectedBadge,
-    managing,
-    hideModal,
-    hack
+    hoverable,
 }: {
     badge?: BitBadge;
     collection?: BitBadgeCollection;
     size?: number;
-    // collectedBadge?: boolean;
-    managing?: boolean;
-    hideModal?: boolean;
-    hack?: boolean;
+    hoverable?: boolean;
 }) {
-    const [modalIsVisible, setModalIsVisible] = useState(false);
     const router = useRouter();
 
     if (!badge) return <></>;
@@ -44,7 +24,6 @@ export function Badge({
 
     return (
         <>
-
             <Card
                 style={{
                     width: 230,
@@ -54,7 +33,7 @@ export function Badge({
                     backgroundColor: PRIMARY_BLUE,
                     color: PRIMARY_TEXT,
                 }}
-                hoverable
+                hoverable={hoverable ? hoverable : true}
                 onClick={() => {
                     router.push(`/badges/${collection?.id}/${badge.badgeId}`);
                 }}

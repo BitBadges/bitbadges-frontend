@@ -5,6 +5,8 @@ import Meta from 'antd/lib/card/Meta';
 
 export function SwitchForm({
     onSwitchChange,
+    selectedTitle,
+    unselectedTitle,
     selectedMessage,
     unselectedMessage,
     helperMessage,
@@ -13,6 +15,8 @@ export function SwitchForm({
 }: {
     onSwitchChange: (isOptionOneSelected: boolean, isOptionTwoSelected: boolean) => void;
     selectedMessage: string | ReactNode;
+    selectedTitle?: string | ReactNode;
+    unselectedTitle?: string | ReactNode;
     unselectedMessage: string | ReactNode;
     helperMessage?: string | ReactNode;
     isOptionOneSelected: boolean;
@@ -60,7 +64,7 @@ export function SwitchForm({
                                         fontWeight: 'bolder',
                                     }}
                                 >
-                                    {'No'}
+                                    {unselectedTitle ? unselectedTitle : 'No'}
                                 </div>
                             }
                             description={
@@ -104,7 +108,7 @@ export function SwitchForm({
                                         fontWeight: 'bolder',
                                     }}
                                 >
-                                    {'Yes'}
+                                    {selectedTitle ? selectedTitle : 'Yes'}
                                 </div>
                             }
                             description={
