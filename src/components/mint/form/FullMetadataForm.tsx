@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata } from '../../../bitbadges-api/types';
+import Image from 'next/image';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -171,7 +172,7 @@ export function FullMetadataForm({
                                     alignItems: 'center',
                                 }}
                             >
-                                <img
+                                <Image
                                     src={item.value}
                                     height="20px"
                                     style={{ paddingRight: 10 }}
