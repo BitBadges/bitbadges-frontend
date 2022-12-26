@@ -74,20 +74,14 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
 
 export const getFromIpfs = async (cid: string, path: string) => {
     const bodyStr = stringify({ cid, path }); //hack to preserve uint8 arrays
-    console.log(bodyStr);
-
-    //{"cid":"QmeDDMdTpjbRfb5d4QoCb5ZpiLxAjSaetyASPKjpMN6vBS","path":"collection"}
 
     const addToIpfsRes = await fetch('http://localhost:3000/api/getFromIpfs', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
     }).then(res => {
-        console.log(res);
         return res.json()
     });
-
-    console.log("ADD", addToIpfsRes);
 
     return addToIpfsRes;
 }

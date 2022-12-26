@@ -16,17 +16,11 @@ const client = create({
 });
 
 const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
-    console.log(process.env.INFURA_ID);
-    console.log(req.body);
-    console.log(JSON.stringify(req.body));
-
     const files = [];
     files.push({
         path: 'metadata/collection',
         content: uint8ArrayFromString(JSON.stringify(req.body.collectionMetadata))
     });
-
-    console.log(files);
 
     let individualBadgeMetadata = req.body.individualBadgeMetadata;
     for (let i = 0; i < individualBadgeMetadata.length; i++) {
@@ -44,8 +38,6 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!result) {
         return res.status(400).send({ error: 'No addAll result received' });
     }
-
-    console.log(result);
 
     const { path, cid } = result;
     return res.status(200).send({ cid: cid.toString(), path });

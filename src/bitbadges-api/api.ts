@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
-import { CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
+import { BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
 
 
 export async function getAccountInformation(
