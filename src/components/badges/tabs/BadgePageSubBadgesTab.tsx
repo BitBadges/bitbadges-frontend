@@ -1,4 +1,4 @@
-import { Address } from '../../Address';
+import { Address } from '../../old/Address';
 import { Avatar, Tooltip, Divider, Alert, Typography, Col, Row, Table } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';

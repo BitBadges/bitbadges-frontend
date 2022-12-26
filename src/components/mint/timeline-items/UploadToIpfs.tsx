@@ -2,10 +2,10 @@ import { Typography, Form, Button, Statistic } from 'antd';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 
-import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { FormNavigationHeader } from './FormNavigationHeader';
-import { BadgeMetadata, TransactionStatus } from '../../bitbadges-api/types';
-import { addToIpfs } from '../../chain/backend_connectors';
+import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { FormNavigationHeader } from '../form/FormNavigationHeader';
+import { BadgeMetadata, TransactionStatus } from '../../../bitbadges-api/types';
+import { addToIpfs } from '../../../chain/backend_connectors';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 import { saveAs } from 'file-saver';
 import { CheckCircleFilled, WarningFilled } from '@ant-design/icons';

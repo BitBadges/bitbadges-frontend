@@ -3,14 +3,14 @@ import React, { useEffect } from 'react';
 import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { ChooseBadgeStandard } from './ChooseBadgeStandard';
-import { StandardBadgeForm } from './StandardBadgeForm';
-import { TransactionDetails } from './CreateBadgeTxnDetails';
+import { ChooseBadgeType } from './timeline-items/ChooseBadgeType';
+import { SetCollectionMetadata } from './timeline-items/SetCollectionMetadata';
+import { TransactionDetails } from './timeline-items/SubmitNewBadgeMsg';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata } from '../../bitbadges-api/types';
-import { UploadToIPFS } from './UploadToIpfs';
-import { BadgeMetadataForm } from './BadgeMetadataForm';
+import { UploadToIPFS } from './timeline-items/UploadToIpfs';
+import { SetIndividualBadgeMetadata } from './timeline-items/SetBadgeMetadata';
 
 const { Text } = Typography;
 
@@ -48,7 +48,6 @@ export function MintTimeline() {
     const [individualBadgeMetadata, setIndividualBadgeMetadata] = useState<BadgeMetadata[]>();
 
     useEffect(() => {
-        console.log("TEST")
         if (newBadgeMetadata && newBadgeMsg.subassetAmountsToCreate && newBadgeMsg.subassetAmountsToCreate[0]) {
             let metadata = [];
             for (let i = 0; i < newBadgeMsg.subassetAmountsToCreate[0]; i++) {
@@ -63,11 +62,11 @@ export function MintTimeline() {
             stepNumber: 0,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Choose Badge Standard
+                    Choose Badge Type
                 </Text>
             ),
             content: (
-                <ChooseBadgeStandard
+                <ChooseBadgeType
                     setCurrStepNumber={setCurrStepNumber}
                     newBadgeMsg={newBadgeMsg}
                     setNewBadgeMsg={setNewBadgeMsg}
@@ -83,7 +82,7 @@ export function MintTimeline() {
             ),
             content: (
                 <>
-                    {newBadgeMsg?.standard == 0 && <StandardBadgeForm
+                    {newBadgeMsg?.standard == 0 && <SetCollectionMetadata
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}
@@ -93,7 +92,7 @@ export function MintTimeline() {
                     {
                         //TODO:
                     }
-                    {newBadgeMsg?.standard != 0 && <StandardBadgeForm
+                    {newBadgeMsg?.standard != 0 && <SetCollectionMetadata
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}
@@ -112,7 +111,7 @@ export function MintTimeline() {
             ),
             content: (
                 <>
-                    <BadgeMetadataForm
+                    <SetIndividualBadgeMetadata
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}

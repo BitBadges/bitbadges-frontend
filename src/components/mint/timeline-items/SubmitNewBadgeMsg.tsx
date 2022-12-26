@@ -2,15 +2,15 @@ import { Typography, Form, Button, Statistic } from 'antd';
 import React from 'react';
 import { useState } from 'react';
 
-import { PRIMARY_TEXT } from '../../constants';
-import { FormNavigationHeader } from './FormNavigationHeader';
-import { useChainContext } from '../../chain/ChainContext';
-import { BadgeMetadata, TransactionStatus } from '../../bitbadges-api/types';
-import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
+import { PRIMARY_TEXT } from '../../../constants';
+import { FormNavigationHeader } from '../form/FormNavigationHeader';
+import { useChainContext } from '../../../chain/ChainContext';
+import { BadgeMetadata, TransactionStatus } from '../../../bitbadges-api/types';
+import { broadcastTransaction } from '../../../bitbadges-api/broadcast';
+import { formatAndCreateGenericTx } from '../../../bitbadges-api/transactions';
 import { MessageMsgNewBadge, createTxMsgNewBadge } from 'bitbadgesjs-transactions';
-import { TxModal } from '../txModals/TxModal';
-import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
+import { TxModal } from '../../txModals/TxModal';
+import { CreateTxMsgNewBadgeModal } from '../../txModals/CreateTxMsgNewBadgeModal';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;

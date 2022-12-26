@@ -1,9 +1,9 @@
-import { getAbbreviatedAddress } from '../utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 
 import { Typography, Tooltip } from 'antd';
 import React from 'react';
-import { SECONDARY_TEXT } from '../constants';
-import { getAccountInformation } from '../bitbadges-api/api';
+import { SECONDARY_TEXT } from '../../constants';
+import { getAccountInformation } from '../../bitbadges-api/api';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 const { Text } = Typography;
 

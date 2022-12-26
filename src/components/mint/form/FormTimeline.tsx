@@ -5,10 +5,9 @@ import {
 } from 'antd';
 import React, { ReactNode, useEffect } from 'react';
 import { useState } from 'react';
-import { PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_TEXT } from '../../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 
-const CURR_TIMELINE_STEP_NUM = 2;
 
 interface Item {
     disabled?: boolean;
@@ -17,31 +16,33 @@ interface Item {
     description: string | ReactNode;
 }
 
-export function CustomizeIndividualMetadataForm({
+export function FormTimeline({
+    currStepNumber,
     setCurrStepNumber,
     items,
 }: {
+    currStepNumber: number;
     setCurrStepNumber: (stepNumber: number) => void;
     items: Item[]
 }) {
-    const [stepNum, setStepNum] = useState(1);
+    const [formStepNum, setFormStepNum] = useState(1);
     const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
     const incrementStep = () => {
-        if (stepNum === items.length) {
-            setCurrStepNumber(CURR_TIMELINE_STEP_NUM + 1);
+        if (formStepNum === items.length) {
+            setCurrStepNumber(currStepNumber + 1);
         } else {
-            setStepNum(stepNum + 1);
-            setNextButton(stepNum + 1);
+            setFormStepNum(formStepNum + 1);
+            setNextButton(formStepNum + 1);
         }
     };
 
     const decrementStep = () => {
-        if (stepNum === 1) {
-            setCurrStepNumber(CURR_TIMELINE_STEP_NUM - 1);
+        if (formStepNum === 1) {
+            setCurrStepNumber(currStepNumber - 1);
         } else {
-            setStepNum(stepNum - 1);
-            setNextButton(stepNum - 1);
+            setFormStepNum(formStepNum - 1);
+            setNextButton(formStepNum - 1);
         }
     };
 
@@ -51,7 +52,7 @@ export function CustomizeIndividualMetadataForm({
     };
 
     useEffect(() => {
-        setNextButton(stepNum);
+        setNextButton(formStepNum);
     }, [items])
 
     const getTitleElem = (title: string | JSX.Element) => {
@@ -104,7 +105,7 @@ export function CustomizeIndividualMetadataForm({
                 <FormNavigationHeader
                     decrementStep={decrementStep}
                     incrementStep={incrementStep}
-                    stepNum={stepNum}
+                    stepNum={formStepNum}
                     finalStepNumber={items.length}
                     nextButtonDisabled={nextButtonDisabled}
                 />
@@ -114,9 +115,9 @@ export function CustomizeIndividualMetadataForm({
                     wrapperCol={{ span: 14 }}
                     layout="horizontal"
                 >
-                    {getTitleElem(items[stepNum - 1].title)}
-                    {getTitleDescription(items[stepNum - 1].description)}
-                    {items[stepNum - 1].node}
+                    {getTitleElem(items[formStepNum - 1].title)}
+                    {getTitleDescription(items[formStepNum - 1].description)}
+                    {items[formStepNum - 1].node}
                 </Form>
             </Form.Provider>
         </div >

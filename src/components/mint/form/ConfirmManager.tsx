@@ -1,10 +1,9 @@
 import React from 'react';
 import { Typography, Avatar } from 'antd';
-import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { useChainContext } from '../../chain/ChainContext';
+import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { useChainContext } from '../../../chain/ChainContext';
 import Blockies from 'react-blockies'
-import { Address } from '../Address';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { Address } from '../../old/Address';
 import { useRouter } from 'next/router';
 
 

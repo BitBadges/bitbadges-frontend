@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Typography, InputNumber } from 'antd';
-import { PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewBadge, MessageMsgNewSubBadge } from 'bitbadgesjs-transactions';
 
 interface SubassetSupply {

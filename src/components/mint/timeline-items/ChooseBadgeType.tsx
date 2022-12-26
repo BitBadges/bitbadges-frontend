@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import Meta from 'antd/lib/card/Meta';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const CURR_STEP_NUMBER = 0;
 
-export function ChooseBadgeStandard({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg }: {
+export function ChooseBadgeType({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg }: {
     setCurrStepNumber: (stepNumber: number) => void;
     setNewBadgeMsg: (type: MessageMsgNewBadge) => void;
     newBadgeMsg: MessageMsgNewBadge;
