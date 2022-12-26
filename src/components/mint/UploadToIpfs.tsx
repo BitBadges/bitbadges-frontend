@@ -1,5 +1,5 @@
 import { Typography, Form, Button, Statistic } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 
 import { PRIMARY_TEXT } from '../../constants';
@@ -10,29 +10,34 @@ import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
-const CURR_TIMELINE_STEP_NUM = 2;
+const CURR_TIMELINE_STEP_NUM = 3;
 
 export function UploadToIPFS({
     setTimelineStepNumber,
     newBadgeMetadata,
     newBadgeMsg,
     setNewBadgeMsg,
+    individualBadgeMetadata
 }: {
     setTimelineStepNumber: (stepNum: number) => void;
     newBadgeMetadata: BadgeMetadata;
     newBadgeMsg: MessageMsgNewBadge;
     setNewBadgeMsg: (newBadgeMsg: MessageMsgNewBadge) => void;
+    individualBadgeMetadata: BadgeMetadata[];
 }) {
     const [stepNum, setStepNum] = useState(1);
     const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const incrementStep = () => {
-        if (stepNum === FINAL_STEP_NUM) {
-            setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
-        } else {
-            setStepNum(stepNum + 1);
+    useEffect(() => {
+        if (success) {
+            if (stepNum === FINAL_STEP_NUM) {
+                setTimelineStepNumber(CURR_TIMELINE_STEP_NUM + 1);
+            } else {
+                setStepNum(stepNum + 1);
+            }
         }
-    };
+    }, [success, stepNum, setTimelineStepNumber]);
 
     const decrementStep = () => {
         if (stepNum === FIRST_STEP_NUM) {
@@ -42,16 +47,18 @@ export function UploadToIPFS({
         }
     };
 
+
+
     return (
         <div>
             <Form.Provider>
                 <FormNavigationHeader
-                    incrementStep={incrementStep}
+                    incrementStep={() => { }}
                     decrementStep={decrementStep}
                     stepNum={stepNum}
                     // backButtonDisabled={txnSubmitted && !transactionIsLoading} TODO: instead of this, we redirect to new badge page
                     finalStepNumber={1}
-                // nextButtonDisabled={!success}
+                    nextButtonDisabled={true}
                 />
                 <div style={{ paddingLeft: 5 }}>
                     <div
@@ -84,20 +91,17 @@ export function UploadToIPFS({
                 >
                     <Button
                         type="primary"
+                        loading={loading}
                         style={{ width: '90%' }}
                         onClick={async () => {
-                            let res = await addToIpfs(newBadgeMetadata);
-                            setSuccess(true);
-                            console.log("RESSS", res);
-                            //TODO: set uri
-
-                            console.log("CID", res.cid)
+                            setLoading(true);
+                            let res = await addToIpfs(newBadgeMetadata, individualBadgeMetadata);
 
                             setNewBadgeMsg({
                                 ...newBadgeMsg,
                                 uri: {
                                     ...newBadgeMsg.uri,
-                                    uri: res.cid, //TODO:
+                                    uri: res.cid,
                                     decodeScheme: 0,
                                     scheme: 3,
                                     idxRangeToRemove: {
@@ -109,6 +113,8 @@ export function UploadToIPFS({
                                     insertIdIdx: 0,
                                 },
                             });
+                            setSuccess(true);
+                            setLoading(false);
                         }}
                     >
                         Upload to IPFS

@@ -20,26 +20,26 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(req.body);
     console.log(JSON.stringify(req.body));
 
-    const testFiles = Array.from(Array(10), (_, i) => {
-        if (i === 9) {
-            return {
-                path: 'metadata/collection',
-                content: uint8ArrayFromString(JSON.stringify(req.body))
-            }
-        }
-
-
-        return {
-            path: 'metadata/' + i,
-            content: uint8ArrayFromString(JSON.stringify({
-                ...req.body,
-                name: req.body.name + ' w/ ID: ' + i,
-            }))
-        }
+    const files = [];
+    files.push({
+        path: 'metadata/collection',
+        content: uint8ArrayFromString(JSON.stringify(req.body.collectionMetadata))
     });
 
+    console.log(files);
 
-    const result = await last(client.addAll(testFiles));
+    let individualBadgeMetadata = req.body.individualBadgeMetadata;
+    for (let i = 0; i < individualBadgeMetadata.length; i++) {
+        files.push(
+            {
+                path: 'metadata/' + i,
+                content: uint8ArrayFromString(JSON.stringify(individualBadgeMetadata[i]))
+            }
+        );
+    }
+
+
+    const result = await last(client.addAll(files));
 
     if (!result) {
         return res.status(400).send({ error: 'No addAll result received' });

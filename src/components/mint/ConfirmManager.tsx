@@ -1,13 +1,16 @@
 import React from 'react';
 import { Typography, Avatar } from 'antd';
-import { PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../chain/ChainContext';
 import Blockies from 'react-blockies'
 import { Address } from '../Address';
+import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { useRouter } from 'next/router';
 
 
 export function ConfirmManager() {
     const chain = useChainContext();
+    const router = useRouter();
     const address = chain.address;
 
     return (
@@ -40,8 +43,19 @@ export function ConfirmManager() {
                 </div>
             </div>
             <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
-                *To use a different address, please disconnect and
-                reconnect.
+                <button
+                    style={{
+                        backgroundColor: 'inherit',
+                        color: SECONDARY_TEXT,
+                        fontSize: 17,
+                    }}
+                    onClick={() => {
+                        router.push('/connect');
+                    }}
+                    className="opacity link-button"
+                >
+                    Click here to connect a different wallet.
+                </button>
             </Typography>
         </div >
     )

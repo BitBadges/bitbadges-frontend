@@ -1,5 +1,6 @@
 import { ChallengeParams } from "blockin";
 import { stringify } from "../utils/preserveJson";
+import { BadgeMetadata } from "../bitbadges-api/types";
 
 /**
  * Here, we define the API function logic to call your backend.
@@ -55,8 +56,11 @@ export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uin
     return verificationRes;
 }
 
-export const addToIpfs = async (data: any) => {
-    const bodyStr = stringify(data); //hack to preserve uint8 arrays
+export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: BadgeMetadata[]) => {
+    const bodyStr = stringify({
+        collectionMetadata,
+        individualBadgeMetadata
+    }); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
     const addToIpfsRes = await fetch('http://localhost:3000/api/addToIpfs', {

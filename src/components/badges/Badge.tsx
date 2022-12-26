@@ -25,6 +25,7 @@ export function Badge({
     // collectedBadge,
     managing,
     hideModal,
+    hack
 }: {
     badge?: BitBadge;
     collection?: BitBadgeCollection;
@@ -32,17 +33,18 @@ export function Badge({
     // collectedBadge?: boolean;
     managing?: boolean;
     hideModal?: boolean;
+    hack?: boolean;
 }) {
     const [modalIsVisible, setModalIsVisible] = useState(false);
     const router = useRouter();
 
-    if (!badge || !collection) return <></>;
+    if (!badge) return <></>;
 
     if (!size) size = 100;
 
-    console.log(badge)
     return (
         <>
+
             <Card
                 style={{
                     width: 230,
@@ -54,9 +56,10 @@ export function Badge({
                 }}
                 hoverable
                 onClick={() => {
-                    router.push(`/badges/${collection.id}/${badge.badgeId}`);
+                    router.push(`/badges/${collection?.id}/${badge.badgeId}`);
                 }}
                 cover={
+
                     <div
                         style={{
                             display: 'flex',
@@ -65,6 +68,7 @@ export function Badge({
                             color: PRIMARY_TEXT,
                         }}
                     >
+
                         <Avatar
                             style={{
                                 verticalAlign: 'middle',
@@ -123,7 +127,7 @@ export function Badge({
                                     fontSize: 17,
                                     width: '100%',
                                     justifyContent: 'center',
-                                    
+
                                 }}
                             >
                                 ID #: {badge.badgeId}

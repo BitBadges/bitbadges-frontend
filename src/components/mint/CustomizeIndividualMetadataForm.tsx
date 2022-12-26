@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 
-const CURR_TIMELINE_STEP_NUM = 1;
+const CURR_TIMELINE_STEP_NUM = 2;
 
 interface Item {
     disabled?: boolean;
@@ -17,7 +17,7 @@ interface Item {
     description: string | ReactNode;
 }
 
-export function CustomizeBadgeForm({
+export function CustomizeIndividualMetadataForm({
     setCurrStepNumber,
     items,
 }: {

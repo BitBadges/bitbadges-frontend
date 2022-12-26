@@ -31,6 +31,7 @@ export function FormNavigationHeader({
                     backgroundColor: 'inherit',
                     color: '#ddd',
                     fontSize: 17,
+                    cursor: backButtonDisabled ? 'not-allowed' : undefined,
                 }}
                 onClick={() => decrementStep()}
                 className="opacity link-button"
@@ -56,6 +57,7 @@ export function FormNavigationHeader({
                     backgroundColor: 'inherit',
                     color: '#ddd',
                     fontSize: 17,
+                    cursor: nextButtonDisabled ? 'not-allowed' : undefined,
                 }}
                 onClick={() => incrementStep()}
                 className="opacity link-button"

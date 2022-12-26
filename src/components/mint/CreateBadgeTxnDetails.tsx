@@ -14,7 +14,7 @@ import { CreateTxMsgNewBadgeModal } from '../txModals/CreateTxMsgNewBadgeModal';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
-const CURR_TIMELINE_STEP_NUM = 3;
+const CURR_TIMELINE_STEP_NUM = 4;
 
 export function TransactionDetails({
     setTimelineStepNumber,

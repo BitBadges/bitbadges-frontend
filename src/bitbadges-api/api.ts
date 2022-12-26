@@ -69,7 +69,7 @@ export async function getBadge(
     //TODO: Normalize subasset supplys with defaultsubassetsupply
     //TODO: todo when I update mint page
     //This is just hardcoded right now
-    badgeData.subassetSupplys.push({
+    badgeData.subassetSupplys = [{
         balance: badgeData.defaultSubassetSupply,
         idRanges: [
             {
@@ -77,7 +77,7 @@ export async function getBadge(
                 end: badgeData.nextSubassetId - 1
             }
         ]
-    });
+    }];
 
     return {
         badge: badgeData,

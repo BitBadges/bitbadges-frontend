@@ -69,13 +69,15 @@ export function SubassetSupply({
                     marginTop: 20,
                 }}
             >
-                <InputNumber value={supplyToCreate} onChange={
-                    (value) => {
-
-                        setSupplyToCreate(value as number);
-                        addTokens(value);
-                    }
-                } />
+                <InputNumber value={supplyToCreate}
+                    defaultValue={1}
+                    min={1}
+                    onChange={
+                        (value) => {
+                            setSupplyToCreate(value as number);
+                            addTokens(value);
+                        }
+                    } />
             </div >
         </div >
     )
