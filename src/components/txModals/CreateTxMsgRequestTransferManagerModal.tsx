@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { MessageMsgFreezeAddress, MessageMsgRequestTransferManager, MessageMsgRevokeBadge, createTxMsgFreezeAddress, createTxMsgRequestTransferManager, createTxMsgRevokeBadge } from 'bitbadgesjs-transactions';
+import React, { useState } from 'react';
+import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange } from '../../bitbadges-api/types';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber, Switch } from 'antd';
-import { AddressModalDisplay } from './AddressModalDisplay';
+import { Switch } from 'antd';
 
 
 export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisible, children }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Empty, Layout } from 'antd';
+import { Col, Divider, Empty, Layout, Row, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
 import { getBadge } from '../../bitbadges-api/api';
@@ -11,6 +11,7 @@ import { BadgeOverviewTab } from '../../components/badges/tabs/BadgePageOverview
 import { BadgeSubBadgesTab } from '../../components/badges/tabs/BadgePageSubBadgesTab';
 
 const { Content } = Layout;
+const { Text } = Typography
 
 const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
@@ -19,7 +20,7 @@ const tabInfo = [
     { key: 'manageractions', content: 'Manager Actions', disabled: false }
 ];
 
-function Badges() {
+function CollectionPage() {
     const router = useRouter()
     const { collectionId } = router.query;
 
@@ -64,31 +65,39 @@ function Badges() {
                         theme="dark"
                         fullWidth
                     />
-
-
                     {tab === 'overview' && (<>
-                        <BadgeOverviewTab
-                            badge={badgeCollection}
-                            metadata={collectionMetadata}
-                        />
+                        <Row>
+                            <Divider></Divider>
+                            <Col span={8}>
+                                <BadgeOverviewTab
+                                    badge={badgeCollection}
+                                    metadata={collectionMetadata}
+                                />
+                            </Col>
+                            <Col span={16}>
+                                <BadgeSubBadgesTab
+                                    badgeCollection={badgeCollection}
+                                    setBadgeCollection={setBadgeCollection}
+                                />
+                            </Col>
+                        </Row>
+
+
                     </>
                     )}
                     {tab === 'subbadges' && (<>
+                        <Divider></Divider>
                         <BadgeSubBadgesTab
                             badgeCollection={badgeCollection}
                             setBadgeCollection={setBadgeCollection}
                         />
-                    </>
-                    )}
+                    </>)}
 
 
                     {tab === 'manageractions' && (
-                        <>
-                            <BadgeModalManagerActions
-                                badge={badgeCollection}
-                            />
-                        </>
-
+                        <BadgeModalManagerActions
+                            badge={badgeCollection}
+                        />
                     )}
 
                     {tab === 'activity' && (
@@ -112,4 +121,4 @@ function Badges() {
     );
 }
 
-export default Badges;
+export default CollectionPage;

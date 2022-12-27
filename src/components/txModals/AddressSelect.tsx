@@ -17,40 +17,17 @@ export function AddressSelect({
         onChange: (userInfo: BitBadgesUserInfo) => void,
     }
 ) {
-    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
+        chain: SupportedChain.ETH,
+        address: '',
+        cosmosAddress: '',
+        accountNumber: -1,
+    } as BitBadgesUserInfo);
 
     useEffect(() => {
-        setCurrUserInfo({
-            ...currUserInfo,
-            cosmosAddress: '',
-            accountNumber: -1,
-        })
+        onChange(currUserInfo);
+    }, [currUserInfo, onChange]);
 
-        let bech32Address = currUserInfo.address ? currUserInfo.address : '';
-        if (currUserInfo.chain === SupportedChain.ETH && ethers.utils.isAddress(currUserInfo.address)) {
-            bech32Address = ethToCosmos(currUserInfo.address);
-        }
-
-        //TODO: better check for valid address so we do not spam getAccountInformation requests
-        if (bech32Address.startsWith('cosmos')) {
-            getAccountInformation(bech32Address).then((accountInfo) => {
-                const userInfo: BitBadgesUserInfo = {
-                    chain: currUserInfo.chain,
-                    address: currUserInfo.address,
-                    cosmosAddress: bech32Address,
-                    accountNumber: accountInfo.account_number,
-                }
-
-                setCurrUserInfo(userInfo);
-                onChange({
-                    accountNumber: accountInfo.account_number,
-                    cosmosAddress: bech32Address,
-                    chain: currUserInfo.chain,
-                    address: currUserInfo.address,
-                });
-            });
-        }
-    }, [currUserInfo, setCurrUserInfo, onChange]);
 
     return <>
         <AddressModalDisplayTitle
@@ -74,15 +51,39 @@ export function AddressSelect({
                 <Option value={SupportedChain.COSMOS}>Cosmos</Option>
             </Select>
             <Input
-                value={currUserInfo.address}
-                onChange={(e) =>
-                    setCurrUserInfo(
-                        {
-                            ...currUserInfo,
-                            address: e.target.value,
-                        }
-                    )
-                }
+                onChange={async (e) => {
+                    e.preventDefault();
+                    let bech32Address = '';
+                    if (currUserInfo.chain === SupportedChain.ETH && ethers.utils.isAddress(e.target.value)) {
+                        bech32Address = ethToCosmos(e.target.value);
+                    } else if (currUserInfo.chain === SupportedChain.COSMOS && e.target.value.startsWith('cosmos')) {
+                        bech32Address = e.target.value;
+                    }
+
+                    let accountNum = -1;
+                    //TODO: better check for valid address so we do not spam getAccountInformation requests
+                    if (bech32Address.startsWith('cosmos')) {
+                        const acctInformation = await getAccountInformation(bech32Address).then((accountInfo) => {
+                            const userInfo: BitBadgesUserInfo = {
+                                chain: currUserInfo.chain,
+                                address: e.target.value,
+                                cosmosAddress: bech32Address,
+                                accountNumber: accountInfo.account_number,
+                            }
+                            return userInfo;
+                        });
+
+                        accountNum = acctInformation.accountNumber;
+                    }
+
+                    console.log("ACCOUNT NUM", accountNum);
+                    setCurrUserInfo({
+                        chain: currUserInfo.chain,
+                        address: e.target.value,
+                        cosmosAddress: bech32Address,
+                        accountNumber: accountNum,
+                    });
+                }}
             />
         </Input.Group>
         <AddressModalDisplay

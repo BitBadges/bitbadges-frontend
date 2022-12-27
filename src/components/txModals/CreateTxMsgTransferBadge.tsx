@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, User } from '../../bitbadges-api/types';
+import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
 import { AddressModalDisplay } from './AddressModalDisplay';
+import { getAccountInformation } from '../../bitbadges-api/api';
 
 
 export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, children }
@@ -16,19 +17,18 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
-    const [currAddress, setCurrAddress] = useState<string>();
-    const [currCosmosAddress, setCurrCosmosAddress] = useState<string>();
-    const [currAccountNumber, setCurrAccountNumber] = useState<number>();
-    const [currChain, setCurrChain] = useState<string>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
+
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
     const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
 
-    const [toAddresses, setToAddresses] = useState<User[]>([]);
+    const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
+    const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
 
     const txCosmosMsg: MessageMsgTransferBadge = {
         creator: chain.cosmosAddress,
@@ -41,13 +41,24 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
         cantCancelBeforeTime: 0,
     };
 
-    const handleChange = (cosmosAddress: string, newManagerAccountNumber: number, chain: string, address: string) => {
-        setCurrCosmosAddress(cosmosAddress);
-        setCurrAccountNumber(newManagerAccountNumber);
-        setCurrAddress(address);
-        setCurrChain(chain);
+    const handleChange = (userInfo: BitBadgesUserInfo) => {
+        setCurrUserInfo(userInfo);
 
         //TODO: can't transfer to self
+    }
+
+    const onRegister = async () => {
+        let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
+
+        let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
+        for (const user of newUsersToRegister) {
+            const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
+                return accountInfo.account_number;
+            });
+            allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
+        }
+
+        setToAddresses(allRegisteredUsers);
     }
 
     useEffect(() => {
@@ -61,6 +72,8 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
 
     return (
         <TxModal
+            unregisteredUsers={unregisteredUsers}
+            onRegister={onRegister}
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
@@ -73,10 +86,7 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                         <div key={index}>
                             <AddressModalDisplay
                                 title={"User " + (index + 1)}
-                                cosmosAddress={user.cosmosAddress}
-                                accountNumber={user.accountNumber}
-                                chain={user.chain}
-                                address={user.address}
+                                userInfo={user}
                             />
                             {/* {index === toAddresses.length - 1 && <hr />} */}
                         </div>
@@ -132,23 +142,22 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
             <AddressSelect onChange={handleChange} title={"Add User to Transfer To"} />
             <Button type="primary"
                 style={{ width: "100%" }}
-                disabled={!currAddress || !currAccountNumber || !currChain || !currCosmosAddress}
+                disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
                 onClick={() => {
-                    if (!currAddress || !currAccountNumber || !currChain || !currCosmosAddress) return;
+                    if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
+                        return;
+                    };
                     setToAddresses([
                         ...toAddresses,
                         {
-                            cosmosAddress: currCosmosAddress,
-                            accountNumber: currAccountNumber,
-                            chain: currChain,
-                            address: currAddress
+                            cosmosAddress: currUserInfo?.cosmosAddress,
+                            accountNumber: currUserInfo?.accountNumber,
+                            chain: currUserInfo?.chain,
+                            address: currUserInfo?.address
                         }
                     ]);
 
-                    setCurrAccountNumber(undefined);
-                    setCurrAddress(undefined);
-                    setCurrChain(undefined);
-                    setCurrCosmosAddress(undefined);
+                    setCurrUserInfo(undefined);
                 }}>Add Address</Button>
             {children}
         </TxModal>

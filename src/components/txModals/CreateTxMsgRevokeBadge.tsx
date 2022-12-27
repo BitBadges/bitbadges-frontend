@@ -6,6 +6,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
 import { AddressModalDisplay } from './AddressModalDisplay';
+import { getAccountInformation } from '../../bitbadges-api/api';
 
 
 export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, children }
@@ -26,6 +27,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
+    const unregisteredUsers = revokedUsers.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
 
     const txCosmosMsg: MessageMsgRevokeBadge = {
         creator: chain.cosmosAddress,
@@ -39,6 +41,20 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
         setCurrUserInfo(userInfo);
     }
 
+    const onRegister = async () => {
+        let allRegisteredUsers = revokedUsers.filter((user) => user.accountNumber !== -1);
+
+        let newUsersToRegister = revokedUsers.filter((user) => user.accountNumber === -1);
+        for (const user of newUsersToRegister) {
+            const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
+                return accountInfo.account_number;
+            });
+            allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
+        }
+
+        setRevokedUsers(allRegisteredUsers);
+    }
+
     useEffect(() => {
         setRevokedUsers([]);
         setAmounts([]);
@@ -50,6 +66,8 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
 
     return (
         <TxModal
+            unregisteredUsers={unregisteredUsers}
+            onRegister={onRegister}
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
@@ -62,9 +80,8 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
                         <div key={index}>
                             <AddressModalDisplay
                                 title={"User " + (index + 1)}
-                                userInfo={currUserInfo ? currUserInfo : {} as BitBadgesUserInfo}
+                                userInfo={user ? user : {} as BitBadgesUserInfo}
                             />
-                            {/* {index === revokedUsers.length - 1 && <hr />} */}
                         </div>
                     )
                 })}
@@ -118,9 +135,11 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             <AddressSelect onChange={handleChange} title={"Add User to Revoke From"} />
             <Button type="primary"
                 style={{ width: "100%" }}
-                disabled={!currUserInfo?.address || !currUserInfo?.accountNumber || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
+                disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
                 onClick={() => {
-                    if (!currUserInfo?.address || !currUserInfo?.accountNumber || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) return;
+                    if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
+                        return;
+                    };
                     setRevokedUsers([
                         ...revokedUsers,
                         {

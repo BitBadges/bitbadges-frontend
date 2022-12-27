@@ -15,20 +15,12 @@ const { Content } = Layout;
 
 const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
-    {
-        key: 'balances',
-        content: 'Balances',
-        disabled: false
-    },
-
+    { key: 'balances', content: 'Balances', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
-    {
-        key: 'Actions',
-        content: 'Actions',
-    }
+    { key: 'Actions', content: 'Actions', disabled: false }
 ];
 
-function Badges() {
+function BadgePage() {
     const router = useRouter()
     const chain = useChainContext();
     const { collectionId, badgeId } = router.query;
@@ -96,8 +88,6 @@ function Badges() {
                         theme="dark"
                         fullWidth
                     />
-
-
                     {tab === 'overview' && (<>
                         <BadgeOverviewTab
                             badge={badgeCollection}
@@ -142,4 +132,4 @@ function Badges() {
     );
 }
 
-export default Badges;
+export default BadgePage;

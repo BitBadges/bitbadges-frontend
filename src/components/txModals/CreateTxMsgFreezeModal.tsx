@@ -41,6 +41,7 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgFreezeAddress}
             displayMsg={'Are you sure?'}
+            disabled={currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0}
         >
             Freeze or Unfreeze
             <Switch defaultChecked onChange={() => setFreeze(!freeze)} />

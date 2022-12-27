@@ -56,6 +56,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferBadge}
             displayMsg={<div>You are requesting this badge from </div>}
+            disabled={currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0}
         >
             Amount to Transfer: <br />
             <InputNumber

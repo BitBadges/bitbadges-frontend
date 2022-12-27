@@ -1,19 +1,12 @@
 import { Address } from '../../old/Address';
-import { Avatar, Tooltip, Divider, Alert, Typography, Col, Row, Table } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { Divider, Typography, Col, Row, Table } from 'antd';
 import React from 'react';
 import {
-    SwapOutlined,
     CheckCircleFilled,
     WarningFilled,
-    LockFilled,
-    UnlockFilled,
-    RollbackOutlined,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
-import { ColumnsType } from 'antd/lib/table';
 import { Permissions } from '../../../bitbadges-api/permissions';
 
 const { Text } = Typography;
@@ -36,21 +29,6 @@ export function BadgeOverviewTab({ badge, metadata }: {
         endTimestamp
     ).toLocaleDateString();
 
-    // let subassetSupplyComponent = <>
-    //     {
-    //         badge.subassetSupplys.map((subassetSupply) => {
-    //             return <div key={subassetSupply.balance}>
-    //                 <Text style={{ fontSize: 18, color: PRIMARY_TEXT }}>
-    //                     Supply = {subassetSupply.balance} for IDs {subassetSupply.idRanges.map((idRange) => {
-    //                         return <>{idRange.start}-{idRange.end}</>
-    //                     })}
-    //                 </Text>
-    //                 <br />
-    //             </div>
-    //         })
-    //     }
-    // </>
-
     const getTableRow = (key: any, value: any) => {
         return <Row>
             <Col span={12}>
@@ -72,17 +50,17 @@ export function BadgeOverviewTab({ badge, metadata }: {
             style={{
                 color: PRIMARY_TEXT,
             }}>
-            <Divider></Divider>
-            <Row style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Col span={11}>
+            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Col style={{ width: '100%' }}>
+                    {/* <Col span={11}> */}
                     <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                            Badge Information
+                            Collection Info
                         </Text>
                     </Row>
                     <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {getTableRow("Collection Number", badge.id)}
-                    {getTableRow("Standard", badge.standard == 0 ? "BitBadge" : "Unknown")}
+                    {getTableRow("Collection ID", badge.id)}
+                    {getTableRow("Type", badge.standard == 0 ? "BitBadge" : "Unknown")}
                     {badge.manager && getTableRow("Manager", <Address
                         chainToDisplay='eth'
 
@@ -131,7 +109,11 @@ export function BadgeOverviewTab({ badge, metadata }: {
                         </pre>
                     }
                 </Col>
-                <Col span={11}>
+            </Row>
+            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
+                <Col style={{ justifyContent: 'center', width: '100%' }}>
+                    {/* </Col>
+                <Col span={11}> */}
                     <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
                             Permissions
@@ -145,7 +127,7 @@ export function BadgeOverviewTab({ badge, metadata }: {
                         return <>{freezeRange.start}-{freezeRange.end}</>
                     }))}
                 </Col>
-            </Row>
+            </Row >
 
         </div >
     );

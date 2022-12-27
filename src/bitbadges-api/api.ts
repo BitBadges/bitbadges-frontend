@@ -17,6 +17,7 @@ export async function getAccountInformation(
                 return {
                     account: {
                         address: bech32Address,
+                        account_number: -1,
                     }
                 }
             }

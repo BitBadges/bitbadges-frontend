@@ -6,9 +6,12 @@ import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import { AddressModalDisplay } from './AddressModalDisplay';
+import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 
 export function TxModal(
-    { destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle }
+    {
+        destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
+        unregisteredUsers, onRegister }
         : {
             destroyOnClose?: boolean,
             disabled?: boolean,
@@ -22,6 +25,8 @@ export function TxModal(
             style?: React.CSSProperties,
             closeIcon?: React.ReactNode,
             bodyStyle?: React.CSSProperties,
+            unregisteredUsers?: string[],
+            onRegister?: () => void,
         }
 ) {
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -52,6 +57,40 @@ export function TxModal(
         }
     };
 
+    const registerUsers = async () => {
+        if (unregisteredUsers && onRegister) {
+            const registerTxCosmosMsg: MessageMsgRegisterAddresses = {
+                creator: chain.cosmosAddress,
+                addressesToRegister: unregisteredUsers,
+            };
+
+            setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
+            try {
+                const unsignedTx = await formatAndCreateGenericTx(createTxMsgRegisterAddresses, chain, registerTxCosmosMsg);
+                const rawTx = await chain.signTxn(unsignedTx);
+                const msgResponse = await broadcastTransaction(rawTx);
+
+                if (DEV_MODE) console.log(msgResponse);
+
+
+
+                //TODO: way to track tx - link to block explorer
+                chain.incrementSequence();
+
+                //TODO: confirmations instead of timeouts
+                setTimeout(() => {
+                    onRegister();
+                    setTransactionStatus(TransactionStatus.None);
+                }, 5000);
+
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message);
+                setTransactionStatus(TransactionStatus.None);
+            }
+        }
+    };
+
     return (
         <Modal
             title={<b>{txName}</b>}
@@ -70,13 +109,13 @@ export function TxModal(
                 fontSize: 20,
                 ...bodyStyle
             }}
-            onOk={handleSubmitTx}
+            onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
                 disabled: disabled || transactionStatus != TransactionStatus.None,
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
-            okText={"Sign and Submit Transaction"}
+            okText={unregisteredUsers && unregisteredUsers.length > 0 ? "Register Users" : "Sign and Submit Transaction"}
             cancelText={"Cancel"}
             destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
@@ -106,6 +145,16 @@ export function TxModal(
                 title={"Your Signing Wallet: "}
             />
 
+            <hr />
+            {unregisteredUsers && unregisteredUsers.length > 0 &&
+                <div style={{ textAlign: 'center' }}>
+                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
+                        You have specified addresses that are not currently registered on the BitBadges blockchain.
+                        We need to register these addresses before we can proceed with your transaction.
+                        This is a one-time process. Once you register an address, you will not need to register it again.
+                    </Typography.Text>
+                </div>
+            }
             {error && <div>
                 <hr />
                 <div style={{ color: 'red' }}>

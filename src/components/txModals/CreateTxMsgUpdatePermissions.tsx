@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MessageMsgUpdatePermissions,  createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
+import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';

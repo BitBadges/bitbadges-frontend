@@ -1,48 +1,16 @@
-import { RecipientFormItem } from '../../old/RecipientFormItem';
-import { BurnOwnerFormItem } from '../../old/BurnOwnerFormItem';
-import {
-    Avatar,
-    Button,
-    Form,
-    Select,
-    List,
-    Skeleton,
-    Divider,
-    Input,
-    Empty,
-    Typography,
-    InputNumber,
-} from 'antd';
+import { Empty, Card, Divider, Typography, } from 'antd';
 import { useState } from 'react';
 import React from 'react';
-import {
-    LockOutlined,
-    PlusOutlined,
-    UndoOutlined,
-    SwapRightOutlined,
-    RightOutlined,
-    DownOutlined,
-    CheckOutlined,
-    CloseOutlined,
-    DeleteOutlined,
-} from '@ant-design/icons';
-
-import { DEV_MODE, ETH_LOGO, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
-import { RecipientList } from '../../old/RecipientList';
-import { ethers } from 'ethers';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
-import { CreateTxMsgNewBadgeModal } from '../../txModals/CreateTxMsgNewBadgeModal';
 import { CreateTxMsgRevokeBadgeModal } from '../../txModals/CreateTxMsgRevokeBadge';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BlockinDisplay } from '../../blockin/BlockinDisplay';
 import { CreateTxMsgFreezeModal } from '../../txModals/CreateTxMsgFreezeModal';
-import { CreateTxMsgRegisterAddressesModal } from '../../txModals/CreateTxMsgRegisterAddresses';
 import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
 import { useRouter } from 'next/router';
-
-const { Option } = Select;
-const { Text } = Typography;
+import Meta from 'antd/lib/card/Meta';
 
 export function BadgeModalManagerActions({
     badge,
@@ -50,381 +18,91 @@ export function BadgeModalManagerActions({
     badge?: BitBadgeCollection;
 }) {
     const router = useRouter();
-    const [lockSupplyIsVisible, setLockSupplyIsVisible] = useState(false);
-    const [mintMoreIsVisible, setMintMoreIsVisible] = useState(false);
-    const [mintApprovalIsVisible, setMintApprovalIsVisible] = useState(false);
-    const [lockRevokeIsVisible, setLockRevokeIsVisible] = useState(false);
     const [revokeIsVisible, setRevokeIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
     const [registerAddressesIsVisible, setRegisterAddressesIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
 
-
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
 
     if (!badge) return <></>;
 
-    const managerActions = [];
-    const allUserActions = [];
+    let managerActions: any[] = [];
+    const isManager = badge.manager === accountNumber;
 
-    //TODO: add back permission checks
-    if (badge.permissions) {
+    if (isManager) {
         if (badge.permissions.CanCreate) {
-            // managerActions.push({
-            //     title: <div style={{ color: PRIMARY_TEXT }}>Mint</div>,
-            //     description: (
-            //         <div style={{ color: SECONDARY_TEXT }}>
-            //             Mint more of this badge
-            //         </div>
-            //     ),
-            //     icon: <PlusOutlined />,
-            //     visible: mintMoreIsVisible,
-            //     content: (
-            //         <>
-            //             {mintMoreIsVisible && (
-            //                 <div
-            //                     style={{
-            //                         width: '100%',
-            //                         display: 'flex',
-            //                         justifyContent: 'center',
-            //                     }}
-            //                 >
-            //                     <Form
-            //                         layout="horizontal"
-            //                         style={{ width: '50vw' }}
-            //                     >
-            //                         <RecipientFormItem
-            //                             recipients={recipients}
-            //                             setRecipients={setRecipients}
-            //                         />
-            //                         {getSignAndSubmitButton(async () => {
-            //                             const data = {
-            //                                 recipients,
-            //                                 badgeId: badge.id,
-            //                             };
-            //                             submitTransaction(data, '/badges/mint');
-            //                         }, txnSubmitted || recipients.length === 0)}
-            //                         <Divider />
-            //                     </Form>
-            //                 </div>
-            //             )}
-            //         </>
-            //     ),
-            //     showModal: () => {
-            //         setMintMoreIsVisible(!mintMoreIsVisible);
-            //     },
-            // });
-
-            // managerActions.push({
-            //     title: (
-            //         <div style={{ color: PRIMARY_TEXT }}>Approve a Mint</div>
-            //     ),
-            //     description: (
-            //         <div style={{ color: SECONDARY_TEXT }}>
-            //             Add a mint approval.
-            //         </div>
-            //     ),
-            //     icon: <PlusOutlined />,
-            //     visible: mintApprovalIsVisible,
-            //     content: (
-            //         <>
-            //             {mintApprovalIsVisible && (
-            //                 <div
-            //                     style={{
-            //                         width: '100%',
-            //                         display: 'flex',
-            //                         justifyContent: 'center',
-            //                     }}
-            //                 >
-            //                     <Form
-            //                         layout="horizontal"
-            //                         style={{ width: '50vw' }}
-            //                     >
-            //                         <Form.Item
-            //                             label={
-            //                                 <Text
-            //                                     strong
-            //                                     style={{ color: PRIMARY_TEXT }}
-            //                                 >
-            //                                     Approved Address
-            //                                 </Text>
-            //                             }
-            //                         >
-            //                             <Input
-            //                                 addonBefore={
-            //                                     <Select
-            //                                         value={approveeChain}
-            //                                         onSelect={(e: any) =>
-            //                                             setApproveeChain(e)
-            //                                         }
-            //                                         defaultValue="ETH"
-            //                                     >
-            //                                         <Option value="ETH">
-            //                                             ETH
-            //                                         </Option>
-            //                                     </Select>
-            //                                 }
-            //                                 placeholder="Enter Address (0x....)"
-            //                                 value={approveeAddress}
-            //                                 onChange={(e) =>
-            //                                     setApproveeAddress(
-            //                                         e.target.value
-            //                                     )
-            //                                 }
-            //                                 suffix={
-            //                                     <InputNumber
-            //                                         value={approveeAmount}
-            //                                         onChange={(e) =>
-            //                                             setApproveeAmount(e)
-            //                                         }
-            //                                     />
-            //                                 }
-            //                             />
-            //                             <div
-            //                                 style={{
-            //                                     marginTop: 10,
-            //                                 }}
-            //                             >
-            //                                 <RecipientList
-            //                                     hideTotals
-            //                                     showWarnings
-            //                                     recipients={[
-            //                                         {
-            //                                             to: `${approveeChain}:${approveeAddress}`,
-            //                                             amount: approveeAmount,
-            //                                         },
-            //                                     ]}
-            //                                     setRecipients={() => {
-            //                                         setApproveeAddress('');
-            //                                         setApproveeAmount(0);
-            //                                     }}
-            //                                 />
-            //                             </div>
-            //                         </Form.Item>
-            //                         {getSignAndSubmitButton(async () => {
-            //                             const data = {
-            //                                 approvedAddress: approveeAddress,
-            //                                 badgeId: badge.id,
-            //                                 amount: approveeAmount,
-            //                             };
-
-            //                             submitTransaction(
-            //                                 data,
-            //                                 '/badges/addMintApproval'
-            //                             );
-            //                         }, txnSubmitted)}
-            //                         <Divider />
-            //                     </Form>
-            //                 </div>
-            //             )}
-            //         </>
-            //     ),
-            //     showModal: () => {
-            //         setMintApprovalIsVisible(!mintApprovalIsVisible);
-            //     },
-            // });
-
-            // managerActions.push({
-            //     title: <div style={{ color: PRIMARY_TEXT }}>Lock Supply</div>,
-            //     icon: <LockOutlined />,
-            //     description: (
-            //         <div style={{ color: SECONDARY_TEXT }}>
-            //             Disable minting privileges permanently.
-            //         </div>
-            //     ),
-            //     visible: lockSupplyIsVisible,
-            //     content: (
-            //         <>
-            //             {lockSupplyIsVisible && (
-            //                 <div
-            //                     style={{
-            //                         width: '100%',
-            //                         display: 'flex',
-            //                         justifyContent: 'center',
-            //                     }}
-            //                 >
-            //                     <Form
-            //                         // labelCol={{ span: 4 }}
-            //                         // wrapperCol={{ span: 14 }}
-            //                         layout="horizontal"
-            //                         style={{ width: '50vw' }}
-            //                     >
-            //                         <Form.Item>
-            //                             <Text style={{ color: PRIMARY_TEXT }}>
-            //                                 *Warning: This action is permanent.
-            //                                 Once you lock the supply of this
-            //                                 badge, you will never be able to
-            //                                 mint any more.
-            //                             </Text>
-            //                         </Form.Item>
-            //                         {getSignAndSubmitButton(async () => {
-            //                             const data = {
-            //                                 badgeId: badge.id,
-            //                             };
-            //                             submitTransaction(
-            //                                 data,
-            //                                 '/badges/lockSupply'
-            //                             );
-            //                         }, txnSubmitted)}
-            //                         <Divider />
-            //                     </Form>
-            //                 </div>
-            //             )}
-            //         </>
-            //     ),
-            //     showModal: () => {
-            //         setLockSupplyIsVisible(!lockSupplyIsVisible);
-            //     },
-            // });
+            managerActions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        New Badge
+                    </div>
+                ),
+                showModal: () => {
+                    router.push(`/mint/badge/${badge.id}`)
+                },
+            });
         }
 
 
-        // if (badge.permissions.CanFreeze) {
-        managerActions.push({
-            title: <div style={{ color: PRIMARY_TEXT }}>Freeze</div>,
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    Freeze a badge from an existing owner
-                </div>
-            ),
-            icon: <UndoOutlined />,
-            showModal: () => {
-                setFreezeIsVisible(!freezeIsVisible);
-            },
-        });
 
-        // if (badge.permissions.CanRevoke) {
-        managerActions.push({
-            title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    Revoke a badge from an existing owner
-                </div>
-            ),
-            icon: <UndoOutlined />,
-            showModal: () => {
-                setRevokeIsVisible(!revokeIsVisible);
-            },
-        });
-        // managerActions.push({
-        //     title: (
-        //         <div style={{ color: PRIMARY_TEXT }}>
-        //             TODO: Update Permissions
-        //         </div>
-        //     ),
-        //     description: (
-        //         <div style={{ color: SECONDARY_TEXT }}>
-        //             Disable revoking privileges permanently.
-        //         </div>
-        //     ),
-        //     icon: <LockOutlined />,
-        //     visible: lockRevokeIsVisible,
-        //     // content: (
-        //     //     <>
-        //     //         {lockRevokeIsVisible && (
-        //     //             <div
-        //     //                 style={{
-        //     //                     width: '100%',
-        //     //                     display: 'flex',
-        //     //                     justifyContent: 'center',
-        //     //                 }}
-        //     //             >
-        //     //                 <Form
-        //     //                     // labelCol={{ span: 4 }}
-        //     //                     // wrapperCol={{ span: 14 }}
-        //     //                     layout="horizontal"
-        //     //                     style={{ width: '50vw' }}
-        //     //                 >
-        //     //                     <Form.Item>
-        //     //                         <Text style={{ color: PRIMARY_TEXT }}>
-        //     //                             *Warning: This action is permanent.
-        //     //                             Once you lock your revoke
-        //     //                             permission, you will never be able
-        //     //                             to revoke again.
-        //     //                         </Text>
-        //     //                     </Form.Item>
+        if (badge.permissions.CanRevoke) {
+            managerActions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Revoke a badge from an existing owner
+                    </div>
+                ),
+                showModal: () => {
+                    setRevokeIsVisible(!revokeIsVisible);
+                },
+            });
+        }
 
-        //     //                     {getSignAndSubmitButton(async () => {
-        //     //                         const data = {
-        //     //                             badgeId: badge.id,
-        //     //                         };
-        //     //                         submitTransaction(
-        //     //                             data,
-        //     //                             '/badges/lockRevoke'
-        //     //                         );
-        //     //                     }, txnSubmitted)}
-        //     //                     <Divider />
-        //     //                 </Form>
-        //     //             </div>
-        //     //         )}
-        //     //     </>
-        //     // ),
-        //     showModal: () => {
-        //         setLockRevokeIsVisible(!lockRevokeIsVisible);
-        //     },
-        // });
-        // }
+        if (badge.permissions.CanManagerTransfer) {
+            managerActions.push({
+                title: (
+                    <div style={{ color: PRIMARY_TEXT }}>Transfer Manager</div>
+                ),
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Transfer manager privileges to new address
+                    </div>
+                ),
+                showModal: () => {
+                    setTransferManagerIsVisible(!transferManagerIsVisible);
+                },
+            });
+        }
 
-        managerActions.push({
-            title: <div style={{ color: PRIMARY_TEXT }}>Register</div>,
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    Register an address
-                </div>
-            ),
-            icon: <PlusOutlined />,
-            showModal: () => {
-                setRegisterAddressesIsVisible(!registerAddressesIsVisible);
-            },
-        });
-
-        managerActions.push({
-            title: (
-                <div style={{ color: PRIMARY_TEXT }}>Transfer Manager Role</div>
-            ),
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    Transfer manager privileges to new address
-                </div>
-            ),
-            icon: <SwapRightOutlined />,
-            showModal: () => {
-                setTransferManagerIsVisible(!transferManagerIsVisible);
-            },
-        });
 
         managerActions.push({
             title: <div style={{ color: PRIMARY_TEXT }}>Update Permissions</div>,
             description: (
                 <div style={{ color: SECONDARY_TEXT }}>
-                    Update Permissions
+                    Update the permissions of this collection.
                 </div>
             ),
-            icon: <UndoOutlined />,
             showModal: () => {
                 setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
             },
-        });
+        })
+    }
 
-        managerActions.push({
-            title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    New Badge
-                </div>
-            ),
-            icon: <UndoOutlined />,
-            showModal: () => {
-                router.push(`/mint/badge/${badge.id}`)
-            },
-        });
-
-        if (DEV_MODE) console.log("CHECKING IF MANAGER EQUALS ACCT. NUMBER:", badge.manager, accountNumber,);
-        if (accountNumber === badge.manager) {
-            allUserActions.push(...managerActions);
-        }
+    if (!isManager) {
+        return <div>
+            <Divider />
+            {chain.connected &&
+                <Typography style={{ color: PRIMARY_TEXT, textAlign: 'center', fontSize: 20, paddingBottom: '5px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    Your connected address is not the manager of this collection.
+                </Typography>
+            }
+            <BlockinDisplay />
+        </div>;
     }
 
     return (
@@ -434,77 +112,84 @@ export function BadgeModalManagerActions({
                 fontSize: 20,
             }}
         >
-            {allUserActions.length > 0 ? (
-                <List
-                    itemLayout="horizontal"
-                    dataSource={allUserActions}
-                    renderItem={(item: any) => (
-                        <>
-                            <div
-                                className="action-item"
-                                onClick={() => {
-                                    item.showModal();
-                                }}
-                            >
-                                <List.Item
-                                    actions={[
-                                        <button
-                                            className="link-button"
-                                            key="list-loadmore-edit"
-                                        >
-                                            {item.popover}
-                                        </button>,
-                                    ]}
-                                    style={{
-                                        paddingLeft: 8,
-                                    }}
-                                >
-                                    <Skeleton
-                                        avatar
-                                        title={false}
-                                        loading={item.loading}
-                                        active
-                                    >
-                                        <List.Item.Meta
-                                            avatar={
-                                                <Avatar
-                                                    style={{
-                                                        backgroundColor:
-                                                            'black',
-                                                    }}
-                                                    icon={item.icon}
-                                                />
-                                            }
-                                            title={item.title}
-                                            description={
-                                                item.description
-                                            }
-                                        />
-                                    </Skeleton>
-                                </List.Item>
-                            </div>
+            <div
+                style={{
+                    padding: '0',
+                    textAlign: 'center',
+                    color: PRIMARY_TEXT,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 20,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                }}
+            >
 
-                            <div>{item.content}</div>
-                            <Divider
-                                style={{
-                                    color: 'black',
-                                    backgroundColor: 'black',
-                                    margin: 0,
-                                }}
+                {
+                    managerActions.map((action, idx) => {
+                        return <Card
+                            key={idx}
+                            style={{
+                                width: '300px',
+                                minHeight: '150px',
+                                margin: 8,
+                                textAlign: 'center',
+                                backgroundColor: PRIMARY_BLUE,
+                                color: PRIMARY_TEXT,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                cursor: action.disabled ? 'not-allowed' : undefined,
+                            }}
+                            hoverable={!action.disabled}
+                            onClick={async () => {
+                                if (action.disabled) return;
+                                action.showModal();
+                            }}
+
+                        >
+                            <Meta
+                                title={
+                                    <div
+                                        style={{
+                                            fontSize: 20,
+                                            color: PRIMARY_TEXT,
+                                            fontWeight: 'bolder',
+                                        }}
+                                    >
+                                        {action.title}
+                                    </div>
+                                }
+                                description={
+                                    <div
+                                        style={{
+                                            color: SECONDARY_TEXT,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            width: '100%',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {action.description}
+                                    </div>
+                                }
                             />
-                        </>
-                    )}
-                />
-            ) : (
+                        </Card>
+
+                    })
+                }
+            </div>
+            {isManager && managerActions.length == 0 && (
                 <>
                     <Empty
                         style={{ color: PRIMARY_TEXT }}
-                        description="There are no actions you can take. To perform an action, you must either own this badge or be the badge manager."
+                        description="If you are the manager, please connect the wallet."
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                     />
-                    <BlockinDisplay />
                 </>
             )}
+
+
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
@@ -524,11 +209,6 @@ export function BadgeModalManagerActions({
                 badge={badge}
             />
 
-            <CreateTxMsgRegisterAddressesModal
-                visible={registerAddressesIsVisible}
-                setVisible={setRegisterAddressesIsVisible}
-                badge={badge}
-            />
 
             <CreateTxMsgUpdatePermissionsModal
                 visible={updatePermissionsIsVisible}

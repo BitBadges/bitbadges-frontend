@@ -172,7 +172,7 @@ export function FullMetadataForm({
                                     alignItems: 'center',
                                 }}
                             >
-                                <Image
+                                <img
                                     src={item.value}
                                     height="20px"
                                     style={{ paddingRight: 10 }}

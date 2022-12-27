@@ -3,6 +3,9 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
 import { BadgeCard } from '../../BadgeCard';
 import { getBadge } from '../../../bitbadges-api/api';
+import { Divider, Typography } from 'antd';
+
+const { Text } = Typography;
 
 export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection }: {
     badgeCollection: BitBadgeCollection | undefined;
@@ -48,6 +51,10 @@ export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection }: {
             style={{
                 color: PRIMARY_TEXT,
             }}>
+            <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
+                Badges
+            </Text>
+            <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
             <div
                 style={{
                     display: 'flex',
