@@ -1,4 +1,4 @@
-import { generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
+import { BroadcastMode, generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
 import { DEV_MODE, NODE_URL } from "../constants"
 import { ChainContextType } from "../chain/ChainContext"
 
@@ -9,7 +9,7 @@ export async function broadcastTransaction(txRaw: any) {
     const postOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: generatePostBodyBroadcast(txRaw),
+        body: generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
     }
 
     let broadcastPost = await fetch(
@@ -26,12 +26,6 @@ export async function broadcastTransaction(txRaw: any) {
             message: `Code ${res.tx_response.code}: ${res.tx_response.raw_log}`,
         };
     }
-
-
-
-    //Need to reupdate account information (e.g. new nonce / sequence)
-    //TODO: this does not work anymore
-    // getAccountInformation('cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu') //TODO: should we await here? increment just sequence? async mempool txs listener to update upon finalization
 
     return res;
 }
