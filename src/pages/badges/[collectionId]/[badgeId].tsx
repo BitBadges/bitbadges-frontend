@@ -10,93 +10,55 @@ import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadg
 import { BadgeOverviewTab } from '../../../components/badges/tabs/BadgePageOverviewTab';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BadgeBalanceTab } from '../../../components/badges/tabs/BadgeBalanceTab';
-import { getFromIpfs } from '../../../chain/backend_connectors';
 
 const { Content } = Layout;
 
+const tabInfo = [
+    { key: 'overview', content: 'Overview', disabled: false },
+    {
+        key: 'balances',
+        content: 'Balances',
+        disabled: false
+    },
+
+    { key: 'activity', content: 'Activity', disabled: false },
+    {
+        key: 'Actions',
+        content: 'Actions',
+    }
+];
 
 function Badges() {
     const router = useRouter()
+    const chain = useChainContext();
     const { collectionId, badgeId } = router.query;
 
-    const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection | undefined>()
-    const [badgeMetadata, setBadgeMetadata] = useState<BadgeMetadata>();
+    const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
+    const currBadgeMetadata = badgeCollection?.badgeMetadata && Number(badgeId) >= 0 ?
+        badgeCollection?.badgeMetadata[Number(badgeId)] : {} as BadgeMetadata;
 
-    const chain = useChainContext();
-    const accountNumber = chain.accountNumber;
     const [tab, setTab] = useState('overview');
-
-    const tabInfo = [
-        { key: 'overview', content: 'Overview', disabled: false },
-        {
-            key: 'balances',
-            content: 'Balances',
-            disabled: false
-        },
-
-        { key: 'activity', content: 'Activity', disabled: false },
-        {
-            key: 'Actions',
-            content: 'Actions',
-        }
-    ];
+    const accountNumber = chain.accountNumber;
 
     useEffect(() => {
-        if (isNaN(Number(collectionId))) {
-            return
+        async function getBadgeInformation() {
+            await getBadge(Number(collectionId), badgeCollection, Number(badgeId))
+                .then(res => { setBadgeCollection(res.badge) });
         }
-
-        async function getBadgeFromApi() {
-            if (isNaN(Number(collectionId))) return;
-
-            const badgeRes = await getBadge(Number(collectionId));
-            const badgeInfo = badgeRes.badge;
-
-            console.log('badgeInfo', badgeInfo)
-
-            if (badgeInfo) {
-                console.log('badgeInfo', badgeInfo)
-                const res = await getFromIpfs(badgeInfo.uri.uri, 'collection');
-                badgeInfo.metadata = JSON.parse(res.file)
-
-                setBadgeCollection(badgeInfo)
-            } else {
-                //TODO: add a 404 clause (possibly in /api)
-            }
-        }
-        getBadgeFromApi();
-    }, [collectionId])
-
-    useEffect(() => {
-        if (isNaN(Number(badgeId)) || !badgeCollection) {
-            return;
-        }
-
-        async function getBadgeFromApi() {
-            if (isNaN(Number(badgeId)) || !badgeCollection) return;
-
-            const res = await getFromIpfs(badgeCollection.uri.uri, `${badgeId}`);
-            const metadata = JSON.parse(res.file);
-            setBadgeMetadata(metadata);
-
-            console.log('metadata', metadata);
-        }
-        getBadgeFromApi();
-    }, [badgeId, badgeCollection])
+        getBadgeInformation();
+    }, [collectionId, badgeId, badgeCollection]);
 
     const [userBalance, setUserBalance] = useState<UserBalance | undefined>();
-
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
-            if (!badgeCollection) {
+            if (!badgeCollection || !accountNumber || accountNumber < 0 || !badgeCollection.id) {
                 return;
             }
             if (DEV_MODE) console.log("Getting user's badge balance: ");
             const balanceInfoRes = await getBadgeBalance(badgeCollection.id, accountNumber);
-            console.log("Got user's badge balance: ", balanceInfoRes);
 
             if (balanceInfoRes.error) {
-                //TODO: add a 404 clause (possibly in /api)
+                console.error("Error getting balance: ", balanceInfoRes.error);
             } else {
                 const balanceInfo = balanceInfoRes.balanceInfo;
                 setUserBalance(balanceInfo)
@@ -126,7 +88,7 @@ function Badges() {
                 >
                     <PageHeaderWithAvatar
                         badge={badgeCollection}
-                        metadata={badgeMetadata}
+                        metadata={currBadgeMetadata}
                     />
                     <Tabs
                         tabInfo={tabInfo}
@@ -139,21 +101,17 @@ function Badges() {
                     {tab === 'overview' && (<>
                         <BadgeOverviewTab
                             badge={badgeCollection}
-                            metadata={badgeMetadata}
+                            metadata={currBadgeMetadata}
                         />
                     </>
                     )}
                     {tab === 'balances' && (<>
-
                         <BadgeBalanceTab
                             badge={badgeCollection}
                             balanceInfo={userBalance}
                             badgeId={Number(badgeId)}
                         />
-
                     </>)}
-
-
                     {tab === 'manageractions' && (
                         <>
                             <BadgeModalManagerActions

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
@@ -22,8 +22,8 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
         address: newManagerAccountNumber ? newManagerAccountNumber : -1,
     };
 
-    const handleChange = (cosmosAddress: string, newManagerAccountNumber: number) => {
-        setNewManagerAccountNumber(newManagerAccountNumber);
+    const handleChange = (userInfo: BitBadgesUserInfo) => {
+        setNewManagerAccountNumber(userInfo.accountNumber);
     }
 
     return (
@@ -33,7 +33,7 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
             txName="Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferManager}
-            displayMsg={"You are transfering the managerial privileges of this badge collection (ID: " + badge.id + ", Name: " + badge.metadata.name + ") to the address listed above."}
+            displayMsg={"You are transfering the managerial privileges of this badge collection (ID: " + badge.id + ", Name: " + badge.collectionMetadata.name + ") to the address listed above."}
             disabled={newManagerAccountNumber === undefined || newManagerAccountNumber === null || newManagerAccountNumber < 0}
         >
             <AddressSelect onChange={handleChange} title={"New Manager"} />

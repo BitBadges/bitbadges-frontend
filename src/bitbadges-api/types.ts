@@ -19,10 +19,6 @@ export interface GetBadgeResponse {
 
 export interface BitBadgeCollection {
     permissions: Permissions;
-    metadata: BadgeMetadata,
-    badgeMetadataMap: {
-        [key: number]: BadgeMetadata
-    }
     standard: number,
     defaultSubassetSupply: number,
     subassetSupplys: BalanceObject[],
@@ -31,14 +27,9 @@ export interface BitBadgeCollection {
     manager: any,
     arbitraryBytes: any,
     uri: UriObject,
-    id: number
-}
-
-export interface BitBadge {
-    metadata: BadgeMetadata,
-    badgeId: number,
-    totalSupply: number,
-    uri: UriObject,
+    id: number,
+    collectionMetadata: BadgeMetadata,
+    badgeMetadata: BadgeMetadata[],
 }
 
 export interface BalanceObject {

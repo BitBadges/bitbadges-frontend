@@ -12,7 +12,7 @@ import {
     RollbackOutlined,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadge, BitBadgeCollection } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
 import { ColumnsType } from 'antd/lib/table';
 import { Permissions } from '../../../bitbadges-api/permissions';
 
@@ -24,10 +24,6 @@ export function BadgeOverviewTab({ badge, metadata }: {
     metadata: BadgeMetadata | undefined;
 }) {
     if (!badge || !metadata) return <></>
-
-    if (DEV_MODE) console.log("Loading BadgeOverview for The Following Badge: ", badge);
-
-
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
     let validForever = true;

@@ -1,99 +1,53 @@
-import { Address } from '../../old/Address';
-import { Avatar, Tooltip, Divider, Alert, Typography, Col, Row, Table } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSnowflake, faUserLock } from '@fortawesome/free-solid-svg-icons';
-import React, { useEffect, useState } from 'react';
-import {
-    SwapOutlined,
-    CheckCircleFilled,
-    WarningFilled,
-    LockFilled,
-    UnlockFilled,
-    RollbackOutlined,
-} from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadge, BitBadgeCollection } from '../../../bitbadges-api/types';
-import { ColumnsType } from 'antd/lib/table';
-import { Permissions } from '../../../bitbadges-api/permissions';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
+import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
 import { BadgeCard } from '../../BadgeCard';
-import { getFromIpfs } from '../../../chain/backend_connectors';
-import { UriObject } from 'bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils';
+import { getBadge } from '../../../bitbadges-api/api';
 
-const { Text } = Typography;
-
-const getSupplyByBadgeId = (badgeCollection: BitBadgeCollection, badgeId: number) => {
-    let supply = badgeCollection.subassetSupplys.find((subassetSupply) => {
-
-        return subassetSupply.idRanges.find((idRange) => {
-            if (idRange.start === undefined || idRange.end === undefined) {
-                return false;
-            }
-            return badgeId >= idRange.start && badgeId <= idRange.end;
-        });
-    });
-
-    console.log("supply", supply)
-
-    return supply?.balance ?? 0;
-}
-
-
-export function BadgeSubBadgesTab({ badgeCollection, individualBadgeMetadata, hack }: {
+export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection }: {
     badgeCollection: BitBadgeCollection | undefined;
-    individualBadgeMetadata?: BadgeMetadata[];
-    hack?: boolean;
+    setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
 }) {
-    const [badgeDisplay, setBadgeDisplay] = useState<BitBadge[]>([]);
+    const individualBadgeMetadata = badgeCollection?.badgeMetadata;
+    const [display, setDisplay] = useState<ReactNode>(<>
+        {individualBadgeMetadata?.map((metadata, idx) => {
+            return <div key={idx}>
+                <BadgeCard collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+            </div>
+        })}
+    </>);
 
     let stringified = JSON.stringify(individualBadgeMetadata);
 
     useEffect(() => {
-        console.log("UPDATING")
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
-            //TODO: fetch metadata here (should probably make it more scalable than this)
-            //TODO: also make this display scroll based / limited (25 at a time)
-            //TODO: change this to get actual bagde metadata and uri
-            //TODO: pass in and maintain in parent component
+            if (!badgeCollection) return;
+            let numBadges = badgeCollection?.nextSubassetId;
+            //TODO: should probably make it more scalable than this
 
-            let numBadges = badgeCollection?.nextSubassetId ? badgeCollection?.nextSubassetId : 0;
-            if (individualBadgeMetadata) {
-                numBadges = individualBadgeMetadata?.length ?? 0;
-            }
-
-            let uri = '';
-            if (badgeCollection?.uri) {
-                uri = badgeCollection?.uri.uri;
-            }
-            console.log("numBadges", numBadges)
-
-            let display = [];
             for (let i = 0; i < numBadges; i++) {
-                let metadata;
-                if (!individualBadgeMetadata) {
-                    const res = await getFromIpfs(uri, `${i}`);
-                    metadata = JSON.parse(res.file);
-                } else {
-                    metadata = individualBadgeMetadata[i];
+                if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
+                    await getBadge(badgeCollection.id, badgeCollection, i)
+                        .then(res => { if (res.badge) setBadgeCollection(res.badge) });
                 }
-
-                display.push({
-                    metadata: metadata,
-                    badgeId: i,
-                    uri: {} as UriObject,
-                    totalSupply: badgeCollection ? getSupplyByBadgeId(badgeCollection, i) : 0,
-                });
             }
-            setBadgeDisplay(display);
+
+            setDisplay(<>
+                {individualBadgeMetadata?.map((metadata, idx) => {
+                    return <div key={idx}>
+                        <BadgeCard collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                    </div>
+                })}
+            </>)
         }
         updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata]);
+    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection]);
 
     return (
         <div
             style={{
                 color: PRIMARY_TEXT,
             }}>
-            {hack && <></>}
             <div
                 style={{
                     display: 'flex',
@@ -101,12 +55,7 @@ export function BadgeSubBadgesTab({ badgeCollection, individualBadgeMetadata, ha
                     flexWrap: 'wrap',
                 }}
             >
-                {badgeDisplay.map((badge) => {
-                    console.log(badge);
-                    return <div key={badge.badgeId}>
-                        <BadgeCard collection={badgeCollection} badge={badge} />
-                    </div>
-                })}
+                {display}
             </div>
 
 

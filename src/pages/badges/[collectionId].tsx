@@ -2,85 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { Empty, Layout } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
-import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
+import { getBadge } from '../../bitbadges-api/api';
 import { PageHeaderWithAvatar } from '../../components/badges/PageHeaderWithAvatar';
 import { Tabs } from '../../components/Tabs';
 import { BadgeModalManagerActions } from '../../components/badges/tabs/ManagerActionsTab';
-import { BitBadge, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/tabs/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/tabs/BadgePageSubBadgesTab';
-import { useChainContext } from '../../chain/ChainContext';
-import { addToIpfs, getFromIpfs } from '../../chain/backend_connectors';
 
 const { Content } = Layout;
+
+const tabInfo = [
+    { key: 'overview', content: 'Overview', disabled: false },
+    { key: 'subbadges', content: 'Badges', disabled: false },
+    { key: 'activity', content: 'Activity', disabled: false },
+    { key: 'manageractions', content: 'Manager Actions', disabled: false }
+];
 
 function Badges() {
     const router = useRouter()
     const { collectionId } = router.query;
 
-    const [badgeDetails, setBadgeDetails] = useState<BitBadgeCollection | undefined>()
-    const chain = useChainContext();
-    const accountNumber = chain.accountNumber;
     const [tab, setTab] = useState('overview');
-    const [visible, setVisible] = useState(true);
-
-    const tabInfo = [
-        { key: 'overview', content: 'Overview', disabled: false },
-        {
-            key: 'subbadges',
-            content: 'Badges',
-            disabled: false
-        },
-
-        { key: 'activity', content: 'Activity', disabled: false },
-        {
-            key: 'manageractions',
-            content: 'Manager Actions',
-            // disabled: accountNumber !== badgeDetails?.manager //TODO: uncomment this
-        }
-    ];
+    const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
+    const collectionMetadata = badgeCollection?.collectionMetadata;
 
     useEffect(() => {
-        if (isNaN(Number(collectionId))) {
-            return
+        async function getBadgeInformation() {
+            await getBadge(Number(collectionId), badgeCollection)
+                .then(res => { setBadgeCollection(res.badge) });
         }
-
-        async function getBadgeFromApi() {
-            if (isNaN(Number(collectionId))) return;
-
-            const badgeRes = await getBadge(Number(collectionId));
-            const badgeInfo = badgeRes.badge;
-            if (badgeInfo) {
-                const res = await getFromIpfs(badgeInfo.uri.uri, 'collection');
-                badgeInfo.metadata = JSON.parse(res.file)
-
-                setBadgeDetails(badgeInfo)
-            } else {
-                //TODO: add a 404 clause (possibly in /api)
-            }
-        }
-        getBadgeFromApi();
-    }, [collectionId])
-
-    const [userBalance, setUserBalance] = useState<UserBalance | undefined>();
-
-    useEffect(() => {
-        async function getBadgeBalanceFromApi() {
-            if (!badgeDetails) {
-                return;
-            }
-            const balanceInfoRes = await getBadgeBalance(badgeDetails.id, accountNumber);
-            console.log("Got user's badge balance: ", balanceInfoRes);
-
-            if (balanceInfoRes.error) {
-                //TODO: add a 404 clause (possibly in /api)
-            } else {
-                const balanceInfo = balanceInfoRes.balanceInfo;
-                setUserBalance(balanceInfo)
-            }
-        }
-        getBadgeBalanceFromApi();
-    }, [badgeDetails, accountNumber])
+        getBadgeInformation();
+    }, [collectionId, badgeCollection]);
 
     return (
         <Layout>
@@ -102,8 +55,8 @@ function Badges() {
                     }}
                 >
                     <PageHeaderWithAvatar
-                        badge={badgeDetails}
-                        metadata={badgeDetails?.metadata}
+                        badge={badgeCollection}
+                        metadata={collectionMetadata}
                     />
                     <Tabs
                         tabInfo={tabInfo}
@@ -115,14 +68,15 @@ function Badges() {
 
                     {tab === 'overview' && (<>
                         <BadgeOverviewTab
-                            badge={badgeDetails}
-                            metadata={badgeDetails?.metadata}
+                            badge={badgeCollection}
+                            metadata={collectionMetadata}
                         />
                     </>
                     )}
                     {tab === 'subbadges' && (<>
                         <BadgeSubBadgesTab
-                            badgeCollection={badgeDetails}
+                            badgeCollection={badgeCollection}
+                            setBadgeCollection={setBadgeCollection}
                         />
                     </>
                     )}
@@ -131,7 +85,7 @@ function Badges() {
                     {tab === 'manageractions' && (
                         <>
                             <BadgeModalManagerActions
-                                badge={badgeDetails}
+                                badge={badgeCollection}
                             />
                         </>
 

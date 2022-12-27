@@ -2,23 +2,41 @@ import Meta from 'antd/lib/card/Meta';
 import { Avatar, Card } from 'antd';
 import React from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
-import { BitBadge, BitBadgeCollection } from '../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection } from '../bitbadges-api/types';
 import { useRouter } from 'next/router';
 
+//Can probably add this to bitbadges-js
+const getSupplyByBadgeId = (badgeCollection: BitBadgeCollection, badgeId: number) => {
+    let supply = badgeCollection.subassetSupplys.find((subassetSupply) => {
+
+        return subassetSupply.idRanges.find((idRange) => {
+            if (idRange.start === undefined || idRange.end === undefined) {
+                return false;
+            }
+            return badgeId >= idRange.start && badgeId <= idRange.end;
+        });
+    });
+
+    return supply?.balance ?? 0;
+}
+
+
 export function BadgeCard({
-    badge,
+    metadata,
     size,
     collection,
     hoverable,
+    id
 }: {
-    badge?: BitBadge;
-    collection?: BitBadgeCollection;
+    id: number;
+    metadata?: BadgeMetadata;
+    collection: BitBadgeCollection;
     size?: number;
     hoverable?: boolean;
 }) {
     const router = useRouter();
 
-    if (!badge) return <></>;
+    if (!metadata) return <></>;
 
     if (!size) size = 100;
 
@@ -35,10 +53,9 @@ export function BadgeCard({
                 }}
                 hoverable={hoverable ? hoverable : true}
                 onClick={() => {
-                    router.push(`/badges/${collection?.id}/${badge.badgeId}`);
+                    router.push(`/badges/${collection?.id}/${id}`);
                 }}
                 cover={
-
                     <div
                         style={{
                             display: 'flex',
@@ -52,21 +69,21 @@ export function BadgeCard({
                             style={{
                                 verticalAlign: 'middle',
                                 border: '3px solid',
-                                borderColor: badge.metadata?.color
-                                    ? badge.metadata.color
+                                borderColor: metadata?.color
+                                    ? metadata.color
                                     : 'black',
                                 marginTop: '1rem',
                                 cursor: 'pointer',
-                                backgroundColor: badge.metadata?.image
+                                backgroundColor: metadata?.image
                                     ? PRIMARY_TEXT
-                                    : (badge.metadata?.color
-                                        ? badge.metadata.color
+                                    : (metadata?.color
+                                        ? metadata.color
                                         : 'black'),
                             }}
-                            // className="badge-avatar"   //For scaling on hover
+                            // className="metadata-avatar"   //For scaling on hover
                             src={
-                                badge.metadata?.image
-                                    ? badge.metadata.image
+                                metadata?.image
+                                    ? metadata.image
                                     : undefined
                             }
                             size={size}
@@ -94,7 +111,7 @@ export function BadgeCard({
                                     fontWeight: 'bolder',
                                 }}
                             >
-                                {badge.metadata?.name}
+                                {metadata?.name}
                             </div>
                         }
                         description={
@@ -109,11 +126,11 @@ export function BadgeCard({
 
                                 }}
                             >
-                                ID #: {badge.badgeId}
+                                ID #: {id}
                                 <br />
-                                Supply: {badge.totalSupply}
+                                Supply: {getSupplyByBadgeId(collection, id)}
                                 <br />
-                                {badge.metadata?.description}
+                                {metadata?.description}
                             </div>
                         }
                     />
