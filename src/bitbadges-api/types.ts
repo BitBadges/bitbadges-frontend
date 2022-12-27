@@ -32,6 +32,7 @@ export interface BitBadgeCollection {
     badgeMetadata: BadgeMetadata[],
 }
 
+
 export interface BalanceObject {
     balance: number,
     idRanges: IdRange[]
@@ -75,6 +76,7 @@ export interface BadgeMetadata {
     type?: number;
     category?: string;
     externalUrl?: string;
+    tags?: string[];
 }
 
 export interface SubassetSupply {
