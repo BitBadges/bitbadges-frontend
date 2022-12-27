@@ -1,37 +1,91 @@
 import Blockies from 'react-blockies';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo } from '../../bitbadges-api/types';
+import { Address } from '../Address';
+import { UserDeleteOutlined } from '@ant-design/icons';
+import { ReactNode } from 'react';
+import { Tooltip } from 'antd';
 
 export function AddressModalDisplayTitle(
     {
         accountNumber,
-        title
+        title,
+        icon
     }: {
         accountNumber: number,
-        title: string
+        title: string | ReactNode,
+        icon?: ReactNode
     }
 ) {
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
     }}>
-        <b>{title} (Account ID: {accountNumber === -1 ? 'N/A' : accountNumber})</b>
+        <div></div>
+        <b>{title} {<>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b>
+        <div style={{}}>
+            {icon}
+        </div>
     </div>
 }
+
+export function AddressModalDisplayList(
+    {
+        users,
+        setUsers
+    }: {
+        users: BitBadgesUserInfo[],
+        setUsers: (users: BitBadgesUserInfo[]) => void
+    }
+) {
+    return <>
+        {
+            users.map((user, index) => {
+                return (
+                    <div key={index}>
+                        <AddressModalDisplay
+                            icon={
+                                <Tooltip title={"Remove User"}>
+                                    <UserDeleteOutlined onClick={() => {
+                                        setUsers(users.filter((_, i) => i !== index))
+                                    }} />
+                                </Tooltip>}
+                            title={<> {"User " + (index + 1)}</>}
+                            userInfo={user ? user : {} as BitBadgesUserInfo}
+                        />
+                    </div>
+                )
+            })
+        }
+        {
+            users.length === 0 && <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <b>No Users Added</b>
+            </div>
+        }
+    </>
+}
+
+
 
 export function AddressModalDisplay(
     {
         userInfo,
-        title
+        title,
+        icon
     }: {
         userInfo: BitBadgesUserInfo,
-        title?: string
+        title?: string | ReactNode,
+        icon?: ReactNode
     }
 ) {
     return <>
-        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title })}
+        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon })}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -44,10 +98,7 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
-                {userInfo.address ?
-                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.address)}</span>
-                    : <span style={{ marginLeft: 8 }}>...</span>}
-                {/* TODO: blockin connect if not connected */}
+                <Address address={userInfo.address} chain={userInfo.chain} hideChain={true} />
             </div>
 
             <div>
@@ -66,10 +117,7 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.cosmosAddress ? userInfo.cosmosAddress.toLowerCase() : ''} />
-                {userInfo.cosmosAddress ?
-                    <span style={{ marginLeft: 8 }}>{getAbbreviatedAddress(userInfo.cosmosAddress)}</span>
-                    : <span style={{ marginLeft: 8 }}>...</span>}
-                {/* TODO: blockin connect if not connected */}
+                <Address address={userInfo.cosmosAddress} chain={userInfo.chain} hideChain={true} />
             </div>
             <div>
                 <span style={{ marginLeft: 8 }}>Cosmos</span>

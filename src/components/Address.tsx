@@ -1,10 +1,7 @@
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-
+import { getAbbreviatedAddress } from '../utils/AddressUtils';
 import { Typography, Tooltip } from 'antd';
 import React from 'react';
-import { SECONDARY_TEXT } from '../../constants';
-import { getAccountInformation } from '../../bitbadges-api/api';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
+
 const { Text } = Typography;
 
 // const blockExplorerLink = (address, blockExplorer) =>
@@ -12,47 +9,39 @@ const { Text } = Typography;
 
 export function Address({
     address, //cosmos bech32 address
-    chainToDisplay, //defaults to guessing
+    chain,
     blockExplorer,
     size,
     fontSize,
     fontColor,
-    showTooltip,
+    hideTooltip,
+    hideChain,
 }: {
     address: string;
-    chainToDisplay?: 'eth' | 'cosmos' | undefined;
+    chain: string;
     blockExplorer?: string;
     size?: string;
     fontSize?: number | string;
     fontColor?: string;
-    showTooltip?: boolean;
+    hideTooltip?: boolean;
+    hideChain?: boolean;
 }) {
     // const etherscanLink = blockExplorerLink(address, blockExplorer);
     let displayAddress = '';
     let innerContentHtml = <></>;
 
-    //TODO:
     if (address) {
-        displayAddress = 'ETH: ' + getAbbreviatedAddress(address);
-        // switch (chainToDisplay) {
-        //     case 'eth':
-        //         displayAddress = 'ETH: ' + getAbbreviatedAddress(cosmosToEth(address));
-        //         innerContentHtml = <>COSMOS: {getAbbreviatedAddress(address)}</>
-        //         break;
-        //     case 'cosmos':
-        //     default:
-        //         displayAddress = getAbbreviatedAddress(address);
-        //         innerContentHtml = <>ETH: {getAbbreviatedAddress(cosmosToEth(address))}</>
-        //         break;
-        // }
+        if (!hideChain) {
+            displayAddress += `${chain}: `;
+        }
+
+        displayAddress += getAbbreviatedAddress(address);
     } else {
-        displayAddress = 'Please Enter an Address';
+        displayAddress = '...';
     }
 
 
-
-    //todo: overlay tooltip
-    const innerContent = showTooltip ? (
+    const innerContent = !hideTooltip ? (
         <Tooltip
             placement="bottom"
             title={
@@ -90,7 +79,7 @@ export function Address({
                     <Text
                         copyable={{ text: address }}
                         style={{
-                            color: fontColor ? fontColor : SECONDARY_TEXT,
+                            color: fontColor ? fontColor : undefined,
                         }}
                         strong
                     >
@@ -100,7 +89,7 @@ export function Address({
                     <Text
                         copyable={true}
                         style={{
-                            color: fontColor ? fontColor : SECONDARY_TEXT,
+                            color: fontColor ? fontColor : undefined,
                         }}
                         strong
                     >

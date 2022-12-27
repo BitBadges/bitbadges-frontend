@@ -7,10 +7,10 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import { AddressModalDisplay } from './AddressModalDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 
 export function TxModal(
-    {
-        destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
+    { destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
         unregisteredUsers, onRegister }
         : {
             destroyOnClose?: boolean,
@@ -32,8 +32,6 @@ export function TxModal(
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
-
-    const cosmosAddress = chain.cosmosAddress;
 
     const handleSubmitTx = async () => {
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
@@ -72,17 +70,9 @@ export function TxModal(
 
                 if (DEV_MODE) console.log(msgResponse);
 
-
-
-                //TODO: way to track tx - link to block explorer
                 chain.incrementSequence();
-
-                //TODO: confirmations instead of timeouts
-                setTimeout(() => {
-                    onRegister();
-                    setTransactionStatus(TransactionStatus.None);
-                }, 5000);
-
+                setTransactionStatus(TransactionStatus.None);
+                onRegister();
             } catch (err: any) {
                 console.error(err);
                 setError(err.message);
@@ -120,45 +110,44 @@ export function TxModal(
             destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
             {children}
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
+                {displayMsg}
+            </Typography.Text>
             <hr />
-            <div style={{ textAlign: 'center' }}>
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
-                    {displayMsg}
-                </Typography.Text>
-            </div>
-
-            <hr />
-            <div style={{ textAlign: 'center' }}>
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
-                    Please confirm all the above transaction details are correct.
-                    If they are, you may proceed by signing and submitting the transaction
-                    with the following wallet:
-                </Typography.Text>
-            </div>
-            <AddressModalDisplay
-                userInfo={{
-                    chain: chain.chain,
-                    address: chain.address,
-                    cosmosAddress: chain.cosmosAddress,
-                    accountNumber: chain.accountNumber,
-                }}
-                title={"Your Signing Wallet: "}
-            />
-
-            <hr />
-            {unregisteredUsers && unregisteredUsers.length > 0 &&
+            {/* {TODO: make it clear that everything is permanent} */}
+            {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
                 <div style={{ textAlign: 'center' }}>
-                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
-                        You have specified addresses that are not currently registered on the BitBadges blockchain.
-                        We need to register these addresses before we can proceed with your transaction.
-                        This is a one-time process. Once you register an address, you will not need to register it again.
+                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                        Please confirm all the above transaction details are correct.
+                        If they are, you may proceed by signing and submitting the transaction
+                        with the following wallet:
+                    </Typography.Text>
+                </div>
+                <AddressModalDisplay
+                    userInfo={{
+                        chain: chain.chain,
+                        address: chain.address,
+                        cosmosAddress: chain.cosmosAddress,
+                        accountNumber: chain.accountNumber,
+                    }}
+                // title={"Your Signing Wallet: "}
+                />
+            </>}
+            {
+                unregisteredUsers && unregisteredUsers.length > 0 &&
+                <div style={{ textAlign: 'center' }}>
+                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                        The following addresses ({unregisteredUsers.map((address) => getAbbreviatedAddress(address)).join(", ")}) are not currently registered on the BitBadges blockchain!
+                        Once you have added all addresses, you may register them by clicking the button below!
+                        Registration is a one-time transaction. You will not need to register these addresses again.
                     </Typography.Text>
                 </div>
             }
+
             {error && <div>
                 <hr />
                 <div style={{ color: 'red' }}>
-                    {error}
+                    Oops! {error}
                 </div>
             </div>}
 

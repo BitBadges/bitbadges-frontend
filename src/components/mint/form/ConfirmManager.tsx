@@ -3,7 +3,7 @@ import { Typography, Avatar } from 'antd';
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { useChainContext } from '../../../chain/ChainContext';
 import Blockies from 'react-blockies'
-import { Address } from '../../old/Address';
+import { Address } from '../../Address';
 import { useRouter } from 'next/router';
 
 
@@ -37,7 +37,9 @@ export function ConfirmManager() {
                 <div style={{ marginBottom: 10, marginTop: 4 }}>
                     <Address
                         address={address}
-                        showTooltip
+                        chain={chain.chain}
+                        fontColor={'lightgrey'}
+                        hideChain
                     />
                 </div>
             </div>

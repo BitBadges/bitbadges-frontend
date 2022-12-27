@@ -1,4 +1,4 @@
-import { Address } from '../../old/Address';
+import { Address } from '../../Address';
 import { Divider, Typography, Col, Row, Table } from 'antd';
 import React from 'react';
 import {
@@ -62,12 +62,10 @@ export function BadgeOverviewTab({ badge, metadata }: {
                     {getTableRow("Collection ID", badge.id)}
                     {getTableRow("Type", badge.standard == 0 ? "BitBadge" : "Unknown")}
                     {badge.manager && getTableRow("Manager", <Address
-                        chainToDisplay='eth'
-
+                        chain='eth'
                         address={badge.manager.split(':')[1]}
                         fontColor="lightgrey"
                         fontSize={18}
-                        showTooltip
                     />)}
                     {metadata?.description && getTableRow("Description", metadata.description)}
                     {/* {getTableRow("Sub-Badges", subassetSupplyComponent)} */}

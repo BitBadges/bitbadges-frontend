@@ -285,35 +285,7 @@ export function FullMetadataForm({
                 />
             </Form.Item>
 
-            {/* 
-                        TODO: tags
-                        <Form.Item
-                            label={
-                                <Text
-                                    style={{ color: PRIMARY_TEXT }}
-                                    strong
-                                >
-                                    Tags
-                                </Text>
-                            }
-                        >
-                            <Input
-                                value={currMetadata.tags}
-                                onChange={(e) =>
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
-                                        metadata: {
-                                            ...newBadgeMsg.metadata,
-                                            tags: e.target.value
-                                        }
-                                    });
-                                }
-                                style={{
-                                    backgroundColor: PRIMARY_BLUE,
-                                    color: PRIMARY_TEXT,
-                                }}
-                            />
-                        </Form.Item> */}
+
 
             <Form.Item
                 label={
@@ -459,6 +431,36 @@ export function FullMetadataForm({
                         }));
                     }}
                 />
+            </Form.Item>
+
+
+            <Form.Item
+                label={
+                    <Text
+                        style={{ color: PRIMARY_TEXT }}
+                        strong
+                    >
+                        Tags / Keywords
+                    </Text>
+                }
+            >
+                <Input
+                    value={currMetadata.tags}
+                    onChange={(e) =>
+                        setMetadata({
+                            ...metadata,
+                            tags: e.target.value.split(','),
+                        })}
+                    style={{
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                    }}
+                />
+                <div style={{ fontSize: 12 }}>
+                    <Text style={{ color: 'lightgray' }}>
+                        *Separate with a comma and a single space.
+                    </Text>
+                </div>
             </Form.Item>
         </div>
     );

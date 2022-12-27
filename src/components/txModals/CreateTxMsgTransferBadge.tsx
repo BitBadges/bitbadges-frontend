@@ -5,7 +5,7 @@ import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { Button, InputNumber } from 'antd';
-import { AddressModalDisplay } from './AddressModalDisplay';
+import { AddressModalDisplay, AddressModalDisplayList } from './AddressModalDisplay';
 import { getAccountInformation } from '../../bitbadges-api/api';
 
 
@@ -80,19 +80,12 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
             txName="Transfer Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            displayMsg={<div>You are revoking this badge from these users:
-                {toAddresses.map((user, index) => {
-                    return (
-                        <div key={index}>
-                            <AddressModalDisplay
-                                title={"User " + (index + 1)}
-                                userInfo={user}
-                            />
-                            {/* {index === toAddresses.length - 1 && <hr />} */}
-                        </div>
-                    )
-                })}
-            </div>}
+            displayMsg={
+                <AddressModalDisplayList
+                    users={toAddresses}
+                    setUsers={setToAddresses}
+                />
+            }
             disabled={toAddresses.length === 0}
         >
             Amount to Transfer: <br />
