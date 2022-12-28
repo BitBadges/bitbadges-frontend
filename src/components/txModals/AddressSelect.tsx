@@ -11,10 +11,12 @@ const { Option } = Select;
 export function AddressSelect({
     onChange,
     title,
+    icon, 
 }:
     {
         title: string,
         onChange: (userInfo: BitBadgesUserInfo) => void,
+        icon?: React.ReactNode,
     }
 ) {
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
@@ -33,6 +35,7 @@ export function AddressSelect({
         <AddressModalDisplayTitle
             accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
             title={title}
+            icon={icon}
         />
         <Input.Group compact style={{ display: 'flex' }}>
             <Select
@@ -76,7 +79,6 @@ export function AddressSelect({
                         accountNum = acctInformation.accountNumber;
                     }
 
-                    console.log("ACCOUNT NUM", accountNum);
                     setCurrUserInfo({
                         chain: currUserInfo.chain,
                         address: e.target.value,

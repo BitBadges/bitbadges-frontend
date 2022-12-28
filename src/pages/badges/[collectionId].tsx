@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Divider, Empty, Layout, Row, Typography } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
-import { getBadge } from '../../bitbadges-api/api';
+import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
 import { PageHeaderWithAvatar } from '../../components/badges/PageHeaderWithAvatar';
 import { Tabs } from '../../components/Tabs';
 import { BadgeModalManagerActions } from '../../components/badges/tabs/ManagerActionsTab';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/tabs/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/tabs/BadgePageSubBadgesTab';
+import { useChainContext } from '../../chain/ChainContext';
 
 const { Content } = Layout;
-const { Text } = Typography
 
 const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
@@ -28,6 +28,9 @@ function CollectionPage() {
     const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
     const collectionMetadata = badgeCollection?.collectionMetadata;
 
+    const chain = useChainContext();
+    const accountNumber = chain.accountNumber;
+
     useEffect(() => {
         async function getBadgeInformation() {
             await getBadge(Number(collectionId), badgeCollection)
@@ -35,6 +38,26 @@ function CollectionPage() {
         }
         getBadgeInformation();
     }, [collectionId, badgeCollection]);
+
+    const [userBalance, setUserBalance] = useState<UserBalance | undefined>();
+    useEffect(() => {
+        async function getBadgeBalanceFromApi() {
+            if (!badgeCollection || !accountNumber || accountNumber < 0 || !badgeCollection.id) {
+                return;
+            }
+            if (DEV_MODE) console.log("Getting user's badge balance: ");
+            const balanceInfoRes = await getBadgeBalance(badgeCollection.id, accountNumber);
+
+            if (balanceInfoRes.error) {
+                console.error("Error getting balance: ", balanceInfoRes.error);
+            } else {
+                console.log("Got balance: ", balanceInfoRes.balanceInfo);
+                const balanceInfo = balanceInfoRes.balanceInfo;
+                setUserBalance(balanceInfo)
+            }
+        }
+        getBadgeBalanceFromApi();
+    }, [badgeCollection, accountNumber])
 
     return (
         <Layout>
@@ -58,6 +81,7 @@ function CollectionPage() {
                     <PageHeaderWithAvatar
                         badge={badgeCollection}
                         metadata={collectionMetadata}
+                        balance={userBalance}
                     />
                     <Tabs
                         tabInfo={tabInfo}
@@ -116,6 +140,11 @@ function CollectionPage() {
                         />
                     )}
                 </div>
+                {DEV_MODE && (
+                    <pre>
+                        USER BALANCE: {JSON.stringify(userBalance, null, 2)}
+                    </pre>
+                )}
             </Content>
         </Layout>
     );

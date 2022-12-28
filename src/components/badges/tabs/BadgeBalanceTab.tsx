@@ -211,6 +211,7 @@ export function BadgeBalanceTab({ badge, balanceInfo, badgeId }: {
                 badge={badge}
                 visible={transferIsVisible}
                 setVisible={setTransferIsVisible}
+                balance={balanceInfo}
             />
 
             <CreateTxMsgRequestTransferBadgeModal

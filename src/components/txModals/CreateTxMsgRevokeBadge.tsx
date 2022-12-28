@@ -74,7 +74,6 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             txName="Revoke Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRevokeBadge}
-            displayMsg={''}
             disabled={revokedUsers.length === 0}
         >
             <div

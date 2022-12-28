@@ -81,6 +81,7 @@ function BadgePage() {
                     <PageHeaderWithAvatar
                         badge={badgeCollection}
                         metadata={currBadgeMetadata}
+                        balance={userBalance}
                     />
                     <Tabs
                         tabInfo={tabInfo}

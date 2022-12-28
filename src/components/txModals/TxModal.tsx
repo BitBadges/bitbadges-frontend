@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Typography, Modal } from 'antd';
+import { Typography, Modal, Steps, StepProps, Button, Divider } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
@@ -9,13 +9,14 @@ import { AddressModalDisplay } from './AddressModalDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 
+const { Step } = Steps;
+
 export function TxModal(
-    { destroyOnClose, disabled, displayMsg, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister }
+    { destroyOnClose, disabled, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
+        unregisteredUsers, onRegister, msgSteps }
         : {
             destroyOnClose?: boolean,
             disabled?: boolean,
-            displayMsg: string | ReactNode,
             createTxFunction: any, //TODO
             txCosmosMsg: object,
             visible: boolean,
@@ -27,13 +28,21 @@ export function TxModal(
             bodyStyle?: React.CSSProperties,
             unregisteredUsers?: string[],
             onRegister?: () => void,
+            msgSteps: StepProps[],
         }
 ) {
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
 
+    const [current, setCurrent] = useState(0);
+
+    const onStepChange = (value: number) => {
+        setCurrent(value);
+    };
+
     const handleSubmitTx = async () => {
+        setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
         try {
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, txCosmosMsg);
@@ -110,39 +119,75 @@ export function TxModal(
             destroyOnClose={destroyOnClose ? destroyOnClose : true}
         >
             {children}
-            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 20 }}>
-                {displayMsg}
-            </Typography.Text>
-            <hr />
-            {/* {TODO: make it clear that everything is permanent} */}
-            {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
-                <div style={{ textAlign: 'center' }}>
-                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
-                        Please confirm all the above transaction details are correct.
-                        If they are, you may proceed by signing and submitting the transaction
-                        with the following wallet:
-                    </Typography.Text>
-                </div>
-                <AddressModalDisplay
-                    userInfo={{
-                        chain: chain.chain,
-                        address: chain.address,
-                        cosmosAddress: chain.cosmosAddress,
-                        accountNumber: chain.accountNumber,
-                    }}
-                // title={"Your Signing Wallet: "}
+
+
+            <Steps
+                current={current}
+                onChange={onStepChange}
+                direction="vertical"
+            >
+                {msgSteps.map((item, index) => (
+                    <Step
+                        key={index}
+                        title={<b>{item.title}</b>} description={
+                            <div>
+                                {current === index && <div>
+                                    {item.description}
+                                    {/* <Button type="primary"
+                                        style={{ width: "100%", marginTop: "10px" }}
+                                        disabled={item.disabled}
+                                        onClick={() => {
+                                            setCurrent(current + 1);
+                                        }}>
+                                        Confirm and Continue
+                                    </Button> */}
+                                </div>}
+                            </div>
+                        }
+                        disabled={msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
+                    />
+                ))}
+                <Step
+                    key={msgSteps.length}
+                    title={unregisteredUsers && unregisteredUsers.length > 0 ? <b>Register Users</b> : <b>Sign and Submit Transaction</b>}
+                    description={
+                        <div>
+                            {current === msgSteps.length && <div>
+                                {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                            Before signing the transaction, please confirm all transaction details are correct
+                                            because blockchain transactions are permanent!
+
+                                        </Typography.Text>
+                                    </div>
+                                    <Divider />
+                                    <AddressModalDisplay
+
+                                        userInfo={{
+                                            chain: chain.chain,
+                                            address: chain.address,
+                                            cosmosAddress: chain.cosmosAddress,
+                                            accountNumber: chain.accountNumber,
+                                        }}
+                                        title={"Your Connected Wallet"}
+                                    />
+                                </>}
+                                {
+                                    unregisteredUsers && unregisteredUsers.length > 0 &&
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                            The following addresses ({unregisteredUsers.map((address) => getAbbreviatedAddress(address)).join(", ")}) are not currently registered on the BitBadges blockchain!
+                                            To proceed, we first need to register them which is a one-time transaction.
+                                            You will not need to register these addresses again.
+                                        </Typography.Text>
+                                    </div>
+                                }</div>}
+                        </div>
+                    }
+                    disabled={msgSteps.find((step) => step.disabled) ? true : false}
                 />
-            </>}
-            {
-                unregisteredUsers && unregisteredUsers.length > 0 &&
-                <div style={{ textAlign: 'center' }}>
-                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
-                        The following addresses ({unregisteredUsers.map((address) => getAbbreviatedAddress(address)).join(", ")}) are not currently registered on the BitBadges blockchain!
-                        Once you have added all addresses, you may register them by clicking the button below!
-                        Registration is a one-time transaction. You will not need to register these addresses again.
-                    </Typography.Text>
-                </div>
-            }
+            </Steps>
 
             {error && <div>
                 <hr />

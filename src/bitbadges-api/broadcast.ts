@@ -27,6 +27,9 @@ export async function broadcastTransaction(txRaw: any) {
         };
     }
 
+    //TODO: other error codes may go through here so we need to not throw and increment sequence (such as frozen address bc that is in badges module)
+
+
     return res;
 }
 

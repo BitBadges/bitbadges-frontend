@@ -3,17 +3,19 @@ import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { Address } from '../Address';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
-import { Tooltip } from 'antd';
+import { Divider, Tooltip } from 'antd';
 
 export function AddressModalDisplayTitle(
     {
         accountNumber,
         title,
-        icon
+        icon,
+        showAccountNumber
     }: {
         accountNumber: number,
         title: string | ReactNode,
-        icon?: ReactNode
+        icon?: ReactNode,
+        showAccountNumber?: boolean
     }
 ) {
     return <div style={{
@@ -23,7 +25,7 @@ export function AddressModalDisplayTitle(
         justifyContent: 'space-between',
     }}>
         <div></div>
-        <b>{title} {<>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b>
+        <b>{title} {showAccountNumber && <>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b>
         <div style={{}}>
             {icon}
         </div>
@@ -50,23 +52,16 @@ export function AddressModalDisplayList(
                                     <UserDeleteOutlined onClick={() => {
                                         setUsers(users.filter((_, i) => i !== index))
                                     }} />
-                                </Tooltip>}
+                                </Tooltip>
+                            }
+                            showAccountNumber={true}
                             title={<> {"User " + (index + 1)}</>}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
                         />
+                        <Divider style={{ margin: '15px' }} />
                     </div>
                 )
             })
-        }
-        {
-            users.length === 0 && <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}>
-                <b>No Users Added</b>
-            </div>
         }
     </>
 }
@@ -77,15 +72,17 @@ export function AddressModalDisplay(
     {
         userInfo,
         title,
-        icon
+        icon,
+        showAccountNumber
     }: {
         userInfo: BitBadgesUserInfo,
         title?: string | ReactNode,
-        icon?: ReactNode
+        icon?: ReactNode,
+        showAccountNumber?: boolean
     }
 ) {
     return <>
-        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon })}
+        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon, showAccountNumber })}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
