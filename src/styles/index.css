@@ -126,6 +126,19 @@ code {
     background: initial;
 }
 
+.screen-button-modal {
+    background: inherit;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    border: 1px solid;
+    color: inherit;
+}
+
+.screen-button-modal:hover {
+    color: #1890ff;
+    border: 1px solid #1890ff;
+    background: initial;
+}
+
 .opacity {
     opacity: 0.65;
 }

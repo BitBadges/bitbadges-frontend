@@ -25,6 +25,7 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
 
     return (
         <TxModal
+            msgSteps={[]}
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}

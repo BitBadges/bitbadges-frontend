@@ -13,7 +13,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { destroyOnClose, disabled, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps }
+        unregisteredUsers, onRegister, msgSteps, displayMsg }
         : {
             destroyOnClose?: boolean,
             disabled?: boolean,
@@ -29,6 +29,7 @@ export function TxModal(
             unregisteredUsers?: string[],
             onRegister?: () => void,
             msgSteps: StepProps[],
+            displayMsg?: string | ReactNode
         }
 ) {
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -110,7 +111,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: disabled || transactionStatus != TransactionStatus.None,
+                disabled: disabled || transactionStatus != TransactionStatus.None || current != msgSteps.length,
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
@@ -133,14 +134,6 @@ export function TxModal(
                             <div>
                                 {current === index && <div>
                                     {item.description}
-                                    {/* <Button type="primary"
-                                        style={{ width: "100%", marginTop: "10px" }}
-                                        disabled={item.disabled}
-                                        onClick={() => {
-                                            setCurrent(current + 1);
-                                        }}>
-                                        Confirm and Continue
-                                    </Button> */}
                                 </div>}
                             </div>
                         }
@@ -154,11 +147,19 @@ export function TxModal(
                         <div>
                             {current === msgSteps.length && <div>
                                 {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
+                                    {displayMsg &&
+                                        <div style={{ textAlign: 'center' }}>
+                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                                {displayMsg}
+                                            </Typography.Text>
+                                            <Divider />
+                                        </div>
+                                    }
+
                                     <div style={{ textAlign: 'center' }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
                                             Before signing the transaction, please confirm all transaction details are correct
                                             because blockchain transactions are permanent!
-
                                         </Typography.Text>
                                     </div>
                                     <Divider />

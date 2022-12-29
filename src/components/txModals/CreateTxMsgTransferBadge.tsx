@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, BitBadgesUserInfo, UserBalance, BalanceObject } from '../../bitbadges-api/types';
+import { BitBadgeCollection, IdRange, BitBadgesUserInfo, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
-import { Button, InputNumber, Steps } from 'antd';
-import { AddressModalDisplayList } from './AddressModalDisplay';
+import { InputNumber } from 'antd';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressListSelect } from './AddressListSelect';
+import { getPostTransferBalance } from '../../bitbadges-api/balances';
 
 export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, children, balance }
     : {
@@ -18,8 +17,6 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
-
-
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(0);
@@ -32,61 +29,10 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
     const [newBalance, setNewBalance] = useState<UserBalance>(balance);
 
     useEffect(() => {
-        // console.log(balance, newBalance);
         if (!balance || !balance.balanceAmounts) return;
-        let newBalanceObj: UserBalance = {
-            ...balance,
-        };
-        let balances: number[] = [];
-        for (let i = 0; i < badge.nextSubassetId; i++) {
-            let currAmount = 0;
-            for (const balanceObj of newBalanceObj.balanceAmounts) {
-                for (const idRange of balanceObj.id_ranges) {
-                    if (!idRange.end) idRange.end = idRange.start;
-                    if (idRange.start <= i && idRange.end >= i) {
-                        currAmount = balanceObj.balance;
-                    }
-                }
-            }
-            if (i >= startSubbadgeId && i <= endSubbadgeId) {
-                balances.push(currAmount - (amountToTransfer * toAddresses.length));
-            } else {
-                balances.push(currAmount);
-            }
 
-        }
-        console.log("A", balances)
-
-        let newBalanceObjToSet: UserBalance = {
-            ...balance,
-            balanceAmounts: [],
-        };
-        let newBalanceAmounts: BalanceObject[] = [];
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            let existingBalanceObj = newBalanceObjToSet.balanceAmounts.find((balanceObj) => balanceObj.balance === balance);
-            if (existingBalanceObj) {
-                existingBalanceObj.id_ranges.push({
-                    start: i,
-                    end: i,
-                });
-            } else {
-                newBalanceObjToSet.balanceAmounts.push({
-                    balance,
-                    id_ranges: [{
-                        start: i,
-                        end: i,
-                    }]
-                })
-            }
-        }
-
-
-        console.log("X", newBalanceObjToSet)
-
-        setNewBalance(newBalanceObjToSet);
-
-    }, [amountToTransfer, startSubbadgeId, endSubbadgeId, balance, badge.nextSubassetId, toAddresses.length])
+        setNewBalance(getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, toAddresses.length));
+    }, [amountToTransfer, startSubbadgeId, endSubbadgeId, balance, badge, toAddresses.length])
 
     const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
 
@@ -164,7 +110,8 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                                     setAmounts([value]);
                                 }
                             }
-                        } />
+                        }
+                    />
                 </div>
                 <div style={{
                     display: 'flex',
@@ -218,10 +165,10 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                 }}>
 
                     <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>Before</b>
+                        <b>Current</b>
                     </div>
                     <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>After</b>
+                        <b>After Transfer</b>
                     </div>
                 </div>
 
@@ -273,6 +220,8 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
             disabled={toAddresses.length === 0}
+            displayMsg={badge.permissions.ForcefulTransfers ? `This badge is set so that it will be transferred forcefully. As soon as the transaction goes through, the recipients will be transferred this badge.`
+                : `This badge will go into an escrow until the recipient accepts or denies the pending transfer. If the recipient denies the transfer, the badge(s) will be returned to your wallet.`}
         >
             {children}
         </TxModal>
