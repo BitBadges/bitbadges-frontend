@@ -47,7 +47,7 @@ export function AddressListSelect({
                 ]);
                 setCurrUserInfo(undefined);
             }}>
-            <UserAddOutlined></UserAddOutlined> Add New User
+            <UserAddOutlined /> Add New User
         </Button>
     </>
 }

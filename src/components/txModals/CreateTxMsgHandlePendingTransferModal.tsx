@@ -3,7 +3,7 @@ import { MessageMsgHandlePendingTransfer, createTxMsgHandlePendingTransfer } fro
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { Avatar, Button, Col, Row, Tooltip } from 'antd';
+import { Avatar, Button, Col, Empty, Row, Tooltip } from 'antd';
 import { CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 
 export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible, setVisible, children }
@@ -33,28 +33,67 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
     const items = [
         {
             title: `Select Pending Transfer`,
-            description: <>{
-                balance.pending?.map((pending, idx) => {
-                    if (pending.end === undefined) pending.end = pending.start;
-                    let outgoingTransfer = pending.from === chain.accountNumber;
+            description: <>
+                {!balance.pending || balance.pending.length === 0 && <Empty
+                    description="No pending transfers found."
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />}
+                {
+                    balance.pending?.map((pending, idx) => {
+                        if (pending.end === undefined) pending.end = pending.start;
+                        let outgoingTransfer = pending.from === chain.accountNumber;
 
-                    let msg = '';
-                    if (outgoingTransfer) {
-                        msg += 'Sending x' + pending.amount + ' badges w/ IDs ' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' to Account #' + pending.to + '';
-                    } else {
-                        msg += 'Receiving x' + pending.amount + ' badges w/ IDs ' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' from Account #' + pending.from + '';
-                    }
+                        let msg = '';
+                        if (outgoingTransfer) {
+                            msg += 'Sending x' + pending.amount + ' badges w/ IDs ' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' to Account #' + pending.to + '';
+                        } else {
+                            msg += 'Receiving x' + pending.amount + ' badges w/ IDs ' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + ' from Account #' + pending.from + '';
+                        }
 
 
-                    return <>
-                        {idx + 1}) {msg}
-                        <br />
-                        {
-                            ((!pending.sent && !outgoingTransfer) ||
-                                (!pending.sent && outgoingTransfer && !pending.markedAsAccepted) ||
-                                (pending.sent && !outgoingTransfer)) //TODO: check other party for accepted
-                            &&
-                            <Tooltip title="Accept">
+                        return <>
+                            {idx + 1}) {msg}
+                            <br />
+                            {
+                                ((!pending.sent && !outgoingTransfer) ||
+                                    (!pending.sent && outgoingTransfer && !pending.markedAsAccepted) ||
+                                    (pending.sent && !outgoingTransfer)) //TODO: check other party for accepted
+                                &&
+                                <Tooltip title="Accept">
+                                    <Avatar
+                                        style={{
+                                            marginBottom: 1,
+                                            cursor: 'pointer',
+                                            fontSize: 20,
+                                            padding: 0,
+                                            margin: 0,
+                                            alignItems: 'center',
+                                            border: accept && forcefulAccept && nonceRanges.find(idRange => {
+                                                if (idRange.end === undefined) idRange.end = idRange.start;
+                                                return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
+                                            }) ? `1px solid #1890ff` : undefined,
+                                            color: accept && forcefulAccept && nonceRanges.find(idRange => {
+                                                if (idRange.end === undefined) idRange.end = idRange.start;
+                                                return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
+                                            }) ? `#1890ff` : undefined,
+                                        }}
+                                        size="large"
+                                        onClick={() => {
+                                            setAccept(true);
+                                            setForcefulAccept(true);
+                                            setNonceRanges([{
+                                                start: pending.thisPendingNonce,
+                                                end: pending.thisPendingNonce,
+                                            }]);
+                                        }}
+                                        className="screen-button-modal"
+                                    >
+                                        <CheckOutlined />
+                                    </Avatar>
+                                </Tooltip>
+                            }
+
+                            <Tooltip title="Reject/Cancel">
                                 <Avatar
                                     style={{
                                         marginBottom: 1,
@@ -63,19 +102,19 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                         padding: 0,
                                         margin: 0,
                                         alignItems: 'center',
-                                        border: accept && forcefulAccept && nonceRanges.find(idRange => {
+                                        border: !accept && nonceRanges.find(idRange => {
                                             if (idRange.end === undefined) idRange.end = idRange.start;
                                             return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
                                         }) ? `1px solid #1890ff` : undefined,
-                                        color: accept && forcefulAccept && nonceRanges.find(idRange => {
+                                        color: !accept && nonceRanges.find(idRange => {
                                             if (idRange.end === undefined) idRange.end = idRange.start;
                                             return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
                                         }) ? `#1890ff` : undefined,
                                     }}
                                     size="large"
                                     onClick={() => {
-                                        setAccept(true);
-                                        setForcefulAccept(true);
+                                        setAccept(false);
+                                        setForcefulAccept(false);
                                         setNonceRanges([{
                                             start: pending.thisPendingNonce,
                                             end: pending.thisPendingNonce,
@@ -83,46 +122,12 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                     }}
                                     className="screen-button-modal"
                                 >
-                                    <CheckOutlined />
+                                    <CloseOutlined />
                                 </Avatar>
                             </Tooltip>
-                        }
-
-                        <Tooltip title="Reject/Cancel">
-                            <Avatar
-                                style={{
-                                    marginBottom: 1,
-                                    cursor: 'pointer',
-                                    fontSize: 20,
-                                    padding: 0,
-                                    margin: 0,
-                                    alignItems: 'center',
-                                    border: !accept && nonceRanges.find(idRange => {
-                                        if (idRange.end === undefined) idRange.end = idRange.start;
-                                        return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                    }) ? `1px solid #1890ff` : undefined,
-                                    color: !accept && nonceRanges.find(idRange => {
-                                        if (idRange.end === undefined) idRange.end = idRange.start;
-                                        return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                    }) ? `#1890ff` : undefined,
-                                }}
-                                size="large"
-                                onClick={() => {
-                                    setAccept(false);
-                                    setForcefulAccept(false);
-                                    setNonceRanges([{
-                                        start: pending.thisPendingNonce,
-                                        end: pending.thisPendingNonce,
-                                    }]);
-                                }}
-                                className="screen-button-modal"
-                            >
-                                <CloseOutlined />
-                            </Avatar>
-                        </Tooltip>
-                    </>
-                })
-            }</>,
+                        </>
+                    })
+                }</>,
             disabled: firstStepDisabled,
         },
     ];

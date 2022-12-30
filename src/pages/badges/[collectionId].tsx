@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Divider, Empty, Layout, Row, Typography } from 'antd';
+import { Col, Divider, Empty, Layout, Row } from 'antd';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
@@ -17,7 +17,7 @@ const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
     { key: 'subbadges', content: 'Badges', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
-    { key: 'manageractions', content: 'Manager Actions', disabled: false }
+    { key: 'actions', content: 'Actions', disabled: false }
 ];
 
 function CollectionPage() {
@@ -119,7 +119,7 @@ function CollectionPage() {
                     </>)}
 
 
-                    {tab === 'manageractions' && (
+                    {tab === 'actions' && (
                         <ActionsTab
                             badge={badgeCollection}
                         />

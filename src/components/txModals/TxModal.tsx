@@ -28,10 +28,12 @@ export function TxModal(
             bodyStyle?: React.CSSProperties,
             unregisteredUsers?: string[],
             onRegister?: () => void,
-            msgSteps: StepProps[],
+            msgSteps?: StepProps[],
             displayMsg?: string | ReactNode
         }
 ) {
+    if (!msgSteps) msgSteps = [];
+
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
@@ -127,7 +129,7 @@ export function TxModal(
                 onChange={onStepChange}
                 direction="vertical"
             >
-                {msgSteps.map((item, index) => (
+                {msgSteps && msgSteps.map((item, index) => (
                     <Step
                         key={index}
                         title={<b>{item.title}</b>} description={
@@ -137,7 +139,7 @@ export function TxModal(
                                 </div>}
                             </div>
                         }
-                        disabled={msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
+                        disabled={msgSteps && msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
                     />
                 ))}
                 <Step

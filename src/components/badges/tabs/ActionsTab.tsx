@@ -11,6 +11,7 @@ import { CreateTxMsgFreezeModal } from '../../txModals/CreateTxMsgFreezeModal';
 import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
 import { useRouter } from 'next/router';
 import Meta from 'antd/lib/card/Meta';
+import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxMsgRequestTransferManagerModal';
 
 export function ActionsTab({
     badge,
@@ -23,18 +24,19 @@ export function ActionsTab({
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
     const [registerAddressesIsVisible, setRegisterAddressesIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
+    const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
 
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
 
     if (!badge) return <></>;
 
-    let managerActions: any[] = [];
+    let actions: any[] = [];
     const isManager = badge.manager === accountNumber;
 
     if (isManager) {
         if (badge.permissions.CanCreate) {
-            managerActions.push({
+            actions.push({
                 title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
                 description: (
                     <div style={{ color: SECONDARY_TEXT }}>
@@ -50,7 +52,7 @@ export function ActionsTab({
 
 
         if (badge.permissions.CanRevoke) {
-            managerActions.push({
+            actions.push({
                 title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
                 description: (
                     <div style={{ color: SECONDARY_TEXT }}>
@@ -64,7 +66,7 @@ export function ActionsTab({
         }
 
         if (badge.permissions.CanManagerTransfer) {
-            managerActions.push({
+            actions.push({
                 title: (
                     <div style={{ color: PRIMARY_TEXT }}>Transfer Manager</div>
                 ),
@@ -80,7 +82,7 @@ export function ActionsTab({
         }
 
 
-        managerActions.push({
+        actions.push({
             title: <div style={{ color: PRIMARY_TEXT }}>Update Permissions</div>,
             description: (
                 <div style={{ color: SECONDARY_TEXT }}>
@@ -94,6 +96,22 @@ export function ActionsTab({
     }
 
     if (!isManager) {
+        if (badge.permissions.CanManagerTransfer) {
+            actions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Request Manager Transfer</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Request to become the manager of this collection.
+                    </div>
+                ),
+                showModal: () => {
+                    setRequestTransferManagerIsVisible(!requestTransferManagerIsVisible);
+                },
+            })
+        }
+    }
+
+    if (!chain.connected) {
         return <div>
             <Divider />
             {chain.connected &&
@@ -102,7 +120,8 @@ export function ActionsTab({
                 </Typography>
             }
             <BlockinDisplay />
-        </div>;
+        </div>
+
     }
 
     return (
@@ -126,7 +145,7 @@ export function ActionsTab({
             >
 
                 {
-                    managerActions.map((action, idx) => {
+                    actions.map((action, idx) => {
                         return <Card
                             key={idx}
                             style={{
@@ -179,21 +198,37 @@ export function ActionsTab({
                     })
                 }
             </div>
-            {isManager && managerActions.length == 0 && (
+            {actions.length == 0 && (
                 <>
                     <Empty
                         style={{ color: PRIMARY_TEXT }}
-                        description="If you are the manager, please connect the wallet."
+                        description="No actions can be taken."
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                     />
                 </>
             )}
+            {!isManager &&
+                <div>
+                    <Divider />
+                    {chain.connected &&
+                        <Typography style={{ color: PRIMARY_TEXT, textAlign: 'center', fontSize: 20, paddingBottom: '5px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            Your connected wallet is not the manager of this collection.
+                        </Typography>
+                    }
+                </div>
+            }
 
 
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
                 setVisible={setTransferManagerIsVisible}
+                badge={badge}
+            />
+
+            <CreateTxMsgRequestTransferManagerModal
+                visible={requestTransferManagerIsVisible}
+                setVisible={setRequestTransferManagerIsVisible}
                 badge={badge}
             />
 

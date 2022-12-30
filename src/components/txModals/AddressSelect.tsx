@@ -12,12 +12,12 @@ const { Option } = Select;
 export function AddressSelect({
     onChange,
     title,
-    icon,
+    icon
 }:
     {
         title: string,
         onChange: (userInfo: BitBadgesUserInfo) => void,
-        icon?: React.ReactNode,
+        icon?: React.ReactNode
     }
 ) {
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
@@ -57,6 +57,7 @@ export function AddressSelect({
             <Input
                 // TODO remove this default
                 defaultValue={DEV_MODE ? '0x1238761276342134123412341234312341231232' : '0x1238761276342134123412341234312341231232'}
+                // value={currUserInfo.address}
                 onChange={async (e) => {
                     e.preventDefault();
                     let bech32Address = '';

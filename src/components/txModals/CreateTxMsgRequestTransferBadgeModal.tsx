@@ -5,8 +5,9 @@ import { BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from '../
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
 import { InputNumber, Typography } from 'antd';
-import { getAccountInformation } from '../../bitbadges-api/api';
+import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
 import { BadgeAvatar } from '../BadgeAvatar';
+import { getPostTransferBalance } from '../../bitbadges-api/balances';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }
@@ -25,6 +26,35 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
 
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
+
+    const [requestedBalance, setRequestedBalance] = useState<UserBalance>();
+
+    const [newBalance, setNewBalance] = useState<UserBalance>(balance);
+
+    useEffect(() => {
+        if (!balance || !balance.balanceAmounts) return;
+
+        setNewBalance(getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1));
+    }, [amountToTransfer, startSubbadgeId, endSubbadgeId, balance, badge])
+
+    useEffect(() => {
+        async function getBadgeBalanceFromApi() {
+            if (!badge || !currUserInfo?.accountNumber || currUserInfo?.accountNumber < 0 || !badge.id) {
+                return;
+            }
+            const balanceInfoRes = await getBadgeBalance(badge.id, currUserInfo?.accountNumber);
+
+            if (balanceInfoRes.error) {
+                console.error("Error getting balance: ", balanceInfoRes.error);
+            } else {
+                console.log("Got balance: ", balanceInfoRes.balanceInfo);
+                const balanceInfo = balanceInfoRes.balanceInfo;
+                setRequestedBalance(balanceInfo)
+            }
+        }
+        getBadgeBalanceFromApi();
+    }, [badge, currUserInfo?.accountNumber])
+
 
 
     const txCosmosMsg: MessageMsgRequestTransferBadge = {
@@ -67,8 +97,9 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
             description: <div>
                 <AddressSelect onChange={handleChange} title={""} />
                 {/* TODO: <Typography>
-                    Want to request from this badge's manager?
+                    Want to request from the manager? Click here.
                 </Typography> */}
+
             </div>,
             disabled: firstStepDisabled,
         },
@@ -143,6 +174,53 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                         } />
                 </div>
                 <hr />
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-evenly',
+                    alignItems: 'center',
+                }}>
+
+                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                        <b>Current</b>
+                    </div>
+                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                        <b>After Transfer</b>
+                    </div>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-evenly',
+                    alignItems: 'center',
+                }}>
+
+                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
+                        {requestedBalance?.balanceAmounts?.map((balanceAmount) => {
+                            return balanceAmount.id_ranges.map((idRange, idx) => {
+                                return <div key={idx}>
+                                    <>
+                                        The requested user owns <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
+                                    </>
+                                </div>
+                            })
+                        })}
+                    </div>
+                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
+                        {newBalance.balanceAmounts?.map((balanceAmount) => {
+                            console.log(balanceAmount)
+                            return balanceAmount.id_ranges.map((idRange, idx) => {
+                                return <div key={idx}>
+                                    <>
+                                        The requested user will own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
+                                    </>
+                                </div>
+                            })
+                        })}
+                    </div>
+                </div>
+                <hr />
                 <div style={{ textAlign: 'center' }}>
                     You are requesting a transfer of a balance of x{amountToTransfer} for each of the following badges:
                 </div>
@@ -157,8 +235,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                     >
 
                         {endSubbadgeId - startSubbadgeId + 1 > 0
-                            &&
-                            endSubbadgeId >= 0 &&
+                            && endSubbadgeId >= 0 &&
                             startSubbadgeId >= 0
                             && new Array(endSubbadgeId - startSubbadgeId + 1).fill(0).map((_, idx) => {
                                 return <div key={idx} style={{
