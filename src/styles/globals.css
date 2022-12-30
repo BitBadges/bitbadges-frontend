@@ -323,3 +323,7 @@ p {
     text-decoration: none;
     color: black
 }
+
+.badge-avatar:hover {
+    transform: scale(1.1);
+}

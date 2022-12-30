@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../../bitbadges-api/api';
 import { PageHeaderWithAvatar } from '../../../components/badges/PageHeaderWithAvatar';
 import { Tabs } from '../../../components/Tabs';
-import { BadgeModalManagerActions } from '../../../components/badges/tabs/ManagerActionsTab';
+import { BadgeModalManagerActions } from '../../../components/badges/tabs/ActionsTab';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../../components/badges/tabs/BadgePageOverviewTab';
 import { useChainContext } from '../../../chain/ChainContext';

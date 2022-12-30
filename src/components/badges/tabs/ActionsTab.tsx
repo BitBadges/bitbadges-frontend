@@ -12,7 +12,7 @@ import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpd
 import { useRouter } from 'next/router';
 import Meta from 'antd/lib/card/Meta';
 
-export function BadgeModalManagerActions({
+export function ActionsTab({
     badge,
 }: {
     badge?: BitBadgeCollection;

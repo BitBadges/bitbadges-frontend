@@ -6,15 +6,16 @@ import {
     WarningFilled,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { Permissions } from '../../../bitbadges-api/permissions';
 
 const { Text } = Typography;
 
 
-export function BadgeOverviewTab({ badge, metadata }: {
+export function BadgeOverviewTab({ badge, metadata, balance }: {
     badge: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
+    balance: UserBalance | undefined;
 }) {
     if (!badge || !metadata) return <></>
 
@@ -124,6 +125,24 @@ export function BadgeOverviewTab({ badge, metadata }: {
                     {badge.freezeRanges?.length > 0 && getTableRow("Freeze Ranges", badge.freezeRanges.map((freezeRange) => {
                         return <>{freezeRange.start}-{freezeRange.end}</>
                     }))}
+                </Col>
+            </Row >
+
+            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
+                <Col style={{ justifyContent: 'center', width: '100%' }}>
+                    {/* </Col>
+                <Col span={11}> */}
+                    <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
+                            Your Balances
+                        </Text>
+                    </Row>
+                    <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
+                    {balance?.balanceAmounts?.map((balanceAmount) => {
+                        return balanceAmount.id_ranges.map((idRange) => {
+                            return getTableRow('x' + balanceAmount.balance, `IDs: ${idRange.start}-${idRange.end}`)
+                        })
+                    })}
                 </Col>
             </Row >
 

@@ -7,6 +7,7 @@ import { InputNumber } from 'antd';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressListSelect } from './AddressListSelect';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
+import { BadgeAvatar } from '../BadgeAvatar';
 
 export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, children, balance }
     : {
@@ -203,6 +204,36 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                         })}
                     </div>
                 </div>
+                <hr />
+                <div style={{ textAlign: 'center' }}>
+                    You will transfer a balance of x{amountToTransfer} to each of the {toAddresses.length} added recipients for the following badges:
+                </div>
+                {
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                    }}
+                    >
+                        {
+                            endSubbadgeId - startSubbadgeId + 1 > 0 &&
+                            endSubbadgeId >= 0 &&
+                            startSubbadgeId >= 0
+                            && new Array(endSubbadgeId - startSubbadgeId + 1).fill(0).map((_, idx) => {
+                                return <div key={idx} style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                                >
+                                    <BadgeAvatar badge={badge} metadata={badge.badgeMetadata[idx + startSubbadgeId]} badgeId={idx + startSubbadgeId} />
+                                </div>
+                            })}
+                    </div>
+                }
             </div>,
             disabled: secondStepDisabled
         },

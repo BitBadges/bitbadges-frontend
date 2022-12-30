@@ -5,13 +5,14 @@ import { ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressModalDisplay, AddressModalDisplayTitle } from './AddressModalDisplay';
+import { DEV_MODE } from '../../constants';
 
 const { Option } = Select;
 
 export function AddressSelect({
     onChange,
     title,
-    icon, 
+    icon,
 }:
     {
         title: string,
@@ -54,6 +55,8 @@ export function AddressSelect({
                 <Option value={SupportedChain.COSMOS}>Cosmos</Option>
             </Select>
             <Input
+                // TODO remove this default
+                defaultValue={DEV_MODE ? '0x1238761276342134123412341234312341231232' : '0x1238761276342134123412341234312341231232'}
                 onChange={async (e) => {
                     e.preventDefault();
                     let bech32Address = '';

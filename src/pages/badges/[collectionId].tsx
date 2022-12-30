@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
 import { PageHeaderWithAvatar } from '../../components/badges/PageHeaderWithAvatar';
 import { Tabs } from '../../components/Tabs';
-import { BadgeModalManagerActions } from '../../components/badges/tabs/ManagerActionsTab';
+import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeOverviewTab } from '../../components/badges/tabs/BadgePageOverviewTab';
 import { BadgeSubBadgesTab } from '../../components/badges/tabs/BadgePageSubBadgesTab';
@@ -96,6 +96,7 @@ function CollectionPage() {
                                 <BadgeOverviewTab
                                     badge={badgeCollection}
                                     metadata={collectionMetadata}
+                                    balance={userBalance}
                                 />
                             </Col>
                             <Col span={16}>
@@ -119,7 +120,7 @@ function CollectionPage() {
 
 
                     {tab === 'manageractions' && (
-                        <BadgeModalManagerActions
+                        <ActionsTab
                             badge={badgeCollection}
                         />
                     )}

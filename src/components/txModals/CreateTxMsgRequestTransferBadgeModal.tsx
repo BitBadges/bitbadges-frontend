@@ -4,8 +4,9 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from './AddressSelect';
-import { InputNumber } from 'antd';
+import { InputNumber, Typography } from 'antd';
 import { getAccountInformation } from '../../bitbadges-api/api';
+import { BadgeAvatar } from '../BadgeAvatar';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }
@@ -63,55 +64,119 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     const items = [
         {
             title: `Select User to Request From`,
-            description: <AddressSelect onChange={handleChange} title={"Request Transfer From This User"} />,
+            description: <div>
+                <AddressSelect onChange={handleChange} title={""} />
+                {/* TODO: <Typography>
+                    Want to request from this badge's manager?
+                </Typography> */}
+            </div>,
             disabled: firstStepDisabled,
         },
         {
             title: 'Select IDs and Amounts',
             description: <div>
 
-                Amount to Transfer: <br />
-                <InputNumber
-                    min={0}
-                    title='Amount to Transfer'
-                    value={amountToTransfer} onChange={
-                        (value: number) => {
-                            if (!value || value <= 0) {
-                                setAmountToTransfer(0);
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+                >
+                    Amount to Transfer:
+                    <InputNumber
+                        min={1}
+                        title='Amount to Transfer'
+                        value={amountToTransfer} onChange={
+                            (value: number) => {
+                                if (!value || value <= 0) {
+                                    setAmountToTransfer(0);
+                                }
+                                else {
+                                    setAmountToTransfer(value);
+                                }
                             }
-                            else {
-                                setAmountToTransfer(value);
-                            }
-                        }
-                    } />
-                <hr />
-                SubBadge ID Start: <br />
-                <InputNumber
-                    min={0}
-                    value={startSubbadgeId} onChange={
-                        (value: number) => {
-                            setStartSubbadgeId(value);
+                        } />
+                </div>
 
-                            if (value >= 0 && endSubbadgeId >= 0 && value <= endSubbadgeId) {
-                                setSubbadgeRanges([{ start: value, end: endSubbadgeId }]);
-                            }
-                        }
-                    } />
-                <hr />
-                SubBadge ID End: <br />
-                <InputNumber
-                    min={0}
-                    title='Amount to Transfer'
-                    value={endSubbadgeId} onChange={
-                        (value: number) => {
-                            setEndSubbadgeId(value);
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+                >
+                    Badge ID Start:
+                    <InputNumber
+                        min={0}
+                        max={endSubbadgeId}
+                        value={startSubbadgeId} onChange={
+                            (value: number) => {
+                                setStartSubbadgeId(value);
 
-                            if (startSubbadgeId >= 0 && value >= 0 && startSubbadgeId <= value) {
-                                setSubbadgeRanges([{ start: startSubbadgeId, end: value }]);
+                                if (value >= 0 && endSubbadgeId >= 0 && value <= endSubbadgeId) {
+                                    setSubbadgeRanges([{ start: value, end: endSubbadgeId }]);
+                                }
                             }
-                        }
-                    } />
+                        } />
+                </div>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+                >
+                    Badge ID End:
+                    <InputNumber
+                        min={0}
+                        max={badge.nextSubassetId - 1}
+                        title='Amount to Transfer'
+                        value={endSubbadgeId} onChange={
+                            (value: number) => {
+                                setEndSubbadgeId(value);
+
+                                if (startSubbadgeId >= 0 && value >= 0 && startSubbadgeId <= value) {
+                                    setSubbadgeRanges([{ start: startSubbadgeId, end: value }]);
+                                }
+                            }
+                        } />
+                </div>
                 <hr />
+                <div style={{ textAlign: 'center' }}>
+                    You are requesting a transfer of a balance of x{amountToTransfer} for each of the following badges:
+                </div>
+                {
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                    }}
+                    >
+
+                        {endSubbadgeId - startSubbadgeId + 1 > 0
+                            &&
+                            endSubbadgeId >= 0 &&
+                            startSubbadgeId >= 0
+                            && new Array(endSubbadgeId - startSubbadgeId + 1).fill(0).map((_, idx) => {
+                                return <div key={idx} style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                                >
+                                    <BadgeAvatar
+                                        badge={badge}
+                                        metadata={badge.badgeMetadata[idx + startSubbadgeId]}
+                                        badgeId={idx + startSubbadgeId}
+                                    />
+                                </div>
+                            })}
+                    </div>
+                }
             </div>,
             disabled: secondStepDisabled
         },
