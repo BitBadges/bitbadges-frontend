@@ -12,7 +12,6 @@ export function BadgeAvatar({
     size?: number,
     badgeId: number,
 }) {
-    console.log(metadata);
     return <Tooltip
         placement="bottom"
         title={`${metadata.name} (ID: ${badgeId})`}

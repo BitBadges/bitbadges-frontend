@@ -32,10 +32,10 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     const [newBalance, setNewBalance] = useState<UserBalance>(balance);
 
     useEffect(() => {
-        if (!balance || !balance.balanceAmounts) return;
+        if (!requestedBalance || !requestedBalance.balanceAmounts) return;
 
-        setNewBalance(getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1));
-    }, [amountToTransfer, startSubbadgeId, endSubbadgeId, balance, badge])
+        setNewBalance(getPostTransferBalance(requestedBalance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1));
+    }, [amountToTransfer, startSubbadgeId, endSubbadgeId, badge, requestedBalance])
 
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
@@ -89,7 +89,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     }, [visible])
 
     const firstStepDisabled = !currUserInfo || !currUserInfo.cosmosAddress;
-    const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId;
+    const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance?.balanceAmounts.find((balance) => balance.balance < 0);;
 
     const items = [
         {
@@ -209,7 +209,6 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                     </div>
                     <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                         {newBalance.balanceAmounts?.map((balanceAmount) => {
-                            console.log(balanceAmount)
                             return balanceAmount.id_ranges.map((idRange, idx) => {
                                 return <div key={idx}>
                                     <>
@@ -219,7 +218,11 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                             })
                         })}
                     </div>
+
                 </div>
+                {(!requestedBalance || requestedBalance.balanceAmounts?.length === 0) && <div style={{ textAlign: 'center' }}>
+                    <span style={{ color: 'red' }}><b>No balance found for the requested user.</b></span>
+                </div>}
                 <hr />
                 <div style={{ textAlign: 'center' }}>
                     You are requesting a transfer of a balance of x{amountToTransfer} for each of the following badges:
@@ -275,10 +278,20 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferBadge}
             displayMsg={
-                <div>
-                    The selected user can now either accept or reject your request to transfer the badge.
-                    If they accept, they can do it forcefully so you will receive the badge(s) instantly.
-                    Or, they can mark the request as approved where you will have to initiate the transfer yourself.
+                <div style={{ textAlign: 'left' }}>
+                    The requested user will have three options:
+                    <ol>
+                        <li>
+                            Accept this request and complete the transfer themselves.
+                        </li>
+                        <li>
+                            Approve this request,
+                            and then, you can complete the transfer with a separate transaction.
+                        </li>
+                        <li>
+                            Reject this request.
+                        </li>
+                    </ol>
                 </div>
             }
         // disabled={currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0}

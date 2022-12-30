@@ -48,6 +48,8 @@ export function Address({
                 <div style={{
                     textAlign: 'center',
                 }}>
+                    {`${chain}`}
+                    <br />
                     {`${address}`}
                 </div>
             }

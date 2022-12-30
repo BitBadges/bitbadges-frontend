@@ -142,7 +142,7 @@ function CollectionPage() {
                     )}
                 </div>
                 {DEV_MODE && (
-                    <pre>
+                    <pre style={{ color: PRIMARY_TEXT }}>
                         USER BALANCE: {JSON.stringify(userBalance, null, 2)}
                     </pre>
                 )}

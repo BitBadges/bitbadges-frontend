@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Layout, Avatar, Typography, Badge, Tooltip, } from 'antd';
-import { PRIMARY_TEXT } from '../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../constants';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -43,7 +43,8 @@ export function ButtonDisplay({
                             style={{ textAlign: 'center' }}
                         >
                             <div style={{ minWidth: 75 }}>
-                                <Badge count={button.count}>
+                                {/* //This is the antd Badge */}
+                                <Badge count={button.count} color={PRIMARY_BLUE}>
                                     <Avatar
                                         style={{
                                             marginBottom: 1,

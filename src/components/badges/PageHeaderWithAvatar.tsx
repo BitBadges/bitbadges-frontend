@@ -2,13 +2,15 @@ import { Avatar, Typography } from 'antd';
 import React, { useState } from 'react';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { BellOutlined, SwapOutlined, SettingOutlined } from '@ant-design/icons';
+import { BellOutlined, SwapOutlined, SettingOutlined, SwapRightOutlined, SwapLeftOutlined } from '@ant-design/icons';
 import { ButtonDisplay } from '../ButtonDisplay';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 import { useChainContext } from '../../chain/ChainContext';
 import { CreateTxMsgRequestTransferBadgeModal } from '../txModals/CreateTxMsgRequestTransferBadgeModal';
 import { Pending } from '../old/PendingModal';
 import { CreateTxMsgHandlePendingTransferModal } from '../txModals/CreateTxMsgHandlePendingTransferModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPersonCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
 const { Text } = Typography;
 
@@ -88,7 +90,7 @@ export function PageHeaderWithAvatar({ badge, metadata, balance }: {
                 },
                 {
                     name: 'Request',
-                    icon: <SwapOutlined />,
+                    icon: <FontAwesomeIcon icon={faPersonCircleQuestion} />,
                     onClick: () => { setRequestTransferIsVisible(true) },
                     tooltipMessage: !chain.connected ? 'No connected wallet.' : 'Request this badge to be transferred.',
                     disabled: !chain.connected

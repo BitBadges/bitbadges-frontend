@@ -56,7 +56,7 @@ export function AddressSelect({
             </Select>
             <Input
                 // TODO remove this default
-                defaultValue={DEV_MODE ? '0x1238761276342134123412341234312341231232' : '0x1238761276342134123412341234312341231232'}
+                defaultValue={DEV_MODE ? '0xe00dD9D317573f7B4868D8f2578C65544B153A27' : '0xe00dD9D317573f7B4868D8f2578C65544B153A27'}
                 // value={currUserInfo.address}
                 onChange={async (e) => {
                     e.preventDefault();

@@ -74,7 +74,7 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
     }, [visible, badge.nextSubassetId])
 
     const firstStepDisabled = toAddresses.length === 0;
-    const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId;
+    const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance.balanceAmounts.find((balance) => balance.balance < 0);
 
     const items = [
         {

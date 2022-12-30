@@ -31,6 +31,7 @@ export const getPostTransferBalance = (balance: UserBalance, badge: BitBadgeColl
     };
     for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
+        if (balance === 0) continue;
         let existingBalanceObj = newBalanceObjToSet.balanceAmounts.find((balanceObj) => balanceObj.balance === balance);
         if (existingBalanceObj) {
             existingBalanceObj.id_ranges.push({
