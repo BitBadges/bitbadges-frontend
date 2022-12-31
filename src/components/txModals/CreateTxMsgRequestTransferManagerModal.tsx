@@ -23,19 +23,27 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
         add: request,
     };
 
+    const items = [
+        {
+            title: 'Select',
+            description: <>
+                Request or Cancel
+                <Switch defaultChecked onChange={() => setRequest(!request)} />
+            </>,
+        }
+    ]
+
     return (
         <TxModal
-            msgSteps={[]}
+            msgSteps={items}
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            displayMsg={`You are ${request ? "requesting" : "cancelling any request"} to be the manager for badge ${badge.id}`}
+            displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for badge ${badge.id}`}
         >
-            Request or Cancel
-            <Switch defaultChecked onChange={() => setRequest(!request)} />
             {children}
         </TxModal>
     );

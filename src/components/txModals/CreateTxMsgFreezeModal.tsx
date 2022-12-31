@@ -32,20 +32,28 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
         setCurrUserInfo(userInfo);
     }
 
+    const items = [
+        {
+            title: 'Select Address',
+            description: <>
+                Freeze or Unfreeze
+                <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
+                <AddressSelect onChange={handleChange} title={"Freeze User"} />
+            </>,
+            disabled: currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0
+        }
+    ]
+
     return (
         <TxModal
+            msgSteps={items}
             destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Revoke Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgFreezeAddress}
-            displayMsg={'Are you sure?'}
-            disabled={currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0}
         >
-            Freeze or Unfreeze
-            <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
-            <AddressSelect onChange={handleChange} title={"Freeze User"} />
             {children}
         </TxModal>
     );

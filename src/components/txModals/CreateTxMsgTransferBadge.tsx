@@ -93,14 +93,12 @@ export function CreateTxMsgTransferBadgeModal(
         {
             title: 'Select IDs and Amounts',
             description: <div>
-
                 <div style={{
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                }}
-                >
+                }}>
                     Amount to Transfer Per Recipient:
                     <InputNumber
                         min={1}

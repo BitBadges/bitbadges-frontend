@@ -11,6 +11,7 @@ export function CreateTxMsgNewBadgeModal(
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
         }) {
+
     return (
         <TxModal
             visible={visible}
@@ -18,7 +19,6 @@ export function CreateTxMsgNewBadgeModal(
             txName="Create Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgNewBadge}
-            displayMsg={"You are creating badge: "}
         >
             {children}
         </TxModal>
