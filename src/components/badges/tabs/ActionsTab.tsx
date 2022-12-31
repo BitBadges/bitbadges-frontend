@@ -244,7 +244,6 @@ export function ActionsTab({
                 badge={badge}
             />
 
-
             <CreateTxMsgUpdatePermissionsModal
                 visible={updatePermissionsIsVisible}
                 setVisible={setUpdatePermissionsIsVisible}

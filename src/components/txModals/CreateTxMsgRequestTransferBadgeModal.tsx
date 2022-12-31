@@ -8,6 +8,8 @@ import { InputNumber, Typography } from 'antd';
 import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
 import { BadgeAvatar } from '../BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
+import { BalanceBeforeAndAfter } from './BalanceBeforeAndAfter';
+import { TransferDisplay } from './TransferDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }
@@ -22,8 +24,8 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
-    const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
-    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
+    const [startSubbadgeId, setStartSubbadgeId] = useState<number>(0);
+    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(0);
 
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
 
@@ -84,8 +86,8 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     useEffect(() => {
         setSubbadgeRanges([]);
         setAmountToTransfer(0);
-        setStartSubbadgeId(-1);
-        setEndSubbadgeId(-1);
+        setStartSubbadgeId(0);
+        setEndSubbadgeId(0);
     }, [visible])
 
     const firstStepDisabled = !currUserInfo || !currUserInfo.cosmosAddress;
@@ -174,89 +176,26 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                         } />
                 </div>
                 <hr />
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    alignItems: 'center',
-                }}>
 
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>Current</b>
-                    </div>
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>After Transfer</b>
-                    </div>
-                </div>
-
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    alignItems: 'center',
-                }}>
-
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                        {requestedBalance?.balanceAmounts?.map((balanceAmount) => {
-                            return balanceAmount.id_ranges.map((idRange, idx) => {
-                                return <div key={idx}>
-                                    <>
-                                        The requested user owns <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
-                                    </>
-                                </div>
-                            })
-                        })}
-                    </div>
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                        {newBalance.balanceAmounts?.map((balanceAmount) => {
-                            return balanceAmount.id_ranges.map((idRange, idx) => {
-                                return <div key={idx}>
-                                    <>
-                                        The requested user will own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
-                                    </>
-                                </div>
-                            })
-                        })}
-                    </div>
-
-                </div>
-                {(!requestedBalance || requestedBalance.balanceAmounts?.length === 0) && <div style={{ textAlign: 'center' }}>
-                    <span style={{ color: 'red' }}><b>No balance found for the requested user.</b></span>
-                </div>}
+                <TransferDisplay
+                    badge={badge}
+                    startId={startSubbadgeId}
+                    endId={endSubbadgeId}
+                    amount={amountToTransfer}
+                    from={[currUserInfo ? currUserInfo : {} as BitBadgesUserInfo]}
+                    to={[{
+                        cosmosAddress: chain.cosmosAddress,
+                        accountNumber: chain.accountNumber,
+                        address: chain.address,
+                        chain: chain.chain,
+                    }]}
+                />
                 <hr />
-                <div style={{ textAlign: 'center' }}>
-                    You are requesting a transfer of a balance of x{amountToTransfer} for each of the following badges:
-                </div>
-                {
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                    >
-
-                        {endSubbadgeId - startSubbadgeId + 1 > 0
-                            && endSubbadgeId >= 0 &&
-                            startSubbadgeId >= 0
-                            && new Array(endSubbadgeId - startSubbadgeId + 1).fill(0).map((_, idx) => {
-                                return <div key={idx} style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                }}
-                                >
-                                    <BadgeAvatar
-                                        badge={badge}
-                                        metadata={badge.badgeMetadata[idx + startSubbadgeId]}
-                                        badgeId={idx + startSubbadgeId}
-                                    />
-                                </div>
-                            })}
-                    </div>
-                }
+                <BalanceBeforeAndAfter
+                    balance={requestedBalance ? requestedBalance : {} as UserBalance}
+                    newBalance={newBalance}
+                    partyString={`This User's`}
+                />
             </div>,
             disabled: secondStepDisabled
         },

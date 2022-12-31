@@ -5,12 +5,8 @@ import { BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/ty
 import { useChainContext } from '../../chain/ChainContext';
 import { Avatar, Button, Col, Divider, Empty, Row, Tooltip, Typography } from 'antd';
 import { CheckOutlined, CloseOutlined, DeleteOutlined, SwapOutlined, SwapRightOutlined } from '@ant-design/icons';
-import { BadgeAvatar } from '../BadgeAvatar';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { Address } from '../Address';
-import Blockies from 'react-blockies'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { TransferDisplay } from './TransferDisplay';
 const { Text } = Typography;
 
 export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible, setVisible, children }
@@ -37,24 +33,24 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
         nonceRanges
     };
 
-    const addToPendingNonceRanges = (nonce: number, _accept: boolean, _forcefulAccept: boolean) => {
+    const addOrRemoveNonce = (nonce: number, _accept: boolean, _forcefulAccept: boolean) => {
         //TODO: make this more optimal
-        console.log(_accept, accept, _forcefulAccept, forcefulAccept);
-        console.log(nonceRanges);
         let currNonceRanges = _accept != accept || _forcefulAccept != forcefulAccept ? [] : [...nonceRanges];
-        let found = false;
-        for (const range of currNonceRanges) {
+        let idx = -1;
+        for (let i = 0; i < currNonceRanges.length; i++) {
+            const range = currNonceRanges[i];
             if (!range.end) range.end = range.start;
 
             if (range.start <= nonce && range.end >= nonce) {
-                found = true;
+                idx = i;
                 break;
             }
         }
-        if (!found) {
+        if (idx === -1) {
             currNonceRanges.push({ start: nonce, end: nonce });
+        } else {
+            currNonceRanges = currNonceRanges.filter((_, i) => i !== idx);
         }
-        console.log(currNonceRanges);
         setNonceRanges(currNonceRanges);
     }
 
@@ -92,7 +88,8 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
             title: `Select Action(s)`,
             description: <>
                 Currently, you can select more than one action but all actions have to be the same type
-                (e.g. can not mix approves and cancels).
+                (e.g. can not mix approves and cancels). You may select more than one action.
+                <hr />
                 {/* //TODO: fix this */}
                 <br />
                 {!balance.pending || balance.pending.length === 0 && <Empty
@@ -130,86 +127,24 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                         return <>
                             {idx > 0 && <Divider />}
                             <Typography.Text style={{ fontSize: 16 }} strong>#{idx + 1}) {msg}</Typography.Text>
-                            <br />
-                            <br />
-
-                            <Row>
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                    }}>
-                                        <Blockies scale={3} seed={chain.address ? chain.address.toLowerCase() : ''} />
-                                        <Address fontSize={14} chain={chain.chain} hideChain address={pending.from === chain.accountNumber ? chain.address : ''} />
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                    }}>
-                                        <Blockies scale={3} seed={chain.address ? chain.address.toLowerCase() : ''} />
-                                        <Address fontSize={14} chain={chain.chain} hideChain address={pending.from === chain.accountNumber ? chain.address : ''} />
-                                    </div>
-                                </Col>
-                                <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </Col>
-
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                    }}>
-                                        <Blockies scale={3} seed={chain.address ? chain.address.toLowerCase() : ''} />
-                                        <Address fontSize={14} chain={chain.chain} hideChain address={pending.to === chain.accountNumber ? chain.address : ''} />
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                    }}>
-                                        <Blockies scale={3} seed={chain.address ? chain.address.toLowerCase() : ''} />
-                                        <Address fontSize={14} chain={chain.chain} hideChain address={pending.to === chain.accountNumber ? chain.address : ''} />
-                                    </div>
-                                </Col>
-                            </Row>
-                            <br />
-                            <div style={{ textAlign: 'center' }}>
-                                <Typography.Text style={{ fontSize: 16, textAlign: 'center' }} strong>{'x' + pending.amount + ' of the following badges (IDs ' + pending.subbadgeRange.start + ' - ' + pending.subbadgeRange.end + '):'}</Typography.Text>
-                            </div>
-                            {
-                                < div style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    flexWrap: 'wrap',
-                                }}
-                                >
-                                    {badge && pending.subbadgeRange.end - pending.subbadgeRange.start + 1 > 0
-                                        && pending.subbadgeRange.end >= 0 &&
-                                        pending.subbadgeRange.start >= 0
-                                        && new Array(pending.subbadgeRange.end - pending.subbadgeRange.start + 1).fill(0).map((_, idx) => {
-                                            return <div key={idx} style={{
-                                                display: 'flex',
-                                                flexDirection: 'row',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                            }}
-                                            >
-                                                <BadgeAvatar
-                                                    badge={badge}
-                                                    metadata={badge.badgeMetadata[idx + pending.subbadgeRange.start]}
-                                                    badgeId={idx + pending.subbadgeRange.start}
-                                                />
-                                            </div>
-                                        })}
-                                </div >
-                            }
-                            <br />
+                            <TransferDisplay
+                                from={[{
+                                    address: chain.address,
+                                    accountNumber: chain.accountNumber,
+                                    chain: chain.chain,
+                                    cosmosAddress: chain.cosmosAddress,
+                                }]}
+                                to={[{
+                                    address: chain.address,
+                                    accountNumber: chain.accountNumber,
+                                    chain: chain.chain,
+                                    cosmosAddress: chain.cosmosAddress,
+                                }]}
+                                badge={badge}
+                                amount={pending.amount}
+                                startId={pending.subbadgeRange.start}
+                                endId={pending.subbadgeRange.end}
+                            />
                             <div
                                 style={{
                                     width: '100%',
@@ -249,7 +184,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                             onClick={() => {
                                                 setAccept(false);
                                                 setForcefulAccept(false);
-                                                addToPendingNonceRanges(pending.thisPendingNonce, false, false);
+                                                addOrRemoveNonce(pending.thisPendingNonce, false, false);
                                             }}
                                             className="screen-button-modal"
                                         >
@@ -269,7 +204,6 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                             style={{ textAlign: 'center' }}
                                             title={<div style={{ textAlign: 'center' }}>
                                                 Accept and complete this transfer.
-
                                             </div>}>
                                             <div style={{ minWidth: 75, alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column' }}>
                                                 <Avatar
@@ -295,7 +229,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                     onClick={() => {
                                                         setAccept(true);
                                                         setForcefulAccept(true);
-                                                        addToPendingNonceRanges(pending.thisPendingNonce, true, true);
+                                                        addOrRemoveNonce(pending.thisPendingNonce, true, true);
                                                     }}
                                                     className="screen-button-modal"
                                                 >
@@ -346,7 +280,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
 
                                                         setAccept(true);
                                                         setForcefulAccept(false);
-                                                        addToPendingNonceRanges(pending.thisPendingNonce, true, false);
+                                                        addOrRemoveNonce(pending.thisPendingNonce, true, false);
                                                     }}
                                                     className="screen-button-modal"
                                                 >
@@ -389,7 +323,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                     onClick={() => {
                                                         setAccept(true);
                                                         setForcefulAccept(true);
-                                                        addToPendingNonceRanges(pending.thisPendingNonce, true, true);
+                                                        addOrRemoveNonce(pending.thisPendingNonce, true, true);
                                                     }}
                                                     className="screen-button-modal"
                                                 >

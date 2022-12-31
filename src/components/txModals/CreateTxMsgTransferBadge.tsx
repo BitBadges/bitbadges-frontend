@@ -8,15 +8,20 @@ import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressListSelect } from './AddressListSelect';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BadgeAvatar } from '../BadgeAvatar';
+import { BalanceBeforeAndAfter } from './BalanceBeforeAndAfter';
+import { TransferDisplay } from './TransferDisplay';
 
-export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, children, balance }
-    : {
+export function CreateTxMsgTransferBadgeModal(
+    {
+        badge, visible, setVisible, children, balance
+    }: {
         badge: BitBadgeCollection,
         balance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
-    }) {
+    }
+) {
     const chain = useChainContext();
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
@@ -96,7 +101,7 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                     alignItems: 'center',
                 }}
                 >
-                    Amount to Transfer:
+                    Amount to Transfer Per Recipient:
                     <InputNumber
                         min={1}
                         title='Amount to Transfer'
@@ -155,85 +160,27 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
                                     setSubbadgeRanges([{ start: startSubbadgeId, end: value }]);
                                 }
                             }
-                        } />
+                        }
+                    />
                 </div>
                 <hr />
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    alignItems: 'center',
-                }}>
 
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>Current</b>
-                    </div>
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <b>After Transfer</b>
-                    </div>
-                </div>
+                <TransferDisplay
+                    amount={amountToTransfer * toAddresses.length}
+                    startId={startSubbadgeId}
+                    endId={endSubbadgeId}
+                    badge={badge}
+                    from={[{
+                        chain: chain.chain,
+                        address: chain.address,
+                        accountNumber: chain.accountNumber,
+                        cosmosAddress: chain.cosmosAddress,
+                    }]}
+                    to={toAddresses}
 
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    alignItems: 'center',
-                }}>
-
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                        {balance.balanceAmounts?.map((balanceAmount) => {
-                            return balanceAmount.id_ranges.map((idRange, idx) => {
-                                return <div key={idx}>
-                                    <>
-                                        You own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
-                                    </>
-                                </div>
-                            })
-                        })}
-                    </div>
-                    <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                        {newBalance.balanceAmounts?.map((balanceAmount) => {
-                            console.log(balanceAmount)
-                            return balanceAmount.id_ranges.map((idRange, idx) => {
-                                return <div key={idx}>
-                                    <>
-                                        You will own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
-                                    </>
-                                </div>
-                            })
-                        })}
-                    </div>
-                </div>
+                />
                 <hr />
-                <div style={{ textAlign: 'center' }}>
-                    You will transfer a balance of x{amountToTransfer} to each of the {toAddresses.length} added recipients for the following badges:
-                </div>
-                {
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                    >
-                        {
-                            endSubbadgeId - startSubbadgeId + 1 > 0 &&
-                            endSubbadgeId >= 0 &&
-                            startSubbadgeId >= 0
-                            && new Array(endSubbadgeId - startSubbadgeId + 1).fill(0).map((_, idx) => {
-                                return <div key={idx} style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                }}
-                                >
-                                    <BadgeAvatar badge={badge} metadata={badge.badgeMetadata[idx + startSubbadgeId]} badgeId={idx + startSubbadgeId} />
-                                </div>
-                            })}
-                    </div>
-                }
+                <BalanceBeforeAndAfter balance={balance} newBalance={newBalance} partyString='Your' />
             </div>,
             disabled: secondStepDisabled
         },
@@ -251,8 +198,8 @@ export function CreateTxMsgTransferBadgeModal({ badge, visible, setVisible, chil
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
             disabled={toAddresses.length === 0}
-            displayMsg={badge.permissions.ForcefulTransfers ? `This badge is set so that it will be transferred forcefully. As soon as the transaction goes through, the recipients will be transferred this badge.`
-                : `This badge will go into an escrow until the recipient accepts or denies the pending transfer. If the recipient denies the transfer, the badge(s) will be returned to your wallet.`}
+            displayMsg={badge.permissions.ForcefulTransfers ? `As soon as the transaction is confirmed, the badges will be transferred to the recipient(s).`
+                : `This badge will go into a pending queue until the recipient accepts or denies the transfer. If the recipient denies the transfer, the badge(s) will be returned to your wallet.`}
         >
             {children}
         </TxModal>

@@ -26,7 +26,6 @@ export function PageHeaderWithAvatar({ badge, metadata, balance }: {
 
     if (!badge || !metadata) return <></>;
 
-
     return (<>
         <div
             style={{
@@ -92,17 +91,12 @@ export function PageHeaderWithAvatar({ badge, metadata, balance }: {
                     name: 'Request',
                     icon: <FontAwesomeIcon icon={faPersonCircleQuestion} />,
                     onClick: () => { setRequestTransferIsVisible(true) },
-                    tooltipMessage: !chain.connected ? 'No connected wallet.' : 'Request this badge to be transferred.',
+                    tooltipMessage: !chain.connected ? 'No connected wallet.' : 'Request this badge to be transferred to you!',
                     disabled: !chain.connected
                 },
-
-                // {
-                //     name: 'Customize',
-                //     icon: <SettingOutlined />,
-                //     onClick: () => { },
-                // },
             ]} />
         </div>
+
         <CreateTxMsgTransferBadgeModal
             badge={badge}
             visible={transferIsVisible}
