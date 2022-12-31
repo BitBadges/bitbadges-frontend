@@ -7,7 +7,7 @@ import { PageHeaderWithAvatar } from '../../components/badges/PageHeaderWithAvat
 import { Tabs } from '../../components/Tabs';
 import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { BadgeOverviewTab } from '../../components/badges/tabs/BadgePageOverviewTab';
+import { CollectionOverview } from '../../components/badges/CollectionOverview';
 import { BadgeSubBadgesTab } from '../../components/badges/tabs/BadgePageSubBadgesTab';
 import { useChainContext } from '../../chain/ChainContext';
 
@@ -93,7 +93,7 @@ function CollectionPage() {
                         <Row>
                             <Divider></Divider>
                             <Col span={8}>
-                                <BadgeOverviewTab
+                                <CollectionOverview
                                     badge={badgeCollection}
                                     metadata={collectionMetadata}
                                     balance={userBalance}
@@ -103,6 +103,7 @@ function CollectionPage() {
                                 <BadgeSubBadgesTab
                                     badgeCollection={badgeCollection}
                                     setBadgeCollection={setBadgeCollection}
+                                    balance={userBalance}
                                 />
                             </Col>
                         </Row>
@@ -115,6 +116,7 @@ function CollectionPage() {
                         <BadgeSubBadgesTab
                             badgeCollection={badgeCollection}
                             setBadgeCollection={setBadgeCollection}
+                            balance={userBalance}
                         />
                     </>)}
 

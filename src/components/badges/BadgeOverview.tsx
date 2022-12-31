@@ -1,21 +1,22 @@
-import { Address } from '../../Address';
+import { Address } from '../Address';
 import { Divider, Typography, Col, Row, Table } from 'antd';
 import React from 'react';
 import {
     CheckCircleFilled,
     WarningFilled,
 } from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { Permissions } from '../../../bitbadges-api/permissions';
+import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../../constants';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { Permissions } from '../../bitbadges-api/permissions';
 
 const { Text } = Typography;
 
 
-export function BadgeOverviewTab({ badge, metadata, balance }: {
+export function BadgeOverview({ badge, metadata, balance, badgeId }: {
     badge: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
+    badgeId: number
 }) {
     if (!badge || !metadata) return <></>
 
@@ -56,22 +57,13 @@ export function BadgeOverviewTab({ badge, metadata, balance }: {
                     {/* <Col span={11}> */}
                     <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                            Collection Info
+                            Badge Info
                         </Text>
                     </Row>
                     <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {getTableRow("Collection ID", badge.id)}
-                    {getTableRow("Type", badge.standard == 0 ? "BitBadge" : "Unknown")}
-                    {badge.manager && getTableRow("Manager", <Address
-                        chain='eth'
-                        address={badge.manager.split(':')[1]}
-                        fontColor="lightgrey"
-                        fontSize={18}
-                    />)}
+                    {getTableRow("Badge ID", badgeId)}
+
                     {metadata?.description && getTableRow("Description", metadata.description)}
-                    {/* {getTableRow("Sub-Badges", subassetSupplyComponent)} */}
-                    {badge.uri && getTableRow("URI", <a href={badge.uri.uri} target="_blank" rel="noreferrer">{badge.uri.uri}</a>)}
-                    {badge.arbitraryBytes && getTableRow("Arbitrary Bytes", badge.arbitraryBytes)}
                     {getTableRow("Expiration",
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
@@ -104,29 +96,11 @@ export function BadgeOverviewTab({ badge, metadata, balance }: {
 
                     {DEV_MODE &&
                         <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                            {JSON.stringify(badge, null, 2)}
+                            {JSON.stringify(metadata, null, 2)}
                         </pre>
                     }
                 </Col>
             </Row>
-            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
-                <Col style={{ justifyContent: 'center', width: '100%' }}>
-                    {/* </Col>
-                <Col span={11}> */}
-                    <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                            Permissions
-                        </Text>
-                    </Row>
-                    <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {Object.keys(badge.permissions).map((permission) => {
-                        return getTableRow(permission, badge.permissions[permission as keyof Permissions] ? 'true' : 'false')
-                    })}
-                    {badge.freezeRanges?.length > 0 && getTableRow("Freeze Ranges", badge.freezeRanges.map((freezeRange) => {
-                        return <>{freezeRange.start}-{freezeRange.end}</>
-                    }))}
-                </Col>
-            </Row >
 
             <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
                 <Col style={{ justifyContent: 'center', width: '100%' }}>
@@ -138,11 +112,11 @@ export function BadgeOverviewTab({ badge, metadata, balance }: {
                         </Text>
                     </Row>
                     <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {balance?.balanceAmounts?.map((balanceAmount) => {
-                        return balanceAmount.id_ranges.map((idRange) => {
-                            return getTableRow('x' + balanceAmount.balance, `IDs: ${idRange.start}-${idRange.end}`)
-                        })
-                    })}
+                    You own x{balance?.balanceAmounts?.find((balanceAmount) => balanceAmount.id_ranges.find((range) => {
+                        if (range.end === undefined) range.end = range.start;
+
+                        return range.start <= badgeId && range.end >= badgeId
+                    }))?.balance ?? 0} of this badge
                 </Col>
             </Row >
 

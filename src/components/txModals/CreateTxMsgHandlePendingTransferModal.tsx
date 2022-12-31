@@ -22,6 +22,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
     const [accept, setAccept] = useState<boolean>(true);
     const [forcefulAccept, setForcefulAccept] = useState<boolean>(false);
     const [nonceRanges, setNonceRanges] = useState<IdRange[]>([]);
+    const [numHandling, setNumHandling] = useState<number>(0);
     const [otherPending, setOtherPending] = useState<any[]>([]);
 
 
@@ -35,7 +36,11 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
 
     const addOrRemoveNonce = (nonce: number, _accept: boolean, _forcefulAccept: boolean) => {
         //TODO: make this more optimal
+        let numHandled = numHandling;
         let currNonceRanges = _accept != accept || _forcefulAccept != forcefulAccept ? [] : [...nonceRanges];
+        if (_accept != accept || _forcefulAccept != forcefulAccept) {
+            numHandled = 0;
+        }
         let idx = -1;
         for (let i = 0; i < currNonceRanges.length; i++) {
             const range = currNonceRanges[i];
@@ -48,10 +53,13 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
         }
         if (idx === -1) {
             currNonceRanges.push({ start: nonce, end: nonce });
+            numHandled++;
         } else {
             currNonceRanges = currNonceRanges.filter((_, i) => i !== idx);
+            numHandled--;
         }
         setNonceRanges(currNonceRanges);
+        setNumHandling(numHandled);
     }
 
     useEffect(() => {
@@ -347,8 +355,11 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
         },
     ];
 
+
+
     return (
         <TxModal
+
             msgSteps={items}
             destroyOnClose={true}
             visible={visible}
@@ -356,7 +367,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
             txName="Handle Pending Transfer(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgHandlePendingTransfer}
-        // displayMsg={<div>You are accepting a pending transfer of a badge.</div>}
+            displayMsg={`You have selected to ${accept ? forcefulAccept ? 'complete' : 'approve' : 'cancel/reject'} ${numHandling} pending transfer(s).`}
         >
             {children}
         </TxModal>

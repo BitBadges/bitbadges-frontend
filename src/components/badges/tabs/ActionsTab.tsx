@@ -249,6 +249,9 @@ export function ActionsTab({
                 setVisible={setUpdatePermissionsIsVisible}
                 badge={badge}
             />
+            {
+                //TODO: -slowly introduce additional functionality (approvals, update URI, new subbadges, etc)
+            }
         </div >
     );
 }

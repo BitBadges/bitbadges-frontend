@@ -462,6 +462,9 @@ export function FullMetadataForm({
                     </Text>
                 </div>
             </Form.Item>
+
+            
+{/* TODO: -need a way for large collections to be uploaded instead of manual metadata updates */}
         </div>
     );
 };

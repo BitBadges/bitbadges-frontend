@@ -1,28 +1,46 @@
 import React, { useState } from 'react';
-import { Layout, Drawer } from 'antd';
+import { Layout, Drawer, Divider, Empty, Row, Col } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import { PRIMARY_TEXT } from '../../constants';
-import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { Tabs } from '../Tabs';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../bitbadges-api/types';
+import { Tabs } from './Tabs';
+import { PageHeaderWithAvatar } from './badges/PageHeaderWithAvatar';
+import { CollectionOverview } from './badges/CollectionOverview';
+import { BadgeBalanceTab } from './badges/tabs/BadgeBalanceTab';
+import { BadgeOverview } from './badges/BadgeOverview';
 
 const { Content } = Layout;
 
-export function Pending({ badge, visible, setVisible, children, balance }
+export function BadgeModal({ badge, metadata, visible, setVisible, children, balance, badgeId }
     : {
         badge: BitBadgeCollection,
+        metadata: BadgeMetadata,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
         balance: UserBalance,
+        badgeId: number
     }) {
-    const [tab, setTab] = useState('incoming');
-    const tabInfo = [{ key: 'overview', content: 'Overview' }];
+    const [tab, setTab] = useState('overview');
+
+    const tabInfo = [
+        { key: 'overview', content: 'Overview' },
+        { key: 'owners', content: 'Owners' },
+        { key: 'activity', content: 'Activity' },
+    ];
     return (
         <Drawer
-            placement="right" onClose={() => { setVisible(false) }} open={visible}
-            // size="large"
+            onClose={() => { setVisible(false) }}
+            open={visible}
+            placement={'bottom'}
+            size="large"
             title={
-                "TEST"
+                <Tabs
+                    tabInfo={tabInfo}
+                    setTab={setTab}
+                    theme="dark"
+                    fullWidth
+                />
             }
             headerStyle={{
                 paddingLeft: '12px',
@@ -41,25 +59,74 @@ export function Pending({ badge, visible, setVisible, children, balance }
                 color: PRIMARY_TEXT,
             }}
         >
-            <Tabs
-                tabInfo={tabInfo}
-                setTab={setTab}
-                theme="dark"
-                fullWidth
-            />
-            {/* <Drawer
+            <Layout>
+                <Content
+                    style={{
+                        background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+                        textAlign: 'center',
+                        minHeight: '100vh',
+                    }}
+                >
+                    <div
+                        style={{
+                            marginLeft: '10vw',
+                            marginRight: '10vw',
+                            paddingLeft: '2vw',
+                            paddingRight: '2vw',
+                            paddingTop: '20px',
+                            background: PRIMARY_BLUE,
+                        }}
+                    >
 
-                
 
-                placement={'bottom'}
-                visible={modalIsVisible}
-                key={'bottom'}
-                onClose={() => setModalIsVisible(false)}
+                        {tab === 'overview' && (<>
+                            <PageHeaderWithAvatar
+                                metadata={metadata}
+                                balance={balance}
+                                hideButtons
+                            />
+                            <Divider />
+                            <Row>
+                                <Divider></Divider>
+                                <Col span={11}>
+                                    <CollectionOverview
+                                        badge={badge}
+                                        metadata={metadata}
+                                        balance={balance}
+                                    />
+                                </Col>
+                                <Col span={2}>
+                                </Col>
+                                <Col span={11}>
+                                    <BadgeOverview
+                                        badge={badge}
+                                        metadata={badge.badgeMetadata[badgeId]}
+                                        balance={balance}
+                                        badgeId={badgeId}
+                                    />
+                                </Col>
+                            </Row>
 
-            > */}
+                        </>
+                        )}
 
-            <Content className="full-area">
-                {/* {pending.map((pendingData) => (
+                        {tab === 'activity' && (
+                            <Empty
+                                style={{ color: PRIMARY_TEXT }}
+                                description="This feature is coming soon..."
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            />
+                        )}
+
+                        {tab === 'owners' && (
+                            <Empty
+                                style={{ color: PRIMARY_TEXT }}
+                                description="This feature is coming soon..."
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            />
+                        )}
+
+                        {/* {pending.map((pendingData) => (
                     <div key={pendingData.badge.id}>
                         {tab === 'incoming' && (
                             <>
@@ -229,8 +296,9 @@ export function Pending({ badge, visible, setVisible, children, balance }
                     />
                 )} */}
 
-                Test
-            </Content>
+                    </div>
+                </Content>
+            </Layout>
         </Drawer>
     );
 }

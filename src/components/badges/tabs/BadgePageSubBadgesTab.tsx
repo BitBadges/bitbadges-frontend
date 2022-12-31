@@ -1,15 +1,16 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { BadgeCard } from '../../BadgeCard';
 import { getBadge } from '../../../bitbadges-api/api';
 import { Divider, Typography } from 'antd';
 
 const { Text } = Typography;
 
-export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection }: {
+export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
+    balance: UserBalance | undefined;
 }) {
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
     const [display, setDisplay] = useState<ReactNode>(<>
@@ -38,13 +39,15 @@ export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection }: {
             setDisplay(<>
                 {individualBadgeMetadata?.map((metadata, idx) => {
                     return <div key={idx}>
-                        <BadgeCard collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                        <BadgeCard 
+                        balance={balance}
+                        collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
                     </div>
                 })}
             </>)
         }
         updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection]);
+    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection, balance]);
 
     return (
         <div

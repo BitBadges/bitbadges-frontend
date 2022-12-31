@@ -1,9 +1,10 @@
 import Meta from 'antd/lib/card/Meta';
 import { Avatar, Card } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
-import { BadgeMetadata, BitBadgeCollection } from '../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../bitbadges-api/types';
 import { useRouter } from 'next/router';
+import { BadgeModal } from './BadgeModal';
 
 //Can probably add this to bitbadges-js
 const getSupplyByBadgeId = (badgeCollection: BitBadgeCollection, badgeId: number) => {
@@ -26,15 +27,17 @@ export function BadgeCard({
     size,
     collection,
     hoverable,
-    id
+    id,
+    balance,
 }: {
     id: number;
     metadata?: BadgeMetadata;
     collection: BitBadgeCollection;
     size?: number;
     hoverable?: boolean;
+    balance?: UserBalance;
 }) {
-    const router = useRouter();
+    const [visible, setVisible] = useState<boolean>(false);
 
     if (!metadata) return <></>;
 
@@ -53,7 +56,7 @@ export function BadgeCard({
                 }}
                 hoverable={hoverable ? hoverable : true}
                 onClick={() => {
-                    router.push(`/badges/${collection?.id}/${id}`);
+                    setVisible(true);
                 }}
                 cover={
                     <div
@@ -130,12 +133,32 @@ export function BadgeCard({
                                 <br />
                                 Supply: {getSupplyByBadgeId(collection, id)}
                                 <br />
-                                {metadata?.description}
+                                You own x{balance?.balanceAmounts.find((balanceAmount) => {
+                                    const found = balanceAmount.id_ranges.find((idRange) => {
+                                        if (idRange.end === undefined) {
+                                            idRange.end = idRange.start;
+                                        }
+                                        return id >= idRange.start && id <= idRange.end;
+                                    });
+                                    return found !== undefined;
+                                })?.balance ?? 0}
+
+                                {/* {metadata?.description} */}
                             </div>
                         }
                     />
                 </div>
             </Card>
+
+            <BadgeModal
+                badge={collection}
+                metadata={metadata}
+                visible={visible}
+                setVisible={setVisible}
+                balance={balance ? balance : {} as UserBalance}
+                badgeId={id}
+            />
         </>
+
     );
 }
