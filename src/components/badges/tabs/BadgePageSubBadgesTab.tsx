@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { BadgeCard } from '../../BadgeCard';
+import { BadgeCard } from '../BadgeCard';
 import { getBadge } from '../../../bitbadges-api/api';
 import { Divider, Typography } from 'antd';
 
@@ -39,9 +39,9 @@ export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection, balance
             setDisplay(<>
                 {individualBadgeMetadata?.map((metadata, idx) => {
                     return <div key={idx}>
-                        <BadgeCard 
-                        balance={balance}
-                        collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                        <BadgeCard
+                            balance={balance}
+                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
                     </div>
                 })}
             </>)

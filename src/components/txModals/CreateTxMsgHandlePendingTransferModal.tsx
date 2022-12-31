@@ -6,7 +6,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { Avatar, Button, Col, Divider, Empty, Row, Tooltip, Typography } from 'antd';
 import { CheckOutlined, CloseOutlined, DeleteOutlined, SwapOutlined, SwapRightOutlined } from '@ant-design/icons';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { TransferDisplay } from './TransferDisplay';
+import { TransferDisplay } from '../common/TransferDisplay';
 const { Text } = Typography;
 
 export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible, setVisible, children }

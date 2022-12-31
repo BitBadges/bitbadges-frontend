@@ -1,5 +1,5 @@
 import { Avatar, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection } from "../bitbadges-api/types";
+import { BadgeMetadata, BitBadgeCollection } from "../../bitbadges-api/types";
 
 export function BadgeAvatar({
     badge,

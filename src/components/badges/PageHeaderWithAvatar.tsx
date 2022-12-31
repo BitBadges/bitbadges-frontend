@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BellOutlined, SwapOutlined } from '@ant-design/icons';
-import { ButtonDisplay } from '../ButtonDisplay';
+import { ButtonDisplay } from '../common/ButtonDisplay';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 import { useChainContext } from '../../chain/ChainContext';
 import { CreateTxMsgRequestTransferBadgeModal } from '../txModals/CreateTxMsgRequestTransferBadgeModal';

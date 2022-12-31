@@ -1,9 +1,8 @@
 import Meta from 'antd/lib/card/Meta';
 import { Avatar, Card } from 'antd';
 import React, { useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../bitbadges-api/types';
-import { useRouter } from 'next/router';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeModal } from './BadgeModal';
 
 //Can probably add this to bitbadges-js

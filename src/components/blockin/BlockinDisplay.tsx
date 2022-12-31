@@ -5,7 +5,7 @@ import { getChallengeParams, verifyChallengeOnBackend } from "../../chain/backen
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChallengeResponse, SupportedChainMetadata } from 'blockin';
 import { PRIMARY_TEXT } from "../../constants";
-import { Address } from "../Address";
+import { Address } from "../address/Address";
 import Blockies from 'react-blockies'
 import { Avatar, Typography } from "antd";
 import Image from 'next/image';

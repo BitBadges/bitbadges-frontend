@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Layout, Drawer, Divider, Empty, Row, Col } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../bitbadges-api/types';
-import { Tabs } from './Tabs';
-import { PageHeaderWithAvatar } from './badges/PageHeaderWithAvatar';
-import { CollectionOverview } from './badges/CollectionOverview';
-import { BadgeBalanceTab } from './badges/tabs/BadgeBalanceTab';
-import { BadgeOverview } from './badges/BadgeOverview';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { Tabs } from '../common/Tabs';
+import { PageHeaderWithAvatar } from '../badges/PageHeaderWithAvatar';
+import { CollectionOverview } from '../badges/CollectionOverview';
+import { BadgeBalanceTab } from '../badges/tabs/BadgeBalanceTab';
+import { BadgeOverview } from '../badges/BadgeOverview';
 
 const { Content } = Layout;
 

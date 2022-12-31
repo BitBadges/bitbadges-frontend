@@ -1,6 +1,6 @@
 import Blockies from 'react-blockies';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
-import { Address } from '../Address';
+import { Address } from './Address';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
 import { Divider, Tooltip } from 'antd';

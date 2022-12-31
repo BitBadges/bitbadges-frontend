@@ -1,6 +1,6 @@
 import React from 'react';
-import { useChainContext } from '../chain/ChainContext';
-import ConnectScreen from '../pages/connect';
+import { useChainContext } from '../../chain/ChainContext';
+import ConnectScreen from '../../pages/connect';
 
 export function DisconnectedWrapper({ node, message }: { node: JSX.Element, message?: string }) {
     const chain = useChainContext();

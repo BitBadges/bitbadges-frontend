@@ -3,7 +3,7 @@ import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types
 import { useChainContext } from '../../chain/ChainContext';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { AddressSelect } from './AddressSelect';
+import { AddressSelect } from '../address/AddressSelect';
 
 export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, children }
     : {

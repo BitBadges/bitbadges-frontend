@@ -3,13 +3,13 @@ import { MessageMsgRequestTransferBadge, MessageMsgTransferBadge, createTxMsgReq
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
+import { AddressSelect } from '../address/AddressSelect';
 import { InputNumber, Typography } from 'antd';
 import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
-import { BadgeAvatar } from '../BadgeAvatar';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
-import { BalanceBeforeAndAfter } from './BalanceBeforeAndAfter';
-import { TransferDisplay } from './TransferDisplay';
+import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
+import { TransferDisplay } from '../common/TransferDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }

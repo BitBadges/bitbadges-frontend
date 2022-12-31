@@ -5,11 +5,11 @@ import { BitBadgeCollection, IdRange, BitBadgesUserInfo, UserBalance } from '../
 import { useChainContext } from '../../chain/ChainContext';
 import { InputNumber } from 'antd';
 import { getAccountInformation } from '../../bitbadges-api/api';
-import { AddressListSelect } from './AddressListSelect';
+import { AddressListSelect } from '../address/AddressListSelect';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
-import { BadgeAvatar } from '../BadgeAvatar';
-import { BalanceBeforeAndAfter } from './BalanceBeforeAndAfter';
-import { TransferDisplay } from './TransferDisplay';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
+import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
+import { TransferDisplay } from '../common/TransferDisplay';
 
 export function CreateTxMsgTransferBadgeModal(
     {

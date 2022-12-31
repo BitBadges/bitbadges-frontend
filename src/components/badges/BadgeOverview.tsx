@@ -1,4 +1,4 @@
-import { Address } from '../Address';
+import { Address } from '../address/Address';
 import { Divider, Typography, Col, Row, Table } from 'antd';
 import React from 'react';
 import {

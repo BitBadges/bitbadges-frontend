@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Layout, Avatar, Typography, Badge, Tooltip, } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 const { Content } = Layout;
 const { Text } = Typography;

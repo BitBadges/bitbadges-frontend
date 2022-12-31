@@ -3,11 +3,10 @@ import { MessageMsgRevokeBadge, createTxMsgRevokeBadge } from 'bitbadgesjs-trans
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
+import { AddressSelect } from '../address/AddressSelect';
 import { Button, InputNumber } from 'antd';
-import { AddressModalDisplay, AddressModalDisplayList } from './AddressModalDisplay';
+import { AddressModalDisplayList } from '../address/AddressModalDisplay';
 import { getAccountInformation } from '../../bitbadges-api/api';
-
 
 export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, children }
     : {

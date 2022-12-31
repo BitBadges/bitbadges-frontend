@@ -5,7 +5,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
-import { AddressModalDisplay } from './AddressModalDisplay';
+import { AddressModalDisplay } from '../address/AddressModalDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 

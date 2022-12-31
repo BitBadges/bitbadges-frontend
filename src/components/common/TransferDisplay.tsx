@@ -1,12 +1,10 @@
-import { Col, Divider, Row, Typography } from "antd"
-import { Address } from "../Address"
+import { Col, Row, Typography } from "antd"
+import { Address } from "../address/Address"
 import Blockies from 'react-blockies';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { BadgeAvatar } from "../BadgeAvatar";
+import { BadgeAvatar } from "../badges/BadgeAvatar";
 import { BitBadgeCollection, BitBadgesUserInfo } from "../../bitbadges-api/types";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-
-const { Text } = Typography;
 
 export function TransferDisplay({
     from,

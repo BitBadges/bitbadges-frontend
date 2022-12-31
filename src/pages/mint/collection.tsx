@@ -5,8 +5,8 @@ import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
 import { useChainContext } from '../../chain/ChainContext';
 import ConnectScreen from '../connect';
 import { useRouter } from 'next/router';
-import { DisconnectedWrapper } from '../../components/DisconnectedWrapper';
-import { RegisteredWrapper } from '../../components/RegisterWrapper';
+import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
+import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 
 const { Content } = Layout;
 

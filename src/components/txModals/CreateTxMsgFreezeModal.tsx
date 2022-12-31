@@ -3,7 +3,7 @@ import { MessageMsgFreezeAddress, createTxMsgFreezeAddress } from 'bitbadgesjs-t
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { AddressSelect } from './AddressSelect';
+import { AddressSelect } from '../address/AddressSelect';
 import { Switch } from 'antd';
 
 export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }

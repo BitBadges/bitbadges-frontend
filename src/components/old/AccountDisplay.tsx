@@ -1,4 +1,4 @@
-import { Address } from '../Address';
+import { Address } from '../address/Address';
 import Blockies from 'react-blockies';
 import {
     InstagramOutlined,

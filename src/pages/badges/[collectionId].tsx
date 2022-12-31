@@ -4,7 +4,7 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../cons
 import { useRouter } from 'next/router';
 import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
 import { PageHeaderWithAvatar } from '../../components/badges/PageHeaderWithAvatar';
-import { Tabs } from '../../components/Tabs';
+import { Tabs } from '../../components/common/Tabs';
 import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { CollectionOverview } from '../../components/badges/CollectionOverview';
