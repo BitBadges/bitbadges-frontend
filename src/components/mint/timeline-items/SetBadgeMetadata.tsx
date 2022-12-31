@@ -33,17 +33,17 @@ export function SetIndividualBadgeMetadata({
                         node: <FullMetadataForm
                             id={id}
                             metadata={individualBadgeMetadata}
-                            setMetadata={setIndividualBadgeMetadata as any} //TODO: fix this typing
+                            setMetadata={setIndividualBadgeMetadata as any}
                         />,
                         disabled: !(individualBadgeMetadata[id]?.name)
                     },
                 ]}
                 setCurrStepNumber={setCurrStepNumber}
             />
-            <BadgeSubBadgesTab
-                individualBadgeMetadata={individualBadgeMetadata}
+            {/* <BadgeSubBadgesTab
+                setBadgeCollection={individualBadgeMetadata}
                 badgeCollection={undefined}
-            />
+            /> */}
         </>
     );
 }

@@ -222,6 +222,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         incrementSequence
     };
 
+
     return <EthereumContext.Provider value={ethereumContext}>
         {children}
     </ EthereumContext.Provider>

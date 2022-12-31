@@ -1,9 +1,11 @@
 import Blockies from 'react-blockies';
-import { BitBadgesUserInfo } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { Address } from './Address';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
 import { Divider, Tooltip } from 'antd';
+import { ethers } from 'ethers';
+import { COSMOS } from 'bitbadgesjs-address-converter';
 
 export function AddressModalDisplayTitle(
     {
@@ -81,6 +83,14 @@ export function AddressModalDisplay(
         showAccountNumber?: boolean
     }
 ) {
+
+    let isCosmosAddressValid = true;
+    try {
+        COSMOS.decoder(userInfo.cosmosAddress);
+    } catch (e) {
+        isCosmosAddressValid = false;
+    }
+
     return <>
         {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon, showAccountNumber })}
         <div style={{
@@ -95,7 +105,11 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
-                <Address address={userInfo.address} chain={userInfo.chain} hideChain={true} />
+                <Address address={userInfo.address} chain={userInfo.chain} hideChain={true}
+                    fontColor={
+                        userInfo.chain === SupportedChain.ETH && !ethers.utils.isAddress(userInfo.address) ? 'red' : undefined
+                    }
+                />
             </div>
 
             <div>
@@ -114,7 +128,11 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.cosmosAddress ? userInfo.cosmosAddress.toLowerCase() : ''} />
-                <Address address={userInfo.cosmosAddress} chain={userInfo.chain} hideChain={true} />
+                <Address address={userInfo.cosmosAddress} chain={userInfo.chain} hideChain={true}
+                    fontColor={
+                        !isCosmosAddressValid ? 'red' : undefined
+                    }
+                />
             </div>
             <div>
                 <span style={{ marginLeft: 8 }}>Cosmos</span>

@@ -1,4 +1,4 @@
-//TODO: sync with bitbadges-js
+//TODO: sync with bitbadges-js and the main libraries
 import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils";
 import { Permissions } from "./permissions";
 
@@ -23,9 +23,9 @@ export interface BitBadgeCollection {
     defaultSubassetSupply: number,
     subassetSupplys: BalanceObject[],
     nextSubassetId: number,
-    freezeRanges: any[],
-    manager: any,
-    arbitraryBytes: any,
+    freezeRanges: IdRange[],
+    manager: BitBadgesUserInfo,
+    arbitraryBytes: string,
     uri: UriObject,
     id: number,
     collectionMetadata: BadgeMetadata,
@@ -55,14 +55,37 @@ export interface IdRange {
     end?: number;
 }
 
+
 export interface UserBalance {
     balanceAmounts: {
         balance: number;
         id_ranges: IdRange[]
     }[];
     pendingNonce: number;
-    pending: any[];
-    approvals: any[]; //TODO:
+    pending: PendingTransfer[];
+    approvals: Approval[];
+}
+
+export interface Approval {
+    address: number;
+    approvalAmounts: {
+        balance: number;
+        id_ranges: IdRange[]
+    }[];
+}
+
+export interface PendingTransfer {
+    subbadgeRange: IdRange;
+    thisPendingNonce: number;
+    otherPendingNonce: number;
+    amount: number;
+    sent: boolean;
+    to: number;
+    from: number;
+    approvedBy: number;
+    markedAsAccepted: boolean;
+    expirationTime: number;
+    cantCancelBeforeTime: number;
 }
 
 

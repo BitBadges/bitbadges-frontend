@@ -17,7 +17,7 @@ export function TxModal(
         : {
             destroyOnClose?: boolean,
             disabled?: boolean,
-            createTxFunction: any, //TODO
+            createTxFunction: any,
             txCosmosMsg: object,
             visible: boolean,
             setVisible: (visible: boolean) => void,

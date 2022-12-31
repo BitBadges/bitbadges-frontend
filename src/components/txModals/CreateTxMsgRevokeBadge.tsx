@@ -151,6 +151,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
 
     return (
         <TxModal
+            msgSteps={items}
             unregisteredUsers={unregisteredUsers}
             onRegister={onRegister}
             destroyOnClose={true}

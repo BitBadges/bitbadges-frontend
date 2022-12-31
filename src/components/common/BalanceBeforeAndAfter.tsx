@@ -15,8 +15,9 @@ export function BalanceBeforeAndAfter({
             flexDirection: 'row',
             justifyContent: 'space-evenly',
             alignItems: 'center',
+            fontSize: 15
         }}>
-            <b>Impact on {partyString} Balances</b>
+            <b>Impact on {partyString} Owned Balances</b>
         </div>
         <div style={{
             display: 'flex',
@@ -43,7 +44,7 @@ export function BalanceBeforeAndAfter({
                     return balanceAmount.id_ranges.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
-                                {partyString} own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
+                                <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
                             </>
                         </div>
                     })
@@ -54,7 +55,7 @@ export function BalanceBeforeAndAfter({
                     return balanceAmount.id_ranges.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
-                                {partyString} will own <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
+                                <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
                             </>
                         </div>
                     })

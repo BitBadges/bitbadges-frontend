@@ -21,9 +21,8 @@ export function MintTimeline() {
     const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewBadge>({
         creator: chain.cosmosAddress,
         //IPFS URI (not image or externalUrl)
-        //TODO: remove hardcoded stuff
         uri: {
-            uri: 'http://facebook.com', //TODO:
+            uri: 'abc.com',
             decodeScheme: 0,
             scheme: 0,
             idxRangeToRemove: {

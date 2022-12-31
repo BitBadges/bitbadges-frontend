@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Select } from 'antd';
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { ethToCosmos, } from 'bitbadgesjs-address-converter';
+import { COSMOS, ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressModalDisplay, AddressModalDisplayTitle } from './AddressModalDisplay';
@@ -55,7 +55,6 @@ export function AddressSelect({
                 <Option value={SupportedChain.COSMOS}>Cosmos</Option>
             </Select>
             <Input
-                // TODO remove this default
                 defaultValue={DEV_MODE ? '0xe00dD9D317573f7B4868D8f2578C65544B153A27' : '0xe00dD9D317573f7B4868D8f2578C65544B153A27'}
                 // value={currUserInfo.address}
                 onChange={async (e) => {
@@ -68,8 +67,8 @@ export function AddressSelect({
                     }
 
                     let accountNum = -1;
-                    //TODO: better check for valid address so we do not spam getAccountInformation requests
-                    if (bech32Address.startsWith('cosmos')) {
+                    try {
+                        COSMOS.decoder(bech32Address); //throws on decode error, so we don't spam getAccountInformation with invalid addresses
                         const acctInformation = await getAccountInformation(bech32Address).then((accountInfo) => {
                             const userInfo: BitBadgesUserInfo = {
                                 chain: currUserInfo.chain,
@@ -81,7 +80,10 @@ export function AddressSelect({
                         });
 
                         accountNum = acctInformation.accountNumber;
+                    } catch (err) {
+                        if (DEV_MODE) console.log("Did not get account information because cosmos address is invalid");
                     }
+
 
                     setCurrUserInfo({
                         chain: currUserInfo.chain,
@@ -95,6 +97,5 @@ export function AddressSelect({
         <AddressModalDisplay
             userInfo={currUserInfo}
         />
-        {/* TODO: invalid address  */}
     </>
 }
