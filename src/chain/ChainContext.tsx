@@ -47,8 +47,8 @@ export type ChainSpecificContextType = {
     setIsRegistered: Dispatch<SetStateAction<boolean>>,
 
     //These are assumed to remain constant, but included because they are chain-specific
-    disconnect: () => {},
-    connect: () => {},
+    disconnect: () => Promise<any>,
+    connect: () => Promise<any>,
     signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
     signTxn: (txn: object) => Promise<any>,
     getPublicKey: (cosmosAddress: string) => Promise<string>,

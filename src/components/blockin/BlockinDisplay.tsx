@@ -7,7 +7,7 @@ import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChall
 import { PRIMARY_TEXT } from "../../constants";
 import { Address } from "../address/Address";
 import Blockies from 'react-blockies'
-import { Avatar, Typography } from "antd";
+import { Avatar, Modal, Typography, notification } from "antd";
 import Image from 'next/image';
 
 const { Text } = Typography;
@@ -113,7 +113,17 @@ export const BlockinDisplay = () => {
                 <BlockinUIDisplay
                     connected={connected}
                     connect={async () => {
-                        connect();
+                        try {
+                            await connect();
+                        } catch (e: any) {
+                            console.error("ERROR", e);
+                            notification.error({
+                                message: e.message,
+                                description: `Error connecting to wallet. ${e.message === 'User Rejected' && 'This usually happens when you are not signed in to MetaMask before attempting to connect.'}`
+
+
+                            })
+                        }
                     }}
                     buttonStyle={undefined}
                     modalStyle={{ color: `black` }}
