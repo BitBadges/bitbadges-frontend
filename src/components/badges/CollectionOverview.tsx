@@ -1,13 +1,14 @@
-import { Address } from '../address/Address';
-import { Divider, Typography, Col, Row, Table } from 'antd';
+import { Divider, Typography, Col, Row, Table, Tag } from 'antd';
 import React from 'react';
 import {
     CheckCircleFilled,
     WarningFilled,
 } from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { Permissions } from '../../bitbadges-api/permissions';
+import { AddressModalDisplay } from '../address/AddressModalDisplay';
+import { useChainContext } from '../../chain/ChainContext';
+import { TableRow } from '../common/TableRow';
 
 const { Text } = Typography;
 
@@ -17,6 +18,7 @@ export function CollectionOverview({ badge, metadata, balance }: {
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
 }) {
+    const chain = useChainContext();
     if (!badge || !metadata) return <></>
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
@@ -29,21 +31,6 @@ export function CollectionOverview({ badge, metadata, balance }: {
     const endDateString = validForever ? `Forever` : new Date(
         endTimestamp
     ).toLocaleDateString();
-
-    const getTableRow = (key: any, value: any) => {
-        return <Row>
-            <Col span={12}>
-                <Text style={{ fontSize: 18, color: PRIMARY_TEXT }}>
-                    {key}
-                </Text>
-            </Col>
-            <Col span={12}>
-                <Text style={{ fontSize: 18, color: PRIMARY_TEXT }}>
-                    {value}
-                </Text>
-            </Col>
-        </Row>
-    }
 
 
     return (
@@ -59,47 +46,61 @@ export function CollectionOverview({ badge, metadata, balance }: {
                             Collection Info
                         </Text>
                     </Row>
-                    <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {getTableRow("Collection ID", badge.id)}
-                    {getTableRow("Type", badge.standard == 0 ? "BitBadge" : "Unknown")}
-                    {badge.manager && getTableRow("Manager", <Address
-                        chain='eth'
-                        address={badge.manager.split(':')[1]}
-                        fontColor="lightgrey"
-                        fontSize={18}
-                    />)}
-                    {metadata?.description && getTableRow("Description", metadata.description)}
-                    {/* {getTableRow("Sub-Badges", subassetSupplyComponent)} */}
-                    {badge.uri && getTableRow("URI", <a href={badge.uri.uri} target="_blank" rel="noreferrer">{badge.uri.uri}</a>)}
-                    {badge.arbitraryBytes && getTableRow("Arbitrary Bytes", badge.arbitraryBytes)}
-                    {getTableRow("Expiration",
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
-                                ? 'Until ' +
-                                endDateString
-                                : 'Forever'
-                                }`}
-                            <Divider type="vertical" />
-                            {Date.now() <= endTimestamp ? (
-                                <CheckCircleFilled
-                                    style={{
-                                        fontSize: 30,
-                                        color: 'green',
-                                    }}
-                                />
-                            ) : (
-                                <WarningFilled
-                                    style={{
-                                        fontSize: 30,
-                                        color: 'red',
-                                    }}
-                                />
-                            )}
+                    <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
+                    {<TableRow label={"Collection ID"} value={badge.id} labelSpan={9} valueSpan={15} />}
+                    {<TableRow label={"Type"} value={badge.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
+                    {badge.manager && <TableRow label={"Manager"} value={<div style={{ justifyContent: 'right', textAlign: 'right' }}>
+                        <AddressModalDisplay
+                            fontSize={14}
+                            fontColor={SECONDARY_TEXT}
+                            // userInfo={badge?.manager}
+                            userInfo={{
+                                address: chain.address,
+                                chain: chain.chain,
+                                accountNumber: chain.accountNumber,
+                                cosmosAddress: chain.cosmosAddress,
+                            }}
+                            hideChains
+                        />
+                    </div>} labelSpan={9} valueSpan={15} />}
+                    {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
+                    {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}
+                    {badge.uri && <TableRow label={"Metadata URI"} value={<a href={badge.uri.uri} target="_blank" rel="noreferrer">{badge.uri.uri}</a>} labelSpan={9} valueSpan={15} />}
+                    {badge.arbitraryBytes && <TableRow label={"Arbitrary Bytes"} value={badge.arbitraryBytes} labelSpan={9} valueSpan={15} />}
+                    {<TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
+                        {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
+                            ? 'Until ' +
+                            endDateString
+                            : 'Forever'
+                            }`}
+                        <Divider type="vertical" />
+                        {Date.now() <= endTimestamp ? (
+                            <CheckCircleFilled
+                                style={{
+                                    fontSize: 30,
+                                    color: 'green',
+                                }}
+                            />
+                        ) : (
+                            <WarningFilled
+                                style={{
+                                    fontSize: 30,
+                                    color: 'red',
+                                }}
+                            />
+                        )}
 
 
-                        </div>
-
-                    )}
+                    </div>} labelSpan={9} valueSpan={15} />}
+                    {metadata?.tags && <TableRow label={"Tags"} value={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        {
+                            metadata?.tags?.map((tag, index) => {
+                                return <Tag key={index} style={{ color: SECONDARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
+                                    {tag}
+                                </Tag>
+                            })
+                        }
+                    </div>} labelSpan={9} valueSpan={15} />}
 
 
                     {DEV_MODE &&
@@ -109,42 +110,6 @@ export function CollectionOverview({ badge, metadata, balance }: {
                     }
                 </Col>
             </Row>
-            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
-                <Col style={{ justifyContent: 'center', width: '100%' }}>
-                    {/* </Col>
-                <Col span={11}> */}
-                    <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                            Permissions
-                        </Text>
-                    </Row>
-                    <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {Object.keys(badge.permissions).map((permission) => {
-                        return getTableRow(permission, badge.permissions[permission as keyof Permissions] ? 'true' : 'false')
-                    })}
-                    {badge.freezeRanges?.length > 0 && getTableRow("Freeze Ranges", badge.freezeRanges.map((freezeRange) => {
-                        return <>{freezeRange.start}-{freezeRange.end}</>
-                    }))}
-                </Col>
-            </Row >
-
-            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}  >
-                <Col style={{ justifyContent: 'center', width: '100%' }}>
-                    {/* </Col>
-                <Col span={11}> */}
-                    <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                            Your Balances
-                        </Text>
-                    </Row>
-                    <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
-                    {balance?.balanceAmounts?.map((balanceAmount) => {
-                        return balanceAmount.id_ranges.map((idRange) => {
-                            return getTableRow('x' + balanceAmount.balance, `IDs: ${idRange.start}-${idRange.end}`)
-                        })
-                    })}
-                </Col>
-            </Row >
 
         </div >
     );

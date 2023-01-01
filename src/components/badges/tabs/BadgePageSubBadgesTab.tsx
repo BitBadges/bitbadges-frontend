@@ -54,10 +54,10 @@ export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection, balance
             style={{
                 color: PRIMARY_TEXT,
             }}>
-            <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
+            {/* <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
                 Badges
             </Text>
-            <Divider style={{ margin: "4px 0px", color: 'white', background: 'white' }}></Divider>
+            <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider> */}
             <div
                 style={{
                     display: 'flex',

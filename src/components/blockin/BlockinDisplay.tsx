@@ -12,7 +12,11 @@ import Image from 'next/image';
 
 const { Text } = Typography;
 
-export const BlockinDisplay = () => {
+export const BlockinDisplay = ({
+    hideLogo,
+}: {
+    hideLogo?: boolean;
+}) => {
     const {
         chain,
         setChain,
@@ -106,7 +110,6 @@ export const BlockinDisplay = () => {
         setLoggedIn(false);
     }
 
-    //TODO: Better address display (hideChainName? )
     return <>
         <div style={{ display: 'flex', justifyContent: 'center', color: `${PRIMARY_TEXT}` }}>
             {
@@ -119,9 +122,7 @@ export const BlockinDisplay = () => {
                             console.error("ERROR", e);
                             notification.error({
                                 message: e.message,
-                                description: `Error connecting to wallet. ${e.message === 'User Rejected' && 'This usually happens when you are not signed in to MetaMask before attempting to connect.'}`
-
-
+                                description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This usually happens when you are not signed in to MetaMask before attempting to connect.' : ''}`
                             })
                         }
                     }}
@@ -158,18 +159,19 @@ export const BlockinDisplay = () => {
 
         </div>
         <div>
-            <Avatar
-                size={200}
-                src={
-                    address ? <Blockies
-                        seed={address.toLowerCase()}
-                        size={100}
-                    /> : <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
-                }
-                style={{ marginTop: 40 }}
-            />
-
-
+            {!(hideLogo && !address) &&
+                <Avatar
+                    size={200}
+                    src={
+                        address ? <Blockies
+                            seed={address.toLowerCase()}
+                            size={100}
+                        /> :
+                            <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
+                    }
+                    style={{ marginTop: 40 }}
+                />
+            }
         </div>
         <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} chain={chain} hideChain />}</div>
         <div> {address && <Text

@@ -1,20 +1,31 @@
 import { Avatar, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection } from "../../bitbadges-api/types";
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
+import { useEffect, useState } from "react";
+import { BadgeModal } from "./BadgeModal";
 
 export function BadgeAvatar({
     badge,
     metadata,
     size,
-    badgeId
+    badgeId,
+    balance,
 }: {
     badge: BitBadgeCollection,
     metadata: BadgeMetadata,
     size?: number,
     badgeId: number,
+    balance?: UserBalance,
 }) {
+    const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
+
+    if (!metadata) return <></>;
+
+
+
     return <Tooltip
         placement="bottom"
         title={`${metadata.name} (ID: ${badgeId})`}
+        open={modalIsVisible ? false : undefined}
     >
         {metadata.image ? (
             <Avatar
@@ -28,7 +39,7 @@ export function BadgeAvatar({
                 className="badge-avatar"
                 src={metadata.image}
                 size={size}
-                // onClick={() => setModalIsVisible(true)}
+                onClick={() => setModalIsVisible(true)}
                 onError={() => {
                     return false;
                 }}
@@ -44,8 +55,16 @@ export function BadgeAvatar({
                 }}
                 size={size}
                 className="badge-avatar"
-            // onClick={() => setModalIsVisible(true)}
+                onClick={() => setModalIsVisible(true)}
             ></Avatar>
         )}
+        <BadgeModal
+            badge={badge}
+            metadata={metadata}
+            visible={modalIsVisible}
+            setVisible={setModalIsVisible}
+            balance={balance ? balance : {} as UserBalance}
+            badgeId={badgeId}
+        />
     </Tooltip>
 }

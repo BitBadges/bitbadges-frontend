@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Layout, Drawer, Divider, Empty, Row, Col } from 'antd';
+import { Layout, Drawer, Divider, Empty, Row, Col, Typography } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { Tabs } from '../common/Tabs';
-import { PageHeaderWithAvatar } from '../badges/PageHeaderWithAvatar';
+import { BadgePageHeader } from './BadgePageHeader';
 import { CollectionOverview } from '../badges/CollectionOverview';
-import { BadgeBalanceTab } from '../badges/tabs/BadgeBalanceTab';
 import { BadgeOverview } from '../badges/BadgeOverview';
+import { BalanceOverview } from './BalanceOverview';
+import { PermissionsOverview } from './PermissionsOverview';
+import { useChainContext } from '../../chain/ChainContext';
 
 const { Content } = Layout;
+const { Text } = Typography;
 
 export function BadgeModal({ badge, metadata, visible, setVisible, children, balance, badgeId }
     : {
@@ -21,6 +24,7 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
         balance: UserBalance,
         badgeId: number
     }) {
+    const chain = useChainContext();
     const [tab, setTab] = useState('overview');
 
     const tabInfo = [
@@ -80,30 +84,41 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
 
 
                         {tab === 'overview' && (<>
-                            <PageHeaderWithAvatar
+                            <BadgePageHeader
                                 metadata={metadata}
                                 balance={balance}
                                 hideButtons
                             />
+                            {chain.connected && <>You have x{balance?.balanceAmounts?.find((balanceAmount) => {
+                                const found = balanceAmount.id_ranges.find((idRange) => {
+                                    if (idRange.end === undefined) {
+                                        idRange.end = idRange.start;
+                                    }
+                                    return badgeId >= idRange.start && badgeId <= idRange.end;
+                                });
+                                return found !== undefined;
+                            })?.balance ?? 0} of this badge.</>}
                             <Divider />
-                            <Row>
-                                <Divider></Divider>
-                                <Col span={11}>
-                                    <CollectionOverview
-                                        badge={badge}
-                                        metadata={metadata}
-                                        balance={balance}
-                                    />
-                                </Col>
-                                <Col span={2}>
-                                </Col>
-                                <Col span={11}>
-                                    <BadgeOverview
-                                        badge={badge}
-                                        metadata={badge.badgeMetadata[badgeId]}
-                                        balance={balance}
-                                        badgeId={badgeId}
-                                    />
+                            <Row
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+
+                                }}
+                            >
+
+                                <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
+
+                                    <Text style={{ color: SECONDARY_TEXT }}>
+
+
+                                        <BadgeOverview
+                                            badge={badge}
+                                            metadata={badge.badgeMetadata[badgeId]}
+                                            balance={balance}
+                                            badgeId={badgeId}
+                                        />
+                                    </Text>
                                 </Col>
                             </Row>
 

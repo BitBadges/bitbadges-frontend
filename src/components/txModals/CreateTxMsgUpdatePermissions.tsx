@@ -25,46 +25,48 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
 
     const items = [
         {
-            title: 'Select Permissions',
+            title: 'Select Permissions To Update',
             description: <>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>Can Freeze</span>
                     <div>
-                        <Switch defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
+                        <Switch disabled={!GetPermissions(currPermissions).CanFreeze} defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))
                         }} />
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Revoke
-                    <Switch defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
+                    <Switch disabled={!GetPermissions(currPermissions).CanRevoke} defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Create
-                    <Switch defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
+                    <Switch disabled={!GetPermissions(currPermissions).CanCreate} defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanCreateDigit, !GetPermissions(currPermissions).CanCreate))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Uris
-                    <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
+                    <Switch disabled={!GetPermissions(currPermissions).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Bytes
-                    <Switch defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                    <Switch disabled={!GetPermissions(currPermissions).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Manager Transfer
-                    <Switch defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
+                    <Switch disabled={!GetPermissions(currPermissions).CanManagerTransfer} defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanManagerTransferDigit, !GetPermissions(currPermissions).CanManagerTransfer))
                     }} />
                 </div>
+                <br />
+                *Once a permission is turned off, it cannot be turned back on.
             </>
         }
     ]
