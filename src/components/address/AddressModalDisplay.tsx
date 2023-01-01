@@ -75,12 +75,18 @@ export function AddressModalDisplay(
         userInfo,
         title,
         icon,
-        showAccountNumber
+        showAccountNumber,
+        fontColor,
+        fontSize,
+        hideChains
     }: {
         userInfo: BitBadgesUserInfo,
         title?: string | ReactNode,
         icon?: ReactNode,
-        showAccountNumber?: boolean
+        showAccountNumber?: boolean,
+        fontColor?: string
+        fontSize?: number,
+        hideChains?: boolean
     }
 ) {
 
@@ -105,16 +111,16 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
-                <Address address={userInfo.address} chain={userInfo.chain} hideChain={true}
+                <Address fontSize={fontSize} address={userInfo.address} chain={userInfo.chain} hideChain={true}
                     fontColor={
-                        userInfo.chain === SupportedChain.ETH && !ethers.utils.isAddress(userInfo.address) ? 'red' : undefined
+                        userInfo.chain === SupportedChain.ETH && !ethers.utils.isAddress(userInfo.address) ? 'red' : fontColor
                     }
                 />
             </div>
-
-            <div>
-                <span style={{ marginLeft: 8 }}>{userInfo.chain}</span>
-            </div>
+            {!hideChains &&
+                <div>
+                    <span style={{ marginLeft: 8 }}>{userInfo.chain}</span>
+                </div>}
         </div>
         <div style={{
             display: 'flex',
@@ -128,15 +134,16 @@ export function AddressModalDisplay(
                 alignItems: 'center',
             }}>
                 <Blockies seed={userInfo.cosmosAddress ? userInfo.cosmosAddress.toLowerCase() : ''} />
-                <Address address={userInfo.cosmosAddress} chain={userInfo.chain} hideChain={true}
+                <Address fontSize={fontSize} address={userInfo.cosmosAddress} chain={SupportedChain.COSMOS} hideChain={true}
                     fontColor={
-                        !isCosmosAddressValid ? 'red' : undefined
+                        !isCosmosAddressValid ? 'red' : fontColor
                     }
                 />
             </div>
-            <div>
-                <span style={{ marginLeft: 8 }}>Cosmos</span>
-            </div>
+            {!hideChains &&
+                <div>
+                    <span style={{ marginLeft: 8 }}>Cosmos</span>
+                </div>}
         </div>
     </>
 }
