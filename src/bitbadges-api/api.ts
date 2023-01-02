@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
-import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
+import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 
 
@@ -75,23 +75,58 @@ export async function getBadge(
             //TODO: Replace manager info with actual account information (i.e. Cosmos address)
             // const managerAccountInfo = await axios.get(NODE_URL + GetAccountByNumberRoute(badgeData.manager))
             //     .then((res) => res.data);
-
             // badgeData.manager = managerAccountInfo;
 
-            //TODO: Normalize subasset supplys with defaultsubassetsupply
-            //TODO: todo when I update mint page
-            //This is just hardcoded right now
-            badgeData.subassetSupplys = [{
+            let managerAccountNumber: any = badgeData.manager;
+            badgeData.manager = {
+                accountNumber: managerAccountNumber,
+                address: '',
+                cosmosAddress: '',
+                chain: ''
+            }
+
+            const defaultSupplyObject: BalanceObject = {
                 balance: badgeData.defaultSubassetSupply,
-                idRanges: [
-                    {
-                        start: 0,
-                        end: badgeData.nextSubassetId - 1
+                idRanges: []
+            };
+
+            for (let i = 0; i < badgeData.nextSubassetId; i++) {
+                if (!badgeData.subassetSupplys.find((supply) => supply.idRanges.find((range) => {
+                    if (!range.end) range.end = range.start;
+
+                    return range.start <= i && range.end >= i;
+                }))) {
+                    defaultSupplyObject.idRanges.push({
+                        start: i,
+                        end: i
+                    });
+                }
+            }
+            console.log("MED", JSON.stringify(defaultSupplyObject));
+
+            if (defaultSupplyObject.idRanges.length > 0) {
+                //combine all ranges where the previous end is the next start minus one
+                for (let i = 0; i < defaultSupplyObject.idRanges.length - 1; i++) {
+                    let currStart = defaultSupplyObject.idRanges[i].start;
+                    let currEnd = defaultSupplyObject.idRanges[i].end;
+                    let nextStart = defaultSupplyObject.idRanges[i + 1].start;
+                    let nextEnd = defaultSupplyObject.idRanges[i + 1].end;
+
+                    if (!currEnd) currEnd = currStart;
+                    if (!nextEnd) nextEnd = nextStart;
+
+                    if (currEnd + 1 === nextStart) {
+                        defaultSupplyObject.idRanges[i].end = nextEnd;
+                        defaultSupplyObject.idRanges.splice(i + 1, 1);
+                        i--;
                     }
-                ]
-            }];
+                }
+
+                badgeData.subassetSupplys.push(defaultSupplyObject);
+            }
         }
     }
+
 
     //Get the collection metadata if it does not exist on the current badge object
     if (badgeData && (!badgeData.collectionMetadata || JSON.stringify(badgeData.collectionMetadata) === JSON.stringify({} as BadgeMetadata))) {

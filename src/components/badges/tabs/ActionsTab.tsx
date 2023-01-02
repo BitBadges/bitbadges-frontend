@@ -32,7 +32,7 @@ export function ActionsTab({
     if (!badge) return <></>;
 
     let actions: any[] = [];
-    const isManager = badge.manager === accountNumber;
+    const isManager = badge.manager.accountNumber === accountNumber;
 
     if (isManager) {
         if (badge.permissions.CanCreate) {
