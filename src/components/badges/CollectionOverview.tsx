@@ -49,19 +49,25 @@ export function CollectionOverview({ badge, metadata, balance }: {
                     <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
                     {<TableRow label={"Collection ID"} value={badge.id} labelSpan={9} valueSpan={15} />}
                     {<TableRow label={"Type"} value={badge.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
-                    {badge.manager && <TableRow label={"Manager"} value={<div style={{ justifyContent: 'right', textAlign: 'right' }}>
-                        <AddressModalDisplay
-                            fontSize={14}
-                            fontColor={SECONDARY_TEXT}
-                            // userInfo={badge?.manager}
-                            userInfo={{
-                                address: chain.address,
-                                chain: chain.chain,
-                                accountNumber: chain.accountNumber,
-                                cosmosAddress: chain.cosmosAddress,
-                            }}
-                            hideChains
-                        />
+                    {badge.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
+                        <div></div>
+                        <div style={{
+                            display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
+                        }} >
+                            <AddressModalDisplay
+                                fontSize={14}
+                                fontColor={SECONDARY_TEXT}
+                                // userInfo={badge?.manager}
+                                userInfo={{
+                                    address: chain.address,
+                                    chain: chain.chain,
+                                    accountNumber: chain.accountNumber,
+                                    cosmosAddress: chain.cosmosAddress,
+                                }}
+                                hideChains
+                            />
+                        </div>
+
                     </div>} labelSpan={9} valueSpan={15} />}
                     {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
                     {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}

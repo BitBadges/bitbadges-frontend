@@ -69,8 +69,8 @@ export function Address({
 
 
     return (
-        <span>
-            <span
+        <div >
+            <div
                 style={{
                     verticalAlign: 'middle',
                     paddingLeft: 5,
@@ -98,7 +98,7 @@ export function Address({
                         {innerContent}
                     </Text>
                 )}
-            </span>
-        </span>
+            </div>
+        </div>
     );
 }

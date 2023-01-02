@@ -109,6 +109,7 @@ export function AddressModalDisplay(
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
+                // justifyContent: 'space-between',
             }}>
                 <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
                 <Address fontSize={fontSize} address={userInfo.address} chain={userInfo.chain} hideChain={true}
