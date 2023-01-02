@@ -21,14 +21,11 @@ export async function broadcastTransaction(txRaw: any) {
     let res = await broadcastPost.json()
     if (DEV_MODE) console.log("Tx Response:", res)
 
-    if (res.tx_response.code !== 0) {
+    if (res.tx_response.code !== 0 && res.tx_response.codespace !== 'badges') {
         throw {
-            message: `Code ${res.tx_response.code}: ${res.tx_response.raw_log}`,
+            message: `Code ${res.tx_response.code} from \"${res.tx_response.codespace}\": ${res.tx_response.raw_log}`,
         };
     }
-
-    //TODO: other error codes may go through here so we need to not throw and increment sequence (such as frozen address bc that is in badges module)
-
 
     return res;
 }
@@ -40,7 +37,6 @@ export async function getSenderInformation(chain: ChainContextType) {
 
     if (chain.cosmosAddress && !publicKey) {
         publicKey = await chain.getPublicKey(chain.cosmosAddress);
-        //TODO: store in local storage
         chain.setPublicKey(publicKey);
     } else if (!chain.cosmosAddress) {
         return Promise.reject("No address found");

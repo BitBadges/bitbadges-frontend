@@ -54,14 +54,20 @@ export function TxModal(
 
             if (DEV_MODE) console.log(msgResponse);
 
+            chain.incrementSequence();
+
+            if (msgResponse.tx_response.codespace === "badges" && msgResponse.tx_response.code !== 0) {
+                throw {
+                    message: `Code ${msgResponse.tx_response.code} from \"${msgResponse.tx_response.codespace}\": ${msgResponse.tx_response.raw_log}`,
+                }
+            }
+
             setTransactionStatus(TransactionStatus.None);
 
             notification.success({
                 message: 'Transaction Successful',
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
-
-            chain.incrementSequence();
 
             setVisible(false);
         } catch (err: any) {
