@@ -1,11 +1,12 @@
 import { InputNumber, } from 'antd';
 import React, { useState } from 'react';
 
-import { BadgeMetadata } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 import { BadgeSubBadgesTab } from '../../badges/tabs/BadgePageSubBadgesTab';
 import { FormTimeline } from '../form/FormTimeline';
 import { FullMetadataForm } from '../form/FullMetadataForm';
+import { BadgeCard } from '../../badges/BadgeCard';
 
 export function SetIndividualBadgeMetadata({
     setCurrStepNumber,
@@ -40,10 +41,19 @@ export function SetIndividualBadgeMetadata({
                 ]}
                 setCurrStepNumber={setCurrStepNumber}
             />
-            {/* <BadgeSubBadgesTab
-                setBadgeCollection={individualBadgeMetadata}
-                badgeCollection={undefined}
-            /> */}
+            {/* {
+                individualBadgeMetadata.map((metadata, index) => {
+                    return (
+                        <BadgeCard
+                            key={index}
+                            metadata={metadata}
+                            id={index}
+                            collection={{} as BitBadgeCollection}
+                        />
+                    );
+                }
+                )
+            } */}
         </>
     );
 }

@@ -129,18 +129,19 @@ export function BadgeCard({
                                 }}
                             >
                                 ID #: {id}
-                                <br />
-                                Supply: {getSupplyByBadgeId(collection, id)}
-                                <br />
-                                You own x{balance?.balanceAmounts.find((balanceAmount) => {
-                                    const found = balanceAmount.id_ranges.find((idRange) => {
-                                        if (idRange.end === undefined) {
-                                            idRange.end = idRange.start;
-                                        }
-                                        return id >= idRange.start && id <= idRange.end;
-                                    });
-                                    return found !== undefined;
-                                })?.balance ?? 0}
+                                {collection && collection.subassetSupplys && <><br />
+                                    Supply: {getSupplyByBadgeId(collection, id)}</>
+                                }
+                                {balance && <><br />
+                                    You own x{balance?.balanceAmounts.find((balanceAmount) => {
+                                        const found = balanceAmount.id_ranges.find((idRange) => {
+                                            if (idRange.end === undefined) {
+                                                idRange.end = idRange.start;
+                                            }
+                                            return id >= idRange.start && id <= idRange.end;
+                                        });
+                                        return found !== undefined;
+                                    })?.balance ?? 0}</>}
 
                                 {/* {metadata?.description} */}
                             </div>

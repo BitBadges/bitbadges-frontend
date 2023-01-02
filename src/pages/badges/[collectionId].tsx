@@ -174,7 +174,7 @@ function CollectionPage() {
                     </>
                     )}
                     {tab === 'badges' && (<>
-                        <Divider></Divider>
+                        <br />
                         <BadgeSubBadgesTab
                             badgeCollection={badgeCollection}
                             setBadgeCollection={setBadgeCollection}

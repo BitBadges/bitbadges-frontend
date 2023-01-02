@@ -1,5 +1,5 @@
-import { CalendarOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
-import { DatePicker, Divider, Form, Input, InputNumber, Select, Space, Typography } from 'antd';
+import { CalendarOutlined, DownOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Typography, Upload, UploadProps, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
@@ -49,6 +49,7 @@ export function FullMetadataForm({
 
     const addImage = (e: any) => {
         e.preventDefault();
+
         setImages([
             ...images,
             {
@@ -76,8 +77,6 @@ export function FullMetadataForm({
             // setCurrMetadata(newMetadata);
             return newMetadata;
         }
-
-
     }
 
 
@@ -87,10 +86,71 @@ export function FullMetadataForm({
         const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id)] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
         console.log('set metadata to', m)
-    }, [metadata, stringifiedMetadata, id])
+
+        if (m.image && !images.find(img => {
+            return img.value === m.image;
+        })) {
+            setImages([
+                ...images,
+                {
+                    value: m.image,
+                    label: 'Collection Image',
+                },
+            ]);
+        }
+    }, [metadata, stringifiedMetadata, id, images])
 
     // console.log(currMetadata.name);
     // console.log(metadata, stringifiedMetadata, id, currMetadata)
+
+    const props: UploadProps = {
+        showUploadList: false,
+        name: 'file',
+        // action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+        headers: {
+            authorization: 'authorization-text',
+        },
+
+        onChange(info) {
+            if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+            }
+            console.log(info.file);
+
+            if (info.file.status === 'done') {
+                message.success(`${info.file.name} file uploaded successfully. ${JSON.stringify(info.file.url)}`);
+                const base64Image = file2Base64(info.file.originFileObj as File).then((base64) => {
+                    console.log(base64);
+                    setImages([
+                        ...images,
+                        {
+                            value: base64,
+                            label: info.file.url ? info.file.url : info.file.name,
+                        },
+                    ]);
+                    setMetadata(getMetadataToUpdate({
+                        ...currentMetadata,
+                        image: base64
+                    }));
+                    setNewImage('');
+                })
+            } else if (info.file.status === 'error') {
+                message.error(`${info.file.name} file upload failed. ${JSON.stringify(info.file)}}`);
+            }
+
+
+        },
+    };
+
+    const file2Base64 = (file: File): Promise<string> => {
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result?.toString() || '');
+            reader.onerror = error => reject(error);
+        })
+    }
+
 
     return (
         <div>
@@ -158,12 +218,12 @@ export function FullMetadataForm({
                                 align="center"
                                 style={{ padding: '0 8px 4px' }}
                             >
-                                <Input
-                                    placeholder="Enter Custom Image URI"
+                                {/* <Input
+                                    placeholder="Enter Image Name"
                                     value={newImage}
                                     onChange={onNewImageChange}
-                                />
-                                <Typography.Link
+                                /> */}
+                                {/* <Typography.Link
                                     // disabled={
                                     // !isuri.isValid(newImage) TODO:
                                     // }
@@ -173,7 +233,21 @@ export function FullMetadataForm({
                                     }}
                                 >
                                     <PlusOutlined /> Add Image
-                                </Typography.Link>
+                                </Typography.Link> */}
+                                {/* <Typography.Link
+                                    // disabled={
+                                    // !isuri.isValid(newImage) TODO:
+                                    // }
+                                    onClick={addImage}
+                                    style={{
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    <PlusOutlined /> Upload Image from Computer
+                                </Typography.Link> */}
+                                <Upload {...props}>
+                                    <Button icon={<UploadOutlined />}>Click to Upload New Image</Button>
+                                </Upload>
                             </Space>
                         </>
                     )}
@@ -200,17 +274,6 @@ export function FullMetadataForm({
                         </Option>
                     ))}
                 </Select>
-                <br />
-                <div style={{ fontSize: 12 }}>
-                    <Text style={{ color: 'lightgray' }}>
-                        {/* {GetPermissions(newBadgeMsg.permissions).CanUpdateUris ? '' :
-                                        `You have selected that badge metadata is permanent. Make sure this
-                                    image URI is permanent as well.`
-                                    } */}
-                        {/* //TODO: parse image and always store in IPFS instead 
-                                */}
-                    </Text>
-                </div>
             </Form.Item>
             <Form.Item
                 label={
@@ -408,10 +471,8 @@ export function FullMetadataForm({
                 />
                 <div style={{ fontSize: 12 }}>
                     <Text style={{ color: 'lightgray' }}>
-                        *Reminder: Badge metadata is not
-                        editable. Please use a permanent URL that will not
+                        *Please use a permanent fixed URL that will not
                         change.
-                        {/* TODO: change this */}
                     </Text>
                 </div>
             </Form.Item>

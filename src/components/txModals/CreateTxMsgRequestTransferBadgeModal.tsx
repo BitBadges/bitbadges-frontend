@@ -4,12 +4,13 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
-import { InputNumber, Typography } from 'antd';
+import { Divider, InputNumber, Switch, Typography } from 'antd';
 import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { TransferDisplay } from '../common/TransferDisplay';
+import { AddressModalDisplay } from '../address/AddressModalDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }
@@ -22,6 +23,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     }) {
     const chain = useChainContext();
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
+    const [requestingFromManager, setRequestingFromManager] = useState<boolean>(true);
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(0);
@@ -61,7 +63,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
 
     const txCosmosMsg: MessageMsgRequestTransferBadge = {
         creator: chain.cosmosAddress,
-        from: currUserInfo?.accountNumber ? currUserInfo.accountNumber : -1,
+        from: requestingFromManager ? badge.manager.accountNumber : currUserInfo?.accountNumber ? currUserInfo.accountNumber : -1,
         badgeId: badge.id,
         amount: amountToTransfer,
         subbadgeRanges,
@@ -90,18 +92,39 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
         setEndSubbadgeId(0);
     }, [visible])
 
-    const firstStepDisabled = !currUserInfo || !currUserInfo.cosmosAddress;
+    const firstStepDisabled = !requestingFromManager && (!currUserInfo || !currUserInfo.cosmosAddress);
     const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance?.balanceAmounts.find((balance) => balance.balance < 0);;
 
     const items = [
         {
             title: `Select User to Request From`,
             description: <div>
-                <AddressSelect onChange={handleChange} title={""} />
-                {/* TODO: <Typography>
-                    Want to request from the manager? Click here.
-                </Typography> */}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+                >
+                    Request From Manager?
+                    <Switch
+                        checked={requestingFromManager}
+                        onChange={(v) => {
+                            setRequestingFromManager(v);
+                        }}
+                        title='Amount to Transfer'
 
+                    />
+                </div>
+                {
+                    requestingFromManager && <AddressModalDisplay userInfo={badge.manager} />
+                }
+                {
+                    !requestingFromManager && <>
+                        <Divider />
+                        <AddressSelect onChange={handleChange} title={"Select User"} />
+                    </>
+                }
             </div>,
             disabled: firstStepDisabled,
         },

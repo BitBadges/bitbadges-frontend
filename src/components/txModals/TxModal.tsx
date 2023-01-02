@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Typography, Modal, Steps, StepProps, Button, Divider } from 'antd';
+import { Typography, Modal, Steps, StepProps, Button, Divider, notification } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
@@ -56,7 +56,11 @@ export function TxModal(
 
             setTransactionStatus(TransactionStatus.None);
 
-            //TODO: way to track tx - link to block explorer
+            notification.success({
+                message: 'Transaction Successful',
+                description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
+            });
+
             chain.incrementSequence();
 
             setVisible(false);

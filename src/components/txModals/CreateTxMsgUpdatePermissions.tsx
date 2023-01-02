@@ -30,38 +30,38 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>Can Freeze</span>
                     <div>
-                        <Switch disabled={!GetPermissions(currPermissions).CanFreeze} defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanFreeze} defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))
                         }} />
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Revoke
-                    <Switch disabled={!GetPermissions(currPermissions).CanRevoke} defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanRevoke} defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Create
-                    <Switch disabled={!GetPermissions(currPermissions).CanCreate} defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanCreate} defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanCreateDigit, !GetPermissions(currPermissions).CanCreate))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Uris
-                    <Switch disabled={!GetPermissions(currPermissions).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Bytes
-                    <Switch disabled={!GetPermissions(currPermissions).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Manager Transfer
-                    <Switch disabled={!GetPermissions(currPermissions).CanManagerTransfer} defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanManagerTransfer} defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanManagerTransferDigit, !GetPermissions(currPermissions).CanManagerTransfer))
                     }} />
                 </div>
