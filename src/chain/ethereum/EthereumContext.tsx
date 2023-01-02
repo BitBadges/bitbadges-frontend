@@ -94,22 +94,19 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             }
         };
 
-        //TODO: Update dynamically based on provider
         const web3ModalInstance = web3Modal ? web3Modal : new Web3Modal({
             network: "mainnet", // optional
-            cacheProvider: false, // optional
+            cacheProvider: true, // optional
             providerOptions // required
         });
         setWeb3Modal(web3ModalInstance);
-        web3ModalInstance.clearCachedProvider();
 
         const instance = await web3ModalInstance.connect();
         const provider = new ethers.providers.Web3Provider(instance);
         const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        console.log("SIGNER", signer, address);
+        const signerAddress = await signer.getAddress();
 
-        const accountInformation = await getAccountInformation(ethToCosmos(address));
+        const accountInformation = await getAccountInformation(ethToCosmos(signerAddress));
         setCosmosAddress(accountInformation.address);
         setSequence(accountInformation.sequence);
         setPublicKey(accountInformation.pub_key?.key);
@@ -119,6 +116,42 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setSigner(signer);
         setConnected(true);
         setAddress(await signer.getAddress());
+
+        instance.on("accountsChanged", async (accounts: string[]) => {
+            
+            console.log("accountsChanged", accounts);
+            const provider = new ethers.providers.Web3Provider(instance);
+            const signer = provider.getSigner();
+            const newAddress = await signer.getAddress();
+            if (address !== newAddress) {
+                const accountInformation = await getAccountInformation(ethToCosmos(newAddress));
+                setCosmosAddress(accountInformation.address);
+                setSequence(accountInformation.sequence);
+                setPublicKey(accountInformation.pub_key?.key);
+                setAccountNumber(accountInformation.account_number);
+                setIsRegistered(!!accountInformation.account_number);
+
+                setSigner(signer);
+                setConnected(true);
+                setAddress(await signer.getAddress());
+            }
+        });
+
+        // // Subscribe to chainId change
+        // provider.on("chainChanged", async (chainId: number) => {
+        //     console.log(chainId);
+        // });
+
+        // // Subscribe to provider connection
+        // provider.on("connect", async (info: { chainId: number }) => {
+        //     console.log(info);
+        // });
+
+        // // Subscribe to provider disconnection
+        // provider.on("disconnect", async (error: { code: number; message: string }) => {
+        //     console.log(error);
+        // });
+
     }
 
     const incrementSequence = () => {
@@ -128,6 +161,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const disconnect = async () => {
         setAddress('');
         setConnected(false);
+
+        web3Modal?.clearCachedProvider();
     };
 
     const signChallenge = async (message: string) => {
