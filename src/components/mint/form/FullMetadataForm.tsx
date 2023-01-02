@@ -1,6 +1,6 @@
 import { CalendarOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { DatePicker, Divider, Form, Input, InputNumber, Select, Space, Typography } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata } from '../../../bitbadges-api/types';
@@ -63,17 +63,34 @@ export function FullMetadataForm({
         setNewImage(event.target.value);
     };
 
+    const [currentMetadata, setCurrentMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
     const getMetadataToUpdate = (newMetadata: BadgeMetadata) => {
-        if (!id) {
-            return newMetadata;
-        } else {
+        setCurrentMetadata(newMetadata);
+        if (!isNaN(Number(id)) && Number(id) >= 0) {
             let currMetadata: BadgeMetadata[] = metadata as BadgeMetadata[];
-            currMetadata[id] = newMetadata;
+            currMetadata[Number(id)] = newMetadata;
+            console.log('ID', id, 'RETURNING NEW METADATA FOR ID', currMetadata)
             return currMetadata;
+        } else {
+            console.log('ID', id, 'RETURNING NEW METADATA', newMetadata)
+            // setCurrMetadata(newMetadata);
+            return newMetadata;
         }
+
+
     }
 
-    const currMetadata = id && id >= 0 ? (metadata as BadgeMetadata[])[id] : metadata as BadgeMetadata;
+
+
+    let stringifiedMetadata = JSON.stringify(metadata);
+    useEffect(() => {
+        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id)] : metadata as BadgeMetadata;
+        setCurrentMetadata(m);
+        console.log('set metadata to', m)
+    }, [metadata, stringifiedMetadata, id])
+
+    // console.log(currMetadata.name);
+    // console.log(metadata, stringifiedMetadata, id, currMetadata)
 
     return (
         <div>
@@ -89,10 +106,10 @@ export function FullMetadataForm({
                 required
             >
                 <Input
-                    value={currMetadata.name}
+                    value={currentMetadata.name}
                     onChange={(e: any) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             name: e.target.value
                         }));
                     }}
@@ -115,10 +132,10 @@ export function FullMetadataForm({
             >
                 <Select
                     className="selector"
-                    value={currMetadata.image}
+                    value={currentMetadata.image}
                     onChange={(e) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             image: e
                         }));
                     }}
@@ -208,11 +225,11 @@ export function FullMetadataForm({
             >
                 <Select
                     className="selector"
-                    value={currMetadata.category}
+                    value={currentMetadata.category}
                     placeholder="Default: None"
                     onChange={(e: any) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             category: e
                         }));
                     }}
@@ -271,10 +288,10 @@ export function FullMetadataForm({
                 }
             >
                 <Input.TextArea
-                    value={currMetadata.description}
+                    value={currentMetadata.description}
                     onChange={(e) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             description: e.target.value
                         }));
                     }}
@@ -299,10 +316,10 @@ export function FullMetadataForm({
             >
                 <Select
                     className="selector"
-                    defaultValue={currMetadata.color}
+                    defaultValue={currentMetadata.color}
                     onSelect={(e: any) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             color: e
                         }));
                     }}
@@ -377,10 +394,10 @@ export function FullMetadataForm({
                 }
             >
                 <Input
-                    value={currMetadata.externalUrl}
+                    value={currentMetadata.externalUrl}
                     onChange={(e) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             externalUrl: e.target.value
                         }));
                     }}
@@ -423,7 +440,7 @@ export function FullMetadataForm({
                     }
                     onChange={(date, dateString) => {
                         setMetadata(getMetadataToUpdate({
-                            ...currMetadata,
+                            ...currentMetadata,
                             validFrom: {
                                 start: Date.now(),
                                 end: new Date(dateString).valueOf(),
@@ -445,7 +462,7 @@ export function FullMetadataForm({
                 }
             >
                 <Input
-                    value={currMetadata.tags}
+                    value={currentMetadata.tags}
                     onChange={(e) =>
                         setMetadata({
                             ...metadata,
@@ -463,8 +480,8 @@ export function FullMetadataForm({
                 </div>
             </Form.Item>
 
-            
-{/* TODO: -need a way for large collections to be uploaded instead of manual metadata updates */}
+
+            {/* TODO: -need a way for large collections to be uploaded instead of manual metadata updates */}
         </div>
     );
 };

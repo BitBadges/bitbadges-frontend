@@ -22,8 +22,10 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
         content: uint8ArrayFromString(JSON.stringify(req.body.collectionMetadata))
     });
 
+    console.log("req.body for addToIPFS: " + JSON.stringify(req.body));
     let individualBadgeMetadata = req.body.individualBadgeMetadata;
     for (let i = 0; i < individualBadgeMetadata.length; i++) {
+        // console.log(i);
         files.push(
             {
                 path: 'metadata/' + i,
@@ -31,7 +33,6 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
             }
         );
     }
-
 
     const result = await last(client.addAll(files));
 
