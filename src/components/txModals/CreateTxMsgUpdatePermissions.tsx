@@ -73,7 +73,6 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
     return (
         <TxModal
             msgSteps={items}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Update Permissions"

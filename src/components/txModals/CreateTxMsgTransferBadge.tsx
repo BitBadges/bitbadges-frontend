@@ -173,13 +173,11 @@ export function CreateTxMsgTransferBadgeModal(
             msgSteps={items}
             unregisteredUsers={unregisteredUsers}
             onRegister={onRegister}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Transfer Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            disabled={toAddresses.length === 0}
             displayMsg={badge.permissions.ForcefulTransfers ? `As soon as the transaction is confirmed, the badges will be transferred to the recipient(s).`
                 : `This badge will go into a pending queue until the recipient accepts or denies the transfer. If the recipient denies the transfer, the badge(s) will be returned to your wallet.`}
         >

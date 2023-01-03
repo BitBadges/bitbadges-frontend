@@ -10,7 +10,7 @@ import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { TransferDisplay } from '../common/TransferDisplay';
-import { AddressModalDisplay } from '../address/AddressDisplay';
+import { AddressDisplay } from '../address/AddressDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }
@@ -117,7 +117,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                     />
                 </div>
                 {
-                    requestingFromManager && <AddressModalDisplay userInfo={badge.manager} />
+                    requestingFromManager && <AddressDisplay userInfo={badge.manager} />
                 }
                 {
                     !requestingFromManager && <>
@@ -233,7 +233,6 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}
             msgSteps={items}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Request Transfer Badge"

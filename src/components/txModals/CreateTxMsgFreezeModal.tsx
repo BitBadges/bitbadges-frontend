@@ -47,7 +47,6 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
     return (
         <TxModal
             msgSteps={items}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Revoke Badge"

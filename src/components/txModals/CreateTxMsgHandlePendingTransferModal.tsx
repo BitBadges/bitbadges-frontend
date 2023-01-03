@@ -359,9 +359,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
 
     return (
         <TxModal
-
             msgSteps={items}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Handle Pending Transfer(s)"

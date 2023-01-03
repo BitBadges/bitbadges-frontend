@@ -11,12 +11,21 @@ import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 const { Step } = Steps;
 
+export interface TxModalContent {
+    txName: string,
+    txCosmosMsg: object,
+    createTxFunction: any,
+    msgSteps: StepProps[],
+    displayMsg: string | ReactNode,
+    unregisteredUsers?: string[],
+    onRegister?: () => void,
+}
+
 export function TxModal(
-    { destroyOnClose, disabled, createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
+    { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
         unregisteredUsers, onRegister, msgSteps, displayMsg }
         : {
-            destroyOnClose?: boolean,
-            disabled?: boolean,
+
             createTxFunction: any,
             txCosmosMsg: object,
             visible: boolean,
@@ -118,13 +127,13 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: disabled || transactionStatus != TransactionStatus.None || currentStep != msgSteps.length,
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length,
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
             okText={unregisteredUsers && unregisteredUsers.length > 0 ? "Register Users" : "Sign and Submit Transaction"}
             cancelText={"Cancel"}
-            destroyOnClose={destroyOnClose ? destroyOnClose : true}
+            destroyOnClose={true}
         >
             {children}
 

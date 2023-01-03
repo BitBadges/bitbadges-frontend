@@ -5,7 +5,7 @@ import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { Button, InputNumber } from 'antd';
-import { AddressModalDisplayList } from '../address/AddressDisplay';
+import { AddressDisplayList } from '../address/AddressDisplay';
 import { getAccountInformation } from '../../bitbadges-api/api';
 
 export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, children }
@@ -122,7 +122,7 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
                     for the following users:
                 </div>
                 <div>
-                    <AddressModalDisplayList users={revokedUsers} setUsers={setRevokedUsers} />
+                    <AddressDisplayList users={revokedUsers} setUsers={setRevokedUsers} />
                 </div>
                 <hr />
                 <AddressSelect onChange={handleChange} title={"Add User"} />
@@ -154,7 +154,6 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
             msgSteps={items}
             unregisteredUsers={unregisteredUsers}
             onRegister={onRegister}
-            destroyOnClose={true}
             visible={visible}
             setVisible={setVisible}
             txName="Revoke Badge"
