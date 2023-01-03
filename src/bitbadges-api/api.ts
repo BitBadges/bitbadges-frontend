@@ -56,6 +56,7 @@ export async function getBadge(
     //Get the badge data from the blockchain if it doesn't exist
     let badgeData = currBadge;
     if (!badgeData) {
+        console.log('FETCHING BADGE DATA')
         const badgeDataResponse = await axios.get(NODE_URL + GetBadgeRoute(collectionId))
             .then((res) => res.data);
 
@@ -168,7 +169,7 @@ export async function getBadgeBalance(
         console.error("Invalid accountNumber: ", accountNumber);
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
-
+    console.log('FETCHING BADGE BALANCE')
     const balance = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
         .then((res) => res.data);
 

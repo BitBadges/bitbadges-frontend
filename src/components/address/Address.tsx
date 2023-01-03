@@ -1,4 +1,4 @@
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 import { Typography, Tooltip } from 'antd';
 import React from 'react';
 

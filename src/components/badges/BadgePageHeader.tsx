@@ -1,20 +1,13 @@
-import { Avatar, Col, Divider, Row, Statistic, Tag, Typography } from 'antd';
-import React, { useState } from 'react';
-import { MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { CollectionOverview } from './CollectionOverview';
-import { BalanceOverview } from './BalanceOverview';
-import { Permissions } from '../../bitbadges-api/permissions';
+import { Avatar, Col, Divider, Row, Typography } from 'antd';
+import React from 'react';
+import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { BadgeMetadata } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 
-export function BadgePageHeader({ badge, metadata, balance, hideButtons }: {
-    badge?: BitBadgeCollection;
+export function BadgePageHeader({ metadata }: {
     metadata?: BadgeMetadata;
-    balance?: UserBalance;
-    hideButtons?: boolean;
 }) {
-
     if (!metadata) return <></>;
 
     return (<>
@@ -22,7 +15,6 @@ export function BadgePageHeader({ badge, metadata, balance, hideButtons }: {
             style={{
                 color: PRIMARY_TEXT,
             }}>
-
             <Row
                 style={{
                     display: 'flex',
@@ -76,21 +68,15 @@ export function BadgePageHeader({ badge, metadata, balance, hideButtons }: {
                         <Text style={{ color: SECONDARY_TEXT }}>
                             {metadata?.description}
                         </Text>
-                    </div>
-                    }
-
+                    </div>}
                 </Col>
             </Row>
             {!metadata?.description && <div>
                 <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
                     {metadata?.name}
                 </Text>
-            </div>
-            }
+            </div>}
             <br />
-
-
-
         </div>
     </>
     );

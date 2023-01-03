@@ -1,12 +1,7 @@
-import { getInjectedProviderName } from 'web3modal';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
-import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
-import Image from 'next/image';
 import { useChainContext } from '../chain/ChainContext';
-import { getAccountInformation } from '../bitbadges-api/api';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -40,6 +35,7 @@ function RegisterScreen({ message }: { message?: string }) {
                                 await navigator.clipboard.writeText(address);
                                 window.open('http://localhost:4500', "_blank");
                             }}
+                            style={{ margin: 5 }}
                         >
                             Click here to go to the faucet and register your address (one-time)!
                         </Button>
@@ -48,6 +44,7 @@ function RegisterScreen({ message }: { message?: string }) {
                             onClick={async () => {
                                 await chain.connect();
                             }}
+                            style={{ margin: 5 }}
                         >
                             Refresh
                         </Button>

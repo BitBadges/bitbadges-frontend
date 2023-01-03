@@ -1,21 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { create } from 'ipfs-http-client'
-
-const auth =
-    'Basic ' + Buffer.from(process.env.INFURA_ID + ':' + process.env.INFURA_SECRET_KEY).toString('base64');
-
-const client = create({
-    host: 'ipfs.infura.io',
-    port: 5001,
-    protocol: 'https',
-    headers: {
-        authorization: auth,
-    },
-});
-
+import { ipfsClient } from "./ipfs";
 
 export const getFromIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
-    const getRes = client.cat(req.body.cid + '/' + req.body.path);
+    const getRes = ipfsClient.cat(req.body.cid + '/' + req.body.path);
 
     const decoder = new TextDecoder();
     let fileJson = '';

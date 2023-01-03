@@ -7,7 +7,7 @@ import { Divider, Typography } from 'antd';
 
 const { Text } = Typography;
 
-export function BadgeSubBadgesTab({ badgeCollection, setBadgeCollection, balance }: {
+export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
     balance: UserBalance | undefined;

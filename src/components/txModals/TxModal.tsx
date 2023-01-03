@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Typography, Modal, Steps, StepProps, Button, Divider, notification } from 'antd';
+import { Typography, Modal, Steps, StepProps, Divider, notification } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
@@ -7,7 +7,7 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import { AddressModalDisplay } from '../address/AddressModalDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 const { Step } = Steps;
 
@@ -38,17 +38,17 @@ export function TxModal(
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
 
-    const [current, setCurrent] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
 
     const onStepChange = (value: number) => {
-        setCurrent(value);
+        setCurrentStep(value);
     };
 
-    const handleSubmitTx = async () => {
+    const submitTx = async (createTxFunction: any, cosmosMsg: object) => {
         setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
         try {
-            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, txCosmosMsg);
+            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);
             const rawTx = await chain.signTxn(unsignedTx);
             const msgResponse = await broadcastTransaction(rawTx);
 
@@ -69,12 +69,19 @@ export function TxModal(
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
 
-            setVisible(false);
+            setTransactionStatus(TransactionStatus.None);
         } catch (err: any) {
             console.error(err);
             setError(err.message);
             setTransactionStatus(TransactionStatus.None);
         }
+    }
+
+    const handleSubmitTx = async () => {
+        try {
+            await submitTx(createTxFunction, txCosmosMsg);
+            setVisible(false);
+        } catch (err: any) { }
     };
 
     const registerUsers = async () => {
@@ -84,22 +91,10 @@ export function TxModal(
                 addressesToRegister: unregisteredUsers,
             };
 
-            setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
             try {
-                const unsignedTx = await formatAndCreateGenericTx(createTxMsgRegisterAddresses, chain, registerTxCosmosMsg);
-                const rawTx = await chain.signTxn(unsignedTx);
-                const msgResponse = await broadcastTransaction(rawTx);
-
-                if (DEV_MODE) console.log(msgResponse);
-
-                chain.incrementSequence();
-                setTransactionStatus(TransactionStatus.None);
+                await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
                 onRegister();
-            } catch (err: any) {
-                console.error(err);
-                setError(err.message);
-                setTransactionStatus(TransactionStatus.None);
-            }
+            } catch (err: any) { }
         }
     };
 
@@ -123,7 +118,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: disabled || transactionStatus != TransactionStatus.None || current != msgSteps.length,
+                disabled: disabled || transactionStatus != TransactionStatus.None || currentStep != msgSteps.length,
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
@@ -133,9 +128,8 @@ export function TxModal(
         >
             {children}
 
-
             <Steps
-                current={current}
+                current={currentStep}
                 onChange={onStepChange}
                 direction="vertical"
             >
@@ -144,7 +138,7 @@ export function TxModal(
                         key={index}
                         title={<b>{item.title}</b>} description={
                             <div>
-                                {current === index && <div>
+                                {currentStep === index && <div>
                                     {item.description}
                                 </div>}
                             </div>
@@ -157,7 +151,7 @@ export function TxModal(
                     title={unregisteredUsers && unregisteredUsers.length > 0 ? <b>Register Users</b> : <b>Sign and Submit Transaction</b>}
                     description={
                         <div>
-                            {current === msgSteps.length && <div>
+                            {currentStep === msgSteps.length && <div>
                                 {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
                                     {displayMsg &&
                                         <div style={{ textAlign: 'center' }}>

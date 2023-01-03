@@ -100,7 +100,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             providerOptions // required
         });
         setWeb3Modal(web3ModalInstance);
-
+        web3ModalInstance.clearCachedProvider();
+        
         const instance = await web3ModalInstance.connect();
         const provider = new ethers.providers.Web3Provider(instance);
         const signer = provider.getSigner();

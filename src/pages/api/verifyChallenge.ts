@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { setChainDriver, verifyChallenge } from 'blockin';
-import { parse } from "../../utils/preserveJson";
+import { parse } from "./utils/preserveJson";
 import { getChainDriver } from "./chainDriverHandlers";
 
 /**

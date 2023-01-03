@@ -1,6 +1,6 @@
 import { Avatar, Tooltip } from "antd";
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BadgeModal } from "./BadgeModal";
 
 export function BadgeAvatar({
@@ -19,8 +19,6 @@ export function BadgeAvatar({
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
 
     if (!metadata) return <></>;
-
-
 
     return <Tooltip
         placement="bottom"

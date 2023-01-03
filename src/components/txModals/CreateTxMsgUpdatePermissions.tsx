@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { Button, InputNumber, Switch } from 'antd';
+import { Switch } from 'antd';
 import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
 

@@ -1,19 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { create } from 'ipfs-http-client'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
 import last from 'it-last';
+import { ipfsClient } from "./ipfs";
 
-const auth =
-    'Basic ' + Buffer.from(process.env.INFURA_ID + ':' + process.env.INFURA_SECRET_KEY).toString('base64');
-
-const client = create({
-    host: 'ipfs.infura.io',
-    port: 5001,
-    protocol: 'https',
-    headers: {
-        authorization: auth,
-    },
-});
 
 const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
     const files = [];
@@ -25,7 +14,6 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log("req.body for addToIPFS: " + JSON.stringify(req.body));
     let individualBadgeMetadata = req.body.individualBadgeMetadata;
     for (let i = 0; i < individualBadgeMetadata.length; i++) {
-        // console.log(i);
         files.push(
             {
                 path: 'metadata/' + i,
@@ -34,7 +22,7 @@ const addToIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
         );
     }
 
-    const result = await last(client.addAll(files));
+    const result = await last(ipfsClient.addAll(files));
 
     if (!result) {
         return res.status(400).send({ error: 'No addAll result received' });

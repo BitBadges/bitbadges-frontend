@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
-import { BadgeSubBadgesTab } from '../../badges/tabs/BadgePageSubBadgesTab';
+import { BadgeSubBadgesTab } from '../../badges/tabs/BadgesTab';
 import { FormTimeline } from '../form/FormTimeline';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { BadgeCard } from '../../badges/BadgeCard';

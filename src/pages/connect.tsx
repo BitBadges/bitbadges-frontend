@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';

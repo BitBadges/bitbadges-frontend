@@ -7,7 +7,7 @@ import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChall
 import { PRIMARY_TEXT } from "../../constants";
 import { Address } from "../address/Address";
 import Blockies from 'react-blockies'
-import { Avatar, Modal, Typography, notification } from "antd";
+import { Avatar, Typography, notification } from "antd";
 import Image from 'next/image';
 
 const { Text } = Typography;

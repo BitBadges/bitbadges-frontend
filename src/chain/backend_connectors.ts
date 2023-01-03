@@ -1,11 +1,11 @@
 import { ChallengeParams } from "blockin";
-import { stringify } from "../utils/preserveJson";
+import { stringify } from "../pages/api/utils/preserveJson";
 import { BadgeMetadata } from "../bitbadges-api/types";
+import { BACKEND_URL } from "../constants";
 
 /**
  * Here, we define the API function logic to call your backend.
  */
-
 export const getChallenge = async (chain: string, address: string, assetIds: string[]) => {
     const assets = [];
     for (const assetId of assetIds) {
@@ -16,8 +16,9 @@ export const getChallenge = async (chain: string, address: string, assetIds: str
     return message;
 }
 
+
 const getChallengeFromBlockin = async (chain: string, address: string, assetIds: string[]): Promise<string> => {
-    const data = await fetch('http://localhost:3000/api/getChallenge', {
+    const data = await fetch(BACKEND_URL + '/api/getChallenge', {
         method: 'post',
         body: JSON.stringify({
             address,
@@ -31,7 +32,7 @@ const getChallengeFromBlockin = async (chain: string, address: string, assetIds:
 }
 
 export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
-    const data = await fetch('http://localhost:3000/api/getChallengeParams', {
+    const data = await fetch(BACKEND_URL + '/api/getChallengeParams', {
         method: 'post',
         body: JSON.stringify({
             address,
@@ -47,7 +48,7 @@ export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uin
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
-    const verificationRes = await fetch('http://localhost:3000/api/verifyChallenge', {
+    const verificationRes = await fetch(BACKEND_URL + '/api/verifyChallenge', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
@@ -61,9 +62,8 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
         collectionMetadata,
         individualBadgeMetadata
     }); //hack to preserve uint8 arrays
-    console.log(bodyStr);
 
-    const addToIpfsRes = await fetch('http://localhost:3000/api/addToIpfs', {
+    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addToIpfs', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }
@@ -75,7 +75,7 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
 export const getFromIpfs = async (cid: string, path: string) => {
     const bodyStr = stringify({ cid, path }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes = await fetch('http://localhost:3000/api/getFromIpfs', {
+    const addToIpfsRes = await fetch(BACKEND_URL + '/api/getFromIpfs', {
         method: 'post',
         body: bodyStr,
         headers: { 'Content-Type': 'application/json' }

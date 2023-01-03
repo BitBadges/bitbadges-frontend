@@ -3,8 +3,9 @@ import { Address } from "../address/Address"
 import Blockies from 'react-blockies';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { BadgeAvatar } from "../badges/BadgeAvatar";
-import { BitBadgeCollection, BitBadgesUserInfo } from "../../bitbadges-api/types";
+import { BitBadgeCollection, BitBadgesUserInfo, UserBalance } from "../../bitbadges-api/types";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 export function TransferDisplay({
     from,
@@ -92,32 +93,6 @@ export function TransferDisplay({
         <div style={{ textAlign: 'center' }}>
             <Typography.Text style={{ fontSize: 16, textAlign: 'center' }} strong>{'Transferring x' + amount + ' of the following badges (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
         </div>
-        <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-        }}
-        >
-            {badge && endId - startId + 1 > 0
-                && endId >= 0 &&
-                startId >= 0
-                && new Array(endId - startId + 1).fill(0).map((_, idx) => {
-                    return <div key={idx} style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}
-                    >
-                        <BadgeAvatar
-                            badge={badge}
-                            metadata={badge.badgeMetadata[idx + startId]}
-                            badgeId={idx + startId}
-                        />
-                    </div>
-                })}
-        </div >
+        <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} />
     </>
 }
