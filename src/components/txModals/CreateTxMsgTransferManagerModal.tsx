@@ -31,6 +31,8 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
             title: 'Select Address',
             description: <>
                 <AddressSelect onChange={handleChange} title={"New Manager"} />
+                <br />
+                *This will only go through if the address you select has submitted a request to become the manager of this collection.
             </>,
             disabled: newManagerAccountNumber === undefined || newManagerAccountNumber === null || newManagerAccountNumber < 0
         }
@@ -44,7 +46,6 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
             txName="Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferManager}
-        // displayMsg={"You are transfering the managerial privileges of this badge collection (ID: " + badge.id + ", Name: " + badge.collectionMetadata.name + ") to the address listed above."}
         >
             {children}
         </TxModal>

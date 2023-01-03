@@ -4,14 +4,9 @@ import React from 'react';
 
 const { Text } = Typography;
 
-// const blockExplorerLink = (address, blockExplorer) =>
-//     `${blockExplorer || 'https://etherscan.io/'}address/${address}`; 
-
 export function Address({
-    address, //cosmos bech32 address
+    address,
     chain,
-    blockExplorer,
-    size,
     fontSize,
     fontColor,
     hideTooltip,
@@ -26,10 +21,8 @@ export function Address({
     hideTooltip?: boolean;
     hideChain?: boolean;
 }) {
-    // const etherscanLink = blockExplorerLink(address, blockExplorer);
     let displayAddress = '';
-    let innerContentHtml = <></>;
-
+    
     if (address) {
         if (!hideChain) {
             displayAddress += `${chain}: `;

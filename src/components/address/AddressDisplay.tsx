@@ -1,13 +1,11 @@
-import Blockies from 'react-blockies';
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { Address } from './Address';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
 import { Divider, Tooltip } from 'antd';
-import { ethers } from 'ethers';
 import { COSMOS } from 'bitbadgesjs-address-converter';
+import { AddressWithBlockies } from './AddressWithBlockies';
 
-export function AddressModalDisplayTitle(
+export function AddressDisplayTitle(
     {
         accountNumber,
         title,
@@ -34,7 +32,7 @@ export function AddressModalDisplayTitle(
     </div>
 }
 
-export function AddressModalDisplayList(
+export function AddressDisplayList(
     {
         users,
         setUsers
@@ -48,7 +46,7 @@ export function AddressModalDisplayList(
             users.map((user, index) => {
                 return (
                     <div key={index}>
-                        <AddressModalDisplay
+                        <AddressDisplay
                             icon={
                                 <Tooltip title={"Remove User"}>
                                     <UserDeleteOutlined onClick={() => {
@@ -70,7 +68,7 @@ export function AddressModalDisplayList(
 
 
 
-export function AddressModalDisplay(
+export function AddressDisplay(
     {
         userInfo,
         title,
@@ -98,26 +96,19 @@ export function AddressModalDisplay(
     }
 
     return <>
-        {title && AddressModalDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon, showAccountNumber })}
+        {title && AddressDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon, showAccountNumber })}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
         }}>
-            <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                // justifyContent: 'space-between',
-            }}>
-                <Blockies seed={userInfo.address ? userInfo.address.toLowerCase() : ''} />
-                <Address fontSize={fontSize} address={userInfo.address} chain={userInfo.chain} hideChain={true}
-                    fontColor={
-                        userInfo.chain === SupportedChain.ETH && !ethers.utils.isAddress(userInfo.address) ? 'red' : fontColor
-                    }
-                />
-            </div>
+            <AddressWithBlockies
+                address={userInfo.address}
+                chain={userInfo.chain}
+                fontSize={fontSize}
+                fontColor={fontColor}
+            />
             {!hideChains &&
                 <div>
                     <span style={{ marginLeft: 8 }}>{userInfo.chain}</span>
@@ -129,21 +120,15 @@ export function AddressModalDisplay(
             alignItems: 'center',
             justifyContent: 'space-between',
         }}>
-            <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-            }}>
-                <Blockies seed={userInfo.cosmosAddress ? userInfo.cosmosAddress.toLowerCase() : ''} />
-                <Address fontSize={fontSize} address={userInfo.cosmosAddress} chain={SupportedChain.COSMOS} hideChain={true}
-                    fontColor={
-                        !isCosmosAddressValid ? 'red' : fontColor
-                    }
-                />
-            </div>
+            <AddressWithBlockies
+                address={userInfo.cosmosAddress}
+                chain={SupportedChain.COSMOS}
+                fontSize={fontSize}
+                fontColor={fontColor}
+            />
             {!hideChains &&
                 <div>
-                    <span style={{ marginLeft: 8 }}>Cosmos</span>
+                    <span style={{ marginLeft: 8 }}>{SupportedChain.COSMOS}</span>
                 </div>}
         </div>
     </>

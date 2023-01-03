@@ -4,7 +4,7 @@ import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { COSMOS, ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
-import { AddressModalDisplay, AddressModalDisplayTitle } from './AddressModalDisplay';
+import { AddressDisplay, AddressDisplayTitle } from './AddressDisplay';
 import { DEV_MODE } from '../../constants';
 
 const { Option } = Select;
@@ -33,7 +33,7 @@ export function AddressSelect({
 
 
     return <>
-        <AddressModalDisplayTitle
+        <AddressDisplayTitle
             accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
             title={title}
             icon={icon}
@@ -94,7 +94,7 @@ export function AddressSelect({
                 }}
             />
         </Input.Group>
-        <AddressModalDisplay
+        <AddressDisplay
             userInfo={currUserInfo}
         />
     </>

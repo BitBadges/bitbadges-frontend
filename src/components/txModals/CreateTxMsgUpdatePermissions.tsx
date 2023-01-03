@@ -6,7 +6,6 @@ import { useChainContext } from '../../chain/ChainContext';
 import { Switch } from 'antd';
 import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
-
 export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children }
     : {
         badge: BitBadgeCollection,
@@ -28,7 +27,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
             title: 'Select Permissions To Update',
             description: <>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>Can Freeze</span>
+                    Can Freeze
                     <div>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanFreeze} defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))

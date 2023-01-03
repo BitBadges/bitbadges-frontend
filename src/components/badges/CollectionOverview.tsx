@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
-import { AddressModalDisplay } from '../address/AddressModalDisplay';
+import { AddressDisplay } from '../address/AddressDisplay';
 import { useChainContext } from '../../chain/ChainContext';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
@@ -43,7 +43,7 @@ export function CollectionOverview({ badge, metadata, span }: {
                 <div style={{
                     display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
                 }} >
-                    <AddressModalDisplay
+                    <AddressDisplay
                         fontSize={14}
                         fontColor={SECONDARY_TEXT}
                         // userInfo={badge?.manager}

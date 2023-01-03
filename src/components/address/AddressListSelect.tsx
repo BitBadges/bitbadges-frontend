@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BitBadgesUserInfo } from "../../bitbadges-api/types";
 import { AddressSelect } from "./AddressSelect";
 import { Button } from "antd";
-import { AddressModalDisplayList } from "./AddressModalDisplay";
+import { AddressDisplayList } from "./AddressDisplay";
 import { UserAddOutlined } from "@ant-design/icons";
 
 export function AddressListSelect({
@@ -22,7 +22,7 @@ export function AddressListSelect({
     }
 
     return <>
-        <AddressModalDisplayList
+        <AddressDisplayList
             users={users}
             setUsers={setUsers}
         />

@@ -5,7 +5,7 @@ import { BitBadgeCollection, IdRange, BitBadgesUserInfo } from '../../bitbadges-
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { Button, InputNumber } from 'antd';
-import { AddressModalDisplayList } from '../address/AddressModalDisplay';
+import { AddressModalDisplayList } from '../address/AddressDisplay';
 import { getAccountInformation } from '../../bitbadges-api/api';
 
 export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, children }

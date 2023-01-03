@@ -34,12 +34,14 @@ a:visited {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
 }
 
 .flex-between {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-direction: row;
 }
 
 button {

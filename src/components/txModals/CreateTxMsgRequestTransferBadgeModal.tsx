@@ -10,7 +10,7 @@ import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { TransferDisplay } from '../common/TransferDisplay';
-import { AddressModalDisplay } from '../address/AddressModalDisplay';
+import { AddressModalDisplay } from '../address/AddressDisplay';
 
 
 export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisible, children, balance }

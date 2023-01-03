@@ -1,11 +1,9 @@
 import { Col, Row, Typography } from "antd"
-import { Address } from "../address/Address"
-import Blockies from 'react-blockies';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { BadgeAvatar } from "../badges/BadgeAvatar";
 import { BitBadgeCollection, BitBadgesUserInfo, UserBalance } from "../../bitbadges-api/types";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { AddressWithBlockies } from "../address/AddressWithBlockies";
 
 export function TransferDisplay({
     from,
@@ -39,24 +37,12 @@ export function TransferDisplay({
                 {from.map((user, index) => {
                     return <>
                         {index !== 0 && <hr color='white' />}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}>
-                            <Blockies scale={3} seed={user.address ? user.address.toLowerCase() : ''} />
-                            <Address fontSize={14} chain={user.chain} hideChain address={user.address} />
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}>
-                            <Blockies scale={3} seed={user.address ? user.address.toLowerCase() : ''} />
-                            <Address fontSize={14} chain={user.chain} hideChain address={user.address} />
-                        </div>
-
-
+                        <AddressWithBlockies
+                            address={user.address}
+                            chain={user.chain}
+                            fontSize={14}
+                            blockiesScale={3}
+                        />
                     </>
                 })}
             </Col>
@@ -68,23 +54,18 @@ export function TransferDisplay({
                 {to.map((user, index) => {
                     return <>
                         {index !== 0 && <hr color='white' />}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}>
-                            <Blockies scale={3} seed={user.address ? user.address.toLowerCase() : ''} />
-                            <Address fontSize={14} chain={user.chain} hideChain address={user.address} />
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}>
-                            <Blockies scale={3} seed={user.address ? user.address.toLowerCase() : ''} />
-                            <Address fontSize={14} chain={user.chain} hideChain address={user.address} />
-                        </div>
-
+                        <AddressWithBlockies
+                            address={user.address}
+                            chain={user.chain}
+                            fontSize={14}
+                            blockiesScale={3}
+                        />
+                        <AddressWithBlockies
+                            address={user.address}
+                            chain={user.chain}
+                            fontSize={14}
+                            blockiesScale={3}
+                        />
                     </>
                 })}
             </Col>

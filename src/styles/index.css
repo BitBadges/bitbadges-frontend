@@ -261,3 +261,17 @@ transform: scale(1.01);
     padding-top: 10px;
     padding-bottom: 10px;
 }
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+  }
+  
+  .flex-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-direction: row;
+  }

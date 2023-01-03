@@ -5,7 +5,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
-import { AddressModalDisplay } from '../address/AddressModalDisplay';
+import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
@@ -169,7 +169,7 @@ export function TxModal(
                                         </Typography.Text>
                                     </div>
                                     <Divider />
-                                    <AddressModalDisplay
+                                    <AddressDisplay
 
                                         userInfo={{
                                             chain: chain.chain,
