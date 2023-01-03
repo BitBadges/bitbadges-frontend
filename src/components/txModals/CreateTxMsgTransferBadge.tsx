@@ -68,6 +68,7 @@ export function CreateTxMsgTransferBadgeModal(
         setToAddresses(allRegisteredUsers);
     }
 
+    //Upon visible turning to false, reset to initial state
     useEffect(() => {
         setToAddresses([]);
         setAmounts([]);
@@ -75,7 +76,9 @@ export function CreateTxMsgTransferBadgeModal(
         setAmountToTransfer(0);
         setStartSubbadgeId(0);
         setEndSubbadgeId(badge.nextSubassetId - 1);
-    }, [visible, badge.nextSubassetId])
+        setNewBalance(balance);
+    }, [visible, badge.nextSubassetId, balance]);
+
 
     const firstStepDisabled = toAddresses.length === 0;
     const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance.balanceAmounts.find((balance) => balance.balance < 0);

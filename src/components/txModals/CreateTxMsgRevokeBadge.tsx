@@ -19,8 +19,8 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
 
     const [amountToRevoke, setAmountToRevoke] = useState<number>(0);
-    const [startSubbadgeId, setStartSubbadgeId] = useState<number>(-1);
-    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(-1);
+    const [startSubbadgeId, setStartSubbadgeId] = useState<number>(0);
+    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(0);
 
     const [revokedUsers, setRevokedUsers] = useState<BitBadgesUserInfo[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
@@ -54,13 +54,15 @@ export function CreateTxMsgRevokeBadgeModal({ badge, visible, setVisible, childr
         setRevokedUsers(allRegisteredUsers);
     }
 
+    // Reset all the states when the modal is closed
     useEffect(() => {
         setRevokedUsers([]);
         setAmounts([]);
         setSubbadgeRanges([]);
         setAmountToRevoke(0);
-        setStartSubbadgeId(-1);
-        setEndSubbadgeId(-1);
+        setStartSubbadgeId(0);
+        setEndSubbadgeId(0);
+        setCurrUserInfo(undefined);
     }, [visible]);
 
     const items = [

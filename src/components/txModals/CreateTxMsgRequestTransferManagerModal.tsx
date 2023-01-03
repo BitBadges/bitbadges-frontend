@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
@@ -22,6 +22,13 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
         badgeId: badge.id,
         add: request,
     };
+
+    //Reset states when modal is closed
+    useEffect(() => {
+        if (!visible) {
+            setRequest(true);
+        }
+    }, [visible]);
 
     const items = [
         {

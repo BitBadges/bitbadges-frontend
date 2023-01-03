@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MessageMsgFreezeAddress, createTxMsgFreezeAddress } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
@@ -17,6 +17,13 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
     const [freeze, setFreeze] = useState<boolean>(true);
 
+    //Reset states upon modal close
+    useEffect(() => {
+        if (!visible) {
+            setCurrUserInfo(undefined);
+            setFreeze(true);
+        }
+    }, [visible]);
 
     const txCosmosMsg: MessageMsgFreezeAddress = {
         creator: chain.cosmosAddress,

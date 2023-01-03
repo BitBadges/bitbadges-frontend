@@ -84,13 +84,17 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
         }
     }
 
-
+    //Reset states upon modal close
     useEffect(() => {
         setSubbadgeRanges([]);
         setAmountToTransfer(0);
         setStartSubbadgeId(0);
         setEndSubbadgeId(0);
-    }, [visible])
+        setCurrUserInfo(undefined);
+        setRequestedBalance(undefined);
+        setNewBalance(balance);
+        setRequestingFromManager(true);
+    }, [visible, balance])
 
     const firstStepDisabled = !requestingFromManager && (!currUserInfo || !currUserInfo.cosmosAddress);
     const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance?.balanceAmounts.find((balance) => balance.balance < 0);;

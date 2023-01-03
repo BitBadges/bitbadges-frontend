@@ -11,16 +11,6 @@ import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 const { Step } = Steps;
 
-export interface TxModalContent {
-    txName: string,
-    txCosmosMsg: object,
-    createTxFunction: any,
-    msgSteps: StepProps[],
-    displayMsg: string | ReactNode,
-    unregisteredUsers?: string[],
-    onRegister?: () => void,
-}
-
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
         unregisteredUsers, onRegister, msgSteps, displayMsg }

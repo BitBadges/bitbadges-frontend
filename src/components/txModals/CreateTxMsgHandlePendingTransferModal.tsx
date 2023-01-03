@@ -25,6 +25,17 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
     const [numHandling, setNumHandling] = useState<number>(0);
     const [otherPending, setOtherPending] = useState<any[]>([]);
 
+    // Reset states upon modal close
+    useEffect(() => {
+        if (!visible) {
+            setAccept(true);
+            setForcefulAccept(false);
+            setNonceRanges([]);
+            setNumHandling(0);
+            setOtherPending([]);
+        }
+    }, [visible]);
+
 
     const txCosmosMsg: MessageMsgHandlePendingTransfer = {
         creator: chain.cosmosAddress,

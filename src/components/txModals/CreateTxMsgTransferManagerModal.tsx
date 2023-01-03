@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
@@ -21,6 +21,13 @@ export function CreateTxMsgTransferManagerModal({ badge, visible, setVisible, ch
         badgeId: badge.id,
         address: newManagerAccountNumber ? newManagerAccountNumber : -1,
     };
+
+    //Upon visible turning to false, reset to initial state
+    useEffect(() => {
+        if (!visible) {
+            setNewManagerAccountNumber(undefined);
+        }
+    }, [visible]);
 
     const handleChange = (userInfo: BitBadgesUserInfo) => {
         setNewManagerAccountNumber(userInfo.accountNumber);

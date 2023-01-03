@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
@@ -21,6 +21,13 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
         badgeId: badge.id,
         permissions: currPermissions
     };
+
+    //Upon visible turning to false, reset to initial state
+    useEffect(() => {
+        if (!visible) {
+            setCurrPermissions(GetPermissionNumberValue(badge.permissions));
+        }
+    }, [visible, badge.permissions]);
 
     const items = [
         {
