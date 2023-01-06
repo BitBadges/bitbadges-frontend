@@ -185,7 +185,11 @@ export async function getBadgeBalance(
             if (!idRange.end || idRange.end < idRange.start) {
                 idRange.end = idRange.start;
             }
+
+            idRange.end = Number(idRange.end);
+            idRange.start = Number(idRange.start);
         }
+        balanceAmount.balance = Number(balanceAmount.balance);
     }
 
     return balance;

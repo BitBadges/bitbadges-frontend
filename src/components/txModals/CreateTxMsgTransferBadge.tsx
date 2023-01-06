@@ -35,8 +35,17 @@ export function CreateTxMsgTransferBadgeModal(
 
     useEffect(() => {
         if (!balance || !balance.balanceAmounts) return;
+        try {
+            let newBalanceObj = getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, toAddresses.length);
 
-        setNewBalance(getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, toAddresses.length));
+            setNewBalance(newBalanceObj);
+        } catch (e) {
+            setNewBalance({
+                ...balance,
+                balanceAmounts: [],
+            });
+        }
+
     }, [amountToTransfer, startSubbadgeId, endSubbadgeId, balance, badge, toAddresses.length])
 
     const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);

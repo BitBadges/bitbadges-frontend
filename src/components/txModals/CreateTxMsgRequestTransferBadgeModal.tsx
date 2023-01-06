@@ -38,7 +38,16 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
     useEffect(() => {
         if (!requestedBalance || !requestedBalance.balanceAmounts) return;
 
-        setNewBalance(getPostTransferBalance(requestedBalance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1));
+        try {
+            let newBalanceObj = getPostTransferBalance(requestedBalance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1);
+
+            setNewBalance(newBalanceObj);
+        } catch (e) {
+            setNewBalance({
+                ...requestedBalance,
+                balanceAmounts: [],
+            });
+        }
     }, [amountToTransfer, startSubbadgeId, endSubbadgeId, badge, requestedBalance])
 
     useEffect(() => {

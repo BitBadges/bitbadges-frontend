@@ -56,6 +56,7 @@ export interface IdRange {
 }
 
 
+
 export interface UserBalance {
     balanceAmounts: {
         balance: number;
