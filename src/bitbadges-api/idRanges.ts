@@ -1,8 +1,4 @@
-//TODO: sync with other types
-interface IdRange {
-    start: number;
-    end: number;
-}
+import { IdRange } from "./types";
 
 export function SortIdRangesAndMergeIfNecessary(idRanges: IdRange[]) {
     //Insertion sort in order of range.Start. If two have same range.Start, sort by range.End.

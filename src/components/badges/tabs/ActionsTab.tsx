@@ -1,7 +1,7 @@
 import { Empty, Card, Divider, Typography, } from 'antd';
 import { useState } from 'react';
 import React from 'react';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
 import { CreateTxMsgRevokeBadgeModal } from '../../txModals/CreateTxMsgRevokeBadge';
