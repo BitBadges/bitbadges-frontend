@@ -32,7 +32,6 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
             setForcefulAccept(false);
             setNonceRanges([]);
             setNumHandling(0);
-            setOtherPending([]);
         }
     }, [visible]);
 

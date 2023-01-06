@@ -8,6 +8,7 @@ import { DEV_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
+import { useRouter } from 'next/router';
 
 const { Step } = Steps;
 
@@ -36,6 +37,7 @@ export function TxModal(
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const chain = useChainContext();
+    const router = useRouter();
 
     const [currentStep, setCurrentStep] = useState(0);
 
@@ -68,7 +70,10 @@ export function TxModal(
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
 
-            setTransactionStatus(TransactionStatus.None);
+            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "new_badge") {
+                const badgeId = msgResponse.tx_response.logs[0]?.events[0]?.attributes[4]?.value;
+                router.push(`/badges/${badgeId}`);
+            }
         } catch (err: any) {
             console.error(err);
             setError(err.message);

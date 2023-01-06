@@ -163,6 +163,7 @@ export function MintTimeline() {
                         color={
                             step.stepNumber < currStepNumber ? 'green' : 'blue'
                         }
+                        
                         dot={
                             step.stepNumber >= currStepNumber ? (
                                 <ClockCircleOutlined
