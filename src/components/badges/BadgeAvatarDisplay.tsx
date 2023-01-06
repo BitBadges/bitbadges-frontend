@@ -46,7 +46,7 @@ export function BadgeAvatarDisplay({
     let stringified = JSON.stringify(individualBadgeMetadata);
     useEffect(() => {
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
-            if (!badgeCollection) return;
+            if (!badgeCollection || !setBadgeCollection) return;
             let numBadges = badgeCollection?.nextSubassetId;
             //TODO: should probably make it more scalable than this
 
