@@ -30,6 +30,8 @@ export function CreateTxMsgTransferBadgeModal(
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
     const [subbadgeRanges, setSubbadgeRanges] = useState<IdRange[]>([]);
+    const [expirationTime, setExpirationTime] = useState<number>(0);
+    const [cantCancelBeforeTime, setCantCancelBeforeTime] = useState<number>(0);
 
     const [newBalance, setNewBalance] = useState<UserBalance>(balance);
 
@@ -57,8 +59,8 @@ export function CreateTxMsgTransferBadgeModal(
         toAddresses: toAddresses.map((user) => user.accountNumber),
         amounts,
         subbadgeRanges,
-        expirationTime: 0, //TODO:
-        cantCancelBeforeTime: 0,
+        expirationTime: expirationTime,
+        cantCancelBeforeTime: cantCancelBeforeTime,
     };
 
 
@@ -91,6 +93,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const firstStepDisabled = toAddresses.length === 0;
     const secondStepDisabled = amountToTransfer <= 0 || startSubbadgeId < 0 || endSubbadgeId < 0 || startSubbadgeId > endSubbadgeId || !!newBalance.balanceAmounts.find((balance) => balance.balance < 0);
+    const thirdStepDisabled = false;
 
     const items = [
         {
@@ -178,7 +181,59 @@ export function CreateTxMsgTransferBadgeModal(
             </div>,
             disabled: secondStepDisabled
         },
+
     ];
+
+    if (!badge.permissions.ForcefulTransfers) {
+        //TODO: I will have to figure out cosmos block numbers and times to implement this
+        // items.push({
+        //     title: 'Set Acceptance Deadlines',
+        //     description: <div>
+        //         <div>
+        //             This badge will go into a pending queue until the recipient accept the transfer
+        //             or you cancel the transfer.
+        //         </div>
+        //         <div className='flex-between'>
+        //             Expiration Time:
+        //             <InputNumber
+        //                 min={1}
+        //                 title='Amount to Transfer'
+        //                 value={amountToTransfer} onChange={
+        //                     (value: number) => {
+        //                         if (!value || value <= 0) {
+        //                             setAmountToTransfer(0);
+        //                             setAmounts([0]);
+        //                         }
+        //                         else {
+        //                             setAmountToTransfer(value);
+        //                             setAmounts([value]);
+        //                         }
+        //                     }
+        //                 }
+        //             />
+        //         </div>
+        //         <div></div>
+        //         <div className='flex-between'
+        //         >
+        //             Can't Cancel Before:
+        //             <InputNumber
+        //                 min={0}
+        //                 max={endSubbadgeId}
+        //                 value={startSubbadgeId} onChange={
+        //                     (value: number) => {
+        //                         setStartSubbadgeId(value);
+
+        //                         if (value >= 0 && endSubbadgeId >= 0 && value <= endSubbadgeId) {
+        //                             setSubbadgeRanges([{ start: value, end: endSubbadgeId }]);
+        //                         }
+        //                     }
+        //                 } />
+        //         </div>
+        //     </div>,
+        //     disabled: thirdStepDisabled
+        // })
+    }
+
 
     return (
         <TxModal
