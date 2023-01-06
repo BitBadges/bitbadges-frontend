@@ -52,15 +52,13 @@ export interface GetBalanceResponse {
 
 export interface IdRange {
     start: number;
-    end?: number;
+    end: number;
 }
-
-
 
 export interface UserBalance {
     balanceAmounts: {
         balance: number;
-        id_ranges: IdRange[]
+        idRanges: IdRange[]
     }[];
     pendingNonce: number;
     pending: PendingTransfer[];
@@ -71,7 +69,7 @@ export interface Approval {
     address: number;
     approvalAmounts: {
         balance: number;
-        id_ranges: IdRange[]
+        idRanges: IdRange[]
     }[];
 }
 

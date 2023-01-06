@@ -134,7 +134,7 @@ export function BadgeCard({
                                 }
                                 {balance && <><br />
                                     You own x{balance?.balanceAmounts.find((balanceAmount) => {
-                                        const found = balanceAmount.id_ranges.find((idRange) => {
+                                        const found = balanceAmount.idRanges.find((idRange) => {
                                             if (idRange.end === undefined) {
                                                 idRange.end = idRange.start;
                                             }

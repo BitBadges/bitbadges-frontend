@@ -180,7 +180,7 @@ export async function getBadgeBalance(
 
     //Normalize end ranges
     for (const balanceAmount of balance.balanceInfo.balanceAmounts) {
-        for (const idRange of balanceAmount.id_ranges) {
+        for (const idRange of balanceAmount.idRanges) {
             console.log("ID RANGE", idRange);
             if (!idRange.end || idRange.end < idRange.start) {
                 idRange.end = idRange.start;

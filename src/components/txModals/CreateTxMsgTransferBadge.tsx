@@ -57,7 +57,7 @@ export function CreateTxMsgTransferBadgeModal(
         toAddresses: toAddresses.map((user) => user.accountNumber),
         amounts,
         subbadgeRanges,
-        expiration_time: 0, //TODO:
+        expirationTime: 0, //TODO:
         cantCancelBeforeTime: 0,
     };
 

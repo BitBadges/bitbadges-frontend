@@ -41,7 +41,7 @@ export function BalanceBeforeAndAfter({
         }}>
             <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                 {balance.balanceAmounts?.map((balanceAmount) => {
-                    return balanceAmount.id_ranges.map((idRange, idx) => {
+                    return balanceAmount.idRanges.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
@@ -52,7 +52,7 @@ export function BalanceBeforeAndAfter({
             </div>
             <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                 {newBalance.balanceAmounts?.map((balanceAmount) => {
-                    return balanceAmount.id_ranges.map((idRange, idx) => {
+                    return balanceAmount.idRanges.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />

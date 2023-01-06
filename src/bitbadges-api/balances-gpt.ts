@@ -1,15 +1,6 @@
 //TODO: clean up a lot and insert into bitbadges-js
 import { GetIdRangeToInsert, GetIdRangesToInsertToStorage, GetIdRangesWithOmitEmptyCaseHandled, GetIdxSpanForRange, GetIdxToInsertForNewId, InsertRangeToIdRanges, NormalizeIdRange, RemoveIdsFromIdRange, SortIdRangesAndMergeIfNecessary } from "./idRanges";
-//TODO: sync with other types
-interface IdRange {
-    start: number;
-    end: number;
-}
-
-interface BalanceObject {
-    balance: number,
-    idRanges: IdRange[]
-}
+import { BalanceObject, IdRange, UserBalance } from "./types";
 
 // Safe adds two uint64s and returns an error if the result overflows uint64.
 export function SafeAdd(left: number, right: number) {
@@ -265,41 +256,6 @@ export function SearchBalanceObjects(targetAmount: number, balanceObjects: Balan
 
     return [idx, hasEntryWithSameBalance]
 }
-
-//TODO: 
-interface UserBalance {
-    balanceAmounts: {
-        balance: number;
-        idRanges: IdRange[]
-    }[];
-    pendingNonce: number;
-    pending: PendingTransfer[];
-    approvals: Approval[];
-}
-
-
-interface Approval {
-    address: number;
-    approvalAmounts: {
-        balance: number;
-        idRanges: IdRange[]
-    }[];
-}
-
-interface PendingTransfer {
-    subbadgeRange: IdRange;
-    thisPendingNonce: number;
-    otherPendingNonce: number;
-    amount: number;
-    sent: boolean;
-    to: number;
-    from: number;
-    approvedBy: number;
-    markedAsAccepted: boolean;
-    expirationTime: number;
-    cantCancelBeforeTime: number;
-}
-
 
 //Normalizes everything to save storage space. If start == end, we set end to 0 so it doens't store.
 export function GetBalanceInfoToInsertToStorage(balanceInfo: UserBalance) {

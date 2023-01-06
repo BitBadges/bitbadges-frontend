@@ -78,7 +78,7 @@ export function BalanceOverview({ badge, metadata, balance, span }: {
                 </div>
             }
             {balance?.balanceAmounts?.map((balanceAmount) => {
-                return balanceAmount.id_ranges.map((idRange) => {
+                return balanceAmount.idRanges.map((idRange) => {
                     let start = Number(idRange.start);
                     if (!idRange.end) idRange.end = idRange.start;
                     let end = Number(idRange.end);
@@ -89,7 +89,7 @@ export function BalanceOverview({ badge, metadata, balance, span }: {
                 })
             })}
         </InformationDisplayCard>
-        
+
         <CreateTxMsgTransferBadgeModal
             badge={badge ? badge : {} as BitBadgeCollection}
             visible={transferIsVisible}

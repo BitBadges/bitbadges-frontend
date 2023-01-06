@@ -6,7 +6,6 @@ import { useChainContext } from '../../chain/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { Divider, InputNumber, Switch, Typography } from 'antd';
 import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
-import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { TransferDisplay } from '../common/TransferDisplay';
@@ -76,7 +75,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
         badgeId: badge.id,
         amount: amountToTransfer,
         subbadgeRanges,
-        expiration_time: 0, //TODO:
+        expirationTime: 0, //TODO:
         cantCancelBeforeTime: 0,
     };
 
