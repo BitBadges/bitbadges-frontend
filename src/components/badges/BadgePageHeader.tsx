@@ -57,10 +57,10 @@ export function BadgePageHeader({ metadata }: {
                                 return false;
                             }}
                         />
-
                     </div>
-                    <Divider type="vertical" style={{ height: '100%' }} />
+                    
                     {metadata?.description && <div style={{ maxWidth: 500 }}>
+                        <Divider type="vertical" style={{ height: '100%' }} />
                         <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
                             {metadata?.name}
                         </Text>

@@ -3,9 +3,6 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { BadgeCard } from '../BadgeCard';
 import { getBadge } from '../../../bitbadges-api/api';
-import { Divider, Typography } from 'antd';
-
-const { Text } = Typography;
 
 export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;

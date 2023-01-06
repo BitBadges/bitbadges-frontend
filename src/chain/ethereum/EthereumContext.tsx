@@ -101,7 +101,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         });
         setWeb3Modal(web3ModalInstance);
         web3ModalInstance.clearCachedProvider();
-        
+
         const instance = await web3ModalInstance.connect();
         const provider = new ethers.providers.Web3Provider(instance);
         const signer = provider.getSigner();
@@ -112,14 +112,14 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setSequence(accountInformation.sequence);
         setPublicKey(accountInformation.pub_key?.key);
         setAccountNumber(accountInformation.account_number);
-        setIsRegistered(!!accountInformation.account_number);
+        setIsRegistered(accountInformation.account_number >= 0);
 
         setSigner(signer);
         setConnected(true);
         setAddress(await signer.getAddress());
 
         instance.on("accountsChanged", async (accounts: string[]) => {
-            
+
             console.log("accountsChanged", accounts);
             const provider = new ethers.providers.Web3Provider(instance);
             const signer = provider.getSigner();
@@ -130,7 +130,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
                 setSequence(accountInformation.sequence);
                 setPublicKey(accountInformation.pub_key?.key);
                 setAccountNumber(accountInformation.account_number);
-                setIsRegistered(!!accountInformation.account_number);
+                setIsRegistered(accountInformation.account_number >= 0);
 
                 setSigner(signer);
                 setConnected(true);

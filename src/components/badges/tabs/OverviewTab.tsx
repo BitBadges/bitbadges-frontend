@@ -8,9 +8,11 @@ import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 
 export function OverviewTab({
     badgeCollection,
+    setBadgeCollection,
     userBalance
 }: {
     badgeCollection: BitBadgeCollection | undefined;
+    setBadgeCollection: (badge: BitBadgeCollection) => void;
     userBalance: UserBalance | undefined;
 }) {
     if (!badgeCollection) return <></>;
@@ -20,7 +22,7 @@ export function OverviewTab({
         <InformationDisplayCard
             title="Badges"
         >
-            <BadgeAvatarDisplay size={55} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextSubassetId - 1} />
+            <BadgeAvatarDisplay size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextSubassetId - 1} />
         </InformationDisplayCard>
         <br />
         <Row

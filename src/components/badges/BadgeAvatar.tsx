@@ -1,6 +1,6 @@
 import { Avatar, Tooltip } from "antd";
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BadgeModal } from "./BadgeModal";
 
 export function BadgeAvatar({
@@ -18,9 +18,7 @@ export function BadgeAvatar({
 }) {
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
 
-    if (!metadata) return <></>;
-
-    return <Tooltip
+    return metadata ? <Tooltip
         placement="bottom"
         title={`${metadata.name} (ID: ${badgeId})`}
         open={modalIsVisible ? false : undefined}
@@ -64,5 +62,5 @@ export function BadgeAvatar({
             balance={balance ? balance : {} as UserBalance}
             badgeId={badgeId}
         />
-    </Tooltip>
+    </Tooltip> : <></>
 }

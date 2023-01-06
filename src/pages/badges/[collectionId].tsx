@@ -51,7 +51,7 @@ function CollectionPage() {
     // Get user's badge balance
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
-            if (!accountNumber || accountNumber < 0 || !badgeCollection?.id) return;
+            if (!accountNumber || accountNumber < 0 || badgeCollection?.id === undefined) return;
 
             try {
                 const res = await getBadgeBalance(badgeCollection?.id, accountNumber);
@@ -89,7 +89,7 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab badgeCollection={badgeCollection} userBalance={userBalance} />
+                        <OverviewTab badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} />
                     )}
                     {tab === 'badges' && (
                         <BadgesTab

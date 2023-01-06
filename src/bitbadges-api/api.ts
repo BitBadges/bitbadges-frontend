@@ -160,12 +160,12 @@ export async function getBadgeBalance(
     badgeId: number,
     accountNumber: number
 ): Promise<GetBalanceResponse> {
-    if (isNaN(badgeId) || badgeId <= 0) {
+    if (isNaN(badgeId) || badgeId < 0) {
         console.error("Invalid badgeId: ", badgeId);
         return Promise.reject(`Invalid badgeId: ${badgeId}`);
     }
 
-    if (isNaN(accountNumber) || accountNumber <= 0) {
+    if (isNaN(accountNumber) || accountNumber < 0) {
         console.error("Invalid accountNumber: ", accountNumber);
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
