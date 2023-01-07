@@ -29,7 +29,7 @@ export function BadgeOverview({ badge, metadata, balance, badgeId }: {
     }
 
     const endDateString = validForever ? `Forever` : new Date(
-        endTimestamp
+        endTimestamp * 1000
     ).toLocaleDateString();
 
 

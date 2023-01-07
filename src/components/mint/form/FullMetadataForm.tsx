@@ -503,8 +503,8 @@ export function FullMetadataForm({
                         setMetadata(getMetadataToUpdate({
                             ...currentMetadata,
                             validFrom: {
-                                start: Date.now(),
-                                end: new Date(dateString).valueOf(),
+                                start: Date.now() / 1000,
+                                end: new Date(dateString).valueOf() / 1000,
                             }
                         }));
                     }}

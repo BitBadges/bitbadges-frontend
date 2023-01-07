@@ -27,7 +27,7 @@ export function CollectionOverview({ badge, metadata, span }: {
     }
 
     const endDateString = validForever ? `Forever` : new Date(
-        endTimestamp
+        endTimestamp * 1000
     ).toLocaleDateString();
 
 

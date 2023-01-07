@@ -8,7 +8,7 @@ export const DEV_MODE = true;
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';
 // export const PRIVATE_API_URL = 'http://localhost:3000';
 
-export const MAX_DATE_TIMESTAMP = 8640000000000000;
+export const MAX_DATE_TIMESTAMP = 8640000000000000 / 1000;
 
 export const PRIMARY_BLUE = '#001529';
 export const SECONDARY_BLUE = '#3e83f8';
