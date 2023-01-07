@@ -36,14 +36,14 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
 
     useEffect(() => {
         if (!requestedBalance || !requestedBalance.balanceAmounts) return;
-
+        let requestedBalanceCopy = JSON.parse(JSON.stringify(requestedBalance));
         try {
-            let newBalanceObj = getPostTransferBalance(requestedBalance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1);
+            let newBalanceObj = getPostTransferBalance(requestedBalanceCopy, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, 1);
 
             setNewBalance(newBalanceObj);
         } catch (e) {
             setNewBalance({
-                ...requestedBalance,
+                ...requestedBalanceCopy,
                 balanceAmounts: [],
             });
         }
@@ -51,7 +51,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
 
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
-            if (!badge || !currUserInfo?.accountNumber || currUserInfo?.accountNumber < 0 || !badge.id) {
+            if (!badge || !currUserInfo?.accountNumber || currUserInfo?.accountNumber < 0) {
                 return;
             }
             const balanceInfoRes = await getBadgeBalance(badge.id, currUserInfo?.accountNumber);

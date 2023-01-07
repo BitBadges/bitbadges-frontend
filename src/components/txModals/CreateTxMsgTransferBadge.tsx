@@ -33,17 +33,20 @@ export function CreateTxMsgTransferBadgeModal(
     const [expirationTime, setExpirationTime] = useState<number>(0);
     const [cantCancelBeforeTime, setCantCancelBeforeTime] = useState<number>(0);
 
-    const [newBalance, setNewBalance] = useState<UserBalance>(balance);
+    const [newBalance, setNewBalance] = useState<UserBalance>({} as UserBalance);
 
     useEffect(() => {
         if (!balance || !balance.balanceAmounts) return;
-        try {
-            let newBalanceObj = getPostTransferBalance(balance, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, toAddresses.length);
+        let balanceCopy = JSON.parse(JSON.stringify(balance));
 
+        try {
+            let newBalanceObj = getPostTransferBalance(balanceCopy, badge, startSubbadgeId, endSubbadgeId, amountToTransfer, toAddresses.length);
+            console.log("TRY", newBalanceObj)
             setNewBalance(newBalanceObj);
         } catch (e) {
+            console.log("CATCH", balance)
             setNewBalance({
-                ...balance,
+                ...balanceCopy,
                 balanceAmounts: [],
             });
         }
@@ -87,7 +90,7 @@ export function CreateTxMsgTransferBadgeModal(
         setAmountToTransfer(0);
         setStartSubbadgeId(0);
         setEndSubbadgeId(badge.nextSubassetId - 1);
-        setNewBalance(balance);
+        setNewBalance(JSON.parse(JSON.stringify(balance)));
     }, [visible, badge.nextSubassetId, balance]);
 
 

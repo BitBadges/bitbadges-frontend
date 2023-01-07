@@ -3,14 +3,28 @@ import { MessageMsgHandlePendingTransfer, createTxMsgHandlePendingTransfer } fro
 import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { Avatar, Button, Col, Divider, Empty, Row, Tooltip, Typography } from 'antd';
-import { CheckOutlined, CloseOutlined, DeleteOutlined, SwapOutlined, SwapRightOutlined } from '@ant-design/icons';
+import { Avatar, Divider, Empty, Tooltip, Typography } from 'antd';
+import { CheckOutlined, CloseOutlined, SwapOutlined } from '@ant-design/icons';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { TransferDisplay } from '../common/TransferDisplay';
 const { Text } = Typography;
 
+const getActionForNonce = (actions: number[], nonceRanges: IdRange[], nonce: number) => {
+    for (let i = 0; i < nonceRanges.length; i++) {
+        if (nonce >= nonceRanges[i].start && nonce <= nonceRanges[i].end) {
+            if (actions.length == 1) {
+                return actions[0];
+            } else {
+                return actions[i];
+            }
+        }
+    }
+    return -1;
+}
+
 export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible, setVisible, children }
-    : {
+    :
+    {
         badge: BitBadgeCollection,
         visible: boolean,
         setVisible: (visible: boolean) => void,
@@ -19,38 +33,31 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
     }) {
     const chain = useChainContext();
 
-    const [accept, setAccept] = useState<boolean>(true);
-    const [forcefulAccept, setForcefulAccept] = useState<boolean>(false);
+    const [actions, setActions] = useState<number[]>([]);
     const [nonceRanges, setNonceRanges] = useState<IdRange[]>([]);
-    const [numHandling, setNumHandling] = useState<number>(0);
     const [otherPending, setOtherPending] = useState<any[]>([]);
 
     // Reset states upon modal close
     useEffect(() => {
         if (!visible) {
-            setAccept(true);
-            setForcefulAccept(false);
+            setActions([]);
             setNonceRanges([]);
-            setNumHandling(0);
         }
     }, [visible]);
 
 
     const txCosmosMsg: MessageMsgHandlePendingTransfer = {
         creator: chain.cosmosAddress,
-        accept,
+        actions,
         badgeId: badge.id,
-        forcefulAccept,
         nonceRanges
     };
 
     const addOrRemoveNonce = (nonce: number, _accept: boolean, _forcefulAccept: boolean) => {
-        //TODO: make this more optimal
-        let numHandled = numHandling;
-        let currNonceRanges = _accept != accept || _forcefulAccept != forcefulAccept ? [] : [...nonceRanges];
-        if (_accept != accept || _forcefulAccept != forcefulAccept) {
-            numHandled = 0;
-        }
+        const action = _accept && !_forcefulAccept ? 1 : _accept && _forcefulAccept ? 2 : 0;
+        let currNonceRanges = [...nonceRanges];
+        let currActions = [...actions];
+
         let idx = -1;
         for (let i = 0; i < currNonceRanges.length; i++) {
             const range = currNonceRanges[i];
@@ -61,15 +68,24 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                 break;
             }
         }
-        if (idx === -1) {
-            currNonceRanges.push({ start: nonce, end: nonce });
-            numHandled++;
-        } else {
+
+
+        let prevAction = -1;
+        if (idx !== -1) {
+            prevAction = actions[idx];
             currNonceRanges = currNonceRanges.filter((_, i) => i !== idx);
-            numHandled--;
+            currActions = currActions.filter((_, i) => i !== idx);
         }
+
+        //If we are selecting a new action, add it to the list
+        //Else, we are deselecting an action, and we already removed it from the list
+        if (prevAction !== action) {
+            currNonceRanges.push({ start: nonce, end: nonce });
+            currActions.push(action);
+        }
+
         setNonceRanges(currNonceRanges);
-        setNumHandling(numHandled);
+        setActions(currActions);
     }
 
     useEffect(() => {
@@ -105,11 +121,6 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
         {
             title: `Select Action(s)`,
             description: <>
-                Currently, you can select more than one action but all actions have to be the same type
-                (e.g. can not mix approves and cancels). You may select more than one action.
-                <hr />
-                {/* //TODO: fix this */}
-                <br />
                 {!balance.pending || balance.pending.length === 0 && <Empty
                     description="No pending transfers found."
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -189,19 +200,11 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                 padding: 0,
                                                 margin: 0,
                                                 alignItems: 'center',
-                                                border: !accept && nonceRanges.find(idRange => {
-                                                    if (idRange.end === undefined) idRange.end = idRange.start;
-                                                    return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                }) ? `1px solid #1890ff` : undefined,
-                                                color: !accept && nonceRanges.find(idRange => {
-                                                    if (idRange.end === undefined) idRange.end = idRange.start;
-                                                    return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                }) ? `#1890ff` : undefined,
+                                                border: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 0 ? `2px solid #1890ff` : undefined,
+                                                color: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 0 ? `#1890ff` : undefined,
                                             }}
                                             size="large"
                                             onClick={() => {
-                                                setAccept(false);
-                                                setForcefulAccept(false);
                                                 addOrRemoveNonce(pending.thisPendingNonce, false, false);
                                             }}
                                             className="screen-button-modal"
@@ -234,19 +237,11 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                         padding: 0,
                                                         margin: 0,
                                                         alignItems: 'center',
-                                                        border: accept && forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `1px solid #1890ff` : undefined,
-                                                        color: accept && forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `#1890ff` : undefined,
+                                                        border: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 2 ? `2px solid #1890ff` : undefined,
+                                                        color: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 2 ? `#1890ff` : undefined,
                                                     }}
                                                     size="large"
                                                     onClick={() => {
-                                                        setAccept(true);
-                                                        setForcefulAccept(true);
                                                         addOrRemoveNonce(pending.thisPendingNonce, true, true);
                                                     }}
                                                     className="screen-button-modal"
@@ -283,21 +278,13 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                         padding: 0,
                                                         margin: 0,
                                                         alignItems: 'center',
-                                                        border: accept && !forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `1px solid #1890ff` : pending.markedAsAccepted ? '1px solid green' : undefined,
-                                                        color: accept && !forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `#1890ff` : pending.markedAsAccepted ? 'green' : undefined,
+                                                        border: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 1 ? `2px solid #1890ff` : pending.markedAsAccepted ? '1px solid green' : undefined,
+                                                        color: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 1 ? `#1890ff` : pending.markedAsAccepted ? 'green' : undefined,
                                                     }}
                                                     size="large"
                                                     onClick={() => {
                                                         if (pending.markedAsAccepted) return;
 
-                                                        setAccept(true);
-                                                        setForcefulAccept(false);
                                                         addOrRemoveNonce(pending.thisPendingNonce, true, false);
                                                     }}
                                                     className="screen-button-modal"
@@ -328,19 +315,11 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                                         padding: 0,
                                                         margin: 0,
                                                         alignItems: 'center',
-                                                        border: accept && forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `1px solid #1890ff` : undefined,
-                                                        color: accept && forcefulAccept && nonceRanges.find(idRange => {
-                                                            if (idRange.end === undefined) idRange.end = idRange.start;
-                                                            return pending.thisPendingNonce >= idRange.start && pending.thisPendingNonce <= idRange.end;
-                                                        }) ? `#1890ff` : undefined,
+                                                        border: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 2 ? `2px solid #1890ff` : undefined,
+                                                        color: getActionForNonce(actions, nonceRanges, pending.thisPendingNonce) === 2 ? `#1890ff` : undefined,
                                                     }}
                                                     size="large"
                                                     onClick={() => {
-                                                        setAccept(true);
-                                                        setForcefulAccept(true);
                                                         addOrRemoveNonce(pending.thisPendingNonce, true, true);
                                                     }}
                                                     className="screen-button-modal"
@@ -375,7 +354,7 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
             txName="Handle Pending Transfer(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgHandlePendingTransfer}
-            displayMsg={`You have selected to ${accept ? forcefulAccept ? 'complete' : 'approve' : 'cancel/reject'} ${numHandling} pending transfer(s).`}
+        // displayMsg={`You have selected to ${accept ? forcefulAccept ? 'complete' : 'approve' : 'cancel/reject'} ${numHandling} pending transfer(s).`}
         >
             {children}
         </TxModal>

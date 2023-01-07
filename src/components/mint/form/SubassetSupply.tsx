@@ -16,11 +16,11 @@ export function SubassetSupply({
     setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
 }) {
     let defaultBadgeSupply = 0;
-    if (newBadgeMsg.subassetSupplys && newBadgeMsg.subassetSupplys[0]) {
+    if (newBadgeMsg.subassetSupplysAndAmounts && newBadgeMsg.subassetSupplysAndAmounts[0]) {
         if (newBadgeMsg.defaultSubassetSupply == 1) {
-            defaultBadgeSupply = newBadgeMsg.subassetAmountsToCreate[0];
+            defaultBadgeSupply = newBadgeMsg.subassetSupplysAndAmounts[0].supply;
         } else {
-            defaultBadgeSupply = newBadgeMsg.subassetSupplys[0];
+            defaultBadgeSupply = newBadgeMsg.subassetSupplysAndAmounts[0].supply;
         }
     }
 
@@ -31,24 +31,27 @@ export function SubassetSupply({
     const addTokens = (supply: number) => {
 
         if (supply > 0) {
-            let newSupplys = newBadgeMsg.subassetSupplys;
-            let newAmounts = newBadgeMsg.subassetAmountsToCreate;
+            let newSupplyObjs = newBadgeMsg.subassetSupplysAndAmounts;
+
+
             if (newBadgeMsg.defaultSubassetSupply == 1) {
-                newSupplys = [1];
-                newAmounts = [supply];
+                newSupplyObjs = [{
+                    amount: supply,
+                    supply: 1
+                }];
 
                 setNewBadgeMsg({
                     ...newBadgeMsg,
-                    subassetSupplys: newSupplys,
-                    subassetAmountsToCreate: newAmounts
+                    subassetSupplysAndAmounts: newSupplyObjs
                 })
             } else {
-                newSupplys = [supply];
-                newAmounts = [1];
+                newSupplyObjs = [{
+                    amount: 1,
+                    supply: supply
+                }];
                 setNewBadgeMsg({
                     ...newBadgeMsg,
-                    subassetSupplys: newSupplys,
-                    subassetAmountsToCreate: newAmounts
+                    subassetSupplysAndAmounts: newSupplyObjs
                 })
             }
         }

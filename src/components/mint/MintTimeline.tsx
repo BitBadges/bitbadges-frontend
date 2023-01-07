@@ -38,8 +38,7 @@ export function MintTimeline() {
         defaultSubassetSupply: 1,
         freezeAddressRanges: [],
         standard: 0,
-        subassetSupplys: [],
-        subassetAmountsToCreate: [],
+        subassetSupplysAndAmounts: [],
         whitelistedRecipients: []
     });
 
@@ -47,14 +46,14 @@ export function MintTimeline() {
     const [individualBadgeMetadata, setIndividualBadgeMetadata] = useState<BadgeMetadata[]>();
 
     useEffect(() => {
-        if (newBadgeMetadata && newBadgeMsg.subassetAmountsToCreate && newBadgeMsg.subassetAmountsToCreate[0]) {
+        if (newBadgeMetadata && newBadgeMsg.subassetSupplysAndAmounts && newBadgeMsg.subassetSupplysAndAmounts[0]) {
             let metadata = [];
-            for (let i = 0; i < newBadgeMsg.subassetAmountsToCreate[0]; i++) {
+            for (let i = 0; i < newBadgeMsg.subassetSupplysAndAmounts[0].amount; i++) {
                 metadata.push(newBadgeMetadata);
             }
             setIndividualBadgeMetadata(metadata);
         }
-    }, [newBadgeMetadata, newBadgeMsg.subassetAmountsToCreate])
+    }, [newBadgeMetadata, newBadgeMsg.subassetSupplysAndAmounts])
 
     const steps = [
         {
@@ -163,7 +162,7 @@ export function MintTimeline() {
                         color={
                             step.stepNumber < currStepNumber ? 'green' : 'blue'
                         }
-                        
+
                         dot={
                             step.stepNumber >= currStepNumber ? (
                                 <ClockCircleOutlined

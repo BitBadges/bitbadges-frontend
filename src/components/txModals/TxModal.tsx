@@ -78,6 +78,7 @@ export function TxModal(
             console.error(err);
             setError(err.message);
             setTransactionStatus(TransactionStatus.None);
+            throw err;
         }
     }
 
