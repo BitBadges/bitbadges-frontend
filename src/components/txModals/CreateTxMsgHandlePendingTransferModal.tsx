@@ -4,7 +4,7 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { Avatar, Divider, Empty, Tooltip, Typography } from 'antd';
-import { CheckOutlined, CloseOutlined, SwapOutlined } from '@ant-design/icons';
+import { CheckOutlined, ClockCircleFilled, CloseOutlined, SwapOutlined } from '@ant-design/icons';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { TransferDisplay } from '../common/TransferDisplay';
 const { Text } = Typography;
@@ -133,12 +133,18 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                         let outgoingTransfer = pending.from === chain.accountNumber;
 
                         let msg = '';
+                        let expirationMsg = '';
+                        let cancelMsg = '';
 
                         if (outgoingTransfer) {
                             if (pending.sent) {
                                 msg += 'Outgoing Transfer';
+                                expirationMsg = 'They must accept by';
+                                cancelMsg = 'You cannot cancel until';
                             } else {
                                 msg += 'Request for Outgoing Transfer';
+                                expirationMsg = 'You must accept by';
+                                cancelMsg = 'They cannot cancel until';
                             }
                         } else {
                             if (pending.sent) {
@@ -148,14 +154,21 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                 else {
                                     msg += `Request for Incoming Transfer: Pending`;
                                 }
+                                expirationMsg = 'They must accept by';
+                                cancelMsg = 'You cannot cancel until';
                             } else {
                                 msg += 'Incoming Transfer';
+                                expirationMsg = 'You must accept by';
+                                cancelMsg = 'They cannot cancel until';
                             }
                         }
 
                         return <>
                             {idx > 0 && <Divider />}
                             <Typography.Text style={{ fontSize: 16 }} strong>#{idx + 1}) {msg}</Typography.Text>
+                            {pending.expirationTime && <><br /><Typography.Text><ClockCircleFilled /> {expirationMsg} {new Date(pending.expirationTime * 1000).toISOString()}</Typography.Text></>}
+                            {pending.cantCancelBeforeTime && <><br /><Typography.Text><ClockCircleFilled /> {cancelMsg} {new Date(pending.expirationTime * 1000).toISOString()}</Typography.Text></>}
+                            <br />
                             <TransferDisplay
                                 from={[{
                                     address: chain.address,
