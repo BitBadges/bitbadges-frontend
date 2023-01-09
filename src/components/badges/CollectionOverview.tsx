@@ -46,13 +46,13 @@ export function CollectionOverview({ badge, metadata, span }: {
                     <AddressDisplay
                         fontSize={14}
                         fontColor={SECONDARY_TEXT}
-                        // userInfo={badge?.manager}
-                        userInfo={{
-                            address: chain.address,
-                            chain: chain.chain,
-                            accountNumber: chain.accountNumber,
-                            cosmosAddress: chain.cosmosAddress,
-                        }}
+                        userInfo={badge?.manager}
+                        // userInfo={{
+                        //     address: chain.address,
+                        //     chain: chain.chain,
+                        //     accountNumber: chain.accountNumber,
+                        //     cosmosAddress: chain.cosmosAddress,
+                        // }}
                         hideChains
                     />
                 </div>

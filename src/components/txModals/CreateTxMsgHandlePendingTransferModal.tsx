@@ -206,8 +206,6 @@ export function CreateTxMsgHandlePendingTransferModal({ balance, badge, visible,
                                         <Avatar
                                             style={{
                                                 marginBottom: 1,
-                                                // marginLeft: 8,
-                                                // marginRight: 8,
                                                 cursor: 'pointer',
                                                 fontSize: 20,
                                                 padding: 0,

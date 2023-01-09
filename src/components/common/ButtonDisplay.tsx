@@ -6,7 +6,7 @@ const { Content } = Layout;
 const { Text } = Typography;
 
 interface Button {
-    name: string;
+    name: string | ReactNode;
     icon: JSX.Element;
     onClick: () => void;
     count?: number;

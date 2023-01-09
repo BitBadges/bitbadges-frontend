@@ -34,8 +34,16 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
         {
             title: 'Select',
             description: <>
-                Request or Cancel
-                <Switch defaultChecked onChange={() => setRequest(!request)} />
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    Submit or Cancel Request
+                    <div>
+                        <b style={{ marginRight: 10 }}>{request ? 'Submit Request' : 'Remove Request'}</b>
+
+                        <Switch defaultChecked onChange={() => setRequest(!request)} />
+                    </div>
+                </div>
+
+
             </>,
         }
     ]

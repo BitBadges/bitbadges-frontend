@@ -2,6 +2,7 @@ import { Typography } from 'antd';
 import React, { useState } from 'react';
 import {
     BellOutlined,
+    LockOutlined,
     SwapOutlined,
 } from '@ant-design/icons';
 import { PRIMARY_TEXT } from '../../constants';
@@ -20,8 +21,9 @@ import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
 
 const { Text } = Typography;
 
-export function BalanceOverview({ badge, metadata, balance, span }: {
+export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
     badge: BitBadgeCollection | undefined;
+    setBadge: (badge: BitBadgeCollection) => void;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     span?: number;
@@ -31,7 +33,57 @@ export function BalanceOverview({ badge, metadata, balance, span }: {
     const [requestTransferIsVisible, setRequestTransferIsVisible] = useState<boolean>(false);
     const [pendingIsVisible, setPendingIsVisible] = useState<boolean>(false);
 
-    if (!badge || !metadata) return <></>
+    if (!badge || !metadata) return <></>;
+
+    const accountIsInFreezeRanges = chain.accountNumber ? badge?.freezeRanges.some(range => {
+        return range.start <= chain.accountNumber && range.end >= chain.accountNumber;
+    }) : false;
+    const accountIsFrozen = (badge.permissions.FrozenByDefault && !accountIsInFreezeRanges) || (!badge.permissions.FrozenByDefault && accountIsInFreezeRanges);
+    const accountIsNotPermanantlyFrozenButBadgeIsNonTransferable = accountIsFrozen && badge.freezeRanges.length === 0 && badge.permissions.CanFreeze;
+
+    const accountIsPermanentlyFrozen = accountIsFrozen && !badge.permissions.CanFreeze;
+    const badgeIsNonTransferable = badge.freezeRanges.length === 0 && accountIsPermanentlyFrozen;
+
+
+    let helperMsg = '';
+    if (badgeIsNonTransferable) {
+        helperMsg = 'This badge is non-transferable.';
+    } else if (accountIsPermanentlyFrozen) {
+        helperMsg = 'Your account is permanently frozen.';
+    } else if (accountIsNotPermanantlyFrozenButBadgeIsNonTransferable) {
+        helperMsg = 'This badge is currently non-transferable for everyone, but the manager still has permission to freeze/unfreeze accounts.';
+    } else if (accountIsFrozen) {
+        helperMsg = 'Your account is frozen, but the manager has permission to freeze/unfreeze accounts.';
+    }
+
+
+    const buttons = [];
+    buttons.push(...[
+        {
+            name: <>Pending {accountIsFrozen && balance?.pending.length === 0 && <LockOutlined />}</>,
+            icon: <BellOutlined />,
+            tooltipMessage: accountIsFrozen && balance?.pending.length === 0 ? helperMsg : 'See your pending requests and transfers for this badge.',
+            onClick: () => { setPendingIsVisible(true) },
+            disabled: accountIsFrozen && balance?.pending.length === 0,
+            count: balance?.pending?.length
+        },
+        {
+            name: <>Transfer {accountIsFrozen && <LockOutlined />}</>,
+            icon: <SwapOutlined />,
+            onClick: () => { setTransferIsVisible(true) },
+            tooltipMessage: accountIsFrozen ? helperMsg : `Transfer this badge to another address`,
+            disabled: accountIsFrozen
+        },
+        {
+            name: <>Request {accountIsFrozen && <LockOutlined />}</>,
+            icon: <FontAwesomeIcon icon={faPersonCircleQuestion} />,
+            onClick: () => { setRequestTransferIsVisible(true) },
+            tooltipMessage: accountIsFrozen ? helperMsg : 'Request this badge to be transferred to you!',
+            disabled: accountIsFrozen
+        },
+    ]);
+
+
 
     return (<>
         <InformationDisplayCard
@@ -39,55 +91,43 @@ export function BalanceOverview({ badge, metadata, balance, span }: {
             span={span}
         >
             {
-                chain.connected && <>
-                    <ButtonDisplay buttons={[
-                        {
-                            name: 'Pending',
-                            icon: <BellOutlined />,
-                            tooltipMessage: !chain.connected ? 'No connected wallet.' : 'See your pending requests and transfers for this badge.',
-                            onClick: () => { setPendingIsVisible(true) },
-                            disabled: !chain.connected,
-                            count: balance?.pending?.length
-                        },
-                        {
-                            name: 'Transfer',
-                            icon: <SwapOutlined />,
-                            onClick: () => { setTransferIsVisible(true) },
-                            tooltipMessage: !chain.connected ? 'No connected wallet.' : 'Transfer this badge to another address',
-                            disabled: !chain.connected
-                        },
-                        {
-                            name: 'Request',
-                            icon: <FontAwesomeIcon icon={faPersonCircleQuestion} />,
-                            onClick: () => { setRequestTransferIsVisible(true) },
-                            tooltipMessage: !chain.connected ? 'No connected wallet.' : 'Request this badge to be transferred to you!',
-                            disabled: !chain.connected
-                        },
-                    ]} />
+                chain.connected && buttons.length > 0 && <>
+                    <ButtonDisplay buttons={buttons} />
                 </>
             }
-            {
-                !chain.connected && <BlockinDisplay hideLogo={true} />
-            }
-            {
-                balance?.balanceAmounts?.length === 0 &&
+            {/* {
+                !accountIsPermanentlyFrozen &&
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                     <Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>
                         You do not own any badge in this collection.
                     </Text>
                 </div>
+            } */}
+            {
+                !chain.connected && <BlockinDisplay hideLogo={true} />
             }
-            {balance?.balanceAmounts?.map((balanceAmount) => {
-                return balanceAmount.idRanges.map((idRange) => {
-                    let start = Number(idRange.start);
-                    if (!idRange.end) idRange.end = idRange.start;
-                    let end = Number(idRange.end);
+            <div>
+                {
+                    balance?.balanceAmounts?.length === 0 &&
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+                        <Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>
+                            You do not own any badge in this collection.
+                        </Text>
+                    </div>
+                }
 
-                    return <TableRow key={start} label={'x' + balanceAmount.balance + ` (IDs: ${start}-${end})`} value={
-                        <BadgeAvatarDisplay badgeCollection={badge} startId={start} endId={end} userBalance={balance} />
-                    } labelSpan={8} valueSpan={16} />
-                })
-            })}
+                {balance?.balanceAmounts?.map((balanceAmount) => {
+                    return balanceAmount.idRanges.map((idRange) => {
+                        let start = Number(idRange.start);
+                        if (!idRange.end) idRange.end = idRange.start;
+                        let end = Number(idRange.end);
+
+                        return <TableRow key={start} label={'x' + balanceAmount.balance + ` (IDs: ${start}-${end})`} value={
+                            <BadgeAvatarDisplay setBadgeCollection={setBadge} badgeCollection={badge} startId={start} endId={end} userBalance={balance} />
+                        } labelSpan={8} valueSpan={16} />
+                    })
+                })}
+            </div>
         </InformationDisplayCard>
 
         <CreateTxMsgTransferBadgeModal

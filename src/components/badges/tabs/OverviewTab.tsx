@@ -42,6 +42,7 @@ export function OverviewTab({
             />
             <BalanceOverview
                 badge={badgeCollection}
+                setBadge={setBadgeCollection}
                 metadata={collectionMetadata}
                 balance={userBalance}
                 span={7}

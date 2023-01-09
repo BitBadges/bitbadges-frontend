@@ -43,9 +43,18 @@ export function CreateTxMsgFreezeModal({ badge, visible, setVisible, children }
         {
             title: 'Select Address',
             description: <>
-                Freeze or Unfreeze
-                <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
-                <AddressSelect onChange={handleChange} title={"Freeze User"} />
+
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    Freeze or Unfreeze
+                    <div>
+                        <b style={{ marginRight: 10 }}>{freeze ? 'Freeze Address' : 'Unfreeze Address'}</b>
+                        <Switch defaultChecked onChange={() => setFreeze(!freeze)} />
+                    </div>
+                </div>
+                <br />
+
+
+                <AddressSelect onChange={handleChange} title={"Select User"} />
             </>,
             disabled: currUserInfo === undefined || currUserInfo === null || currUserInfo.accountNumber < 0
         }

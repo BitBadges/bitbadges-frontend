@@ -2,13 +2,41 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
-import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse } from './types';
+import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse, SupportedChain } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 
 
 export async function getAccountInformation(
     bech32Address: string,
 ) {
+    const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
+        .then((res) => res.data)
+        .catch((err) => {
+            //Handle unregistered case
+            if (err.response.data.code === 5) {
+                return {
+                    account: {
+                        address: bech32Address,
+                        account_number: -1,
+                    }
+                }
+            }
+
+            return Promise.reject();
+        });
+
+    const accountInformation: CosmosAccountInformation = accountObject.account;
+    return accountInformation;
+}
+
+export async function getAccountInformationByAccountNumber(
+    id: number,
+) {
+    const res = await axios.get(NODE_URL + GetAccountByNumberRoute(id))
+        .then((res) => res.data);
+
+    let bech32Address = res.account_address;
+
     const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
         .then((res) => res.data)
         .catch((err) => {
@@ -72,19 +100,17 @@ export async function getBadge(
             let permissionsNumber: any = badgeData.permissions;
             badgeData.permissions = GetPermissions(permissionsNumber);
 
-
-            //TODO: Replace manager info with actual account information (i.e. Cosmos address)
-            // const managerAccountInfo = await axios.get(NODE_URL + GetAccountByNumberRoute(badgeData.manager))
-            //     .then((res) => res.data);
-            // badgeData.manager = managerAccountInfo;
-
             let managerAccountNumber: any = badgeData.manager;
+            let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
+
+            console.log(managerAccountInfo);
+
             badgeData.manager = {
-                accountNumber: managerAccountNumber,
-                address: '',
-                cosmosAddress: '',
-                chain: ''
-            }
+                accountNumber: managerAccountInfo.account_number,
+                address: managerAccountInfo.address,//TODO:
+                cosmosAddress: managerAccountInfo.address,
+                chain: SupportedChain.COSMOS //TODO:
+            };
 
             const defaultSupplyObject: BalanceObject = {
                 balance: badgeData.defaultSubassetSupply,
@@ -190,6 +216,12 @@ export async function getBadgeBalance(
             idRange.start = Number(idRange.start);
         }
         balanceAmount.balance = Number(balanceAmount.balance);
+    }
+
+    for (const pending of balance.balanceInfo.pending) {
+        pending.amount = Number(pending.amount);
+        pending.expirationTime = Number(pending.expirationTime);
+        pending.cantCancelBeforeTime = Number(pending.cantCancelBeforeTime);
     }
 
     return balance;

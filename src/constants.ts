@@ -2,7 +2,7 @@
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3000';
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;
 
 // export const PRIVATE_API_URL = 'https://bitbadges-private-api.herokuapp.com';
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';

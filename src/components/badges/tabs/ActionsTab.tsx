@@ -65,6 +65,20 @@ export function ActionsTab({
             });
         }
 
+        if (badge.permissions.CanFreeze) {
+            actions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Freeze</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Freeze or unfreeze if an address is able to transfer.
+                    </div>
+                ),
+                showModal: () => {
+                    setFreezeIsVisible(!freezeIsVisible);
+                },
+            });
+        }
+
         if (badge.permissions.CanManagerTransfer) {
             actions.push({
                 title: (

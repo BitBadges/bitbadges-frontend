@@ -2,8 +2,8 @@ export const GetAccountRoute = (bech32address: string) => {
     return `/cosmos/auth/v1beta1/accounts/${bech32address}`;
 }
 
-export const GetAccountByNumberRoute = (bech32address: string) => {
-    return `/cosmos/auth/v1beta1/accounts/${bech32address}`; //TODO: 
+export const GetAccountByNumberRoute = (id: number) => {
+    return `/cosmos/auth/v1beta1/address_by_id/${id}`;
 }
 
 export const GetBalanceRoute = (bech32address: string) => {
