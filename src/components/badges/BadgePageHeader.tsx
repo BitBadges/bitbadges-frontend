@@ -1,14 +1,27 @@
 import { Avatar, Col, Divider, Row, Typography } from 'antd';
-import React from 'react';
-import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import React, { useEffect } from 'react';
+import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata } from '../../bitbadges-api/types';
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
+
 
 const { Text } = Typography;
 
 export function BadgePageHeader({ metadata }: {
     metadata?: BadgeMetadata;
 }) {
+    useEffect(() => {
+        const description = document.getElementById('description');
+        if (description) {
+            description.innerHTML = sanitizeHtml(marked(metadata?.description || ''));
+        }
+    }, [metadata]);
+
     if (!metadata) return <></>;
+
+
+
 
     return (<>
         <div
@@ -58,16 +71,16 @@ export function BadgePageHeader({ metadata }: {
                             }}
                         />
                     </div>
-                    
-                    {metadata?.description && <div style={{ maxWidth: 500 }}>
-                        <Divider type="vertical" style={{ height: '100%' }} />
+
+                    {metadata?.description && <div style={{ maxWidth: 500, marginLeft: 20 }}>
+
                         <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
                             {metadata?.name}
                         </Text>
                         <br />
-                        <Text style={{ color: SECONDARY_TEXT }}>
-                            {metadata?.description}
-                        </Text>
+                        <div id="description" style={{ padding: 20, color: PRIMARY_TEXT }} >
+                            {/* {metadata?.description} */}
+                        </div>
                     </div>}
                 </Col>
             </Row>
