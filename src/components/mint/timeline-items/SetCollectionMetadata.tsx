@@ -9,6 +9,7 @@ import { useChainContext } from '../../../chain/ChainContext';
 import { BadgeMetadata } from '../../../bitbadges-api/types';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 import { FullMetadataForm } from '../form/FullMetadataForm';
+import { MetadataAddMethod } from '../MintTimeline';
 
 
 export function SetCollectionMetadata({
@@ -17,12 +18,16 @@ export function SetCollectionMetadata({
     setNewBadgeMsg,
     newBadgeMetadata,
     setNewBadgeMetadata,
+    addMethod,
+    setAddMethod,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newBadgeMsg: MessageMsgNewBadge;
     setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
     newBadgeMetadata: BadgeMetadata;
     setNewBadgeMetadata: (metadata: BadgeMetadata) => void;
+    addMethod: MetadataAddMethod;
+    setAddMethod: (method: MetadataAddMethod) => void;
 }) {
     const chain = useChainContext();
 
@@ -51,6 +56,8 @@ export function SetCollectionMetadata({
                     title: 'Set the Collection Metadata',
                     description: `Individual badges will be created later.`,
                     node: <FullMetadataForm
+                        addMethod={addMethod}
+                        setAddMethod={setAddMethod}
                         metadata={newBadgeMetadata}
                         setMetadata={setNewBadgeMetadata as any}
                     />,
@@ -105,7 +112,7 @@ export function SetCollectionMetadata({
                     title: `How Many ${newBadgeMsg.defaultSubassetSupply === 0 ? 'Fungible' : 'Non-Fungible'} Badges To Create?`,
                     description: 'What do you want the total supply of this badge to be? This can not be changed later.',
                     node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
-                    disabled: newBadgeMsg.subassetSupplys?.length == 0 || newBadgeMsg.subassetAmountsToCreate?.length == 0
+                    disabled: newBadgeMsg.subassetSupplysAndAmounts?.length == 0 || newBadgeMsg.subassetSupplysAndAmounts?.length == 0
                 },
                 {
                     title: 'Non-Transferable?',

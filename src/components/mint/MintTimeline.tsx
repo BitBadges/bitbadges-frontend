@@ -14,9 +14,16 @@ import { SetIndividualBadgeMetadata } from './timeline-items/SetBadgeMetadata';
 
 const { Text } = Typography;
 
+export enum MetadataAddMethod {
+    Manual = 'Manual',
+    UploadUrl = 'Insert Custom Metadata Url (Advanced)',
+    //TODO: CSV Upload
+}
+
 export function MintTimeline() {
     const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
+    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
 
     const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewBadge>({
         creator: chain.cosmosAddress,
@@ -86,6 +93,8 @@ export function MintTimeline() {
                         setNewBadgeMsg={setNewBadgeMsg}
                         newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
                         setNewBadgeMetadata={setNewBadgeMetadata}
+                        addMethod={addMethod}
+                        setAddMethod={setAddMethod}
                     />}
                     {
                         //TODO:
@@ -96,6 +105,8 @@ export function MintTimeline() {
                         setNewBadgeMsg={setNewBadgeMsg}
                         newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
                         setNewBadgeMetadata={setNewBadgeMetadata}
+                        addMethod={addMethod}
+                        setAddMethod={setAddMethod}
                     />}
                 </>
             ),
@@ -115,6 +126,8 @@ export function MintTimeline() {
                         setNewBadgeMsg={setNewBadgeMsg}
                         individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
                         setIndividualBadgeMetadata={setIndividualBadgeMetadata}
+                        addMethod={addMethod}
+                        setAddMethod={setAddMethod}
                     />
                 </>
             ),

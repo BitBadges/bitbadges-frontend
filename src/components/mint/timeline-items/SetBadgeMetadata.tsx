@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
-import { BadgeSubBadgesTab } from '../../badges/tabs/BadgesTab';
 import { FormTimeline } from '../form/FormTimeline';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { BadgeCard } from '../../badges/BadgeCard';
+import { MetadataAddMethod } from '../MintTimeline';
 
 export function SetIndividualBadgeMetadata({
     setCurrStepNumber,
@@ -14,12 +14,16 @@ export function SetIndividualBadgeMetadata({
     setNewBadgeMsg,
     individualBadgeMetadata,
     setIndividualBadgeMetadata,
+    addMethod,
+    setAddMethod,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newBadgeMsg: MessageMsgNewBadge;
     setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
     individualBadgeMetadata: BadgeMetadata[];
     setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
+    addMethod: MetadataAddMethod;
+    setAddMethod: (method: MetadataAddMethod) => void;
 }) {
     const [id, setId] = useState(0);
 
@@ -28,16 +32,27 @@ export function SetIndividualBadgeMetadata({
             <FormTimeline
                 currStepNumber={2}
                 items={[
-                    {
-                        title: 'Set Individual Badge Metadata',
-                        description: <>Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} /></>,
-                        node: <FullMetadataForm
-                            id={id}
-                            metadata={individualBadgeMetadata}
-                            setMetadata={setIndividualBadgeMetadata as any}
-                        />,
-                        disabled: !(individualBadgeMetadata[id]?.name)
-                    },
+                    addMethod === MetadataAddMethod.Manual ?
+                        {
+                            title: 'Set Individual Badge Metadata',
+                            description: <>Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} /></>,
+                            node: <FullMetadataForm
+                                id={id}
+                                metadata={individualBadgeMetadata}
+                                setMetadata={setIndividualBadgeMetadata as any}
+                                addMethod={addMethod}
+                                setAddMethod={setAddMethod}
+                                hideAddMethod
+                            />,
+                            disabled: !(individualBadgeMetadata[id]?.name)
+                        } : {
+                            title: 'Set Individual Badge Metadata',
+                            description: <>You previously selected to add metadata using the following option: {addMethod}</>,
+                            node: <>
+                                {/* //TODO: */}
+                            </>,
+                            // disabled: !(individualBadgeMetadata[id]?.name) //TODO:
+                        },
                 ]}
                 setCurrStepNumber={setCurrStepNumber}
             />

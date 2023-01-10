@@ -1,4 +1,4 @@
-import { Avatar, Col, Divider, Row, Typography } from 'antd';
+import { Avatar, Col, Row, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata } from '../../bitbadges-api/types';
