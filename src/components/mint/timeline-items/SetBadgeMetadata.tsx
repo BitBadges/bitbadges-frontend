@@ -42,12 +42,14 @@ export function SetIndividualBadgeMetadata({
                                 setMetadata={setIndividualBadgeMetadata as any}
                                 addMethod={addMethod}
                                 setAddMethod={setAddMethod}
+                                setNewBadgeMsg={setNewBadgeMsg}
+                                newBadgeMsg={newBadgeMsg}
                                 hideAddMethod
                             />,
                             disabled: !(individualBadgeMetadata[id]?.name)
                         } : {
                             title: 'Set Individual Badge Metadata',
-                            description: <>You previously selected to add metadata using the following option: {addMethod}</>,
+                            description: <>No action is required here because you previously selected to add metadata using the following option: {addMethod}</>,
                             node: <>
                                 {/* //TODO: */}
                             </>,

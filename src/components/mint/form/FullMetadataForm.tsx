@@ -3,10 +3,13 @@ import { Button, DatePicker, Divider, Form, Input, InputNumber, Select, Space, S
 import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
 import Image from 'next/image';
 import { SwitchForm } from './SwitchForm';
 import { MetadataAddMethod } from '../MintTimeline';
+import { UriSelect } from './UriSelect';
+import { UriObject } from 'bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils';
+import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -20,8 +23,12 @@ export function FullMetadataForm({
     addMethod,
     setAddMethod,
     id,
-    hideAddMethod
+    hideAddMethod,
+    newBadgeMsg,
+    setNewBadgeMsg
 }: {
+    newBadgeMsg: MessageMsgNewBadge;
+    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
     metadata: BadgeMetadata | BadgeMetadata[];
     setMetadata: (metadata: BadgeMetadata | BadgeMetadata[]) => void;
     id?: number;
@@ -105,6 +112,7 @@ export function FullMetadataForm({
                 },
             ]);
         }
+
     }, [metadata, stringifiedMetadata, id, images])
 
     // console.log(currMetadata.name);
@@ -225,6 +233,15 @@ export function FullMetadataForm({
                     <br />
                 </>
                 }
+                {addMethod === MetadataAddMethod.UploadUrl && <>
+                    <UriSelect setUri={(uriObject: UriObject) => {
+                        setNewBadgeMsg({
+                            ...newBadgeMsg,
+                            uri: uriObject
+                        });
+
+                    }} />
+                </>}
                 {addMethod === MetadataAddMethod.Manual && <>
                     <Form.Item
                         label={

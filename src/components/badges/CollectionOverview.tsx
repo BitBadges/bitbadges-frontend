@@ -1,7 +1,8 @@
-import { Divider, Tag } from 'antd';
+import { Divider, Tag, Tooltip } from 'antd';
 import React from 'react';
 import {
     CheckCircleFilled,
+    LinkOutlined,
     WarningFilled,
 } from '@ant-design/icons';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
@@ -10,6 +11,8 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { useChainContext } from '../../chain/ChainContext';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
+import { getUriFromUriObject } from '../../bitbadges-api/uris';
+import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 export function CollectionOverview({ badge, metadata, span }: {
     badge: BitBadgeCollection | undefined;
@@ -60,7 +63,13 @@ export function CollectionOverview({ badge, metadata, span }: {
             </div>} labelSpan={9} valueSpan={15} />}
             {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
             {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}
-            {badge.uri && <TableRow label={"Metadata URI"} value={<a href={badge.uri.uri} target="_blank" rel="noreferrer">{badge.uri.uri}</a>} labelSpan={9} valueSpan={15} />}
+            {badge.uri && <TableRow label={"Metadata URI"} value={
+                <div>
+                    <Tooltip title={getUriFromUriObject(badge.uri)}>
+                        <a href={getUriFromUriObject(badge.uri)} target="_blank" rel="noreferrer">{getUriFromUriObject(badge.uri).slice(0, 10) + '...' + getUriFromUriObject(badge.uri).slice(getUriFromUriObject(badge.uri).length - 13)} <LinkOutlined /></a>
+                    </Tooltip>
+                </div>
+            } labelSpan={9} valueSpan={15} />}
             {badge.arbitraryBytes && <TableRow label={"Arbitrary Bytes"} value={badge.arbitraryBytes} labelSpan={9} valueSpan={15} />}
             <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
                 {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP

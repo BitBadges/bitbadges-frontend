@@ -25,6 +25,7 @@ function CollectionPage() {
     const chain = useChainContext();
 
     const { collectionId } = router.query;
+    //TODO: link to exact badge?
     const accountNumber = chain.accountNumber;
 
     const [tab, setTab] = useState('overview');

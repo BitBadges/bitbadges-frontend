@@ -62,7 +62,7 @@ export function SubassetSupply({
             <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
 
             </Typography >
-            < div
+            <div
                 style={{
                     padding: '0',
                     textAlign: 'center',

@@ -60,8 +60,11 @@ export function SetCollectionMetadata({
                         setAddMethod={setAddMethod}
                         metadata={newBadgeMetadata}
                         setMetadata={setNewBadgeMetadata as any}
+                        setNewBadgeMsg={setNewBadgeMsg}
+                        newBadgeMsg={newBadgeMsg}
                     />,
-                    disabled: !(newBadgeMetadata?.name)
+                    disabled: (addMethod === MetadataAddMethod.Manual && !(newBadgeMetadata?.name))
+                        || (addMethod === MetadataAddMethod.UploadUrl && !(newBadgeMsg.uri.insertIdIdx && newBadgeMsg.uri.insertIdIdx >= 0))
                 },
                 {
                     //TODO: add semi-fungible and random assortments of supplys / amounts support
