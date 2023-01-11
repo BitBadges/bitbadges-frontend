@@ -146,20 +146,21 @@ export function UploadToIPFS({
                             setSuccess(false);
                             let res = await addToIpfs(newBadgeMetadata, individualBadgeMetadata);
 
+                            let uri = 'ipfs://' + res.cid + '/collection';
                             setNewBadgeMsg({
                                 ...newBadgeMsg,
                                 uri: {
                                     ...newBadgeMsg.uri,
-                                    uri: res.cid,
+                                    uri: res.cid + '/collection',
                                     decodeScheme: 0,
                                     scheme: 3,
                                     idxRangeToRemove: {
-                                        start: 0,
-                                        end: 0,
+                                        start: uri.indexOf('collection'),
+                                        end: uri.length,
                                     },
                                     insertSubassetBytesIdx: 0,
                                     bytesToInsert: '',
-                                    insertIdIdx: 0,
+                                    insertIdIdx: uri.indexOf('collection'),
                                 },
                             });
                             setSuccess(true);

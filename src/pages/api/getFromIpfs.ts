@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { ipfsClient } from "./ipfs";
 
 export const getFromIpfs = async (req: NextApiRequest, res: NextApiResponse) => {
-    const getRes = ipfsClient.cat(req.body.cid + '/' + req.body.path);
+    const getRes = ipfsClient.cat(req.body.path);
 
     const decoder = new TextDecoder();
     let fileJson = '';

@@ -4,6 +4,8 @@ import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
 import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse, SupportedChain } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { getSubassetUriFromUriObject, getUriFromUriObject } from './uris';
 
 
 export async function getAccountInformation(
@@ -103,13 +105,14 @@ export async function getBadge(
             let managerAccountNumber: any = badgeData.manager;
             let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
 
-            console.log(managerAccountInfo);
+            //TODO: dynamic chains
+            let ethAddress = cosmosToEth(managerAccountInfo.address);
 
             badgeData.manager = {
                 accountNumber: managerAccountInfo.account_number,
-                address: managerAccountInfo.address,//TODO:
+                address: ethAddress,
                 cosmosAddress: managerAccountInfo.address,
-                chain: SupportedChain.COSMOS //TODO:
+                chain: SupportedChain.ETH
             };
 
             const defaultSupplyObject: BalanceObject = {
@@ -153,12 +156,21 @@ export async function getBadge(
             }
         }
     }
-
+    console.log("TEST");
 
     //Get the collection metadata if it does not exist on the current badge object
     if (badgeData && (!badgeData.collectionMetadata || JSON.stringify(badgeData.collectionMetadata) === JSON.stringify({} as BadgeMetadata))) {
-        const res = await getFromIpfs(badgeData.uri.uri, 'collection');
-        badgeData.collectionMetadata = JSON.parse(res.file);
+        console.log(badgeData.uri);
+        let collectionUri = getUriFromUriObject(badgeData.uri);
+        console.log("Fetching", collectionUri);
+        if (collectionUri.startsWith('ipfs://')) {
+            const res = await getFromIpfs(collectionUri.replace('ipfs://', ''));
+            badgeData.collectionMetadata = JSON.parse(res.file);
+        } else {
+            const res = await axios.get(collectionUri)
+                .then((res) => res.data);
+            badgeData.collectionMetadata = res;
+        }
     }
 
     if (badgeData && !badgeData.badgeMetadata) {
@@ -173,9 +185,16 @@ export async function getBadge(
     if (badgeId !== undefined && badgeId >= 0 && badgeData && badgeData.badgeMetadata
         && (JSON.stringify(badgeData.badgeMetadata[badgeId]) === JSON.stringify({} as BadgeMetadata)
             || !badgeData.badgeMetadata[badgeId])) {
-        const res = await getFromIpfs(badgeData.uri.uri, `${badgeId}`);
-        badgeData.badgeMetadata[badgeId] = JSON.parse(res.file);
+
+        let subassetUri = getSubassetUriFromUriObject(badgeData.uri);
+        console.log("Fetching", subassetUri);
+        if (subassetUri.startsWith('ipfs://')) {
+            const res = await getFromIpfs(subassetUri.replace('ipfs://', '').replace('{id}', badgeId.toString()));
+            badgeData.badgeMetadata[badgeId] = JSON.parse(res.file);
+        }
     }
+
+    console.log("BADGE", badgeData);
 
     return {
         badge: badgeData
