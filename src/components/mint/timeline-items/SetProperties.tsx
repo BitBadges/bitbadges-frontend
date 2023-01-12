@@ -12,7 +12,7 @@ import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
 
 
-export function SetCollectionMetadata({
+export function SetProperties({
     setCurrStepNumber,
     newBadgeMsg,
     setNewBadgeMsg,
@@ -29,8 +29,6 @@ export function SetCollectionMetadata({
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
 }) {
-    const chain = useChainContext();
-
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
         CanUpdateBytes: false,
         CanUpdateUris: false,
@@ -52,79 +50,15 @@ export function SetCollectionMetadata({
                     description: 'Every badge needs a manager. For this badge, the address below will be the manager.',
                     node: <ConfirmManager />
                 },
-                {
-                    title: 'Set the Collection Metadata',
-                    description: `Individual badges will be created later.`,
-                    node: <FullMetadataForm
-                        addMethod={addMethod}
-                        setAddMethod={setAddMethod}
-                        metadata={newBadgeMetadata}
-                        setMetadata={setNewBadgeMetadata as any}
-                        setNewBadgeMsg={setNewBadgeMsg}
-                        newBadgeMsg={newBadgeMsg}
-                    />,
-                    disabled: (addMethod === MetadataAddMethod.Manual && !(newBadgeMetadata?.name))
-                        || (addMethod === MetadataAddMethod.UploadUrl && !(newBadgeMsg.uri.insertIdIdx && newBadgeMsg.uri.insertIdIdx >= 0))
-                },
-                {
-                    //TODO: add semi-fungible and random assortments of supplys / amounts support
-                    title: 'Fungible or Non-Fungible?',
-                    // description: `Will each individual badge have unique characteristics or will they all be identical?`,
-                    description: '',
-                    node: <SwitchForm
-                        selectedTitle={"Non-Fungible"}
-                        unselectedTitle={"Fungible"}
-                        onSwitchChange={(fungible, nonFungible) => {
-                            if (fungible) {
 
-                                //If fungible, set canCreateMore to false. Will update with further support
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateDigit, false);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
-                                    defaultSubassetSupply: 0,
-                                    permissions: newPermissions
-                                })
-
-                                //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
-                                let newHandledPermissions = { ...handledPermissions };
-                                newHandledPermissions.CanCreate = true;
-                                setHandledPermissions(newHandledPermissions);
-                            } else if (nonFungible) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateDigit, false);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
-                                    permissions: newPermissions,
-                                    defaultSubassetSupply: 1
-                                });
-
-                                //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
-                                let newHandledPermissions = { ...handledPermissions };
-                                newHandledPermissions.CanCreate = true;
-                                setHandledPermissions(newHandledPermissions);
-                            }
-                        }}
-                        isOptionOneSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply != 1}
-                        isOptionTwoSelected={handledPermissions.CanCreate && newBadgeMsg.defaultSubassetSupply == 1}
-                        selectedMessage={'Every minted badge will have its own unique metadata and characteristics.'}
-                        unselectedMessage={`Every minted badge will have the same metadata and characteristics.`}
-                    // helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
-                    />,
-                    disabled: newBadgeMsg.defaultSubassetSupply == undefined //This will change as well
-                },
                 {
-                    title: `How Many ${newBadgeMsg.defaultSubassetSupply === 0 ? 'Fungible' : 'Non-Fungible'} Badges To Create?`,
-                    description: 'What do you want the total supply of this badge to be? This can not be changed later.',
-                    node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
-                    disabled: newBadgeMsg.subassetSupplysAndAmounts?.length == 0 || newBadgeMsg.subassetSupplysAndAmounts?.length == 0
-                },
-                {
-                    title: 'Non-Transferable?',
+                    title: 'Transferable?',
                     description: ``,
                     node: <>
                         <SwitchForm
-                            selectedTitle={'Non-Transferable'}
-                            unselectedTitle={'Transferable'}
-                            onSwitchChange={(notFrozen, frozen) => {
+                            selectedTitle={'Transferable'}
+                            unselectedTitle={'Non-Transferable'}
+                            onSwitchChange={(frozen, notFrozen) => {
                                 if (notFrozen) {
                                     const newPermissions = UpdatePermissions(newBadgeMsg.permissions, FrozenByDefaultDigit, false);
                                     setNewBadgeMsg({
@@ -144,11 +78,11 @@ export function SetCollectionMetadata({
                                 newHandledPermissions.FrozenByDefault = true;
                                 setHandledPermissions(newHandledPermissions);
                             }}
-                            isOptionOneSelected={handledPermissions.FrozenByDefault && !GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
-                            isOptionTwoSelected={handledPermissions.FrozenByDefault && !!GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
+                            isOptionOneSelected={handledPermissions.FrozenByDefault && !!GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
+                            isOptionTwoSelected={handledPermissions.FrozenByDefault && !GetPermissions(newBadgeMsg.permissions).FrozenByDefault}
 
-                            selectedMessage={`Users will not be able to transfer this badge.`}
-                            unselectedMessage={`Users will be able to transfer this badge.`}
+                            selectedMessage={`Owners of this badge will be able to transfer it to other addresses.`}
+                            unselectedMessage={`Owners of this badge will not be able to transfer it.`}
                         // helperMessage={GetPermissions(newBadgeMsg.permissions).CanFreeze ? `` : `Note that you previously selected that the manager can not freeze or unfreeze any users' transfer privileges.`}
                         />
 
@@ -156,10 +90,10 @@ export function SetCollectionMetadata({
                     disabled: !handledPermissions.FrozenByDefault
                 },
                 {
-                    title: 'Forceful Transfers?',
+                    title: 'Method of Receiving This Badge?',
                     description: ``,
                     node: <SwitchForm
-                        selectedTitle={'Forceful Transfers'}
+                        selectedTitle={'Immediate Transfer'}
                         unselectedTitle={'Pending Queue'}
                         onSwitchChange={(noForceful, forceful) => {
                             if (noForceful) {
@@ -184,14 +118,10 @@ export function SetCollectionMetadata({
                         isOptionOneSelected={handledPermissions.ForcefulTransfers && !GetPermissions(newBadgeMsg.permissions).ForcefulTransfers}
                         isOptionTwoSelected={handledPermissions.ForcefulTransfers && !!GetPermissions(newBadgeMsg.permissions).ForcefulTransfers}
                         selectedMessage={
-                            GetPermissions(newBadgeMsg.permissions).FrozenByDefault ?
-                                `When this badge is initially minted, it will be forcefully transferred to the recipient's account without needing approval.` :
-                                `When this badge is initially minted and whenever this badge is transferred between users, it will be forcefully transferred to the recipient's account without needing approval.`
+                            `Upon mints and transfers, the badge will be transferred to the recipient's account immediately without needing approval.`
                         }
                         unselectedMessage={
-                            GetPermissions(newBadgeMsg.permissions).FrozenByDefault ?
-                                `When this badge is initially minted, it will go into a pending queue until the recipient approves or denies the transfer.` :
-                                `When this badge is initially minted and whenever this badge is transferred between users, it will go into a pending queue until the recipient approves or denies the transfer.`
+                            `Upon mints and transfers, the badge will go into a pending queue until the recipient approves or denies the transfer.`
                         }
                     // helperMessage={`Note that this site does not display forceful badges by default.`}
                     />,
@@ -258,8 +188,8 @@ export function SetCollectionMetadata({
                         isOptionOneSelected={handledPermissions.CanFreeze && !GetPermissions(newBadgeMsg.permissions).CanFreeze}
                         isOptionTwoSelected={handledPermissions.CanFreeze && !!GetPermissions(newBadgeMsg.permissions).CanFreeze}
                         selectedMessage={`The manager can freeze and unfreeze any owner's ability to transfer this badge.`}
-                        unselectedMessage={`The mnager can not freeze and unfreeze any owner's ability to transfer this badge.`}
-                        helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}
+                        unselectedMessage={`The manager can not freeze and unfreeze any owner's ability to transfer this badge.`}
+                        helperMessage={`If you select 'Yes', you can switch to 'No' at any point in the future.`}
                     />,
                     disabled: !handledPermissions.CanFreeze
                 },
@@ -311,7 +241,6 @@ export function SetCollectionMetadata({
                     />,
                     disabled: !handledPermissions.CanRevoke
                 },
-
 
 
                 //TODO: updatable metadata

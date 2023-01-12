@@ -4,13 +4,12 @@ import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ChooseBadgeType } from './timeline-items/ChooseBadgeType';
-import { SetCollectionMetadata } from './timeline-items/SetCollectionMetadata';
+import { SetProperties } from './timeline-items/SetProperties';
 import { TransactionDetails } from './timeline-items/SubmitNewBadgeMsg';
 import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata } from '../../bitbadges-api/types';
-import { UploadToIPFS } from './timeline-items/UploadToIpfs';
-import { SetIndividualBadgeMetadata } from './timeline-items/SetBadgeMetadata';
+import { SetMetadata } from './timeline-items/SetMetadata';
 
 const { Text } = Typography;
 
@@ -42,14 +41,14 @@ export function MintTimeline() {
         },
         arbitraryBytes: '',
         permissions: 0,
-        defaultSubassetSupply: 1,
+        defaultSubassetSupply: -1,
         freezeAddressRanges: [],
         standard: 0,
         subassetSupplysAndAmounts: [],
         whitelistedRecipients: []
     });
 
-    const [newBadgeMetadata, setNewBadgeMetadata] = useState<BadgeMetadata>();
+    const [newBadgeMetadata, setNewBadgeMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
     const [individualBadgeMetadata, setIndividualBadgeMetadata] = useState<BadgeMetadata[]>();
 
     useEffect(() => {
@@ -82,12 +81,12 @@ export function MintTimeline() {
             stepNumber: 1,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Customize Collection
+                    Select Properties
                 </Text>
             ),
             content: (
                 <>
-                    {newBadgeMsg?.standard == 0 && <SetCollectionMetadata
+                    {newBadgeMsg?.standard == 0 && <SetProperties
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}
@@ -96,18 +95,7 @@ export function MintTimeline() {
                         addMethod={addMethod}
                         setAddMethod={setAddMethod}
                     />}
-                    {
-                        //TODO:
-                    }
-                    {newBadgeMsg?.standard != 0 && <SetCollectionMetadata
-                        setCurrStepNumber={setCurrStepNumber}
-                        newBadgeMsg={newBadgeMsg}
-                        setNewBadgeMsg={setNewBadgeMsg}
-                        newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
-                        setNewBadgeMetadata={setNewBadgeMetadata}
-                        addMethod={addMethod}
-                        setAddMethod={setAddMethod}
-                    />}
+                    {/* TODO:  newBadgeMsg?.standard == ... */}
                 </>
             ),
         },
@@ -115,15 +103,17 @@ export function MintTimeline() {
             stepNumber: 2,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Set Individual Badge Metadata
+                    Select Metadata
                 </Text>
             ),
             content: (
                 <>
-                    <SetIndividualBadgeMetadata
+                    <SetMetadata
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}
+                        collectionMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                        setCollectionMetadata={setNewBadgeMetadata}
                         individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
                         setIndividualBadgeMetadata={setIndividualBadgeMetadata}
                         addMethod={addMethod}
@@ -134,23 +124,6 @@ export function MintTimeline() {
         },
         {
             stepNumber: 3,
-            title: (
-                <Text style={{ color: PRIMARY_TEXT }}>
-                    Upload Metadata
-                </Text>
-            ),
-            content: (
-                <UploadToIPFS
-                    setTimelineStepNumber={setCurrStepNumber}
-                    newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
-                    newBadgeMsg={newBadgeMsg}
-                    setNewBadgeMsg={setNewBadgeMsg}
-                    individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
-                />
-            ),
-        },
-        {
-            stepNumber: 4,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
                     Submit Transaction
