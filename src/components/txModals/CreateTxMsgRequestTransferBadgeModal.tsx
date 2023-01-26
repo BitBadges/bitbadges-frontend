@@ -209,7 +209,7 @@ export function CreateTxMsgRequestTransferBadgeModal({ badge, visible, setVisibl
                     Badge ID End:
                     <InputNumber
                         min={0}
-                        max={badge.nextSubassetId - 1}
+                        max={badge.nextBadgeId - 1}
                         title='Amount to Transfer'
                         value={endSubbadgeId} onChange={
                             (value: number) => {

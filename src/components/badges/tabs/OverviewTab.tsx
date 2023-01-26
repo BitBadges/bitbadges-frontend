@@ -22,7 +22,7 @@ export function OverviewTab({
         <InformationDisplayCard
             title="Badges"
         >
-            <BadgeAvatarDisplay size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextSubassetId - 1} />
+            <BadgeAvatarDisplay size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextBadgeId - 1} />
         </InformationDisplayCard>
         <br />
         <Row

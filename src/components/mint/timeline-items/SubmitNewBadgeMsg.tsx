@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { PRIMARY_TEXT } from '../../../constants';
 import { FormNavigationHeader } from '../form/FormNavigationHeader';
 import { BadgeMetadata } from '../../../bitbadges-api/types';
-import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
-import { CreateTxMsgNewBadgeModal } from '../../txModals/CreateTxMsgNewBadgeModal';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
@@ -18,7 +18,7 @@ export function TransactionDetails({
     newBadgeMetadata
 }: {
     setTimelineStepNumber: (stepNum: number) => void;
-    newBadgeMsg: MessageMsgNewBadge;
+    newBadgeMsg: MessageMsgNewCollection;
     newBadgeMetadata: BadgeMetadata;
 }) {
     const [stepNum, setStepNum] = useState(1);
@@ -85,9 +85,9 @@ export function TransactionDetails({
                             setVisible(true);
                         }}
                     >
-                        Create Badge!
+                        Create Badge Collection!
                     </Button>
-                    <CreateTxMsgNewBadgeModal
+                    <CreateTxMsgNewCollectionModal
                         visible={visible}
                         setVisible={setVisible}
                         txCosmosMsg={newBadgeMsg}

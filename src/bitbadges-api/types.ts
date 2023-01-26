@@ -1,5 +1,5 @@
 //TODO: sync with bitbadges-js and the main libraries
-import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils";
+
 import { Permissions } from "./permissions";
 
 export enum SupportedChain {
@@ -17,17 +17,60 @@ export interface GetBadgeResponse {
     badge?: BitBadgeCollection;
 }
 
+export interface IdRange {
+    start: number;
+    end?: number;
+}
+export interface BadgeSupplyAndAmount {
+    amount: number;
+    supply: number;
+}
+export interface Balance {
+    balance: number;
+    badgeIds: IdRange[];
+}
+export interface TransferMapping {
+    to: Addresses;
+    from: Addresses;
+}
+export interface Addresses {
+    accountNums: IdRange[];
+    options: number;
+}
+export interface Transfers {
+    toAddresses: number[];
+    balances: Balance[];
+}
+export interface Claims {
+    balance: Balance;
+    amountPerClaim: number;
+    type: number;
+    data: string;
+    uri: string;
+    timeRange: IdRange;
+}
+export interface Proof {
+    total: number;
+    index: number;
+    leafHash: string;
+    proof: string[];
+}
+//# sourceMappingURL=typeUtils.d.ts.map
+
 export interface BitBadgeCollection {
+    collectionId: number;
+    collectionUri: string;
+    badgeUri: string;
+    bytes: string;
+    manager: BitBadgesUserInfo;
     permissions: Permissions;
-    standard: number,
-    defaultSubassetSupply: number,
-    subassetSupplys: BalanceObject[],
-    nextSubassetId: number,
-    freezeRanges: IdRange[],
-    manager: BitBadgesUserInfo,
-    arbitraryBytes: string,
-    uri: UriObject,
-    id: number,
+    disallowedTransfers: TransferMapping[];
+    managerApprovedTransfers: TransferMapping[];
+    nextBadgeId: number;
+    unmintedSupplys: Balance[];
+    maxSupplys: Balance[];
+    claims: Claims[];
+    standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadata[],
 }
@@ -42,17 +85,12 @@ export interface BitBadgeMintObject {
     standard?: number;
     permissions?: number;
     metadata?: BadgeMetadata;
-    subassetSupplys?: SubassetSupply[];
+    badgeSupplys?: SubassetSupply[];
 }
 
 export interface GetBalanceResponse {
     error?: any;
     balanceInfo?: UserBalance;
-}
-
-export interface IdRange {
-    start: number;
-    end: number;
 }
 
 export interface UserBalance {

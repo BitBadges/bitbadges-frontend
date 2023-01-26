@@ -6,7 +6,7 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ChooseBadgeType } from './timeline-items/ChooseBadgeType';
 import { SetProperties } from './timeline-items/SetProperties';
 import { TransactionDetails } from './timeline-items/SubmitNewBadgeMsg';
-import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata } from '../../bitbadges-api/types';
 import { SetMetadata } from './timeline-items/SetMetadata';
@@ -24,42 +24,32 @@ export function MintTimeline() {
     const [currStepNumber, setCurrStepNumber] = useState(0);
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
 
-    const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewBadge>({
+    const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewCollection>({
         creator: chain.cosmosAddress,
-        //IPFS URI (not image or externalUrl)
-        uri: {
-            uri: 'abc.com',
-            decodeScheme: 0,
-            scheme: 0,
-            idxRangeToRemove: {
-                start: 0,
-                end: 0,
-            },
-            insertSubassetBytesIdx: 0,
-            bytesToInsert: '',
-            insertIdIdx: 0,
-        },
-        arbitraryBytes: '',
+        badgeUri: '',
+        collectionUri: '',
+        bytes: '',
         permissions: 0,
-        defaultSubassetSupply: -1,
-        freezeAddressRanges: [],
         standard: 0,
-        subassetSupplysAndAmounts: [],
-        whitelistedRecipients: []
+        badgeSupplys: [],
+        transfers: [],
+        disallowedTransfers: [],
+        claims: [],
+        managerApprovedTransfers: [],
     });
 
     const [newBadgeMetadata, setNewBadgeMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
     const [individualBadgeMetadata, setIndividualBadgeMetadata] = useState<BadgeMetadata[]>();
 
     useEffect(() => {
-        if (newBadgeMetadata && newBadgeMsg.subassetSupplysAndAmounts && newBadgeMsg.subassetSupplysAndAmounts[0]) {
+        if (newBadgeMetadata && newBadgeMsg.badgeSupplys && newBadgeMsg.badgeSupplys[0]) {
             let metadata = [];
-            for (let i = 0; i < newBadgeMsg.subassetSupplysAndAmounts[0].amount; i++) {
+            for (let i = 0; i < newBadgeMsg.badgeSupplys[0].amount; i++) {
                 metadata.push(newBadgeMetadata);
             }
             setIndividualBadgeMetadata(metadata);
         }
-    }, [newBadgeMetadata, newBadgeMsg.subassetSupplysAndAmounts])
+    }, [newBadgeMetadata, newBadgeMsg.badgeSupplys])
 
     const steps = [
         {

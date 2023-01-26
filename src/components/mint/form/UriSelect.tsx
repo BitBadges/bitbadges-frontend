@@ -1,32 +1,20 @@
 import { Form, Typography, Input } from "antd";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
-import { UriObject } from "bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils";
 import { useEffect, useState } from "react";
-import { getSubassetUriFromUriObject, getUriFromUriObject, getUriObjectFromCollectionAndBadgeUri, getUriObjectFromCollectionUri } from "../../../bitbadges-api/uris";
 
 const { Text } = Typography;
 
 export function UriSelect({
     setUri,
 }: {
-    setUri: (uri: UriObject) => void;
+    setUri: (collectionUri: string, badgeUri: string) => void;
 }) {
     const [collectionUri, setCollectionUri] = useState<string>("");
     const [badgeUri, setBadgeUri] = useState<string>("");
 
-    const [uriObject, setUriObject] = useState<UriObject>({
-        uri: "",
-    });
-
     useEffect(() => {
-        let newUriObject = getUriObjectFromCollectionUri(collectionUri);
-        setUriObject(getUriObjectFromCollectionAndBadgeUri(newUriObject, badgeUri));
-
-    }, [badgeUri, collectionUri, setUriObject]);
-
-    useEffect(() => {
-        setUri(uriObject);
-    }, [uriObject, setUri]);
+        setUri(collectionUri, badgeUri);
+    }, [badgeUri, collectionUri, setUri]);
 
     return <>
         <Form.Item

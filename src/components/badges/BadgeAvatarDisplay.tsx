@@ -47,7 +47,7 @@ export function BadgeAvatarDisplay({
     useEffect(() => {
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
             if (!badgeCollection || !setBadgeCollection) return;
-            let numBadges = badgeCollection?.nextSubassetId;
+            let numBadges = badgeCollection?.nextBadgeId;
             //TODO: should probably make it more scalable than this
 
             for (let i = 0; i < numBadges; i++) {

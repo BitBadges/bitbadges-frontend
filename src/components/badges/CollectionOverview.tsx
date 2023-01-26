@@ -11,7 +11,6 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { useChainContext } from '../../chain/ChainContext';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
-import { getUriFromUriObject } from '../../bitbadges-api/uris';
 import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 export function CollectionOverview({ badge, metadata, span }: {

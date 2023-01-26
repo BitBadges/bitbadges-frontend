@@ -2,7 +2,7 @@ import { InputNumber, } from 'antd';
 import React, { useState } from 'react';
 
 import { BadgeMetadata } from '../../../bitbadges-api/types';
-import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { FormTimeline } from '../form/FormTimeline';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
@@ -35,8 +35,8 @@ export function SetMetadata({
     setAddMethod,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    newBadgeMsg: MessageMsgNewBadge;
-    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
+    newBadgeMsg: MessageMsgNewCollection;
+    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
     collectionMetadata: BadgeMetadata;
     setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
@@ -45,12 +45,12 @@ export function SetMetadata({
     setAddMethod: (method: MetadataAddMethod) => void;
 }) {
     const [id, setId] = useState(0);
-
+    
     const [stepNum, setStepNum] = useState(1);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    console.log("default subasset supply", newBadgeMsg.defaultSubassetSupply);
+
     return (
         <>
             <FormTimeline
@@ -68,42 +68,7 @@ export function SetMetadata({
                             newBadgeMsg={newBadgeMsg}
                         />,
                         disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-                            || (addMethod === MetadataAddMethod.UploadUrl && !(newBadgeMsg.uri.insertIdIdx && newBadgeMsg.uri.insertIdIdx >= 0))
-                    },
-                    {
-                        //TODO: add semi-fungible and random assortments of supplys / amounts support
-                        title: 'Fungible or Non-Fungible?',
-                        // description: `Will each individual badge have unique characteristics or will they all be identical?`,
-                        description: '',
-                        node: <SwitchForm
-                            selectedTitle={"Non-Fungible"}
-                            unselectedTitle={"Fungible"}
-                            onSwitchChange={(fungible, nonFungible) => {
-                                if (fungible) {
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
-                                        defaultSubassetSupply: 0,
-                                    })
-                                } else if (nonFungible) {
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
-                                        defaultSubassetSupply: 1
-                                    });
-                                }
-                            }}
-                            isOptionOneSelected={newBadgeMsg.defaultSubassetSupply !== -1 && newBadgeMsg.defaultSubassetSupply != 1}
-                            isOptionTwoSelected={newBadgeMsg.defaultSubassetSupply !== -1 && newBadgeMsg.defaultSubassetSupply == 1}
-                            selectedMessage={'Every minted badge will have its own unique metadata and characteristics.'}
-                            unselectedMessage={`Every minted badge will have the same metadata and characteristics.`}
-                        // helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
-                        />,
-                        disabled: newBadgeMsg.defaultSubassetSupply == undefined //This will change as well
-                    },
-                    {
-                        title: `How Many ${newBadgeMsg.defaultSubassetSupply === 0 ? 'Fungible' : 'Non-Fungible'} Badges To Create?`,
-                        description: 'What do you want the total supply of this badge to be? This can not be changed later.',
-                        node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
-                        disabled: newBadgeMsg.subassetSupplysAndAmounts?.length == 0 || newBadgeMsg.subassetSupplysAndAmounts?.length == 0
+                            || (addMethod === MetadataAddMethod.UploadUrl && !(newBadgeMsg.badgeUri.indexOf('{id}') == -1))
                     },
                     addMethod === MetadataAddMethod.Manual ?
                         {
@@ -171,21 +136,11 @@ export function SetMetadata({
                                     let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
 
                                     let uri = 'ipfs://' + res.cid + '/collection';
+                                    let badgeUri = 'ipfs://' + res.cid + '/{id}';
                                     setNewBadgeMsg({
                                         ...newBadgeMsg,
-                                        uri: {
-                                            ...newBadgeMsg.uri,
-                                            uri: res.cid + '/collection',
-                                            decodeScheme: 0,
-                                            scheme: 3,
-                                            idxRangeToRemove: {
-                                                start: uri.indexOf('collection'),
-                                                end: uri.length,
-                                            },
-                                            insertSubassetBytesIdx: 0,
-                                            bytesToInsert: '',
-                                            insertIdIdx: uri.indexOf('collection'),
-                                        },
+                                        collectionUri: uri,
+                                        badgeUri: badgeUri,
                                     });
                                     setSuccess(true);
                                     setLoading(false);

@@ -26,7 +26,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startSubbadgeId, setStartSubbadgeId] = useState<number>(0);
-    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(badge.nextSubassetId - 1);
+    const [endSubbadgeId, setEndSubbadgeId] = useState<number>(badge.nextBadgeId - 1);
 
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [amounts, setAmounts] = useState<number[]>([]);
@@ -92,13 +92,13 @@ export function CreateTxMsgTransferBadgeModal(
         setSubbadgeRanges([]);
         setAmountToTransfer(0);
         setStartSubbadgeId(0);
-        setEndSubbadgeId(badge.nextSubassetId - 1);
+        setEndSubbadgeId(badge.nextBadgeId - 1);
         setNewBalance(JSON.parse(JSON.stringify(balance)));
         setExpirationTime(0);
         setCantCancelBeforeTime(0);
         setExpirationTimeChecked(false);
         setCantCancelBeforeTimeChecked(false);
-    }, [visible, badge.nextSubassetId, balance]);
+    }, [visible, badge.nextBadgeId, balance]);
 
 
     const firstStepDisabled = toAddresses.length === 0;
@@ -157,7 +157,7 @@ export function CreateTxMsgTransferBadgeModal(
                     Badge ID End:
                     <InputNumber
                         min={0}
-                        max={badge.nextSubassetId - 1}
+                        max={badge.nextBadgeId - 1}
                         title='Amount to Transfer'
                         value={endSubbadgeId} onChange={
                             (value: number) => {

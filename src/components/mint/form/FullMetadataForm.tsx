@@ -4,16 +4,12 @@ import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
-import Image from 'next/image';
-import { SwitchForm } from './SwitchForm';
 import { MetadataAddMethod } from '../MintTimeline';
 import { UriSelect } from './UriSelect';
-import { UriObject } from 'bitbadgesjs-transactions/dist/messages/bitbadges/badges/typeUtils';
-import { MessageMsgNewBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
 const { Text } = Typography;
 const { Option } = Select;
-
 
 
 //Do not pass an id if this is for the collection netadata
@@ -27,8 +23,8 @@ export function FullMetadataForm({
     newBadgeMsg,
     setNewBadgeMsg
 }: {
-    newBadgeMsg: MessageMsgNewBadge;
-    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
+    newBadgeMsg: MessageMsgNewCollection;
+    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
     metadata: BadgeMetadata | BadgeMetadata[];
     setMetadata: (metadata: BadgeMetadata | BadgeMetadata[]) => void;
     id?: number;
@@ -234,12 +230,12 @@ export function FullMetadataForm({
                 </>
                 }
                 {addMethod === MetadataAddMethod.UploadUrl && <>
-                    <UriSelect setUri={(uriObject: UriObject) => {
+                    <UriSelect setUri={(collectionUri: string, badgeUri: string) => {
                         setNewBadgeMsg({
                             ...newBadgeMsg,
-                            uri: uriObject
+                            collectionUri,
+                            badgeUri,
                         });
-
                     }} />
                 </>}
                 {addMethod === MetadataAddMethod.Manual && <>

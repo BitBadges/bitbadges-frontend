@@ -2,24 +2,18 @@
 export const NUM_PERMISSIONS = 8;
 
 export type Permissions = {
-    CanUpdateBytes: boolean;
-    CanManagerTransfer: boolean;
-    CanUpdateUris: boolean;
-    ForcefulTransfers: boolean;
-    CanCreate: boolean;
-    CanRevoke: boolean;
-    CanFreeze: boolean;
-    FrozenByDefault: boolean;
+    CanUpdateBytes: boolean
+    CanManagerBeTransferred: boolean
+    CanUpdateUris: boolean
+    CanCreateMoreBadges: boolean
+    CanUpdateDisallowed: boolean
 }
 
-export const CanUpdateBytesDigit = 8
-export const CanManagerTransferDigit = 7
-export const CanUpdateUrisDigit = 6
-export const ForcefulTransfersDigit = 5
-export const CanCreateDigit = 4
-export const CanRevokeDigit = 3
-export const CanFreezeDigit = 2
-export const FrozenByDefaultDigit = 1
+export const CanUpdateBytesDigit = 5
+export const CanManagerBeTransferredDigit = 4
+export const CanUpdateUrisDigit = 3
+export const CanCreateMoreBadgesDigit = 2
+export const CanUpdateDisallowedDigit = 1
 
 export function GetPermissionNumberValue(permissions: Permissions) {
     let permissionNumber = 0;
@@ -30,26 +24,17 @@ export function GetPermissionNumberValue(permissions: Permissions) {
             case CanUpdateBytesDigit:
                 permissionValue = permissions.CanUpdateBytes;
                 break;
-            case CanManagerTransferDigit:
-                permissionValue = permissions.CanManagerTransfer;
+            case CanManagerBeTransferredDigit:
+                permissionValue = permissions.CanManagerBeTransferred;
                 break;
             case CanUpdateUrisDigit:
                 permissionValue = permissions.CanUpdateUris;
                 break;
-            case ForcefulTransfersDigit:
-                permissionValue = permissions.ForcefulTransfers;
+            case CanCreateMoreBadgesDigit:
+                permissionValue = permissions.CanCreateMoreBadges;
                 break;
-            case CanCreateDigit:
-                permissionValue = permissions.CanCreate;
-                break;
-            case CanRevokeDigit:
-                permissionValue = permissions.CanRevoke;
-                break;
-            case CanFreezeDigit:
-                permissionValue = permissions.CanFreeze;
-                break;
-            case FrozenByDefaultDigit:
-                permissionValue = permissions.FrozenByDefault;
+            case CanUpdateDisallowedDigit:
+                permissionValue = permissions.CanUpdateDisallowed;
                 break;
             default:
                 break;
@@ -87,28 +72,16 @@ export function ValidatePermissionsUpdate(oldPermissions: number, newPermissions
         throw 'Invalid permissions: Updating CanUpdateUris is locked';
     }
 
-    if (!oldFlags.CanCreate && newFlags.CanCreate) {
-        throw 'Invalid permissions: Updating CanCreate is locked';
+    if (!oldFlags.CanUpdateDisallowed && newFlags.CanUpdateDisallowed) {
+        throw 'Invalid permissions: Updating CanUpdateDisallowed is locked';
     }
 
-    if (!oldFlags.CanRevoke && newFlags.CanRevoke) {
-        throw 'Invalid permissions: Updating CanRevoke is locked';
+    if (!oldFlags.CanCreateMoreBadges && newFlags.CanCreateMoreBadges) {
+        throw 'Invalid permissions: Updating CanCreateMoreBadges is locked';
     }
 
-    if (!oldFlags.CanFreeze && newFlags.CanFreeze) {
-        throw 'Invalid permissions: Updating CanFreeze is locked';
-    }
-
-    if (!oldFlags.CanManagerTransfer && newFlags.CanManagerTransfer) {
-        throw 'Invalid permissions: Updating CanManagerTransfer is locked';
-    }
-
-    if (oldFlags.ForcefulTransfers != newFlags.ForcefulTransfers) {
-        throw 'Invalid permissions: Updating ForcefulTransfers is permanently locked';
-    }
-
-    if (oldFlags.FrozenByDefault != newFlags.FrozenByDefault) {
-        throw 'Invalid permissions: Updating FrozenByDefault is permanently locked';
+    if (!oldFlags.CanManagerBeTransferred && newFlags.CanManagerBeTransferred) {
+        throw 'Invalid permissions: Updating CanManagerBeTransferred is locked';
     }
 }
 
@@ -145,26 +118,17 @@ export function GetPermissions(permissions: number) {
             case CanUpdateBytesDigit:
                 permissionFlags.CanUpdateBytes = bit_as_bool;
                 break;
-            case CanManagerTransferDigit:
-                permissionFlags.CanManagerTransfer = bit_as_bool;
+            case CanManagerBeTransferredDigit:
+                permissionFlags.CanManagerBeTransferred = bit_as_bool;
                 break;
             case CanUpdateUrisDigit:
                 permissionFlags.CanUpdateUris = bit_as_bool;
                 break;
-            case ForcefulTransfersDigit:
-                permissionFlags.ForcefulTransfers = bit_as_bool;
+            case CanCreateMoreBadgesDigit:
+                permissionFlags.CanCreateMoreBadges = bit_as_bool;
                 break;
-            case CanCreateDigit:
-                permissionFlags.CanCreate = bit_as_bool;
-                break;
-            case CanRevokeDigit:
-                permissionFlags.CanRevoke = bit_as_bool;
-                break;
-            case CanFreezeDigit:
-                permissionFlags.CanFreeze = bit_as_bool;
-                break;
-            case FrozenByDefaultDigit:
-                permissionFlags.FrozenByDefault = bit_as_bool;
+            case CanUpdateDisallowedDigit:
+                permissionFlags.CanUpdateDisallowed = bit_as_bool;
                 break;
             default:
                 break;

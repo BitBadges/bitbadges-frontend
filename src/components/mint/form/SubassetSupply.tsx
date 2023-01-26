@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, InputNumber } from 'antd';
 import { PRIMARY_TEXT } from '../../../constants';
-import { MessageMsgNewBadge, MessageMsgNewSubBadge } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
 interface SubassetSupply {
     amount: number;
@@ -10,31 +10,23 @@ interface SubassetSupply {
 
 export function SubassetSupply({
     newBadgeMsg,
-    setNewBadgeMsg
+    setNewBadgeMsg,
+    fungible
 }: {
-    newBadgeMsg: MessageMsgNewBadge;
-    setNewBadgeMsg: (badge: MessageMsgNewBadge) => void;
+    newBadgeMsg: MessageMsgNewCollection;
+    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    fungible: boolean;
 }) {
-    let defaultBadgeSupply = 0;
-    if (newBadgeMsg.subassetSupplysAndAmounts && newBadgeMsg.subassetSupplysAndAmounts[0]) {
-        if (newBadgeMsg.defaultSubassetSupply == 1) {
-            defaultBadgeSupply = newBadgeMsg.subassetSupplysAndAmounts[0].supply;
-        } else {
-            defaultBadgeSupply = newBadgeMsg.subassetSupplysAndAmounts[0].supply;
-        }
-    }
-
-    const [supplyToCreate, setSupplyToCreate] = useState<number>(defaultBadgeSupply);
+    const [supplyToCreate, setSupplyToCreate] = useState<number>(0);
 
 
 
     const addTokens = (supply: number) => {
 
         if (supply > 0) {
-            let newSupplyObjs = newBadgeMsg.subassetSupplysAndAmounts;
+            let newSupplyObjs = newBadgeMsg.badgeSupplys;
 
-
-            if (newBadgeMsg.defaultSubassetSupply == 1) {
+            if (!fungible) {
                 newSupplyObjs = [{
                     amount: supply,
                     supply: 1
@@ -42,7 +34,7 @@ export function SubassetSupply({
 
                 setNewBadgeMsg({
                     ...newBadgeMsg,
-                    subassetSupplysAndAmounts: newSupplyObjs
+                    badgeSupplys: newSupplyObjs
                 })
             } else {
                 newSupplyObjs = [{
@@ -51,7 +43,7 @@ export function SubassetSupply({
                 }];
                 setNewBadgeMsg({
                     ...newBadgeMsg,
-                    subassetSupplysAndAmounts: newSupplyObjs
+                    badgeSupplys: newSupplyObjs
                 })
             }
         }

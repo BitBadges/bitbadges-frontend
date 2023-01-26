@@ -1,11 +1,10 @@
 import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
-import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetBadgeRoute, GetBalanceRoute } from './routes';
+import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute } from './routes';
 import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse, SupportedChain } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
-import { getSubassetUriFromUriObject, getUriFromUriObject } from './uris';
 
 
 export async function getAccountInformation(
@@ -87,16 +86,16 @@ export async function getBadge(
     let badgeData = currBadge;
     if (!badgeData) {
         console.log('FETCHING BADGE DATA')
-        const badgeDataResponse = await axios.get(NODE_URL + GetBadgeRoute(collectionId))
+        const badgeDataResponse = await axios.get(NODE_URL + GetCollectionRoute(collectionId))
             .then((res) => res.data);
 
         if (badgeDataResponse.error) {
             console.error("ERROR: ", badgeDataResponse.error);
             return Promise.reject(badgeDataResponse.error);
         }
-        badgeData = badgeDataResponse.badge;
+        badgeData = badgeDataResponse.collection;
         if (badgeData) {
-            badgeData.id = collectionId;
+            badgeData.collectionId = collectionId;
 
             // Convert the returned permissions (uint) to a Permissions object for easier use
             let permissionsNumber: any = badgeData.permissions;
@@ -114,55 +113,13 @@ export async function getBadge(
                 cosmosAddress: managerAccountInfo.address,
                 chain: SupportedChain.ETH
             };
-
-            const defaultSupplyObject: BalanceObject = {
-                balance: badgeData.defaultSubassetSupply,
-                idRanges: []
-            };
-
-            for (let i = 0; i < badgeData.nextSubassetId; i++) {
-                if (!badgeData.subassetSupplys.find((supply) => supply.idRanges.find((range) => {
-                    if (!range.end) range.end = range.start;
-
-                    return range.start <= i && range.end >= i;
-                }))) {
-                    defaultSupplyObject.idRanges.push({
-                        start: i,
-                        end: i
-                    });
-                }
-            }
-            console.log("MED", JSON.stringify(defaultSupplyObject));
-
-            if (defaultSupplyObject.idRanges.length > 0) {
-                //combine all ranges where the previous end is the next start minus one
-                for (let i = 0; i < defaultSupplyObject.idRanges.length - 1; i++) {
-                    let currStart = defaultSupplyObject.idRanges[i].start;
-                    let currEnd = defaultSupplyObject.idRanges[i].end;
-                    let nextStart = defaultSupplyObject.idRanges[i + 1].start;
-                    let nextEnd = defaultSupplyObject.idRanges[i + 1].end;
-
-                    if (!currEnd) currEnd = currStart;
-                    if (!nextEnd) nextEnd = nextStart;
-
-                    if (currEnd + 1 === nextStart) {
-                        defaultSupplyObject.idRanges[i].end = nextEnd;
-                        defaultSupplyObject.idRanges.splice(i + 1, 1);
-                        i--;
-                    }
-                }
-
-                badgeData.subassetSupplys.push(defaultSupplyObject);
-            }
         }
     }
     console.log("TEST");
 
     //Get the collection metadata if it does not exist on the current badge object
     if (badgeData && (!badgeData.collectionMetadata || JSON.stringify(badgeData.collectionMetadata) === JSON.stringify({} as BadgeMetadata))) {
-        console.log(badgeData.uri);
-        let collectionUri = getUriFromUriObject(badgeData.uri);
-        console.log("Fetching", collectionUri);
+        let collectionUri = badgeData.collectionUri
         if (collectionUri.startsWith('ipfs://')) {
             const res = await getFromIpfs(collectionUri.replace('ipfs://', ''));
             badgeData.collectionMetadata = JSON.parse(res.file);
@@ -175,7 +132,7 @@ export async function getBadge(
 
     if (badgeData && !badgeData.badgeMetadata) {
         let badgeMetadata: BadgeMetadata[] = [];
-        for (let i = 0; i < Number(badgeData?.nextSubassetId); i++) {
+        for (let i = 0; i < Number(badgeData?.nextBadgeId); i++) {
             badgeMetadata.push({} as BadgeMetadata);
         }
         badgeData.badgeMetadata = badgeMetadata;
@@ -186,10 +143,10 @@ export async function getBadge(
         && (JSON.stringify(badgeData.badgeMetadata[badgeId]) === JSON.stringify({} as BadgeMetadata)
             || !badgeData.badgeMetadata[badgeId])) {
 
-        let subassetUri = getSubassetUriFromUriObject(badgeData.uri);
-        console.log("Fetching", subassetUri);
-        if (subassetUri.startsWith('ipfs://')) {
-            const res = await getFromIpfs(subassetUri.replace('ipfs://', '').replace('{id}', badgeId.toString()));
+        let badgeUri = badgeData.badgeUri;
+        console.log("Fetching", badgeUri);
+        if (badgeUri.startsWith('ipfs://')) {
+            const res = await getFromIpfs(badgeUri.replace('ipfs://', '').replace('{id}', badgeId.toString()));
             badgeData.badgeMetadata[badgeId] = JSON.parse(res.file);
         }
     }

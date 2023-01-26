@@ -10,10 +10,10 @@ export const GetBalanceRoute = (bech32address: string) => {
     return `/cosmos/bank/balances/${bech32address}`;
 }
 
-export const GetBadgeRoute = (badgeId: number) => {
-    return `/bitbadges/bitbadgeschain/badges/get_badge/${badgeId}`;
+export const GetCollectionRoute = (collectionId: number) => {
+    return `/bitbadges/bitbadgeschain/badges/get_collection/${collectionId}`;
 }
 
-export const GetBadgeBalanceRoute = (badgeId: number, accountNumber: number) => {
-    return `/bitbadges/bitbadgeschain/badges/get_balance/${badgeId}/${accountNumber}`;
+export const GetBadgeBalanceRoute = (collectionId: number, accountNumber: number) => {
+    return `/bitbadges/bitbadgeschain/badges/get_balance/${collectionId}/${accountNumber}`;
 }

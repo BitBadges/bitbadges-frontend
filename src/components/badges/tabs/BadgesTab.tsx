@@ -23,7 +23,7 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
     useEffect(() => {
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
             if (!badgeCollection) return;
-            let numBadges = badgeCollection?.nextSubassetId;
+            let numBadges = badgeCollection?.nextBadgeId;
             //TODO: should probably make it more scalable than this
 
             for (let i = 0; i < numBadges; i++) {
