@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BadgeAvatar } from "./BadgeAvatar";
-import { getBadge } from "../../bitbadges-api/api";
+import { getBadgeCollection } from "../../bitbadges-api/api";
 
 export function BadgeAvatarDisplay({
     badgeCollection,
@@ -52,8 +52,8 @@ export function BadgeAvatarDisplay({
 
             for (let i = 0; i < numBadges; i++) {
                 if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
-                    await getBadge(badgeCollection.id, badgeCollection, i)
-                        .then(res => { if (res.badge) setBadgeCollection(res.badge) });
+                    await getBadgeCollection(badgeCollection.collectionId, badgeCollection, i)
+                        .then(res => { if (res.collection) setBadgeCollection(res.collection) });
                 }
 
                 setDisplay(<>

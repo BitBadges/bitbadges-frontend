@@ -2,14 +2,13 @@ import Meta from 'antd/lib/card/Meta';
 import { Avatar, Card } from 'antd';
 import React, { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BadgeMetadata, Balance, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeModal } from './BadgeModal';
 
 //Can probably add this to bitbadges-js
-const getSupplyByBadgeId = (badgeCollection: BitBadgeCollection, badgeId: number) => {
-    let supply = badgeCollection.subassetSupplys.find((subassetSupply) => {
-
-        return subassetSupply.idRanges.find((idRange) => {
+const getSupplyByBadgeId = (badgeId: number, supplys: Balance[]) => {
+    let supply = supplys.find((supply) => {
+        return supply.badgeIds.find((idRange) => {
             if (idRange.start === undefined || idRange.end === undefined) {
                 return false;
             }
@@ -129,12 +128,14 @@ export function BadgeCard({
                                 }}
                             >
                                 ID #: {id}
-                                {collection && collection.subassetSupplys && <><br />
-                                    Supply: {getSupplyByBadgeId(collection, id)}</>
+                                {collection && collection.maxSupplys && <><br />
+                                    <div>Supply: {getSupplyByBadgeId(id, collection.maxSupplys)}</div>
+                                    <div>Unminted Supply: {getSupplyByBadgeId(id, collection.unmintedSupplys)}</div>
+                                </>
                                 }
                                 {balance && <><br />
-                                    You own x{balance?.balanceAmounts.find((balanceAmount) => {
-                                        const found = balanceAmount.idRanges.find((idRange) => {
+                                    You own x{balance?.balances.find((balanceAmount) => {
+                                        const found = balanceAmount.badgeIds.find((idRange) => {
                                             if (idRange.end === undefined) {
                                                 idRange.end = idRange.start;
                                             }

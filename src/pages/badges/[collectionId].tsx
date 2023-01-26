@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Divider, Empty, Layout } from 'antd';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useRouter } from 'next/router';
-import { getBadge, getBadgeBalance } from '../../bitbadges-api/api';
+import { getBadgeCollection, getBadgeBalance } from '../../bitbadges-api/api';
 import { BadgePageHeader } from '../../components/badges/BadgePageHeader';
 import { Tabs } from '../../components/common/Tabs';
 import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
@@ -40,8 +40,8 @@ function CollectionPage() {
             if (isNaN(collectionIdNumber) || collectionIdNumber < 0) return;
 
             try {
-                const res = await getBadge(collectionIdNumber);
-                setBadgeCollection(res.badge);
+                const res = await getBadgeCollection(collectionIdNumber);
+                setBadgeCollection(res.collection);
             } catch (e) {
                 if (DEV_MODE) console.error("Error getting badge collection: ", e);
             }
@@ -52,17 +52,18 @@ function CollectionPage() {
     // Get user's badge balance
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
-            if (!accountNumber || accountNumber < 0 || badgeCollection?.id === undefined) return;
+            if (!accountNumber || accountNumber < 0 || badgeCollection?.collectionId === undefined) return;
 
             try {
-                const res = await getBadgeBalance(badgeCollection?.id, accountNumber);
-                setUserBalance(res.balanceInfo);
+                const res = await getBadgeBalance(badgeCollection?.collectionId, accountNumber);
+                setUserBalance(res.balance);
+                console.log("setting user balance to", res.balance);
             } catch (e) {
                 if (DEV_MODE) console.error("Error getting badge balance: ", e);
             }
         }
         getBadgeBalanceFromApi();
-    }, [badgeCollection?.id, accountNumber])
+    }, [badgeCollection?.collectionId, accountNumber])
 
     return (
         <Layout>

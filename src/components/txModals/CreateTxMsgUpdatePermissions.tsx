@@ -4,7 +4,7 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { Switch } from 'antd';
-import { CanCreateDigit, CanFreezeDigit, CanManagerTransferDigit, CanRevokeDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
+import { CanCreateMoreBadgesDigit, CanUpdateDisallowedDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
 export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children }
     : {
@@ -18,7 +18,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
 
     const txCosmosMsg: MessageMsgUpdatePermissions = {
         creator: chain.cosmosAddress,
-        badgeId: badge.id,
+        collectionId: badge.collectionId,
         permissions: currPermissions
     };
 
@@ -34,27 +34,28 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
             title: 'Select Permissions To Update',
             description: <>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Freeze
+                    Can Freeze / Unfreeze Addresses
                     <div>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanFreeze} defaultChecked={GetPermissions(currPermissions).CanFreeze} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanFreezeDigit, !GetPermissions(currPermissions).CanFreeze))
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateDisallowed} defaultChecked={GetPermissions(currPermissions).CanUpdateDisallowed} onChange={() => {
+                            setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateDisallowedDigit, !GetPermissions(currPermissions).CanUpdateDisallowed))
                         }} />
                     </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                {/* TODO: <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Revoke
                     <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanRevoke} defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
                     }} />
-                </div>
+                </div> */}
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Create
-                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanCreate} defaultChecked={GetPermissions(currPermissions).CanCreate} onChange={() => {
-                        setCurrPermissions(UpdatePermissions(currPermissions, CanCreateDigit, !GetPermissions(currPermissions).CanCreate))
+                    Can Create More Badges
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
+                        setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Update Uris
+                    Can Update Uris (Metadata)
                     <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
                     }} />
@@ -66,9 +67,9 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                     }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Manager Transfer
-                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanManagerTransfer} defaultChecked={GetPermissions(currPermissions).CanManagerTransfer} onChange={() => {
-                        setCurrPermissions(UpdatePermissions(currPermissions, CanManagerTransferDigit, !GetPermissions(currPermissions).CanManagerTransfer))
+                    Can Manager Be Transferred
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
+                        setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
                     }} />
                 </div>
                 <br />

@@ -13,50 +13,55 @@ export function PermissionsOverview({
 }) {
     if (!badgeCollection?.permissions) return <></>
 
-    return <InformationDisplayCard title={'Permissions'} span={span}>
+    return <InformationDisplayCard title={'Manager Permissions'} span={span}>
         <>
-            {!badgeCollection.permissions.CanFreeze &&
-                !badgeCollection.freezeRanges?.length &&
-                !badgeCollection.permissions.FrozenByDefault &&
-                !badgeCollection.permissions.CanCreate &&
+            {!badgeCollection.permissions.CanUpdateDisallowed &&
+                // !badgeCollection.freezeRanges?.length && TODO:
+                !badgeCollection.permissions.CanCreateMoreBadges &&
                 !badgeCollection.permissions.CanUpdateUris &&
                 !badgeCollection.permissions.CanUpdateBytes &&
-                !badgeCollection.permissions.CanRevoke &&
-                !badgeCollection.permissions.CanManagerTransfer ?
+                // !badgeCollection.permissions.CanRevoke &&
+                !badgeCollection.permissions.CanManagerBeTransferred ?
                 <Typography.Text strong style={{ color: PRIMARY_TEXT, padding: 10 }}>
                     This collection is completely frozen!
                     Badges cannot be created, transferred, updated, or revoked!
                 </Typography.Text> :
                 <>
+                    {<TableRow label={"Can Freeze Addresses?"} value={badgeCollection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />}
                     {
-                        !badgeCollection.permissions.CanFreeze &&
-                            !badgeCollection.freezeRanges?.length ?
-                            <TableRow label={"Transferable?"} value={badgeCollection.permissions.FrozenByDefault ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
+                        !badgeCollection.disallowedTransfers?.length ?
+                            <TableRow label={"Disallowed Transfers"} value={'None'} labelSpan={16} valueSpan={8} />
                             :
                             <>
-                                {<TableRow label={"Transfer Type?"} value={badgeCollection.permissions.ForcefulTransfers ? 'Immediate' : 'Requires Approval'} labelSpan={16} valueSpan={8} />}
-                                {<TableRow label={"Can Freeze Addresses?"} value={badgeCollection.permissions.CanFreeze ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />}
-                                {<TableRow label={"Are Addresses Frozen By Default?"} value={badgeCollection.permissions.FrozenByDefault ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />}
-                                {badgeCollection && <TableRow label={`${badgeCollection.permissions.FrozenByDefault ? 'Unfrozen Addresses' : 'Frozen Addresses'}`} value={<div>
-                                    {badgeCollection.freezeRanges.map((freezeRange) => {
-                                        return <>{freezeRange.start}-{freezeRange.end}</>
-                                    })}
-                                    {badgeCollection.freezeRanges.length === 0 && 'None'}
+                                {badgeCollection && <TableRow label={`${'Disallowed Transfers'}`} value={<div>
+                                    <pre>
+                                        {JSON.stringify(badgeCollection.disallowedTransfers, null, 2)}
+                                    </pre>
+                                    {/* {badgeCollection.disallowedTransfers.map((transfer) => {
+                                        return <>
+                                            Accounts{transfer.to.accountNums.map((accountRange) => {
+                                                let start = Number(accountRange.start);
+                                                let end = Number(accountRange.end);
+                                                return <> {start}-{end}</>
+                                            })}
+                                        </>
+                                    })} */}
                                 </div>} labelSpan={16} valueSpan={8} />}
                             </>
                     }
                     {
-                        <TableRow label={"Can More Badges Be Created?"} value={badgeCollection.permissions.CanCreate ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
+                        <TableRow label={"Can Create Badges?"} value={badgeCollection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
                     }
-                    {
+                    {/* {TODO:
                         <TableRow label={"Can Badges Be Revoked?"} value={badgeCollection.permissions.CanRevoke ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
-                    }
+                    } */}
                     {
                         <TableRow label={"Can Metadata Be Updated?"} value={badgeCollection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
                     }
                     {
-                        <TableRow label={"Can Manager Be Transferred?"} value={badgeCollection.permissions.CanManagerTransfer ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
+                        <TableRow label={"Can Manager Be Transferred?"} value={badgeCollection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
                     }
+                    {/* //TODO: update bytes */}
                 </>
             }
         </>

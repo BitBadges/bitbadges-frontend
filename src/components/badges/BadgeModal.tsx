@@ -87,8 +87,8 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
                             <BadgePageHeader
                                 metadata={metadata}
                             />
-                            {chain.connected && <>You have x{balance?.balanceAmounts?.find((balanceAmount) => {
-                                const found = balanceAmount.idRanges.find((idRange) => {
+                            {chain.connected && <>You have x{balance?.balances?.find((balanceAmount) => {
+                                const found = balanceAmount.badgeIds.find((idRange) => {
                                     if (idRange.end === undefined) {
                                         idRange.end = idRange.start;
                                     }

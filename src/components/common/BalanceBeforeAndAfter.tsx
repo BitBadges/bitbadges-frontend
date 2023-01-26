@@ -40,8 +40,8 @@ export function BalanceBeforeAndAfter({
             alignItems: 'center',
         }}>
             <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                {balance.balanceAmounts?.map((balanceAmount) => {
-                    return balanceAmount.idRanges.map((idRange, idx) => {
+                {balance.balances?.map((balanceAmount) => {
+                    return balanceAmount.badgeIds.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
@@ -49,10 +49,13 @@ export function BalanceBeforeAndAfter({
                         </div>
                     })
                 })}
+                {(!balance || balance.balances?.length === 0) && <div style={{ textAlign: 'center' }}>
+                    <span>No owned badges.</span>
+                </div>}
             </div>
             <div style={{ width: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-                {newBalance.balanceAmounts?.map((balanceAmount) => {
-                    return balanceAmount.idRanges.map((idRange, idx) => {
+                {newBalance.balances?.map((balanceAmount) => {
+                    return balanceAmount.badgeIds.map((idRange, idx) => {
                         return <div key={idx}>
                             <>
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}.<br />
@@ -61,9 +64,7 @@ export function BalanceBeforeAndAfter({
                     })
                 })}
             </div>
-            {(!balance || balance.balanceAmounts?.length === 0) && <div style={{ textAlign: 'center' }}>
-                <span style={{ color: 'red' }}><b>No balance found for the requested user.</b></span>
-            </div>}
+
         </div>
     </>
 }

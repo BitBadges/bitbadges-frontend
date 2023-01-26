@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute } from './routes';
-import { BadgeMetadata, BalanceObject, BitBadgeCollection, CosmosAccountInformation, GetBadgeResponse, GetBalanceResponse, SupportedChain } from './types';
+import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, GetCollectionResponse, GetBalanceResponse, SupportedChain } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 
@@ -72,11 +72,11 @@ export async function getBalance(
 }
 
 
-export async function getBadge(
+export async function getBadgeCollection(
     collectionId: number,
     currBadge?: BitBadgeCollection,
     badgeId?: number
-): Promise<GetBadgeResponse> {
+): Promise<GetCollectionResponse> {
     if (isNaN(collectionId) || collectionId < 0) {
         console.error("Invalid collectionId: ", collectionId);
         return Promise.reject(`Invalid collectionId: ${collectionId}`);
@@ -154,7 +154,7 @@ export async function getBadge(
     console.log("BADGE", badgeData);
 
     return {
-        badge: badgeData
+        collection: badgeData
     };
 }
 
@@ -172,33 +172,21 @@ export async function getBadgeBalance(
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
     console.log('FETCHING BADGE BALANCE')
-    const balance = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
+    const balanceRes = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
         .then((res) => res.data);
 
-    if (balance.error) {
-        console.error("ERROR: ", balance.error);
-        return Promise.reject(balance.error);
+    if (balanceRes.error) {
+        console.error("ERROR: ", balanceRes.error);
+        return Promise.reject(balanceRes.error);
     }
 
-    //Normalize end ranges
-    for (const balanceAmount of balance.balanceInfo.balanceAmounts) {
-        for (const idRange of balanceAmount.idRanges) {
-            console.log("ID RANGE", idRange);
-            if (!idRange.end || idRange.end < idRange.start) {
-                idRange.end = idRange.start;
-            }
+    console.log("BALANCE", balanceRes);
 
-            idRange.end = Number(idRange.end);
-            idRange.start = Number(idRange.start);
-        }
+
+    //Normalize end ranges
+    for (const balanceAmount of balanceRes.balance.balances) {
         balanceAmount.balance = Number(balanceAmount.balance);
     }
 
-    for (const pending of balance.balanceInfo.pending) {
-        pending.amount = Number(pending.amount);
-        pending.expirationTime = Number(pending.expirationTime);
-        pending.cantCancelBeforeTime = Number(pending.cantCancelBeforeTime);
-    }
-
-    return balance;
+    return balanceRes;
 }

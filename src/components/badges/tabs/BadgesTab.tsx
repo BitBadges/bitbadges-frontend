@@ -28,7 +28,7 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
 
             for (let i = 0; i < numBadges; i++) {
                 if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
-                    await getBadge(badgeCollection.id, badgeCollection, i)
+                    await getBadgeCollection(badgeCollection.id, badgeCollection, i)
                         .then(res => { if (res.badge) setBadgeCollection(res.badge) });
                 }
             }

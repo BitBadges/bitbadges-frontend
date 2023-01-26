@@ -4,10 +4,8 @@ import React from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
-import { CreateTxMsgRevokeBadgeModal } from '../../txModals/CreateTxMsgRevokeBadge';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BlockinDisplay } from '../../blockin/BlockinDisplay';
-import { CreateTxMsgFreezeModal } from '../../txModals/CreateTxMsgFreezeModal';
 import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
 import { useRouter } from 'next/router';
 import Meta from 'antd/lib/card/Meta';
@@ -35,7 +33,7 @@ export function ActionsTab({
     const isManager = badge.manager.accountNumber === accountNumber;
 
     if (isManager) {
-        if (badge.permissions.CanCreate) {
+        if (badge.permissions.CanCreateMoreBadges) {
             actions.push({
                 title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
                 description: (
@@ -44,28 +42,28 @@ export function ActionsTab({
                     </div>
                 ),
                 showModal: () => {
-                    router.push(`/mint/badge/${badge.id}`)
+                    router.push(`/mint/badge/${badge.collectionId}`)
                 },
             });
         }
 
 
+        //TODO:
+        // if (badge.permissions.CanRevoke) {
+        //     actions.push({
+        //         title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
+        //         description: (
+        //             <div style={{ color: SECONDARY_TEXT }}>
+        //                 Revoke a badge from an existing owner
+        //             </div>
+        //         ),
+        //         showModal: () => {
+        //             setRevokeIsVisible(!revokeIsVisible);
+        //         },
+        //     });
+        // }
 
-        if (badge.permissions.CanRevoke) {
-            actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Revoke a badge from an existing owner
-                    </div>
-                ),
-                showModal: () => {
-                    setRevokeIsVisible(!revokeIsVisible);
-                },
-            });
-        }
-
-        if (badge.permissions.CanFreeze) {
+        if (badge.permissions.CanUpdateDisallowed) {
             actions.push({
                 title: <div style={{ color: PRIMARY_TEXT }}>Freeze</div>,
                 description: (
@@ -79,7 +77,7 @@ export function ActionsTab({
             });
         }
 
-        if (badge.permissions.CanManagerTransfer) {
+        if (badge.permissions.CanManagerBeTransferred) {
             actions.push({
                 title: (
                     <div style={{ color: PRIMARY_TEXT }}>Transfer Manager</div>
@@ -110,7 +108,7 @@ export function ActionsTab({
     }
 
     if (!isManager) {
-        if (badge.permissions.CanManagerTransfer) {
+        if (badge.permissions.CanManagerBeTransferred) {
             actions.push({
                 title: <div style={{ color: PRIMARY_TEXT }}>Request Manager Transfer</div>,
                 description: (
@@ -243,18 +241,6 @@ export function ActionsTab({
             <CreateTxMsgRequestTransferManagerModal
                 visible={requestTransferManagerIsVisible}
                 setVisible={setRequestTransferManagerIsVisible}
-                badge={badge}
-            />
-
-            <CreateTxMsgRevokeBadgeModal
-                visible={revokeIsVisible}
-                setVisible={setRevokeIsVisible}
-                badge={badge}
-            />
-
-            <CreateTxMsgFreezeModal
-                visible={freezeIsVisible}
-                setVisible={setFreezeIsVisible}
                 badge={badge}
             />
 

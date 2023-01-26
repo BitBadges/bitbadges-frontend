@@ -7,19 +7,18 @@ export enum SupportedChain {
     COSMOS = 'Cosmos',
 }
 
-
 export enum TransactionStatus {
     None = 0,
     AwaitingSignatureOrBroadcast = 1,
 }
-export interface GetBadgeResponse {
+export interface GetCollectionResponse {
     error?: any;
-    badge?: BitBadgeCollection;
+    collection?: BitBadgeCollection;
 }
 
 export interface IdRange {
     start: number;
-    end?: number;
+    end: number;
 }
 export interface BadgeSupplyAndAmount {
     amount: number;
@@ -90,25 +89,17 @@ export interface BitBadgeMintObject {
 
 export interface GetBalanceResponse {
     error?: any;
-    balanceInfo?: UserBalance;
+    balance?: UserBalance;
 }
 
 export interface UserBalance {
-    balanceAmounts: {
-        balance: number;
-        idRanges: IdRange[]
-    }[];
-    pendingNonce: number;
-    pending: PendingTransfer[];
+    balances: Balance[];
     approvals: Approval[];
 }
 
 export interface Approval {
     address: number;
-    approvalAmounts: {
-        balance: number;
-        idRanges: IdRange[]
-    }[];
+    balances: Balance[];
 }
 
 export interface PendingTransfer {
