@@ -129,8 +129,10 @@ export function BadgeCard({
                             >
                                 ID #: {id}
                                 {collection && collection.maxSupplys && <><br />
-                                    <div>Supply: {getSupplyByBadgeId(id, collection.maxSupplys)}</div>
-                                    <div>Unminted Supply: {getSupplyByBadgeId(id, collection.unmintedSupplys)}</div>
+                                    <>Max Supply: {getSupplyByBadgeId(id, collection.maxSupplys)}</>
+                                    
+                                    <br />
+                                    <>Unminted Supply: {getSupplyByBadgeId(id, collection.unmintedSupplys)}</>
                                 </>
                                 }
                                 {balance && <><br />

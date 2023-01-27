@@ -10,7 +10,14 @@ import { BadgeMetadata } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
+import { CreateClaim } from '../form/CreateClaim';
+import { ManualTransfers } from '../form/ManualTransfers';
 
+enum DistributionMethod {
+    None,
+    Transfer,
+    Claim,
+}
 
 export function SetProperties({
     setCurrStepNumber,
@@ -40,6 +47,7 @@ export function SetProperties({
     const [handledDisallowedTransfers, setHandledDisallowedTransfers] = useState<boolean>(false);
     const [fungible, setFungible] = useState(false);
     const [nonFungible, setNonFungible] = useState(false);
+    const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
 
     //TODO: abstract all these to their own exportable components
@@ -49,7 +57,7 @@ export function SetProperties({
             items={[
                 {
                     title: 'Confirm Manager',
-                    description: 'Every badge needs a manager. For this badge, the address below will be the manager.',
+                    description: 'Every badge needs a manager. For this badge, your address below will be the manager.',
                     node: <ConfirmManager />
                 },
 
@@ -85,6 +93,37 @@ export function SetProperties({
                     node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} fungible={fungible} />,
                     disabled: newBadgeMsg.badgeSupplys?.length == 0 || newBadgeMsg.badgeSupplys?.length == 0
                 },
+                {
+                    title: `How Would You Like To Distribute These Badges?`,
+                    // description: `Will each individual badge have unique characteristics or will they all be identical?`,
+                    description: '',
+                    node: <SwitchForm
+                        selectedTitle={"Manual Transfers"}
+                        unselectedTitle={"Claiming Process"}
+                        onSwitchChange={(claim, transfer) => {
+                            if (transfer) {
+                                setDistributionMethod(DistributionMethod.Transfer);
+                            } else if (claim) {
+                                setDistributionMethod(DistributionMethod.Claim);
+                            }
+                        }}
+                        isOptionOneSelected={distributionMethod == DistributionMethod.Claim}
+                        isOptionTwoSelected={distributionMethod == DistributionMethod.Transfer}
+                        unselectedMessage={'Have users claim these badges according to some rules you set (e.g. secret codes, specific addresses, first come first serve, etc).'}
+                        selectedMessage={`Manually distribute these badges to specific addresses. You will pay all transfer fees.`}
+                    />,
+                    disabled: distributionMethod == DistributionMethod.None
+                },
+                distributionMethod === DistributionMethod.Transfer ?
+                    {
+                        title: `Distribute via Manual Transfers`,
+                        description: '',
+                        node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
+                    } : {
+                        title: `Distribute via Claiming Process`,
+                        description: '',
+                        node: <CreateClaim newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
+                    },
                 {
                     title: 'Can Create More Badges ?',
                     description: `This collection currently contains ${newBadgeMsg.badgeSupplys[0]?.amount} badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''} (supply = ${newBadgeMsg.badgeSupplys[0]?.supply}). Do you want the ability to add badges to this collection in the future?`,
@@ -145,7 +184,7 @@ export function SetProperties({
                                                     accountNums: [
                                                         {
                                                             start: 0,
-                                                            end: BigInt(18446744073709551615)
+                                                            end: 1000 //TODO: change to max uint64
                                                         }
                                                     ],
                                                     options: 0,
@@ -154,7 +193,7 @@ export function SetProperties({
                                                     accountNums: [
                                                         {
                                                             start: 0,
-                                                            end: BigInt(18446744073709551615)
+                                                            end: 1000 //TODO: change to max uint64
                                                         }
                                                     ],
                                                     options: 0,

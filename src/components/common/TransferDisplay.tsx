@@ -16,8 +16,8 @@ export function TransferDisplay({
 }: {
     from: BitBadgesUserInfo[];
     to: BitBadgesUserInfo[];
-    badge: BitBadgeCollection;
-    setBadgeCollection: (badge: BitBadgeCollection) => void;
+    badge?: BitBadgeCollection;
+    setBadgeCollection?: (badge: BitBadgeCollection) => void;
     amount: number;
     startId: number;
     endId: number;
@@ -76,6 +76,8 @@ export function TransferDisplay({
         <div style={{ textAlign: 'center' }}>
             <Typography.Text style={{ fontSize: 16, textAlign: 'center' }} strong>{'Transferring x' + amount + ' of the following badges (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
         </div>
-        <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} setBadgeCollection={setBadgeCollection} />
+        {badge && setBadgeCollection &&
+            <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} setBadgeCollection={setBadgeCollection} />
+        }
     </>
 }
