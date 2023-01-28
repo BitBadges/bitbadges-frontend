@@ -16,8 +16,10 @@ const { Content } = Layout;
 const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
     { key: 'badges', content: 'Badges', disabled: false },
+    { key: 'claims', content: 'Claims', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
-    { key: 'actions', content: 'Actions', disabled: false }
+    { key: 'actions', content: 'Actions', disabled: false },
+
 ];
 
 function CollectionPage() {
@@ -98,6 +100,14 @@ function CollectionPage() {
                             badgeCollection={badgeCollection}
                             setBadgeCollection={setBadgeCollection}
                             balance={userBalance}
+                        />
+                    )}
+
+                    {tab === 'claims' && (
+                        <Empty
+                            style={{ color: PRIMARY_TEXT }}
+                            description="This feature is coming soon..."
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
                         />
                     )}
 

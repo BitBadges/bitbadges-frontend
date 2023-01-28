@@ -2,6 +2,7 @@ import { ChallengeParams } from "blockin";
 import { stringify } from "../pages/api/utils/preserveJson";
 import { BadgeMetadata } from "../bitbadges-api/types";
 import { BACKEND_URL } from "../constants";
+import MerkleTree from "merkletreejs";
 
 /**
  * Here, we define the API function logic to call your backend.
@@ -55,6 +56,22 @@ export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uin
     }).then(res => res.json());
 
     return verificationRes;
+}
+
+
+export const addMerkleTreeToIpfs = async (leaves: string[]) => {
+
+    const bodyStr = stringify({
+        leaves
+    }); //hack to preserve uint8 arrays
+
+    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addMerkleTreeToIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return addToIpfsRes;
 }
 
 export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: BadgeMetadata[]) => {

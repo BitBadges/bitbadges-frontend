@@ -18,6 +18,7 @@ export function BadgeAvatarDisplay({
     endId: number;
     size?: number;
 }) {
+    //TODO: special ring around the badge if it is owned
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
     const [display, setDisplay] = useState<ReactNode>(<>
         {badgeCollection && endId - startId + 1 > 0

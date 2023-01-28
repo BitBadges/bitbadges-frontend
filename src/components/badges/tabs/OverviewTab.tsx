@@ -5,6 +5,7 @@ import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
 import { BalanceOverview } from "../BalanceOverview";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
+import { DEV_MODE } from "../../../constants";
 
 export function OverviewTab({
     badgeCollection,
@@ -23,6 +24,20 @@ export function OverviewTab({
             title="Badges"
         >
             <BadgeAvatarDisplay size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextBadgeId - 1} />
+        </InformationDisplayCard>
+        <br />
+        <InformationDisplayCard
+            title="Claims"
+        >
+            {badgeCollection?.claims.map((claim, idx) => {
+                return <div key={idx}>
+                    {DEV_MODE &&
+                        <pre>
+                            {JSON.stringify(claim, null, 2)}
+                        </pre>}
+                        
+                </div>
+            })}
         </InformationDisplayCard>
         <br />
         <Row

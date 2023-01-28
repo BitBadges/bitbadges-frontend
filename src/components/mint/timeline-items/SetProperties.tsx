@@ -27,6 +27,8 @@ export function SetProperties({
     setNewBadgeMetadata,
     addMethod,
     setAddMethod,
+    leaves,
+    setLeaves,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newBadgeMsg: MessageMsgNewCollection;
@@ -35,6 +37,8 @@ export function SetProperties({
     setNewBadgeMetadata: (metadata: BadgeMetadata) => void;
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
+    leaves: string[];
+    setLeaves: (leaves: string[]) => void;
 }) {
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
         CanUpdateBytes: false,
@@ -122,7 +126,8 @@ export function SetProperties({
                     } : {
                         title: `Distribute via Claiming Process`,
                         description: '',
-                        node: <CreateClaim newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
+                        node: <CreateClaim newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg}
+                            leaves={leaves} setLeaves={setLeaves} />,
                     },
                 {
                     title: 'Can Create More Badges ?',

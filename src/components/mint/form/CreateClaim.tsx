@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, InputNumber, Button, Select, Input } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SampleMerkleTreeRoot } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SampleAccountMerkleTreeLeaves, SampleAccountMerkleTreeRoot } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
 import { UserBalance } from '../../../bitbadges-api/types';
@@ -15,12 +15,18 @@ enum ClaimType {
     Code,
 }
 
+//TODO: code based claims
+
 export function CreateClaim({
     newBadgeMsg,
     setNewBadgeMsg,
+    leaves,
+    setLeaves,
 }: {
     newBadgeMsg: MessageMsgNewCollection;
     setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    leaves: string[];
+    setLeaves: (leaves: string[]) => void;
 }) {
     const beforeBalances: UserBalance = {
         balances: [
@@ -40,7 +46,6 @@ export function CreateClaim({
     const [amountToClaim, setAmountToClaim] = useState<number>(0);
     const [claimType, setClaimType] = useState<ClaimType>(ClaimType.AccountNum);
     const [currLeaf, setCurrLeaf] = useState<string>('');
-    const [leaves, setLeaves] = useState<string[]>([]);
 
     useEffect(() => {
         // const newLeaves = leaves.map(x => SHA256(x))
@@ -53,6 +58,7 @@ export function CreateClaim({
         // console.log("root", newRoot)
         // console.log(tree);
         // console.log(proof);
+        setLeaves(SampleAccountMerkleTreeLeaves); //TODO: remove
 
         setNewBadgeMsg({
             ...newBadgeMsg,
@@ -62,15 +68,15 @@ export function CreateClaim({
                     balance: newBalances.balances[0],
                     type: claimType,
                     uri: "",
-                    data: SampleMerkleTreeRoot,
+                    data: SampleAccountMerkleTreeRoot,
                     timeRange: {
                         start: 0,
-                        end: 1000 //TODO: change to max uint64,
+                        end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
                     },
                 }
             ]
         })
-    }, [amountToClaim, newBalances, setNewBadgeMsg, newBadgeMsg, leaves, claimType])
+    }, [amountToClaim, newBalances, setNewBadgeMsg, newBadgeMsg, leaves, claimType, setLeaves])
 
 
 

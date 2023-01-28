@@ -11,10 +11,17 @@ import { SubassetSupply } from '../form/SubassetSupply';
 
 import { Typography, Form, Button } from 'antd';
 import { SECONDARY_TEXT } from '../../../constants';
-import { addToIpfs } from '../../../chain/backend_connectors';
+import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
 import { CheckCircleFilled } from '@ant-design/icons';
 
+import { MerkleTree } from 'merkletreejs';
+import SHA256 from 'crypto-js/sha256';
+
+
+
 import { saveAs } from 'file-saver';
+
+const CryptoJS = require("crypto-js");
 
 function downloadJson(json: object, filename: string) {
     const blob = new Blob([JSON.stringify(json)], {
@@ -33,6 +40,9 @@ export function SetMetadata({
     setIndividualBadgeMetadata,
     addMethod,
     setAddMethod,
+    leaves,
+    setLeaves,
+
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newBadgeMsg: MessageMsgNewCollection;
@@ -43,9 +53,11 @@ export function SetMetadata({
     setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
+    leaves: string[];
+    setLeaves: (leaves: string[]) => void;
 }) {
     const [id, setId] = useState(0);
-    
+
     const [stepNum, setStepNum] = useState(1);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -137,11 +149,23 @@ export function SetMetadata({
 
                                     let uri = 'ipfs://' + res.cid + '/collection';
                                     let badgeUri = 'ipfs://' + res.cid + '/{id}';
+
+                                    let merkleTreeRes = await addMerkleTreeToIpfs(leaves);
+
+                                    let merkleTreeUri = 'ipfs://' + merkleTreeRes.cid + '';
+
                                     setNewBadgeMsg({
                                         ...newBadgeMsg,
                                         collectionUri: uri,
                                         badgeUri: badgeUri,
+                                        claims: [
+                                            {
+                                                ...newBadgeMsg.claims[0],
+                                                uri: merkleTreeUri,
+                                            },
+                                        ],
                                     });
+
                                     setSuccess(true);
                                     setLoading(false);
                                 }}

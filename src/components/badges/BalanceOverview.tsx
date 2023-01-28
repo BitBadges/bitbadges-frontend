@@ -16,6 +16,7 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
+import { CreateTxMsgClaimBadgeModal } from '../txModals/CreateTxMsgClaimBadge';
 
 const { Text } = Typography;
 
@@ -28,6 +29,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
 }) {
     const chain = useChainContext();
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
+    const [claimIsVisible, setClaimIsVisible] = useState<boolean>(false);
     const [requestTransferIsVisible, setRequestTransferIsVisible] = useState<boolean>(false);
     const [pendingIsVisible, setPendingIsVisible] = useState<boolean>(false);
 
@@ -79,6 +81,13 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
             tooltipMessage: `Transfer this badge to another address`,
+            disabled: false
+        },
+        {
+            name: <>Claim</>,
+            icon: <SwapOutlined />,
+            onClick: () => { setClaimIsVisible(true) },
+            tooltipMessage: `Claim this badge`,
             disabled: false
         },
         // {
@@ -142,6 +151,14 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
             setBadgeCollection={setBadge}
             visible={transferIsVisible}
             setVisible={setTransferIsVisible}
+            balance={balance ? balance : {} as UserBalance}
+        />
+
+        <CreateTxMsgClaimBadgeModal
+            badge={badge ? badge : {} as BitBadgeCollection}
+            setBadgeCollection={setBadge}
+            visible={claimIsVisible}
+            setVisible={setClaimIsVisible}
             balance={balance ? balance : {} as UserBalance}
         />
 

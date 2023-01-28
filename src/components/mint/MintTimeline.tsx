@@ -23,6 +23,7 @@ export function MintTimeline() {
     const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
+    const [leaves, setLeaves] = useState<string[]>([]);
 
     const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewCollection>({
         creator: chain.cosmosAddress,
@@ -77,6 +78,7 @@ export function MintTimeline() {
             content: (
                 <>
                     {newBadgeMsg?.standard == 0 && <SetProperties
+
                         setCurrStepNumber={setCurrStepNumber}
                         newBadgeMsg={newBadgeMsg}
                         setNewBadgeMsg={setNewBadgeMsg}
@@ -84,6 +86,8 @@ export function MintTimeline() {
                         setNewBadgeMetadata={setNewBadgeMetadata}
                         addMethod={addMethod}
                         setAddMethod={setAddMethod}
+                        leaves={leaves}
+                        setLeaves={setLeaves}
                     />}
                     {/* TODO:  newBadgeMsg?.standard == ... */}
                 </>
@@ -108,6 +112,8 @@ export function MintTimeline() {
                         setIndividualBadgeMetadata={setIndividualBadgeMetadata}
                         addMethod={addMethod}
                         setAddMethod={setAddMethod}
+                        leaves={leaves}
+                        setLeaves={setLeaves}
                     />
                 </>
             ),
