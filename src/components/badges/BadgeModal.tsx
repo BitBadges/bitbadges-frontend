@@ -40,6 +40,7 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
             size="large"
             title={
                 <Tabs
+                    tab={tab}
                     tabInfo={tabInfo}
                     setTab={setTab}
                     theme="dark"

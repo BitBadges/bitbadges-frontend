@@ -3,12 +3,21 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { BadgeCard } from '../BadgeCard';
 import { getBadgeCollection } from '../../../bitbadges-api/api';
+import { ClaimDisplay } from '../../common/ClaimDisplay';
+import MerkleTree from 'merkletreejs';
+import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
+import { ClaimMerkleTree } from '../../../pages/badges/[collectionId]';
 
-export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
+export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
     balance: UserBalance | undefined;
 }) {
+    const [claimId, setClaimId] = useState<number>(0);
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [code, setCode] = useState<string>("");
+
+
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
     const [display, setDisplay] = useState<ReactNode>(<>
         {individualBadgeMetadata?.map((metadata, idx) => {
@@ -50,27 +59,41 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
         <div
             style={{
                 color: PRIMARY_TEXT,
+                display: 'flex',
+                justifyContent: 'center',
             }}>
-            {/* <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                Badges
-            </Text>
-            <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider> */}
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                }}
-            >
-                {display}
-            </div>
+            {
+                badgeCollection?.claims.map((claim, idx) => {
+                    return <div key={idx}>
+                        <ClaimDisplay
+                            collection={badgeCollection}
+                            setCollection={setBadgeCollection}
+                            claim={claim}
+                            claimId={idx}
+                            openModal={(code) => {
+                                setClaimId(idx)
+                                setModalVisible(true);
+                                setCode(code ? code : "");
+                            }}
+                        />
 
-
-            {DEV_MODE &&
-                <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(badgeCollection, null, 2)}
-                </pre>
+                        {DEV_MODE &&
+                            <pre>
+                                {JSON.stringify(claim, null, 2)}
+                            </pre>}
+                    </div>
+                })
             }
+            <CreateTxMsgClaimBadgeModal
+                badge={badgeCollection}
+                setBadgeCollection={setBadgeCollection}
+                claimId={claimId}
+                balance={{} as UserBalance}
+                visible={modalVisible}
+                setVisible={setModalVisible}
+                code={code}
+            />
         </div >
     );
 }
+

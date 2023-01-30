@@ -10,18 +10,39 @@ import { useChainContext } from '../../../chain/ChainContext';
 import { AddressListSelect } from '../../address/AddressListSelect';
 import { getAccountInformation } from '../../../bitbadges-api/api';
 import { AddressDisplay } from '../../address/AddressDisplay';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
+
+const crypto = require('crypto');
 
 const { Step } = Steps;
+
+
+enum DistributionMethod {
+    None,
+    FirstComeFirstServe,
+    SpecificAddresses,
+    Codes,
+    Unminted,
+}
+
+interface LeafItem {
+    addressOrCode: string;
+    amount: number;
+    badgeIds: IdRange[];
+}
 
 export function ManualTransfers({
     newBadgeMsg,
     setNewBadgeMsg,
+    distributionMethod,
+    setLeaves
 }: {
     newBadgeMsg: MessageMsgNewCollection;
     setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    distributionMethod: DistributionMethod;
+    setLeaves: (leaves: string[]) => void;
 }) {
-
-
     const chain = useChainContext();
 
     const [newBalances, setNewBalances] = useState<UserBalance>({
@@ -43,8 +64,11 @@ export function ManualTransfers({
 
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [amount, setAmount] = useState<number>(0);
-    const [badgeRanges, setBadgeRanges] = useState<IdRange[]>([]);
+    const [badgeRanges, setBadgeRanges] = useState<IdRange[]>([{ start: 0, end: 0 }]);
     const [newBalance, setNewBalance] = useState<UserBalance>({} as UserBalance);
+    const [codes, setCodes] = useState<string[]>([]);
+    const [numCodes, setNumCodes] = useState<number>(0);
+    const [leafs, setLeafs] = useState<LeafItem[]>([]);
 
     const [currentStep, setCurrentStep] = useState(0);
 
@@ -53,87 +77,110 @@ export function ManualTransfers({
     };
 
     useEffect(() => {
-        const balance: UserBalance = {
-            balances: [
-                {
-                    balance: newBadgeMsg.badgeSupplys[0].supply,
-                    badgeIds: [{
-                        start: 0,
-                        end: newBadgeMsg.badgeSupplys[0].amount - 1,
-                    }]
+        if (distributionMethod === DistributionMethod.Codes) {
+            setLeafs(codes.map((code) => {
+                return {
+                    addressOrCode: code,
+                    amount: amount,
+                    badgeIds: badgeRanges,
                 }
-            ],
-            approvals: [],
+            }));
+        } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
+            setLeafs(toAddresses.map((address) => {
+                return {
+                    addressOrCode: address.cosmosAddress,
+                    amount: amount,
+                    badgeIds: badgeRanges,
+                }
+            }));
         }
+    }, [codes, amount, badgeRanges, distributionMethod, toAddresses]);
 
-        console.log("pre-balance", balance);
-        if (!balance) return;
-        let balanceCopy = JSON.parse(JSON.stringify(balance));
-        console.log("pre-balance-copy", balanceCopy);
-        try {
-            let newBalanceObj = getPostTransferBalance(balanceCopy, undefined, startBadgeId, endBadgeId, amountToTransfer, toAddresses.length);
-            console.log("TRY", newBalanceObj)
-            setNewBalance(newBalanceObj);
-        } catch (e) {
-            console.log("CATCH", balance)
-            setNewBalance({
-                ...balanceCopy,
-                balances: [],
-            });
-        }
+    useEffect(() => {
+
+        const newLeaves = leafs.map(x => {
+            let str = '';
+            if (distributionMethod === DistributionMethod.Codes) {
+                str = x.addressOrCode + '--';
+            } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
+                str = "-" + x.addressOrCode + "-";
+            }
+            str += x.amount + "-" + x.badgeIds[0]?.start + "-" + x.badgeIds[0]?.end;
+            return str;
+        });
+
+        setLeaves(newLeaves);
+
+        const hashes = newLeaves.map(x => {
+            return SHA256(x)
+        });
+
+        const tree = new MerkleTree(hashes, SHA256, { duplicateOdd: true })
+        const root = tree.getRoot().toString('hex')
+
 
         setNewBadgeMsg({
             ...newBadgeMsg,
-            transfers: [
+            claims: [
                 {
-                    toAddresses: toAddresses.map((user) => user.accountNumber),
-                    balances: [
-                        {
-                            balance: amountToTransfer,
-                            badgeIds: [{
-                                start: startBadgeId,
-                                end: endBadgeId,
-                            }],
-                        }
-                    ],
+                    amountPerClaim: 0,
+                    balances: newBalances.balances,
+                    type: 0,
+                    uri: "",
+                    data: root,
+                    timeRange: {
+                        start: 0,
+                        end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
+                    },
+                    incrementIdsBy: 0,
+                    badgeIds: [],
                 }
-            ],
+            ]
         })
-    }, [amountToTransfer, startBadgeId, endBadgeId, toAddresses.length, newBadgeMsg, setNewBadgeMsg, toAddresses])
+    }, [newBalances, setNewBadgeMsg, newBadgeMsg, distributionMethod, leafs, setLeaves]);
 
-    const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
-
-
-    const onRegister = async () => {
-        let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
-
-        let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
-        for (const user of newUsersToRegister) {
-            const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
-                return accountInfo.account_number;
-            });
-            allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
-        }
-
-        setToAddresses(allRegisteredUsers);
-    }
 
 
     const firstStepDisabled = toAddresses.length === 0;
-    const secondStepDisabled = amountToTransfer <= 0 || startBadgeId < 0 || endBadgeId < 0 || startBadgeId > endBadgeId || !!newBalance.balances.find((balance) => balance.balance < 0);
+    const firstStepDisabledCodes = codes.length === 0;
+    // const secondStepDisabled = amountToTransfer <= 0 || startBadgeId < 0 || endBadgeId < 0 || startBadgeId > endBadgeId || !!newBalance.balances.find((balance) => balance.balance < 0);
 
     const msgSteps = [
-        {
+        distributionMethod === DistributionMethod.SpecificAddresses ? {
             title: `Add Recipients (${toAddresses.length})`,
             description: <AddressListSelect
                 users={toAddresses}
                 setUsers={setToAddresses}
             />,
             disabled: firstStepDisabled,
+        } : {
+            title: 'Create Codes',
+            description: <div>
+                <>
+                    <div className='flex-between'>
+                        How Many Codes to Create?
+                        <InputNumber
+                            value={numCodes}
+                            min={1}
+                            title='Number of Codes'
+                            onChange={
+                                (value: number) => {
+                                    setCodes([...Array(value)].map((i) => crypto.randomBytes(32).toString('hex')));
+                                    // console.log(codes);
+                                    setNumCodes(value);
+                                }
+                            }
+                        />
+                    </div>
+                    <Divider />
+                </>
+            </div>,
+            disabled: firstStepDisabledCodes,
         },
         {
             title: 'Select IDs and Amounts',
             description: <div>
+
                 <div className='flex-between'>
                     Amount to Transfer Per Recipient:
                     <InputNumber
@@ -189,7 +236,7 @@ export function ManualTransfers({
                 </div>
                 <hr />
 
-                <TransferDisplay
+                {/* <TransferDisplay
                     amount={amountToTransfer * toAddresses.length}
                     startId={startBadgeId}
                     endId={endBadgeId}
@@ -203,7 +250,9 @@ export function ManualTransfers({
                     }]}
                     to={toAddresses}
                 />
-                <hr />
+                <hr /> */}
+                {//TODO: display leftover badges
+                }
                 <BalanceBeforeAndAfter balance={{
                     balances: [
                         {
@@ -217,32 +266,41 @@ export function ManualTransfers({
                     approvals: [],
                 }} newBalance={newBalance} partyString='Unminted' />
             </div>,
-            disabled: secondStepDisabled
+            // disabled: secondStepDisabled
         },
 
     ];
 
 
-    return <div style={{ textAlign: 'center', color: PRIMARY_TEXT, backgroundColor: TERTIARY_BLUE }}>
-        <Steps
-            current={currentStep}
-            onChange={onStepChange}
-            direction="vertical"
-        >
-            {msgSteps && msgSteps.map((item, index) => (
-                <Step
-                    key={index}
-                    title={<b>{item.title}</b>} description={
-                        <div>
-                            {currentStep === index && <div>
-                                {item.description}
-                            </div>}
-                        </div>
-                    }
-                    disabled={msgSteps && msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
-                />
-            ))}
+    return <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+        {msgSteps && msgSteps.map((item, index) => (
+            <> {item.description}</>
+        ))}
 
-        </Steps>
+        <Divider />
+        {leafs.map((leaf, index) => {
+            return <div key={index}>
+                <div className='flex-between'>
+                    <div>
+                        <div>
+                            {distributionMethod === DistributionMethod.SpecificAddresses ? 'Address' : 'Code'} {index + 1}</div>
+                        <div>{leaf.addressOrCode}</div>
+                    </div>
+                    <div>
+                        <div>Amount</div>
+                        <div>{leaf.amount}</div>
+                    </div>
+                    <div>
+                        <div>Badge ID Start</div>
+                        <div>{leaf.badgeIds[0]?.start}</div>
+                    </div>
+                    <div>
+                        <div>Badge ID End</div>
+                        <div>{leaf.badgeIds[0]?.end}</div>
+                    </div>
+                </div>
+                <Divider />
+            </div>
+        })}
     </div>
 }

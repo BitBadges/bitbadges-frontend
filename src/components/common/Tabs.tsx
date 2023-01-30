@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Menu, Dropdown, Popover, MenuTheme, MenuProps } from 'antd';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
 // import MenuItem from 'antd/lib/menu/MenuItem';
@@ -21,7 +21,8 @@ function getItem(
 }
 
 
-export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
+export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
+    tab: string;
     setTab: (tab: string) => void;
     tabInfo: { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
     fullWidth?: boolean;
@@ -75,13 +76,14 @@ export function Tabs({ setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
         }
     });
 
+
+
     return (
         <Menu
             style={{ display: 'flex' }}
             theme={theme ? theme : 'dark'}
             mode="horizontal"
-            defaultSelectedKeys={noSelectedKeys ? undefined : [tabInfo[0].key]}
-            selectedKeys={noSelectedKeys ? [] : undefined}
+            selectedKeys={noSelectedKeys ? [] : [tab]}
             disabledOverflow
         >
             {tabs}

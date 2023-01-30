@@ -42,7 +42,6 @@ export function SetMetadata({
     setAddMethod,
     leaves,
     setLeaves,
-
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newBadgeMsg: MessageMsgNewCollection;

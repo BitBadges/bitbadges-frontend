@@ -1,5 +1,6 @@
 //TODO: sync with bitbadges-js and the main libraries
 
+import MerkleTree from "merkletreejs";
 import { Permissions } from "./permissions";
 
 export enum SupportedChain {
@@ -41,12 +42,16 @@ export interface Transfers {
     balances: Balance[];
 }
 export interface Claims {
-    balance: Balance;
+    balances: Balance[];
+    badgeIds: IdRange[];
+    incrementIdsBy: number;
     amountPerClaim: number;
     type: number;
     data: string;
     uri: string;
     timeRange: IdRange;
+    leaves: string[];
+    tree: MerkleTree;
 }
 export interface Proof {
     total: number;
@@ -72,6 +77,7 @@ export interface BitBadgeCollection {
     standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadata[],
+
 }
 
 

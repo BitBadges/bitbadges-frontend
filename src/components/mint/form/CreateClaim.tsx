@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, InputNumber, Button, Select, Input } from 'antd';
+import { Typography, InputNumber, Button, Select, Input, Form } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SampleAccountMerkleTreeLeaves, SampleAccountMerkleTreeRoot } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
-import { UserBalance } from '../../../bitbadges-api/types';
+import { BitBadgesUserInfo, UserBalance } from '../../../bitbadges-api/types';
 import { DownOutlined } from '@ant-design/icons';
 import { MerkleTree } from 'merkletreejs';
 import SHA256 from 'crypto-js/sha256';
+import { AddressListSelect } from '../../address/AddressListSelect';
 
 const CryptoJS = require("crypto-js");
 
-enum ClaimType {
-    AccountNum,
-    Code,
+enum DistributionMethod {
+    None,
+    FirstComeFirstServe,
+    SpecificAddresses,
+    Codes,
+    Unminted,
+
 }
+const { Text } = Typography;
 
 //TODO: code based claims
 
@@ -47,6 +53,8 @@ export function CreateClaim({
     const [claimType, setClaimType] = useState<ClaimType>(ClaimType.AccountNum);
     const [currLeaf, setCurrLeaf] = useState<string>('');
 
+    const [users, setUsers] = useState<BitBadgesUserInfo[]>([]);
+
     useEffect(() => {
         // const newLeaves = leaves.map(x => SHA256(x))
         // const tree = new MerkleTree(newLeaves, SHA256, { isBitcoinTree: true })
@@ -58,17 +66,22 @@ export function CreateClaim({
         // console.log("root", newRoot)
         // console.log(tree);
         // console.log(proof);
-        setLeaves(SampleAccountMerkleTreeLeaves); //TODO: remove
+
+        const hashes = leaves.map(x => SHA256(x))
+
+        const tree = new MerkleTree(hashes, SHA256, { duplicateOdd: true })
+        const root = tree.getRoot().toString('hex')
+
 
         setNewBadgeMsg({
             ...newBadgeMsg,
             claims: [
                 {
                     amountPerClaim: amountToClaim,
-                    balance: newBalances.balances[0],
+                    balances: newBalances.balances,
                     type: claimType,
                     uri: "",
-                    data: SampleAccountMerkleTreeRoot,
+                    data: root,
                     timeRange: {
                         start: 0,
                         end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
@@ -78,67 +91,108 @@ export function CreateClaim({
         })
     }, [amountToClaim, newBalances, setNewBadgeMsg, newBadgeMsg, leaves, claimType, setLeaves])
 
+    useEffect(() => {
+        setLeaves(users.map(x => x.cosmosAddress));
+    }, [users, setLeaves])
 
 
 
-    return <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-        <Typography.Text style={{ color: PRIMARY_TEXT, textAlign: 'center' }} strong>
-            You have distributed {numDistributed} / {newBadgeMsg.badgeSupplys[0].amount} badges (each badge supply = {newBadgeMsg.badgeSupplys[0].supply}).
-        </Typography.Text>
 
+    return <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center' }}>
         <BalanceBeforeAndAfter balance={beforeBalances} newBalance={newBalances} partyString='Unminted' />
-        <div className='flex-between'>
-            Amount to Claim Per Recipient:
-            <InputNumber
-                min={1}
-                title='Amount per Claim'
-                value={amountToClaim} onChange={
-                    (value: number) => {
-                        if (!value || value <= 0) {
-                            setAmountToClaim(0);
-                        }
-                        else {
-                            setAmountToClaim(value);
-                        }
+        <Form.Provider>
+            <Form
+                style={{ justifyContent: 'center', alignItems: 'center' }}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 14 }}
+                layout="horizontal"
+            >
+                <Form.Item
+                    label={
+                        <Text
+                            style={{ color: PRIMARY_TEXT }}
+                            strong
+                        >
+                            Amount per Recipient
+                        </Text>
                     }
-                }
-            />
-        </div>
-        <Select
-            className="selector"
-            defaultValue={claimType}
-            onSelect={(e: any) => {
-                setClaimType(e);
-            }}
-            style={{
-                backgroundColor: PRIMARY_BLUE,
-                color: PRIMARY_TEXT,
-            }}
-            suffixIcon={
-                <DownOutlined
-                    style={{ color: PRIMARY_TEXT }}
-                />
-            }
-        >
-            {Object.keys(ClaimType).map((key: any) => {
-                return (
-                    <Select.Option key={key} value={ClaimType[key as keyof typeof ClaimType]}>
-                        {ClaimType[key as keyof typeof ClaimType]}
-                    </Select.Option>
-                )
-            })}
-        </Select>
+                    style={{ textAlign: 'right' }}
+                    required
+                >
+                    <InputNumber
+                        min={1}
+                        title='Amount per Claim'
+                        value={amountToClaim} onChange={
+                            (value: number) => {
+                                if (!value || value <= 0) {
+                                    setAmountToClaim(0);
+                                }
+                                else {
+                                    setAmountToClaim(value);
+                                }
+                            }
+                        }
+                    />
+                </Form.Item>
+                {/* <Form.Item
+                    label={
+                        <Text
+                            style={{ color: PRIMARY_TEXT }}
+                            strong
+                        >
+                            Amount per Recipient
+                        </Text>
+                    }
+                    style={{ textAlign: 'right' }}
+                    required
+                >
+                    <Select
+                        className="selector"
+                        defaultValue={claimType}
+                        onSelect={(e: any) => {
+                            setClaimType(e);
+                        }}
+                        style={{
+                            backgroundColor: PRIMARY_BLUE,
+                            color: PRIMARY_TEXT,
+                        }}
+                        suffixIcon={
+                            <DownOutlined
+                                style={{ color: PRIMARY_TEXT }}
+                            />
+                        }
+                    >
+                        {Object.keys(ClaimType).map((key: any) => {
+                            return (
+                                <Select.Option key={key} value={ClaimType[key as keyof typeof ClaimType]}>
+                                    {ClaimType[key as keyof typeof ClaimType]}
+                                </Select.Option>
+                            )
+                        })}
+                    </Select>
+                </Form.Item> */}
+                <Form.Item
+                    label={
+                        <Text
+                            style={{ color: PRIMARY_TEXT }}
+                            strong
+                        >
+                            Whitelisted Users
+                        </Text>
+                    }
+                    required
+                >
+                    <AddressListSelect
 
-        <Input.Group compact>
-            <Input value={currLeaf} style={{ width: 'calc(100% - 200px)' }} defaultValue="" onChange={(e: any) => {
-                setCurrLeaf(e.target.value);
-            }} />
-            <Button type="primary" onClick={(e) => {
-                const newLeaves = [...leaves, currLeaf];
-                setLeaves(newLeaves);
-                setCurrLeaf('');
-            }}>Add New</Button>
-        </Input.Group>
+                        users={users}
+                        setUsers={setUsers}
+                    />
+                </Form.Item>
+            </Form>
+        </Form.Provider>
+
+
+
         <br />
     </div >
 }

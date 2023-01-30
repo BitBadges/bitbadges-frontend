@@ -5,7 +5,7 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 const { Content } = Layout;
 const { Text } = Typography;
 
-interface Button {
+export interface ButtonDisplayProps {
     name: string | ReactNode;
     icon: JSX.Element;
     onClick: () => void;
@@ -17,7 +17,7 @@ interface Button {
 export function ButtonDisplay({
     buttons
 }: {
-    buttons: Button[];
+    buttons: ButtonDisplayProps[];
 }) {
     return (
         <Content style={{ display: 'flex' }}>
@@ -44,7 +44,7 @@ export function ButtonDisplay({
                         >
                             <div style={{ minWidth: 75 }}>
                                 {/* //This is the antd Badge */}
-                                <Badge count={button.count} color={PRIMARY_BLUE}>
+                                <Badge count={button.count} >
                                     <Avatar
                                         style={{
                                             marginBottom: 1,

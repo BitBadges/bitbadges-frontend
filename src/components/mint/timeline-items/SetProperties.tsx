@@ -12,11 +12,14 @@ import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
 import { CreateClaim } from '../form/CreateClaim';
 import { ManualTransfers } from '../form/ManualTransfers';
+import { FirstComeFirstServe } from '../form/FirstComeFirstServe';
 
 enum DistributionMethod {
     None,
-    Transfer,
-    Claim,
+    FirstComeFirstServe,
+    SpecificAddresses,
+    Codes,
+    Unminted,
 }
 
 export function SetProperties({
@@ -71,21 +74,27 @@ export function SetProperties({
                     // description: `Will each individual badge have unique characteristics or will they all be identical?`,
                     description: '',
                     node: <SwitchForm
-                        selectedTitle={"Fungible"}
-                        unselectedTitle={"Non-Fungible"}
-                        onSwitchChange={(nonFungible, fungible) => {
-                            if (fungible) {
+                        options={[
+                            {
+                                title: 'Fungible',
+                                message: 'Every minted badge will have the same metadata and characteristics.',
+                                isSelected: fungible,
+                            },
+                            {
+                                title: 'Non-Fungible',
+                                message: 'Every minted badge will have its own unique metadata and characteristics.',
+                                isSelected: nonFungible,
+                            },
+                        ]}
+                        onSwitchChange={(newTitle) => {
+                            if (newTitle == 'Fungible') {
                                 setFungible(true);
                                 setNonFungible(false);
-                            } else if (nonFungible) {
+                            } else if (newTitle == 'Non-Fungible') {
                                 setFungible(false);
                                 setNonFungible(true);
                             }
                         }}
-                        isOptionOneSelected={nonFungible}
-                        isOptionTwoSelected={fungible}
-                        unselectedMessage={'Every minted badge will have its own unique metadata and characteristics.'}
-                        selectedMessage={`Every minted badge will have the same metadata and characteristics.`}
                     // helperMessage={`If you only intend on creating one badge, this answer will not matter.`}
                     />,
                     disabled: !fungible && !nonFungible
@@ -102,49 +111,83 @@ export function SetProperties({
                     // description: `Will each individual badge have unique characteristics or will they all be identical?`,
                     description: '',
                     node: <SwitchForm
-                        selectedTitle={"Manual Transfers"}
-                        unselectedTitle={"Claiming Process"}
-                        onSwitchChange={(claim, transfer) => {
-                            if (transfer) {
-                                setDistributionMethod(DistributionMethod.Transfer);
-                            } else if (claim) {
-                                setDistributionMethod(DistributionMethod.Claim);
+                        options={[
+                            {
+                                title: 'Anyone Can Claim (First Come, First Serve)',
+                                message: 'First come, first serve. Anyone can claim until the supply runs out (one claim per account). You will be able to specify how many badges each account can claim.',
+                                isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
+                            },
+                            {
+                                title: 'Codes',
+                                message: 'We will generate and give you codes that can be redeemed for badges by anyone.',
+                                isSelected: distributionMethod == DistributionMethod.Codes,
+                            },
+                            {
+                                title: 'Specific Addresses',
+                                message: 'Most customizable option. You determine which and how many badges each address can receive.',
+                                isSelected: distributionMethod == DistributionMethod.SpecificAddresses,
+                            },
+                            {
+                                title: 'Unminted',
+                                message: 'Do nothing now. Leave the distribution of badges for a later time.',
+                                isSelected: distributionMethod == DistributionMethod.Unminted,
+                            },
+                        ]}
+                        onSwitchChange={(newTitle) => {
+                            if (newTitle == 'Anyone Can Claim (First Come, First Serve)') {
+                                setDistributionMethod(DistributionMethod.FirstComeFirstServe);
+                            } else if (newTitle == 'Codes') {
+                                setDistributionMethod(DistributionMethod.Codes);
+                            } else if (newTitle == 'Specific Addresses') {
+                                setDistributionMethod(DistributionMethod.SpecificAddresses);
+                            } else if (newTitle == 'Unminted') {
+                                setDistributionMethod(DistributionMethod.Unminted);
                             }
                         }}
-                        isOptionOneSelected={distributionMethod == DistributionMethod.Claim}
-                        isOptionTwoSelected={distributionMethod == DistributionMethod.Transfer}
-                        unselectedMessage={'Have users claim these badges according to some rules you set (e.g. secret codes, specific addresses, first come first serve, etc).'}
-                        selectedMessage={`Manually distribute these badges to specific addresses. You will pay all transfer fees.`}
                     />,
                     disabled: distributionMethod == DistributionMethod.None
                 },
-                distributionMethod === DistributionMethod.Transfer ?
+                distributionMethod === DistributionMethod.FirstComeFirstServe ?
                     {
-                        title: `Distribute via Manual Transfers`,
-                        description: '',
-                        node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} />,
-                    } : {
-                        title: `Distribute via Claiming Process`,
-                        description: '',
-                        node: <CreateClaim newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg}
-                            leaves={leaves} setLeaves={setLeaves} />,
-                    },
+                        title: `How Many Badges Can Each Account Claim?`,
+                        description: 'How many badges can each account claim?',
+                        node: <FirstComeFirstServe newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} fungible={fungible} />,
+                    } : distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.SpecificAddresses ?
+                        {
+                            title: `Distribution of Badges`,
+                            description: '',
+                            node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} distributionMethod={distributionMethod} setLeaves={setLeaves} />,
+                        } : {
+                            title: `Unminted`,
+                            description: 'You have selected to leave all badges unminted for now, so there is nothing to do here. Please continue',
+                            node: <></>,
+                        },
                 {
-                    title: 'Can Create More Badges ?',
+                    title: 'Can Create More Badges?',
                     description: `This collection currently contains ${newBadgeMsg.badgeSupplys[0]?.amount} badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''} (supply = ${newBadgeMsg.badgeSupplys[0]?.supply}). Do you want the ability to add badges to this collection in the future?`,
                     node: <>
                         <SwitchForm
-                            selectedTitle={'Yes'}
-                            unselectedTitle={'No'}
-                            onSwitchChange={(canNotAdd, canAdd) => {
+                            options={[
+                                {
+                                    title: 'Yes',
+                                    message: `The manager may create new badges and add them to this collection.`,
+                                    isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges
+                                },
+                                {
+                                    title: 'No',
+                                    message: `The collection will permanently contain ${newBadgeMsg.badgeSupplys[0]?.amount} badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                                    isSelected: !handledPermissions.CanCreateMoreBadges && !GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges
+                                }
+                            ]}
+                            onSwitchChange={(title) => {
 
-                                if (canNotAdd) {
+                                if (title == 'No') {
                                     const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateMoreBadgesDigit, false);
                                     setNewBadgeMsg({
                                         ...newBadgeMsg,
                                         permissions: newPermissions
                                     })
-                                } else if (canAdd) {
+                                } else if (title == 'Yes') {
                                     const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateMoreBadgesDigit, true);
                                     setNewBadgeMsg({
                                         ...newBadgeMsg,
@@ -157,10 +200,6 @@ export function SetProperties({
                                 newHandledPermissions.CanCreateMoreBadges = true;
                                 setHandledPermissions(newHandledPermissions);
                             }}
-                            isOptionOneSelected={handledPermissions.CanCreateMoreBadges && !GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges}
-                            isOptionTwoSelected={handledPermissions.CanCreateMoreBadges && !!GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges}
-                            selectedMessage={`The manager may create new badges and add them to this collection.`}
-                            unselectedMessage={`The collection will permanently contain ${newBadgeMsg.badgeSupplys[0]?.amount} badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`}
                             helperMessage={`If you select 'Yes', you can switch to 'No' at any point in the future.`}
                         />
                     </>,
@@ -171,9 +210,23 @@ export function SetProperties({
                     description: ``,
                     node: <>
                         <SwitchForm
-                            selectedTitle={'Transferable'}
-                            unselectedTitle={'Non-Transferable'}
-                            onSwitchChange={(nonTransferable, transferable) => {
+                            options={[
+                                {
+                                    title: 'Transferable',
+                                    message: `This badge can be transferred to other addresses.`,
+                                    isSelected: handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length == 0
+                                },
+                                {
+                                    title: 'Non-Transferable',
+                                    message: `This badge cannot be transferred to other addresses.`,
+                                    isSelected: !handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length > 0
+                                }
+                            ]}
+
+
+                            onSwitchChange={(title) => {
+                                const transferable = title == 'Transferable';
+                                const nonTransferable = title == 'Non-Transferable';
                                 setHandledDisallowedTransfers(true);
                                 if (transferable) {
                                     setNewBadgeMsg({
@@ -208,11 +261,6 @@ export function SetProperties({
                                     })
                                 }
                             }}
-                            isOptionOneSelected={handledDisallowedTransfers && (newBadgeMsg.disallowedTransfers?.length > 0)}
-                            isOptionTwoSelected={handledDisallowedTransfers && !(newBadgeMsg.disallowedTransfers?.length > 0)}
-
-                            selectedMessage={`Owners of this badge will be able to transfer it.`}
-                            unselectedMessage={`Owners of this badge will not be able to transfer it.`}
                         />
                     </>,
                 },
@@ -222,8 +270,21 @@ export function SetProperties({
                     //make this clear in the messages
                     description: `Would you (the manager) like to be able to freeze/unfreeze addresses from transferring this badge?`,
                     node: <SwitchForm
-                        onSwitchChange={(canNotFreeze, canFreeze) => {
-
+                        options={[
+                            {
+                                title: 'Yes',
+                                message: `The manager can freeze and unfreeze any owner's ability to transfer this badge.`,
+                                isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed
+                            },
+                            {
+                                title: 'No',
+                                message: `The manager cannot freeze or unfreeze any owner's ability to transfer this badge.`,
+                                isSelected: !handledPermissions.CanUpdateDisallowed && !GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed
+                            }
+                        ]}
+                        onSwitchChange={(title) => {
+                            const canFreeze = title == 'Yes';
+                            const canNotFreeze = title == 'No';
                             if (canNotFreeze) {
                                 const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateDisallowedDigit, false);
                                 setNewBadgeMsg({
@@ -243,10 +304,6 @@ export function SetProperties({
                             newHandledPermissions.CanUpdateDisallowed = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanUpdateDisallowed && !GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed}
-                        isOptionTwoSelected={handledPermissions.CanUpdateDisallowed && !!GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed}
-                        selectedMessage={`The manager can freeze and unfreeze any owner's ability to transfer this badge.`}
-                        unselectedMessage={`The manager can not freeze and unfreeze any owner's ability to transfer this badge.`}
                         helperMessage={`If you select 'Yes', you can switch to 'No' at any point in the future.`}
                     />,
                     disabled: !handledPermissions.CanUpdateDisallowed
@@ -255,7 +312,23 @@ export function SetProperties({
                     title: 'Can Manager Be Transferred?',
                     description: ``,
                     node: <SwitchForm
-                        onSwitchChange={(noTransfersAllowed, transfersAllowed) => {
+
+                        options={[
+                            {
+                                title: 'No',
+                                message: `The manager cannot be transferred to another address.`,
+                                isSelected: handledPermissions.CanManagerBeTransferred && !GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred
+                            },
+                            {
+                                title: 'Yes',
+                                message: `The manager can be transferred to another address.`,
+                                isSelected: !handledPermissions.CanManagerBeTransferred && GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred
+                            }
+                        ]}
+
+                        onSwitchChange={(title) => {
+                            const noTransfersAllowed = title == 'No';
+                            const transfersAllowed = title == 'Yes';
                             if (noTransfersAllowed) {
                                 const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanManagerBeTransferredDigit, false);
                                 setNewBadgeMsg({
@@ -275,10 +348,6 @@ export function SetProperties({
                             newHandledPermissions.CanManagerBeTransferred = true;
                             setHandledPermissions(newHandledPermissions);
                         }}
-                        isOptionOneSelected={handledPermissions.CanManagerBeTransferred && !GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred}
-                        isOptionTwoSelected={handledPermissions.CanManagerBeTransferred && !!GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred}
-                        selectedMessage={'You can transfer managerial privileges to another address in the future, if desired.'}
-                        unselectedMessage={`You will permanently be manager of this badge.`}
                         helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}
                     />,
                     disabled: !handledPermissions.CanManagerBeTransferred

@@ -4,27 +4,32 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection, IdRange, BitBadgesUserInfo, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { SampleAccountMerkleTreeLeafHashes, SampleAccountMerkleTreeObject } from '../../constants';
+import MerkleTree from 'merkletreejs';
+import SHA256 from 'crypto-js/sha256';
+import { ClaimMerkleTree } from '../../pages/badges/[collectionId]';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        badge, visible, setVisible, children, balance, setBadgeCollection
+        badge, visible, setVisible, children, balance, setBadgeCollection, claimId, code
     }: {
-        badge: BitBadgeCollection,
+        badge: BitBadgeCollection | undefined,
         setBadgeCollection: (badge: BitBadgeCollection) => void,
         balance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
+        claimId: number
+        code: string
     }
 ) {
     const chain = useChainContext();
+    const claimObject = badge?.claims[claimId];
 
-    const [claimId, setClaimId] = useState<number>(0);
+    if (!claimObject || !badge) return <></>;
 
-    const proofObj = SampleAccountMerkleTreeObject.getProof(SampleAccountMerkleTreeLeafHashes[0].toString());
+    const proofObj = claimObject.tree?.getProof(SHA256(code).toString());
+    console.log(proofObj);
 
-    console.log(SampleAccountMerkleTreeObject);
-    
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,
         collectionId: badge.collectionId,
@@ -36,8 +41,7 @@ export function CreateTxMsgClaimBadgeModal(
                     onRight: proof.position === 'right'
                 }
             }),
-            leaf: "",
-            isLeafHashed: false,
+            leaf: code,
         },
     };
 

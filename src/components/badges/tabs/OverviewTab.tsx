@@ -6,39 +6,61 @@ import { PermissionsOverview } from "../PermissionsOverview";
 import { BalanceOverview } from "../BalanceOverview";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 import { DEV_MODE } from "../../../constants";
+import { ClaimDisplay } from "../../common/ClaimDisplay";
+import { useEffect, useState } from "react";
+import { CreateTxMsgClaimBadgeModal } from "../../txModals/CreateTxMsgClaimBadge";
+import MerkleTree from "merkletreejs";
+import { SHA256 } from "crypto-js";
+import { ClaimMerkleTree } from "../../../pages/badges/[collectionId]";
 
 export function OverviewTab({
     badgeCollection,
     setBadgeCollection,
-    userBalance
+    userBalance,
+    setTab,
+    merkleTrees,
 }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badge: BitBadgeCollection) => void;
     userBalance: UserBalance | undefined;
+    setTab: (tab: string) => void;
+    merkleTrees: ClaimMerkleTree[],
 }) {
+
+
+
+
+
     if (!badgeCollection) return <></>;
     const collectionMetadata = badgeCollection?.collectionMetadata;
 
+
+
+
     return <>
         <InformationDisplayCard
-            title="Badges"
+            title="Collection"
         >
             <BadgeAvatarDisplay size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextBadgeId - 1} />
         </InformationDisplayCard>
         <br />
-        <InformationDisplayCard
+        {/* <InformationDisplayCard
             title="Claims"
         >
-            {badgeCollection?.claims.map((claim, idx) => {
-                return <div key={idx}>
-                    {DEV_MODE &&
-                        <pre>
-                            {JSON.stringify(claim, null, 2)}
-                        </pre>}
-                        
-                </div>
-            })}
-        </InformationDisplayCard>
+
+
+            
+
+            <CreateTxMsgClaimBadgeModal
+                badge={badgeCollection}
+                setBadgeCollection={setBadgeCollection}
+                claimId={claimId}
+                balance={{} as UserBalance}
+                visible={modalVisible}
+                setVisible={setModalVisible}
+                merkleTree={merkleTrees[claimId]}
+            />
+        </InformationDisplayCard> */}
         <br />
         <Row
             style={{
@@ -61,6 +83,7 @@ export function OverviewTab({
                 metadata={collectionMetadata}
                 balance={userBalance}
                 span={7}
+                setTab={setTab}
             />
         </Row>
     </>

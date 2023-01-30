@@ -20,11 +20,13 @@ export function BadgeAvatarDisplay({
 }) {
     //TODO: special ring around the badge if it is owned
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
+    console.log(startId, endId);
     const [display, setDisplay] = useState<ReactNode>(<>
         {badgeCollection && endId - startId + 1 > 0
             && endId >= 0 &&
             startId >= 0
             && new Array(endId - startId + 1).fill(0).map((_, idx) => {
+                console.log("together", idx + startId);
                 return <div key={idx} style={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -34,8 +36,8 @@ export function BadgeAvatarDisplay({
                     <BadgeAvatar
                         size={size}
                         badge={badgeCollection}
-                        metadata={badgeCollection.badgeMetadata[idx]}
-                        badgeId={idx}
+                        metadata={badgeCollection.badgeMetadata[idx + startId]}
+                        badgeId={idx + startId}
                         balance={userBalance}
                     />
                 </div>
@@ -72,8 +74,8 @@ export function BadgeAvatarDisplay({
                                 <BadgeAvatar
                                     size={size}
                                     badge={badgeCollection}
-                                    metadata={badgeCollection.badgeMetadata[idx]}
-                                    badgeId={idx}
+                                    metadata={badgeCollection.badgeMetadata[idx + startId]}
+                                    badgeId={idx + startId}
                                     balance={userBalance}
                                 />
                             </div>

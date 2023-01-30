@@ -1,14 +1,16 @@
 import { Typography } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     BellOutlined,
+    GiftOutlined,
     LockOutlined,
+    PlusCircleOutlined,
     SwapOutlined,
 } from '@ant-design/icons';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { ButtonDisplay } from '../common/ButtonDisplay';
+import { ButtonDisplay, ButtonDisplayProps } from '../common/ButtonDisplay';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPersonCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
@@ -17,15 +19,19 @@ import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../txModals/CreateTxMsgClaimBadge';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
+import { ClaimMerkleTree } from '../../pages/badges/[collectionId]';
 
 const { Text } = Typography;
 
-export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
+export function BalanceOverview({ badge, setBadge, metadata, balance, span, setTab }: {
     badge: BitBadgeCollection | undefined;
     setBadge: (badge: BitBadgeCollection) => void;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     span?: number;
+    setTab: (tab: string) => void;
 }) {
     const chain = useChainContext();
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
@@ -33,7 +39,10 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
     const [requestTransferIsVisible, setRequestTransferIsVisible] = useState<boolean>(false);
     const [pendingIsVisible, setPendingIsVisible] = useState<boolean>(false);
 
+
     if (!badge || !metadata) return <></>;
+
+
 
     //TODO:
     // const accountIsInFreezeRanges = chain.accountNumber ? badge?.freezeRanges.some(range => {
@@ -59,7 +68,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
     // }
 
 
-    const buttons = [];
+    const buttons: ButtonDisplayProps[] = [];
     buttons.push(...[
         // {
         //     name: <>Pending {accountIsFrozen && balance?.pending.length === 0 && <LockOutlined />}</>,
@@ -85,9 +94,10 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
         },
         {
             name: <>Claim</>,
-            icon: <SwapOutlined />,
-            onClick: () => { setClaimIsVisible(true) },
-            tooltipMessage: `Claim this badge`,
+            icon: <GiftOutlined />,
+            onClick: () => { setTab('claims') },
+            tooltipMessage: `Check if you can claim this badge`,
+            count: badge.claims?.filter(x => x.leaves?.indexOf(chain.cosmosAddress) >= 0).length,
             disabled: false
         },
         // {
@@ -123,14 +133,15 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
                 !chain.connected && <BlockinDisplay hideLogo={true} />
             }
             <div>
-                {
+                {/* {
                     balance?.balances?.length === 0 &&
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                         <Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>
                             You do not own any badge in this collection.
                         </Text>
                     </div>
-                }
+                } */}
+
 
                 {balance?.balances?.map((balanceAmount) => {
                     return balanceAmount.badgeIds.map((idRange) => {
@@ -154,13 +165,14 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span }: {
             balance={balance ? balance : {} as UserBalance}
         />
 
-        <CreateTxMsgClaimBadgeModal
+        {/* <CreateTxMsgClaimBadgeModal
             badge={badge ? badge : {} as BitBadgeCollection}
             setBadgeCollection={setBadge}
             visible={claimIsVisible}
             setVisible={setClaimIsVisible}
             balance={balance ? balance : {} as UserBalance}
-        />
+            merkleTree={merkleTree[claimId]}
+        /> */}
 
         {/* <CreateTxMsgRequestTransferBadgeModal
             badge={badge ? badge : {} as BitBadgeCollection}

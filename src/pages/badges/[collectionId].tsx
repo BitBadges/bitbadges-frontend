@@ -10,6 +10,9 @@ import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgesTab } from '../../components/badges/tabs/BadgesTab';
 import { useChainContext } from '../../chain/ChainContext';
 import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
+import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
 
 const { Content } = Layout;
 
@@ -21,6 +24,11 @@ const tabInfo = [
     { key: 'actions', content: 'Actions', disabled: false },
 
 ];
+
+export interface ClaimMerkleTree {
+    tree: MerkleTree;
+    leaves: string[];
+}
 
 function CollectionPage() {
     const router = useRouter()
@@ -34,6 +42,22 @@ function CollectionPage() {
     const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
     const collectionMetadata = badgeCollection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
+    const [merkleTrees, setMerkleTrees] = useState<ClaimMerkleTree[]>(badgeCollection?.claims.map(claim => {
+        return {
+            tree: new MerkleTree([], SHA256),
+            leaves: []
+        }
+    }) ?? []);
+
+    useEffect(() => {
+        if (!badgeCollection) return;
+        setMerkleTrees(badgeCollection.claims.map(claim => {
+            return {
+                tree: new MerkleTree([], SHA256),
+                leaves: []
+            }
+        }));
+    }, [badgeCollection]);
 
     // Get badge collection information
     useEffect(() => {
@@ -88,12 +112,12 @@ function CollectionPage() {
                 >
                     {/* Overview and Tabs */}
                     <BadgePageHeader metadata={collectionMetadata} />
-                    <Tabs tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
+                    <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
                     <br />
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} />
+                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} merkleTrees={merkleTrees} />
                     )}
                     {tab === 'badges' && (
                         <BadgesTab
@@ -104,10 +128,10 @@ function CollectionPage() {
                     )}
 
                     {tab === 'claims' && (
-                        <Empty
-                            style={{ color: PRIMARY_TEXT }}
-                            description="This feature is coming soon..."
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        <ClaimsTab
+                            badgeCollection={badgeCollection}
+                            setBadgeCollection={setBadgeCollection}
+                            balance={userBalance}
                         />
                     )}
 

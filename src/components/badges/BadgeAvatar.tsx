@@ -16,6 +16,7 @@ export function BadgeAvatar({
     badgeId: number,
     balance?: UserBalance,
 }) {
+    console.log(badgeId)
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
 
     return metadata ? <Tooltip

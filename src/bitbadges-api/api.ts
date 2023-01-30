@@ -5,6 +5,8 @@ import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetColl
 import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, GetCollectionResponse, GetBalanceResponse, SupportedChain } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
 
 
 export async function getAccountInformation(
@@ -150,6 +152,29 @@ export async function getBadgeCollection(
             badgeData.badgeMetadata[badgeId] = JSON.parse(res.file);
         }
     }
+
+    if (badgeId !== undefined && badgeId >= 0 && badgeData && badgeData.claims) {
+        for (let idx = 0; idx < badgeData.claims.length; idx++) {
+            let claim = badgeData.claims[idx];
+            if (!claim.leaves || claim.leaves.length === 0) {
+                if (Number(claim.type) === 0) {
+                    let res = await getFromIpfs(claim.uri.split('ipfs://')[1]);
+                    console.log(res);
+                    const fetchedLeaves: string[] = JSON.parse(res.file);
+
+                    const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256, { duplicateOdd: true });
+                    badgeData.claims[idx].leaves = fetchedLeaves;
+                    badgeData.claims[idx].tree = tree;
+                } else {
+                    badgeData.claims[idx].leaves = [];
+                    badgeData.claims[idx].tree = new MerkleTree([], SHA256, { duplicateOdd: true });
+                }
+            }
+        }
+
+    }
+
+
 
     console.log("BADGE", badgeData);
 
