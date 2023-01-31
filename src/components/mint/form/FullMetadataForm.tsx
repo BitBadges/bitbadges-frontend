@@ -181,7 +181,7 @@ export function FullMetadataForm({
                     />
                 </div> */}
             <div>
-                {!hideAddMethod && <>
+                {/* {!hideAddMethod && <>
                     <Form.Item
                         label={
                             <Text
@@ -228,7 +228,7 @@ export function FullMetadataForm({
                     <br />
                     <br />
                 </>
-                }
+                } */}
                 {addMethod === MetadataAddMethod.UploadUrl && <>
                     <UriSelect setUri={(collectionUri: string, badgeUri: string) => {
                         setNewBadgeMsg({
@@ -556,8 +556,7 @@ export function FullMetadataForm({
                         />
                         <div style={{ fontSize: 12 }}>
                             <Text style={{ color: 'lightgray' }}>
-                                *Please use a permanent fixed URL that will not
-                                change.
+                                *Please use a permanent fixed URL that will not change.
                             </Text>
                         </div>
                     </Form.Item>

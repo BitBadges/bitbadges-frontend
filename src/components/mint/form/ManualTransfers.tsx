@@ -115,9 +115,8 @@ export function ManualTransfers({
             return SHA256(x)
         });
 
-        const tree = new MerkleTree(hashes, SHA256, { duplicateOdd: true })
+        const tree = new MerkleTree(hashes, SHA256)
         const root = tree.getRoot().toString('hex')
-
 
         setNewBadgeMsg({
             ...newBadgeMsg,

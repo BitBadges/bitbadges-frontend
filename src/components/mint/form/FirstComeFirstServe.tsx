@@ -100,50 +100,20 @@ export function FirstComeFirstServe({
 
 
     return <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center' }}>
-        {fungible ? <Form.Provider>
-            <Form
-                style={{ justifyContent: 'center', alignItems: 'center' }}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 14 }}
-                layout="horizontal"
-            >
-                <Form.Item
-                    label={
-                        <Text
-                            style={{ color: PRIMARY_TEXT }}
-                            strong
-                        >
-                            Amount per Recipient
-                        </Text>
+        <InputNumber
+            min={1}
+            title='Amount per Claim'
+            value={amountToClaim} onChange={
+                (value: number) => {
+                    if (!value || value <= 0) {
+                        setAmountToClaim(0);
                     }
-                    style={{ textAlign: 'right' }}
-                    required
-                >
-                    <InputNumber
-                        min={1}
-                        title='Amount per Claim'
-                        value={amountToClaim} onChange={
-                            (value: number) => {
-                                if (!value || value <= 0) {
-                                    setAmountToClaim(0);
-                                }
-                                else {
-                                    setAmountToClaim(value);
-                                }
-                            }
-                        }
-                    />
-                </Form.Item>
-            </Form>
-        </Form.Provider>
-            :
-            <Text
-                style={{ color: PRIMARY_TEXT }}
-                strong
-            >
-                You have selected to create non-fungible badges. The first user to claim will receive the non-fungible badge with ID 0, the second user to claim will receive the badge with ID 1, and so on.
-            </Text>
-        }
+                    else {
+                        setAmountToClaim(value);
+                    }
+                }
+            }
+        />
         <br />
     </div >
 }

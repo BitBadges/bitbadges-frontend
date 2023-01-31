@@ -162,12 +162,14 @@ export async function getBadgeCollection(
                     console.log(res);
                     const fetchedLeaves: string[] = JSON.parse(res.file);
 
-                    const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256, { duplicateOdd: true });
+                    const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
                     badgeData.claims[idx].leaves = fetchedLeaves;
                     badgeData.claims[idx].tree = tree;
+
+                    console.log("TREE", tree);
                 } else {
                     badgeData.claims[idx].leaves = [];
-                    badgeData.claims[idx].tree = new MerkleTree([], SHA256, { duplicateOdd: true });
+                    badgeData.claims[idx].tree = new MerkleTree([], SHA256);
                 }
             }
         }

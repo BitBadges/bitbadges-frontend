@@ -69,7 +69,7 @@ export function CreateClaim({
 
         const hashes = leaves.map(x => SHA256(x))
 
-        const tree = new MerkleTree(hashes, SHA256, { duplicateOdd: true })
+        const tree = new MerkleTree(hashes, SHA256)
         const root = tree.getRoot().toString('hex')
 
 

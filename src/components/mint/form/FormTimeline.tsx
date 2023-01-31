@@ -14,6 +14,7 @@ interface Item {
     node: ReactNode;
     title: string;
     description: string | ReactNode;
+    doNotDisplay?: boolean;
 }
 
 export function FormTimeline({
@@ -28,8 +29,10 @@ export function FormTimeline({
     const [formStepNum, setFormStepNum] = useState(1);
     const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
+    const filteredItems = items.filter((item) => !item.doNotDisplay);
+
     const incrementStep = () => {
-        if (formStepNum === items.length) {
+        if (formStepNum === filteredItems.length) {
             setCurrStepNumber(currStepNumber + 1);
         } else {
             setFormStepNum(formStepNum + 1);
@@ -48,12 +51,12 @@ export function FormTimeline({
 
 
     const setNextButton = (newStepNum: number) => {
-        setNextButtonDisabled(!!items[newStepNum - 1].disabled);
+        setNextButtonDisabled(!!filteredItems[newStepNum - 1].disabled);
     };
 
     useEffect(() => {
         setNextButton(formStepNum);
-    }, [items])
+    }, [filteredItems])
 
     const getTitleElem = (title: string | JSX.Element) => {
         return (
@@ -106,7 +109,7 @@ export function FormTimeline({
                     decrementStep={decrementStep}
                     incrementStep={incrementStep}
                     stepNum={formStepNum}
-                    finalStepNumber={items.length}
+                    finalStepNumber={filteredItems.length}
                     nextButtonDisabled={nextButtonDisabled}
                 />
 
@@ -115,9 +118,9 @@ export function FormTimeline({
                     wrapperCol={{ span: 14 }}
                     layout="horizontal"
                 >
-                    {getTitleElem(items[formStepNum - 1].title)}
-                    {getTitleDescription(items[formStepNum - 1].description)}
-                    {items[formStepNum - 1].node}
+                    {getTitleElem(filteredItems[formStepNum - 1].title)}
+                    {getTitleDescription(filteredItems[formStepNum - 1].description)}
+                    {filteredItems[formStepNum - 1].node}
                 </Form>
             </Form.Provider>
         </div >

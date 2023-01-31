@@ -9,20 +9,29 @@ import { TransactionDetails } from './timeline-items/SubmitNewBadgeMsg';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgeMetadata } from '../../bitbadges-api/types';
-import { SetMetadata } from './timeline-items/SetMetadata';
 
 const { Text } = Typography;
 
 export enum MetadataAddMethod {
+    None = 'None',
     Manual = 'Manual',
     UploadUrl = 'Insert Custom Metadata Url (Advanced)',
     //TODO: CSV Upload
 }
 
+enum DistributionMethod {
+    None,
+    FirstComeFirstServe,
+    SpecificAddresses,
+    Codes,
+    Unminted,
+}
+
 export function MintTimeline() {
     const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
-    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
+    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
+    const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
     const [leaves, setLeaves] = useState<string[]>([]);
 
     const [newBadgeMsg, setNewBadgeMsg] = useState<MessageMsgNewCollection>({
@@ -88,6 +97,12 @@ export function MintTimeline() {
                         setAddMethod={setAddMethod}
                         leaves={leaves}
                         setLeaves={setLeaves}
+                        collectionMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                        setCollectionMetadata={setNewBadgeMetadata}
+                        individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
+                        setIndividualBadgeMetadata={setIndividualBadgeMetadata}
+                        distributionMethod={distributionMethod}
+                        setDistributionMethod={setDistributionMethod}
                     />}
                     {/* TODO:  newBadgeMsg?.standard == ... */}
                 </>
@@ -97,39 +112,26 @@ export function MintTimeline() {
             stepNumber: 2,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Select Metadata
-                </Text>
-            ),
-            content: (
-                <>
-                    <SetMetadata
-                        setCurrStepNumber={setCurrStepNumber}
-                        newBadgeMsg={newBadgeMsg}
-                        setNewBadgeMsg={setNewBadgeMsg}
-                        collectionMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
-                        setCollectionMetadata={setNewBadgeMetadata}
-                        individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
-                        setIndividualBadgeMetadata={setIndividualBadgeMetadata}
-                        addMethod={addMethod}
-                        setAddMethod={setAddMethod}
-                        leaves={leaves}
-                        setLeaves={setLeaves}
-                    />
-                </>
-            ),
-        },
-        {
-            stepNumber: 3,
-            title: (
-                <Text style={{ color: PRIMARY_TEXT }}>
                     Submit Transaction
                 </Text>
             ),
             content: (
                 <TransactionDetails
-                    newBadgeMsg={newBadgeMsg}
                     setTimelineStepNumber={setCurrStepNumber}
+                    newBadgeMsg={newBadgeMsg}
+                    setNewBadgeMsg={setNewBadgeMsg}
                     newBadgeMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                    setNewBadgeMetadata={setNewBadgeMetadata}
+                    addMethod={addMethod}
+                    setAddMethod={setAddMethod}
+                    leaves={leaves}
+                    setLeaves={setLeaves}
+                    collectionMetadata={newBadgeMetadata ? newBadgeMetadata : {} as BadgeMetadata}
+                    setCollectionMetadata={setNewBadgeMetadata}
+                    individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
+                    setIndividualBadgeMetadata={setIndividualBadgeMetadata}
+                    distributionMethod={distributionMethod}
+                    setDistributionMethod={setDistributionMethod}
                 />
             ),
         },

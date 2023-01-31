@@ -28,7 +28,10 @@ export function CreateTxMsgClaimBadgeModal(
     if (!claimObject || !badge) return <></>;
 
     const proofObj = claimObject.tree?.getProof(SHA256(code).toString());
-    console.log(proofObj);
+    console.log("TREE", claimObject.tree)
+    console.log("HASHED LEAF", SHA256(code).toString())
+    console.log("PROOF OBJECT", proofObj);
+    console.log(claimObject.tree?.verify(proofObj, SHA256(code).toString(), claimObject.tree.getRoot().toString('hex')));
 
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,

@@ -7,7 +7,7 @@ const CryptoJS = require("crypto-js");
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3000';
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;
 
 // export const PRIVATE_API_URL = 'https://bitbadges-private-api.herokuapp.com';
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';
@@ -36,7 +36,7 @@ export const CHAIN_DETAILS = {
 export const SampleAccountMerkleTreeLeaves = ['cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu', 'cosmos1xyxs3skf3f4jfqeuv89yyaqvjc6lffavxqhc8g', 'cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7', 'cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7'];
 export const SampleAccountMerkleTreeLeafHashes = SampleAccountMerkleTreeLeaves.map(x => SHA256(x))
 
-export const SampleAccountMerkleTreeObject = new MerkleTree(SampleAccountMerkleTreeLeafHashes, SHA256, { duplicateOdd: true })
+export const SampleAccountMerkleTreeObject = new MerkleTree(SampleAccountMerkleTreeLeafHashes, SHA256)
 export const SampleAccountMerkleTreeRoot = SampleAccountMerkleTreeObject.getRoot().toString('hex')
 
 
@@ -44,7 +44,7 @@ export const SampleAccountMerkleTreeRoot = SampleAccountMerkleTreeObject.getRoot
 export const SampleCodeMerkleTreeLeaves = ['a', 'b', 'c', 'd'];
 export const SampleCodeMerkleTreeLeafHashes = SampleCodeMerkleTreeLeaves.map(x => SHA256(x))
 
-export const SampleCodeMerkleTreeObject = new MerkleTree(SampleCodeMerkleTreeLeafHashes, SHA256, { duplicateOdd: true })
+export const SampleCodeMerkleTreeObject = new MerkleTree(SampleCodeMerkleTreeLeafHashes, SHA256)
 export const SampleCodeMerkleTreeRoot = SampleCodeMerkleTreeObject.getRoot().toString('hex')
 
 

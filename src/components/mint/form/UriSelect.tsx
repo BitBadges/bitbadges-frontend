@@ -62,7 +62,7 @@ export function UriSelect({
             />
             <div style={{ fontSize: 12 }}>
                 <Text style={{ color: 'lightgray' }}>
-                    *We will replace {"{id}"} with the ID of the badge to be fetched.
+                    *Must include {"\"{id}\""}. This is a placeholder for the ID of the badge to be fetched.
                 </Text>
             </div>
         </Form.Item>
