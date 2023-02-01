@@ -1,5 +1,6 @@
 import { MerkleTree } from 'merkletreejs';
 import SHA256 from 'crypto-js/sha256';
+import { BitBadgesUserInfo, SupportedChain } from './bitbadges-api/types';
 
 const CryptoJS = require("crypto-js");
 
@@ -7,7 +8,7 @@ const CryptoJS = require("crypto-js");
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3000';
 
-export const DEV_MODE = false;
+export const DEV_MODE = true;
 
 // export const PRIVATE_API_URL = 'https://bitbadges-private-api.herokuapp.com';
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';
@@ -52,3 +53,10 @@ export const SampleCodeMerkleTreeRoot = SampleCodeMerkleTreeObject.getRoot().toS
 // export const _leaf = CryptoJS.enc.Hex.stringify(SampleMerkleTreeLeafHashes[0]);
 // export const _proof = SampleMerkleTreeObject.getProof(_leaf)
 
+
+export const MINT_ACCOUNT: BitBadgesUserInfo = {
+    cosmosAddress: '',
+    accountNumber: -1,
+    address: 'Mint Address',
+    chain: SupportedChain.COSMOS
+}

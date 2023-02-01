@@ -1,6 +1,7 @@
 import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 import { Typography, Tooltip } from 'antd';
 import React from 'react';
+import { MINT_ACCOUNT } from '../../constants';
 
 const { Text } = Typography;
 
@@ -22,8 +23,11 @@ export function Address({
     hideChain?: boolean;
 }) {
     let displayAddress = '';
-    
-    if (address) {
+    let isMintAddress = address === MINT_ACCOUNT.address;
+
+    if (isMintAddress) {
+        displayAddress += `Mint`;
+    } else if (address) {
         if (!hideChain) {
             displayAddress += `${chain}: `;
         }
@@ -62,7 +66,7 @@ export function Address({
 
 
     return (
-        <div >
+        <div>
             <div
                 style={{
                     verticalAlign: 'middle',

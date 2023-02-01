@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { Address } from "./Address";
 import Blockies from 'react-blockies';
+import { MINT_ACCOUNT } from "../../constants";
 
 export function AddressWithBlockies({
     address,
@@ -16,6 +17,7 @@ export function AddressWithBlockies({
     fontColor?: string,
     blockiesScale?: number,
 }) {
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',

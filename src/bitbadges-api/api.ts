@@ -162,11 +162,28 @@ export async function getBadgeCollection(
                     console.log(res);
                     const fetchedLeaves: string[] = JSON.parse(res.file);
 
-                    const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
-                    badgeData.claims[idx].leaves = fetchedLeaves;
-                    badgeData.claims[idx].tree = tree;
+                    if (fetchedLeaves[0]) {
+                        console.log("LEAVES", fetchedLeaves);
+                        console.log("MODULO", fetchedLeaves[0].split('-').length % 5);
+                        if (fetchedLeaves[0].split('-').length < 5 || (fetchedLeaves[0].split('-').length - 3) % 2 != 0) {
+                            //Is a list of hashed codes
+                            const tree = new MerkleTree(fetchedLeaves, SHA256);
+                            badgeData.claims[idx].leaves = fetchedLeaves;
+                            badgeData.claims[idx].tree = tree;
+                            badgeData.claims[idx].isCodes = true
 
-                    console.log("TREE", tree);
+                            console.log("TREE", tree);
+                        } else {
+
+
+                            const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
+                            badgeData.claims[idx].leaves = fetchedLeaves;
+                            badgeData.claims[idx].tree = tree;
+                            badgeData.claims[idx].isCodes = false
+
+                            console.log("TREE", tree);
+                        }
+                    }
                 } else {
                     badgeData.claims[idx].leaves = [];
                     badgeData.claims[idx].tree = new MerkleTree([], SHA256);

@@ -12,12 +12,15 @@ const { Option } = Select;
 export function AddressSelect({
     onChange,
     title,
-    icon
+    icon,
+    fontColor,
+
 }:
     {
         title: string,
         onChange: (userInfo: BitBadgesUserInfo) => void,
-        icon?: React.ReactNode
+        icon?: React.ReactNode,
+        fontColor?: string,
     }
 ) {
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
@@ -96,6 +99,7 @@ export function AddressSelect({
         </Input.Group>
         <AddressDisplay
             userInfo={currUserInfo}
+            fontColor={fontColor}
         />
     </>
 }

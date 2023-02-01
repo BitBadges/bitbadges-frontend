@@ -38,7 +38,7 @@ export function CreateTxMsgClaimBadgeModal(
         collectionId: badge.collectionId,
         claimId,
         proof: {
-            aunts: proofObj.map((proof) => {
+            aunts: proofObj?.map((proof) => {
                 return {
                     aunt: proof.data.toString('hex'),
                     onRight: proof.position === 'right'

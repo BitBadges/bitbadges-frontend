@@ -10,6 +10,8 @@ import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewColl
 import { MetadataAddMethod } from '../MintTimeline';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
 import saveAs from 'file-saver';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
@@ -142,8 +144,14 @@ export function TransactionDetails({
                             }
 
                             if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.SpecificAddresses) {
-                                let merkleTreeRes = await addMerkleTreeToIpfs(leaves);
-                                badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                //Store N-1 layers of the tree
+                                if (distributionMethod == DistributionMethod.Codes) {
+                                    let merkleTreeRes = await addMerkleTreeToIpfs(leaves.map((x) => SHA256(x).toString()));
+                                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                } else {
+                                    let merkleTreeRes = await addMerkleTreeToIpfs(leaves);
+                                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                }
                             }
 
                             setNewBadgeMsg(badgeMsg);

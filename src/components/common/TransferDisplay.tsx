@@ -5,6 +5,8 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
 
+const { Text } = Typography
+
 export function TransferDisplay({
     from,
     to,
@@ -12,7 +14,9 @@ export function TransferDisplay({
     setBadgeCollection,
     amount,
     startId,
-    endId
+    endId,
+    fontColor,
+    toCodes,
 }: {
     from: BitBadgesUserInfo[];
     to: BitBadgesUserInfo[];
@@ -21,6 +25,8 @@ export function TransferDisplay({
     amount: number;
     startId: number;
     endId: number;
+    fontColor?: string;
+    toCodes?: string[];
 }) {
     return <>
         <Row>
@@ -31,7 +37,8 @@ export function TransferDisplay({
 
             </Col>
             <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <b>To</b>
+                <b>{to.length ? 'To' : ''}</b>
+                <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b>
             </Col>
         </Row>
         <Row>
@@ -40,6 +47,7 @@ export function TransferDisplay({
                     return <>
                         {index !== 0 && <hr color='white' />}
                         <AddressWithBlockies
+                            fontColor={fontColor}
                             address={user.address}
                             chain={user.chain}
                             fontSize={14}
@@ -57,12 +65,14 @@ export function TransferDisplay({
                     return <>
                         {index !== 0 && <hr color='white' />}
                         <AddressWithBlockies
+                            fontColor={fontColor}
                             address={user.address}
                             chain={user.chain}
                             fontSize={14}
                             blockiesScale={3}
                         />
                         <AddressWithBlockies
+                            fontColor={fontColor}
                             address={user.address}
                             chain={user.chain}
                             fontSize={14}
@@ -70,11 +80,26 @@ export function TransferDisplay({
                         />
                     </>
                 })}
+                {toCodes?.map((code, index) => {
+                    return <>
+                        {index !== 0 && <hr color='white' />}
+                        <Text
+                            copyable={{ text: code }}
+                            style={{
+                                color: fontColor ? fontColor : undefined,
+                            }}
+                            strong
+                        >
+                            {code}
+                        </Text>
+                    </>
+                })}
+
             </Col>
         </Row>
         <br />
         <div style={{ textAlign: 'center' }}>
-            <Typography.Text style={{ fontSize: 16, textAlign: 'center' }} strong>{'Transferring x' + amount + ' of the following badges (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
+            <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{'x' + amount + ' of the badges below (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
         </div>
         {badge && setBadgeCollection &&
             <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} setBadgeCollection={setBadgeCollection} />

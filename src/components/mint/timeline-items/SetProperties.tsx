@@ -114,12 +114,12 @@ export function SetProperties({
                         options={[
                             {
                                 title: 'Identical',
-                                message: 'Badges will all be identical. The collection will consist of 1 badge with supply Y.',
+                                message: 'Badges will all be identical. The collection will consist of 1 badge with supply Y (fungible).',
                                 isSelected: fungible,
                             },
                             {
                                 title: 'Unique',
-                                message: 'Badges will have their own unique characteristics. The collection will consist of X badges each with supply 1.',
+                                message: 'Badges will have their own unique characteristics. The collection will consist of X badges each with supply 1 (non-fungible).',
                                 isSelected: nonFungible,
                             },
                         ]}
@@ -145,7 +145,7 @@ export function SetProperties({
                 },
                 nonFungible ? {
                     title: 'Can Manager Add Badges to Collection?',
-                    description: `This collection currently contains ${newBadgeMsg.badgeSupplys[0]?.amount} unique badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}. Do you want the ability to add more badges to this collection in the future?`,
+                    description: `This collection currently contains ${newBadgeMsg.badgeSupplys[0]?.amount} unique badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
                     node: <>
                         <SwitchForm
                             options={[
@@ -156,7 +156,7 @@ export function SetProperties({
                                 },
                                 {
                                     title: 'Yes',
-                                    message: `The manager may create new badges and add them to this collection. At any point, the manager can permanently switch off this privilege and lock the total supply.`,
+                                    message: `The manager may create new badges and add them to this collection.`,
                                     isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges
                                 }
                             ]}
@@ -180,7 +180,7 @@ export function SetProperties({
                                 newHandledPermissions.CanCreateMoreBadges = true;
                                 setHandledPermissions(newHandledPermissions);
                             }}
-                        // helperMessage={`the manager can lock the supply at any point.`}
+                        // helperMessage={`If selected, note that the manager can permanently switch off this privilege and lock the total supply.`}
                         />
                     </>,
                 } : EmptyFormItem,
@@ -193,12 +193,12 @@ export function SetProperties({
                             options={[
                                 {
                                     title: 'Non-Transferable',
-                                    message: `Owners of badges in this collection cannot be transferred to other addresses.`,
+                                    message: `Badge owners cannot transfer their badges to other addresses.`,
                                     isSelected: handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length > 0
                                 },
                                 {
                                     title: 'Transferable',
-                                    message: `Owners of badges in this collection can be transferred to other addresses.`,
+                                    message: `Badge owners can transfer their badges to other addresses.`,
                                     isSelected: handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length == 0
                                 },
                             ]}
@@ -258,7 +258,7 @@ export function SetProperties({
                             },
                             {
                                 title: 'Yes',
-                                message: `The manager can freeze and unfreeze any owner's ability to transfer badges in this collection. At any point, this privilege can be permanently switched off.`,
+                                message: `The manager can freeze and unfreeze any owner's ability to transfer badges in this collection.`,
                                 isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed
                             },
                         ]}
@@ -300,7 +300,7 @@ export function SetProperties({
                             },
                             {
                                 title: 'Yes',
-                                message: `The role of the manager can be transferred to another address. At any point, this privilege can be permanently switched off.`,
+                                message: `The role of the manager can be transferred to another address.`,
                                 isSelected: handledPermissions.CanManagerBeTransferred && !!GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred
                             }
                         ]}
@@ -358,17 +358,17 @@ export function SetProperties({
                 },
                 {
                     title: 'Updatable Metadata?',
-                    description: `Choose whether the metadata for the badges in this collection can be updated.`,
+                    description: `In the future, can the colleciton and badge metadata be updated?`,
                     node: <SwitchForm
                         options={[
                             {
                                 title: 'No',
-                                message: `The metadata for the badges in this collection cannot be updated and is frozen forever.`,
+                                message: `The metadata cannot be updated and is frozen forever.`,
                                 isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newBadgeMsg.permissions).CanUpdateUris
                             },
                             {
                                 title: 'Yes',
-                                message: `The metadata for the badges in this collection can be updated in the future.`,
+                                message: `The metadata can be updated in the future.`,
                                 isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newBadgeMsg.permissions).CanUpdateUris,
                             },
                         ]}
@@ -477,9 +477,14 @@ export function SetProperties({
                     } : EmptyFormItem
                     : distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.SpecificAddresses ?
                         {
-                            title: `Distribution of Badges`,
+                            title: `Create Claims`,
                             description: '',
-                            node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} distributionMethod={distributionMethod} setLeaves={setLeaves} />,
+                            node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} distributionMethod={distributionMethod} setLeaves={setLeaves}
+                                individualBadgeMetadata={individualBadgeMetadata}
+                                setIndividualBadgeMetadata={setIndividualBadgeMetadata}
+                                collectionMetadata={collectionMetadata}
+                                setCollectionMetadata={setCollectionMetadata}
+                            />,
                         } : EmptyFormItem,
                 // addMethod == MetadataAddMethod.Manual ?
                 //     {

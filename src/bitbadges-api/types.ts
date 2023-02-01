@@ -52,6 +52,7 @@ export interface Claims {
     timeRange: IdRange;
     leaves: string[];
     tree: MerkleTree;
+    isCodes: boolean;
 }
 export interface Proof {
     total: number;

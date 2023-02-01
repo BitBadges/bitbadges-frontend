@@ -74,6 +74,7 @@ export function SubassetSupply({
                         }
                     } />
             </div >
+            {fungible && 
             <div style={{
                 padding: '0',
                 textAlign: 'center',
@@ -92,7 +93,7 @@ export function SubassetSupply({
                         setSupplyToCreate(value as number);
                         addTokens(value);
                     }}>Max</Button>
-            </div>
+            </div>}
         </div >
     )
 }
