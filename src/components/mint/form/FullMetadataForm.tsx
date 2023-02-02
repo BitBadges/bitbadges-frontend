@@ -7,17 +7,23 @@ import { BadgeMetadata } from '../../../bitbadges-api/types';
 import { MetadataAddMethod } from '../MintTimeline';
 import { UriSelect } from './UriSelect';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import MarkdownIt from 'markdown-it';
+import MdEditor from 'react-markdown-editor-lite';
+// import style manually
+import 'react-markdown-editor-lite/lib/index.css';
 
 const { Text } = Typography;
 const { Option } = Select;
 
+const mdParser = new MarkdownIt(/* Markdown-it options */);
 
-//Do not pass an id if this is for the collection netadata
+//Do not pass an id if this is for the collection metadata
 export function FullMetadataForm({
     metadata,
     setMetadata,
     addMethod,
     setAddMethod,
+
     id,
     newCollectionMsg,
     setNewCollectionMsg
@@ -125,6 +131,10 @@ export function FullMetadataForm({
         })
     }
 
+    function handleEditorChange({ html, text }: any) {
+        console.log('handleEditorChange', html, text);
+    }
+
     return (
         <>
             <div>
@@ -137,7 +147,13 @@ export function FullMetadataForm({
                         });
                     }} />
                 </>}
+                {addMethod === MetadataAddMethod.CSV && <>
+                    {/* //TODO: 
+                    */}
+                </>}
                 {addMethod === MetadataAddMethod.Manual && <>
+
+
                     <Form.Item
                         label={
                             <Text
@@ -307,6 +323,8 @@ export function FullMetadataForm({
                             </Text>
                         }
                     >
+                        {/* TODO: Markdown */}
+                        {/* <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange} /> */}
                         <Input.TextArea
                             value={currentMetadata.description}
                             onChange={(e) => {

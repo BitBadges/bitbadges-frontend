@@ -12,17 +12,19 @@ export function parseClaim(fullClaimString: string): ClaimItem {
             end: Number(fullClaimString.split('-')[4]),
         }],
         fullCode: fullClaimString,
+        accountNum: -1,
     }
 
     return currLeaf;
 }
 
-export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[]): ClaimItem {
+export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number): ClaimItem {
     return {
         code,
         address,
         amount,
         badgeIds,
         fullCode: `${code}-${address}-${amount}-${badgeIds[0].start}-${badgeIds[0].end}`,
+        accountNum
     }
 }

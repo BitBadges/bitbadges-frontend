@@ -7,6 +7,7 @@ import { ClaimDisplay } from '../../common/ClaimDisplay';
 import MerkleTree from 'merkletreejs';
 import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 import { ClaimMerkleTree } from '../../../pages/badges/[collectionId]';
+import { Empty } from 'antd';
 
 export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;
@@ -83,6 +84,14 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
                             </pre>}
                     </div>
                 })
+            }
+            {
+                badgeCollection?.claims.length === 0 &&
+                <Empty
+                    style={{ color: PRIMARY_TEXT }}
+                    description="No claims found"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
             }
             <CreateTxMsgClaimBadgeModal
                 badge={badgeCollection}

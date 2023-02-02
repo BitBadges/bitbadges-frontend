@@ -124,12 +124,14 @@ export function TransactionDetails({
 
                             if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.SpecificAddresses) {
                                 //Store N-1 layers of the tree
-                                if (distributionMethod == DistributionMethod.Codes) {
-                                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => SHA256(x.fullCode).toString()));
-                                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                                } else {
-                                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
-                                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                if (badgeMsg.claims?.length > 0) {
+                                    if (distributionMethod == DistributionMethod.Codes) {
+                                        let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => SHA256(x.fullCode).toString()));
+                                        badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                    } else {
+                                        let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
+                                        badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                                    }
                                 }
                             }
 

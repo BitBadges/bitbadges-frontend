@@ -17,6 +17,9 @@ import { Button, Divider, InputNumber } from 'antd';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
 import { PRIMARY_TEXT } from '../../../constants';
+import MerkleTree from 'merkletreejs';
+import { SHA256 } from 'crypto-js';
+import { getPostTransferBalance } from '../../../bitbadges-api/balances';
 
 enum DistributionMethod {
     None,
@@ -86,6 +89,7 @@ export function SetProperties({
     const [nonFungible, setNonFungible] = useState(false);
 
     const [id, setId] = useState(0);
+    const [manualSend, setManualSend] = useState(false);
 
     const collection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
 
@@ -353,51 +357,36 @@ export function SetProperties({
                     />,
                     disabled: addMethod === MetadataAddMethod.None
                 },
-                {
-                    title: 'Updatable Metadata?',
-                    description: `In the future, can the colleciton and badge metadata be updated?`,
+                addMethod !== MetadataAddMethod.UploadUrl ? {
+                    title: 'Metadata Entry Method',
+                    description: `Choose how to enter metadata for the badges in this collection.`,
                     node: <SwitchForm
                         options={[
                             {
-                                title: 'No',
-                                message: `The metadata cannot be updated and is frozen forever.`,
-                                isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
+                                title: 'Upload CSV' + (collection.nextBadgeId > 10 ? ' (Recommended)' : ''),
+                                message: `Select this option if you want to upload a CSV file with the metadata.`,
+                                isSelected: addMethod === MetadataAddMethod.CSV,
                             },
                             {
-                                title: 'Yes',
-                                message: `The metadata can be updated in the future.`,
-                                isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
+                                title: 'Manual' + (collection.nextBadgeId <= 10 ? ' (Recommended)' : ''),
+                                message: `Select this option if you want to enter the metadata manually.`,
+                                isSelected: addMethod === MetadataAddMethod.Manual,
                             },
+
                         ]}
                         onSwitchChange={(title) => {
-                            const frozenMetadata = title == 'No';
-                            const updatableMetadata = title == 'Yes';
-                            if (frozenMetadata) {
-                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, false);
-                                setNewCollectionMsg({
-                                    ...newCollectionMsg,
-                                    permissions: newPermissions
-                                })
-                            } else if (updatableMetadata) {
-                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, true);
-                                setNewCollectionMsg({
-                                    ...newCollectionMsg,
-                                    permissions: newPermissions
-                                })
+                            if (title.startsWith('Manual')) {
+                                setAddMethod(MetadataAddMethod.Manual);
+                            } else if (title.startsWith('Upload CSV')) {
+                                setAddMethod(MetadataAddMethod.CSV);
                             }
-
-                            //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
-                            let newHandledPermissions = { ...handledPermissions };
-                            newHandledPermissions.CanUpdateUris = true;
-                            setHandledPermissions(newHandledPermissions);
                         }}
                     />,
-                    disabled: !handledPermissions.CanUpdateUris
-                },
-                //TODO: add preview
+                    disabled: addMethod === MetadataAddMethod.None
+                } : EmptyFormItem,
                 {
                     title: 'Set the Collection Metadata',
-                    description: `Provide details about the badge collection. ${!GetPermissions(newCollectionMsg.permissions).CanUpdateUris ? 'This metadata will be permanent and uneditable!' : ''}`,
+                    description: `Provide details about the badge collection.`,
                     node: <FullMetadataForm
                         addMethod={addMethod}
                         setAddMethod={setAddMethod}
@@ -408,6 +397,7 @@ export function SetProperties({
                     />,
                     disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
                         || (addMethod === MetadataAddMethod.UploadUrl && !(newCollectionMsg.badgeUri.indexOf('{id}') == -1))
+                        || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
                 },
                 //TODO: add preview
                 addMethod === MetadataAddMethod.Manual ?
@@ -415,7 +405,6 @@ export function SetProperties({
                         title: 'Set Individual Badge Metadata',
                         description: <>
                             Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} />
-
                         </>,
                         node: <>
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -459,6 +448,47 @@ export function SetProperties({
                         disabled: !(individualBadgeMetadata[id]?.name)
                     } : EmptyFormItem,
                 {
+                    title: 'Updatable Metadata?',
+                    description: `In the future, can the colleciton and badge metadata be updated?`,
+                    node: <SwitchForm
+                        options={[
+                            {
+                                title: 'No',
+                                message: `The metadata cannot be updated and is frozen forever!`,
+                                isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
+                            },
+                            {
+                                title: 'Yes',
+                                message: `The metadata can be updated in the future.`,
+                                isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
+                            },
+                        ]}
+                        onSwitchChange={(title) => {
+                            const frozenMetadata = title == 'No';
+                            const updatableMetadata = title == 'Yes';
+                            if (frozenMetadata) {
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, false);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
+                                    permissions: newPermissions
+                                })
+                            } else if (updatableMetadata) {
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, true);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
+                                    permissions: newPermissions
+                                })
+                            }
+
+                            //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
+                            let newHandledPermissions = { ...handledPermissions };
+                            newHandledPermissions.CanUpdateUris = true;
+                            setHandledPermissions(newHandledPermissions);
+                        }}
+                    />,
+                    disabled: !handledPermissions.CanUpdateUris
+                },
+                {
                     title: `How Would You Like To Distribute These Badges?`,
                     // description: `Will each individual badge have unique characteristics or will they all be identical?`,
                     description: '',
@@ -475,8 +505,8 @@ export function SetProperties({
                                 isSelected: distributionMethod == DistributionMethod.Codes,
                             },
                             {
-                                title: 'Specific Addresses',
-                                message: 'Whitelist addresses to claim specific badges.',
+                                title: 'Whitelist',
+                                message: 'Whitelist specific addresses to receive badges.',
                                 isSelected: distributionMethod == DistributionMethod.SpecificAddresses,
                             },
                             {
@@ -490,7 +520,7 @@ export function SetProperties({
                                 setDistributionMethod(DistributionMethod.FirstComeFirstServe);
                             } else if (newTitle == 'Codes') {
                                 setDistributionMethod(DistributionMethod.Codes);
-                            } else if (newTitle == 'Specific Addresses') {
+                            } else if (newTitle == 'Whitelist') {
                                 setDistributionMethod(DistributionMethod.SpecificAddresses);
                             } else if (newTitle == 'Unminted') {
                                 setDistributionMethod(DistributionMethod.Unminted);
@@ -520,6 +550,124 @@ export function SetProperties({
                             />,
                             disabled: claimItems.length == 0
                         } : EmptyFormItem,
+                {
+                    title: `Distribution Method`,
+                    description: `You have whitelisted ${claimItems.length} addresses. How would you like to distribute badges to these addresses?`,
+                    node: <SwitchForm
+                        options={[
+                            {
+                                title: 'Send Manually',
+                                message: `Badges will be sent to the addresses upon creation, and you pay all transfer fees.`,
+                                isSelected: manualSend,
+                            },
+                            {
+                                title: 'Claimable (Recommended)',
+                                message: 'The badges will be able to be claimed by these addresses. Each address pays their own transfer fees.',
+                                isSelected: !manualSend,
+                            },
+                        ]}
+                        onSwitchChange={(newTitle) => {
+                            setManualSend(newTitle == 'Send Manually');
+                            if (newTitle == 'Send Manually') {
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
+                                    transfers: claimItems.map((x) => ({
+                                        toAddresses: [x.accountNum],
+                                        balances: [
+                                            {
+                                                balance: x.amount,
+                                                badgeIds: [
+                                                    {
+                                                        start: x.badgeIds[0].start,
+                                                        end: x.badgeIds[0].end,
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    })),
+                                    claims: []
+                                });
+                            } else if (newTitle == 'Claimable (Recommended)') {
+                                const tree = new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
+                                const root = tree.getRoot().toString('hex')
+
+                                const balance = {
+                                    balances: [
+                                        {
+                                            balance: newCollectionMsg.badgeSupplys[0].supply,
+                                            badgeIds: [{
+                                                start: 0,
+                                                end: newCollectionMsg.badgeSupplys[0].amount - 1,
+                                            }]
+                                        }
+                                    ],
+                                    approvals: [],
+                                }
+
+
+                                if (distributionMethod === DistributionMethod.Codes) {
+                                    for (let i = 0; i < claimItems.length; i += 2) {
+                                        const leaf = claimItems[i];
+                                        const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
+                                        balance.balances = newBalance.balances;
+                                    }
+                                } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
+                                    for (let i = 0; i < claimItems.length; i++) {
+                                        const leaf = claimItems[i];
+                                        const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
+                                        balance.balances = newBalance.balances;
+                                    }
+                                }
+
+                                const claimBalance = {
+                                    balances: [
+                                        {
+                                            balance: newCollectionMsg.badgeSupplys[0].supply,
+                                            badgeIds: [{
+                                                start: 0,
+                                                end: newCollectionMsg.badgeSupplys[0].amount - 1,
+                                            }]
+                                        }
+                                    ], approvals: []
+                                };
+
+                                for (const balanceObj of balance.balances) {
+                                    for (const badgeId of balanceObj.badgeIds) {
+                                        const newBalance = getPostTransferBalance(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
+                                        claimBalance.balances = newBalance.balances;
+                                    }
+                                }
+
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
+                                    transfers: [],
+                                    claims: [
+                                        {
+                                            amountPerClaim: 0,
+                                            balances: claimBalance.balances,
+                                            type: 0,
+                                            uri: "",
+                                            data: root,
+                                            timeRange: {
+                                                start: 0,
+                                                end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
+                                            },
+                                            incrementIdsBy: 0,
+                                            badgeIds: [],
+                                        }
+                                    ]
+                                })
+                            }
+                        }}
+                    />,
+                },
+
+
+
+
+
+
+
                 // {
                 //TODO: add support for this
                 //     title: 'Can More Badges Be Created Later?',

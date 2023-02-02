@@ -55,16 +55,16 @@ export function CreateClaims({
     const addCode = () => {
         let currLeafItem = undefined;
         if (distributionMethod === DistributionMethod.Codes) {
-            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', amount, badgeRanges);
+            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', amount, badgeRanges, currAddress.accountNumber);
         } else {
-            currLeafItem = createClaim('', currAddress.cosmosAddress, amount, badgeRanges);
+            currLeafItem = createClaim('', currAddress.cosmosAddress, amount, badgeRanges, currAddress.accountNumber);
         }
 
         // For codes, we add twice so that the same code can be both children in a Merkle tree node
         // This is so that if a user knows a code, they can prove that they know the code without needing to know an alternative code
         const newClaimItems = distributionMethod === DistributionMethod.Codes ? [...claimItems, currLeafItem, currLeafItem] : [...claimItems, currLeafItem];
 
-        const tree = new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
+        const tree = new MerkleTree(newClaimItems.map((x) => SHA256(x.fullCode)), SHA256)
         const root = tree.getRoot().toString('hex')
 
         const balance = {

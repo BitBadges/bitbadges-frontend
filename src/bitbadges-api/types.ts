@@ -41,6 +41,7 @@ export interface Transfers {
 
 export interface ClaimItem {
     address: string;
+    accountNum: number; 
     code: string;
     amount: number;
     badgeIds: IdRange[];

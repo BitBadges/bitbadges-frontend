@@ -60,8 +60,6 @@ export function BadgeAvatarDisplay({
             if (!badgeCollection || !setBadgeCollection) return;
             let numBadges = badgeCollection?.nextBadgeId;
             //TODO: should probably make it more scalable than this
-
-            console.log("setting display", numBadges);
             for (let i = 0; i < numBadges; i++) {
                 if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
                     await getBadgeCollection(badgeCollection.collectionId, badgeCollection, i)

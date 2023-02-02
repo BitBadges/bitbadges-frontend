@@ -16,7 +16,7 @@ export enum MetadataAddMethod {
     None = 'None',
     Manual = 'Manual',
     UploadUrl = 'Insert Custom Metadata Url (Advanced)',
-    //TODO: CSV Upload
+    CSV = 'CSV',
 }
 
 enum DistributionMethod {
