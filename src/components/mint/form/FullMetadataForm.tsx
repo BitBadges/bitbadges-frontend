@@ -3,7 +3,7 @@ import { Button, DatePicker, Divider, Form, Input, InputNumber, Select, Space, S
 import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection } from '../../../bitbadges-api/types';
+import { BadgeMetadata } from '../../../bitbadges-api/types';
 import { MetadataAddMethod } from '../MintTimeline';
 import { UriSelect } from './UriSelect';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
@@ -19,18 +19,16 @@ export function FullMetadataForm({
     addMethod,
     setAddMethod,
     id,
-    hideAddMethod,
-    newBadgeMsg,
-    setNewBadgeMsg
+    newCollectionMsg,
+    setNewCollectionMsg
 }: {
-    newBadgeMsg: MessageMsgNewCollection;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     metadata: BadgeMetadata | BadgeMetadata[];
     setMetadata: (metadata: BadgeMetadata | BadgeMetadata[]) => void;
     id?: number;
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
-    hideAddMethod?: boolean;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
@@ -231,8 +229,8 @@ export function FullMetadataForm({
                 } */}
                 {addMethod === MetadataAddMethod.UploadUrl && <>
                     <UriSelect setUri={(collectionUri: string, badgeUri: string) => {
-                        setNewBadgeMsg({
-                            ...newBadgeMsg,
+                        setNewCollectionMsg({
+                            ...newCollectionMsg,
                             collectionUri,
                             badgeUri,
                         });

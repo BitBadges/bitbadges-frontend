@@ -6,10 +6,10 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
 const CURR_STEP_NUMBER = 0;
 
-export function ChooseBadgeType({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg }: {
+export function ChooseBadgeType({ setCurrStepNumber, setNewCollectionMsg, newCollectionMsg }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    setNewBadgeMsg: (type: MessageMsgNewCollection) => void;
-    newBadgeMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (type: MessageMsgNewCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
 }) {
     //TODO: add a ton of standards and types here
     return (
@@ -38,8 +38,8 @@ export function ChooseBadgeType({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg
                     }}
                     hoverable
                     onClick={async () => {
-                        setNewBadgeMsg({
-                            ...newBadgeMsg,
+                        setNewCollectionMsg({
+                            ...newCollectionMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);
@@ -85,8 +85,8 @@ export function ChooseBadgeType({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg
                     }}
                     hoverable
                     onClick={() => {
-                        setNewBadgeMsg({
-                            ...newBadgeMsg,
+                        setNewCollectionMsg({
+                            ...newCollectionMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);
@@ -132,8 +132,8 @@ export function ChooseBadgeType({ setCurrStepNumber, setNewBadgeMsg, newBadgeMsg
                     }}
                     hoverable
                     onClick={() => {
-                        setNewBadgeMsg({
-                            ...newBadgeMsg,
+                        setNewCollectionMsg({
+                            ...newCollectionMsg,
                             standard: 0,
                         });
                         setCurrStepNumber(CURR_STEP_NUMBER + 1);

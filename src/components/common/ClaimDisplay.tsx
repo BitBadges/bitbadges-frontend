@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
-import { BitBadgeCollection, Claims, SupportedChain, UserBalance } from "../../bitbadges-api/types"
+import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedChain, UserBalance } from "../../bitbadges-api/types"
 import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
-import { getFromIpfs } from "../../chain/backend_connectors";
 import { useChainContext } from "../../chain/ChainContext";
 import { Button, Row, Tooltip, Divider, Card, Typography, Input } from "antd";
-import { CreateTxMsgClaimBadgeModal } from "../txModals/CreateTxMsgClaimBadge";
-import MerkleTree from "merkletreejs";
-import { SHA256 } from "crypto-js";
 import { ClockCircleOutlined } from "@ant-design/icons";
-import { AddressDisplay, AddressDisplayList } from "../address/AddressDisplay";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { ClaimMerkleTree } from "../../pages/badges/[collectionId]";
 import { TransferDisplay } from "./TransferDisplay";
-import { LeafItem } from "../mint/form/ManualTransfers";
+import { parseClaim } from "../../bitbadges-api/claims";
 
 export function ClaimDisplay({
     claim,
@@ -28,7 +22,6 @@ export function ClaimDisplay({
     claimId: number,
 }) {
     const chain = useChainContext();
-    const [modalVisible, setModalVisible] = useState(false);
     const [currCode, setCurrCode] = useState("");
 
     let endTimestamp = claim.timeRange.end;
@@ -42,18 +35,7 @@ export function ClaimDisplay({
         claim.timeRange.start * 1000
     ).toLocaleDateString();
 
-    const currLeaf: LeafItem = {
-        fullCode: currCode,
-        addressOrCode: currCode.split('-')[0],
-        amount: Number(currCode.split('-')[2]),
-        badgeIds: [{
-            start: Number(currCode.split('-')[3]),
-            end: Number(currCode.split('-')[4]),
-        }],
-    }
-
-
-
+    const currLeaf: ClaimItem = parseClaim(currCode);
 
     return <Card
         // title={<h1>Claim</h1>}
@@ -98,7 +80,7 @@ export function ClaimDisplay({
                 {/* <h3>Whitelist ({collection.claims[claimId]?.leaves?.length})</h3> */}
                 <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
 
-                    {collection.claims[claimId]?.isCodes ?
+                    {collection.claims[claimId]?.distributionMethod === DistributionMethod.Codes ?
                         <>
                             <Input
                                 placeholder="Enter Code"
@@ -122,16 +104,12 @@ export function ClaimDisplay({
                                         MINT_ACCOUNT
                                     ]}
                                     to={[]}
-                                    toCodes={[currLeaf.fullCode]}
+                                    toCodes={[currLeaf.code]}
                                     amount={currLeaf.amount}
                                     startId={currLeaf.badgeIds[0]?.start}
                                     endId={currLeaf.badgeIds[0]?.end}
                                 />
                                 <Divider />
-                                {/* <p>x{leaf.amount} of badges with IDs from {leaf.badgeIds[0]?.start} to {leaf.badgeIds[0]?.end} can be claimed{" "}
-                            {distributionMethod === DistributionMethod.SpecificAddresses ?
-                                'by the address ' + leaf.addressOrCode : 'with the code ' + leaf.addressOrCode}
-                        </p> */}
                             </div>
 
 
@@ -141,15 +119,7 @@ export function ClaimDisplay({
 
                         <>
                             {collection.claims[claimId]?.leaves?.map((x) => {
-                                const currLeaf: LeafItem = {
-                                    fullCode: x,
-                                    addressOrCode: x.split('-')[1],
-                                    amount: Number(x.split('-')[2]),
-                                    badgeIds: [{
-                                        start: Number(x.split('-')[3]),
-                                        end: Number(x.split('-')[4]),
-                                    }],
-                                }
+                                const currLeaf: ClaimItem = parseClaim(x);
 
                                 return <>
                                     <hr />
@@ -161,9 +131,9 @@ export function ClaimDisplay({
                                             MINT_ACCOUNT
                                         ]}
                                         to={[{
-                                            address: currLeaf.addressOrCode,
+                                            address: currLeaf.address,
                                             accountNumber: 0,
-                                            cosmosAddress: currLeaf.addressOrCode,
+                                            cosmosAddress: currLeaf.address,
                                             chain: SupportedChain.COSMOS,
 
                                         }]}
@@ -183,11 +153,6 @@ export function ClaimDisplay({
                     }
                 </div>
             </>}
-            {/* <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
-                <Tooltip placement="bottom" title={!chain.connected ? 'Please connect a wallet to claim!' : Number(claim.type) === 0 && collection.claims[claimId]?.leaves?.indexOf(chain.cosmosAddress) < 0 ? 'You are not on the claim list.' : 'Claim these badges!'}>
-                    <Button disabled={Number(claim.type) === 0 && collection.claims[claimId]?.leaves?.indexOf(chain.cosmosAddress) < 0} type='primary' onClick={() => openModal()} style={{ width: '100%' }}>Claim</Button>
-                </Tooltip>
-            </div> */}
         </div>
     </Card>
 }

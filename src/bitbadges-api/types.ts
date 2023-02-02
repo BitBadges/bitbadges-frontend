@@ -12,10 +12,7 @@ export enum TransactionStatus {
     None = 0,
     AwaitingSignatureOrBroadcast = 1,
 }
-export interface GetCollectionResponse {
-    error?: any;
-    collection?: BitBadgeCollection;
-}
+
 
 export interface IdRange {
     start: number;
@@ -41,6 +38,23 @@ export interface Transfers {
     toAddresses: number[];
     balances: Balance[];
 }
+
+export interface ClaimItem {
+    address: string;
+    code: string;
+    amount: number;
+    badgeIds: IdRange[];
+    fullCode: string;
+}
+
+export enum DistributionMethod {
+    None,
+    FirstComeFirstServe,
+    SpecificAddresses,
+    Codes,
+    Unminted,
+}
+
 export interface Claims {
     balances: Balance[];
     badgeIds: IdRange[];
@@ -52,8 +66,9 @@ export interface Claims {
     timeRange: IdRange;
     leaves: string[];
     tree: MerkleTree;
-    isCodes: boolean;
+    distributionMethod: DistributionMethod;
 }
+
 export interface Proof {
     total: number;
     index: number;

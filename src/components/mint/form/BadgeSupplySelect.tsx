@@ -3,18 +3,13 @@ import { Typography, InputNumber, Button } from 'antd';
 import { PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
-interface SubassetSupply {
-    amount: number;
-    supply: number;
-}
-
-export function SubassetSupply({
-    newBadgeMsg,
-    setNewBadgeMsg,
+export function BadgeSupply({
+    newCollectionMsg,
+    setNewCollectionMsg,
     fungible
 }: {
-    newBadgeMsg: MessageMsgNewCollection;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     fungible: boolean;
 }) {
     const [supplyToCreate, setSupplyToCreate] = useState<number>(0);
@@ -24,7 +19,7 @@ export function SubassetSupply({
     const addTokens = (supply: number) => {
 
         if (supply > 0) {
-            let newSupplyObjs = newBadgeMsg.badgeSupplys;
+            let newSupplyObjs = newCollectionMsg.badgeSupplys;
 
             if (!fungible) {
                 newSupplyObjs = [{
@@ -32,8 +27,8 @@ export function SubassetSupply({
                     supply: 1
                 }];
 
-                setNewBadgeMsg({
-                    ...newBadgeMsg,
+                setNewCollectionMsg({
+                    ...newCollectionMsg,
                     badgeSupplys: newSupplyObjs
                 })
             } else {
@@ -41,8 +36,8 @@ export function SubassetSupply({
                     amount: 1,
                     supply: supply
                 }];
-                setNewBadgeMsg({
-                    ...newBadgeMsg,
+                setNewCollectionMsg({
+                    ...newCollectionMsg,
                     badgeSupplys: newSupplyObjs
                 })
             }
@@ -74,26 +69,26 @@ export function SubassetSupply({
                         }
                     } />
             </div >
-            {fungible && 
-            <div style={{
-                padding: '0',
-                textAlign: 'center',
-                color: PRIMARY_TEXT,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 20,
-            }}>
-                <Button
-                    style={{
-                        backgroundColor: 'transparent',
-                        color: PRIMARY_TEXT,
-                    }}
-                    onClick={() => {
-                        let value = 1000000; //TODO: uint64 max
-                        setSupplyToCreate(value as number);
-                        addTokens(value);
-                    }}>Max</Button>
-            </div>}
+            {fungible &&
+                <div style={{
+                    padding: '0',
+                    textAlign: 'center',
+                    color: PRIMARY_TEXT,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 20,
+                }}>
+                    <Button
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: PRIMARY_TEXT,
+                        }}
+                        onClick={() => {
+                            let value = 1000000; //TODO: uint64 max
+                            setSupplyToCreate(value as number);
+                            addTokens(value);
+                        }}>Max</Button>
+                </div>}
         </div >
     )
 }

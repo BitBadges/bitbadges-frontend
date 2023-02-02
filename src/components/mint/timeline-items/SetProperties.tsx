@@ -3,21 +3,17 @@ import React, { useState } from 'react';
 import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissions, Permissions, UpdatePermissions } from '../../../bitbadges-api/permissions';
 import { ConfirmManager } from '../form/ConfirmManager';
 import { FormTimeline } from '../form/FormTimeline';
-import { SubassetSupply } from '../form/SubassetSupply';
+import { BadgeSupply } from '../form/BadgeSupplySelect';
 import { SwitchForm } from '../form/SwitchForm';
 import { useChainContext } from '../../../chain/ChainContext';
-import { BadgeMetadata } from '../../../bitbadges-api/types';
+import { BadgeMetadata, ClaimItem } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
-import { CreateClaim } from '../form/CreateClaim';
-import { ManualTransfers } from '../form/ManualTransfers';
+import { CreateClaims } from '../form/CreateClaims';
 import { FirstComeFirstServe } from '../form/FirstComeFirstServe';
 import saveAs from 'file-saver';
 import { Button, InputNumber } from 'antd';
-import { SECONDARY_TEXT } from '../../../constants';
-import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
-import { CheckCircleFilled } from '@ant-design/icons';
 
 enum DistributionMethod {
     None,
@@ -43,30 +39,26 @@ function downloadJson(json: object, filename: string) {
 
 export function SetProperties({
     setCurrStepNumber,
-    newBadgeMsg,
-    setNewBadgeMsg,
-    newBadgeMetadata,
-    setNewBadgeMetadata,
+    newCollectionMsg,
+    setNewCollectionMsg,
     collectionMetadata,
     setCollectionMetadata,
     individualBadgeMetadata,
     setIndividualBadgeMetadata,
     addMethod,
     setAddMethod,
-    leaves,
-    setLeaves,
+    claimItems,
+    setClaimItems,
     distributionMethod,
     setDistributionMethod,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
-    newBadgeMsg: MessageMsgNewCollection;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
-    newBadgeMetadata: BadgeMetadata;
-    setNewBadgeMetadata: (metadata: BadgeMetadata) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
-    leaves: string[];
-    setLeaves: (leaves: string[]) => void;
+    claimItems: ClaimItem[];
+    setClaimItems: (claimItems: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
     setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
@@ -85,12 +77,6 @@ export function SetProperties({
     const [handledDisallowedTransfers, setHandledDisallowedTransfers] = useState<boolean>(false);
     const [fungible, setFungible] = useState(false);
     const [nonFungible, setNonFungible] = useState(false);
-
-
-    const [success, setSuccess] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [distributionLoading, setDistributionLoading] = useState(false);
-    const [distributionSuccess, setDistributionSuccess] = useState(false);
 
     const [id, setId] = useState(0);
 
@@ -139,38 +125,38 @@ export function SetProperties({
                 {
                     //TODO: make this and the previous one into a much more customizable one
                     title: `How Many Badges To Create?`,
-                    description: `${fungible ? `${newBadgeMsg.badgeSupplys[0]?.supply ?? '?'} identical` : `${newBadgeMsg.badgeSupplys[0]?.amount ?? '?'} unique`} badges will be created. ${fungible ? 'This will be the maximum total supply and cannot be changed later.' : ''}`,
-                    node: <SubassetSupply newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} fungible={fungible} />,
-                    disabled: newBadgeMsg.badgeSupplys?.length == 0 || newBadgeMsg.badgeSupplys?.length == 0
+                    description: `${fungible ? `${newCollectionMsg.badgeSupplys[0]?.supply ?? '?'} identical` : `${newCollectionMsg.badgeSupplys[0]?.amount ?? '?'} unique`} badges will be created. ${fungible ? 'This will be the maximum total supply and cannot be changed later.' : ''}`,
+                    node: <BadgeSupply newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
+                    disabled: newCollectionMsg.badgeSupplys?.length == 0 || newCollectionMsg.badgeSupplys?.length == 0
                 },
                 nonFungible ? {
                     title: 'Can Manager Add Badges to Collection?',
-                    description: `This collection currently contains ${newBadgeMsg.badgeSupplys[0]?.amount} unique badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                    description: `This collection currently contains ${newCollectionMsg.badgeSupplys[0]?.amount} unique badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
                     node: <>
                         <SwitchForm
                             options={[
                                 {
                                     title: 'No',
-                                    message: `The collection will permanently contain ${newBadgeMsg.badgeSupplys[0]?.amount} badge${newBadgeMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
-                                    isSelected: handledPermissions.CanCreateMoreBadges && !GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges
+                                    message: `The collection will permanently contain ${newCollectionMsg.badgeSupplys[0]?.amount} badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                                    isSelected: handledPermissions.CanCreateMoreBadges && !GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
                                 },
                                 {
                                     title: 'Yes',
                                     message: `The manager may create new badges and add them to this collection.`,
-                                    isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newBadgeMsg.permissions).CanCreateMoreBadges
+                                    isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
                                 }
                             ]}
                             onSwitchChange={(title) => {
                                 if (title == 'No') {
-                                    const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateMoreBadgesDigit, false);
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
+                                    const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, false);
+                                    setNewCollectionMsg({
+                                        ...newCollectionMsg,
                                         permissions: newPermissions
                                     })
                                 } else if (title == 'Yes') {
-                                    const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanCreateMoreBadgesDigit, true);
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
+                                    const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, true);
+                                    setNewCollectionMsg({
+                                        ...newCollectionMsg,
                                         permissions: newPermissions
                                     })
                                 }
@@ -194,12 +180,12 @@ export function SetProperties({
                                 {
                                     title: 'Non-Transferable',
                                     message: `Badge owners cannot transfer their badges to other addresses.`,
-                                    isSelected: handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length > 0
+                                    isSelected: handledDisallowedTransfers && newCollectionMsg.disallowedTransfers.length > 0
                                 },
                                 {
                                     title: 'Transferable',
                                     message: `Badge owners can transfer their badges to other addresses.`,
-                                    isSelected: handledDisallowedTransfers && newBadgeMsg.disallowedTransfers.length == 0
+                                    isSelected: handledDisallowedTransfers && newCollectionMsg.disallowedTransfers.length == 0
                                 },
                             ]}
 
@@ -209,13 +195,13 @@ export function SetProperties({
                                 const nonTransferable = title == 'Non-Transferable';
                                 setHandledDisallowedTransfers(true);
                                 if (transferable) {
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
+                                    setNewCollectionMsg({
+                                        ...newCollectionMsg,
                                         disallowedTransfers: [],
                                     })
                                 } else if (nonTransferable) {
-                                    setNewBadgeMsg({
-                                        ...newBadgeMsg,
+                                    setNewCollectionMsg({
+                                        ...newCollectionMsg,
                                         disallowedTransfers: [
                                             {
                                                 to: {
@@ -253,28 +239,28 @@ export function SetProperties({
                         options={[
                             {
                                 title: 'No',
-                                message: `The manager cannot freeze or unfreeze any owner's ability to transfer badges in this collection. Badges will always be ${newBadgeMsg.disallowedTransfers.length > 0 ? 'non-transferable.' : 'transferable.'}`,
-                                isSelected: handledPermissions.CanUpdateDisallowed && !GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed
+                                message: `The manager cannot freeze or unfreeze any owner's ability to transfer badges in this collection. Badges will always be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable.' : 'transferable.'}`,
+                                isSelected: handledPermissions.CanUpdateDisallowed && !GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                             },
                             {
                                 title: 'Yes',
                                 message: `The manager can freeze and unfreeze any owner's ability to transfer badges in this collection.`,
-                                isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newBadgeMsg.permissions).CanUpdateDisallowed
+                                isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                             },
                         ]}
                         onSwitchChange={(title) => {
                             const canFreeze = title == 'Yes';
                             const canNotFreeze = title == 'No';
                             if (canNotFreeze) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateDisallowedDigit, false);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateDisallowedDigit, false);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             } else if (canFreeze) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateDisallowedDigit, true);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateDisallowedDigit, true);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             }
@@ -296,12 +282,12 @@ export function SetProperties({
                             {
                                 title: 'No',
                                 message: `The role of the manager cannot be transferred to another address.`,
-                                isSelected: handledPermissions.CanManagerBeTransferred && !GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred
+                                isSelected: handledPermissions.CanManagerBeTransferred && !GetPermissions(newCollectionMsg.permissions).CanManagerBeTransferred
                             },
                             {
                                 title: 'Yes',
                                 message: `The role of the manager can be transferred to another address.`,
-                                isSelected: handledPermissions.CanManagerBeTransferred && !!GetPermissions(newBadgeMsg.permissions).CanManagerBeTransferred
+                                isSelected: handledPermissions.CanManagerBeTransferred && !!GetPermissions(newCollectionMsg.permissions).CanManagerBeTransferred
                             }
                         ]}
 
@@ -309,15 +295,15 @@ export function SetProperties({
                             const noTransfersAllowed = title == 'No';
                             const transfersAllowed = title == 'Yes';
                             if (noTransfersAllowed) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanManagerBeTransferredDigit, false);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanManagerBeTransferredDigit, false);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             } else if (transfersAllowed) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanManagerBeTransferredDigit, true);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanManagerBeTransferredDigit, true);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             }
@@ -364,27 +350,27 @@ export function SetProperties({
                             {
                                 title: 'No',
                                 message: `The metadata cannot be updated and is frozen forever.`,
-                                isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newBadgeMsg.permissions).CanUpdateUris
+                                isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
                             },
                             {
                                 title: 'Yes',
                                 message: `The metadata can be updated in the future.`,
-                                isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newBadgeMsg.permissions).CanUpdateUris,
+                                isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
                             },
                         ]}
                         onSwitchChange={(title) => {
                             const frozenMetadata = title == 'No';
                             const updatableMetadata = title == 'Yes';
                             if (frozenMetadata) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateUrisDigit, false);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, false);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             } else if (updatableMetadata) {
-                                const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanUpdateUrisDigit, true);
-                                setNewBadgeMsg({
-                                    ...newBadgeMsg,
+                                const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanUpdateUrisDigit, true);
+                                setNewCollectionMsg({
+                                    ...newCollectionMsg,
                                     permissions: newPermissions
                                 })
                             }
@@ -399,17 +385,17 @@ export function SetProperties({
                 //TODO: add preview
                 {
                     title: 'Set the Collection Metadata',
-                    description: `Provide details about the badge collection. ${!GetPermissions(newBadgeMsg.permissions).CanUpdateUris ? 'This metadata will be permanent and uneditable!' : ''}`,
+                    description: `Provide details about the badge collection. ${!GetPermissions(newCollectionMsg.permissions).CanUpdateUris ? 'This metadata will be permanent and uneditable!' : ''}`,
                     node: <FullMetadataForm
                         addMethod={addMethod}
                         setAddMethod={setAddMethod}
                         metadata={collectionMetadata}
                         setMetadata={setCollectionMetadata as any}
-                        setNewBadgeMsg={setNewBadgeMsg}
-                        newBadgeMsg={newBadgeMsg}
+                        setNewCollectionMsg={setNewCollectionMsg}
+                        newCollectionMsg={newCollectionMsg}
                     />,
                     disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-                        || (addMethod === MetadataAddMethod.UploadUrl && !(newBadgeMsg.badgeUri.indexOf('{id}') == -1))
+                        || (addMethod === MetadataAddMethod.UploadUrl && !(newCollectionMsg.badgeUri.indexOf('{id}') == -1))
                 },
                 //TODO: add preview
                 addMethod === MetadataAddMethod.Manual ?
@@ -422,9 +408,8 @@ export function SetProperties({
                             setMetadata={setIndividualBadgeMetadata as any}
                             addMethod={addMethod}
                             setAddMethod={setAddMethod}
-                            setNewBadgeMsg={setNewBadgeMsg}
-                            newBadgeMsg={newBadgeMsg}
-                            hideAddMethod
+                            setNewCollectionMsg={setNewCollectionMsg}
+                            newCollectionMsg={newCollectionMsg}
                         />,
                         disabled: !(individualBadgeMetadata[id]?.name)
                     } : EmptyFormItem,
@@ -472,14 +457,17 @@ export function SetProperties({
                 distributionMethod === DistributionMethod.FirstComeFirstServe ?
                     fungible ? {
                         title: `How Many Badges Can Each Account Claim?`,
-                        description: `This collection has ${newBadgeMsg.badgeSupplys[0]?.supply ?? '?'} identical badges. How many will each account be able to receive per claim?`,
-                        node: <FirstComeFirstServe newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} fungible={fungible} />,
+                        description: `This collection has ${newCollectionMsg.badgeSupplys[0]?.supply ?? '?'} identical badges. How many will each account be able to receive per claim?`,
+                        node: <FirstComeFirstServe newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
                     } : EmptyFormItem
                     : distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.SpecificAddresses ?
                         {
                             title: `Create Claims`,
                             description: '',
-                            node: <ManualTransfers newBadgeMsg={newBadgeMsg} setNewBadgeMsg={setNewBadgeMsg} distributionMethod={distributionMethod} setLeaves={setLeaves}
+                            node: <CreateClaims
+                                newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} distributionMethod={distributionMethod}
+                                claimItems={claimItems}
+                                setClaimItems={setClaimItems}
                                 individualBadgeMetadata={individualBadgeMetadata}
                                 setIndividualBadgeMetadata={setIndividualBadgeMetadata}
                                 collectionMetadata={collectionMetadata}
@@ -527,7 +515,7 @@ export function SetProperties({
                 //                 onClick={async () => {
                 //                     setLoading(true);
                 //                     setSuccess(false);
-                //                     let badgeMsg = newBadgeMsg;
+                //                     let badgeMsg = newCollectionMsg;
 
                 //                     if (addMethod == MetadataAddMethod.Manual) {
                 //                         let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
@@ -536,7 +524,7 @@ export function SetProperties({
                 //                         badgeMsg.badgeUri = 'ipfs://' + res.cid + '/{id}';
                 //                     }
 
-                //                     setNewBadgeMsg(badgeMsg);
+                //                     setNewCollectionMsg(badgeMsg);
 
                 //                     setSuccess(true);
                 //                     setLoading(false);
@@ -570,7 +558,7 @@ export function SetProperties({
                 //                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
                 //                     downloadJson({
-                //                         leaves: leaves,
+                //                         claimItems: claimItems,
                 //                     }, `merkleTree-${collectionMetadata.name}-${dateString}-${timeString}.json`);
                 //                 }}
                 //                 className="opacity link-button"
@@ -593,14 +581,14 @@ export function SetProperties({
                 //                 onClick={async () => {
                 //                     setDistributionLoading(true);
                 //                     setDistributionSuccess(false);
-                //                     let badgeMsg = newBadgeMsg;
+                //                     let badgeMsg = newCollectionMsg;
 
                 //                     if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.SpecificAddresses) {
-                //                         let merkleTreeRes = await addMerkleTreeToIpfs(leaves);
+                //                         let merkleTreeRes = await addMerkleTreeToIpfs(claimItems);
                 //                         badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
                 //                     }
 
-                //                     setNewBadgeMsg(badgeMsg);
+                //                     setNewCollectionMsg(badgeMsg);
 
                 //                     setDistributionSuccess(true);
                 //                     setDistributionLoading(false);
@@ -646,15 +634,15 @@ export function SetProperties({
                 //     node: <SwitchForm
                 //         onSwitchChange={(canNotRevoke, canRevoke) => {
                 //             if (canNotRevoke) {
-                //                 const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanRevokeDigit, false);
-                //                 setNewBadgeMsg({
-                //                     ...newBadgeMsg,
+                //                 const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanRevokeDigit, false);
+                //                 setNewCollectionMsg({
+                //                     ...newCollectionMsg,
                 //                     permissions: newPermissions
                 //                 })
                 //             } else if (canRevoke) {
-                //                 const newPermissions = UpdatePermissions(newBadgeMsg.permissions, CanRevokeDigit, true);
-                //                 setNewBadgeMsg({
-                //                     ...newBadgeMsg,
+                //                 const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanRevokeDigit, true);
+                //                 setNewCollectionMsg({
+                //                     ...newCollectionMsg,
                 //                     permissions: newPermissions
                 //                 })
                 //             }
@@ -664,8 +652,8 @@ export function SetProperties({
                 //             newHandledPermissions.CanRevoke = true;
                 //             setHandledPermissions(newHandledPermissions);
                 //         }}
-                //         isOptionOneSelected={handledPermissions.CanRevoke && !GetPermissions(newBadgeMsg.permissions).CanRevoke}
-                //         isOptionTwoSelected={handledPermissions.CanRevoke && !!GetPermissions(newBadgeMsg.permissions).CanRevoke}
+                //         isOptionOneSelected={handledPermissions.CanRevoke && !GetPermissions(newCollectionMsg.permissions).CanRevoke}
+                //         isOptionTwoSelected={handledPermissions.CanRevoke && !!GetPermissions(newCollectionMsg.permissions).CanRevoke}
                 //         selectedMessage={`The manager will be able to forcefully revoke this badge from an owner at anytime.`}
                 //         unselectedMessage={`The manager will not be able to forcefully revoke this badge.`}
                 //         helperMessage={`Note that if you select 'Yes', you can switch to 'No' at any point in the future.`}

@@ -1,5 +1,5 @@
 //TODO: add this to bitbadges-js
-export const NUM_PERMISSIONS = 8;
+export const NUM_PERMISSIONS = 5;
 
 export type Permissions = {
     CanUpdateBytes: boolean

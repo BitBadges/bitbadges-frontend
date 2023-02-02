@@ -1,57 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, InputNumber, Button, Select, Input, Form } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SampleAccountMerkleTreeLeaves, SampleAccountMerkleTreeRoot } from '../../../constants';
+import { Typography, InputNumber } from 'antd';
+import { PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
-import { BitBadgesUserInfo, UserBalance } from '../../../bitbadges-api/types';
-import { DownOutlined } from '@ant-design/icons';
-import { MerkleTree } from 'merkletreejs';
-import SHA256 from 'crypto-js/sha256';
-import { AddressListSelect } from '../../address/AddressListSelect';
-
-const CryptoJS = require("crypto-js");
-
-enum DistributionMethod {
-    None,
-    FirstComeFirstServe,
-    SpecificAddresses,
-    Codes,
-    Unminted,
-
-}
-const { Text } = Typography;
+import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 
 export function FirstComeFirstServe({
-    newBadgeMsg,
-    setNewBadgeMsg,
+    newCollectionMsg,
+    setNewCollectionMsg,
     fungible
 }: {
-    newBadgeMsg: MessageMsgNewCollection;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     fungible: boolean;
 }) {
 
-    const beforeBalances: UserBalance = {
-        balances: [
-            {
-                balance: newBadgeMsg.badgeSupplys[0].supply,
-                badgeIds: [{
-                    start: 0,
-                    end: newBadgeMsg.badgeSupplys[0].amount - 1,
-                }]
-            }
-        ],
-        approvals: [],
-    }
-
-    // const [newBalances, setNewBalances] = useState<UserBalance>(beforeBalances);
+    const beforeBalances = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
     const [amountToClaim, setAmountToClaim] = useState<number>(1);
 
-    const [users, setUsers] = useState<BitBadgesUserInfo[]>([]);
-
     useEffect(() => {
-        setNewBadgeMsg({
-            ...newBadgeMsg,
+        setNewCollectionMsg({
+            ...newCollectionMsg,
             claims: [
                 {
                     amountPerClaim: amountToClaim,
@@ -74,13 +42,13 @@ export function FirstComeFirstServe({
     })
 
     useEffect(() => {
-        setNewBadgeMsg({
-            ...newBadgeMsg,
+        setNewCollectionMsg({
+            ...newCollectionMsg,
             claims: [
                 {
                     amountPerClaim: amountToClaim,
                     balances: beforeBalances.balances,
-                    type: 1,
+                    type: 1, //TODO: change to enum
                     badgeIds: [{
                         start: 0,
                         end: 0,
@@ -95,9 +63,7 @@ export function FirstComeFirstServe({
                 }
             ]
         })
-    }, [amountToClaim, setNewBadgeMsg, newBadgeMsg, fungible, beforeBalances.balances])
-
-
+    }, [amountToClaim, setNewCollectionMsg, newCollectionMsg, fungible, beforeBalances.balances])
 
     return <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center' }}>
         <InputNumber

@@ -4,60 +4,39 @@ import { useState } from 'react';
 
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { FormNavigationHeader } from '../form/FormNavigationHeader';
-import { BadgeMetadata } from '../../../bitbadges-api/types';
+import { BadgeMetadata, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { MetadataAddMethod } from '../MintTimeline';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
-import saveAs from 'file-saver';
-import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 
 const FINAL_STEP_NUM = 1;
 const FIRST_STEP_NUM = 1;
 const CURR_TIMELINE_STEP_NUM = 2;
 
-enum DistributionMethod {
-    None,
-    FirstComeFirstServe,
-    SpecificAddresses,
-    Codes,
-    Unminted,
-}
-
-function downloadJson(json: object, filename: string) {
-    const blob = new Blob([JSON.stringify(json)], {
-        type: 'application/json'
-    });
-    saveAs(blob, filename);
-}
-
 export function TransactionDetails({
     setTimelineStepNumber,
-    newBadgeMsg,
-    setNewBadgeMsg,
-    newBadgeMetadata,
-    setNewBadgeMetadata,
+    newCollectionMsg,
+    setNewCollectionMsg,
     collectionMetadata,
     setCollectionMetadata,
     individualBadgeMetadata,
     setIndividualBadgeMetadata,
     addMethod,
     setAddMethod,
-    leaves,
-    setLeaves,
+    claimItems,
+    setClaimItems,
     distributionMethod,
     setDistributionMethod,
 }: {
     setTimelineStepNumber: (stepNum: number) => void;
-    newBadgeMsg: MessageMsgNewCollection;
-    newBadgeMetadata: BadgeMetadata;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
-    setNewBadgeMetadata: (metadata: BadgeMetadata) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     addMethod: MetadataAddMethod;
     setAddMethod: (method: MetadataAddMethod) => void;
-    leaves: string[];
-    setLeaves: (leaves: string[]) => void;
+    claimItems: ClaimItem[];
+    setClaimItems: (claimItems: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
     setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
@@ -134,7 +113,7 @@ export function TransactionDetails({
                             setLoading(true);
                             setSuccess(false);
 
-                            let badgeMsg = newBadgeMsg;
+                            let badgeMsg = newCollectionMsg;
 
                             if (addMethod == MetadataAddMethod.Manual) {
                                 let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
@@ -146,15 +125,15 @@ export function TransactionDetails({
                             if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.SpecificAddresses) {
                                 //Store N-1 layers of the tree
                                 if (distributionMethod == DistributionMethod.Codes) {
-                                    let merkleTreeRes = await addMerkleTreeToIpfs(leaves.map((x) => SHA256(x).toString()));
+                                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => SHA256(x.fullCode).toString()));
                                     badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
                                 } else {
-                                    let merkleTreeRes = await addMerkleTreeToIpfs(leaves);
+                                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
                                     badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
                                 }
                             }
 
-                            setNewBadgeMsg(badgeMsg);
+                            setNewCollectionMsg(badgeMsg);
 
                             setVisible(true);
 
@@ -193,7 +172,7 @@ export function TransactionDetails({
                     <CreateTxMsgNewCollectionModal
                         visible={visible}
                         setVisible={setVisible}
-                        txCosmosMsg={newBadgeMsg}
+                        txCosmosMsg={newCollectionMsg}
                     />
                 </div>
             </Form.Provider >

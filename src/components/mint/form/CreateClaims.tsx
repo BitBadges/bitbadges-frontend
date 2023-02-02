@@ -3,26 +3,20 @@ import { Typography, InputNumber, Button, Steps, Divider } from 'antd';
 import { MINT_ACCOUNT, PRIMARY_TEXT, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
 import { MessageMsgNewCollection, MessageMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
-import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
 import { TransferDisplay } from '../../common/TransferDisplay';
-import { getPostTransferBalance } from '../../../bitbadges-api/balances';
+import { getBadgeSupplysFromMsgNewCollection, getPostTransferBalance } from '../../../bitbadges-api/balances';
 import { useChainContext } from '../../../chain/ChainContext';
-import { AddressListSelect } from '../../address/AddressListSelect';
-import { getAccountInformation } from '../../../bitbadges-api/api';
-import { AddressDisplay } from '../../address/AddressDisplay';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 import { AddressSelect } from '../../address/AddressSelect';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { GetPermissions } from '../../../bitbadges-api/permissions';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
-import { TableRow } from '../../common/TableRow';
 import saveAs from 'file-saver';
+import { createClaim } from '../../../bitbadges-api/claims';
 
 const crypto = require('crypto');
-
-const { Step } = Steps;
-
 
 function downloadJson(json: object, filename: string) {
     const blob = new Blob([JSON.stringify(json)], {
@@ -31,35 +25,24 @@ function downloadJson(json: object, filename: string) {
     saveAs(blob, filename);
 }
 
-enum DistributionMethod {
-    None,
-    FirstComeFirstServe,
-    SpecificAddresses,
-    Codes,
-    Unminted,
-}
 
-export interface LeafItem {
-    addressOrCode: string;
-    fullCode: string;
-    amount: number;
-    badgeIds: IdRange[];
-}
 
-export function ManualTransfers({
-    newBadgeMsg,
-    setNewBadgeMsg,
+export function CreateClaims({
+    newCollectionMsg,
+    setNewCollectionMsg,
     distributionMethod,
-    setLeaves,
+    claimItems,
+    setClaimItems,
     collectionMetadata,
     setCollectionMetadata,
     individualBadgeMetadata,
     setIndividualBadgeMetadata,
 }: {
-    newBadgeMsg: MessageMsgNewCollection;
-    setNewBadgeMsg: (badge: MessageMsgNewCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     distributionMethod: DistributionMethod;
-    setLeaves: (leaves: string[]) => void;
+    claimItems: ClaimItem[];
+    setClaimItems: (leaves: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
     setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
@@ -68,7 +51,7 @@ export function ManualTransfers({
     const chain = useChainContext();
 
     const badgeCollection: BitBadgeCollection = {
-        ...newBadgeMsg,
+        ...newCollectionMsg,
         collectionId: 0,
         manager: {
             chain: chain.chain,
@@ -76,98 +59,49 @@ export function ManualTransfers({
             address: chain.address,
             cosmosAddress: chain.cosmosAddress,
         },
-        nextBadgeId: newBadgeMsg.badgeSupplys[0].amount - 1,
+        nextBadgeId: newCollectionMsg.badgeSupplys[0].amount - 1,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
         unmintedSupplys: [],
         maxSupplys: [],
-        permissions: GetPermissions(newBadgeMsg.permissions),
+        permissions: GetPermissions(newCollectionMsg.permissions),
         disallowedTransfers: [],
         managerApprovedTransfers: [],
         claims: [],
     }
 
-    const [newBalances, setNewBalances] = useState<UserBalance>({
-        balances: [
-            {
-                balance: newBadgeMsg.badgeSupplys[0].supply,
-                badgeIds: [{
-                    start: 0,
-                    end: newBadgeMsg.badgeSupplys[0].amount - 1,
-                }]
-            }
-        ],
-        approvals: [],
-    });
+    const [newBalances, setNewBalances] = useState<UserBalance>(getBadgeSupplysFromMsgNewCollection(newCollectionMsg));
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startBadgeId, setStartBadgeId] = useState<number>(0);
-    const [endBadgeId, setEndBadgeId] = useState<number>(newBadgeMsg.badgeSupplys[0].amount - 1);
+    const [endBadgeId, setEndBadgeId] = useState<number>(newCollectionMsg.badgeSupplys[0].amount - 1);
 
     const [currAddress, setCurrAddress] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
     const [amount, setAmount] = useState<number>(0);
     const [badgeRanges, setBadgeRanges] = useState<IdRange[]>([{ start: 0, end: 0 }]);
 
-    const [leafs, setLeafs] = useState<LeafItem[]>([]);
-
-    const [currentStep, setCurrentStep] = useState(0);
-
-    const onStepChange = (value: number) => {
-        setCurrentStep(value);
-    };
-
     const addCode = () => {
         let currLeafItem = undefined;
-
         if (distributionMethod === DistributionMethod.Codes) {
-            currLeafItem = {
-                addressOrCode: crypto.randomBytes(32).toString('hex'),
-                amount: amount,
-                badgeIds: badgeRanges,
-                fullCode: ""
-            }
-            // } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
+            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', amount, badgeRanges);
         } else {
-            currLeafItem = {
-                addressOrCode: currAddress.cosmosAddress,
-                amount: amount,
-                badgeIds: badgeRanges,
-                fullCode: '',
-            }
+            currLeafItem = createClaim('', currAddress.cosmosAddress, amount, badgeRanges);
         }
 
-        let fullCode: string = '';
-        if (distributionMethod === DistributionMethod.Codes) {
-            fullCode = currLeafItem.addressOrCode + '--';
-        } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
-            fullCode = "-" + currLeafItem.addressOrCode + "-";
-        }
-        fullCode += currLeafItem.amount + "-" + currLeafItem.badgeIds[0]?.start + "-" + currLeafItem.badgeIds[0]?.end;
-        currLeafItem.fullCode = fullCode;
+        // For codes, we add twice so that the same code can be both children in a Merkle tree node
+        // This is so that if a user knows a code, they can prove that they know the code without needing to know an alternative code
+        const newClaimItems = distributionMethod === DistributionMethod.Codes ? [...claimItems, currLeafItem, currLeafItem] : [...claimItems, currLeafItem];
 
-        const newLeafs = distributionMethod === DistributionMethod.Codes ? [...leafs, currLeafItem, currLeafItem] : [...leafs, currLeafItem];
-        setLeafs(newLeafs);
-
-        const newLeaves = newLeafs.map(x => {
-            return x.fullCode;
-        });
-
-        setLeaves(newLeaves);
-
-        const hashes = newLeaves.map(x => {
-            return SHA256(x)
-        });
-
-        const tree = new MerkleTree(hashes, SHA256)
+        const tree = new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
         const root = tree.getRoot().toString('hex')
 
         const balance = {
             balances: [
                 {
-                    balance: newBadgeMsg.badgeSupplys[0].supply,
+                    balance: newCollectionMsg.badgeSupplys[0].supply,
                     badgeIds: [{
                         start: 0,
-                        end: newBadgeMsg.badgeSupplys[0].amount - 1,
+                        end: newCollectionMsg.badgeSupplys[0].amount - 1,
                     }]
                 }
             ],
@@ -176,15 +110,15 @@ export function ManualTransfers({
 
 
         if (distributionMethod === DistributionMethod.Codes) {
-            for (let i = 0; i < newLeafs.length; i += 2) {
-                const leaf = newLeafs[i];
-                const newBalance = getPostTransferBalance(balance, undefined, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
+            for (let i = 0; i < newClaimItems.length; i += 2) {
+                const leaf = newClaimItems[i];
+                const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
                 balance.balances = newBalance.balances;
             }
         } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
-            for (let i = 0; i < newLeafs.length; i++) {
-                const leaf = newLeafs[i];
-                const newBalance = getPostTransferBalance(balance, leaf.addressOrCode, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
+            for (let i = 0; i < newClaimItems.length; i++) {
+                const leaf = newClaimItems[i];
+                const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
                 balance.balances = newBalance.balances;
             }
         }
@@ -192,10 +126,10 @@ export function ManualTransfers({
         const claimBalance = {
             balances: [
                 {
-                    balance: newBadgeMsg.badgeSupplys[0].supply,
+                    balance: newCollectionMsg.badgeSupplys[0].supply,
                     badgeIds: [{
                         start: 0,
-                        end: newBadgeMsg.badgeSupplys[0].amount - 1,
+                        end: newCollectionMsg.badgeSupplys[0].amount - 1,
                     }]
                 }
             ], approvals: []
@@ -203,13 +137,13 @@ export function ManualTransfers({
 
         for (const balanceObj of balance.balances) {
             for (const badgeId of balanceObj.badgeIds) {
-                const newBalance = getPostTransferBalance(claimBalance, undefined, badgeId.start, badgeId.end, balanceObj.balance, 1);
+                const newBalance = getPostTransferBalance(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
                 claimBalance.balances = newBalance.balances;
             }
         }
 
-        setNewBadgeMsg({
-            ...newBadgeMsg,
+        setNewCollectionMsg({
+            ...newCollectionMsg,
             claims: [
                 {
                     amountPerClaim: 0,
@@ -226,13 +160,13 @@ export function ManualTransfers({
                 }
             ]
         })
-
         setNewBalances(balance);
+        setClaimItems(newClaimItems);
     }
 
-    const nonFungible = newBadgeMsg.badgeSupplys[0].amount > 1;
+    const nonFungible = newCollectionMsg.badgeSupplys[0].amount > 1;
 
-    const postCurrBalance = getPostTransferBalance(JSON.parse(JSON.stringify(newBalances)), undefined, startBadgeId, endBadgeId, amountToTransfer, 1)
+    const postCurrBalance = getPostTransferBalance(JSON.parse(JSON.stringify(newBalances)), startBadgeId, endBadgeId, amountToTransfer, 1)
 
     return <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
         <Divider />
@@ -255,7 +189,7 @@ export function ManualTransfers({
                         const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
                         downloadJson({
-                            "claims": leafs,
+                            "claims": claimItems,
                         }, `claimCodes-${collectionMetadata.name}-${dateString}-${timeString}.json`);
                     }}
                     className="opacity link-button"
@@ -264,7 +198,7 @@ export function ManualTransfers({
                 </button>
                 <Divider />
 
-                {leafs.map((leaf, index) => {
+                {claimItems.map((leaf, index) => {
                     if (distributionMethod === DistributionMethod.Codes) {
                         if (index % 2 === 0) {
                             return <></>
@@ -282,9 +216,9 @@ export function ManualTransfers({
                             to={distributionMethod === DistributionMethod.SpecificAddresses ?
                                 [
                                     {
-                                        cosmosAddress: leaf.addressOrCode,
+                                        cosmosAddress: leaf.address,
                                         accountNumber: -1,
-                                        address: leaf.addressOrCode,
+                                        address: leaf.address,
                                         chain: ''
                                     }
                                 ] : []}
@@ -388,7 +322,7 @@ export function ManualTransfers({
 
                             <InputNumber
                                 min={0}
-                                max={newBadgeMsg.badgeSupplys[0].amount - 1}
+                                max={newCollectionMsg.badgeSupplys[0].amount - 1}
                                 title='Amount to Transfer'
                                 value={endBadgeId} onChange={
                                     (value: number) => {

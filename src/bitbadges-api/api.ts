@@ -1,13 +1,14 @@
 import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
-import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute } from './routes';
-import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, GetCollectionResponse, GetBalanceResponse, SupportedChain } from './types';
+import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute, GetCollectionResponse, GetBadgeBalanceResponse, GetAccountByNumberResponse } from './routes';
+import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain,  DistributionMethod, GetBalanceResponse, } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 
+//TODO: data normalization: "0" to number 0, "false" to boolean false, etc.
 
 export async function getAccountInformation(
     bech32Address: string,
@@ -35,10 +36,15 @@ export async function getAccountInformation(
 export async function getAccountInformationByAccountNumber(
     id: number,
 ) {
-    const res = await axios.get(NODE_URL + GetAccountByNumberRoute(id))
+    const res: GetAccountByNumberResponse = await axios
+        .get(NODE_URL + GetAccountByNumberRoute(id))
         .then((res) => res.data);
 
-    let bech32Address = res.account_address;
+    if (res.error) {
+        return Promise.reject(res.error);
+    }
+
+    const bech32Address = res.account_address ? res.account_address : '';
 
     const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
         .then((res) => res.data)
@@ -60,9 +66,7 @@ export async function getAccountInformationByAccountNumber(
     return accountInformation;
 }
 
-export async function getBalance(
-    bech32Address: string
-) {
+export async function getBalance(bech32Address: string) {
     const balance = await axios.get(NODE_URL + GetBalanceRoute(bech32Address))
         .then((res) => res.data);
 
@@ -76,8 +80,8 @@ export async function getBalance(
 
 export async function getBadgeCollection(
     collectionId: number,
-    currBadge?: BitBadgeCollection,
-    badgeId?: number
+    currCollection?: BitBadgeCollection,
+    badgeIdToFetch?: number
 ): Promise<GetCollectionResponse> {
     if (isNaN(collectionId) || collectionId < 0) {
         console.error("Invalid collectionId: ", collectionId);
@@ -85,9 +89,8 @@ export async function getBadgeCollection(
     }
 
     //Get the badge data from the blockchain if it doesn't exist
-    let badgeData = currBadge;
+    let badgeData = currCollection;
     if (!badgeData) {
-        console.log('FETCHING BADGE DATA')
         const badgeDataResponse = await axios.get(NODE_URL + GetCollectionRoute(collectionId))
             .then((res) => res.data);
 
@@ -96,6 +99,8 @@ export async function getBadgeCollection(
             return Promise.reject(badgeDataResponse.error);
         }
         badgeData = badgeDataResponse.collection;
+
+        //Format some of the data for easier use
         if (badgeData) {
             badgeData.collectionId = collectionId;
 
@@ -103,12 +108,13 @@ export async function getBadgeCollection(
             let permissionsNumber: any = badgeData.permissions;
             badgeData.permissions = GetPermissions(permissionsNumber);
 
+            // Convert the returned manager (bech32) to an BitBadgesUserInfo object for easier use
             let managerAccountNumber: any = badgeData.manager;
             let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
 
-            //TODO: dynamic chains
-            let ethAddress = cosmosToEth(managerAccountInfo.address);
 
+            //TODO: dynamic conversions between chains
+            let ethAddress = cosmosToEth(managerAccountInfo.address);
             badgeData.manager = {
                 accountNumber: managerAccountInfo.account_number,
                 address: ethAddress,
@@ -117,7 +123,6 @@ export async function getBadgeCollection(
             };
         }
     }
-    console.log("TEST");
 
     //Get the collection metadata if it does not exist on the current badge object
     if (badgeData && (!badgeData.collectionMetadata || JSON.stringify(badgeData.collectionMetadata) === JSON.stringify({} as BadgeMetadata))) {
@@ -132,6 +137,7 @@ export async function getBadgeCollection(
         }
     }
 
+    //Create empty array for all unique badges if it does not exist on the current badge object
     if (badgeData && !badgeData.badgeMetadata) {
         let badgeMetadata: BadgeMetadata[] = [];
         for (let i = 0; i < Number(badgeData?.nextBadgeId); i++) {
@@ -141,47 +147,42 @@ export async function getBadgeCollection(
     }
 
     //Get the individual badge metadata if the requested badgeId does not currently have metadata
-    if (badgeId !== undefined && badgeId >= 0 && badgeData && badgeData.badgeMetadata
-        && (JSON.stringify(badgeData.badgeMetadata[badgeId]) === JSON.stringify({} as BadgeMetadata)
-            || !badgeData.badgeMetadata[badgeId])) {
+    if (badgeIdToFetch !== undefined && badgeIdToFetch >= 0 && badgeData && badgeData.badgeMetadata
+        && (JSON.stringify(badgeData.badgeMetadata[badgeIdToFetch]) === JSON.stringify({} as BadgeMetadata)
+            || !badgeData.badgeMetadata[badgeIdToFetch])) {
 
         let badgeUri = badgeData.badgeUri;
-        console.log("Fetching", badgeUri);
         if (badgeUri.startsWith('ipfs://')) {
-            const res = await getFromIpfs(badgeUri.replace('ipfs://', '').replace('{id}', badgeId.toString()));
-            badgeData.badgeMetadata[badgeId] = JSON.parse(res.file);
+            const res = await getFromIpfs(badgeUri.replace('ipfs://', '').replace('{id}', badgeIdToFetch.toString()));
+            badgeData.badgeMetadata[badgeIdToFetch] = JSON.parse(res.file);
         }
     }
 
-    if (badgeId !== undefined && badgeId >= 0 && badgeData && badgeData.claims) {
+    //Get the leaves for the requested badgeId if it does not currently have leaves
+    if (badgeIdToFetch !== undefined && badgeIdToFetch >= 0 && badgeData && badgeData.claims) {
         for (let idx = 0; idx < badgeData.claims.length; idx++) {
             let claim = badgeData.claims[idx];
+
+            //If we have not fetched the leaves for each claim yet, fetch them
             if (!claim.leaves || claim.leaves.length === 0) {
                 if (Number(claim.type) === 0) {
-                    let res = await getFromIpfs(claim.uri.split('ipfs://')[1]);
-                    console.log(res);
+                    let res = await getFromIpfs(claim.uri.replace('ipfs://', ''));
                     const fetchedLeaves: string[] = JSON.parse(res.file);
 
                     if (fetchedLeaves[0]) {
-                        console.log("LEAVES", fetchedLeaves);
-                        console.log("MODULO", fetchedLeaves[0].split('-').length % 5);
                         if (fetchedLeaves[0].split('-').length < 5 || (fetchedLeaves[0].split('-').length - 3) % 2 != 0) {
-                            //Is a list of hashed codes
+                            //Is a list of hashed codes; do not hash the leaves
+                            //Users will enter their code and we check if we have a Merkle proof for it
                             const tree = new MerkleTree(fetchedLeaves, SHA256);
                             badgeData.claims[idx].leaves = fetchedLeaves;
                             badgeData.claims[idx].tree = tree;
-                            badgeData.claims[idx].isCodes = true
-
-                            console.log("TREE", tree);
+                            badgeData.claims[idx].distributionMethod = DistributionMethod.Codes;
                         } else {
-
-
+                            //Is a list of specific codes with addresses
                             const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
                             badgeData.claims[idx].leaves = fetchedLeaves;
                             badgeData.claims[idx].tree = tree;
-                            badgeData.claims[idx].isCodes = false
-
-                            console.log("TREE", tree);
+                            badgeData.claims[idx].distributionMethod = DistributionMethod.SpecificAddresses;
                         }
                     }
                 } else {
@@ -190,12 +191,7 @@ export async function getBadgeCollection(
                 }
             }
         }
-
     }
-
-
-
-    console.log("BADGE", badgeData);
 
     return {
         collection: badgeData
@@ -205,7 +201,7 @@ export async function getBadgeCollection(
 export async function getBadgeBalance(
     badgeId: number,
     accountNumber: number
-): Promise<GetBalanceResponse> {
+): Promise<GetBadgeBalanceResponse> {
     if (isNaN(badgeId) || badgeId < 0) {
         console.error("Invalid badgeId: ", badgeId);
         return Promise.reject(`Invalid badgeId: ${badgeId}`);
@@ -215,21 +211,21 @@ export async function getBadgeBalance(
         console.error("Invalid accountNumber: ", accountNumber);
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
-    console.log('FETCHING BADGE BALANCE')
-    const balanceRes = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
+    const balanceRes: GetBadgeBalanceResponse = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
         .then((res) => res.data);
 
     if (balanceRes.error) {
         console.error("ERROR: ", balanceRes.error);
         return Promise.reject(balanceRes.error);
     }
-
-    console.log("BALANCE", balanceRes);
-
-
-    //Normalize end ranges
-    for (const balanceAmount of balanceRes.balance.balances) {
-        balanceAmount.balance = Number(balanceAmount.balance);
+    if (balanceRes.balance) {
+        for (const balanceObject of balanceRes.balance.balances) {
+            balanceObject.balance = Number(balanceObject.balance);
+            for (const badgeId of balanceObject.badgeIds) {
+                badgeId.start = Number(badgeId.start);
+                badgeId.end = Number(badgeId.end);
+            }
+        }
     }
 
     return balanceRes;
