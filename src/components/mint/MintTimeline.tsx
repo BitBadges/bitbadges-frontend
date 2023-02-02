@@ -2,7 +2,7 @@ import { Timeline, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { DefaultPlaceholderMetadata, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ChooseBadgeType } from './timeline-items/ChooseBadgeType';
 import { SetProperties } from './timeline-items/SetProperties';
 import { TransactionDetails } from './timeline-items/SubmitNewCollectionMsg';
@@ -33,6 +33,7 @@ export function MintTimeline() {
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
     const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
     const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
+    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState<boolean>(false);
 
     const [newCollectionMsg, setNewCollectionMsg] = useState<MessageMsgNewCollection>({
         creator: chain.cosmosAddress,
@@ -49,17 +50,23 @@ export function MintTimeline() {
     });
 
     const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
-    const [individualBadgeMetadata, setIndividualBadgeMetadata] = useState<BadgeMetadata[]>();
+    const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadata[]>([]);
+
+    const setIndividualBadgeMetadata = (metadata: BadgeMetadata[]) => {
+        setBadgeMetadata(metadata);
+        setHackyUpdatedFlag(!hackyUpdatedFlag);
+    }
+
 
     useEffect(() => {
-        if (collectionMetadata && newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys[0]) {
+        if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys[0]) {
             let metadata = [];
             for (let i = 0; i < newCollectionMsg.badgeSupplys[0].amount; i++) {
-                metadata.push(collectionMetadata);
+                metadata.push(DefaultPlaceholderMetadata);
             }
-            setIndividualBadgeMetadata(metadata);
+            setBadgeMetadata(metadata);
         }
-    }, [collectionMetadata, newCollectionMsg.badgeSupplys])
+    }, [newCollectionMsg.badgeSupplys])
 
     const steps = [
         {
@@ -87,7 +94,6 @@ export function MintTimeline() {
             content: (
                 <>
                     {newCollectionMsg?.standard == 0 && <SetProperties
-
                         setCurrStepNumber={setCurrStepNumber}
                         newCollectionMsg={newCollectionMsg}
                         setNewCollectionMsg={setNewCollectionMsg}
@@ -101,6 +107,7 @@ export function MintTimeline() {
                         setIndividualBadgeMetadata={setIndividualBadgeMetadata}
                         distributionMethod={distributionMethod}
                         setDistributionMethod={setDistributionMethod}
+                        hackyUpdatedFlag={hackyUpdatedFlag}
                     />}
                     {/* TODO:  newCollectionMsg?.standard == ... */}
                 </>

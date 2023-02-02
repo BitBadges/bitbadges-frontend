@@ -2,7 +2,6 @@ import { ChallengeParams } from "blockin";
 import { stringify } from "../pages/api/utils/preserveJson";
 import { BadgeMetadata } from "../bitbadges-api/types";
 import { BACKEND_URL } from "../constants";
-import MerkleTree from "merkletreejs";
 
 /**
  * Here, we define the API function logic to call your backend.

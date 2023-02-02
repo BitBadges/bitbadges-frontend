@@ -2,6 +2,7 @@ import { Avatar, Tooltip } from "antd";
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { useEffect, useState } from "react";
 import { BadgeModal } from "./BadgeModal";
+import { PRIMARY_TEXT } from "../../constants";
 
 export function BadgeAvatar({
     badge,
@@ -9,55 +10,71 @@ export function BadgeAvatar({
     size,
     badgeId,
     balance,
+    showId
 }: {
     badge: BitBadgeCollection,
     metadata: BadgeMetadata,
     size?: number,
     badgeId: number,
     balance?: UserBalance,
+    showId?: boolean,
 }) {
-    console.log(badgeId)
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
+    const [displayMetadata, setDisplayMetadata] = useState<BadgeMetadata>(metadata);
 
-    return metadata ? <Tooltip
+    let stringified = JSON.stringify(metadata);
+    useEffect(() => {
+        setDisplayMetadata(metadata);
+    }, [stringified, metadata]);
+
+    return displayMetadata ? <Tooltip
         placement="bottom"
-        title={`${metadata.name} (ID: ${badgeId})`}
+        title={`${displayMetadata.name} (ID: ${badgeId})`}
         open={modalIsVisible ? false : undefined}
     >
-        {metadata.image ? (
-            <Avatar
-                style={{
-                    verticalAlign: 'middle',
-                    border: '1px solid',
-                    borderColor: metadata.color || 'black',
-                    margin: 4,
-                    cursor: 'pointer',
-                }}
-                className="badge-avatar"
-                src={metadata.image}
-                size={size}
-                onClick={() => setModalIsVisible(true)}
-                onError={() => {
-                    return false;
-                }}
-            />
+        {displayMetadata.image ? (
+            <div style={{ textAlign: 'center' }}>
+                <Avatar
+                    style={{
+                        verticalAlign: 'middle',
+                        border: '1px solid',
+                        borderColor: displayMetadata.color || 'black',
+                        margin: 4,
+                        cursor: 'pointer',
+                    }}
+                    className="badge-avatar"
+                    src={displayMetadata.image}
+                    size={size}
+                    onClick={() => setModalIsVisible(true)}
+                    onError={() => {
+                        return false;
+                    }}
+                />
+                <br />
+                {showId && <span style={{ color: PRIMARY_TEXT }}>{badgeId}</span>}
+            </div>
         ) : (
-            <Avatar
-                style={{
-                    backgroundColor: metadata.color,
-                    verticalAlign: 'middle',
-                    border: '1px solid black',
-                    margin: 4,
-                    cursor: 'pointer',
-                }}
-                size={size}
-                className="badge-avatar"
-                onClick={() => setModalIsVisible(true)}
-            ></Avatar>
+            <div style={{ textAlign: 'center' }}>
+
+                <Avatar
+                    style={{
+                        backgroundColor: displayMetadata.color,
+                        verticalAlign: 'middle',
+                        border: '1px solid black',
+                        margin: 4,
+                        cursor: 'pointer',
+                    }}
+                    size={size}
+                    className="badge-avatar"
+                    onClick={() => setModalIsVisible(true)}
+                ></Avatar>
+                <br />
+                {showId && <span style={{ color: PRIMARY_TEXT }}>{badgeId}</span>}
+            </div>
         )}
         <BadgeModal
             badge={badge}
-            metadata={metadata}
+            metadata={displayMetadata}
             visible={modalIsVisible}
             setVisible={setModalIsVisible}
             balance={balance ? balance : {} as UserBalance}

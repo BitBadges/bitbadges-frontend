@@ -2,7 +2,7 @@ import { Typography, Form, Button } from 'antd';
 import React from 'react';
 import { useState } from 'react';
 
-import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { PRIMARY_TEXT } from '../../../constants';
 import { FormNavigationHeader } from '../form/FormNavigationHeader';
 import { BadgeMetadata, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';

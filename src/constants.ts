@@ -1,6 +1,6 @@
 import { MerkleTree } from 'merkletreejs';
 import SHA256 from 'crypto-js/sha256';
-import { BitBadgesUserInfo, SupportedChain } from './bitbadges-api/types';
+import { BadgeMetadata, BitBadgesUserInfo, SupportedChain } from './bitbadges-api/types';
 
 const CryptoJS = require("crypto-js");
 
@@ -59,4 +59,10 @@ export const MINT_ACCOUNT: BitBadgesUserInfo = {
     accountNumber: -1,
     address: 'Mint Address',
     chain: SupportedChain.COSMOS
+}
+
+export const DefaultPlaceholderMetadata: BadgeMetadata = {
+    name: 'Placeholder',
+    description: '',
+    image: 'https://www.webfx.com/wp-content/uploads/2021/10/generic-image-placeholder.png',
 }

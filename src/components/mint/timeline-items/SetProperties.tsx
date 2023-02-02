@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissions, Permissions, UpdatePermissions } from '../../../bitbadges-api/permissions';
 import { ConfirmManager } from '../form/ConfirmManager';
@@ -6,14 +6,17 @@ import { FormTimeline } from '../form/FormTimeline';
 import { BadgeSupply } from '../form/BadgeSupplySelect';
 import { SwitchForm } from '../form/SwitchForm';
 import { useChainContext } from '../../../chain/ChainContext';
-import { BadgeMetadata, ClaimItem } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, ClaimItem, UserBalance } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { FullMetadataForm } from '../form/FullMetadataForm';
 import { MetadataAddMethod } from '../MintTimeline';
 import { CreateClaims } from '../form/CreateClaims';
 import { FirstComeFirstServe } from '../form/FirstComeFirstServe';
 import saveAs from 'file-saver';
-import { Button, InputNumber } from 'antd';
+import { Button, Divider, InputNumber } from 'antd';
+import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
+import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
+import { PRIMARY_TEXT } from '../../../constants';
 
 enum DistributionMethod {
     None,
@@ -51,6 +54,7 @@ export function SetProperties({
     setClaimItems,
     distributionMethod,
     setDistributionMethod,
+    hackyUpdatedFlag,
 }: {
     setCurrStepNumber: (stepNumber: number) => void;
     newCollectionMsg: MessageMsgNewCollection;
@@ -65,13 +69,16 @@ export function SetProperties({
     setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
     distributionMethod: DistributionMethod;
     setDistributionMethod: (method: DistributionMethod) => void;
+    hackyUpdatedFlag: boolean;
 }) {
+    const chain = useChainContext();
+
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
-        CanUpdateBytes: false,
-        CanUpdateUris: false,
+        CanCreateMoreBadges: false,
         CanManagerBeTransferred: false,
         CanUpdateDisallowed: false,
-        CanCreateMoreBadges: false,
+        CanUpdateUris: false,
+        CanUpdateBytes: false,
     });
 
     const [handledDisallowedTransfers, setHandledDisallowedTransfers] = useState<boolean>(false);
@@ -80,6 +87,7 @@ export function SetProperties({
 
     const [id, setId] = useState(0);
 
+    const collection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
 
     //TODO: abstract all these to their own exportable components
     return (
@@ -132,6 +140,7 @@ export function SetProperties({
                 nonFungible ? {
                     title: 'Can Manager Add Badges to Collection?',
                     description: `This collection currently contains ${newCollectionMsg.badgeSupplys[0]?.amount} unique badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                    disabled: !handledPermissions.CanCreateMoreBadges,
                     node: <>
                         <SwitchForm
                             options={[
@@ -174,6 +183,7 @@ export function SetProperties({
                 {
                     title: 'Transferable?',
                     description: ``,
+                    disabled: !handledDisallowedTransfers,
                     node: <>
                         <SwitchForm
                             options={[
@@ -341,6 +351,7 @@ export function SetProperties({
                             }
                         }}
                     />,
+                    disabled: addMethod === MetadataAddMethod.None
                 },
                 {
                     title: 'Updatable Metadata?',
@@ -381,6 +392,7 @@ export function SetProperties({
                             setHandledPermissions(newHandledPermissions);
                         }}
                     />,
+                    disabled: !handledPermissions.CanUpdateUris
                 },
                 //TODO: add preview
                 {
@@ -401,16 +413,49 @@ export function SetProperties({
                 addMethod === MetadataAddMethod.Manual ?
                     {
                         title: 'Set Individual Badge Metadata',
-                        description: <>Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} /></>,
-                        node: <FullMetadataForm
-                            id={id}
-                            metadata={individualBadgeMetadata}
-                            setMetadata={setIndividualBadgeMetadata as any}
-                            addMethod={addMethod}
-                            setAddMethod={setAddMethod}
-                            setNewCollectionMsg={setNewCollectionMsg}
-                            newCollectionMsg={newCollectionMsg}
-                        />,
+                        description: <>
+                            Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} />
+
+                        </>,
+                        node: <>
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <div style={{ maxWidth: 700 }}>
+                                    <BadgeAvatarDisplay
+                                        badgeCollection={collection}
+                                        setBadgeCollection={() => { }}
+                                        userBalance={{} as UserBalance}
+                                        startId={0}
+                                        endId={individualBadgeMetadata.length - 1}
+                                        selectedId={id}
+                                        size={40}
+                                        hackyUpdatedFlag={hackyUpdatedFlag}
+                                        showIds={true}
+                                    />
+                                </div>
+                            </div>
+                            <br />
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
+                                    onClick={() => {
+                                        setIndividualBadgeMetadata(individualBadgeMetadata.map((x) => collectionMetadata));
+                                    }}>Populate All with Collection Metadata</Button>
+                                <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
+                                    onClick={() => {
+                                        setIndividualBadgeMetadata(individualBadgeMetadata.map((x) => individualBadgeMetadata[0]));
+                                    }}>Populate All with Badge ID 0s Metadata</Button>
+                            </div>
+                            <Divider />
+
+                            <FullMetadataForm
+                                id={id}
+                                metadata={individualBadgeMetadata}
+                                setMetadata={setIndividualBadgeMetadata as any}
+                                addMethod={addMethod}
+                                setAddMethod={setAddMethod}
+                                setNewCollectionMsg={setNewCollectionMsg}
+                                newCollectionMsg={newCollectionMsg}
+                            />
+                        </>,
                         disabled: !(individualBadgeMetadata[id]?.name)
                     } : EmptyFormItem,
                 {
@@ -473,145 +518,8 @@ export function SetProperties({
                                 collectionMetadata={collectionMetadata}
                                 setCollectionMetadata={setCollectionMetadata}
                             />,
+                            disabled: claimItems.length == 0
                         } : EmptyFormItem,
-                // addMethod == MetadataAddMethod.Manual ?
-                //     {
-                //         title: 'Upload Metadata',
-                //         description: <>We will now upload your metadata to our permanent file storage.
-                //             For backup purposes, we recommend you save a local copy as well (
-                //             <button
-                //                 style={{
-                //                     backgroundColor: 'inherit',
-                //                     color: SECONDARY_TEXT,
-                //                 }}
-                //                 onClick={() => {
-                //                     const today = new Date();
-
-                //                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                //                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                //                     downloadJson({
-                //                         collectionMetadata: collectionMetadata,
-                //                         individualBadgeMetadata: individualBadgeMetadata,
-                //                     }, `metadata-${collectionMetadata.name}-${dateString}-${timeString}.json`);
-                //                 }}
-                //                 className="opacity link-button"
-                //             >
-                //                 click here to download
-                //             </button>). </>,
-                //         node: <div
-                //             style={{
-                //                 width: '100%',
-                //                 display: 'flex',
-                //                 justifyContent: 'center',
-                //                 alignItems: 'center',
-                //                 marginTop: 20,
-                //             }}
-                //         >
-                //             <Button
-                //                 type="primary"
-                //                 loading={loading}
-                //                 style={{ width: '90%' }}
-                //                 onClick={async () => {
-                //                     setLoading(true);
-                //                     setSuccess(false);
-                //                     let badgeMsg = newCollectionMsg;
-
-                //                     if (addMethod == MetadataAddMethod.Manual) {
-                //                         let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
-
-                //                         badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
-                //                         badgeMsg.badgeUri = 'ipfs://' + res.cid + '/{id}';
-                //                     }
-
-                //                     setNewCollectionMsg(badgeMsg);
-
-                //                     setSuccess(true);
-                //                     setLoading(false);
-                //                 }}
-                //                 disabled={success}
-                //             >
-                //                 Upload Metadata {success && <CheckCircleFilled
-                //                     style={{
-                //                         color: 'green',
-                //                     }}
-                //                 />}
-                //             </Button>
-                //         </div>,
-                //         disabled: !success,
-
-                //     } : EmptyFormItem,
-                // distributionMethod == DistributionMethod.SpecificAddresses || distributionMethod == DistributionMethod.Codes ?
-                //     {
-                //         title: 'Upload Distribution Details',
-                //         description: <>To aid us in properly distributing your badges, we will now upload your selected distribution details to our permanent file storage.
-                //             For backup purposes, we recommend you save a local copy as well (
-                //             <button
-                //                 style={{
-                //                     backgroundColor: 'inherit',
-                //                     color: SECONDARY_TEXT,
-                //                 }}
-                //                 onClick={() => {
-                //                     const today = new Date();
-
-                //                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                //                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                //                     downloadJson({
-                //                         claimItems: claimItems,
-                //                     }, `merkleTree-${collectionMetadata.name}-${dateString}-${timeString}.json`);
-                //                 }}
-                //                 className="opacity link-button"
-                //             >
-                //                 click here to download
-                //             </button>). </>,
-                //         node: <div
-                //             style={{
-                //                 width: '100%',
-                //                 display: 'flex',
-                //                 justifyContent: 'center',
-                //                 alignItems: 'center',
-                //                 marginTop: 20,
-                //             }}
-                //         >
-                //             <Button
-                //                 type="primary"
-                //                 loading={loading}
-                //                 style={{ width: '90%' }}
-                //                 onClick={async () => {
-                //                     setDistributionLoading(true);
-                //                     setDistributionSuccess(false);
-                //                     let badgeMsg = newCollectionMsg;
-
-                //                     if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.SpecificAddresses) {
-                //                         let merkleTreeRes = await addMerkleTreeToIpfs(claimItems);
-                //                         badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                //                     }
-
-                //                     setNewCollectionMsg(badgeMsg);
-
-                //                     setDistributionSuccess(true);
-                //                     setDistributionLoading(false);
-                //                 }}
-                //                 disabled={success}
-                //             >
-                //                 Upload Metadata {success && <CheckCircleFilled
-                //                     style={{
-                //                         color: 'green',
-                //                     }}
-                //                 />}
-                //             </Button>
-                //         </div>,
-                //         disabled: !distributionSuccess,
-                //     } : EmptyFormItem,
-
-
-
-
-
-
-
-
                 // {
                 //TODO: add support for this
                 //     title: 'Can More Badges Be Created Later?',

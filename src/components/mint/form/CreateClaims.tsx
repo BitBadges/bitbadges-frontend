@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Typography, InputNumber, Button, Steps, Divider } from 'antd';
+import React, { useState } from 'react';
+import { InputNumber, Button, Divider } from 'antd';
 import { MINT_ACCOUNT, PRIMARY_TEXT, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
-import { MessageMsgNewCollection, MessageMsgTransferBadge } from 'bitbadgesjs-transactions';
-import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
-import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { BadgeMetadata, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
 import { TransferDisplay } from '../../common/TransferDisplay';
 import { getBadgeSupplysFromMsgNewCollection, getPostTransferBalance } from '../../../bitbadges-api/balances';
 import { useChainContext } from '../../../chain/ChainContext';
@@ -11,20 +10,12 @@ import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 import { AddressSelect } from '../../address/AddressSelect';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
-import { GetPermissions } from '../../../bitbadges-api/permissions';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
-import saveAs from 'file-saver';
 import { createClaim } from '../../../bitbadges-api/claims';
+import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
+import { downloadJson } from '../../../bitbadges-api/utils/downloadJson';
 
 const crypto = require('crypto');
-
-function downloadJson(json: object, filename: string) {
-    const blob = new Blob([JSON.stringify(json)], {
-        type: 'application/json'
-    });
-    saveAs(blob, filename);
-}
-
 
 
 export function CreateClaims({
@@ -49,26 +40,7 @@ export function CreateClaims({
     setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
 }) {
     const chain = useChainContext();
-
-    const badgeCollection: BitBadgeCollection = {
-        ...newCollectionMsg,
-        collectionId: 0,
-        manager: {
-            chain: chain.chain,
-            accountNumber: chain.accountNumber,
-            address: chain.address,
-            cosmosAddress: chain.cosmosAddress,
-        },
-        nextBadgeId: newCollectionMsg.badgeSupplys[0].amount - 1,
-        badgeMetadata: individualBadgeMetadata,
-        collectionMetadata: collectionMetadata,
-        unmintedSupplys: [],
-        maxSupplys: [],
-        permissions: GetPermissions(newCollectionMsg.permissions),
-        disallowedTransfers: [],
-        managerApprovedTransfers: [],
-        claims: [],
-    }
+    const badgeCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
 
     const [newBalances, setNewBalances] = useState<UserBalance>(getBadgeSupplysFromMsgNewCollection(newCollectionMsg));
 
@@ -170,10 +142,18 @@ export function CreateClaims({
 
     return <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
         <Divider />
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-
-            <div style={{ width: '50%' }}>
-                <h2>Created Claims</h2>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ width: '45%' }}>
+                <h2>Undistributed Badges</h2>
+                <p>Any badges leftover will remain unminted and can be put up for claim in the future!</p>
+                <BalanceDisplay
+                    collection={badgeCollection}
+                    message='Undistributed Badges'
+                    balance={newBalances}
+                />
+            </div>
+            <div style={{ width: '45%' }}>
+                <h2>Distributed Badges</h2>
                 <p>
                     IMPORTANT: You are responsible for storing and distributing the codes you create!
                 </p>
@@ -199,13 +179,18 @@ export function CreateClaims({
                 <Divider />
 
                 {claimItems.map((leaf, index) => {
+                    let currIndex = index;
                     if (distributionMethod === DistributionMethod.Codes) {
-                        if (index % 2 === 0) {
+                        if (index % 2 === 1) {
                             return <></>
                         }
+
+                        currIndex = index / 2;
                     }
 
                     return <div key={index} style={{ color: PRIMARY_TEXT }}>
+                        <hr />
+                        <h3>Claim #{currIndex + 1}</h3>
                         <TransferDisplay
                             badge={badgeCollection}
                             setBadgeCollection={() => { }}
@@ -229,33 +214,16 @@ export function CreateClaims({
                             startId={leaf.badgeIds[0]?.start}
                             endId={leaf.badgeIds[0]?.end}
                         />
+
                         <Divider />
-                        {/* <p>x{leaf.amount} of badges with IDs from {leaf.badgeIds[0]?.start} to {leaf.badgeIds[0]?.end} can be claimed{" "}
-                            {distributionMethod === DistributionMethod.SpecificAddresses ?
-                                'by the address ' + leaf.addressOrCode : 'with the code ' + leaf.addressOrCode}
-                        </p> */}
+
+
                     </div>
                 })}
             </div>
-            <div style={{ width: '50%' }}>
-                <h2>Leftover Badges</h2>
-                <p>Any badges leftover will remain unminted and can be put up for claim in the future!</p>
-                <BalanceDisplay
-                    message='Leftover Balances'
-                    balance={newBalances}
-                />
-            </div>
+
         </div>
         <hr />
-
-
-        {/* <BalanceBeforeAndAfter
-            hideTitle
-            balance={newBalances}
-            newBalance={postCurrBalance} partyString='Unminted'
-            beforeMessage='Undistributed Badges'
-            afterMessage={`Undistributed Badges (After Current ${distributionMethod === DistributionMethod.SpecificAddresses ? 'Transfer' : 'Code'})`}
-        /> */}
 
         {newBalances && newBalances.balances.length > 0 ?
             <div style={{}}>
@@ -337,17 +305,37 @@ export function CreateClaims({
                         </div>
                     </>}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                    <b>Badges</b>
+
+                <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+                    <div style={{ width: '48%' }}>
+
+                        <BalanceDisplay
+                            message='Badges for New Claim'
+                            balance={{
+                                approvals: [],
+                                balances: [
+                                    {
+                                        balance: amountToTransfer,
+                                        badgeIds: [
+                                            {
+                                                start: startBadgeId,
+                                                end: endBadgeId
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }}
+                            collection={badgeCollection}
+                        />
+                    </div>
+                    <div style={{ width: '48%' }}>
+                        <BalanceDisplay
+                            message='Undistributed Badges After New Claim'
+                            balance={postCurrBalance}
+                            collection={badgeCollection}
+                        />
+                    </div>
                 </div>
-                <BadgeAvatarDisplay
-                    badgeCollection={badgeCollection} setBadgeCollection={() => { }} startId={startBadgeId} endId={endBadgeId} userBalance={{} as UserBalance} />
-
-
-                <BalanceDisplay
-                    message='Undistributed Badges After Claim'
-                    balance={postCurrBalance}
-                />
 
                 <Button
                     type='primary'

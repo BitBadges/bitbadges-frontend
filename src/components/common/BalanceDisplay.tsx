@@ -1,9 +1,12 @@
-import { UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 export function BalanceDisplay({
+    collection,
     balance,
     message,
 }: {
+    collection: BitBadgeCollection
     balance: UserBalance;
     message?: string;
 }) {
@@ -32,12 +35,21 @@ export function BalanceDisplay({
                             <>
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}<br />
                             </>
+                            <BadgeAvatarDisplay
+                                badgeCollection={collection}
+                                setBadgeCollection={() => { }}
+                                userBalance={balance}
+                                startId={idRange.start}
+                                endId={idRange.end}
+                            />
                         </div>
                     })
                 })}
                 {(!balance || balance.balances?.length === 0) && <div style={{ textAlign: 'center' }}>
                     <span>None</span>
                 </div>}
+
+
             </div>
         </div>
     </>

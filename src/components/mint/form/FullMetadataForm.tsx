@@ -46,7 +46,6 @@ export function FullMetadataForm({
             label: 'Medal',
         },
     ]);
-    const [newImage, setNewImage] = useState('');
 
     const addItem = (e: any) => {
         e.preventDefault();
@@ -58,26 +57,11 @@ export function FullMetadataForm({
         setName(event.target.value);
     };
 
-    const addImage = (e: any) => {
-        e.preventDefault();
-
-        setImages([
-            ...images,
-            {
-                value: newImage,
-                label: newImage,
-            },
-        ]);
-        setNewImage('');
-    };
-
-    const onNewImageChange = (event: any) => {
-        setNewImage(event.target.value);
-    };
-
     const [currentMetadata, setCurrentMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
+
     const getMetadataToUpdate = (newMetadata: BadgeMetadata) => {
         setCurrentMetadata(newMetadata);
+
         if (!isNaN(Number(id)) && Number(id) >= 0) {
             let currMetadata: BadgeMetadata[] = metadata as BadgeMetadata[];
             currMetadata[Number(id)] = newMetadata;
@@ -87,30 +71,14 @@ export function FullMetadataForm({
         }
     }
 
-
-
     let stringifiedMetadata = JSON.stringify(metadata);
     useEffect(() => {
         const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id)] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
         console.log('set metadata to', m)
 
-        if (m.image && !images.find(img => {
-            return img.value === m.image;
-        })) {
-            setImages([
-                ...images,
-                {
-                    value: m.image,
-                    label: 'Collection Image',
-                },
-            ]);
-        }
 
     }, [metadata, stringifiedMetadata, id, images])
-
-    // console.log(currMetadata.name);
-    // console.log(metadata, stringifiedMetadata, id, currMetadata)
 
     const props: UploadProps = {
         showUploadList: false,
@@ -141,13 +109,10 @@ export function FullMetadataForm({
                         ...currentMetadata,
                         image: base64
                     }));
-                    setNewImage('');
                 })
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed. ${JSON.stringify(info.file)}}`);
             }
-
-
         },
     };
 
@@ -160,73 +125,9 @@ export function FullMetadataForm({
         })
     }
 
-
     return (
         <>
-            {/* <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-                <div>
-                    <SwitchForm
-                        onSwitchChange={(optionOne, optionTwo) => {
-                            setAddOwnUrl(optionOne);
-                        }}
-                        selectedTitle={'Add Custom Metadata URL (Advanced)'}
-                        unselectedTitle={'Fill Out Metadata Form'}
-                        selectedMessage={'Add Own URL'}
-                        unselectedMessage={'Fill Out Form'}
-                        isOptionOneSelected={addOwnUrl}
-                        isOptionTwoSelected={!addOwnUrl}
-
-                    />
-                </div> */}
             <div>
-                {/* {!hideAddMethod && <>
-                    <Form.Item
-                        label={
-                            <Text
-                                style={{ color: PRIMARY_TEXT }}
-                                strong
-                            >
-                                How to Add Metadata?
-                            </Text>
-                        }
-                        required
-                    >
-                        <Select
-                            className="selector"
-                            defaultValue={addMethod}
-                            onSelect={(e: any) => {
-                                setAddMethod(e);
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                            suffixIcon={
-                                <DownOutlined
-                                    style={{ color: PRIMARY_TEXT }}
-                                />
-                            }
-                        >
-                            {Object.keys(MetadataAddMethod).map((key: any) => {
-                                return (
-                                    <Select.Option key={key} value={MetadataAddMethod[key as keyof typeof MetadataAddMethod]}>
-                                        {MetadataAddMethod[key as keyof typeof MetadataAddMethod]}
-                                    </Select.Option>
-                                )
-                            })}
-                        </Select>
-                        <div style={{ fontSize: 12 }}>
-                            <Text style={{ color: 'lightgray' }}>
-                                *{addMethod} means that
-                                {addMethod === MetadataAddMethod.Manual && ' you customize your metadata using the form below, and we handle everything else for you.'}
-                                {addMethod === MetadataAddMethod.UploadUrl && ' you host the metadata yourself and just provide us the URL for where to retrieve it.'}
-                            </Text>
-                        </div>
-                    </Form.Item>
-                    <br />
-                    <br />
-                </>
-                } */}
                 {addMethod === MetadataAddMethod.UploadUrl && <>
                     <UriSelect setUri={(collectionUri: string, badgeUri: string) => {
                         setNewCollectionMsg({
@@ -301,33 +202,6 @@ export function FullMetadataForm({
                                         align="center"
                                         style={{ padding: '0 8px 4px' }}
                                     >
-                                        {/* <Input
-                                    placeholder="Enter Image Name"
-                                    value={newImage}
-                                    onChange={onNewImageChange}
-                                /> */}
-                                        {/* <Typography.Link
-                                    // disabled={
-                                    // !isuri.isValid(newImage) TODO:
-                                    // }
-                                    onClick={addImage}
-                                    style={{
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    <PlusOutlined /> Add Image
-                                </Typography.Link> */}
-                                        {/* <Typography.Link
-                                    // disabled={
-                                    // !isuri.isValid(newImage) TODO:
-                                    // }
-                                    onClick={addImage}
-                                    style={{
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    <PlusOutlined /> Upload Image from Computer
-                                </Typography.Link> */}
                                         <Upload {...props}>
                                             <Button icon={<UploadOutlined />}>Click to Upload New Image</Button>
                                         </Upload>

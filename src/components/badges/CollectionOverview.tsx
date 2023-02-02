@@ -11,14 +11,12 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { useChainContext } from '../../chain/ChainContext';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
-import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
 
 export function CollectionOverview({ badge, metadata, span }: {
     badge: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
     span?: number;
 }) {
-    const chain = useChainContext();
     if (!badge || !metadata) return <></>
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
@@ -38,7 +36,7 @@ export function CollectionOverview({ badge, metadata, span }: {
             title="Collection Info"
             span={span}
         >
-            <TableRow label={"Collection ID"} value={badge.id} labelSpan={9} valueSpan={15} />
+            <TableRow label={"Collection ID"} value={badge.collectionId} labelSpan={9} valueSpan={15} />
             <TableRow label={"Type"} value={badge.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />
             {badge.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
                 <div></div>
@@ -62,14 +60,21 @@ export function CollectionOverview({ badge, metadata, span }: {
             </div>} labelSpan={9} valueSpan={15} />}
             {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
             {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}
-            {badge.uri && <TableRow label={"Metadata URI"} value={
+            {badge.collectionUri && <TableRow label={"Collection Metadata"} value={
                 <div>
-                    <Tooltip title={getUriFromUriObject(badge.uri)}>
-                        <a href={getUriFromUriObject(badge.uri)} target="_blank" rel="noreferrer">{getUriFromUriObject(badge.uri).slice(0, 10) + '...' + getUriFromUriObject(badge.uri).slice(getUriFromUriObject(badge.uri).length - 13)} <LinkOutlined /></a>
+                    <Tooltip title={badge.collectionUri}>
+                        <a href={badge.collectionUri} target="_blank" rel="noreferrer">{badge.collectionUri.slice(0, 10) + '...' + badge.collectionUri.slice(badge.collectionUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
-            {badge.arbitraryBytes && <TableRow label={"Arbitrary Bytes"} value={badge.arbitraryBytes} labelSpan={9} valueSpan={15} />}
+            {badge.badgeUri && <TableRow label={"Badge Metadata"} value={
+                <div>
+                    <Tooltip title={badge.badgeUri}>
+                        <a href={badge.badgeUri} target="_blank" rel="noreferrer">{badge.badgeUri.slice(0, 10) + '...' + badge.badgeUri.slice(badge.badgeUri.length - 13)} <LinkOutlined /></a>
+                    </Tooltip>
+                </div>
+            } labelSpan={9} valueSpan={15} />}
+            {badge.bytes && <TableRow label={"Arbitrary Bytes"} value={badge.bytes} labelSpan={9} valueSpan={15} />}
             <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
                 {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
                     ? 'Until ' +

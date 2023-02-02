@@ -40,7 +40,7 @@ export function CreateTxMsgTransferBadgeModal(
         let balanceCopy = JSON.parse(JSON.stringify(balance));
         console.log("pre-balance-copy", balanceCopy);
         try {
-            let newBalanceObj = getPostTransferBalance(balanceCopy, badge, startBadgeId, endBadgeId, amountToTransfer, toAddresses.length);
+            let newBalanceObj = getPostTransferBalance(balanceCopy, startBadgeId, endBadgeId, amountToTransfer, toAddresses.length);
             console.log("TRY", newBalanceObj)
             setNewBalance(newBalanceObj);
         } catch (e) {
@@ -186,7 +186,7 @@ export function CreateTxMsgTransferBadgeModal(
 
                 />
                 <hr />
-                <BalanceBeforeAndAfter balance={balance} newBalance={newBalance} partyString='Your' />
+                <BalanceBeforeAndAfter collection={badge} balance={balance} newBalance={newBalance} partyString='Your' />
             </div>,
             disabled: secondStepDisabled
         },

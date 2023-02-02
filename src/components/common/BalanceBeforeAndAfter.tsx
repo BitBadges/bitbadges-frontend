@@ -1,4 +1,4 @@
-import { UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BalanceDisplay } from "./BalanceDisplay";
 
 export function BalanceBeforeAndAfter({
@@ -8,11 +8,13 @@ export function BalanceBeforeAndAfter({
     hideTitle,
     beforeMessage,
     afterMessage,
+    collection
 }: {
     balance: UserBalance;
     newBalance: UserBalance;
     partyString: string;
     hideTitle?: boolean;
+    collection: BitBadgeCollection;
 
     beforeMessage?: string;
     afterMessage?: string;
@@ -36,12 +38,14 @@ export function BalanceBeforeAndAfter({
         }}>
             <div style={{ margin: 20 }}>
                 <BalanceDisplay
+                    collection={collection}
                     balance={balance}
                     message={beforeMessage ? beforeMessage : 'Before'}
                 />
             </div>
             <div style={{ margin: 20 }}>
                 <BalanceDisplay
+                    collection={collection}
                     balance={newBalance}
                     message={afterMessage ? afterMessage : 'After'}
                 />
