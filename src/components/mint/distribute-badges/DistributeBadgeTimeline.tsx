@@ -7,7 +7,7 @@ import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transa
 import { useChainContext } from '../../../chain/ChainContext';
 import { BadgeMetadata, BitBadgeCollection, ClaimItem } from '../../../bitbadges-api/types';
 import { SubmitNewMintMsg } from './SubmitNewMintMsg';
-import { MintAndDistribute } from './MintAndDistributeTimeline';
+import { MintAndDistribute } from './DistributeTimeline';
 
 const { Text } = Typography;
 
@@ -26,10 +26,12 @@ enum DistributionMethod {
     Unminted,
 }
 
-export function MintCollectionTimeline({
-    collection
+export function MintAndDistributeTimeline({
+    collection,
+    setCollection,
 }: {
     collection: BitBadgeCollection;
+    setCollection: (collection: BitBadgeCollection) => void;
 }) {
     const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
@@ -45,12 +47,14 @@ export function MintCollectionTimeline({
         bytes: '',
         permissions: 0,
         standard: 0,
+        //TODO: make this dynamic?
         badgeSupplys: [],
         transfers: [],
         disallowedTransfers: [],
         claims: [],
         managerApprovedTransfers: [],
     });
+
 
     const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
     const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadata[]>([]);
@@ -83,6 +87,8 @@ export function MintCollectionTimeline({
                 <>
                     {
                         <MintAndDistribute
+                            collection={collection}
+                            setCollection={setCollection}
                             setCurrStepNumber={setCurrStepNumber}
                             newCollectionMsg={newCollectionMsg}
                             setNewCollectionMsg={setNewCollectionMsg}
@@ -111,6 +117,7 @@ export function MintCollectionTimeline({
             ),
             content: (
                 <SubmitNewMintMsg
+                    collection={collection}
                     setTimelineStepNumber={setCurrStepNumber}
                     newCollectionMsg={newCollectionMsg}
                     setNewCollectionMsg={setNewCollectionMsg}

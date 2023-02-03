@@ -3,13 +3,17 @@ import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 export function BalanceDisplay({
     collection,
+    setCollection,
     balance,
     message,
 }: {
-    collection: BitBadgeCollection
+    collection: BitBadgeCollection;
+    setCollection: (collection: BitBadgeCollection) => void;
     balance: UserBalance;
     message?: string;
 }) {
+    console.log("BALANCE", balance);
+    
     return <>
         <div style={{
             display: 'flex',
@@ -37,7 +41,7 @@ export function BalanceDisplay({
                             </>
                             <BadgeAvatarDisplay
                                 badgeCollection={collection}
-                                setBadgeCollection={() => { }}
+                                setBadgeCollection={setCollection}
                                 userBalance={balance}
                                 startId={idRange.start}
                                 endId={idRange.end}

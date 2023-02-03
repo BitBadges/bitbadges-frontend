@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { InputNumber, Button, Divider } from 'antd';
 import { MINT_ACCOUNT, PRIMARY_TEXT, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { BadgeMetadata, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
+import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
 import { TransferDisplay } from '../../common/TransferDisplay';
 import { getBadgeSupplysFromMsgNewCollection, getPostTransferBalance } from '../../../bitbadges-api/balances';
 import { useChainContext } from '../../../chain/ChainContext';
@@ -19,6 +19,7 @@ const crypto = require('crypto');
 
 
 export function CreateClaims({
+    collection,
     newCollectionMsg,
     setNewCollectionMsg,
     distributionMethod,
@@ -28,7 +29,9 @@ export function CreateClaims({
     setCollectionMetadata,
     individualBadgeMetadata,
     setIndividualBadgeMetadata,
+    balancesToDistribute,
 }: {
+    collection?: BitBadgeCollection;
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     distributionMethod: DistributionMethod;
@@ -38,19 +41,26 @@ export function CreateClaims({
     setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
     setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
+    balancesToDistribute?: Balance[];
 }) {
     const chain = useChainContext();
-    const badgeCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
+    const badgeCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, collection);
 
-    const [newBalances, setNewBalances] = useState<UserBalance>(getBadgeSupplysFromMsgNewCollection(newCollectionMsg));
+    const [newBalances, setNewBalances] = useState<UserBalance>(
+        balancesToDistribute ? {
+            balances: JSON.parse(JSON.stringify(balancesToDistribute)),
+            approvals: [],
+        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg));
 
     const [amountToTransfer, setAmountToTransfer] = useState<number>(0);
     const [startBadgeId, setStartBadgeId] = useState<number>(0);
-    const [endBadgeId, setEndBadgeId] = useState<number>(newCollectionMsg.badgeSupplys[0].amount - 1);
+    const [endBadgeId, setEndBadgeId] = useState<number>(newCollectionMsg.badgeSupplys[0]?.amount - 1 ? newCollectionMsg.badgeSupplys[0].amount - 1 : badgeCollection.nextBadgeId - 1);
 
     const [currAddress, setCurrAddress] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
     const [amount, setAmount] = useState<number>(0);
     const [badgeRanges, setBadgeRanges] = useState<IdRange[]>([{ start: 0, end: 0 }]);
+
+
 
     const addCode = () => {
         let currLeafItem = undefined;
@@ -67,19 +77,12 @@ export function CreateClaims({
         const tree = new MerkleTree(newClaimItems.map((x) => SHA256(x.fullCode)), SHA256)
         const root = tree.getRoot().toString('hex')
 
-        const balance = {
-            balances: [
-                {
-                    balance: newCollectionMsg.badgeSupplys[0].supply,
-                    badgeIds: [{
-                        start: 0,
-                        end: newCollectionMsg.badgeSupplys[0].amount - 1,
-                    }]
-                }
-            ],
+        const balance = balancesToDistribute ? {
+            balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
-        }
+        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)
 
+        console.log("ORIG", balancesToDistribute)
 
         if (distributionMethod === DistributionMethod.Codes) {
             for (let i = 0; i < newClaimItems.length; i += 2) {
@@ -95,17 +98,12 @@ export function CreateClaims({
             }
         }
 
-        const claimBalance = {
-            balances: [
-                {
-                    balance: newCollectionMsg.badgeSupplys[0].supply,
-                    badgeIds: [{
-                        start: 0,
-                        end: newCollectionMsg.badgeSupplys[0].amount - 1,
-                    }]
-                }
-            ], approvals: []
-        };
+        console.log("AFTER", balance);
+
+        const claimBalance = balancesToDistribute ? {
+            balances: JSON.parse(JSON.stringify(balancesToDistribute)),
+            approvals: [],
+        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)
 
         for (const balanceObj of balance.balances) {
             for (const badgeId of balanceObj.badgeIds) {
@@ -136,7 +134,7 @@ export function CreateClaims({
         setClaimItems(newClaimItems);
     }
 
-    const nonFungible = newCollectionMsg.badgeSupplys[0].amount > 1;
+    const nonFungible = newCollectionMsg.badgeSupplys[0]?.amount - 1 ? newCollectionMsg.badgeSupplys[0].amount - 1 : badgeCollection.nextBadgeId - 1 > 1;
 
     const postCurrBalance = getPostTransferBalance(JSON.parse(JSON.stringify(newBalances)), startBadgeId, endBadgeId, amountToTransfer, 1)
 
@@ -148,6 +146,10 @@ export function CreateClaims({
                 <p>Any badges leftover will remain unminted and can be put up for claim in the future!</p>
                 <BalanceDisplay
                     collection={badgeCollection}
+                    setCollection={(collection) => {
+                        setCollectionMetadata(collection.collectionMetadata)
+                        setIndividualBadgeMetadata(collection.badgeMetadata)
+                    }}
                     message='Undistributed Badges'
                     balance={newBalances}
                 />
@@ -290,7 +292,7 @@ export function CreateClaims({
 
                             <InputNumber
                                 min={0}
-                                max={newCollectionMsg.badgeSupplys[0].amount - 1}
+                                max={newCollectionMsg.badgeSupplys[0]?.amount - 1 ? newCollectionMsg.badgeSupplys[0].amount - 1 : badgeCollection.nextBadgeId - 1}
                                 title='Amount to Transfer'
                                 value={endBadgeId} onChange={
                                     (value: number) => {
@@ -326,6 +328,10 @@ export function CreateClaims({
                                 ]
                             }}
                             collection={badgeCollection}
+                            setCollection={(collection) => {
+                                setCollectionMetadata(collection.collectionMetadata)
+                                setIndividualBadgeMetadata(collection.badgeMetadata)
+                            }}
                         />
                     </div>
                     <div style={{ width: '48%' }}>
@@ -333,6 +339,10 @@ export function CreateClaims({
                             message='Undistributed Badges After New Claim'
                             balance={postCurrBalance}
                             collection={badgeCollection}
+                            setCollection={(collection) => {
+                                setCollectionMetadata(collection.collectionMetadata)
+                                setIndividualBadgeMetadata(collection.badgeMetadata)
+                            }}
                         />
                     </div>
                 </div>

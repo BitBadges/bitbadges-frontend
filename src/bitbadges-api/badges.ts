@@ -7,19 +7,20 @@ export function createCollectionFromMsgNewCollection(
     msgNewCollection: MessageMsgNewCollection,
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: BadgeMetadata[],
-    chain: ChainContextType
+    chain: ChainContextType,
+    collection?: BitBadgeCollection
 ) {
 
     const badgeCollection: BitBadgeCollection = {
         ...msgNewCollection,
-        collectionId: 0,
+        collectionId: collection?.collectionId ? collection.collectionId : 0,
         manager: {
             chain: chain.chain,
             accountNumber: chain.accountNumber,
             address: chain.address,
             cosmosAddress: chain.cosmosAddress,
         },
-        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount : 0,
+        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount : collection?.nextBadgeId ? collection?.nextBadgeId : 0,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
         unmintedSupplys: [],

@@ -62,7 +62,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Bytes
-                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                         setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
                     }} />
                 </div>

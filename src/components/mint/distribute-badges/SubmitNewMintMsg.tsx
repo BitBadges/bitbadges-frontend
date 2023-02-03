@@ -4,8 +4,8 @@ import { useState } from 'react';
 
 import { PRIMARY_TEXT } from '../../../constants';
 import { FormNavigationHeader } from '../../common/FormNavigationHeader';
-import { BadgeMetadata, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
+import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
 import { SHA256 } from 'crypto-js';
@@ -19,11 +19,13 @@ export function SubmitNewMintMsg({
     setTimelineStepNumber,
     newCollectionMsg,
     setNewCollectionMsg,
+    collection,
 
     claimItems,
     distributionMethod,
 
 }: {
+    collection: BitBadgeCollection,
     setTimelineStepNumber: (stepNum: number) => void;
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -57,6 +59,14 @@ export function SubmitNewMintMsg({
             setStepNum(stepNum - 1);
         }
     };
+
+    const newMintMsg: MessageMsgMintBadge = {
+        creator: newCollectionMsg.creator,
+        collectionId: collection.collectionId,
+        claims: newCollectionMsg.claims,
+        transfers: newCollectionMsg.transfers,
+        badgeSupplys: newCollectionMsg.badgeSupplys,
+    }
 
     return (
         <div>
@@ -158,7 +168,7 @@ export function SubmitNewMintMsg({
                     <CreateTxMsgMintBadgeModal
                         visible={visible}
                         setVisible={setVisible}
-                        txCosmosMsg={{newCollectionMsg}}
+                        txCosmosMsg={newMintMsg}
                     />
                 </div>
             </Form.Provider >

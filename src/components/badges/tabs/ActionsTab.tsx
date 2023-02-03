@@ -47,6 +47,20 @@ export function ActionsTab({
             });
         }
 
+        if (badge.unmintedSupplys.length > 0) {
+            actions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Distribute Unminted Badges</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Distribute Badges
+                    </div>
+                ),
+                showModal: () => {
+                    router.push(`/distribute/${badge.collectionId}`)
+                },
+            });
+        }
+
 
         //TODO:
         // if (badge.permissions.CanRevoke) {

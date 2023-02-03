@@ -7,6 +7,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { TransferDisplay } from "./TransferDisplay";
 import { parseClaim } from "../../bitbadges-api/claims";
+import { BlockinDisplay } from "../blockin/BlockinDisplay";
 
 export function ClaimDisplay({
     claim,
@@ -49,9 +50,10 @@ export function ClaimDisplay({
         }}
     >
         <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
-
-            {collection.claims[claimId]?.leaves.length === 0 &&
+            <h1>Claim #{claimId}</h1>
+            {collection.claims[claimId]?.leaves?.length === 0 &&
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
+
                     <h2>
                         Claim x{claim.amountPerClaim} of each of the badges below:
                         {claim.badgeIds.map((id, idx) => {
@@ -93,24 +95,26 @@ export function ClaimDisplay({
                                     color: PRIMARY_TEXT,
                                 }}
                             />
-                            <Divider />
-
-                            <div style={{ color: PRIMARY_TEXT }}>
-                                <TransferDisplay
-                                    badge={collection}
-                                    setBadgeCollection={setCollection}
-                                    fontColor={PRIMARY_TEXT}
-                                    from={[
-                                        MINT_ACCOUNT
-                                    ]}
-                                    to={[]}
-                                    toCodes={[currLeaf.code]}
-                                    amount={currLeaf.amount}
-                                    startId={currLeaf.badgeIds[0]?.start}
-                                    endId={currLeaf.badgeIds[0]?.end}
-                                />
+                            {currCode.length > 0 && <>
                                 <Divider />
-                            </div>
+
+                                <div style={{ color: PRIMARY_TEXT }}>
+                                    <TransferDisplay
+                                        badge={collection}
+                                        setBadgeCollection={setCollection}
+                                        fontColor={PRIMARY_TEXT}
+                                        from={[
+                                            MINT_ACCOUNT
+                                        ]}
+                                        to={[]}
+                                        toCodes={[currLeaf.code]}
+                                        amount={currLeaf.amount}
+                                        startId={currLeaf.badgeIds[0]?.start}
+                                        endId={currLeaf.badgeIds[0]?.end}
+                                    />
+                                    <Divider />
+                                </div>
+                            </>}
 
 
                             <Button disabled={!chain.connected} type='primary' onClick={() => openModal(currCode)} style={{ width: '100%' }}>Claim via Code</Button>
@@ -118,8 +122,13 @@ export function ClaimDisplay({
                         :
 
                         <>
+                            {!chain.connected && <BlockinDisplay hideLogo />}
+                            {chain.connected && !collection.claims[claimId]?.leaves?.find((x) => parseClaim(x).address === chain.cosmosAddress)
+                                && <h3>No claims found for your connected address!</h3>}
                             {collection.claims[claimId]?.leaves?.map((x) => {
                                 const currLeaf: ClaimItem = parseClaim(x);
+                                if (currLeaf.address != chain.cosmosAddress) return <></>
+
 
                                 return <>
                                     <hr />

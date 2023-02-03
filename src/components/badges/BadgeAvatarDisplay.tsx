@@ -29,11 +29,10 @@ export function BadgeAvatarDisplay({
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
 
     const [display, setDisplay] = useState<ReactNode>(<>
-        {badgeCollection && endId - startId + 1 > 0
-            && endId >= 0 &&
-            startId >= 0
-            && new Array(endId - startId + 1).fill(0).map((_, idx) => {
-                console.log("together", idx + startId);
+        {badgeCollection && Number(endId) - Number(startId) + 1 > 0
+            && Number(endId) >= 0 &&
+            Number(startId) >= 0
+            && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
                 return <div key={idx} style={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -41,10 +40,10 @@ export function BadgeAvatarDisplay({
                     alignItems: 'center',
                 }}>
                     <BadgeAvatar
-                        size={size && selectedId === idx + startId ? size * 1.4 : size}
+                        size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
                         badge={badgeCollection}
-                        metadata={badgeCollection.badgeMetadata[idx + startId]}
-                        badgeId={idx + startId}
+                        metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
+                        badgeId={idx + Number(startId)}
                         balance={userBalance}
                         showId={showIds}
                     />
@@ -61,17 +60,24 @@ export function BadgeAvatarDisplay({
             let numBadges = badgeCollection?.nextBadgeId;
             //TODO: should probably make it more scalable than this
             for (let i = 0; i < numBadges; i++) {
+                console.log(i);
                 if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
+                    console.log(i);
                     await getBadgeCollection(badgeCollection.collectionId, badgeCollection, i)
-                        .then(res => { if (res.collection) setBadgeCollection(res.collection) });
+                        .then(res => {
+                            if (res.collection) {
+                                console.log(res.collection);
+                                setBadgeCollection(res.collection)
+                            }
+                        });
                 }
 
                 setDisplay(<>
                     {
-                        badgeCollection && endId - startId + 1 > 0
-                        && endId >= 0 &&
-                        startId >= 0
-                        && new Array(endId - startId + 1).fill(0).map((_, idx) => {
+                        badgeCollection && Number(endId) - Number(startId) + 1 > 0
+                        && Number(endId) >= 0 &&
+                        Number(startId) >= 0
+                        && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
                             return <div key={idx} style={{
                                 display: 'flex',
                                 flexDirection: 'row',
@@ -79,10 +85,10 @@ export function BadgeAvatarDisplay({
                                 alignItems: 'center',
                             }}>
                                 <BadgeAvatar
-                                    size={size && selectedId === idx + startId ? size * 1.4 : size}
+                                    size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
                                     badge={badgeCollection}
-                                    metadata={badgeCollection.badgeMetadata[idx + startId]}
-                                    badgeId={idx + startId}
+                                    metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
+                                    badgeId={idx + Number(startId)}
                                     balance={userBalance}
                                     showId={showIds}
                                 />
@@ -93,7 +99,7 @@ export function BadgeAvatarDisplay({
 
         }
         updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, badgeCollection?.badgeMetadata, setBadgeCollection, endId, startId, userBalance, size, selectedId, hackyUpdatedFlag]);
+    }, [badgeCollection, stringified, individualBadgeMetadata, badgeCollection?.badgeMetadata, setBadgeCollection, endId, startId, userBalance, size, selectedId, hackyUpdatedFlag, showIds]);
 
     if (!badgeCollection) return <></>;
 

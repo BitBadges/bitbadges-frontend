@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute, GetCollectionResponse, GetBadgeBalanceResponse, GetAccountByNumberResponse } from './routes';
-import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain,  DistributionMethod, GetBalanceResponse, } from './types';
+import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain, DistributionMethod, GetBalanceResponse, } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import MerkleTree from 'merkletreejs';
@@ -121,6 +121,30 @@ export async function getBadgeCollection(
                 cosmosAddress: managerAccountInfo.address,
                 chain: SupportedChain.ETH
             };
+
+            badgeData.unmintedSupplys = badgeData.unmintedSupplys.map((supply) => {
+                return {
+                    balance: Number(supply.balance),
+                    badgeIds: supply.badgeIds.map((id) => {
+                        return {
+                            start: Number(id.start),
+                            end: Number(id.end)
+                        }
+                    }),
+                }
+            });
+
+            badgeData.maxSupplys = badgeData.maxSupplys.map((supply) => {
+                return {
+                    balance: Number(supply.balance),
+                    badgeIds: supply.badgeIds.map((id) => {
+                        return {
+                            start: Number(id.start),
+                            end: Number(id.end)
+                        }
+                    }),
+                }
+            });
         }
     }
 
