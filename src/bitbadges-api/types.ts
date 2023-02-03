@@ -94,7 +94,6 @@ export interface BitBadgeCollection {
     standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadata[],
-
 }
 
 

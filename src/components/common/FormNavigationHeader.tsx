@@ -1,7 +1,7 @@
 import { CaretLeftFilled, CaretRightFilled } from '@ant-design/icons';
 import { Typography } from 'antd';
 import React from 'react';
-import { PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_TEXT } from '../../constants';
 
 export function FormNavigationHeader({
     decrementStep,

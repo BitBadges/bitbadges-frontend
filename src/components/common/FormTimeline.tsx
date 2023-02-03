@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import React, { ReactNode, useEffect } from 'react';
 import { useState } from 'react';
-import { PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 
 

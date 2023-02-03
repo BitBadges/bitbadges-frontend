@@ -3,11 +3,11 @@ import React from 'react';
 import { useState } from 'react';
 
 import { PRIMARY_TEXT } from '../../../constants';
-import { FormNavigationHeader } from '../form/FormNavigationHeader';
+import { FormNavigationHeader } from '../../common/FormNavigationHeader';
 import { BadgeMetadata, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
-import { MetadataAddMethod } from '../MintTimeline';
+import { MetadataAddMethod } from './MintCollectionTimeline';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
 import { SHA256 } from 'crypto-js';
 

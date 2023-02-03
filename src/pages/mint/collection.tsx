@@ -1,4 +1,4 @@
-import { MintTimeline } from '../../components/mint/MintTimeline';
+import { MintCollectionTimeline } from '../../components/mint/mint-collection/MintCollectionTimeline';
 import React from 'react';
 import { Layout } from 'antd';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
@@ -34,7 +34,7 @@ function Mint() {
                                         background: PRIMARY_BLUE,
                                     }}
                                 >
-                                    <MintTimeline />
+                                    <MintCollectionTimeline />
                                 </div>
                             </Content>
                         </Layout>

@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 
 import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissions, Permissions, UpdatePermissions } from '../../../bitbadges-api/permissions';
-import { ConfirmManager } from '../form/ConfirmManager';
-import { FormTimeline } from '../form/FormTimeline';
-import { BadgeSupply } from '../form/BadgeSupplySelect';
-import { SwitchForm } from '../form/SwitchForm';
+import { ConfirmManager } from '../form-items/ConfirmManager';
+import { FormTimeline } from '../../common/FormTimeline';
+import { BadgeSupply } from '../form-items/BadgeSupplySelect';
+import { SwitchForm } from '../../common/SwitchForm';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BadgeMetadata, BitBadgeCollection, ClaimItem, UserBalance } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { FullMetadataForm } from '../form/FullMetadataForm';
-import { MetadataAddMethod } from '../MintTimeline';
-import { CreateClaims } from '../form/CreateClaims';
-import { FirstComeFirstServe } from '../form/FirstComeFirstServe';
+import { FullMetadataForm } from '../form-items/FullMetadataForm';
+import { MetadataAddMethod } from './MintCollectionTimeline';
+import { CreateClaims } from '../form-items/CreateClaims';
+import { FirstComeFirstServeAmountSelect } from '../form-items/FirstComeFirstServeAmountSelect';
 import saveAs from 'file-saver';
 import { Button, Divider, InputNumber } from 'antd';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
@@ -141,48 +141,49 @@ export function SetProperties({
                     node: <BadgeSupply newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
                     disabled: newCollectionMsg.badgeSupplys?.length == 0 || newCollectionMsg.badgeSupplys?.length == 0
                 },
-                nonFungible ? {
-                    title: 'Can Manager Add Badges to Collection?',
-                    description: `This collection currently contains ${newCollectionMsg.badgeSupplys[0]?.amount} unique badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
-                    disabled: !handledPermissions.CanCreateMoreBadges,
-                    node: <>
-                        <SwitchForm
-                            options={[
-                                {
-                                    title: 'No',
-                                    message: `The collection will permanently contain ${newCollectionMsg.badgeSupplys[0]?.amount} badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
-                                    isSelected: handledPermissions.CanCreateMoreBadges && !GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
-                                },
-                                {
-                                    title: 'Yes',
-                                    message: `The manager may create new badges and add them to this collection.`,
-                                    isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
-                                }
-                            ]}
-                            onSwitchChange={(title) => {
-                                if (title == 'No') {
-                                    const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, false);
-                                    setNewCollectionMsg({
-                                        ...newCollectionMsg,
-                                        permissions: newPermissions
-                                    })
-                                } else if (title == 'Yes') {
-                                    const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, true);
-                                    setNewCollectionMsg({
-                                        ...newCollectionMsg,
-                                        permissions: newPermissions
-                                    })
-                                }
+                //TODO: think about this one
+                // nonFungible ? {
+                //     title: 'Can Manager Add Badges to Collection?',
+                //     description: `This collection currently contains ${newCollectionMsg.badgeSupplys[0]?.amount} unique badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                //     disabled: !handledPermissions.CanCreateMoreBadges,
+                //     node: <>
+                //         <SwitchForm
+                //             options={[
+                //                 {
+                //                     title: 'No',
+                //                     message: `The collection will permanently contain ${newCollectionMsg.badgeSupplys[0]?.amount} badge${newCollectionMsg.badgeSupplys[0]?.amount > 1 ? 's' : ''}.`,
+                //                     isSelected: handledPermissions.CanCreateMoreBadges && !GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
+                //                 },
+                //                 {
+                //                     title: 'Yes',
+                //                     message: `The manager may create new badges and add them to this collection.`,
+                //                     isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges
+                //                 }
+                //             ]}
+                //             onSwitchChange={(title) => {
+                //                 if (title == 'No') {
+                //                     const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, false);
+                //                     setNewCollectionMsg({
+                //                         ...newCollectionMsg,
+                //                         permissions: newPermissions
+                //                     })
+                //                 } else if (title == 'Yes') {
+                //                     const newPermissions = UpdatePermissions(newCollectionMsg.permissions, CanCreateMoreBadgesDigit, true);
+                //                     setNewCollectionMsg({
+                //                         ...newCollectionMsg,
+                //                         permissions: newPermissions
+                //                     })
+                //                 }
 
-                                //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
-                                let newHandledPermissions = { ...handledPermissions };
-                                newHandledPermissions.CanCreateMoreBadges = true;
-                                setHandledPermissions(newHandledPermissions);
-                            }}
-                        // helperMessage={`If selected, note that the manager can permanently switch off this privilege and lock the total supply.`}
-                        />
-                    </>,
-                } : EmptyFormItem,
+                //                 //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
+                //                 let newHandledPermissions = { ...handledPermissions };
+                //                 newHandledPermissions.CanCreateMoreBadges = true;
+                //                 setHandledPermissions(newHandledPermissions);
+                //             }}
+                //         // helperMessage={`If selected, note that the manager can permanently switch off this privilege and lock the total supply.`}
+                //         />
+                //     </>,
+                // } : EmptyFormItem,
                 //TODO: add other common options for transferability
                 {
                     title: 'Transferable?',
@@ -533,7 +534,7 @@ export function SetProperties({
                     fungible ? {
                         title: `How Many Badges Can Each Account Claim?`,
                         description: `This collection has ${newCollectionMsg.badgeSupplys[0]?.supply ?? '?'} identical badges. How many will each account be able to receive per claim?`,
-                        node: <FirstComeFirstServe newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
+                        node: <FirstComeFirstServeAmountSelect newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
                     } : EmptyFormItem
                     : distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.SpecificAddresses ?
                         {

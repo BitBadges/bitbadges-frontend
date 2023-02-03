@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeMetadata } from '../../../bitbadges-api/types';
-import { MetadataAddMethod } from '../MintTimeline';
+import { MetadataAddMethod } from '../mint-collection/MintCollectionTimeline';
 import { UriSelect } from './UriSelect';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';

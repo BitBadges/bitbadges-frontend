@@ -1,4 +1,4 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { MessageMsgMintBadge, MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { BadgeMetadata, BitBadgeCollection } from "./types";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
@@ -20,6 +20,30 @@ export function createCollectionFromMsgNewCollection(
             cosmosAddress: chain.cosmosAddress,
         },
         nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount : 0,
+        badgeMetadata: individualBadgeMetadata,
+        collectionMetadata: collectionMetadata,
+        unmintedSupplys: [],
+        maxSupplys: [],
+        permissions: GetPermissions(msgNewCollection.permissions),
+        disallowedTransfers: [],
+        managerApprovedTransfers: [],
+        claims: [],
+    }
+
+    return badgeCollection;
+}
+
+export function createCollectionFromMsgMintBadge(
+    msgNewCollection: MessageMsgNewCollection,
+    currCollection: BitBadgeCollection,
+    collectionMetadata: BadgeMetadata,
+    individualBadgeMetadata: BadgeMetadata[],
+    chain: ChainContextType
+) {
+
+    const badgeCollection: BitBadgeCollection = {
+        ...currCollection,
+        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount + currCollection.nextBadgeId - 1 : 0,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
         unmintedSupplys: [],

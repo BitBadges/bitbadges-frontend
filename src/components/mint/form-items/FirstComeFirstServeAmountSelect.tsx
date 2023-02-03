@@ -4,7 +4,7 @@ import { PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 
-export function FirstComeFirstServe({
+export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,
     setNewCollectionMsg,
     fungible

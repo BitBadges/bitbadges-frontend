@@ -2,13 +2,12 @@ import { Timeline, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { DefaultPlaceholderMetadata, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { ChooseBadgeType } from './timeline-items/ChooseBadgeType';
-import { SetProperties } from './timeline-items/SetProperties';
-import { TransactionDetails } from './timeline-items/SubmitNewCollectionMsg';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useChainContext } from '../../chain/ChainContext';
-import { BadgeMetadata, ClaimItem } from '../../bitbadges-api/types';
+import { DefaultPlaceholderMetadata, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { useChainContext } from '../../../chain/ChainContext';
+import { BadgeMetadata, BitBadgeCollection, ClaimItem } from '../../../bitbadges-api/types';
+import { SubmitNewMintMsg } from './SubmitNewMintMsg';
+import { MintAndDistribute } from './MintAndDistributeTimeline';
 
 const { Text } = Typography;
 
@@ -27,7 +26,11 @@ enum DistributionMethod {
     Unminted,
 }
 
-export function MintTimeline() {
+export function MintCollectionTimeline({
+    collection
+}: {
+    collection: BitBadgeCollection;
+}) {
     const chain = useChainContext();
     const [currStepNumber, setCurrStepNumber] = useState(0);
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -73,60 +76,44 @@ export function MintTimeline() {
             stepNumber: 0,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Choose Badge Type
+                    Select Properties
                 </Text>
             ),
             content: (
-                <ChooseBadgeType
-                    setCurrStepNumber={setCurrStepNumber}
-                    newCollectionMsg={newCollectionMsg}
-                    setNewCollectionMsg={setNewCollectionMsg}
-                />
+                <>
+                    {
+                        <MintAndDistribute
+                            setCurrStepNumber={setCurrStepNumber}
+                            newCollectionMsg={newCollectionMsg}
+                            setNewCollectionMsg={setNewCollectionMsg}
+                            claimItems={claimItems}
+                            setClaimItems={setClaimItems}
+                            collectionMetadata={collectionMetadata ? collectionMetadata : {} as BadgeMetadata}
+                            setCollectionMetadata={setCollectionMetadata}
+                            individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
+                            setIndividualBadgeMetadata={setIndividualBadgeMetadata}
+                            distributionMethod={distributionMethod}
+                            setDistributionMethod={setDistributionMethod}
+                            hackyUpdatedFlag={hackyUpdatedFlag}
+                            addMethod={addMethod}
+                            setAddMethod={setAddMethod}
+                        />
+                    }
+                </>
             ),
         },
         {
             stepNumber: 1,
             title: (
                 <Text style={{ color: PRIMARY_TEXT }}>
-                    Select Properties
-                </Text>
-            ),
-            content: (
-                <>
-                    {newCollectionMsg?.standard == 0 && <SetProperties
-                        setCurrStepNumber={setCurrStepNumber}
-                        newCollectionMsg={newCollectionMsg}
-                        setNewCollectionMsg={setNewCollectionMsg}
-                        addMethod={addMethod}
-                        setAddMethod={setAddMethod}
-                        claimItems={claimItems}
-                        setClaimItems={setClaimItems}
-                        collectionMetadata={collectionMetadata ? collectionMetadata : {} as BadgeMetadata}
-                        setCollectionMetadata={setCollectionMetadata}
-                        individualBadgeMetadata={individualBadgeMetadata ? individualBadgeMetadata : []}
-                        setIndividualBadgeMetadata={setIndividualBadgeMetadata}
-                        distributionMethod={distributionMethod}
-                        setDistributionMethod={setDistributionMethod}
-                        hackyUpdatedFlag={hackyUpdatedFlag}
-                    />}
-                    {/* TODO:  newCollectionMsg?.standard == ... */}
-                </>
-            ),
-        },
-        {
-            stepNumber: 2,
-            title: (
-                <Text style={{ color: PRIMARY_TEXT }}>
                     Submit Transaction
                 </Text>
             ),
             content: (
-                <TransactionDetails
+                <SubmitNewMintMsg
                     setTimelineStepNumber={setCurrStepNumber}
                     newCollectionMsg={newCollectionMsg}
                     setNewCollectionMsg={setNewCollectionMsg}
-                    addMethod={addMethod}
-                    setAddMethod={setAddMethod}
                     claimItems={claimItems}
                     setClaimItems={setClaimItems}
                     collectionMetadata={collectionMetadata ? collectionMetadata : {} as BadgeMetadata}
