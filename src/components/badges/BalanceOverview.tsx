@@ -1,27 +1,17 @@
 import { Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-    BellOutlined,
     GiftOutlined,
-    LockOutlined,
-    PlusCircleOutlined,
     SwapOutlined,
 } from '@ant-design/icons';
-import { PRIMARY_TEXT } from '../../constants';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { ButtonDisplay, ButtonDisplayProps } from '../common/ButtonDisplay';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPersonCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
-import { CreateTxMsgClaimBadgeModal } from '../txModals/CreateTxMsgClaimBadge';
-import MerkleTree from 'merkletreejs';
-import { SHA256 } from 'crypto-js';
-import { ClaimMerkleTree } from '../../pages/collections/[collectionId]';
 
 const { Text } = Typography;
 
@@ -162,7 +152,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             setBadgeCollection={setBadge}
             visible={transferIsVisible}
             setVisible={setTransferIsVisible}
-            balance={balance ? balance : {} as UserBalance}
+            userBalance={balance ? balance : {} as UserBalance}
         />
 
         {/* <CreateTxMsgClaimBadgeModal

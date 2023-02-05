@@ -242,13 +242,18 @@ export async function getBadgeBalance(
         console.error("Invalid accountNumber: ", accountNumber);
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
+    console.log("Getting badge balance for collectionId: ", collectionId, " and accountNumber: ", accountNumber);
+
     const balanceRes: GetBadgeBalanceResponse = await axios.get(NODE_URL + GetBadgeBalanceRoute(collectionId, accountNumber))
         .then((res) => res.data);
+
+    console.log(balanceRes);
 
     if (balanceRes.error) {
         console.error("ERROR: ", balanceRes.error);
         return Promise.reject(balanceRes.error);
     }
+    
     if (balanceRes.balance) {
         for (const balanceObject of balanceRes.balance.balances) {
             balanceObject.balance = Number(balanceObject.balance);
