@@ -11,20 +11,17 @@ import { useEffect, useState } from "react";
 import { CreateTxMsgClaimBadgeModal } from "../../txModals/CreateTxMsgClaimBadge";
 import MerkleTree from "merkletreejs";
 import { SHA256 } from "crypto-js";
-import { ClaimMerkleTree } from "../../../pages/badges/[collectionId]";
 
 export function OverviewTab({
     badgeCollection,
     setBadgeCollection,
     userBalance,
     setTab,
-    merkleTrees,
 }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badge: BitBadgeCollection) => void;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
-    merkleTrees: ClaimMerkleTree[],
 }) {
 
 

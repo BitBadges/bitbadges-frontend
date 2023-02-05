@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
 import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute, GetCollectionResponse, GetBadgeBalanceResponse, GetAccountByNumberResponse } from './routes';
-import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain, DistributionMethod, GetBalanceResponse, } from './types';
+import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain, DistributionMethod, GetBalanceResponse, IdRange, } from './types';
 import { getFromIpfs } from '../chain/backend_connectors';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import MerkleTree from 'merkletreejs';
@@ -40,11 +40,11 @@ export async function getAccountInformationByAccountNumber(
         .get(NODE_URL + GetAccountByNumberRoute(id))
         .then((res) => res.data);
 
-    if (res.error) {
+    if (res.error || !res.account_address) {
         return Promise.reject(res.error);
     }
 
-    const bech32Address = res.account_address ? res.account_address : '';
+    const bech32Address = res.account_address;
 
     const accountObject = await axios.get(NODE_URL + GetAccountRoute(bech32Address))
         .then((res) => res.data)
@@ -77,76 +77,74 @@ export async function getBalance(bech32Address: string) {
     return balance;
 }
 
-
+//TODO: pagination / scalability
 export async function getBadgeCollection(
     collectionId: number,
-    currCollection?: BitBadgeCollection,
-    badgeIdToFetch?: number
+    badgeIdsToFetch?: IdRange
 ): Promise<GetCollectionResponse> {
     if (isNaN(collectionId) || collectionId < 0) {
         console.error("Invalid collectionId: ", collectionId);
         return Promise.reject(`Invalid collectionId: ${collectionId}`);
     }
 
-    //Get the badge data from the blockchain if it doesn't exist
-    let badgeData = currCollection;
-    if (!badgeData) {
-        const badgeDataResponse = await axios.get(NODE_URL + GetCollectionRoute(collectionId))
-            .then((res) => res.data);
 
-        if (badgeDataResponse.error) {
-            console.error("ERROR: ", badgeDataResponse.error);
-            return Promise.reject(badgeDataResponse.error);
-        }
-        badgeData = badgeDataResponse.collection;
+    const badgeDataResponse = await axios.get(NODE_URL + GetCollectionRoute(collectionId))
+        .then((res) => res.data);
 
-        //Format some of the data for easier use
-        if (badgeData) {
-            badgeData.collectionId = collectionId;
-
-            // Convert the returned permissions (uint) to a Permissions object for easier use
-            let permissionsNumber: any = badgeData.permissions;
-            badgeData.permissions = GetPermissions(permissionsNumber);
-
-            // Convert the returned manager (bech32) to an BitBadgesUserInfo object for easier use
-            let managerAccountNumber: any = badgeData.manager;
-            let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
-
-
-            //TODO: dynamic conversions between chains
-            let ethAddress = cosmosToEth(managerAccountInfo.address);
-            badgeData.manager = {
-                accountNumber: managerAccountInfo.account_number,
-                address: ethAddress,
-                cosmosAddress: managerAccountInfo.address,
-                chain: SupportedChain.ETH
-            };
-
-            badgeData.unmintedSupplys = badgeData.unmintedSupplys.map((supply) => {
-                return {
-                    balance: Number(supply.balance),
-                    badgeIds: supply.badgeIds.map((id) => {
-                        return {
-                            start: Number(id.start),
-                            end: Number(id.end)
-                        }
-                    }),
-                }
-            });
-
-            badgeData.maxSupplys = badgeData.maxSupplys.map((supply) => {
-                return {
-                    balance: Number(supply.balance),
-                    badgeIds: supply.badgeIds.map((id) => {
-                        return {
-                            start: Number(id.start),
-                            end: Number(id.end)
-                        }
-                    }),
-                }
-            });
-        }
+    if (badgeDataResponse.error) {
+        console.error("ERROR: ", badgeDataResponse.error);
+        return Promise.reject(badgeDataResponse.error);
     }
+
+    let badgeData: BitBadgeCollection = badgeDataResponse.collection;
+
+    //Format some of the data for easier use
+    if (badgeData) {
+        badgeData.collectionId = collectionId;
+
+        // Convert the returned permissions (uint) to a Permissions object for easier use
+        let permissionsNumber: any = badgeData.permissions;
+        badgeData.permissions = GetPermissions(permissionsNumber);
+
+        // Convert the returned manager (bech32) to an BitBadgesUserInfo object for easier use
+        let managerAccountNumber: any = badgeData.manager;
+        let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
+
+
+        //TODO: dynamic conversions between chains
+        let ethAddress = cosmosToEth(managerAccountInfo.address);
+        badgeData.manager = {
+            accountNumber: managerAccountInfo.account_number,
+            address: ethAddress,
+            cosmosAddress: managerAccountInfo.address,
+            chain: SupportedChain.ETH
+        };
+
+        badgeData.unmintedSupplys = badgeData.unmintedSupplys.map((supply) => {
+            return {
+                balance: Number(supply.balance),
+                badgeIds: supply.badgeIds.map((id) => {
+                    return {
+                        start: Number(id.start),
+                        end: Number(id.end)
+                    }
+                }),
+            }
+        });
+
+        badgeData.maxSupplys = badgeData.maxSupplys.map((supply) => {
+            return {
+                balance: Number(supply.balance),
+                badgeIds: supply.badgeIds.map((id) => {
+                    return {
+                        start: Number(id.start),
+                        end: Number(id.end)
+                    }
+                }),
+            }
+        });
+    }
+
 
     //Get the collection metadata if it does not exist on the current badge object
     if (badgeData && (!badgeData.collectionMetadata || JSON.stringify(badgeData.collectionMetadata) === JSON.stringify({} as BadgeMetadata))) {
@@ -170,52 +168,61 @@ export async function getBadgeCollection(
         badgeData.badgeMetadata = badgeMetadata;
     }
 
-    //Get the individual badge metadata if the requested badgeId does not currently have metadata
-    if (badgeIdToFetch !== undefined && badgeIdToFetch >= 0 && badgeData && badgeData.badgeMetadata
-        && (JSON.stringify(badgeData.badgeMetadata[badgeIdToFetch]) === JSON.stringify({} as BadgeMetadata)
-            || !badgeData.badgeMetadata[badgeIdToFetch])) {
-
-        let badgeUri = badgeData.badgeUri;
-        if (badgeUri.startsWith('ipfs://')) {
-            const res = await getFromIpfs(badgeUri.replace('ipfs://', '').replace('{id}', badgeIdToFetch.toString()));
-            badgeData.badgeMetadata[badgeIdToFetch] = JSON.parse(res.file);
+    //If not specified, fetch all badges
+    if (!badgeIdsToFetch) {
+        badgeIdsToFetch = {
+            start: 0,
+            end: Number(badgeData?.nextBadgeId) - 1
         }
     }
 
-    //Get the leaves for the requested badgeId if it does not currently have leaves
-    if (badgeIdToFetch !== undefined && badgeIdToFetch >= 0 && badgeData && badgeData.claims) {
-        for (let idx = 0; idx < badgeData.claims.length; idx++) {
-            let claim = badgeData.claims[idx];
+    //Get the individual badge metadata if the requested badgeId does not currently have metadata
+    for (let i = badgeIdsToFetch.start; i <= badgeIdsToFetch.end; i++) {
+        if (badgeData && badgeData.badgeMetadata
+            && (JSON.stringify(badgeData.badgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)
+                || !badgeData.badgeMetadata[i])) {
+            let badgeUri = badgeData.badgeUri;
+            if (badgeUri.startsWith('ipfs://')) {
+                const res = await getFromIpfs(badgeUri.replace('ipfs://', '').replace('{id}', i.toString()));
+                badgeData.badgeMetadata[i] = JSON.parse(res.file);
+            }
 
-            //If we have not fetched the leaves for each claim yet, fetch them
-            if (!claim.leaves || claim.leaves.length === 0) {
-                if (Number(claim.type) === 0) {
-                    let res = await getFromIpfs(claim.uri.replace('ipfs://', ''));
-                    const fetchedLeaves: string[] = JSON.parse(res.file);
+            if (badgeData.claims) {
+                for (let idx = 0; idx < badgeData.claims.length; idx++) {
+                    let claim = badgeData.claims[idx];
 
-                    if (fetchedLeaves[0]) {
-                        if (fetchedLeaves[0].split('-').length < 5 || (fetchedLeaves[0].split('-').length - 3) % 2 != 0) {
-                            //Is a list of hashed codes; do not hash the leaves
-                            //Users will enter their code and we check if we have a Merkle proof for it
-                            const tree = new MerkleTree(fetchedLeaves, SHA256);
-                            badgeData.claims[idx].leaves = fetchedLeaves;
-                            badgeData.claims[idx].tree = tree;
-                            badgeData.claims[idx].distributionMethod = DistributionMethod.Codes;
+                    //If we have not fetched the leaves for each claim yet, fetch them
+                    if (!claim.leaves || claim.leaves.length === 0) {
+                        if (Number(claim.type) === 0) {
+                            let res = await getFromIpfs(claim.uri.replace('ipfs://', ''));
+                            const fetchedLeaves: string[] = JSON.parse(res.file);
+
+                            if (fetchedLeaves[0]) {
+                                if (fetchedLeaves[0].split('-').length < 5 || (fetchedLeaves[0].split('-').length - 3) % 2 != 0) {
+                                    //Is a list of hashed codes; do not hash the leaves
+                                    //Users will enter their code and we check if we have a Merkle proof for it
+                                    const tree = new MerkleTree(fetchedLeaves, SHA256);
+                                    badgeData.claims[idx].leaves = fetchedLeaves;
+                                    badgeData.claims[idx].tree = tree;
+                                    badgeData.claims[idx].distributionMethod = DistributionMethod.Codes;
+                                } else {
+                                    //Is a list of specific codes with addresses
+                                    const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
+                                    badgeData.claims[idx].leaves = fetchedLeaves;
+                                    badgeData.claims[idx].tree = tree;
+                                    badgeData.claims[idx].distributionMethod = DistributionMethod.SpecificAddresses;
+                                }
+                            }
                         } else {
-                            //Is a list of specific codes with addresses
-                            const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
-                            badgeData.claims[idx].leaves = fetchedLeaves;
-                            badgeData.claims[idx].tree = tree;
-                            badgeData.claims[idx].distributionMethod = DistributionMethod.SpecificAddresses;
+                            badgeData.claims[idx].leaves = [];
+                            badgeData.claims[idx].tree = new MerkleTree([], SHA256);
                         }
                     }
-                } else {
-                    badgeData.claims[idx].leaves = [];
-                    badgeData.claims[idx].tree = new MerkleTree([], SHA256);
                 }
             }
         }
     }
+
 
     return {
         collection: badgeData
@@ -223,19 +230,19 @@ export async function getBadgeCollection(
 }
 
 export async function getBadgeBalance(
-    badgeId: number,
+    collectionId: number,
     accountNumber: number
 ): Promise<GetBadgeBalanceResponse> {
-    if (isNaN(badgeId) || badgeId < 0) {
-        console.error("Invalid badgeId: ", badgeId);
-        return Promise.reject(`Invalid badgeId: ${badgeId}`);
+    if (isNaN(collectionId) || collectionId < 0) {
+        console.error("Invalid collectionId: ", collectionId);
+        return Promise.reject(`Invalid collectionId: ${collectionId}`);
     }
 
     if (isNaN(accountNumber) || accountNumber < 0) {
         console.error("Invalid accountNumber: ", accountNumber);
         return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
     }
-    const balanceRes: GetBadgeBalanceResponse = await axios.get(NODE_URL + GetBadgeBalanceRoute(badgeId, accountNumber))
+    const balanceRes: GetBadgeBalanceResponse = await axios.get(NODE_URL + GetBadgeBalanceRoute(collectionId, accountNumber))
         .then((res) => res.data);
 
     if (balanceRes.error) {

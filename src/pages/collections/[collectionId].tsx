@@ -11,9 +11,6 @@ import { BadgesTab } from '../../components/badges/tabs/BadgesTab';
 import { useChainContext } from '../../chain/ChainContext';
 import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
 import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
-import MerkleTree from 'merkletreejs';
-import { SHA256 } from 'crypto-js';
-
 const { Content } = Layout;
 
 const tabInfo = [
@@ -22,74 +19,41 @@ const tabInfo = [
     { key: 'claims', content: 'Claims', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'actions', content: 'Actions', disabled: false },
-
 ];
-
-export interface ClaimMerkleTree {
-    tree: MerkleTree;
-    leaves: string[];
-}
 
 function CollectionPage() {
     const router = useRouter()
     const chain = useChainContext();
 
     const { collectionId } = router.query;
+    const collectionIdNumber = Number(collectionId);
+
     //TODO: link to exact badge?
     const accountNumber = chain.accountNumber;
+
 
     const [tab, setTab] = useState('overview');
     const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
     const collectionMetadata = badgeCollection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
-    const [merkleTrees, setMerkleTrees] = useState<ClaimMerkleTree[]>(badgeCollection?.claims.map(claim => {
-        return {
-            tree: new MerkleTree([], SHA256),
-            leaves: []
-        }
-    }) ?? []);
-
-    useEffect(() => {
-        if (!badgeCollection) return;
-        setMerkleTrees(badgeCollection.claims.map(claim => {
-            return {
-                tree: new MerkleTree([], SHA256),
-                leaves: []
-            }
-        }));
-    }, [badgeCollection]);
 
     // Get badge collection information
     useEffect(() => {
         async function getBadgeInformation() {
-            let collectionIdNumber = Number(collectionId);
-            if (isNaN(collectionIdNumber) || collectionIdNumber < 0) return;
-
-            try {
-                const res = await getBadgeCollection(collectionIdNumber);
-                setBadgeCollection(res.collection);
-            } catch (e) {
-                if (DEV_MODE) console.error("Error getting badge collection: ", e);
-            }
+            const res = await getBadgeCollection(collectionIdNumber);
+            setBadgeCollection(res.collection);
         }
         getBadgeInformation();
-    }, [collectionId]);
+    }, [collectionIdNumber]);
 
     // Get user's badge balance
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
-            if (!accountNumber || accountNumber < 0 || badgeCollection?.collectionId === undefined) return;
-
-            try {
-                const res = await getBadgeBalance(badgeCollection?.collectionId, accountNumber);
-                setUserBalance(res.balance);
-                console.log("setting user balance to", res.balance);
-            } catch (e) {
-                if (DEV_MODE) console.error("Error getting badge balance: ", e);
-            }
+            const res = await getBadgeBalance(collectionIdNumber, accountNumber);
+            setUserBalance(res.balance);
         }
         getBadgeBalanceFromApi();
-    }, [badgeCollection?.collectionId, accountNumber])
+    }, [collectionIdNumber, accountNumber])
 
     return (
         <Layout>
@@ -117,7 +81,7 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} merkleTrees={merkleTrees} />
+                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} />
                     )}
                     {tab === 'badges' && (
                         <BadgesTab
@@ -134,7 +98,6 @@ function CollectionPage() {
                             balance={userBalance}
                         />
                     )}
-
 
                     {tab === 'actions' && (
                         <ActionsTab

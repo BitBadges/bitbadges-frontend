@@ -21,7 +21,7 @@ import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../txModals/CreateTxMsgClaimBadge';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
-import { ClaimMerkleTree } from '../../pages/badges/[collectionId]';
+import { ClaimMerkleTree } from '../../pages/collections/[collectionId]';
 
 const { Text } = Typography;
 

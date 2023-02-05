@@ -6,8 +6,6 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
     const chain = useChainContext();
     const isRegistered = chain.isRegistered;
 
-    
-
     return (
         <>
             {isRegistered ? node : <RegisterScreen message={message} />}

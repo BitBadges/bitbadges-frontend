@@ -2,8 +2,6 @@ import { MerkleTree } from 'merkletreejs';
 import SHA256 from 'crypto-js/sha256';
 import { BadgeMetadata, BitBadgesUserInfo, SupportedChain } from './bitbadges-api/types';
 
-const CryptoJS = require("crypto-js");
-
 // export const NODE_URL = 'https://bit-badges.herokuapp.com';
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3000';
@@ -33,26 +31,6 @@ export const CHAIN_DETAILS = {
     chainId: 1,
     cosmosChainId: 'bitbadges_1-1',
 }
-
-export const SampleAccountMerkleTreeLeaves = ['cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu', 'cosmos1xyxs3skf3f4jfqeuv89yyaqvjc6lffavxqhc8g', 'cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7', 'cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7'];
-export const SampleAccountMerkleTreeLeafHashes = SampleAccountMerkleTreeLeaves.map(x => SHA256(x))
-
-export const SampleAccountMerkleTreeObject = new MerkleTree(SampleAccountMerkleTreeLeafHashes, SHA256)
-export const SampleAccountMerkleTreeRoot = SampleAccountMerkleTreeObject.getRoot().toString('hex')
-
-
-
-export const SampleCodeMerkleTreeLeaves = ['a', 'b', 'c', 'd'];
-export const SampleCodeMerkleTreeLeafHashes = SampleCodeMerkleTreeLeaves.map(x => SHA256(x))
-
-export const SampleCodeMerkleTreeObject = new MerkleTree(SampleCodeMerkleTreeLeafHashes, SHA256)
-export const SampleCodeMerkleTreeRoot = SampleCodeMerkleTreeObject.getRoot().toString('hex')
-
-
-
-// export const _leaf = CryptoJS.enc.Hex.stringify(SampleMerkleTreeLeafHashes[0]);
-// export const _proof = SampleMerkleTreeObject.getProof(_leaf)
-
 
 export const MINT_ACCOUNT: BitBadgesUserInfo = {
     cosmosAddress: '',

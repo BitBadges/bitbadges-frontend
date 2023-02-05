@@ -427,7 +427,7 @@ export function FullMetadataForm({
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                External URL
+                                URL
                             </Text>
                         }
                     >
@@ -444,11 +444,11 @@ export function FullMetadataForm({
                                 color: PRIMARY_TEXT,
                             }}
                         />
-                        <div style={{ fontSize: 12 }}>
+                        {/* <div style={{ fontSize: 12 }}>
                             <Text style={{ color: 'lightgray' }}>
                                 *Please use a permanent fixed URL that will not change.
                             </Text>
-                        </div>
+                        </div> */}
                     </Form.Item>
                     <Form.Item
                         label={

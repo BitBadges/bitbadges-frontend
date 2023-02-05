@@ -7,37 +7,36 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
-import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { useRouter } from 'next/router';
 
 const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg }
-        : {
-
-            createTxFunction: any,
-            txCosmosMsg: object,
-            visible: boolean,
-            setVisible: (visible: boolean) => void,
-            txName: string,
-            children?: React.ReactNode,
-            style?: React.CSSProperties,
-            closeIcon?: React.ReactNode,
-            bodyStyle?: React.CSSProperties,
-            unregisteredUsers?: string[],
-            onRegister?: () => void,
-            msgSteps?: StepProps[],
-            displayMsg?: string | ReactNode
-        }
+        unregisteredUsers, onRegister, msgSteps, displayMsg
+    }: {
+        createTxFunction: any,
+        txCosmosMsg: object,
+        visible: boolean,
+        setVisible: (visible: boolean) => void,
+        txName: string,
+        children?: React.ReactNode,
+        style?: React.CSSProperties,
+        closeIcon?: React.ReactNode,
+        bodyStyle?: React.CSSProperties,
+        unregisteredUsers?: string[],
+        onRegister?: () => void,
+        msgSteps?: StepProps[],
+        displayMsg?: string | ReactNode
+    }
 ) {
     if (!msgSteps) msgSteps = [];
+    const chain = useChainContext();
+    const router = useRouter();
 
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
-    const chain = useChainContext();
-    const router = useRouter();
 
     const [currentStep, setCurrentStep] = useState(0);
 
@@ -45,18 +44,22 @@ export function TxModal(
         setCurrentStep(value);
     };
 
+
     const submitTx = async (createTxFunction: any, cosmosMsg: object) => {
         setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
         try {
+            //Sign and broadcast transaction
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);
             const rawTx = await chain.signTxn(unsignedTx);
             const msgResponse = await broadcastTransaction(rawTx);
 
             if (DEV_MODE) console.log(msgResponse);
 
+            //If transaction goes through, increment sequence number (includes errors within badges module)
             chain.incrementSequence();
 
+            //If transaction fails with badges module error, throw error. Other errors are caught before this.
             if (msgResponse.tx_response.codespace === "badges" && msgResponse.tx_response.code !== 0) {
                 throw {
                     message: `Code ${msgResponse.tx_response.code} from \"${msgResponse.tx_response.codespace}\": ${msgResponse.tx_response.raw_log}`,
@@ -70,9 +73,10 @@ export function TxModal(
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
 
-            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "new_badge") {
-                const badgeId = msgResponse.tx_response.logs[0]?.events[0]?.attributes[4]?.value;
-                router.push(`/badges/${badgeId}`);
+            //If it is a new collection, redirect to collection page
+            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "new_collection") {
+                const collectionId = msgResponse.tx_response.logs[0]?.events[0]?.attributes[4]?.value;
+                router.push(`/collections/${collectionId}`);
             }
         } catch (err: any) {
             console.error(err);
@@ -86,9 +90,12 @@ export function TxModal(
         try {
             await submitTx(createTxFunction, txCosmosMsg);
             setVisible(false);
-        } catch (err: any) { }
+        } catch (err: any) {
+
+        }
     };
 
+    
     const registerUsers = async () => {
         if (unregisteredUsers && onRegister) {
             const registerTxCosmosMsg: MessageMsgRegisterAddresses = {

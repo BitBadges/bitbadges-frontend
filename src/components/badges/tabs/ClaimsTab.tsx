@@ -6,7 +6,7 @@ import { getBadgeCollection } from '../../../bitbadges-api/api';
 import { ClaimDisplay } from '../../common/ClaimDisplay';
 import MerkleTree from 'merkletreejs';
 import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
-import { ClaimMerkleTree } from '../../../pages/badges/[collectionId]';
+import { ClaimMerkleTree } from '../../../pages/collections/[collectionId]';
 import { Empty } from 'antd';
 
 export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {

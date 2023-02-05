@@ -109,8 +109,7 @@ export function ClaimDisplay({
                                         to={[]}
                                         toCodes={[currLeaf.code]}
                                         amount={currLeaf.amount}
-                                        startId={currLeaf.badgeIds[0]?.start}
-                                        endId={currLeaf.badgeIds[0]?.end}
+                                        badgeIds={currLeaf.badgeIds}
                                     />
                                     <Divider />
                                 </div>
@@ -148,8 +147,7 @@ export function ClaimDisplay({
                                         }]}
                                         toCodes={[]}
                                         amount={currLeaf.amount}
-                                        startId={currLeaf.badgeIds[0]?.start}
-                                        endId={currLeaf.badgeIds[0]?.end}
+                                        badgeIds={currLeaf.badgeIds}
                                     />
                                     <Divider />
 

@@ -553,17 +553,17 @@ export function SetProperties({
                         } : EmptyFormItem,
                 {
                     title: `Distribution Method`,
-                    description: `You have whitelisted ${claimItems.length} addresses. How would you like to distribute badges to these addresses?`,
+                    description: `You have whitelisted ${claimItems.length} address${claimItems.length > 1 ? 'es' : ''}. How would you like to distribute badges to these addresses?`,
                     node: <SwitchForm
                         options={[
                             {
                                 title: 'Send Manually',
-                                message: `Badges will be sent to the addresses upon creation, and you pay all transfer fees.`,
+                                message: `Upon creation of the collection, badges will be transferred directly to these addresses. You will pay all transfer fees.`,
                                 isSelected: manualSend,
                             },
                             {
                                 title: 'Claimable (Recommended)',
-                                message: 'The badges will be able to be claimed by these addresses. Each address pays their own transfer fees.',
+                                message: 'The badges will be able to be claimed by these addresses.',
                                 isSelected: !manualSend,
                             },
                         ]}

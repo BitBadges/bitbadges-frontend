@@ -15,7 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { getAbbreviatedAddress } from '../../bitbadges-api/utils/AddressUtils';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { useChainContext } from '../../chain/ChainContext';
 import { ethers } from 'ethers';
 

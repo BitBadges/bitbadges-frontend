@@ -1,6 +1,6 @@
 import { Col, Row, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { BitBadgeCollection, BitBadgesUserInfo, UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, BitBadgesUserInfo, IdRange, UserBalance } from "../../bitbadges-api/types";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
@@ -13,8 +13,7 @@ export function TransferDisplay({
     badge,
     setBadgeCollection,
     amount,
-    startId,
-    endId,
+    badgeIds,
     fontColor,
     toCodes,
 }: {
@@ -23,8 +22,7 @@ export function TransferDisplay({
     badge?: BitBadgeCollection;
     setBadgeCollection?: (badge: BitBadgeCollection) => void;
     amount: number;
-    startId: number;
-    endId: number;
+    badgeIds: IdRange[];
     fontColor?: string;
     toCodes?: string[];
 }) {
@@ -98,11 +96,18 @@ export function TransferDisplay({
             </Col>
         </Row>
         <br />
-        <div style={{ textAlign: 'center' }}>
-            <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{'x' + amount + ' of the badges below (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
-        </div>
-        {badge && setBadgeCollection &&
-            <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} setBadgeCollection={setBadgeCollection} />
-        }
+        {badgeIds.map((range, index) => {
+            const startId = range.start;
+            const endId = range.end;
+
+            return <div key={index} >
+                <div style={{ textAlign: 'center' }}>
+                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{'x' + amount + ' of the badges below (IDs ' + startId + ' - ' + endId + '):'}</Typography.Text>
+                </div>
+                {badge && setBadgeCollection &&
+                    <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={{} as UserBalance} setBadgeCollection={setBadgeCollection} />
+                }
+            </div>
+        })}
     </>
 }

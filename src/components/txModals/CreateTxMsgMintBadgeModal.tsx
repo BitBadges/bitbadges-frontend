@@ -10,7 +10,8 @@ export function CreateTxMsgMintBadgeModal(
             visible: boolean,
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
-        }) {
+        }
+) {
 
     return (
         <TxModal

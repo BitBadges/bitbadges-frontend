@@ -6,6 +6,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { Switch } from 'antd';
 import { CanCreateMoreBadgesDigit, CanUpdateDisallowedDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
+
 export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children }
     : {
         badge: BitBadgeCollection,
@@ -41,13 +42,6 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                         }} />
                     </div>
                 </div>
-
-                {/* TODO: <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Revoke
-                    <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanRevoke} defaultChecked={GetPermissions(currPermissions).CanRevoke} onChange={() => {
-                        setCurrPermissions(UpdatePermissions(currPermissions, CanRevokeDigit, !GetPermissions(currPermissions).CanRevoke))
-                    }} />
-                </div> */}
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Create More Badges
                     <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {

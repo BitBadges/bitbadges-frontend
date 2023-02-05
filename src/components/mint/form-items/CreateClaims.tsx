@@ -13,7 +13,7 @@ import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
 import { createClaim } from '../../../bitbadges-api/claims';
 import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
-import { downloadJson } from '../../../bitbadges-api/utils/downloadJson';
+import { downloadJson } from '../../../utils/downloadJson';
 
 const crypto = require('crypto');
 

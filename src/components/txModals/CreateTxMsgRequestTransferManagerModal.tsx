@@ -6,9 +6,9 @@ import { useChainContext } from '../../chain/ChainContext';
 import { Switch } from 'antd';
 
 
-export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisible, children }
+export function CreateTxMsgRequestTransferManagerModal({ collection, visible, setVisible, children }
     : {
-        badge: BitBadgeCollection,
+        collection: BitBadgeCollection,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
@@ -19,8 +19,8 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
 
     const txCosmosMsg: MessageMsgRequestTransferManager = {
         creator: chain.cosmosAddress,
-        badgeId: badge.id,
-        add: request,
+        collectionId: collection.collectionId,
+        addRequest: request,
     };
 
     //Reset states when modal is closed
@@ -42,8 +42,6 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
                         <Switch defaultChecked onChange={() => setRequest(!request)} />
                     </div>
                 </div>
-
-
             </>,
         }
     ]
@@ -56,7 +54,7 @@ export function CreateTxMsgRequestTransferManagerModal({ badge, visible, setVisi
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for badge ${badge.id}`}
+            displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for collection ${collection.collectionId}`}
         >
             {children}
         </TxModal>
