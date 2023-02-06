@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Select } from 'antd';
+import { Divider, Input, Select, Switch } from 'antd';
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { COSMOS, ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
@@ -9,7 +9,14 @@ import { DEV_MODE } from '../../constants';
 
 const { Option } = Select;
 
+export enum EnterMethod {
+    Manual = 'Manual',
+    Upload = 'Upload',
+}
+
 export function AddressSelect({
+    enterMethod,
+    setEnterMethod,
     currUserInfo,
     setCurrUserInfo,
     title,
@@ -23,15 +30,16 @@ export function AddressSelect({
         setCurrUserInfo: (currUserInfo: BitBadgesUserInfo) => void,
         icon?: React.ReactNode,
         fontColor?: string,
+        enterMethod?: EnterMethod,
+        setEnterMethod?: (enterMethod: EnterMethod) => void,
     }
 ) {
 
+
+
     return <>
-        <AddressDisplayTitle
-            accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
-            title={title}
-            icon={icon}
-        />
+
+        <br />
         <Input.Group compact style={{ display: 'flex' }}>
             <Select
                 value={currUserInfo.chain}

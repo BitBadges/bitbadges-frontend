@@ -88,7 +88,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const items = [
         {
-            title: `Add Recipients (${toAddresses.length})`,
+            title: `Select Recipients (${toAddresses.length})`,
             description: <AddressListSelect
                 users={toAddresses}
                 setUsers={setToAddresses}

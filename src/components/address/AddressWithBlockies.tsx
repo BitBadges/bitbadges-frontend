@@ -42,6 +42,10 @@ export function AddressWithBlockies({
             break;
     }
 
+    if (address === MINT_ACCOUNT.address) {
+        isValidAddress = true;
+    }
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',

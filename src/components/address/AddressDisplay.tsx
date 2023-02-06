@@ -1,25 +1,31 @@
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
-import { Divider, Tooltip, Typography } from 'antd';
+import { Divider, Select, Tooltip, Typography } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
 import { AddressWithBlockies } from './AddressWithBlockies';
 import { ETH_LOGO } from '../../constants';
 import { ethers } from 'ethers';
+import { EnterMethod } from './AddressSelect';
 
 export function AddressDisplayTitle(
     {
         accountNumber,
         title,
         icon,
-        showAccountNumber
+        showAccountNumber,
+        enterMethod,
+        setEnterMethod
     }: {
         accountNumber: number,
         title: string | ReactNode,
         icon?: ReactNode,
         showAccountNumber?: boolean
+        enterMethod?: EnterMethod,
+        setEnterMethod?: (enterMethod: EnterMethod) => void
     }
 ) {
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -27,9 +33,23 @@ export function AddressDisplayTitle(
         justifyContent: 'space-between',
         fontSize: 20
     }}>
-        <div></div>
-        <b>{title} {showAccountNumber && <>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b>
+        {/* <br /> */}
+        {/* <div></div> */}
+        {/* <b>{title} {showAccountNumber && <>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b> */}
+        <b>Add Recipients</b>
+
         <div style={{}}>
+            {/* {enterMethod && setEnterMethod &&
+                <Select
+                    defaultValue={EnterMethod.Manual}
+                    style={{ width: 120, marginRight: 8 }}
+                    onChange={(value: EnterMethod) => setEnterMethod(value)}
+                    options={[
+                        { value: EnterMethod.Manual, label: 'Manual' },
+                        { value: EnterMethod.Upload, label: 'Upload' },
+                    ]}
+                />
+            } */}
             {icon}
         </div>
     </div>
@@ -44,7 +64,7 @@ export function AddressDisplayList(
         setUsers: (users: BitBadgesUserInfo[]) => void
     }
 ) {
-    return <>
+    return <div style={{ maxHeight: 400, overflow: 'auto' }}>
         {
             users.map((user, index) => {
                 return (
@@ -67,7 +87,7 @@ export function AddressDisplayList(
                 )
             })
         }
-    </>
+    </div>
 }
 
 

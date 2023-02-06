@@ -409,7 +409,7 @@ export function SetProperties({
                         </>,
                         node: <>
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                <div style={{ maxWidth: 700 }}>
+                                <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
                                     <BadgeAvatarDisplay
                                         badgeCollection={collection}
                                         setBadgeCollection={() => { }}

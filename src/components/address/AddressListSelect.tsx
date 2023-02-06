@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
-import { AddressSelect } from "./AddressSelect";
-import { Button, Divider, Typography } from "antd";
-import { AddressDisplayList } from "./AddressDisplay";
+import { AddressSelect, EnterMethod } from "./AddressSelect";
+import { Button, Divider, Switch, Typography } from "antd";
+import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { UserAddOutlined } from "@ant-design/icons";
 
 export function AddressListSelect({
@@ -16,6 +16,7 @@ export function AddressListSelect({
     }
 ) {
     const [showUserList, setShowUserList] = useState<boolean>(true);
+    const [enterMethod, setEnterMethod] = useState(EnterMethod.Manual);
 
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
         chain: SupportedChain.ETH,
@@ -30,9 +31,9 @@ export function AddressListSelect({
 
     return <>
         {users.length > 0 && <>
-            <div className='flex-between'>
+            {/* <div className='flex-between'>
                 <Typography.Text style={{ fontSize: 18 }}>
-                    {users.length} recipients added
+                    {users.length} recipient{users.length > 1 ? 's' : ''} added
                 </Typography.Text>
                 <Button
                     onClick={() => setShowUserList(!showUserList)}
@@ -40,7 +41,7 @@ export function AddressListSelect({
                 >
                     {showUserList ? 'Hide' : 'Show'} Recipient List
                 </Button>
-            </div>
+            </div> */}
 
 
 
@@ -51,38 +52,58 @@ export function AddressListSelect({
                 setUsers={setUsers}
             /></>}
             {/* <hr /> */}
-            <Divider />
         </>
         }
 
+        <Divider />
 
-        <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} title={"Add User?"} icon={<UserAddOutlined />} />
-        <br />
-        <Button
-            type="primary"
-            style={{ width: "100%" }}
-            disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
-            onClick={() => {
-                if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
-                    return;
-                };
-                setUsers([
-                    ...users,
-                    {
-                        cosmosAddress: currUserInfo?.cosmosAddress,
-                        accountNumber: currUserInfo?.accountNumber,
+        <AddressDisplayTitle
+            accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
+            title={"Add Recipient"} icon={<UserAddOutlined />}
+            enterMethod={enterMethod}
+            setEnterMethod={setEnterMethod}
+        />
+        {enterMethod === EnterMethod.Manual && <>
+            <AddressSelect
+                enterMethod={enterMethod}
+                setEnterMethod={setEnterMethod}
+                currUserInfo={currUserInfo}
+                setCurrUserInfo={setCurrUserInfo}
+                title={"Add Recipient"} icon={<UserAddOutlined />}
+            />
+            <br />
+            <Button
+                type="primary"
+                style={{ width: "100%" }}
+                disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
+                onClick={() => {
+                    if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
+                        return;
+                    };
+                    setUsers([
+                        ...users,
+                        {
+                            cosmosAddress: currUserInfo?.cosmosAddress,
+                            accountNumber: currUserInfo?.accountNumber,
+                            chain: currUserInfo?.chain,
+                            address: currUserInfo?.address
+                        }
+                    ]);
+                    setCurrUserInfo({
                         chain: currUserInfo?.chain,
-                        address: currUserInfo?.address
-                    }
-                ]);
-                setCurrUserInfo({
-                    chain: currUserInfo?.chain,
-                    address: '',
-                    cosmosAddress: '',
-                    accountNumber: -1,
-                } as BitBadgesUserInfo);
-            }}>
-            <UserAddOutlined /> Add New User
-        </Button>
+                        address: '',
+                        cosmosAddress: '',
+                        accountNumber: -1,
+                    } as BitBadgesUserInfo);
+                }}>
+                <UserAddOutlined /> Add New User
+            </Button>
+        </>}
+        {/* {enterMethod === EnterMethod.Upload && <>
+            <b>TODO</b>
+            //TODO: Upload CSV / Batch addresses
+        </>} */}
+
+
     </>
 }
