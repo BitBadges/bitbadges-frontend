@@ -10,7 +10,8 @@ import { DEV_MODE } from '../../constants';
 const { Option } = Select;
 
 export function AddressSelect({
-    onChange,
+    currUserInfo,
+    setCurrUserInfo,
     title,
     icon,
     fontColor,
@@ -18,22 +19,12 @@ export function AddressSelect({
 }:
     {
         title: string,
-        onChange: (userInfo: BitBadgesUserInfo) => void,
+        currUserInfo: BitBadgesUserInfo,
+        setCurrUserInfo: (currUserInfo: BitBadgesUserInfo) => void,
         icon?: React.ReactNode,
         fontColor?: string,
     }
 ) {
-    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
-        chain: SupportedChain.ETH,
-        address: '',
-        cosmosAddress: '',
-        accountNumber: -1,
-    } as BitBadgesUserInfo);
-
-    useEffect(() => {
-        onChange(currUserInfo);
-    }, [currUserInfo, onChange]);
-
 
     return <>
         <AddressDisplayTitle
@@ -44,22 +35,70 @@ export function AddressSelect({
         <Input.Group compact style={{ display: 'flex' }}>
             <Select
                 value={currUserInfo.chain}
-                onSelect={(e: any) =>
-                    setCurrUserInfo(
-                        {
-                            ...currUserInfo,
-                            chain: e,
+                onSelect={async (e: any) => {
+                    // e.preventDefault();
+                    let bech32Address = '';
+                    if (e === SupportedChain.ETH && ethers.utils.isAddress(currUserInfo.address)) {
+                        bech32Address = ethToCosmos(currUserInfo.address);
+                    } else if (e === SupportedChain.COSMOS) {
+                        try {
+                            COSMOS.decoder(currUserInfo.address); //throws on decode error, so we don't spam getAccountInformation with invalid addresses
+                            bech32Address = currUserInfo.address;
+                        } catch (err) {
+
                         }
-                    )
-                }
+                    }
+
+                    setCurrUserInfo({
+                        chain: e,
+                        address: currUserInfo.address,
+                        cosmosAddress: bech32Address,
+                        accountNumber: -1,
+                    });
+
+                    console.log({
+                        chain: e,
+                        address: currUserInfo.address,
+                        cosmosAddress: bech32Address,
+                        accountNumber: -1,
+                    });
+
+                    let accountNum = -1;
+                    try {
+                        console.log(currUserInfo.address)
+                        COSMOS.decoder(currUserInfo.address); //throws on decode error, so we don't spam getAccountInformation with invalid addresses
+                        const acctInformation = await getAccountInformation(currUserInfo.address).then((accountInfo) => {
+                            const userInfo: BitBadgesUserInfo = {
+                                chain: e,
+                                address: currUserInfo.address,
+                                cosmosAddress: bech32Address,
+                                accountNumber: accountInfo.account_number,
+                            }
+                            return userInfo;
+                        });
+
+                        accountNum = acctInformation.accountNumber;
+                    } catch (err) {
+                        if (DEV_MODE) console.log("Did not get account information because cosmos address is invalid", err);
+                    }
+
+                    console.log(accountNum);
+                    setCurrUserInfo({
+                        chain: e,
+                        address: currUserInfo.address,
+                        cosmosAddress: bech32Address,
+                        accountNumber: accountNum,
+                    });
+                }}
                 defaultValue={SupportedChain.ETH}
             >
                 <Option value={SupportedChain.ETH}>Ethereum</Option>
                 <Option value={SupportedChain.COSMOS}>Cosmos</Option>
             </Select>
             <Input
-                defaultValue={DEV_MODE ? '0xe00dD9D317573f7B4868D8f2578C65544B153A27' : '0xe00dD9D317573f7B4868D8f2578C65544B153A27'}
-                // value={currUserInfo.address}
+                // defaultValue={DEV_MODE ? '0xe00dD9D317573f7B4868D8f2578C65544B153A27' : ''}
+                value={currUserInfo.address}
+
                 onChange={async (e) => {
                     e.preventDefault();
                     let bech32Address = '';
@@ -69,6 +108,13 @@ export function AddressSelect({
                         bech32Address = e.target.value;
                     }
 
+                    setCurrUserInfo({
+                        chain: currUserInfo.chain,
+                        address: e.target.value,
+                        cosmosAddress: bech32Address,
+                        accountNumber: -1,
+                    });
+
                     let accountNum = -1;
                     try {
                         COSMOS.decoder(bech32Address); //throws on decode error, so we don't spam getAccountInformation with invalid addresses
@@ -77,7 +123,7 @@ export function AddressSelect({
                                 chain: currUserInfo.chain,
                                 address: e.target.value,
                                 cosmosAddress: bech32Address,
-                                accountNumber: accountInfo.account_number,
+                                accountNumber: Number(accountInfo.account_number),
                             }
                             return userInfo;
                         });
@@ -97,9 +143,11 @@ export function AddressSelect({
                 }}
             />
         </Input.Group>
+        <br />
         <AddressDisplay
             userInfo={currUserInfo}
             fontColor={fontColor}
+            showAccountNumber
         />
     </>
 }

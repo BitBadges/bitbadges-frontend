@@ -3,6 +3,7 @@ import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-
 import { useEffect, useState } from "react";
 import { BadgeModal } from "./BadgeModal";
 import { PRIMARY_TEXT } from "../../constants";
+import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 
 export function BadgeAvatar({
     badge,
@@ -51,7 +52,7 @@ export function BadgeAvatar({
                     }}
                 />
                 <br />
-                {showId && <span style={{ color: PRIMARY_TEXT }}>{badgeId}</span>}
+                {showId && <span>{badgeId}</span>}
             </div>
         ) : (
             <div style={{ textAlign: 'center' }}>
@@ -77,7 +78,7 @@ export function BadgeAvatar({
             metadata={displayMetadata}
             visible={modalIsVisible}
             setVisible={setModalIsVisible}
-            balance={balance ? balance : {} as UserBalance}
+            balance={balance ? balance : getBlankBalance()}
             badgeId={badgeId}
         />
     </Tooltip> : <></>

@@ -52,7 +52,7 @@ export function OverviewTab({
                 badge={badgeCollection}
                 setBadgeCollection={setBadgeCollection}
                 claimId={claimId}
-                balance={{} as UserBalance}
+                balance={getBlankBalance()}
                 visible={modalVisible}
                 setVisible={setModalVisible}
                 merkleTree={merkleTrees[claimId]}

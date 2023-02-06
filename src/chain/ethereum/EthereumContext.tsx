@@ -109,10 +109,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
         const accountInformation = await getAccountInformation(ethToCosmos(signerAddress));
         setCosmosAddress(accountInformation.address);
-        setSequence(accountInformation.sequence);
+        setSequence(Number(accountInformation.sequence));
         setPublicKey(accountInformation.pub_key?.key);
-        setAccountNumber(accountInformation.account_number);
-        setIsRegistered(accountInformation.account_number >= 0);
+        setAccountNumber(Number(accountInformation.account_number));
+        setIsRegistered(Number(accountInformation.account_number) >= 0);
 
         setSigner(signer);
         setConnected(true);
@@ -127,10 +127,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             if (address !== newAddress) {
                 const accountInformation = await getAccountInformation(ethToCosmos(newAddress));
                 setCosmosAddress(accountInformation.address);
-                setSequence(accountInformation.sequence);
+                setSequence(Number(accountInformation.sequence));
                 setPublicKey(accountInformation.pub_key?.key);
-                setAccountNumber(accountInformation.account_number);
-                setIsRegistered(accountInformation.account_number >= 0);
+                setAccountNumber(Number(accountInformation.account_number));
+                setIsRegistered(Number(accountInformation.account_number) >= 0);
 
                 setSigner(signer);
                 setConnected(true);

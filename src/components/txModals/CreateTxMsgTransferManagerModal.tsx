@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, BitBadgesUserInfo } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
@@ -14,30 +14,38 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
     }
 ) {
     const chain = useChainContext();
-    const [newManagerAccountNumber, setNewManagerAccountNumber] = useState<number>();
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
+        chain: SupportedChain.ETH,
+        address: '',
+        cosmosAddress: '',
+        accountNumber: -1,
+    } as BitBadgesUserInfo);
 
     const txCosmosMsg: MessageMsgTransferManager = {
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
-        address: newManagerAccountNumber ? newManagerAccountNumber : -1,
+        address: Number(currUserInfo.accountNumber),
     };
+
+    const newManagerAccountNumber = txCosmosMsg.address;
 
     //Upon visible turning to false, reset to initial state
     useEffect(() => {
         if (!visible) {
-            setNewManagerAccountNumber(undefined);
+            setCurrUserInfo({
+                chain: SupportedChain.ETH,
+                address: '',
+                cosmosAddress: '',
+                accountNumber: -1,
+            } as BitBadgesUserInfo);
         }
     }, [visible]);
-
-    const handleChange = (userInfo: BitBadgesUserInfo) => {
-        setNewManagerAccountNumber(userInfo.accountNumber);
-    }
 
     const items = [
         {
             title: 'Select Address',
             description: <>
-                <AddressSelect onChange={handleChange} title={"New Manager"} />
+                <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} title={"New Manager"} />
                 <br />
                 *This will only go through if the address you select has submitted a request to become the manager of this collection.
             </>,

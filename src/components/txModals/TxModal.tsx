@@ -95,7 +95,7 @@ export function TxModal(
         }
     };
 
-    
+
     const registerUsers = async () => {
         if (unregisteredUsers && onRegister) {
             const registerTxCosmosMsg: MessageMsgRegisterAddresses = {
@@ -122,6 +122,7 @@ export function TxModal(
                 borderBottom: '0px',
                 ...style
             }}
+            width={650}
             closeIcon={closeIcon}
             bodyStyle={{
                 paddingTop: 8,
@@ -167,29 +168,39 @@ export function TxModal(
                                 {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
                                     {displayMsg &&
                                         <div style={{ textAlign: 'center' }}>
+                                            <br />
                                             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
                                                 {displayMsg}
                                             </Typography.Text>
-                                            <Divider />
+                                            <hr />
                                         </div>
                                     }
 
+                                    <br />
                                     <div style={{ textAlign: 'center' }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
-                                            Before signing the transaction, please confirm all transaction details are correct
+                                            Please confirm all transaction details are correct before signing
                                             because blockchain transactions are permanent!
                                         </Typography.Text>
-                                    </div>
-                                    <Divider />
-                                    <AddressDisplay
+                                        <br />
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                            By clicking the button below, you will be prompted to sign and submit a transaction 
+                                            from the wallet displayed below.
+                                        </Typography.Text>
 
+
+                                    </div>
+                                    <br />
+                                    <br />
+                                    <AddressDisplay
                                         userInfo={{
                                             chain: chain.chain,
                                             address: chain.address,
                                             cosmosAddress: chain.cosmosAddress,
                                             accountNumber: chain.accountNumber,
                                         }}
-                                        title={"Your Connected Wallet"}
+                                        // title={"Your Connected Wallet"}
+                                        showAccountNumber
                                     />
                                 </>}
                                 {

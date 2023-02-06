@@ -8,6 +8,7 @@ import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { TransferDisplay } from "./TransferDisplay";
 import { parseClaim } from "../../bitbadges-api/claims";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
+import { getBlankBalance } from "../../bitbadges-api/balances";
 
 export function ClaimDisplay({
     claim,
@@ -64,7 +65,7 @@ export function ClaimDisplay({
                                 setBadgeCollection={setCollection}
                                 startId={Number(id.start)}
                                 endId={Number(id.end)}
-                                userBalance={{} as UserBalance}
+                                userBalance={getBlankBalance()}
                                 size={50}
                             />
                         })}

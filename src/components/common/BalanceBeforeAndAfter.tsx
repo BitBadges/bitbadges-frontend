@@ -28,23 +28,25 @@ export function BalanceBeforeAndAfter({
                 alignItems: 'center',
                 fontSize: 15
             }}>
-                <b>Impact on {partyString} Owned Balances</b>
+                <b>{partyString} Badge Balances</b>
             </div>}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'center',
-            alignItems: 'center',
+            // alignItems: 'center',
         }}>
-            <div style={{ margin: 20 }}>
+            <div style={{ margin: 20, width: '50%' }}>
                 <BalanceDisplay
+                    setCollection={() => { }}
                     collection={collection}
                     balance={balance}
                     message={beforeMessage ? beforeMessage : 'Before'}
                 />
             </div>
-            <div style={{ margin: 20 }}>
+            <div style={{ margin: 20, width: '50%' }}>
                 <BalanceDisplay
+                    setCollection={() => { }}
                     collection={collection}
                     balance={newBalance}
                     message={afterMessage ? afterMessage : 'After'}

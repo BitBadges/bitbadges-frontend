@@ -12,8 +12,6 @@ export function BalanceDisplay({
     balance: UserBalance;
     message?: string;
 }) {
-    console.log("BALANCE", balance);
-    
     return <>
         <div style={{
             display: 'flex',
@@ -43,8 +41,8 @@ export function BalanceDisplay({
                                 badgeCollection={collection}
                                 setBadgeCollection={setCollection}
                                 userBalance={balance}
-                                startId={idRange.start}
-                                endId={idRange.end}
+                                startId={Number(idRange.start)}
+                                endId={Number(idRange.end)}
                             />
                         </div>
                     })

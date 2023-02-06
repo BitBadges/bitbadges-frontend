@@ -19,7 +19,7 @@ import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/bad
 import { PRIMARY_TEXT } from '../../../constants';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
-import { getPostTransferBalance } from '../../../bitbadges-api/balances';
+import { getBlankBalance, getPostTransferBalance } from '../../../bitbadges-api/balances';
 
 enum DistributionMethod {
     None,
@@ -413,7 +413,7 @@ export function SetProperties({
                                     <BadgeAvatarDisplay
                                         badgeCollection={collection}
                                         setBadgeCollection={() => { }}
-                                        userBalance={{} as UserBalance}
+                                        userBalance={getBlankBalance()}
                                         startId={0}
                                         endId={individualBadgeMetadata.length - 1}
                                         selectedId={id}

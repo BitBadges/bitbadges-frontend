@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Balance, BitBadgeCollection } from '../../bitbadges-api/types';
-import { InputNumber } from 'antd';
+import { Divider, InputNumber } from 'antd';
 import { IdRangesInput } from './IdRangesInput';
 
 //TODO: support multiple balances
@@ -13,21 +13,29 @@ export function BalancesInput({
     balances: Balance[],
     setBalances: (balances: Balance[]) => void,
 }) {
-    const [amount, setAmount] = useState<number>(0);
-
-    return <div>
-        <div className='flex-between'>
-            Amount to Transfer Per Recipient:
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
+        <div className='flex-between' style={{ flexDirection: 'column' }} >
+            <b>Amount to Transfer</b>
             <InputNumber
                 min={1}
                 title='Amount to Transfer'
-                value={amount} onChange={
+                value={balances[0]?.balance} onChange={
                     (value: number) => {
                         if (!value || value <= 0) {
-                            setAmount(0);
+                            setBalances([
+                                {
+                                    badgeIds: balances[0]?.badgeIds || [],
+                                    balance: 0,
+                                }
+                            ]);
                         }
                         else {
-                            setAmount(value);
+                            setBalances([
+                                {
+                                    badgeIds: balances[0]?.badgeIds || [],
+                                    balance: value,
+                                }
+                            ]);
                         }
                     }
                 }
@@ -38,7 +46,7 @@ export function BalancesInput({
             setIdRanges={(badgeIds) => {
                 setBalances([
                     {
-                        ...balances[0],
+                        balance: balances[0]?.balance || 0,
                         badgeIds
                     }
                 ]);

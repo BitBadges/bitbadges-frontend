@@ -1,7 +1,15 @@
 import { MessageMsgMintBadge, MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BadgeMetadata, BitBadgeCollection } from "./types";
+import { BadgeMetadata, BitBadgeCollection, IdRange } from "./types";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
+
+export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
+    const range: IdRange = {
+        start: 0,
+        end: collection.nextBadgeId - 1,
+    }
+    return [range];
+}
 
 export function createCollectionFromMsgNewCollection(
     msgNewCollection: MessageMsgNewCollection,

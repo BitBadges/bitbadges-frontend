@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { BitBadgesUserInfo } from "../../bitbadges-api/types";
+import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { AddressSelect } from "./AddressSelect";
-import { Button } from "antd";
+import { Button, Divider, Typography } from "antd";
 import { AddressDisplayList } from "./AddressDisplay";
 import { UserAddOutlined } from "@ant-design/icons";
 
@@ -15,19 +15,49 @@ export function AddressListSelect({
         setUsers: (users: BitBadgesUserInfo[]) => void,
     }
 ) {
-    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>();
+    const [showUserList, setShowUserList] = useState<boolean>(true);
+
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
+        chain: SupportedChain.ETH,
+        address: '',
+        cosmosAddress: '',
+        accountNumber: -1,
+    } as BitBadgesUserInfo);
 
     const handleChange = (userInfo: BitBadgesUserInfo) => {
         setCurrUserInfo(userInfo);
     }
 
     return <>
-        <AddressDisplayList
-            users={users}
-            setUsers={setUsers}
-        />
+        {users.length > 0 && <>
+            <div className='flex-between'>
+                <Typography.Text style={{ fontSize: 18 }}>
+                    {users.length} recipients added
+                </Typography.Text>
+                <Button
+                    onClick={() => setShowUserList(!showUserList)}
+                    disabled={users.length === 0}
+                >
+                    {showUserList ? 'Hide' : 'Show'} Recipient List
+                </Button>
+            </div>
 
-        <AddressSelect onChange={handleChange} title={"Add User?"} icon={<UserAddOutlined />} />
+
+
+
+
+            {showUserList && <><br /><AddressDisplayList
+                users={users}
+                setUsers={setUsers}
+            /></>}
+            {/* <hr /> */}
+            <Divider />
+        </>
+        }
+
+
+        <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} title={"Add User?"} icon={<UserAddOutlined />} />
+        <br />
         <Button
             type="primary"
             style={{ width: "100%" }}
@@ -45,7 +75,12 @@ export function AddressListSelect({
                         address: currUserInfo?.address
                     }
                 ]);
-                setCurrUserInfo(undefined);
+                setCurrUserInfo({
+                    chain: currUserInfo?.chain,
+                    address: '',
+                    cosmosAddress: '',
+                    accountNumber: -1,
+                } as BitBadgesUserInfo);
             }}>
             <UserAddOutlined /> Add New User
         </Button>

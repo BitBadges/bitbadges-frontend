@@ -3,6 +3,14 @@ import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SubtractBalancesForIdRanges } from "./balances-gpt";
 import { UserBalance } from "./types";
 
+export const getBlankBalance = () => {
+    const blankBalance: UserBalance = {
+        balances: [],
+        approvals: [],
+    }
+    return blankBalance;
+}
+
 export const getPostTransferBalance = (balance: UserBalance, startSubbadgeId: number, endSubbadgeId: number, amountToTransfer: number, numRecipients: number) => {
     let balanceCopy = JSON.parse(JSON.stringify(balance)); // need a deep copy of the balance to not mess up calculations
     let newBalance = SubtractBalancesForIdRanges(balanceCopy, [{ start: startSubbadgeId, end: endSubbadgeId }], amountToTransfer * numRecipients);

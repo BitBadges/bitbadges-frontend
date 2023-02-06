@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
-import { BitBadgeCollection, IdRange, BitBadgesUserInfo, UserBalance, Balance } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, UserBalance, Balance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { InputNumber } from 'antd';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressListSelect } from '../address/AddressListSelect';
-import { getPostTransferBalance } from '../../bitbadges-api/balances';
+import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { TransferDisplay } from '../common/TransferDisplay';
-import { IdRangesInput } from '../common/IdRangesInput';
 import { BalancesInput } from '../common/BalancesInput';
+import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
+import { Divider } from 'antd';
 
 //TODO: check for disallowedTransfers / managerApprovedTransfers
 export function CreateTxMsgTransferBadgeModal(
@@ -28,27 +28,33 @@ export function CreateTxMsgTransferBadgeModal(
     const chain = useChainContext();
 
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
-    const [balances, setBalances] = useState<Balance[]>([]);
-    const [newBalance, setNewBalance] = useState<UserBalance>({} as UserBalance);
+    const [balances, setBalances] = useState<Balance[]>([
+        {
+            balance: 1,
+            badgeIds: getFullBadgeIdRanges(badge)
+        },
+    ]);
+    const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
+
 
     useEffect(() => {
-        if (!userBalance) return;
-        let newBalanceObj = userBalance;
+        if (!userBalance || userBalance === getBlankBalance()) return;
+        let postTransferBalanceObj = userBalance;
         for (const balance of balances) {
             for (const idRange of balance.badgeIds) {
-                newBalanceObj = getPostTransferBalance(userBalance, idRange.start, idRange.end, balance.balance, toAddresses.length);
+                postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, toAddresses.length);
             }
         }
 
-        setNewBalance(newBalanceObj);
+        setPostTransferBalance(postTransferBalanceObj);
     }, [balances, userBalance, badge, toAddresses.length])
 
     const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
 
     const txCosmosMsg: MessageMsgTransferBadge = {
         creator: chain.cosmosAddress,
-        from: chain.accountNumber,
         collectionId: badge.collectionId,
+        from: chain.accountNumber,
         transfers: [
             {
                 toAddresses: toAddresses.map((user) => user.accountNumber),
@@ -73,12 +79,12 @@ export function CreateTxMsgTransferBadgeModal(
     //Upon visible turning to false, reset to initial state
     useEffect(() => {
         setToAddresses([]);
-        setNewBalance(JSON.parse(JSON.stringify(userBalance)));
+        setPostTransferBalance(JSON.parse(JSON.stringify(userBalance)));
     }, [visible, userBalance]);
 
 
     const firstStepDisabled = toAddresses.length === 0;
-    const secondStepDisabled = balances.length == 0 || !!newBalance.balances.find((balance) => balance.balance < 0);
+    const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
     const items = [
         {
@@ -90,18 +96,22 @@ export function CreateTxMsgTransferBadgeModal(
             disabled: firstStepDisabled,
         },
         {
-            title: 'Select IDs and Amounts',
+            title: 'Select Badges and Amounts',
             description: <div>
+                <br />
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
                     collection={badge}
                 />
-                <hr />
+                {/* <hr /> */}
+                <Divider />
                 {balances.map((balance, index) => {
+                    // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
-                            amount={balance.balance * toAddresses.length}
+                            hideAddresses
+                            amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
                             badge={badge}
                             setBadgeCollection={setBadgeCollection}
@@ -113,10 +123,11 @@ export function CreateTxMsgTransferBadgeModal(
                             }]}
                             to={toAddresses}
                         />
-                        <hr />
+                        {/* <hr /> */}
                     </div>
                 })}
-                <BalanceBeforeAndAfter collection={badge} balance={userBalance} newBalance={newBalance} partyString='Your' />
+                <Divider />
+                {postTransferBalance && <BalanceBeforeAndAfter collection={badge} balance={userBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
             disabled: secondStepDisabled
         },
@@ -131,10 +142,29 @@ export function CreateTxMsgTransferBadgeModal(
             onRegister={onRegister}
             visible={visible}
             setVisible={setVisible}
-            txName="Transfer Badge"
+            txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-
+            displayMsg={<div>
+                {balances.map((balance, index) => {
+                    // console.log(balance);
+                    return <div key={index}>
+                        <TransferDisplay
+                            amount={Number(balance.balance) * toAddresses.length}
+                            badgeIds={balance.badgeIds}
+                            badge={badge}
+                            setBadgeCollection={setBadgeCollection}
+                            from={[{
+                                chain: chain.chain,
+                                address: chain.address,
+                                accountNumber: chain.accountNumber,
+                                cosmosAddress: chain.cosmosAddress,
+                            }]}
+                            to={toAddresses}
+                        />
+                    </div>
+                })}
+            </div>}
         >
             {children}
         </TxModal>

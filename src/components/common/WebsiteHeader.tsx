@@ -37,7 +37,7 @@ export function WalletHeader() {
         }
 
 
-        router.push('/badges/' + value);
+        router.push('/collections/' + value);
     };
 
     const HomeTabMenu = <></>
@@ -175,6 +175,7 @@ export function WalletHeader() {
                 }}
             >
                 <Tabs
+                    tab=''
                     setTab={(e) => {
                         router.push(`/${e}`)
                     }}
@@ -189,6 +190,7 @@ export function WalletHeader() {
             </div>
             <div className="navbar-collapsed">
                 <Tabs
+                    tab=''
                     setTab={(e) => {
                         router.push(`/${e}`)
                     }}

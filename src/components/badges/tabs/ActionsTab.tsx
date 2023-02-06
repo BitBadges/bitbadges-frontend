@@ -249,13 +249,13 @@ export function ActionsTab({
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
                 setVisible={setTransferManagerIsVisible}
-                badge={badge}
+                collection={badge}
             />
 
             <CreateTxMsgRequestTransferManagerModal
                 visible={requestTransferManagerIsVisible}
                 setVisible={setRequestTransferManagerIsVisible}
-                badge={badge}
+                collection={badge}
             />
 
             <CreateTxMsgUpdatePermissionsModal

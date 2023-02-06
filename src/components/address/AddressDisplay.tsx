@@ -1,9 +1,11 @@
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { ReactNode } from 'react';
-import { Divider, Tooltip } from 'antd';
+import { Divider, Tooltip, Typography } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
 import { AddressWithBlockies } from './AddressWithBlockies';
+import { ETH_LOGO } from '../../constants';
+import { ethers } from 'ethers';
 
 export function AddressDisplayTitle(
     {
@@ -23,6 +25,7 @@ export function AddressDisplayTitle(
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        fontSize: 20
     }}>
         <div></div>
         <b>{title} {showAccountNumber && <>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b>
@@ -46,6 +49,7 @@ export function AddressDisplayList(
             users.map((user, index) => {
                 return (
                     <div key={index}>
+                        {/* {index !== 0 && <Divider style={{ margin: '15px' }} />} */}
                         <AddressDisplay
                             icon={
                                 <Tooltip title={"Remove User"}>
@@ -55,10 +59,10 @@ export function AddressDisplayList(
                                 </Tooltip>
                             }
                             showAccountNumber={true}
-                            title={<> {"User " + (index + 1)}</>}
+                            // title={<> {"User " + (index + 1)}</>}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
                         />
-                        <Divider style={{ margin: '15px' }} />
+
                     </div>
                 )
             })
@@ -76,7 +80,7 @@ export function AddressDisplay(
         showAccountNumber,
         fontColor,
         fontSize,
-        hideChains
+        showCosmosAddress
     }: {
         userInfo: BitBadgesUserInfo,
         title?: string | ReactNode,
@@ -85,14 +89,27 @@ export function AddressDisplay(
         fontColor?: string
         fontSize?: number,
         hideChains?: boolean
+        showCosmosAddress?: boolean
     }
 ) {
 
-    let isCosmosAddressValid = true;
-    try {
-        COSMOS.decoder(userInfo.cosmosAddress);
-    } catch (e) {
-        isCosmosAddressValid = false;
+    let isValidAddress = true;
+    let chainLogo = '';
+    switch (userInfo.chain) {
+        case SupportedChain.ETH:
+            isValidAddress = ethers.utils.isAddress(userInfo.address);
+            break;
+        case SupportedChain.COSMOS:
+
+            try {
+                COSMOS.decoder(userInfo.address);
+            } catch {
+                isValidAddress = false;
+            }
+            break;
+        default:
+            chainLogo = ETH_LOGO;
+            break;
     }
 
     return <>
@@ -108,29 +125,45 @@ export function AddressDisplay(
                 chain={userInfo.chain}
                 fontSize={fontSize}
                 fontColor={fontColor}
+                accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}
             />
-            {!hideChains &&
-                <div>
-                    <span style={{ marginLeft: 8 }}>{userInfo.chain}</span>
-                </div>}
+            <div style={{ display: 'flex', alignItems: 'center' }} >
+                {showAccountNumber && userInfo.accountNumber !== -1 &&
+                    <div>
+                        <Typography.Text strong style={{ marginLeft: 8 }}>ID #{userInfo.accountNumber}</Typography.Text>
+                    </div>}
+                {showAccountNumber && userInfo.accountNumber === -1 && isValidAddress &&
+                    <Tooltip
+                        title='This address has not been registered on the BitBadges blockchain yet. We will register it before you submit your transaction.'
+                        placement='bottom'
+                    >
+                        <div>
+                            <Typography.Text strong style={{ marginLeft: 8 }}>Unregistered</Typography.Text>
+                        </div>
+                    </Tooltip>
+                }
+                <div style={{ marginLeft: 8 }}>
+                    {icon}
+                </div>
+            </div>
+
         </div>
-        <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        }}>
-            <AddressWithBlockies
-                address={userInfo.cosmosAddress}
-                chain={SupportedChain.COSMOS}
-                fontSize={fontSize}
-                fontColor={fontColor}
-            />
-            {!hideChains &&
-                <div>
-                    <span style={{ marginLeft: 8 }}>{SupportedChain.COSMOS}</span>
-                </div>}
-        </div>
+        {showCosmosAddress &&
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            }}>
+                <AddressWithBlockies
+                    address={userInfo.cosmosAddress}
+                    chain={SupportedChain.COSMOS}
+                    fontSize={fontSize}
+                    fontColor={fontColor}
+                />
+
+            </div>
+        }
     </>
 }
 

@@ -28,6 +28,8 @@ export function BadgeAvatarDisplay({
     //TODO: special ring around the badge if it is owned
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
 
+    console.log(Number(startId), Number(endId));
+
     const [display, setDisplay] = useState<ReactNode>(<>
         {badgeCollection && Number(endId) - Number(startId) + 1 > 0
             && Number(endId) >= 0 &&
@@ -57,45 +59,30 @@ export function BadgeAvatarDisplay({
     useEffect(() => {
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
             if (!badgeCollection || !setBadgeCollection) return;
-            let numBadges = badgeCollection?.nextBadgeId;
-            //TODO: should probably make it more scalable than this
-            for (let i = 0; i < numBadges; i++) {
-                console.log(i);
-                if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
-                    console.log(i);
-                    await getBadgeCollection(badgeCollection.collectionId, badgeCollection, i)
-                        .then(res => {
-                            if (res.collection) {
-                                console.log(res.collection);
-                                setBadgeCollection(res.collection)
-                            }
-                        });
-                }
 
-                setDisplay(<>
-                    {
-                        badgeCollection && Number(endId) - Number(startId) + 1 > 0
-                        && Number(endId) >= 0 &&
-                        Number(startId) >= 0
-                        && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
-                            return <div key={idx} style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                            }}>
-                                <BadgeAvatar
-                                    size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
-                                    badge={badgeCollection}
-                                    metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
-                                    badgeId={idx + Number(startId)}
-                                    balance={userBalance}
-                                    showId={showIds}
-                                />
-                            </div>
-                        })
-                    }</>)
-            }
+            setDisplay(<>
+                {
+                    badgeCollection && Number(endId) - Number(startId) + 1 > 0
+                    && Number(endId) >= 0 &&
+                    Number(startId) >= 0
+                    && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
+                        return <div key={idx} style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}>
+                            <BadgeAvatar
+                                size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
+                                badge={badgeCollection}
+                                metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
+                                badgeId={idx + Number(startId)}
+                                balance={userBalance}
+                                showId={showIds}
+                            />
+                        </div>
+                    })
+                }</>)
 
         }
         updateDisplay(badgeCollection);

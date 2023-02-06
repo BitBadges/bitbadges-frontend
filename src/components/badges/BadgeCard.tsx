@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeMetadata, Balance, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeModal } from './BadgeModal';
+import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 
 //Can probably add this to bitbadges-js
 const getSupplyByBadgeId = (badgeId: number, supplys: Balance[]) => {
@@ -130,7 +131,7 @@ export function BadgeCard({
                                 ID #: {id}
                                 {collection && collection.maxSupplys && <><br />
                                     <>Max Supply: {getSupplyByBadgeId(id, collection.maxSupplys)}</>
-                                    
+
                                     <br />
                                     <>Unminted Supply: {getSupplyByBadgeId(id, collection.unmintedSupplys)}</>
                                 </>
@@ -158,7 +159,7 @@ export function BadgeCard({
                 metadata={metadata}
                 visible={visible}
                 setVisible={setVisible}
-                balance={balance ? balance : {} as UserBalance}
+                balance={balance ? balance : getBlankBalance()}
                 badgeId={id}
             />
         </>

@@ -109,7 +109,8 @@ export async function getBadgeCollection(
         // Convert the returned manager (bech32) to an BitBadgesUserInfo object for easier use
         let managerAccountNumber: any = badgeData.manager;
         let managerAccountInfo: CosmosAccountInformation = await getAccountInformationByAccountNumber(managerAccountNumber);
-
+        managerAccountInfo.account_number = Number(managerAccountInfo.account_number);
+        managerAccountInfo.sequence = Number(managerAccountInfo.sequence);
 
         //TODO: dynamic conversions between chains
         let ethAddress = cosmosToEth(managerAccountInfo.address);
@@ -253,7 +254,7 @@ export async function getBadgeBalance(
         console.error("ERROR: ", balanceRes.error);
         return Promise.reject(balanceRes.error);
     }
-    
+
     if (balanceRes.balance) {
         for (const balanceObject of balanceRes.balance.balances) {
             balanceObject.balance = Number(balanceObject.balance);

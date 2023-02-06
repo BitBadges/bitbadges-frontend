@@ -12,6 +12,7 @@ export function Address({
     fontColor,
     hideTooltip,
     hideChain,
+    accountNumber,
 }: {
     address: string;
     chain: string;
@@ -21,6 +22,7 @@ export function Address({
     fontColor?: string;
     hideTooltip?: boolean;
     hideChain?: boolean;
+    accountNumber?: number,
 }) {
     let displayAddress = '';
     let isMintAddress = address === MINT_ACCOUNT.address;
@@ -38,6 +40,7 @@ export function Address({
     }
 
 
+
     const innerContent = !hideTooltip ? (
         <Tooltip
             placement="bottom"
@@ -45,8 +48,9 @@ export function Address({
                 <div style={{
                     textAlign: 'center',
                 }}>
-                    {`${chain}`}
+                    {`${chain} Address${accountNumber && accountNumber !== -1 ? ` (BitBadges ID #${accountNumber})` : ``}`} 
                     <br />
+                    <br/>
                     {`${address}`}
                 </div>
             }

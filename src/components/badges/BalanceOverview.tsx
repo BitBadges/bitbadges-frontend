@@ -12,6 +12,7 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
+import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 
 const { Text } = Typography;
 
@@ -152,7 +153,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             setBadgeCollection={setBadge}
             visible={transferIsVisible}
             setVisible={setTransferIsVisible}
-            userBalance={balance ? balance : {} as UserBalance}
+            userBalance={balance ? balance : getBlankBalance()}
         />
 
         {/* <CreateTxMsgClaimBadgeModal
@@ -160,7 +161,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             setBadgeCollection={setBadge}
             visible={claimIsVisible}
             setVisible={setClaimIsVisible}
-            balance={balance ? balance : {} as UserBalance}
+            balance={balance ? balance : getBlankBalance()}
             merkleTree={merkleTree[claimId]}
         /> */}
 
@@ -168,14 +169,14 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             badge={badge ? badge : {} as BitBadgeCollection}
             visible={requestTransferIsVisible}
             setVisible={setRequestTransferIsVisible}
-            balance={balance ? balance : {} as UserBalance}
+            balance={balance ? balance : getBlankBalance()}
         /> */}
         {/* 
         <CreateTxMsgHandlePendingTransferModal
             badge={badge ? badge : {} as BitBadgeCollection}
             visible={pendingIsVisible}
             setVisible={setPendingIsVisible}
-            balance={balance ? balance : {} as UserBalance}
+            balance={balance ? balance : getBlankBalance()}
         /> */}
     </>
     );

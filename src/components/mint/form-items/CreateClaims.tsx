@@ -56,7 +56,7 @@ export function CreateClaims({
     const [startBadgeId, setStartBadgeId] = useState<number>(0);
     const [endBadgeId, setEndBadgeId] = useState<number>(newCollectionMsg.badgeSupplys[0]?.amount - 1 ? newCollectionMsg.badgeSupplys[0].amount - 1 : badgeCollection.nextBadgeId - 1);
 
-    const [currAddress, setCurrAddress] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
+    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
     const [amount, setAmount] = useState<number>(0);
     const [badgeRanges, setBadgeRanges] = useState<IdRange[]>([{ start: 0, end: 0 }]);
 
@@ -65,9 +65,9 @@ export function CreateClaims({
     const addCode = () => {
         let currLeafItem = undefined;
         if (distributionMethod === DistributionMethod.Codes) {
-            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', amount, badgeRanges, currAddress.accountNumber);
+            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', amount, badgeRanges, currUserInfo.accountNumber);
         } else {
-            currLeafItem = createClaim('', currAddress.cosmosAddress, amount, badgeRanges, currAddress.accountNumber);
+            currLeafItem = createClaim('', currUserInfo.cosmosAddress, amount, badgeRanges, currUserInfo.accountNumber);
         }
 
         // For codes, we add twice so that the same code can be both children in a Merkle tree node
@@ -213,8 +213,7 @@ export function CreateClaims({
 
                             ]}
                             amount={leaf.amount}
-                            startId={leaf.badgeIds[0]?.start}
-                            endId={leaf.badgeIds[0]?.end}
+                            badgeIds={leaf.badgeIds}
                         />
 
                         <Divider />
@@ -237,9 +236,8 @@ export function CreateClaims({
                         <AddressSelect
                             fontColor={PRIMARY_TEXT}
                             title='Select Recipient'
-                            onChange={(address: BitBadgesUserInfo) => {
-                                setCurrAddress(address);
-                            }}
+                            currUserInfo={currUserInfo}
+                            setCurrUserInfo={setCurrUserInfo}
                         />
                     </div>
                 </div>}
@@ -354,7 +352,7 @@ export function CreateClaims({
                         addCode();
                         setAmountToTransfer(0);
                     }}
-                    disabled={amountToTransfer <= 0 || startBadgeId < 0 || endBadgeId < 0 || startBadgeId > endBadgeId || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.SpecificAddresses && !currAddress.cosmosAddress)}
+                    disabled={amountToTransfer <= 0 || startBadgeId < 0 || endBadgeId < 0 || startBadgeId > endBadgeId || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.SpecificAddresses && !currUserInfo.cosmosAddress)}
                 >
                     {distributionMethod === DistributionMethod.SpecificAddresses ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
                 </Button>
