@@ -34,10 +34,11 @@ export function TransferDisplay({
         {badgeIds?.map((range, index) => {
             const startId = range.start;
             const endId = range.end;
+            const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
 
             return <div key={index} >
                 <div style={{ textAlign: 'center' }}>
-                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`Transferring x${amount * to.length} of each of the badges below${to.length > 1 ? ` (x${amount} to each recipient)` : ''}`}</Typography.Text>
+                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`Transferring x${amount * toLength} of each of the badges below${toLength > 1 ? ` (x${amount} to each recipient)` : ''}`}</Typography.Text>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`IDs ${startId} to ${endId}`}</Typography.Text>
@@ -49,7 +50,7 @@ export function TransferDisplay({
         })}
 
         {!hideAddresses && <div>
-            <Divider />
+            <br />
             <Row>
                 <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
                     <b>From</b>
@@ -58,8 +59,9 @@ export function TransferDisplay({
 
                 </Col>
                 <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
-                    <b>{to.length ? 'To' : ''}</b>
-                    <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b>
+                    {/* <b>{to.length ? 'To' : ''}</b> */}
+                    <b>To</b>
+                    {/* <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b> */}
                 </Col>
             </Row>
             <Row>
@@ -118,7 +120,6 @@ export function TransferDisplay({
 
                 </Col>
             </Row>
-            <br />
         </div>
         }
     </>

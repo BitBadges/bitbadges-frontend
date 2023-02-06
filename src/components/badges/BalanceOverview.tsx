@@ -13,6 +13,7 @@ import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
+import { BalanceDisplay } from '../common/BalanceDisplay';
 
 const { Text } = Typography;
 
@@ -80,8 +81,8 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             name: <>Transfer</>,
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
-            tooltipMessage: `Transfer this badge to another address`,
-            disabled: false
+            tooltipMessage:  !balance ? 'You do not own any badges in this collection.' : `Transfer this badge to another address`,
+            disabled: !balance
         },
         {
             name: <>Claim</>,
@@ -124,27 +125,11 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
                 !chain.connected && <BlockinDisplay hideLogo={true} />
             }
             <div>
-                {/* {
-                    balance?.balances?.length === 0 &&
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-                        <Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>
-                            You do not own any badge in this collection.
-                        </Text>
-                    </div>
-                } */}
-
-
-                {balance?.balances?.map((balanceAmount) => {
-                    return balanceAmount.badgeIds.map((idRange) => {
-                        let start = Number(idRange.start);
-                        if (!idRange.end) idRange.end = idRange.start;
-                        let end = Number(idRange.end);
-
-                        return <TableRow key={start} label={'x' + balanceAmount.balance + ` (IDs: ${start}-${end})`} value={
-                            <BadgeAvatarDisplay setBadgeCollection={setBadge} badgeCollection={badge} startId={start} endId={end} userBalance={balance} />
-                        } labelSpan={8} valueSpan={16} />
-                    })
-                })}
+                {balance && <BalanceDisplay
+                    collection={badge}
+                    setCollection={setBadge}
+                    balance={balance}
+                />}
             </div>
         </InformationDisplayCard>
 

@@ -541,6 +541,7 @@ export function SetProperties({
                             title: `Create Claims`,
                             description: '',
                             node: <CreateClaims
+                                collection={collection}
                                 newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} distributionMethod={distributionMethod}
                                 claimItems={claimItems}
                                 setClaimItems={setClaimItems}
@@ -551,7 +552,7 @@ export function SetProperties({
                             />,
                             disabled: claimItems.length == 0
                         } : EmptyFormItem,
-                {
+                claimItems.length > 0 && distributionMethod === DistributionMethod.SpecificAddresses ? {
                     title: `Distribution Method`,
                     description: `You have whitelisted ${claimItems.length} address${claimItems.length > 1 ? 'es' : ''}. How would you like to distribute badges to these addresses?`,
                     node: <SwitchForm
@@ -606,13 +607,14 @@ export function SetProperties({
                                 }
 
 
-                                if (distributionMethod === DistributionMethod.Codes) {
-                                    for (let i = 0; i < claimItems.length; i += 2) {
-                                        const leaf = claimItems[i];
-                                        const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
-                                        balance.balances = newBalance.balances;
-                                    }
-                                } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
+                                // if (distributionMethod === DistributionMethod.Codes) {
+                                //     for (let i = 0; i < claimItems.length; i += 2) {
+                                //         const leaf = claimItems[i];
+                                //         const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
+                                //         balance.balances = newBalance.balances;
+                                //     }
+                                // } else 
+                                if (distributionMethod === DistributionMethod.SpecificAddresses) {
                                     for (let i = 0; i < claimItems.length; i++) {
                                         const leaf = claimItems[i];
                                         const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
@@ -661,7 +663,7 @@ export function SetProperties({
                             }
                         }}
                     />,
-                },
+                } : EmptyFormItem,
 
 
 

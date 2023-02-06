@@ -129,6 +129,7 @@ export function AddressDisplay(
             break;
         default:
             chainLogo = ETH_LOGO;
+            isValidAddress = false;
             break;
     }
 
@@ -147,10 +148,10 @@ export function AddressDisplay(
                 fontColor={fontColor}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}
             />
-            <div style={{ display: 'flex', alignItems: 'center' }} >
+            <div style={{ display: 'flex', alignItems: 'center', color: fontColor }} >
                 {showAccountNumber && userInfo.accountNumber !== -1 &&
                     <div>
-                        <Typography.Text strong style={{ marginLeft: 8 }}>ID #{userInfo.accountNumber}</Typography.Text>
+                        <Typography.Text strong style={{ marginLeft: 8, color: fontColor }}>ID #{userInfo.accountNumber}</Typography.Text>
                     </div>}
                 {showAccountNumber && userInfo.accountNumber === -1 && isValidAddress &&
                     <Tooltip
@@ -158,7 +159,7 @@ export function AddressDisplay(
                         placement='bottom'
                     >
                         <div>
-                            <Typography.Text strong style={{ marginLeft: 8 }}>Unregistered</Typography.Text>
+                            <Typography.Text strong style={{ marginLeft: 8, color: fontColor }}>Unregistered</Typography.Text>
                         </div>
                     </Tooltip>
                 }

@@ -85,3 +85,15 @@
 h1, h2, h3, h4, h5, h6 {
     color: white;
 }
+
+.ant-collapse-content {
+    background-color: #001529;
+}
+
+.ant-collapse-expand-icon {
+    color: white;
+}
+
+.ant-collapse-header:hover {
+    background-color: #192c3e;
+}

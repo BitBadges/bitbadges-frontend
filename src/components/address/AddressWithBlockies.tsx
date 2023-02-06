@@ -39,6 +39,7 @@ export function AddressWithBlockies({
             break;
         default:
             chainLogo = ETH_LOGO;
+            isValidAddress = false;
             break;
     }
 

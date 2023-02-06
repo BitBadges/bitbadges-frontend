@@ -46,6 +46,7 @@ export interface ClaimItem {
     amount: number;
     badgeIds: IdRange[];
     fullCode: string;
+    userInfo: BitBadgesUserInfo;
 }
 
 export enum DistributionMethod {

@@ -1,4 +1,4 @@
-import { ClaimItem, IdRange } from "./types";
+import { BitBadgesUserInfo, ClaimItem, IdRange } from "./types";
 
 //Claims will have the format "CODE-ADDRESS-AMOUNT-STARTID-ENDID"
 
@@ -13,18 +13,25 @@ export function parseClaim(fullClaimString: string): ClaimItem {
         }],
         fullCode: fullClaimString,
         accountNum: -1,
+        userInfo: {
+            address: '',
+            cosmosAddress: '',
+            accountNumber: -1,
+            chain: '',
+        }
     }
 
     return currLeaf;
 }
 
-export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number): ClaimItem {
+export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number, currUserInfo: BitBadgesUserInfo): ClaimItem {
     return {
         code,
         address,
         amount,
         badgeIds,
         fullCode: `${code}-${address}-${amount}-${badgeIds[0].start}-${badgeIds[0].end}`,
-        accountNum
+        accountNum,
+        userInfo: currUserInfo,
     }
 }
