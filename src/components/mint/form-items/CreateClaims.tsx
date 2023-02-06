@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { InputNumber, Button, Divider, Collapse, Typography, Tooltip } from 'antd';
-import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
+import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
 import { TransferDisplay } from '../../common/TransferDisplay';
@@ -278,11 +278,12 @@ export function CreateClaims({
                                     title='Select Recipient'
                                     currUserInfo={currUserInfo}
                                     setCurrUserInfo={setCurrUserInfo}
+                                    darkMode
                                 />
                             </div>
                         </div>}
                         <br />
-                        <BalancesInput collection={collection} balances={currBalances} setBalances={setCurrBalances} />
+                        <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
                         <br />
                         <TransferDisplay
                             badge={badgeCollection}
@@ -347,7 +348,11 @@ export function CreateClaims({
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Button
                                 // type='primary'
-                                style={{ width: '48%' }}
+                                style={{
+                                    width: '48%',
+                                    color: PRIMARY_TEXT,
+                                    backgroundColor: TERTIARY_BLUE
+                                }}
                                 onClick={() => {
 
                                     setShowCreate(false);

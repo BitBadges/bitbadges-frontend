@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Typography, InputNumber, Button } from 'antd';
-import { PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
 export function BadgeSupply({
@@ -58,6 +58,10 @@ export function BadgeSupply({
                 }}
             >
                 <InputNumber value={supplyToCreate}
+                    style={{
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                    }}
                     defaultValue={1}
                     min={1}
                     onChange={

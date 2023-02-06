@@ -5,7 +5,7 @@ import { COSMOS, ethToCosmos, } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { AddressDisplay, AddressDisplayTitle } from './AddressDisplay';
-import { DEV_MODE } from '../../constants';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 const { Option } = Select;
 
@@ -22,6 +22,7 @@ export function AddressSelect({
     title,
     icon,
     fontColor,
+    darkMode,
 
 }:
     {
@@ -32,6 +33,7 @@ export function AddressSelect({
         fontColor?: string,
         enterMethod?: EnterMethod,
         setEnterMethod?: (enterMethod: EnterMethod) => void,
+        darkMode?: boolean,
     }
 ) {
 
@@ -42,6 +44,10 @@ export function AddressSelect({
         <br />
         <Input.Group compact style={{ display: 'flex' }}>
             <Select
+                // style={darkMode ? {
+                //     backgroundColor: PRIMARY_BLUE,
+                //     color: PRIMARY_TEXT
+                // } : undefined}
                 value={currUserInfo.chain}
                 onSelect={async (e: any) => {
                     // e.preventDefault();
@@ -106,7 +112,10 @@ export function AddressSelect({
             <Input
                 // defaultValue={DEV_MODE ? '0xe00dD9D317573f7B4868D8f2578C65544B153A27' : ''}
                 value={currUserInfo.address}
-
+                style={darkMode ? {
+                    backgroundColor: PRIMARY_BLUE,
+                    color: PRIMARY_TEXT
+                } : undefined}
                 onChange={async (e) => {
                     e.preventDefault();
                     let bech32Address = '';

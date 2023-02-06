@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Balance, BitBadgeCollection } from '../../bitbadges-api/types';
 import { Divider, InputNumber } from 'antd';
 import { IdRangesInput } from './IdRangesInput';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 //TODO: support multiple balances
 export function BalancesInput({
     collection,
     balances,
     setBalances,
+    darkMode,
 }: {
     collection?: BitBadgeCollection
     balances: Balance[],
     setBalances: (balances: Balance[]) => void,
+    darkMode?: boolean,
 }) {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
         <div className='flex-between' style={{ flexDirection: 'column' }} >
@@ -39,6 +42,10 @@ export function BalancesInput({
                         }
                     }
                 }
+                style={darkMode ? {
+                    backgroundColor: PRIMARY_BLUE,
+                    color: PRIMARY_TEXT,
+                } : undefined}
             />
         </div>
         <IdRangesInput
@@ -52,6 +59,7 @@ export function BalancesInput({
                 ]);
             }}
             maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
+            darkMode={darkMode}
         />
     </div>
 }

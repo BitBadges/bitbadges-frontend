@@ -16,7 +16,7 @@ import saveAs from 'file-saver';
 import { Button, Divider, InputNumber } from 'antd';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
-import { PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 import { getBlankBalance, getPostTransferBalance } from '../../../bitbadges-api/balances';
@@ -405,7 +405,10 @@ export function SetProperties({
                     {
                         title: 'Set Individual Badge Metadata',
                         description: <>
-                            Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} />
+                            Currently Setting Metadata for Badge ID: <InputNumber min={0} max={individualBadgeMetadata.length - 1} value={id} onChange={(e) => setId(e)} style={{
+                                backgroundColor: PRIMARY_BLUE,
+                                color: PRIMARY_TEXT,
+                            }} />
                         </>,
                         node: <>
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

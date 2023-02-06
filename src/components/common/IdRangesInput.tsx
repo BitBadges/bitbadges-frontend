@@ -1,6 +1,7 @@
 import { InputNumber } from "antd";
 import { IdRange } from "../../bitbadges-api/types";
 import { useState } from "react";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 
 //TODO: support multiple IdRanges
 export function IdRangesInput(
@@ -8,10 +9,12 @@ export function IdRangesInput(
         idRanges,
         setIdRanges,
         maximum,
+        darkMode
     }: {
         idRanges: IdRange[],
         setIdRanges: (idRanges: IdRange[]) => void,
         maximum?: number,
+        darkMode?: boolean,
     }
 ) {
     const [startBadgeId, setStartBadgeId] = useState<number>(0);
@@ -36,6 +39,10 @@ export function IdRangesInput(
                         }
                     }
                 }
+                style={darkMode ? {
+                    backgroundColor: PRIMARY_BLUE,
+                    color: PRIMARY_TEXT,
+                } : undefined}
             />
         </div>
         <div className='flex-between' style={{ flexDirection: 'column' }} >
@@ -53,6 +60,10 @@ export function IdRangesInput(
                         }
                     }
                 }
+                style={darkMode ? {
+                    backgroundColor: PRIMARY_BLUE,
+                    color: PRIMARY_TEXT,
+                } : undefined}
             />
         </div>
     </>
