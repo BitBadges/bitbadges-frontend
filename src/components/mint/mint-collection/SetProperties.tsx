@@ -16,10 +16,11 @@ import saveAs from 'file-saver';
 import { Button, Divider, InputNumber } from 'antd';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import MerkleTree from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
 import { getBlankBalance, getPostTransferBalance } from '../../../bitbadges-api/balances';
+import { downloadJson } from '../../../utils/downloadJson';
 
 enum DistributionMethod {
     None,
@@ -36,12 +37,6 @@ export const EmptyFormItem = {
     doNotDisplay: true,
 }
 
-function downloadJson(json: object, filename: string) {
-    const blob = new Blob([JSON.stringify(json)], {
-        type: 'application/json'
-    });
-    saveAs(blob, filename);
-}
 
 export function SetProperties({
     setCurrStepNumber,
@@ -504,12 +499,12 @@ export function SetProperties({
                                 isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
                             },
                             {
-                                title: 'Codes',
+                                title: 'Claim by Codes',
                                 message: 'Generate secret codes that can be redeemed for badges. You choose how to distribute these codes.',
                                 isSelected: distributionMethod == DistributionMethod.Codes,
                             },
                             {
-                                title: 'Whitelist',
+                                title: 'Claim by Whitelist',
                                 message: 'Whitelist specific addresses to receive badges.',
                                 isSelected: distributionMethod == DistributionMethod.SpecificAddresses,
                             },
@@ -522,9 +517,9 @@ export function SetProperties({
                         onSwitchChange={(newTitle) => {
                             if (newTitle == 'Anyone Can Claim (First Come, First Serve)') {
                                 setDistributionMethod(DistributionMethod.FirstComeFirstServe);
-                            } else if (newTitle == 'Codes') {
+                            } else if (newTitle == 'Claim by Codes') {
                                 setDistributionMethod(DistributionMethod.Codes);
-                            } else if (newTitle == 'Whitelist') {
+                            } else if (newTitle == 'Claim by Whitelist') {
                                 setDistributionMethod(DistributionMethod.SpecificAddresses);
                             } else if (newTitle == 'Unminted') {
                                 setDistributionMethod(DistributionMethod.Unminted);
@@ -666,6 +661,39 @@ export function SetProperties({
                             }
                         }}
                     />,
+                } : EmptyFormItem,
+                claimItems.length > 0 && distributionMethod === DistributionMethod.Codes ? {
+                    title: `Download Codes`,
+                    description: `You are in charge of storing and distributing the ${claimItems.length / 2} claim code${claimItems.length / 2 > 1 ? 's' : ' you have generated'}. Please download them to keep them safe.`,
+                    node: <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                        <>
+                            <br />
+                            <div >
+                                If you lose these codes, they cannot be recovered!
+                            </div>
+                            <br />
+
+                            <button
+                                style={{
+                                    backgroundColor: 'inherit',
+                                    color: SECONDARY_TEXT,
+                                }}
+                                onClick={() => {
+                                    const today = new Date();
+
+                                    const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                                    const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                                    downloadJson({
+                                        claimItems
+                                    }, `codes-${collectionMetadata.name}-${dateString}-${timeString}.json`);
+                                }}
+                                className="opacity link-button"
+                            >
+                                Click here to download the codes.
+                            </button>
+                        </>
+                    </div>
                 } : EmptyFormItem,
 
 

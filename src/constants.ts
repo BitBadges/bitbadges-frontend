@@ -1,5 +1,3 @@
-import { MerkleTree } from 'merkletreejs';
-import SHA256 from 'crypto-js/sha256';
 import { BadgeMetadata, BitBadgesUserInfo, SupportedChain } from './bitbadges-api/types';
 
 // export const NODE_URL = 'https://bit-badges.herokuapp.com';

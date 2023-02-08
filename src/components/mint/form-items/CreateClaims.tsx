@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { InputNumber, Button, Divider, Collapse, Typography, Tooltip } from 'antd';
+import { InputNumber, Button, Divider, Collapse, Typography, Tooltip, Empty } from 'antd';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
@@ -17,7 +17,7 @@ import { downloadJson } from '../../../utils/downloadJson';
 import { BalancesInput } from '../../common/BalancesInput';
 import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { AddressDisplay } from '../../address/AddressDisplay';
 
 const crypto = require('crypto');
@@ -153,34 +153,13 @@ export function CreateClaims({
     return <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: 800 }}>
 
-            {!showCreate && <div style={{ width: '100%' }}>
+            <div style={{ width: '100%' }}>
+                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} setCollection={() => { }} balance={newBalances} />}
 
-                {distributionMethod === DistributionMethod.Codes && <div> <p>
-                    You are responsible for storing and distributing the generated codes!
-                </p>
-                    {/* <button
-                        style={{
-                            backgroundColor: 'inherit',
-                            color: SECONDARY_TEXT,
-                        }}
-                        onClick={() => {
-                            const today = new Date();
+                {/* <Divider /> */}
 
-                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+                {claimItems.length > 0 && <><br /><h3>Created Claims</h3><Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
 
-                            downloadJson({
-                                "claims": claimItems,
-                            }, `claimCodes-${collectionMetadata.name}-${dateString}-${timeString}.json`);
-                        }}
-                        className="opacity link-button"
-                    >
-                        Click here to download the list of all codes!
-                    </button> */}
-                </div>}
-                <br />
-                {claimItems.length === 0 && <p>No claims have been created yet!</p>}
-                {claimItems.length > 0 && <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
                     {claimItems.map((leaf, index) => {
                         let currIndex = index;
                         if (distributionMethod === DistributionMethod.Codes) {
@@ -191,17 +170,14 @@ export function CreateClaims({
                             currIndex = index / 2;
                         }
 
-
                         return <CollapsePanel header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                                {'#' + currIndex + ' ('}
                                 {distributionMethod === DistributionMethod.Codes ? <Text copyable style={{ color: PRIMARY_TEXT }}>
                                     {'Code: ' + leaf.fullCode}</Text> :
                                     <>
                                         <AddressDisplay userInfo={leaf.userInfo} fontColor={PRIMARY_TEXT} fontSize={14} />
                                     </>
                                 }
-                                {')'}
                             </div>
                             <div>
                                 <Tooltip title='Delete Claim'>
@@ -247,140 +223,87 @@ export function CreateClaims({
                             </div>
                         </CollapsePanel>
                     })}
-                </Collapse>}
+                </Collapse>
+                    <Divider />
+                </>}
 
-                <Divider />
-                <hr />
+
+
+
+
                 <br />
+                <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
+                    <CollapsePanel key='create' header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>Create New Claim?</div>
+                        <PlusOutlined />
+                    </div>}
+                        style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
 
-                {newBalances && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} setCollection={() => { }} balance={newBalances} />}
-                <br />
-                {newBalances?.balances.length > 0 &&
-                    <Button type="primary" onClick={() => setShowCreate(true)} disabled={newBalances?.balances.length === 0}>Create New Claim</Button>}
-
-                <Divider />
-                <br />
-            </div>}
-            {showCreate && <div style={{ width: '100%' }}>
+                        {newBalances?.balances.length === 0 ? <h2>No badges left to distribute!</h2> : <h2>Create New Claim</h2>}
 
 
+                        {newBalances && newBalances.balances.length > 0 ?
+                            <div style={{ color: PRIMARY_TEXT }}>
 
-
-                {newBalances && newBalances.balances.length > 0 ?
-                    <div style={{}}>
-                        {/* <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <h2>New Claim</h2>
-                        </div> */}
-                        {distributionMethod === DistributionMethod.SpecificAddresses && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <div style={{ minWidth: 500 }} >
-                                <AddressSelect
+                                {distributionMethod === DistributionMethod.SpecificAddresses && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <div style={{ minWidth: 500 }} >
+                                        <AddressSelect
+                                            fontColor={PRIMARY_TEXT}
+                                            title='Select Recipient'
+                                            currUserInfo={currUserInfo}
+                                            setCurrUserInfo={setCurrUserInfo}
+                                            darkMode
+                                        />
+                                    </div>
+                                </div>}
+                                <br />
+                                <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
+                                <br />
+                                <TransferDisplay
+                                    badge={badgeCollection}
+                                    setBadgeCollection={() => { }}
                                     fontColor={PRIMARY_TEXT}
-                                    title='Select Recipient'
-                                    currUserInfo={currUserInfo}
-                                    setCurrUserInfo={setCurrUserInfo}
-                                    darkMode
+                                    from={[
+                                        MINT_ACCOUNT
+                                    ]}
+                                    to={distributionMethod === DistributionMethod.SpecificAddresses ?
+                                        [
+                                            currUserInfo
+                                        ] : []}
+                                    toCodes={distributionMethod === DistributionMethod.Codes ? ['First User to Enter Code'] : [
+
+                                    ]}
+                                    amount={currBalances[0]?.balance}
+                                    badgeIds={currBalances[0]?.badgeIds}
                                 />
-                            </div>
-                        </div>}
-                        <br />
-                        <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
-                        <br />
-                        <TransferDisplay
-                            badge={badgeCollection}
-                            setBadgeCollection={() => { }}
-                            fontColor={PRIMARY_TEXT}
-                            from={[
-                                MINT_ACCOUNT
-                            ]}
-                            to={distributionMethod === DistributionMethod.SpecificAddresses ?
-                                [
-                                    currUserInfo
-                                ] : []}
-                            toCodes={distributionMethod === DistributionMethod.Codes ? ['User Who Enters Code'] : [
+                                <Divider />
+                                <hr />
+                                {newBalances && <BalanceBeforeAndAfter collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before Claim' afterMessage='After Claim' />}
 
-                            ]}
-                            amount={currBalances[0]?.balance}
-                            badgeIds={currBalances[0]?.badgeIds}
-                        />
-                        <Divider />
-                        <hr />
-                        {newBalances && <BalanceBeforeAndAfter collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before Claim' afterMessage='After Claim' />}
-                        {/* <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
-                        <div style={{ width: '48%' }}>
+                                <br />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-                            <BalanceDisplay
-                                message='Badges for New Claim'
-                                balance={{
-                                    approvals: [],
-                                    balances: [
-                                        {
-                                            balance: currBalances[0]?.balance,
-                                            badgeIds: [
-                                                {
-                                                    start: currBalances[0]?.badgeIds[0]?.start,
-                                                    end: currBalances[0]?.badgeIds[0]?.end
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }}
-                                collection={badgeCollection}
-                                setCollection={(collection) => {
-                                    setCollectionMetadata(collection.collectionMetadata)
-                                    setIndividualBadgeMetadata(collection.badgeMetadata)
-                                }}
-                            />
+                                    <Button
+                                        type='primary'
+                                        style={{ width: '100%' }}
+                                        onClick={() => {
+                                            addCode();
+                                            setCurrBalances([{
+                                                balance: 1,
+                                                badgeIds: getFullBadgeIdRanges(collection)
+                                            }])
 
-                        </div>
-                        <div style={{ width: '48%' }}>
-                            <BalanceDisplay
-                                message='Undistributed Badges After New Claim'
-                                balance={postCurrBalance}
-                                collection={badgeCollection}
-                                setCollection={(collection) => {
-                                    setCollectionMetadata(collection.collectionMetadata)
-                                    setIndividualBadgeMetadata(collection.badgeMetadata)
-                                }}
-                            />
-                        </div>
-                    </div> */}
-                        <br />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Button
-                                // type='primary'
-                                style={{
-                                    width: '48%',
-                                    color: PRIMARY_TEXT,
-                                    backgroundColor: TERTIARY_BLUE
-                                }}
-                                onClick={() => {
-
-                                    setShowCreate(false);
-                                }}
-
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type='primary'
-                                style={{ width: '48%' }}
-                                onClick={() => {
-                                    addCode();
-                                    setCurrBalances([{
-                                        balance: 1,
-                                        badgeIds: getFullBadgeIdRanges(collection)
-                                    }])
-                                    setShowCreate(false);
-                                }}
-                                disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.SpecificAddresses && !currUserInfo.cosmosAddress)}
-                            >
-                                {distributionMethod === DistributionMethod.SpecificAddresses ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
-                            </Button>
-                        </div>
-                    </div>
-                    : <></>}
+                                        }}
+                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.SpecificAddresses && !currUserInfo.cosmosAddress)}
+                                    >
+                                        {distributionMethod === DistributionMethod.SpecificAddresses ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
+                                    </Button>
+                                </div>
+                            </div> : <></>
+                        }
+                    </CollapsePanel>
+                </Collapse>
             </div>
-            }
-        </div>
-    </div>
+        </div >
+    </div >
 }
