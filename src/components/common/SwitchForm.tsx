@@ -13,11 +13,15 @@ export function SwitchForm({
     onSwitchChange,
     options,
     helperMessage,
+    noSelectUntilClick,
 }: {
-    onSwitchChange: (newSelectedOptionTitle: string) => void;
+    onSwitchChange: (selectedIdx: number, newSelectedOptionTitle: string) => void;
     options: SwitchFormOption[];
     helperMessage?: string;
+    noSelectUntilClick?: boolean;
 }) {
+    const [canShowSelected, setCanShowSelected] = useState<boolean>(noSelectUntilClick ? false : true);
+
     return (
         <>
             <div>
@@ -43,14 +47,15 @@ export function SwitchForm({
                                 textAlign: 'center',
                                 backgroundColor: PRIMARY_BLUE,
                                 color: PRIMARY_TEXT,
-                                border: option.isSelected ? '1px solid #1890ff' : undefined,
+                                border: option.isSelected && canShowSelected ? '1px solid #1890ff' : undefined,
                                 display: 'flex',
                                 justifyContent: 'center',
                                 // alignItems: 'center',
                                 // minHeight: 150,
                             }}
                             onClick={() => {
-                                onSwitchChange(option.title);
+                                onSwitchChange(index, option.title);
+                                setCanShowSelected(true);
                             }}
                         >
                             <Meta

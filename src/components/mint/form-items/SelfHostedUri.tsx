@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 
-export function UriSelect({
+export function SelfHostedUri({
     setUri,
 }: {
     setUri: (collectionUri: string, badgeUri: string) => void;

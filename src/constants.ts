@@ -22,6 +22,7 @@ export const PRIMARY_TEXT = 'white';
 export const SECONDARY_TEXT = '#dedede';
 export const LINK_COLOR = '#0000EE';
 
+//TODO: change to assets
 export const ETH_LOGO =
     'https://e7.pngegg.com/pngimages/407/710/png-clipart-ethereum-cryptocurrency-bitcoin-cash-smart-contract-bitcoin-blue-angle-thumbnail.png';
 

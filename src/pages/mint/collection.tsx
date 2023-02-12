@@ -1,4 +1,4 @@
-import { MintCollectionTimeline } from '../../components/mint/mint-collection/MintCollectionTimeline';
+import { MintCollectionTimeline } from '../../components/mint/MintCollectionTimeline';
 import React from 'react';
 import { Layout } from 'antd';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';

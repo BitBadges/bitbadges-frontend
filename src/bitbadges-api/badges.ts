@@ -65,3 +65,28 @@ export function createCollectionFromMsgMintBadge(
 
     return badgeCollection;
 }
+
+export const getNonTransferableDisallowedTransfers = () => {
+    return [
+        {
+            to: {
+                accountNums: [
+                    {
+                        start: 0,
+                        end: 1000 //TODO: change to max uint64
+                    }
+                ],
+                options: 0,
+            },
+            from: {
+                accountNums: [
+                    {
+                        start: 0,
+                        end: 1000 //TODO: change to max uint64
+                    }
+                ],
+                options: 0,
+            },
+        },
+    ]
+}

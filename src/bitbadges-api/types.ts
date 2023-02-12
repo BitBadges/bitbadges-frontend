@@ -52,9 +52,16 @@ export interface ClaimItem {
 export enum DistributionMethod {
     None,
     FirstComeFirstServe,
-    SpecificAddresses,
+    Whitelist,
     Codes,
     Unminted,
+}
+
+export enum MetadataAddMethod {
+    None = 'None',
+    Manual = 'Manual',
+    UploadUrl = 'Insert Custom Metadata Url (Advanced)',
+    CSV = 'CSV',
 }
 
 export interface Claims {

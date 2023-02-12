@@ -1,14 +1,12 @@
 import { CalendarOutlined, DownOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Switch, Typography, Upload, UploadProps, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, DatePicker, Divider, Form, Input, Select, Space, Typography, Upload, UploadProps, message } from 'antd';
+import { useEffect, useState } from 'react';
 
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata } from '../../../bitbadges-api/types';
-import { MetadataAddMethod } from '../mint-collection/MintCollectionTimeline';
-import { UriSelect } from './UriSelect';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
-import MdEditor from 'react-markdown-editor-lite';
+import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { SelfHostedUri } from './SelfHostedUri';
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
 
@@ -18,7 +16,7 @@ const { Option } = Select;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 //Do not pass an id if this is for the collection metadata
-export function FullMetadataForm({
+export function MetadataForm({
     metadata,
     setMetadata,
     addMethod,
@@ -139,7 +137,7 @@ export function FullMetadataForm({
         <>
             <div>
                 {addMethod === MetadataAddMethod.UploadUrl && <>
-                    <UriSelect setUri={(collectionUri: string, badgeUri: string) => {
+                    <SelfHostedUri setUri={(collectionUri: string, badgeUri: string) => {
                         setNewCollectionMsg({
                             ...newCollectionMsg,
                             collectionUri,

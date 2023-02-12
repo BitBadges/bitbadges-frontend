@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography, InputNumber, Button } from 'antd';
+import { InputNumber, Button } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
@@ -44,9 +44,6 @@ export function BadgeSupply({
 
     return (
         <div>
-            <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
-
-            </Typography >
             <div
                 style={{
                     padding: '0',

@@ -1,12 +1,12 @@
 import axios from 'axios';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { SHA256 } from 'crypto-js';
+import MerkleTree from 'merkletreejs';
+import { getFromIpfs } from '../chain/backend_connectors';
 import { NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
-import { GetAccountRoute, GetAccountByNumberRoute, GetBadgeBalanceRoute, GetCollectionRoute, GetBalanceRoute, GetCollectionResponse, GetBadgeBalanceResponse, GetAccountByNumberResponse } from './routes';
-import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, SupportedChain, DistributionMethod, GetBalanceResponse, IdRange, } from './types';
-import { getFromIpfs } from '../chain/backend_connectors';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
-import MerkleTree from 'merkletreejs';
-import { SHA256 } from 'crypto-js';
+import { GetAccountByNumberResponse, GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute } from './routes';
+import { BadgeMetadata, BitBadgeCollection, CosmosAccountInformation, DistributionMethod, IdRange, SupportedChain } from './types';
 
 //TODO: data normalization: "0" to number 0, "false" to boolean false, etc.
 
@@ -211,7 +211,7 @@ export async function getBadgeCollection(
                                     const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
                                     badgeData.claims[idx].leaves = fetchedLeaves;
                                     badgeData.claims[idx].tree = tree;
-                                    badgeData.claims[idx].distributionMethod = DistributionMethod.SpecificAddresses;
+                                    badgeData.claims[idx].distributionMethod = DistributionMethod.Whitelist;
                                 }
                             }
                         } else {

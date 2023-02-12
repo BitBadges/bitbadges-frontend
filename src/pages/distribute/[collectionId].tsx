@@ -3,7 +3,7 @@ import { Layout } from 'antd';
 import { DEV_MODE, PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { MintAndDistributeTimeline } from '../../components/mint/distribute-badges/DistributeBadgeTimeline';
+import { MintAndDistributeTimeline } from '../../components/mint/DistributeBadgeTimeline';
 import { getBadgeCollection } from '../../bitbadges-api/api';
 import { useRouter } from 'next/router';
 import { BitBadgeCollection } from '../../bitbadges-api/types';

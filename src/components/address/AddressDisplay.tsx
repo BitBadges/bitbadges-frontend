@@ -1,12 +1,12 @@
-import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { UserDeleteOutlined } from '@ant-design/icons';
-import { ReactNode } from 'react';
-import { Divider, Select, Tooltip, Typography } from 'antd';
+import { Tooltip, Typography } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
-import { AddressWithBlockies } from './AddressWithBlockies';
-import { ETH_LOGO } from '../../constants';
 import { ethers } from 'ethers';
+import { ReactNode } from 'react';
+import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
+import { ETH_LOGO } from '../../constants';
 import { EnterMethod } from './AddressSelect';
+import { AddressWithBlockies } from './AddressWithBlockies';
 
 export function AddressDisplayTitle(
     {

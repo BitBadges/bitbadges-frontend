@@ -1,24 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { InputNumber, Button, Divider, Collapse, Typography, Tooltip, Empty } from 'antd';
-import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT, TERTIARY_BLUE } from '../../../constants';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from '../../../bitbadges-api/types';
-import { TransferDisplay } from '../../common/TransferDisplay';
-import { getBadgeSupplysFromMsgNewCollection, getPostTransferBalance } from '../../../bitbadges-api/balances';
-import { useChainContext } from '../../../chain/ChainContext';
-import MerkleTree from 'merkletreejs';
-import { SHA256 } from 'crypto-js';
-import { AddressSelect } from '../../address/AddressSelect';
-import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
-import { BalanceDisplay } from '../../common/BalanceDisplay';
-import { createClaim } from '../../../bitbadges-api/claims';
-import { createCollectionFromMsgNewCollection, getFullBadgeIdRanges } from '../../../bitbadges-api/badges';
-import { downloadJson } from '../../../utils/downloadJson';
-import { BalancesInput } from '../../common/BalancesInput';
-import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
-import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Collapse, Divider, Tooltip, Typography } from 'antd';
+import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
+import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { useState } from 'react';
+import { createCollectionFromMsgNewCollection, getFullBadgeIdRanges } from '../../../bitbadges-api/badges';
+import { getBadgeSupplysFromMsgNewCollection, getPostTransferBalance } from '../../../bitbadges-api/balances';
+import { createClaim, getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
+import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, UserBalance } from '../../../bitbadges-api/types';
+import { useChainContext } from '../../../chain/ChainContext';
+import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
+import { AddressSelect } from '../../address/AddressSelect';
+import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
+import { BalanceDisplay } from '../../common/BalanceDisplay';
+import { BalancesInput } from '../../common/BalancesInput';
+import { TransferDisplay } from '../../common/TransferDisplay';
 
 const crypto = require('crypto');
 
@@ -32,9 +28,7 @@ export function CreateClaims({
     claimItems,
     setClaimItems,
     collectionMetadata,
-    setCollectionMetadata,
     individualBadgeMetadata,
-    setIndividualBadgeMetadata,
     balancesToDistribute,
 }: {
     collection: BitBadgeCollection;
@@ -44,9 +38,7 @@ export function CreateClaims({
     claimItems: ClaimItem[];
     setClaimItems: (leaves: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
-    setCollectionMetadata: (metadata: BadgeMetadata) => void;
     individualBadgeMetadata: BadgeMetadata[];
-    setIndividualBadgeMetadata: (metadata: BadgeMetadata[]) => void;
     balancesToDistribute?: Balance[];
 }) {
     const chain = useChainContext();
@@ -67,66 +59,20 @@ export function CreateClaims({
 
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
 
-    const [showCreate, setShowCreate] = useState<boolean>(false);
 
     const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
-        const tree = new MerkleTree(newClaimItems.map((x) => SHA256(x.fullCode)), SHA256)
-        const root = tree.getRoot().toString('hex')
-
         const balance = balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
         } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)
 
-        console.log("ORIG", balancesToDistribute)
-
-        if (distributionMethod === DistributionMethod.Codes) {
-            for (let i = 0; i < newClaimItems.length; i += 2) {
-                const leaf = newClaimItems[i];
-                const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
-                balance.balances = newBalance.balances;
-            }
-        } else if (distributionMethod === DistributionMethod.SpecificAddresses) {
-            for (let i = 0; i < newClaimItems.length; i++) {
-                const leaf = newClaimItems[i];
-                const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
-                balance.balances = newBalance.balances;
-            }
-        }
-
-        console.log("AFTER", balance);
-
-        const claimBalance = balancesToDistribute ? {
-            balances: JSON.parse(JSON.stringify(balancesToDistribute)),
-            approvals: [],
-        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)
-
-        for (const balanceObj of balance.balances) {
-            for (const badgeId of balanceObj.badgeIds) {
-                const newBalance = getPostTransferBalance(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
-                claimBalance.balances = newBalance.balances;
-            }
-        }
+        const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
 
         setNewCollectionMsg({
             ...newCollectionMsg,
-            claims: [
-                {
-                    amountPerClaim: 0,
-                    balances: claimBalance.balances,
-                    type: 0,
-                    uri: "",
-                    data: root,
-                    timeRange: {
-                        start: 0,
-                        end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
-                    },
-                    incrementIdsBy: 0,
-                    badgeIds: [],
-                }
-            ]
+            claims: claimRes.claims,
         })
-        setNewBalances(balance);
+        setNewBalances(claimRes.balance);
         setClaimItems(newClaimItems);
     }
 
@@ -208,7 +154,7 @@ export function CreateClaims({
                                     from={[
                                         MINT_ACCOUNT
                                     ]}
-                                    to={distributionMethod === DistributionMethod.SpecificAddresses ?
+                                    to={distributionMethod === DistributionMethod.Whitelist ?
                                         [
                                             leaf.userInfo
                                         ] : []}
@@ -245,7 +191,7 @@ export function CreateClaims({
                         {newBalances && newBalances.balances.length > 0 ?
                             <div style={{ color: PRIMARY_TEXT }}>
 
-                                {distributionMethod === DistributionMethod.SpecificAddresses && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                {distributionMethod === DistributionMethod.Whitelist && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <div style={{ minWidth: 500 }} >
                                         <AddressSelect
                                             fontColor={PRIMARY_TEXT}
@@ -266,7 +212,7 @@ export function CreateClaims({
                                     from={[
                                         MINT_ACCOUNT
                                     ]}
-                                    to={distributionMethod === DistributionMethod.SpecificAddresses ?
+                                    to={distributionMethod === DistributionMethod.Whitelist ?
                                         [
                                             currUserInfo
                                         ] : []}
@@ -294,9 +240,9 @@ export function CreateClaims({
                                             }])
 
                                         }}
-                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.SpecificAddresses && !currUserInfo.cosmosAddress)}
+                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.Whitelist && !currUserInfo.cosmosAddress)}
                                     >
-                                        {distributionMethod === DistributionMethod.SpecificAddresses ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
+                                        {distributionMethod === DistributionMethod.Whitelist ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
                                     </Button>
                                 </div>
                             </div> : <></>

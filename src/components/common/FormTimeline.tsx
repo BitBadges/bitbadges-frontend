@@ -18,12 +18,8 @@ interface Item {
 }
 
 export function FormTimeline({
-    currStepNumber,
-    setCurrStepNumber,
     items,
 }: {
-    currStepNumber: number;
-    setCurrStepNumber: (stepNumber: number) => void;
     items: Item[]
 }) {
     const [formStepNum, setFormStepNum] = useState(1);
@@ -32,26 +28,22 @@ export function FormTimeline({
     const filteredItems = items.filter((item) => !item.doNotDisplay);
 
     const incrementStep = () => {
-        if (formStepNum === filteredItems.length) {
-            setCurrStepNumber(currStepNumber + 1);
-        } else {
-            setFormStepNum(formStepNum + 1);
-            setNextButton(formStepNum + 1);
-        }
+        setFormStepNum(formStepNum + 1);
+        setNextButton(formStepNum + 1);
     };
 
     const decrementStep = () => {
         if (formStepNum === 1) {
-            setCurrStepNumber(currStepNumber - 1);
-        } else {
-            setFormStepNum(formStepNum - 1);
-            setNextButton(formStepNum - 1);
+            return;
         }
+        
+        setFormStepNum(formStepNum - 1);
+        setNextButton(formStepNum - 1);
     };
 
 
     const setNextButton = (newStepNum: number) => {
-        setNextButtonDisabled(!!filteredItems[newStepNum - 1].disabled);
+        setNextButtonDisabled(!!filteredItems[newStepNum - 1]?.disabled);
     };
 
     useEffect(() => {
