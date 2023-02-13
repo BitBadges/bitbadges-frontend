@@ -40,6 +40,9 @@ export function BadgeAvatar({
                         verticalAlign: 'middle',
                         border: '1px solid',
                         borderColor: displayMetadata.color || 'black',
+                        // backgroundColor: metadata?.image
+                        //     ? PRIMARY_TEXT
+                        //     : metadata?.color,
                         margin: 4,
                         cursor: 'pointer',
                     }}
@@ -60,6 +63,9 @@ export function BadgeAvatar({
                 <Avatar
                     style={{
                         backgroundColor: displayMetadata.color,
+                        borderColor: metadata?.color
+                            ? metadata?.color
+                            : 'black',
                         verticalAlign: 'middle',
                         border: '1px solid black',
                         margin: 4,

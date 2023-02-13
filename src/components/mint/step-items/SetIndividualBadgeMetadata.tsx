@@ -17,7 +17,6 @@ export function SetIndividualBadgeMetadataStepItem(
     addMethod: MetadataAddMethod,
     setAddMethod: (method: MetadataAddMethod) => void,
     hackyUpdatedFlag: boolean,
-
 ) {
     const [id, setId] = useState(0);
 
@@ -25,17 +24,20 @@ export function SetIndividualBadgeMetadataStepItem(
         title: 'Set Individual Badge Metadata',
         description: '',
         node: <>
-            <div>
-                Currently Setting Metadata for Badge ID:{' '}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: PRIMARY_TEXT }} >
+                <div>Currently Setting Metadata for Badge ID:{' '}</div>
                 <InputNumber min={0} max={individualBadgeMetadata.length - 1}
                     value={id}
                     onChange={(e) => setId(e)}
                     style={{
+                        marginLeft: 8,
                         backgroundColor: PRIMARY_BLUE,
                         color: PRIMARY_TEXT,
                     }}
                 />
             </div>
+
+            <br />
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
                     <BadgeAvatarDisplay
@@ -55,14 +57,18 @@ export function SetIndividualBadgeMetadataStepItem(
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
                     onClick={() => {
-                        setIndividualBadgeMetadata(individualBadgeMetadata.map((x) => collectionMetadata));
+                        setIndividualBadgeMetadata(individualBadgeMetadata.map(() => collectionMetadata));
                     }}>Populate All with Collection Metadata</Button>
                 <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
                     onClick={() => {
-                        setIndividualBadgeMetadata(individualBadgeMetadata.map((x) => individualBadgeMetadata[0]));
-                    }}>Populate All with Badge ID 0s Metadata</Button>
+                        setIndividualBadgeMetadata(individualBadgeMetadata.map(() => individualBadgeMetadata[id]));
+                    }}>{`Populate All with This Badge's Current Metadata (ID: ${id})`}</Button>
             </div>
+
             <Divider />
+
+
+
 
             <MetadataForm
                 id={id}

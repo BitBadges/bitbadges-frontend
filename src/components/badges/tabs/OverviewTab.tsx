@@ -1,4 +1,4 @@
-import { Row } from "antd";
+import { Col, Row } from "antd";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
 import { InformationDisplayCard } from "../../common/InformationDisplayCard"
 import { CollectionOverview } from "../CollectionOverview";
@@ -65,21 +65,26 @@ export function OverviewTab({
                 justifyContent: 'space-between',
             }}
         >
-            <CollectionOverview
-                badge={badgeCollection}
-                metadata={collectionMetadata}
-                span={7}
-            />
-            <PermissionsOverview
-                badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                span={7}
-            />
+            <Col span={10}>
+                    <CollectionOverview
+                        badge={badgeCollection}
+                        metadata={collectionMetadata}
+                        span={24}
+                    />
+                    <br />
+                    <PermissionsOverview
+                        badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                        span={24}
+                    />
+            </Col>
+
+
             <BalanceOverview
                 badge={badgeCollection}
                 setBadge={setBadgeCollection}
                 metadata={collectionMetadata}
                 balance={userBalance}
-                span={7}
+                span={13}
                 setTab={setTab}
             />
         </Row>

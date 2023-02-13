@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { SHA256 } from 'crypto-js';
-import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
 import { addMerkleTreeToIpfs } from '../../../chain/backend_connectors';
 import { CreateTxMsgMintBadgeModal } from '../../txModals/CreateTxMsgMintBadgeModal';
 

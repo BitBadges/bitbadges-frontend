@@ -62,14 +62,19 @@ export function CollectionOverview({ badge, metadata, span }: {
             {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}
             {badge.collectionUri && <TableRow label={"Collection Metadata"} value={
                 <div>
-                    <Tooltip title={badge.collectionUri}>
+                    <Tooltip placement='bottom' title={badge.collectionUri}>
                         <a href={badge.collectionUri} target="_blank" rel="noreferrer">{badge.collectionUri.slice(0, 10) + '...' + badge.collectionUri.slice(badge.collectionUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
             {badge.badgeUri && <TableRow label={"Badge Metadata"} value={
                 <div>
-                    <Tooltip title={badge.badgeUri}>
+                    <Tooltip placement='bottom' title={<>
+                        {badge.badgeUri}
+                        <br />
+                        <br />
+                        {"Replace {id} with the badge ID to get the badge metadata."}
+                    </>}>
                         <a href={badge.badgeUri} target="_blank" rel="noreferrer">{badge.badgeUri.slice(0, 10) + '...' + badge.badgeUri.slice(badge.badgeUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>

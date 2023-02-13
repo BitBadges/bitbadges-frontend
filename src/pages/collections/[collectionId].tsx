@@ -25,14 +25,15 @@ function CollectionPage() {
     const router = useRouter()
     const chain = useChainContext();
 
-    const { collectionId } = router.query;
+    const { collectionId, badgeId } = router.query;
     const collectionIdNumber = Number(collectionId);
 
-    //TODO: link to exact badge?
+    const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
+
     const accountNumber = chain.accountNumber;
 
 
-    const [tab, setTab] = useState('overview');
+    const [tab, setTab] = useState(badgeIdNumber ? 'badges' : 'overview');
     const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
     const collectionMetadata = badgeCollection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
@@ -45,6 +46,14 @@ function CollectionPage() {
         }
         getBadgeInformation();
     }, [collectionIdNumber]);
+
+    useEffect(() => {
+        const badgeIdNum = Number(badgeId);
+        if (!isNaN(badgeIdNum)) {
+            setTab('badges');
+            setBadgeIdNumber(badgeIdNum);
+        }
+    }, [badgeId])
 
     // Get user's badge balance
     useEffect(() => {
@@ -88,6 +97,8 @@ function CollectionPage() {
                             badgeCollection={badgeCollection}
                             setBadgeCollection={setBadgeCollection}
                             balance={userBalance}
+                            badgeId={badgeIdNumber}
+                            setBadgeId={setBadgeIdNumber}
                         />
                     )}
 

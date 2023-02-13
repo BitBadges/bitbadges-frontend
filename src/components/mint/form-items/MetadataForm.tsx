@@ -15,6 +15,8 @@ const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
+//TODO: export all these to own components
+
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
     metadata,
@@ -150,8 +152,11 @@ export function MetadataForm({
                     */}
                 </>}
                 {addMethod === MetadataAddMethod.Manual && <>
-
-
+                    <br />
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                        <h3>{isNaN(Number(id)) ? `Set Collection Metadata` : `Set Metadata for Badge ${id}`}</h3>
+                    </div>
+                    <br />
                     <Form.Item
                         label={
                             <Text
@@ -514,10 +519,6 @@ export function MetadataForm({
                     </Form.Item>
 
                 </>}
-
-
-
-                {/* TODO: -need a way for large collections to be uploaded instead of manual metadata updates */}
             </div>
         </>
     );

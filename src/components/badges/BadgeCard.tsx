@@ -1,10 +1,11 @@
 import Meta from 'antd/lib/card/Meta';
-import { Avatar, Card } from 'antd';
-import React, { useState } from 'react';
+import { Avatar, Card, Tooltip } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeMetadata, Balance, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { BadgeModal } from './BadgeModal';
-import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
+import { getBlankBalance } from '../../bitbadges-api/balances';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 //Can probably add this to bitbadges-js
 const getSupplyByBadgeId = (badgeId: number, supplys: Balance[]) => {
@@ -28,6 +29,8 @@ export function BadgeCard({
     hoverable,
     id,
     balance,
+    isModalOpen,
+    setBadgeId,
 }: {
     id: number;
     metadata?: BadgeMetadata;
@@ -35,12 +38,32 @@ export function BadgeCard({
     size?: number;
     hoverable?: boolean;
     balance?: UserBalance;
+    isModalOpen?: boolean;
+    setBadgeId?: (id: number) => void;
 }) {
-    const [visible, setVisible] = useState<boolean>(false);
+    const [visible, setVisible] = useState<boolean>(isModalOpen ? isModalOpen : false);
+
+    useEffect(() => {
+        if (isModalOpen && !visible && setBadgeId) {
+            setBadgeId(-1);
+        }
+    }, [isModalOpen, visible, setBadgeId]);
 
     if (!metadata) return <></>;
 
     if (!size) size = 100;
+
+    let totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
+    let undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
+
+    let claimableSupply = 0;
+    for (const claim of collection.claims) {
+        claimableSupply += getSupplyByBadgeId(id, claim.balances);
+    }
+
+
+
+    let distributedSupply = totalSupply - undistributedSupply - claimableSupply;
 
     return (
         <>
@@ -76,11 +99,11 @@ export function BadgeCard({
                                     : 'black',
                                 marginTop: '1rem',
                                 cursor: 'pointer',
-                                backgroundColor: metadata?.image
-                                    ? PRIMARY_TEXT
-                                    : (metadata?.color
-                                        ? metadata.color
-                                        : 'black'),
+                                // backgroundColor: metadata?.image
+                                //     ? PRIMARY_TEXT
+                                //     : (metadata?.color
+                                //         ? metadata.color
+                                //         : 'black'),
                             }}
                             // className="metadata-avatar"   //For scaling on hover
                             src={
@@ -120,7 +143,7 @@ export function BadgeCard({
                             <div
                                 style={{
                                     color: SECONDARY_TEXT,
-                                    display: 'flex',
+                                    // display: 'flex',
                                     alignItems: 'center',
                                     fontSize: 17,
                                     width: '100%',
@@ -128,12 +151,26 @@ export function BadgeCard({
 
                                 }}
                             >
-                                ID #: {id}
+                                ID: {id}
                                 {collection && collection.maxSupplys && <><br />
-                                    <>Max Supply: {getSupplyByBadgeId(id, collection.maxSupplys)}</>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}>
+                                        <div>Total Supply: {totalSupply} <Tooltip
+                                            title={<>
+                                                <>Unminted: {undistributedSupply}</>
+                                                <br />
+                                                <>Claimable: {claimableSupply}</>
+                                                <br />
+                                                <>Distributed: {distributedSupply}</>
+                                            </>}
+                                            placement='bottom'>
+                                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                                        </Tooltip></div>
 
-                                    <br />
-                                    <>Unminted Supply: {getSupplyByBadgeId(id, collection.unmintedSupplys)}</>
+                                    </div>
                                 </>
                                 }
                                 {balance && <><br />

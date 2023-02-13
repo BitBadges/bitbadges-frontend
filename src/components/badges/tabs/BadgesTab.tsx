@@ -4,16 +4,21 @@ import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadg
 import { BadgeCard } from '../BadgeCard';
 import { getBadgeCollection } from '../../../bitbadges-api/api';
 
-export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
+export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeId, setBadgeId }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
     balance: UserBalance | undefined;
+    badgeId: number;
+    setBadgeId: (badgeId: number) => void;
 }) {
+    const modalToOpen = !isNaN(badgeId) ? badgeId : -1;
+
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
     const [display, setDisplay] = useState<ReactNode>(<>
         {individualBadgeMetadata?.map((metadata, idx) => {
             return <div key={idx}>
-                <BadgeCard collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                <BadgeCard isModalOpen={modalToOpen === idx}
+                setBadgeId collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
             </div>
         })}
     </>);
@@ -37,14 +42,19 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance }: {
                 {individualBadgeMetadata?.map((metadata, idx) => {
                     return <div key={idx}>
                         <BadgeCard
+                            isModalOpen={modalToOpen === idx}
+                            setBadgeId={setBadgeId}
                             balance={balance}
-                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                            metadata={metadata}
+                            id={idx}
+                        />
                     </div>
                 })}
             </>)
         }
         updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection, balance]);
+    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection, balance, modalToOpen]);
 
     return (
         <div

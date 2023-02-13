@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Typography, InputNumber } from 'antd';
-import { PRIMARY_TEXT } from '../../../constants';
+import { InputNumber } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { useEffect, useState } from 'react';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
+import { PRIMARY_TEXT } from '../../../constants';
 
 export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,

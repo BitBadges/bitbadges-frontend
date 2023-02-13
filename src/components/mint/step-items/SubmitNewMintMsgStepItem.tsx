@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { SubmitNewMintMsg } from "../form-items/SubmitNewMintMsg";
+import { SubmitNewMintMsg } from "../form-items/SubmitMsgMintBadge";
 import { BitBadgeCollection, ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 
 export function SubmitNewMintMsgStepItem(

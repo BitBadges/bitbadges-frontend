@@ -4,15 +4,15 @@ import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../bitbadg
 import { useChainContext } from '../../chain/ChainContext';
 import { FormTimeline } from '../common/FormTimeline';
 import { EmptyStepItem } from './MintCollectionTimeline';
-import { SubmitNewMintMsg } from './form-items/SubmitNewMintMsg';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { SubmitNewMintMsgStepItem } from './step-items/SubmitNewMintMsgStepItem';
 
+
 export function MintAndDistributeTimeline({
-    collection,
+    collection, //collection is the information about the actual badge collection that is being distributed/minted
 }: {
     collection: BitBadgeCollection;
 }) {
