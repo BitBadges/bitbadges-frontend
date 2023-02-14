@@ -46,7 +46,7 @@ export function DistributionMethodStepItem(
             noSelectUntilClick
             options={options}
             onSwitchChange={(_idx, newTitle) => {
-                if (newTitle == 'Anyone Can Claim (First Come, First Serve) ') {
+                if (newTitle == 'Anyone Can Claim (First Come, First Serve)') {
                     setDistributionMethod(DistributionMethod.FirstComeFirstServe);
                 } else if (newTitle == 'Claim by Codes') {
                     setDistributionMethod(DistributionMethod.Codes);

@@ -1,7 +1,7 @@
-import { MessageMsgMintBadge, MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BadgeMetadata, BitBadgeCollection, IdRange } from "./types";
+import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
+import { BadgeMetadata, BitBadgeCollection, IdRange } from "./types";
 
 export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
     const range: IdRange = {
@@ -37,6 +37,7 @@ export function createCollectionFromMsgNewCollection(
         disallowedTransfers: [],
         managerApprovedTransfers: [],
         claims: [],
+        activity: [],
     }
 
     return badgeCollection;

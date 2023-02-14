@@ -13,7 +13,7 @@ export const GetBalanceRoute = (bech32address: string) => {
 }
 
 export const GetCollectionRoute = (collectionId: number) => {
-    return `/bitbadges/bitbadgeschain/badges/get_collection/${collectionId}`;
+    return `/api/collection/${collectionId}`;
 }
 
 export const GetBadgeBalanceRoute = (collectionId: number, accountNumber: number) => {

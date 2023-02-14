@@ -12,6 +12,22 @@ export function CreateTxMsgNewCollectionModal(
             children?: React.ReactNode,
         }) {
 
+    //TODO: Handle unregisted users
+    // const unregisteredUsers = txCosmosMsg.transfers.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
+
+    // const onRegister = async () => {
+    //     let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
+    //     let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
+    //     for (const user of newUsersToRegister) {
+    //         const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
+    //             return accountInfo.account_number;
+    //         });
+    //         allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
+    //     }
+
+    //     setToAddresses(allRegisteredUsers);
+    // }
+
     return (
         <TxModal
             visible={visible}

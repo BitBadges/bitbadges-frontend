@@ -11,6 +11,7 @@ import { BadgesTab } from '../../components/badges/tabs/BadgesTab';
 import { useChainContext } from '../../chain/ChainContext';
 import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
 import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
+import { ActivityTab } from '../../components/badges/tabs/ActivityTab';
 const { Content } = Layout;
 
 const tabInfo = [
@@ -117,10 +118,9 @@ function CollectionPage() {
                     )}
 
                     {tab === 'activity' && (
-                        <Empty
-                            style={{ color: PRIMARY_TEXT }}
-                            description="This feature is coming soon..."
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        <ActivityTab
+                            badgeCollection={badgeCollection}
+                            setBadgeCollection={setBadgeCollection}
                         />
                     )}
 

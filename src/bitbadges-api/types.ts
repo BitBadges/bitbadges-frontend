@@ -41,7 +41,7 @@ export interface Transfers {
 
 export interface ClaimItem {
     address: string;
-    accountNum: number; 
+    accountNum: number;
     code: string;
     amount: number;
     badgeIds: IdRange[];
@@ -102,6 +102,12 @@ export interface BitBadgeCollection {
     standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadata[],
+    activity: {
+        method: string;
+        to: string[];
+        from: string[];
+        balances: Balance[];
+    }[];
 }
 
 

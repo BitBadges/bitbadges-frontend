@@ -33,15 +33,6 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
     useEffect(() => {
         async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
             if (!badgeCollection) return;
-            let numBadges = badgeCollection?.nextBadgeId;
-            //TODO: should probably make it more scalable than this
-
-            for (let i = 0; i < numBadges; i++) {
-                if (individualBadgeMetadata && JSON.stringify(individualBadgeMetadata[i]) === JSON.stringify({} as BadgeMetadata)) {
-                    await getBadgeCollection(badgeCollection.collectionId, badgeCollection, i)
-                        .then(res => { if (res.collection) setBadgeCollection(res.collection) });
-                }
-            }
 
             setDisplay(<>
                 {individualBadgeMetadata?.map((metadata, idx) => {

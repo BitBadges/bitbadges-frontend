@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BadgeAvatar } from "./BadgeAvatar";
-import { getBadgeCollection } from "../../bitbadges-api/api";
 
 export function BadgeAvatarDisplay({
     badgeCollection,
