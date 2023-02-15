@@ -10,6 +10,8 @@ import { BadgeOverview } from '../badges/BadgeOverview';
 import { BalanceOverview } from './BalanceOverview';
 import { PermissionsOverview } from './PermissionsOverview';
 import { useChainContext } from '../../chain/ChainContext';
+import { OwnersTab } from './tabs/OwnersTab';
+import { BadgeActivityTab } from './tabs/BadgeActivityTab';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -125,18 +127,17 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
                         )}
 
                         {tab === 'activity' && (
-                            <Empty
-                                style={{ color: PRIMARY_TEXT }}
-                                description="This feature is coming soon..."
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            <BadgeActivityTab
+                                badgeCollection={badge}
+                                badgeId={badgeId}
+
                             />
                         )}
 
                         {tab === 'owners' && (
-                            <Empty
-                                style={{ color: PRIMARY_TEXT }}
-                                description="This feature is coming soon..."
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            <OwnersTab
+                                badgeCollection={badge}
+                                badgeId={badgeId}
                             />
                         )}
 

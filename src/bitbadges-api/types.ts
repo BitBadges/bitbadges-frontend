@@ -13,7 +13,6 @@ export enum TransactionStatus {
     AwaitingSignatureOrBroadcast = 1,
 }
 
-
 export interface IdRange {
     start: number;
     end: number;
@@ -102,13 +101,16 @@ export interface BitBadgeCollection {
     standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadata[],
-    activity: {
-        method: string;
-        to: string[];
-        from: string[];
-        balances: Balance[];
-    }[];
+    activity: ActivityItem[];
 }
+
+export interface ActivityItem {
+    method: string;
+    to: string[];
+    from: string[];
+    balances: Balance[];
+}
+
 
 
 export interface BalanceObject {
