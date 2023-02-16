@@ -9,7 +9,7 @@ export function InformationDisplayCard({
     children,
     span
 }: {
-    title: string
+    title: string | React.ReactNode
     children?: React.ReactNode
     span?: number
 }) {

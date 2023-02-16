@@ -24,6 +24,10 @@ export const GetOwnersRoute = (collectionId: number, badgeId: number) => {
     return `/api/collection/${collectionId}/${badgeId}/owners`;
 }
 
+export const GetPortfolioRoute = (accountNumber: number) => {
+    return `/api/user/portfolio/${accountNumber}`
+}
+
 export interface GetCollectionResponse {
     error?: any;
     collection?: BitBadgeCollection;

@@ -2,9 +2,11 @@ import { ethers } from "ethers";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { Address } from "./Address";
 import Blockies from 'react-blockies';
-import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT } from "../../constants";
+import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT, SECONDARY_BLUE, SECONDARY_TEXT } from "../../constants";
 import { Avatar, Tooltip } from "antd";
-import { COSMOS } from "bitbadgesjs-address-converter";
+import { COSMOS, cosmosToEth, ethToCosmos } from "bitbadgesjs-address-converter";
+import { WarningOutlined } from "@ant-design/icons";
+import { AddressDisplay } from "./AddressDisplay";
 
 export function AddressWithBlockies({
     address,
@@ -13,6 +15,7 @@ export function AddressWithBlockies({
     fontColor,
     blockiesScale,
     accountNumber,
+    hidePortfolioLink
 }: {
     address: string;
     chain: string;
@@ -20,11 +23,14 @@ export function AddressWithBlockies({
     fontColor?: string,
     blockiesScale?: number,
     accountNumber?: number,
+    hidePortfolioLink?: boolean
 }) {
     let isValidAddress = true;
     let chainLogo = '';
+
     switch (chain) {
         case SupportedChain.ETH:
+        case SupportedChain.UNKNOWN:
             chainLogo = ETH_LOGO;
             isValidAddress = ethers.utils.isAddress(address);
             break;
@@ -47,6 +53,9 @@ export function AddressWithBlockies({
         isValidAddress = true;
     }
 
+
+    console.log(chain, address, ethers.utils.isAddress(address), isValidAddress);
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -68,6 +77,40 @@ export function AddressWithBlockies({
             fontColor={
                 !isValidAddress ? 'red' : fontColor
             }
+            hidePortfolioLink={hidePortfolioLink}
         />
+
+        {chain == SupportedChain.UNKNOWN && <Tooltip placement='bottom'
+            style={{ minWidth: 400 }}
+            color={'black'}
+            title={<div style={{ display: 'flex', flexDirection: 'column' }}>
+                {"This user's primary chain is unknown."}
+                <br />
+                {"We have guessed it to be Ethereum."}
+                <br />
+                <br />
+                {"Other possible addresses include: "}
+                <br />
+                <AddressDisplay
+                    fontColor={SECONDARY_TEXT}
+                    userInfo={{
+                        address: ethToCosmos(address),
+                        cosmosAddress: ethToCosmos(address),
+                        chain: SupportedChain.COSMOS,
+                        accountNumber: -1,
+                    }}
+                    hidePortfolioLink
+
+                />
+
+                <br />
+            </div>}>
+            <WarningOutlined
+                style={{
+                    color: 'orange',
+                    margin: 4
+                }}
+            />
+        </Tooltip>}
     </div>
 }

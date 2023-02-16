@@ -4,16 +4,18 @@ import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountResponse, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersRoute, GetPortfolioRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod, SupportedChain } from './types';
 
 export async function getAccountInformation(bech32Address: string) {
-    const accountObject: GetAccountResponse = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address)).then((res) => res.data);
+    const accountObject = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
+    console.log(accountObject);
+
     return accountObject.accountInfo;
 }
 
 export async function getAccountInformationByAccountNumber(id: number) {
-    const accountObject: GetAccountResponse = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
+    const accountObject = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
     return accountObject.accountInfo;
 }
 
@@ -29,7 +31,7 @@ export async function getBalance(bech32Address: string) {
 }
 
 export async function getBadgeOwners(collectionId: number, badgeId: number) {
-    const owners: { owners: CosmosAccountInformation[], balances: any } = await axios.get(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
+    const owners: { owners: any[], balances: any } = await axios.get(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
     return owners;
 }
 
@@ -54,13 +56,11 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
     let managerAccountInfo = await getAccountInformationByAccountNumber(managerAccountNumber);
 
     if (managerAccountInfo) {
-        //TODO: dynamic conversions between chains
-        let ethAddress = cosmosToEth(managerAccountInfo.address);
         badgeData.manager = {
             accountNumber: managerAccountInfo.account_number,
-            address: ethAddress,
-            cosmosAddress: managerAccountInfo.address,
-            chain: SupportedChain.ETH
+            address: managerAccountInfo.address,
+            cosmosAddress: managerAccountInfo.cosmosAddress,
+            chain: managerAccountInfo.chain
         };
     }
 
@@ -79,6 +79,8 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
             }
         }
     }
+
+    badgeData.activity.reverse();
 
     return {
         collection: badgeData
@@ -101,4 +103,9 @@ export async function getBadgeBalance(
 
     const balanceRes: GetBadgeBalanceResponse = await axios.get(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
     return balanceRes;
+}
+
+export async function GetPortfolio(accountNumber: number) {
+    const portfolio = await axios.get(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
+    return portfolio;
 }

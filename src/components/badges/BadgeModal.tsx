@@ -115,7 +115,7 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
 
                                         <BadgeOverview
                                             badge={badge}
-                                            metadata={badge.badgeMetadata[badgeId]}
+                                            metadata={badge.badgeMetadata[badgeId - 1]}
                                             balance={balance}
                                             badgeId={badgeId}
                                         />

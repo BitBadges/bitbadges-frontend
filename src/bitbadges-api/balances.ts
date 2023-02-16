@@ -23,8 +23,8 @@ export const getBadgeSupplysFromMsgNewCollection = (msgNewCollection: MessageMsg
             {
                 balance: msgNewCollection.badgeSupplys[0]?.supply,
                 badgeIds: [{
-                    start: 0,
-                    end: msgNewCollection.badgeSupplys[0]?.amount - 1,
+                    start: 1,
+                    end: msgNewCollection.badgeSupplys[0]?.amount,
                 }]
             }
         ],

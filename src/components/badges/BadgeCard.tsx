@@ -164,7 +164,7 @@ export function BadgeCard({
                                                 <br />
                                                 <>Claimable: {claimableSupply}</>
                                                 <br />
-                                                <>Distributed: {distributedSupply}</>
+                                                <>Minted: {distributedSupply}</>
                                             </>}
                                             placement='bottom'>
                                             <InfoCircleOutlined style={{ marginLeft: 4 }} />

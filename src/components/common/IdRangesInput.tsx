@@ -17,7 +17,7 @@ export function IdRangesInput(
         darkMode?: boolean,
     }
 ) {
-    const [startBadgeId, setStartBadgeId] = useState<number>(0);
+    const [startBadgeId, setStartBadgeId] = useState<number>(1);
     const [endBadgeId, setEndBadgeId] = useState<number>(maximum ?? 0);
 
     if (maximum == 0) {
@@ -28,7 +28,7 @@ export function IdRangesInput(
         <div className='flex-between' style={{ flexDirection: 'column' }} >
             <b>Badge ID Start</b>
             <InputNumber
-                min={0}
+                min={1}
                 max={endBadgeId}
                 value={startBadgeId} onChange={
                     (value: number) => {
@@ -48,7 +48,7 @@ export function IdRangesInput(
         <div className='flex-between' style={{ flexDirection: 'column' }} >
             <b>Badge ID End</b>
             <InputNumber
-                min={0}
+                min={1}
                 max={maximum}
                 title='Amount to Transfer'
                 value={endBadgeId} onChange={

@@ -6,6 +6,7 @@ import { Permissions } from "./permissions";
 export enum SupportedChain {
     ETH = 'Ethereum',
     COSMOS = 'Cosmos',
+    UNKNOWN = 'Unknown',
 }
 
 export enum TransactionStatus {

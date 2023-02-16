@@ -43,7 +43,7 @@ export function BadgeAvatarDisplay({
                     <BadgeAvatar
                         size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
                         badge={badgeCollection}
-                        metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
+                        metadata={badgeCollection.badgeMetadata[idx + Number(startId) - 1]}
                         badgeId={idx + Number(startId)}
                         balance={userBalance}
                         showId={showIds}
@@ -74,7 +74,7 @@ export function BadgeAvatarDisplay({
                             <BadgeAvatar
                                 size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
                                 badge={badgeCollection}
-                                metadata={badgeCollection.badgeMetadata[idx + Number(startId)]}
+                                metadata={badgeCollection.badgeMetadata[idx + Number(startId) - 1]}
                                 badgeId={idx + Number(startId)}
                                 balance={userBalance}
                                 showId={showIds}

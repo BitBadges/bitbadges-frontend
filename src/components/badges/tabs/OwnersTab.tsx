@@ -16,14 +16,13 @@ export function OwnersTab({ badgeCollection, badgeId }: {
     useEffect(() => {
         async function getOwners() {
             if (badgeCollection) {
-                console.log("CALLING");
                 const ownersRes = await getBadgeOwners(badgeCollection?.collectionId, badgeId)
                 const badgeOwners = ownersRes.owners.map((x) => {
                     return {
                         accountNumber: x.account_number,
                         address: x.address,
-                        cosmosAddress: x.address,
-                        chain: SupportedChain.COSMOS
+                        cosmosAddress: x.cosmosAddress,
+                        chain: x.chain
                     }
                 })
                 setBadgeOwners(badgeOwners);

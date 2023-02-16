@@ -5,7 +5,7 @@ import { BadgeMetadata, BitBadgeCollection, IdRange } from "./types";
 
 export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
     const range: IdRange = {
-        start: 0,
+        start: 1,
         end: collection.nextBadgeId - 1,
     }
     return [range];
@@ -28,7 +28,7 @@ export function createCollectionFromMsgNewCollection(
             address: chain.address,
             cosmosAddress: chain.cosmosAddress,
         },
-        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount : collection?.nextBadgeId ? collection?.nextBadgeId : 0,
+        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount + 1 : collection?.nextBadgeId ? collection?.nextBadgeId : 0,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
         unmintedSupplys: [],

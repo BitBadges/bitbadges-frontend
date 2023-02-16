@@ -18,7 +18,7 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeI
         {individualBadgeMetadata?.map((metadata, idx) => {
             return <div key={idx}>
                 <BadgeCard isModalOpen={modalToOpen === idx}
-                    setBadgeId={setBadgeId} collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
+                    setBadgeId={setBadgeId} collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx + 1} />
             </div>
         })}
     </>);
@@ -39,7 +39,7 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeI
                             balance={balance}
                             collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
                             metadata={metadata}
-                            id={idx}
+                            id={idx + 1}
                         />
                     </div>
                 })}

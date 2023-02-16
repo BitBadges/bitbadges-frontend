@@ -46,8 +46,8 @@ export function BadgeActivityTab({ badgeCollection, badgeId }: {
                             currUserMap.set(from, {
                                 accountNumber: userInfo.account_number,
                                 address: userInfo.address,
-                                cosmosAddress: userInfo.address,
-                                chain: SupportedChain.COSMOS
+                                cosmosAddress: userInfo.cosmosAddress,
+                                chain: userInfo.chain,
                             });
                         }
                     }
@@ -59,8 +59,8 @@ export function BadgeActivityTab({ badgeCollection, badgeId }: {
                             currUserMap.set(to, {
                                 accountNumber: userInfo.account_number,
                                 address: userInfo.address,
-                                cosmosAddress: userInfo.address,
-                                chain: SupportedChain.COSMOS
+                                cosmosAddress: userInfo.cosmosAddress,
+                                chain: userInfo.chain,
                             });
                         }
                     }

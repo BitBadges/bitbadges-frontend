@@ -120,7 +120,7 @@ function CollectionPage() {
                     {tab === 'activity' && (
                         <ActivityTab
                             badgeCollection={badgeCollection}
-                            setBadgeCollection={setBadgeCollection}
+
                         />
                     )}
 

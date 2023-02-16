@@ -4,7 +4,7 @@ import { COSMOS } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { ReactNode } from 'react';
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { ETH_LOGO, MINT_ACCOUNT } from '../../constants';
+import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT } from '../../constants';
 import { EnterMethod } from './AddressSelect';
 import { AddressWithBlockies } from './AddressWithBlockies';
 
@@ -100,7 +100,8 @@ export function AddressDisplay(
         showAccountNumber,
         fontColor,
         fontSize,
-        showCosmosAddress
+        showCosmosAddress,
+        hidePortfolioLink
     }: {
         userInfo: BitBadgesUserInfo,
         title?: string | ReactNode,
@@ -110,8 +111,11 @@ export function AddressDisplay(
         fontSize?: number,
         hideChains?: boolean
         showCosmosAddress?: boolean
+        hidePortfolioLink?: boolean
     }
 ) {
+
+    console.log(userInfo);
 
     let isValidAddress = true;
     let chainLogo = '';
@@ -120,12 +124,15 @@ export function AddressDisplay(
             isValidAddress = ethers.utils.isAddress(userInfo.address);
             break;
         case SupportedChain.COSMOS:
-
             try {
                 COSMOS.decoder(userInfo.address);
             } catch {
                 isValidAddress = false;
             }
+            break;
+        case SupportedChain.UNKNOWN:
+            isValidAddress = true;
+            chainLogo = ETH_LOGO;
             break;
         default:
             chainLogo = ETH_LOGO;
@@ -151,6 +158,7 @@ export function AddressDisplay(
                 fontSize={fontSize}
                 fontColor={fontColor}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}
+                hidePortfolioLink={hidePortfolioLink}
             />
             <div style={{ display: 'flex', alignItems: 'center', color: fontColor }} >
                 {showAccountNumber && userInfo.accountNumber !== -1 &&
@@ -186,7 +194,6 @@ export function AddressDisplay(
                     fontSize={fontSize}
                     fontColor={fontColor}
                 />
-
             </div>
         }
     </>

@@ -70,7 +70,7 @@ export function MetadataForm({
 
         if (!isNaN(Number(id)) && Number(id) >= 0) {
             let currMetadata: BadgeMetadata[] = metadata as BadgeMetadata[];
-            currMetadata[Number(id)] = newMetadata;
+            currMetadata[Number(id) - 1] = newMetadata;
             return currMetadata;
         } else {
             return newMetadata;
@@ -79,7 +79,7 @@ export function MetadataForm({
 
     let stringifiedMetadata = JSON.stringify(metadata);
     useEffect(() => {
-        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id)] : metadata as BadgeMetadata;
+        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id) - 1] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
         console.log('set metadata to', m)
 

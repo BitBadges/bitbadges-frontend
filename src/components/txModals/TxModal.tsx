@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Typography, Modal, Steps, StepProps, Divider, notification } from 'antd';
+import { Typography, Modal, Steps, StepProps, Divider, notification, Button } from 'antd';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
@@ -9,6 +9,7 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { useRouter } from 'next/router';
+import { Content } from 'antd/lib/layout/layout';
 
 const { Step } = Steps;
 
@@ -109,6 +110,57 @@ export function TxModal(
             } catch (err: any) { }
         }
     };
+
+    if (chain.accountNumber === -1) {
+        return <Modal
+            title={<b>Register Account</b>}
+            open={visible && chain.accountNumber === -1}
+            style={{
+                paddingLeft: '12px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+                borderBottom: '0px',
+                ...style
+            }}
+            width={650}
+            closeIcon={closeIcon}
+            bodyStyle={{
+                paddingTop: 8,
+                fontSize: 20,
+                ...bodyStyle
+            }}
+            // onOk={registerCurrentUser}
+            onCancel={() => setVisible(false)}
+            okText={"Register Account"}
+            cancelText={"Cancel"}
+            destroyOnClose={true}
+        >
+            <Content style={{ paddingTop: '15px' }}>
+                <Button
+                    type="primary"
+                    onClick={async () => {
+                        await navigator.clipboard.writeText(chain.cosmosAddress);
+                        window.open('http://localhost:4500', "_blank");
+                    }}
+                    style={{ margin: 5 }}
+                >
+                    Click here to go to the faucet and register your address (one-time)!
+                </Button>
+                <Button
+                    type="primary"
+                    onClick={async () => {
+                        await chain.connect();
+                    }}
+                    style={{ margin: 5 }}
+                >
+                    Refresh
+                </Button>
+            </Content>
+
+        </Modal>
+    }
+
 
     return (
         <Modal

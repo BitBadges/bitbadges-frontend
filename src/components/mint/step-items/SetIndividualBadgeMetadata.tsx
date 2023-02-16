@@ -18,7 +18,7 @@ export function SetIndividualBadgeMetadataStepItem(
     setAddMethod: (method: MetadataAddMethod) => void,
     hackyUpdatedFlag: boolean,
 ) {
-    const [id, setId] = useState(0);
+    const [id, setId] = useState(1);
 
     return {
         title: 'Set Individual Badge Metadata',
@@ -26,7 +26,7 @@ export function SetIndividualBadgeMetadataStepItem(
         node: <>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: PRIMARY_TEXT }} >
                 <div>Currently Setting Metadata for Badge ID:{' '}</div>
-                <InputNumber min={0} max={individualBadgeMetadata.length - 1}
+                <InputNumber min={1} max={individualBadgeMetadata.length}
                     value={id}
                     onChange={(e) => setId(e)}
                     style={{
@@ -44,8 +44,8 @@ export function SetIndividualBadgeMetadataStepItem(
                         badgeCollection={collection}
                         setBadgeCollection={() => { }}
                         userBalance={getBlankBalance()}
-                        startId={0}
-                        endId={individualBadgeMetadata.length - 1}
+                        startId={1}
+                        endId={individualBadgeMetadata.length}
                         selectedId={id}
                         size={40}
                         hackyUpdatedFlag={hackyUpdatedFlag}

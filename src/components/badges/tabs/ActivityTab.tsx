@@ -7,9 +7,8 @@ import { AddressDisplay } from '../../address/AddressDisplay';
 import { useEffect, useState } from 'react';
 import { getAccountInformationByAccountNumber } from '../../../bitbadges-api/api';
 
-export function ActivityTab({ badgeCollection, badgeId }: {
+export function ActivityTab({ badgeCollection }: {
     badgeCollection: BitBadgeCollection | undefined;
-    badgeId: number
 }) {
     const [users, setUsers] = useState<Map<string, BitBadgesUserInfo>>(new Map());
     const [updated, setUpdated] = useState<boolean>(false);
@@ -36,11 +35,12 @@ export function ActivityTab({ badgeCollection, badgeId }: {
                     if (!currUserMap.has(from)) {
                         const userInfo = await getAccountInformationByAccountNumber(Number(from));
                         if (userInfo) {
+                            console.log(userInfo.chain);
                             currUserMap.set(from, {
                                 accountNumber: userInfo.account_number,
                                 address: userInfo.address,
-                                cosmosAddress: userInfo.address,
-                                chain: SupportedChain.COSMOS
+                                cosmosAddress: userInfo.cosmosAddress,
+                                chain: userInfo.chain,
                             });
                         }
                     }
@@ -49,11 +49,12 @@ export function ActivityTab({ badgeCollection, badgeId }: {
                     if (!currUserMap.has(to)) {
                         const userInfo = await getAccountInformationByAccountNumber(Number(to));
                         if (userInfo) {
+                            
                             currUserMap.set(to, {
                                 accountNumber: userInfo.account_number,
                                 address: userInfo.address,
-                                cosmosAddress: userInfo.address,
-                                chain: SupportedChain.COSMOS
+                                cosmosAddress: userInfo.cosmosAddress,
+                                chain: userInfo.chain,
                             });
                         }
                     }
