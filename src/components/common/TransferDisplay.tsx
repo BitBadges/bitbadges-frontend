@@ -30,7 +30,7 @@ export function TransferDisplay({
     hideAddresses?: boolean;
 }) {
     // const maximum = badge?.nextBadgeId - 1 || 0;
-    return <>
+    return <div style={{ minWidth: 600 }}>
         {badgeIds?.map((range, index) => {
             const startId = range.start;
             const endId = range.end;
@@ -38,10 +38,10 @@ export function TransferDisplay({
 
             return <div key={index} >
                 <div style={{ textAlign: 'center' }}>
-                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`Transferring x${amount * toLength} of each of the badges below${toLength > 1 ? ` (x${amount} to each recipient)` : ''}`}</Typography.Text>
+                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`x${amount * toLength} of each badge (IDs ${startId} to ${endId})`}</Typography.Text>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`IDs ${startId} to ${endId}`}</Typography.Text>
+                    <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {badge && setBadgeCollection &&
                     <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} showIds />
@@ -122,5 +122,5 @@ export function TransferDisplay({
             </Row>
         </div>
         }
-    </>
+    </div>
 }

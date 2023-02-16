@@ -9,6 +9,9 @@ import { TransferDisplay } from "./TransferDisplay";
 import { parseClaim } from "../../bitbadges-api/claims";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { getBlankBalance } from "../../bitbadges-api/balances";
+import { SHA256 } from "crypto-js";
+import { AddressDisplay } from "../address/AddressDisplay";
+import { BalanceDisplay } from "./BalanceDisplay";
 
 export function ClaimDisplay({
     claim,
@@ -39,6 +42,8 @@ export function ClaimDisplay({
 
     const currLeaf: ClaimItem = parseClaim(currCode);
 
+    if (claim.balances.length === 0) return <></>
+
     return <Card
         // title={<h1>Claim</h1>}
         style={{
@@ -47,11 +52,11 @@ export function ClaimDisplay({
             textAlign: 'center',
             backgroundColor: PRIMARY_BLUE,
             color: PRIMARY_TEXT,
-            border: `1px solid gray`,
+            border: `1px solid white`,
         }}
     >
         <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
-            <h1>Claim #{claimId}</h1>
+            {/* <h1>Claim #{claimId}</h1> */}
             {collection.claims[claimId]?.leaves?.length === 0 &&
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
 
@@ -76,6 +81,17 @@ export function ClaimDisplay({
             <Row style={{ display: 'flex', justifyContent: 'center' }} >
                 <h3><ClockCircleOutlined /> Open from {startDateString} until {endDateString}</h3>
             </Row>
+            <BalanceDisplay
+                message={'Badges Left Available to Claim'}
+                collection={collection}
+                setCollection={setCollection}
+                balance={{
+                    approvals: [],
+                    balances: claim.balances
+                }}
+            />
+            <br />
+
             {/* <Row style={{ display: 'flex', justifyContent: 'center' }} >
                 <h3>Only {Math.floor(claim.balance.balance / claim.amountPerClaim)} more users can claim!</h3>
             </Row> */}
@@ -120,17 +136,55 @@ export function ClaimDisplay({
                             <Button disabled={!chain.connected} type='primary' onClick={() => openModal(currCode)} style={{ width: '100%' }}>Claim via Code</Button>
                         </>
                         :
-
                         <>
                             {!chain.connected && <BlockinDisplay hideLogo />}
-                            {chain.connected && !collection.claims[claimId]?.leaves?.find((x) => parseClaim(x).address === chain.cosmosAddress)
-                                && <h3>No claims found for your connected address!</h3>}
+                            {chain.connected && !collection.claims[claimId]?.leaves?.find((x) => {
+                                if (parseClaim(x).address === chain.cosmosAddress) {
+                                    if (collection.usedClaims.find((y) => y === SHA256(parseClaim(x).fullCode).toString())) {
+                                        return false;
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }) ? <div>
+                                <h3>No claims found for the connected address</h3>
+                                <div className='flex-between' style={{ justifyContent: 'center' }}>
+                                    <AddressDisplay
+                                        fontColor={PRIMARY_TEXT}
+                                        userInfo={{
+                                            address: chain.address,
+                                            accountNumber: chain.accountNumber,
+                                            cosmosAddress: chain.cosmosAddress,
+                                            chain: chain.chain,
+                                        }} />
+                                </div>
+
+                            </div> :
+                                <div>
+                                    {chain.connected && <div>
+                                        <h3>You have been whitelisted!</h3>
+                                        <p>See your available claims below</p>
+                                    </div>}
+                                    {/* <div className='flex-between' style={{ justifyContent: 'center' }}>
+                                        <AddressDisplay
+                                            fontColor={PRIMARY_TEXT}
+                                            userInfo={{
+                                                address: chain.address,
+                                                accountNumber: chain.accountNumber,
+                                                cosmosAddress: chain.cosmosAddress,
+                                                chain: chain.chain,
+                                            }} />
+                                    </div> */}
+
+                                </div>}
                             {collection.claims[claimId]?.leaves?.map((x) => {
                                 const currLeaf: ClaimItem = parseClaim(x);
                                 if (currLeaf.address != chain.cosmosAddress) return <></>
 
+                                if (collection.usedClaims.find((x) => x === SHA256(currLeaf.fullCode).toString())) return <></>
 
                                 return <>
+                                    <Divider />
                                     <hr />
                                     <TransferDisplay
                                         badge={collection}

@@ -14,7 +14,7 @@ export function InformationDisplayCard({
     span?: number
 }) {
     return (
-        <Col span={span ? span : 24} style={{ minHeight: 100, border: '1px solid gray', borderRadius: 10 }}>
+        <Col span={span ? span : 24} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
             <div
                 style={{
                     color: PRIMARY_TEXT,

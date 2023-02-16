@@ -4,7 +4,7 @@ import { BadgeMetadata, BitBadgesUserInfo, SupportedChain } from './bitbadges-ap
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3001';
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;
 
 // export const PRIVATE_API_URL = 'https://bitbadges-private-api.herokuapp.com';
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';
@@ -37,7 +37,7 @@ export const CHAIN_DETAILS = {
 export const MINT_ACCOUNT: BitBadgesUserInfo = {
     cosmosAddress: '',
     accountNumber: -1,
-    address: 'Mint Address',
+    address: 'Mint',
     chain: SupportedChain.COSMOS
 }
 

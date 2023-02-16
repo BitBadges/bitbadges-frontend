@@ -1,13 +1,10 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { BadgeCard } from '../BadgeCard';
-import { getBadgeCollection } from '../../../bitbadges-api/api';
-import { ClaimDisplay } from '../../common/ClaimDisplay';
-import MerkleTree from 'merkletreejs';
-import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 import { Empty } from 'antd';
+import { useState } from 'react';
 import { getBlankBalance } from '../../../bitbadges-api/balances';
+import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
+import { ClaimDisplay } from '../../common/ClaimDisplay';
+import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 
 export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
     badgeCollection: BitBadgeCollection | undefined;
@@ -18,34 +15,6 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [code, setCode] = useState<string>("");
 
-
-    const individualBadgeMetadata = badgeCollection?.badgeMetadata;
-    const [display, setDisplay] = useState<ReactNode>(<>
-        {individualBadgeMetadata?.map((metadata, idx) => {
-            return <div key={idx}>
-                <BadgeCard collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
-            </div>
-        })}
-    </>);
-
-    let stringified = JSON.stringify(individualBadgeMetadata);
-
-    useEffect(() => {
-        async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
-            if (!badgeCollection) return;
-
-            setDisplay(<>
-                {individualBadgeMetadata?.map((metadata, idx) => {
-                    return <div key={idx}>
-                        <BadgeCard
-                            balance={balance}
-                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx} />
-                    </div>
-                })}
-            </>)
-        }
-        updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection, balance]);
 
     return (
         <div
@@ -77,10 +46,10 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
                 })
             }
             {
-                badgeCollection?.claims.length === 0 &&
+                !badgeCollection?.claims.find((x) => x.balances.length > 0) &&
                 <Empty
                     style={{ color: PRIMARY_TEXT }}
-                    description="No claims found"
+                    description="At the moment, there are no active claims for this badge."
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
             }

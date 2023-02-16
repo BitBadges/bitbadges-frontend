@@ -182,10 +182,10 @@ export function TxModal(
                                             Please confirm all transaction details are correct before signing
                                             because blockchain transactions are permanent!
                                         </Typography.Text>
-                                        <br />
+                                        <Divider />
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
-                                            By clicking the button below, you will be prompted to sign and submit a transaction 
-                                            from the wallet displayed below.
+                                            By clicking the button below, you will be prompted to sign and submit a transaction
+                                            from the address displayed below.
                                         </Typography.Text>
 
 

@@ -4,7 +4,7 @@ import { COSMOS } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { ReactNode } from 'react';
 import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { ETH_LOGO } from '../../constants';
+import { ETH_LOGO, MINT_ACCOUNT } from '../../constants';
 import { EnterMethod } from './AddressSelect';
 import { AddressWithBlockies } from './AddressWithBlockies';
 
@@ -131,6 +131,10 @@ export function AddressDisplay(
             chainLogo = ETH_LOGO;
             isValidAddress = false;
             break;
+    }
+
+    if (userInfo.address == MINT_ACCOUNT.address) {
+        isValidAddress = true;
     }
 
     return <>
