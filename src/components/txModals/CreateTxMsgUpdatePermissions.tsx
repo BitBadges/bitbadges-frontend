@@ -7,12 +7,13 @@ import { Switch, Tooltip } from 'antd';
 import { CanCreateMoreBadgesDigit, CanUpdateDisallowedDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 
 
-export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children }
+export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children, setBadgeCollection, }
     : {
         badge: BitBadgeCollection,
+        setBadgeCollection: () => void,
         visible: boolean,
         setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
+        children?: React.ReactNode
     }) {
     const chain = useChainContext();
     const [currPermissions, setCurrPermissions] = useState<number>(GetPermissionNumberValue(badge.permissions));
@@ -90,6 +91,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
             txName="Update Permissions"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdatePermissions}
+            onSuccessfulTx={() => { setBadgeCollection(); }}
         >
             {children}
         </TxModal>

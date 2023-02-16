@@ -13,8 +13,10 @@ import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxM
 
 export function ActionsTab({
     badge,
+    setBadgeCollection,
 }: {
     badge?: BitBadgeCollection;
+    setBadgeCollection: () => void;
 }) {
     const router = useRouter();
     const [revokeIsVisible, setRevokeIsVisible] = useState(false);
@@ -23,6 +25,7 @@ export function ActionsTab({
     const [registerAddressesIsVisible, setRegisterAddressesIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
+    const [updateUrisIsVisible, setUpdateUrisIsVisible] = useState(false);
 
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
@@ -60,6 +63,21 @@ export function ActionsTab({
                 },
             });
         }
+
+        if (badge.permissions.CanUpdateUris) {
+            actions.push({
+                title: <div style={{ color: PRIMARY_TEXT }}>Update Metadata</div>,
+                description: (
+                    <div style={{ color: SECONDARY_TEXT }}>
+                        Update the metadata of this collection and badges.
+                    </div>
+                ),
+                showModal: () => {
+                    router.push(`/updateMetadata/${badge.collectionId}`)
+                },
+            });
+        }
+
 
 
         //TODO:
@@ -250,18 +268,21 @@ export function ActionsTab({
                 visible={transferManagerIsVisible}
                 setVisible={setTransferManagerIsVisible}
                 collection={badge}
+                setBadgeCollection={setBadgeCollection}
             />
 
             <CreateTxMsgRequestTransferManagerModal
                 visible={requestTransferManagerIsVisible}
                 setVisible={setRequestTransferManagerIsVisible}
                 collection={badge}
+                setBadgeCollection={setBadgeCollection}
             />
 
             <CreateTxMsgUpdatePermissionsModal
                 visible={updatePermissionsIsVisible}
                 setVisible={setUpdatePermissionsIsVisible}
                 badge={badge}
+                setBadgeCollection={setBadgeCollection}
             />
             {
                 //TODO: -slowly introduce additional functionality (approvals, update URI, new subbadges, etc)

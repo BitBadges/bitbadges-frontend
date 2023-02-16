@@ -22,7 +22,7 @@ export function TransferDisplay({
     from: BitBadgesUserInfo[];
     to: BitBadgesUserInfo[];
     badge?: BitBadgeCollection;
-    setBadgeCollection?: (badge: BitBadgeCollection) => void;
+    setBadgeCollection?: () => void;
     amount: number;
     badgeIds: IdRange[];
     fontColor?: string;

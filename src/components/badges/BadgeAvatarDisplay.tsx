@@ -14,7 +14,7 @@ export function BadgeAvatarDisplay({
     showIds,
 }: {
     badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: (badge: BitBadgeCollection) => void;
+    setBadgeCollection: () => void;
     userBalance: UserBalance | undefined;
     startId: number;
     endId: number;

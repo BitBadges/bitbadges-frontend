@@ -7,10 +7,11 @@ import SHA256 from 'crypto-js/sha256';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        badge, visible, setVisible, children, balance, setBadgeCollection, claimId, code
+        badge, visible, setVisible, children, balance, setBadgeCollection, claimId, code, setUserBalance
     }: {
         badge: BitBadgeCollection | undefined,
-        setBadgeCollection: (badge: BitBadgeCollection) => void,
+        setBadgeCollection: () => void,
+        setUserBalance: () => void,
         balance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
@@ -48,6 +49,7 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
+            onSuccessfulTx={() => { setBadgeCollection(); setUserBalance(); }}
         >
             {children}
         </TxModal>

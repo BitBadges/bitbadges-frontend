@@ -5,9 +5,10 @@ import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadges
 import { TxModal } from './TxModal';
 import { AddressSelect } from '../address/AddressSelect';
 
-export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children }
+export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children, setBadgeCollection }
     : {
         collection: BitBadgeCollection,
+        setBadgeCollection: () => void,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
@@ -61,6 +62,7 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
             txName="Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferManager}
+            onSuccessfulTx={() => { setBadgeCollection();  }}
         >
             {children}
         </TxModal>

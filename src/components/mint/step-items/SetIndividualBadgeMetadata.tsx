@@ -61,7 +61,7 @@ export function SetIndividualBadgeMetadataStepItem(
                     }}>Populate All with Collection Metadata</Button>
                 <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
                     onClick={() => {
-                        setIndividualBadgeMetadata(individualBadgeMetadata.map(() => individualBadgeMetadata[id]));
+                        setIndividualBadgeMetadata(individualBadgeMetadata.map(() => individualBadgeMetadata[id - 1]));
                     }}>{`Populate All with This Badge's Current Metadata (ID: ${id})`}</Button>
             </div>
 

@@ -7,10 +7,11 @@ import { MintAndDistributeTimeline } from '../../components/mint/DistributeBadge
 import { getBadgeCollection } from '../../bitbadges-api/api';
 import { useRouter } from 'next/router';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { UpdateMetadataTimeline } from '../../components/mint/UpdateMetadataTimeline';
 
 const { Content } = Layout;
 
-function Distribute() {
+function UpdateMetadata() {
     const router = useRouter()
 
     const { collectionId } = router.query;
@@ -29,10 +30,9 @@ function Distribute() {
 
     return (
         <DisconnectedWrapper
-            message='Please connect a wallet and sign in to access the Mint page.'
+            message='Please connect a wallet and sign in to access the Update Metadata page.'
             node={
                 <RegisteredWrapper
-                    //TODO: must be manager as well (do for all pages)
                     message='Please register to access the Mint page.'
                     node={
                         <Layout>
@@ -43,7 +43,7 @@ function Distribute() {
                                     minHeight: '100vh',
                                 }}
                             >
-                                <div className="primary-text">Distribute</div>
+                                <div className="primary-text">Update Metadata</div>
                                 <div
                                     style={{
                                         marginLeft: '10vw',
@@ -55,8 +55,9 @@ function Distribute() {
                                     }}
                                 >
                                     {badgeCollection &&
-                                        <MintAndDistributeTimeline
-                                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                                        <UpdateMetadataTimeline
+                                            collection={badgeCollection}
+                                            setCollection={setBadgeCollection}
                                         />
                                     }
                                 </div>
@@ -69,4 +70,4 @@ function Distribute() {
     );
 }
 
-export default Distribute;
+export default UpdateMetadata;

@@ -24,6 +24,7 @@ export async function broadcastTransaction(txRaw: any) {
     if (res.tx_response.code !== 0 && res.tx_response.codespace !== 'badges') {
         throw {
             message: `Code ${res.tx_response.code} from \"${res.tx_response.codespace}\": ${res.tx_response.raw_log}`,
+            tx_response: res.tx_response,
         };
     }
 

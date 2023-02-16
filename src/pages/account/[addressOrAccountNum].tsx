@@ -2,7 +2,7 @@ import { Avatar, Divider, Layout, Tooltip } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { GetPortfolio, getAccountInformation, getAccountInformationByAccountNumber } from '../../bitbadges-api/api';
-import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { BalanceDisplay } from '../../components/common/BalanceDisplay';
 import { InformationDisplayCard } from '../../components/common/InformationDisplayCard';

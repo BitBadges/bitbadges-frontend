@@ -39,6 +39,20 @@ function CollectionPage() {
     const collectionMetadata = badgeCollection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
 
+    async function getBadgeInformation() {
+        await new Promise(r => setTimeout(r, 3000));
+
+        const res = await getBadgeCollection(collectionIdNumber);
+        setBadgeCollection(res.collection);
+    }
+
+    async function setBadgeUserBalance() {
+        await new Promise(r => setTimeout(r, 3000));
+
+        const res = await getBadgeBalance(collectionIdNumber, accountNumber);
+        setUserBalance(res.balance);
+    }
+
     // Get badge collection information
     useEffect(() => {
         async function getBadgeInformation() {
@@ -91,7 +105,10 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={setBadgeCollection} userBalance={userBalance} />
+                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={getBadgeInformation}
+                            setUserBalance={setBadgeUserBalance}
+                            userBalance={userBalance}
+                        />
                     )}
                     {tab === 'badges' && (
                         <BadgesTab
@@ -106,7 +123,8 @@ function CollectionPage() {
                     {tab === 'claims' && (
                         <ClaimsTab
                             badgeCollection={badgeCollection}
-                            setBadgeCollection={setBadgeCollection}
+                            setBadgeCollection={getBadgeInformation}
+                            setUserBalance={setBadgeUserBalance}
                             balance={userBalance}
                         />
                     )}
@@ -114,6 +132,7 @@ function CollectionPage() {
                     {tab === 'actions' && (
                         <ActionsTab
                             badge={badgeCollection}
+                            setBadgeCollection={getBadgeInformation}
                         />
                     )}
 

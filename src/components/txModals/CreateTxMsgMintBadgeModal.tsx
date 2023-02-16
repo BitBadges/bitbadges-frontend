@@ -20,6 +20,8 @@ export function CreateTxMsgMintBadgeModal(
             txName="Mint Badges"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgMintBadge}
+            onSuccessfulTx={() => { //TODO: navigate to page
+            }}
         >
             {children}
         </TxModal>

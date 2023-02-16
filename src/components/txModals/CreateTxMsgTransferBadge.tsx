@@ -15,10 +15,11 @@ import { Divider } from 'antd';
 //TODO: check for disallowedTransfers / managerApprovedTransfers
 export function CreateTxMsgTransferBadgeModal(
     {
-        badge, visible, setVisible, children, userBalance, setBadgeCollection
+        badge, visible, setVisible, children, userBalance, setBadgeCollection, setUserBalance
     }: {
         badge: BitBadgeCollection,
-        setBadgeCollection: (badge: BitBadgeCollection) => void,
+        setBadgeCollection: () => void,
+        setUserBalance: () => void,
         userBalance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
@@ -145,6 +146,7 @@ export function CreateTxMsgTransferBadgeModal(
             txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
+            onSuccessfulTx={() => { setBadgeCollection(); setUserBalance(); }}
             displayMsg={<div>
                 {balances.map((balance, index) => {
                     // console.log(balance);

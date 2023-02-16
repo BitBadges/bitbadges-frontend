@@ -1,38 +1,26 @@
 import { Col, Row } from "antd";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
-import { InformationDisplayCard } from "../../common/InformationDisplayCard"
+import { InformationDisplayCard } from "../../common/InformationDisplayCard";
+import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
+import { BalanceOverview } from "../BalanceOverview";
 import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
-import { BalanceOverview } from "../BalanceOverview";
-import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
-import { DEV_MODE } from "../../../constants";
-import { ClaimDisplay } from "../../common/ClaimDisplay";
-import { useEffect, useState } from "react";
-import { CreateTxMsgClaimBadgeModal } from "../../txModals/CreateTxMsgClaimBadge";
-import MerkleTree from "merkletreejs";
-import { SHA256 } from "crypto-js";
 
 export function OverviewTab({
     badgeCollection,
     setBadgeCollection,
+    setUserBalance,
     userBalance,
     setTab,
 }: {
     badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: (badge: BitBadgeCollection) => void;
+    setBadgeCollection: () => void;
+    setUserBalance: () => void;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
 }) {
-
-
-
-
-
     if (!badgeCollection) return <></>;
     const collectionMetadata = badgeCollection?.collectionMetadata;
-
-
-
 
     return <>
         <InformationDisplayCard
@@ -66,22 +54,23 @@ export function OverviewTab({
             }}
         >
             <Col span={10}>
-                    <CollectionOverview
-                        badge={badgeCollection}
-                        metadata={collectionMetadata}
-                        span={24}
-                    />
-                    <br />
-                    <PermissionsOverview
-                        badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                        span={24}
-                    />
+                <CollectionOverview
+                    badge={badgeCollection}
+                    metadata={collectionMetadata}
+                    span={24}
+                />
+                <br />
+                <PermissionsOverview
+                    badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                    span={24}
+                />
             </Col>
 
 
             <BalanceOverview
                 badge={badgeCollection}
                 setBadge={setBadgeCollection}
+                setUserBalance={setUserBalance}
                 metadata={collectionMetadata}
                 balance={userBalance}
                 span={13}

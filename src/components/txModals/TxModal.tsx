@@ -15,7 +15,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx
     }: {
         createTxFunction: any,
         txCosmosMsg: object,
@@ -28,6 +28,7 @@ export function TxModal(
         bodyStyle?: React.CSSProperties,
         unregisteredUsers?: string[],
         onRegister?: () => void,
+        onSuccessfulTx?: () => void,
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
     }
@@ -91,6 +92,8 @@ export function TxModal(
         try {
             await submitTx(createTxFunction, txCosmosMsg);
             setVisible(false);
+
+            if (onSuccessfulTx) onSuccessfulTx();
         } catch (err: any) {
 
         }
@@ -107,6 +110,8 @@ export function TxModal(
             try {
                 await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
                 onRegister();
+
+
             } catch (err: any) { }
         }
     };
@@ -123,7 +128,7 @@ export function TxModal(
                 borderBottom: '0px',
                 ...style
             }}
-            width={650}
+            width={800}
             closeIcon={closeIcon}
             bodyStyle={{
                 paddingTop: 8,
@@ -174,7 +179,7 @@ export function TxModal(
                 borderBottom: '0px',
                 ...style
             }}
-            width={650}
+            width={800}
             closeIcon={closeIcon}
             bodyStyle={{
                 paddingTop: 8,

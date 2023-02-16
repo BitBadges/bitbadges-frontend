@@ -6,9 +6,10 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { ClaimDisplay } from '../../common/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 
-export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
+export function ClaimsTab({ badgeCollection, setBadgeCollection, balance, setUserBalance }: {
     badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
+    setBadgeCollection: () => void;
+    setUserBalance: () => void;
     balance: UserBalance | undefined;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
@@ -56,6 +57,7 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance }: {
             <CreateTxMsgClaimBadgeModal
                 badge={badgeCollection}
                 setBadgeCollection={setBadgeCollection}
+                setUserBalance={setUserBalance}
                 claimId={claimId}
                 balance={getBlankBalance()}
                 visible={modalVisible}

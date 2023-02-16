@@ -35,6 +35,8 @@ export function CreateTxMsgNewCollectionModal(
             txName="Create Collection"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgNewCollection}
+            onSuccessfulTx={() => { //TODO: navigate to page
+            }}
         >
             {children}
         </TxModal>

@@ -8,7 +8,7 @@ export function BalanceDisplay({
     message,
 }: {
     collection: BitBadgeCollection;
-    setCollection: (collection: BitBadgeCollection) => void;
+    setCollection: () => void;
     balance: UserBalance;
     message?: string;
 }) {

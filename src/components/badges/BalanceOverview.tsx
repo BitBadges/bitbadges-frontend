@@ -1,25 +1,24 @@
-import { Typography } from 'antd';
-import React, { useState } from 'react';
 import {
     GiftOutlined,
     SwapOutlined,
 } from '@ant-design/icons';
+import { Typography } from 'antd';
+import { useState } from 'react';
+import { getBlankBalance } from '../../bitbadges-api/balances';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { ButtonDisplay, ButtonDisplayProps } from '../common/ButtonDisplay';
-import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { TableRow } from '../common/TableRow';
-import { InformationDisplayCard } from '../common/InformationDisplayCard';
-import { BadgeAvatarDisplay } from './BadgeAvatarDisplay';
-import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { BalanceDisplay } from '../common/BalanceDisplay';
+import { ButtonDisplay, ButtonDisplayProps } from '../common/ButtonDisplay';
+import { InformationDisplayCard } from '../common/InformationDisplayCard';
+import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 
 const { Text } = Typography;
 
-export function BalanceOverview({ badge, setBadge, metadata, balance, span, setTab }: {
+export function BalanceOverview({ badge, setBadge, metadata, balance, span, setTab, setUserBalance }: {
     badge: BitBadgeCollection | undefined;
-    setBadge: (badge: BitBadgeCollection) => void;
+    setBadge: () => void;
+    setUserBalance: () => void;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     span?: number;
@@ -81,7 +80,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             name: <>Transfer</>,
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
-            tooltipMessage:  !balance ? 'You do not own any badges in this collection.' : `Transfer this badge to another address`,
+            tooltipMessage: !balance ? 'You do not own any badges in this collection.' : `Transfer this badge to another address`,
             disabled: !balance
         },
         {
@@ -139,6 +138,7 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             visible={transferIsVisible}
             setVisible={setTransferIsVisible}
             userBalance={balance ? balance : getBlankBalance()}
+            setUserBalance={setUserBalance}
         />
 
         {/* <CreateTxMsgClaimBadgeModal

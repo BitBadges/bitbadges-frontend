@@ -22,7 +22,7 @@ export function SetCollectionMetadataStepItem(
             newCollectionMsg={newCollectionMsg}
         />,
         disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-            || (addMethod === MetadataAddMethod.UploadUrl && !(newCollectionMsg.badgeUri.indexOf('{id}') == -1))
+            || (addMethod === MetadataAddMethod.UploadUrl && (newCollectionMsg.badgeUri.indexOf('{id}') == -1))
             || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
     }
 }
