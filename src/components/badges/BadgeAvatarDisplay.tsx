@@ -29,7 +29,6 @@ export function BadgeAvatarDisplay({
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
-    console.log(startId, endId);
 
     if (!badgeCollection) return <></>;
 

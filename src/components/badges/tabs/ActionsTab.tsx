@@ -2,7 +2,7 @@ import { Empty, Card, Divider, Typography, } from 'antd';
 import { useState } from 'react';
 import React from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
-import { BitBadgeCollection } from '../../../bitbadges-api/types';
+import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
 import { useChainContext } from '../../../chain/ChainContext';
 import { BlockinDisplay } from '../../blockin/BlockinDisplay';
@@ -10,22 +10,25 @@ import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpd
 import { useRouter } from 'next/router';
 import Meta from 'antd/lib/card/Meta';
 import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxMsgRequestTransferManagerModal';
+import { CreateTxMsgTransferBadgeModal } from '../../txModals/CreateTxMsgTransferBadge';
 
 export function ActionsTab({
     badge,
     setBadgeCollection,
+    userBalance,
+    setUserBalance,
 }: {
     badge?: BitBadgeCollection;
     setBadgeCollection: () => void;
+    userBalance?: UserBalance;
+    setUserBalance: () => void;
 }) {
     const router = useRouter();
-    const [revokeIsVisible, setRevokeIsVisible] = useState(false);
+    const [transferIsVisible, setTransferIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
-    const [registerAddressesIsVisible, setRegisterAddressesIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
-    const [updateUrisIsVisible, setUpdateUrisIsVisible] = useState(false);
 
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
@@ -34,6 +37,19 @@ export function ActionsTab({
 
     let actions: any[] = [];
     const isManager = badge.manager.accountNumber === accountNumber;
+
+    actions.push({
+        title: <div style={{ color: PRIMARY_TEXT }}>Transfer</div>,
+        description: (
+            <div style={{ color: SECONDARY_TEXT }}>
+                Transfer badge(s) in this collection.
+            </div>
+        ),
+        showModal: () => {
+            setTransferIsVisible(!transferIsVisible);
+        },
+    });
+
 
     if (isManager) {
         if (badge.permissions.CanCreateMoreBadges) {
@@ -97,14 +113,15 @@ export function ActionsTab({
 
         if (badge.permissions.CanUpdateDisallowed) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Freeze</div>,
+                title: <div style={{ color: PRIMARY_TEXT }}>Update Disallowed Transfers</div>,
                 description: (
                     <div style={{ color: SECONDARY_TEXT }}>
-                        Freeze or unfreeze if an address is able to transfer.
+                        Freeze or unfreeze if badge owners able to transfer.
                     </div>
                 ),
                 showModal: () => {
                     setFreezeIsVisible(!freezeIsVisible);
+                    router.push(`/updateDisallowed/${badge.collectionId}`);
                 },
             });
         }
@@ -251,18 +268,16 @@ export function ActionsTab({
                     />
                 </>
             )}
-            {!isManager &&
-                <div>
-                    <Divider />
-                    {chain.connected &&
-                        <Typography style={{ color: PRIMARY_TEXT, textAlign: 'center', fontSize: 20, paddingBottom: '5px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            Your connected wallet is not the manager of this collection.
-                        </Typography>
-                    }
-                </div>
-            }
 
-
+            {userBalance &&
+                <CreateTxMsgTransferBadgeModal
+                    visible={transferIsVisible}
+                    setVisible={setTransferIsVisible}
+                    badge={badge}
+                    setBadgeCollection={setBadgeCollection}
+                    userBalance={userBalance}
+                    setUserBalance={setUserBalance}
+                />}
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
@@ -284,8 +299,10 @@ export function ActionsTab({
                 badge={badge}
                 setBadgeCollection={setBadgeCollection}
             />
+
+
             {
-                //TODO: -slowly introduce additional functionality (approvals, update URI, new subbadges, etc)
+                //TODO: -slowly introduce additional functionality (approvals,  new subbadges, etc)
             }
         </div >
     );

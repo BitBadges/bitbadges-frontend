@@ -1,7 +1,7 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
-import { BadgeMetadata, BitBadgeCollection, IdRange } from "./types";
+import { BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
 
 export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
     const range: IdRange = {
@@ -38,6 +38,7 @@ export function createCollectionFromMsgNewCollection(
         managerApprovedTransfers: [],
         claims: [],
         activity: [],
+        usedClaims: [],
     }
 
     return badgeCollection;
@@ -68,47 +69,26 @@ export function createCollectionFromMsgMintBadge(
 }
 
 export const getNonTransferableDisallowedTransfers = () => {
-    return [
-        {
-            to: {
-                accountNums: [
-                    {
-                        start: 0,
-                        end: 1000 //TODO: change to max uint64
-                    }
-                ],
-                options: 0,
-            },
-            from: {
-                accountNums: [
-                    {
-                        start: 0,
-                        end: 1000 //TODO: change to max uint64
-                    }
-                ],
-                options: 0,
-            },
-        },
-    ]
+    return [AllAddressesTransferMapping]
 }
 
-
-export const getRevokeManagerAllowedTransfers = () => {
-    return [
-        {
-            to: {
-                accountNums: [],
-                options: 1,
-            },
-            from: {
-                accountNums: [
-                    {
-                        start: 0,
-                        end: 1000 //TODO: change to max uint64
-                    }
-                ],
-                options: 0,
-            },
-        },
-    ]
+export const AllAddressesTransferMapping: TransferMapping = {
+    to: {
+        accountNums: [
+            {
+                start: 0,
+                end: 1000 //TODO: change to max uint64
+            }
+        ],
+        options: 0,
+    },
+    from: {
+        accountNums: [
+            {
+                start: 0,
+                end: 1000 //TODO: change to max uint64
+            }
+        ],
+        options: 0,
+    },
 }

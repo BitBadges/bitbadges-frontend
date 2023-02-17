@@ -133,6 +133,8 @@ function CollectionPage() {
                         <ActionsTab
                             badge={badgeCollection}
                             setBadgeCollection={getBadgeInformation}
+                            setUserBalance={setBadgeUserBalance}
+                            userBalance={userBalance}
                         />
                     )}
 

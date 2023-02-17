@@ -1,9 +1,9 @@
+import { UserAddOutlined } from "@ant-design/icons";
+import { Button, Divider, Typography } from "antd";
 import { useState } from "react";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
-import { AddressSelect, EnterMethod } from "./AddressSelect";
-import { Button, Divider, Switch, Typography } from "antd";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
-import { UserAddOutlined } from "@ant-design/icons";
+import { AddressSelect, EnterMethod } from "./AddressSelect";
 
 export function AddressListSelect({
     users,
@@ -58,7 +58,7 @@ export function AddressListSelect({
                 />
                 {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
                     <Typography.Text type="danger">
-                        There are errors with certain selected recipients. Please remove these recipients.
+                        You are not approved to transfer to some of the selected recipients. Please remove these recipients.
                     </Typography.Text>
                 </div>}
             </>

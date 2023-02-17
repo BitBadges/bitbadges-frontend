@@ -1,8 +1,8 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { Pagination } from 'antd';
+import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeCard } from '../BadgeCard';
-import { getBadgeCollection } from '../../../bitbadges-api/api';
+import { useState } from 'react';
 
 export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeId, setBadgeId }: {
     badgeCollection: BitBadgeCollection | undefined;
@@ -11,52 +11,42 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeI
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
 }) {
+    const [currPage, setCurrPage] = useState<number>(1);
+
     const modalToOpen = !isNaN(badgeId) ? badgeId : -1;
 
     const individualBadgeMetadata = badgeCollection?.badgeMetadata;
-    const [display, setDisplay] = useState<ReactNode>(<>
-        {individualBadgeMetadata?.map((metadata, idx) => {
-            return <div key={idx}>
-                <BadgeCard isModalOpen={modalToOpen === idx}
-                    setBadgeId={setBadgeId} collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection} metadata={metadata} id={idx + 1} />
-            </div>
-        })}
-    </>);
 
-    let stringified = JSON.stringify(individualBadgeMetadata);
+    const startId = 1;
+    const endId = badgeCollection?.nextBadgeId ? badgeCollection?.nextBadgeId - 1 : 1;
 
-    useEffect(() => {
-        async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
-            if (!badgeCollection) return;
-            
-
-            setDisplay(<>
-                {individualBadgeMetadata?.map((metadata, idx) => {
-                    return <div key={idx}>
-                        <BadgeCard
-                            isModalOpen={modalToOpen === idx}
-                            setBadgeId={setBadgeId}
-                            balance={balance}
-                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                            metadata={metadata}
-                            id={idx + 1}
-                        />
-                    </div>
-                })}
-            </>)
-        }
-        updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, setBadgeCollection, balance, modalToOpen]);
+    const PAGE_SIZE = 25;
+    const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
+    const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
     return (
         <div
             style={{
                 color: PRIMARY_TEXT,
             }}>
-            {/* <Text strong style={{ fontSize: 22, color: PRIMARY_TEXT }}>
-                Badges
-            </Text>
-            <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider> */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }} >
+                <Pagination
+                    style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                    current={currPage}
+                    total={Number(endId) - Number(startId)}
+                    pageSize={PAGE_SIZE}
+                    onChange={(page) => {
+                        setCurrPage(page);
+                    }}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                />
+            </div>
             <div
                 style={{
                     display: 'flex',
@@ -64,7 +54,22 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeI
                     flexWrap: 'wrap',
                 }}
             >
-                {display}
+                {
+                    badgeCollection && Number(endIdNum) - Number(startIdNum) + 1 > 0
+                    && Number(endIdNum) >= 0 &&
+                    Number(startIdNum) >= 0
+                    && new Array(Number(endIdNum) - Number(startIdNum) + 1).fill(0).map((_, idx) => {
+                        return <div key={idx}>
+                            <BadgeCard
+                                isModalOpen={modalToOpen === idx}
+                                setBadgeId={setBadgeId}
+                                balance={balance}
+                                collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                                metadata={badgeCollection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                id={idx + Number(startIdNum)}
+                            />
+                        </div>
+                    })}
             </div>
 
 

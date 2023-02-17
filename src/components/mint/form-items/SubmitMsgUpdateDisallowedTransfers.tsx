@@ -1,20 +1,21 @@
 import { Button } from 'antd';
-import { MessageMsgNewCollection, MessageMsgUpdateUris } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection, MessageMsgUpdateDisallowedTransfers, MessageMsgUpdateUris } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { addToIpfs } from '../../../chain/backend_connectors';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { useChainContext } from '../../../chain/ChainContext';
 import { CreateTxMsgUpdateUrisModal } from '../../txModals/CreateTxMsgUpdateUrisModal';
+import { CreateTxMsgUpdateDisallowedTransfersModal } from '../../txModals/CreateTxMsgUpdateDisallowedTransfers';
 
-export function SubmitMsgUpdateUris({
+export function SubmitMsgUpdateDisallowedTransfers({
+    newCollectionMsg,
+    setNewCollectionMsg,
     collection,
-    setCollection,
-    addMethod
 }: {
-    collection: BitBadgeCollection;
-    addMethod: MetadataAddMethod;
-    setCollection: (collection: BitBadgeCollection) => void;
+    newCollectionMsg: MessageMsgNewCollection;
+    setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void;
+    collection: BitBadgeCollection
 }) {
     const chain = useChainContext();
     const [visible, setVisible] = useState<boolean>(false);
@@ -23,24 +24,10 @@ export function SubmitMsgUpdateUris({
 
 
 
-    async function updateIPFSUris() {
-
-        //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
-        if (addMethod == MetadataAddMethod.Manual) {
-            let res = await addToIpfs(collection.collectionMetadata, collection.badgeMetadata);
-            setCollection({
-                ...collection,
-                collectionUri: 'ipfs://' + res.cid + '/collection',
-                badgeUri: 'ipfs://' + res.cid + '/{id}',
-            });
-        }
-    }
-
-    const updateUrisMsg: MessageMsgUpdateUris = {
+    const updateDisallowedTransfersMsg: MessageMsgUpdateDisallowedTransfers = {
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
-        collectionUri: collection.collectionUri,
-        badgeUri: collection.badgeUri,
+        disallowedTransfers: newCollectionMsg.disallowedTransfers
     }
 
     return <div
@@ -59,19 +46,16 @@ export function SubmitMsgUpdateUris({
             loading={loading}
             onClick={async () => {
                 setLoading(true);
-                await updateIPFSUris();
                 setVisible(true);
                 setLoading(false);
             }}
         >
-            Update Metadata!
+            Update Disallowed Transfers
         </Button>
-        <CreateTxMsgUpdateUrisModal
+        <CreateTxMsgUpdateDisallowedTransfersModal
             visible={visible}
             setVisible={setVisible}
-            txCosmosMsg={updateUrisMsg}
-            badge={collection}
-            setBadgeCollection={() => { }}
+            txCosmosMsg={updateDisallowedTransfersMsg}
         />
     </div>
 }

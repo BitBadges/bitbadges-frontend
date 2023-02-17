@@ -6,7 +6,8 @@ import { BalanceOverview } from "../BalanceOverview";
 import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
 import { PRIMARY_TEXT } from "../../../constants";
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
+import { AllAddressesTransferMapping } from "../../../bitbadges-api/badges";
 
 export function OverviewTab({
     badgeCollection,
@@ -69,30 +70,48 @@ export function OverviewTab({
                 <br />
                 <InformationDisplayCard
                     title={<>
-                        Forbidden Transfers
-                        <Tooltip title="The manager has set the following transfer combinations to be forbidden.">
+                        Transferability
+                        <Tooltip title="Which badge owners can transfer to which badge owners?">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                        </Tooltip></>
+                        </Tooltip>
+                        {!badgeCollection.permissions.CanUpdateDisallowed ?
+                            <Tooltip title="The transferability is locked and can never be changed.">
+                                <LockOutlined style={{ marginLeft: 4 }} />
+                            </Tooltip> :
+                            <Tooltip title="Note that the manager can change the transferability.">
+                                <UnlockOutlined style={{ marginLeft: 4 }} />
+                            </Tooltip>
+                        }
+
+                    </>
                     }
                 >
-                    {!badgeCollection.disallowedTransfers?.length ?
-                        <Empty
-                            description={'All transfers are allowed.'}
-                            style={{ color: PRIMARY_TEXT }}
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        /> : <>
-                            {badgeCollection.disallowedTransfers.map((transfer, index) => {
-                                return <>
-                                    The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                    })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''} cannot
-                                    transfer to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                    })} {transfer.from.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
-                                    <br />
+                    <div style={{ margin: 8 }}>
+                        {
+                            !badgeCollection.disallowedTransfers?.length ?
+                                <>Badges in this collection are transferable.</> : <>
+                                    {badgeCollection.disallowedTransfers.length === 1
+                                        && JSON.stringify(badgeCollection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
+                                        <>Badges in this collection are non-transferable and tied to an account.</>
+                                        : <>                                        {
+                                            badgeCollection.disallowedTransfers.map((transfer, index) => {
+                                                return <>
+                                                    The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
+                                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                                    })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''} cannot
+                                                    transfer to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                                    })} {transfer.from.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
+                                                    <br />
+                                                </>
+                                            })
+
+                                        }
+                                        </>
+                                    }
                                 </>
-                            })}
-                        </>}
+                        }
+                    </div>
                 </InformationDisplayCard>
             </Col>
 
