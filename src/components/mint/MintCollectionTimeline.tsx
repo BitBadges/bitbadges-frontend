@@ -23,6 +23,7 @@ import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadat
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
+import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
 
 export const EmptyStepItem = {
     title: '',
@@ -31,27 +32,13 @@ export const EmptyStepItem = {
     doNotDisplay: true,
 }
 
-//TODO: updatable metadata
-//TODO: create more
-//TODO: semi-fungible
-//TODO: different storage types
-//TODO: whitelist freeze
-//TODO: whitelist mint
+//TODO: add more badges to collection later
+//TODO: add semi-fungible and random assortments of supplys / amounts support, make badgeSupplys dynamic
 //TODO: bytes and updateBytes
 //TODO: more metadata!!!!!
-//TODO: previews
+//TODO: previews and cnfirmations
 //TODO: confirmations
-//TODO: managerApprovedTransfers
-//TODO: add more badges to collection later
-//TODO: add semi-fungible and random assortments of supplys / amounts support
-//TODO: make how many badges to create and the previous one into a much more customizable one
-//TODO: think about adding badges to the collection
-//TODO: add other common options for transferability
-//TODO: add whitelist freeze/ unfreeze support
-//make this clear in the messages
-//TODO: add better preview to metadata forms
-//TODO: maybe combine collection and individual metadata into one step?
-//TODO: make badgeSupplys dynamic?
+//TODO: add other common customizable options for transferability, managerApprovedTransfers, freeze
 
 export function MintCollectionTimeline() {
     const chain = useChainContext();
@@ -147,13 +134,14 @@ export function MintCollectionTimeline() {
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, setAddMethod, hackyUpdatedFlag);
-    const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions);
+    const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)
     const CreateClaims = CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, individualBadgeMetadata, collectionMetadata);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata);
     const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, collectionMetadata, individualBadgeMetadata, distributionMethod);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
+    const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
 
     return (
         <FormTimeline
@@ -165,6 +153,7 @@ export function MintCollectionTimeline() {
                 TransferableSelectStep,
                 FreezeSelectStep,
                 CanManagerBeTransferredStep,
+                ManagerApprovedSelect,
                 MetadataStorageSelectStep,
                 SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual

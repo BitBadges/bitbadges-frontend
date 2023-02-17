@@ -80,8 +80,8 @@ export function BalanceOverview({ badge, setBadge, metadata, balance, span, setT
             name: <>Transfer</>,
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
-            tooltipMessage: !balance ? 'You do not own any badges in this collection.' : `Transfer this badge to another address`,
-            disabled: !balance
+            tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
+            // disabled: !balance
         },
         {
             name: <>Claim</>,

@@ -58,7 +58,7 @@ export function AddressListSelect({
                 />
                 {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
                     <Typography.Text type="danger">
-                        The manager has forbidden you from transferring to certain selected recipients. Please remove these recipients.
+                        There are errors with certain selected recipients. Please remove these recipients.
                     </Typography.Text>
                 </div>}
             </>

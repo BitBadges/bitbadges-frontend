@@ -53,9 +53,9 @@ export function PermissionsOverview({
                             /> : <>
                                 {badgeCollection.managerApprovedTransfers.map((transfer, index) => {
                                     return <>
-                                        The manager can transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {
+                                        The manager can forcefully transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {
                                             return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                        })} to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                        })} to account IDs {transfer.from.accountNums.map((range, index) => {
                                             return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
                                         })}.
                                         <br />

@@ -91,3 +91,24 @@ export const getNonTransferableDisallowedTransfers = () => {
         },
     ]
 }
+
+
+export const getRevokeManagerAllowedTransfers = () => {
+    return [
+        {
+            to: {
+                accountNums: [],
+                options: 1,
+            },
+            from: {
+                accountNums: [
+                    {
+                        start: 0,
+                        end: 1000 //TODO: change to max uint64
+                    }
+                ],
+                options: 0,
+            },
+        },
+    ]
+}

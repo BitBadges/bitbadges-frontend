@@ -11,7 +11,8 @@ export function BadgeAvatar({
     size,
     badgeId,
     balance,
-    showId
+    showId,
+    hackyUpdatedFlag,
 }: {
     badge: BitBadgeCollection,
     metadata: BadgeMetadata,
@@ -19,6 +20,7 @@ export function BadgeAvatar({
     badgeId: number,
     balance?: UserBalance,
     showId?: boolean,
+    hackyUpdatedFlag?: boolean,
 }) {
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
     const [displayMetadata, setDisplayMetadata] = useState<BadgeMetadata>(metadata);
@@ -26,7 +28,7 @@ export function BadgeAvatar({
     let stringified = JSON.stringify(metadata);
     useEffect(() => {
         setDisplayMetadata(metadata);
-    }, [stringified, metadata]);
+    }, [stringified, metadata, hackyUpdatedFlag]);
 
     return displayMetadata ? <Tooltip
         placement="bottom"

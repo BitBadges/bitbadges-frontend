@@ -29,11 +29,13 @@ export function BadgeAvatarDisplay({
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
+    console.log(startId, endId);
+
     if (!badgeCollection) return <></>;
 
     const PAGE_SIZE = pageSize ? pageSize : 50;
-    const startIdNum = (currPage - 1) * PAGE_SIZE + 1;
-    const endIdNum = startIdNum + PAGE_SIZE - 1;
+    const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
+    const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
     return <div>
         <div style={{
@@ -66,7 +68,7 @@ export function BadgeAvatarDisplay({
             <>
                 <br />
                 {
-                    badgeCollection
+                    badgeCollection && (hackyUpdatedFlag || !hackyUpdatedFlag)
                     && Number(endIdNum) - Number(startIdNum) + 1 > 0
                     && Number(endIdNum) >= 0 &&
                     Number(startIdNum) >= 0
@@ -84,6 +86,7 @@ export function BadgeAvatarDisplay({
                                 badgeId={idx + Number(startIdNum)}
                                 balance={userBalance}
                                 showId={showIds}
+                                hackyUpdatedFlag={hackyUpdatedFlag}
                             />
                         </div>
                     })

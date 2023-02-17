@@ -28,7 +28,7 @@ export function OverviewTab({
         <InformationDisplayCard
             title="Collection"
         >
-            <BadgeAvatarDisplay showIds size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={0} endId={badgeCollection?.nextBadgeId - 1} />
+            <BadgeAvatarDisplay showIds size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={1} endId={badgeCollection?.nextBadgeId - 1} />
         </InformationDisplayCard>
         <br />
         {/* <InformationDisplayCard
