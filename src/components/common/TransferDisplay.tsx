@@ -44,7 +44,7 @@ export function TransferDisplay({
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {badge && setBadgeCollection &&
-                    <BadgeAvatarDisplay badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} showIds />
+                    <BadgeAvatarDisplay showIds badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} showIds />
                 }
             </div>
         })}

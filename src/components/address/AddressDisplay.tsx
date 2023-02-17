@@ -58,10 +58,12 @@ export function AddressDisplayTitle(
 export function AddressDisplayList(
     {
         users,
-        setUsers
+        setUsers,
+        disallowedUsers
     }: {
         users: BitBadgesUserInfo[],
         setUsers: (users: BitBadgesUserInfo[]) => void
+        disallowedUsers?: BitBadgesUserInfo[]
     }
 ) {
     return <div style={{ maxHeight: 400, overflow: 'auto' }}>
@@ -79,10 +81,11 @@ export function AddressDisplayList(
                                 </Tooltip>
                             }
                             showAccountNumber={true}
-                            // title={<> {"User " + (index + 1)}</>}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
+                            fontColor={disallowedUsers?.find(u => u.address === user.address) ? 'red' : undefined}
+                            hidePortfolioLink
                         />
-
+                        <br />
                     </div>
                 )
             })

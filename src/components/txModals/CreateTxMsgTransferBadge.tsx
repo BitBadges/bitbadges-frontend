@@ -38,6 +38,8 @@ export function CreateTxMsgTransferBadgeModal(
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
 
 
+
+
     useEffect(() => {
         if (!userBalance || userBalance === getBlankBalance()) return;
         let postTransferBalanceObj = userBalance;
@@ -77,14 +79,70 @@ export function CreateTxMsgTransferBadgeModal(
         setToAddresses(allRegisteredUsers);
     }
 
+
+
+
     //Upon visible turning to false, reset to initial state
     useEffect(() => {
         setToAddresses([]);
         setPostTransferBalance(JSON.parse(JSON.stringify(userBalance)));
     }, [visible, userBalance]);
 
+    const forbiddenAddresses = [];
 
-    const firstStepDisabled = toAddresses.length === 0;
+    for (const address of toAddresses) {
+        for (const disallowedTransferMapping of badge.disallowedTransfers) {
+            let fromIsForbidden = false;
+            let toIsForbidden = false;
+
+
+            if (disallowedTransferMapping.from.options === 2 && chain.accountNumber === badge.manager.accountNumber) {
+                //exclude manager and we are the manager
+                fromIsForbidden = false;
+            } else {
+                if (disallowedTransferMapping.from.options === 1) {
+                    //include manager and we are the manager
+                    if (chain.accountNumber === badge.manager.accountNumber) {
+                        fromIsForbidden = true;
+                    }
+                }
+
+
+                for (const idRange of disallowedTransferMapping.from.accountNums) {
+                    if (idRange.start <= chain.accountNumber && idRange.end >= chain.accountNumber) {
+                        fromIsForbidden = true;
+                        break;
+                    }
+                }
+            }
+
+            if (disallowedTransferMapping.to.options === 2 && address.accountNumber === badge.manager.accountNumber) {
+                //exclude manager and we are the manager
+                toIsForbidden = false;
+            } else {
+                if (disallowedTransferMapping.to.options === 1) {
+                    //include manager and we are the manager
+                    if (address.accountNumber === badge.manager.accountNumber) {
+                        toIsForbidden = true;
+                    }
+                }
+
+                for (const idRange of disallowedTransferMapping.to.accountNums) {
+                    if (idRange.start <= address.accountNumber && idRange.end >= address.accountNumber) {
+                        toIsForbidden = true;
+                        break;
+                    }
+                }
+            }
+
+            if (fromIsForbidden && toIsForbidden) {
+                forbiddenAddresses.push(address);
+            }
+        }
+    }
+
+    const firstStepDisabled = toAddresses.length === 0 || forbiddenAddresses.length > 0;
+
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
     const items = [
@@ -93,6 +151,7 @@ export function CreateTxMsgTransferBadgeModal(
             description: <AddressListSelect
                 users={toAddresses}
                 setUsers={setToAddresses}
+                disallowedUsers={forbiddenAddresses}
             />,
             disabled: firstStepDisabled,
         },

@@ -1,8 +1,10 @@
-import { Typography } from "antd"
+import { Divider, Empty, Tooltip, Typography } from "antd"
 import { PRIMARY_TEXT } from "../../constants";
 import { BitBadgeCollection } from "../../bitbadges-api/types";
 import { TableRow } from "../common/TableRow";
 import { InformationDisplayCard } from "../common/InformationDisplayCard";
+import { TransferDisplay } from "../common/TransferDisplay";
+import { InfoCircleOutlined, InfoOutlined } from "@ant-design/icons";
 
 export function PermissionsOverview({
     badgeCollection,
@@ -27,42 +29,44 @@ export function PermissionsOverview({
                     Badges cannot be created, transferred, updated, or revoked!
                 </Typography.Text> :
                 <>
-                    {<TableRow label={"Can Freeze Addresses?"} value={badgeCollection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />}
+                    {/* //TODO: update bytes */}
+
+                    {<TableRow label={"Can badges be added to the collection?"} value={badgeCollection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                    {<TableRow label={"Can the manager role be transferred?"} value={badgeCollection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                    {<TableRow label={"Can the manager edit the metadata URLs?"} value={badgeCollection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} /> //TODO: explain this does not mean the metadata can be updated; only the URL updates
+                    }
+                    {<TableRow label={"Can the manager edit the forbidden transfers?"} value={badgeCollection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+
+
+                    <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
+                    <h3>{"Manager's Approved Transfers"}
+                        <Tooltip title="The manager is always approved to execute the following transfers without the owner's permission.">
+                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                        </Tooltip>
+                    </h3>
                     {
-                        !badgeCollection.disallowedTransfers?.length ?
-                            <TableRow label={"Disallowed Transfers"} value={'None'} labelSpan={16} valueSpan={8} />
-                            :
-                            <>
-                                {badgeCollection && <TableRow label={`${'Disallowed Transfers'}`} value={<div>
-                                    <pre>
-                                        {JSON.stringify(badgeCollection.disallowedTransfers, null, 2)}
-                                    </pre>
-                                    {/* {badgeCollection.disallowedTransfers.map((transfer) => {
-                                        return <>
-                                            Accounts{transfer.to.accountNums.map((accountRange) => {
-                                                let start = Number(accountRange.start);
-                                                let end = Number(accountRange.end);
-                                                return <> {start}-{end}</>
-                                            })}
-                                        </>
-                                    })} */}
-                                </div>} labelSpan={16} valueSpan={8} />}
+                        !badgeCollection.managerApprovedTransfers?.length ?
+                            <Empty
+                                description={'The manager has no approved transfers.'}
+                                style={{ color: PRIMARY_TEXT }}
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            /> : <>
+                                {badgeCollection.managerApprovedTransfers.map((transfer, index) => {
+                                    return <>
+                                        The manager can transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {
+                                            return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                        })} to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                            return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                        })}.
+                                        <br />
+                                    </>
+                                })}
                             </>
                     }
-                    {
-                        <TableRow label={"Can Create Badges?"} value={badgeCollection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
-                    }
-                    {/* {TODO:
-                        <TableRow label={"Can Badges Be Revoked?"} value={badgeCollection.permissions.CanRevoke ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
-                    } */}
-                    {
-                        <TableRow label={"Can Metadata Be Updated?"} value={badgeCollection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
-                    }
-                    {
-                        <TableRow label={"Can Manager Be Transferred?"} value={badgeCollection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={16} valueSpan={8} />
-                    }
-                    {/* //TODO: update bytes */}
+                    <br />
                 </>
+
+
             }
         </>
     </InformationDisplayCard>

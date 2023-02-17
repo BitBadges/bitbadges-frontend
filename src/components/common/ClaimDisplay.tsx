@@ -72,6 +72,7 @@ export function ClaimDisplay({
                                 endId={Number(id.end)}
                                 userBalance={getBlankBalance()}
                                 size={50}
+                                showIds
                             />
                         })}
                         {claim.incrementIdsBy > 0 && <Typography.Text style={{ color: PRIMARY_TEXT }} strong>*Note that IDs increment by {claim.incrementIdsBy} each claim, so you are not guaranteed this exact ID!</Typography.Text>}

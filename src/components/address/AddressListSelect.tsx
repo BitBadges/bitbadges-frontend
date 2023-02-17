@@ -8,11 +8,13 @@ import { UserAddOutlined } from "@ant-design/icons";
 export function AddressListSelect({
     users,
     setUsers,
+    disallowedUsers,
 }
     :
     {
         users: BitBadgesUserInfo[],
         setUsers: (users: BitBadgesUserInfo[]) => void,
+        disallowedUsers?: BitBadgesUserInfo[],
     }
 ) {
     const [showUserList, setShowUserList] = useState<boolean>(true);
@@ -47,15 +49,24 @@ export function AddressListSelect({
 
 
 
-            {showUserList && <><br /><AddressDisplayList
-                users={users}
-                setUsers={setUsers}
-            /></>}
-            {/* <hr /> */}
-        </>
-        }
 
-        <Divider />
+            {showUserList && <><br />
+                <AddressDisplayList
+                    users={users}
+                    setUsers={setUsers}
+                    disallowedUsers={disallowedUsers}
+                />
+                {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
+                    <Typography.Text type="danger">
+                        The manager has forbidden you from transferring to certain selected recipients. Please remove these recipients.
+                    </Typography.Text>
+                </div>}
+            </>
+            }
+
+
+            <Divider />
+        </>}
 
         <AddressDisplayTitle
             accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
@@ -106,4 +117,5 @@ export function AddressListSelect({
 
 
     </>
+
 }

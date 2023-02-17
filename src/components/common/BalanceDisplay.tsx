@@ -43,6 +43,8 @@ export function BalanceDisplay({
                                 userBalance={balance}
                                 startId={Number(idRange.start)}
                                 endId={Number(idRange.end)}
+                                showIds
+                                pageSize={25}
                             />
                         </div>
                     })

@@ -1,6 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BadgeAvatar } from "./BadgeAvatar";
+import { Pagination } from "antd";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 
 export function BadgeAvatarDisplay({
     badgeCollection,
@@ -12,6 +14,7 @@ export function BadgeAvatarDisplay({
     selectedId,
     hackyUpdatedFlag,
     showIds,
+    pageSize
 }: {
     badgeCollection: BitBadgeCollection | undefined;
     setBadgeCollection: () => void;
@@ -19,52 +22,55 @@ export function BadgeAvatarDisplay({
     startId: number;
     endId: number;
     size?: number;
+    pageSize?: number;
     selectedId?: number;
     hackyUpdatedFlag?: boolean;
     showIds?: boolean;
 }) {
+    const [currPage, setCurrPage] = useState<number>(1);
 
-    //TODO: special ring around the badge if it is owned
-    const individualBadgeMetadata = badgeCollection?.badgeMetadata;
+    if (!badgeCollection) return <></>;
 
-    console.log(Number(startId), Number(endId));
+    const PAGE_SIZE = pageSize ? pageSize : 50;
+    const startIdNum = (currPage - 1) * PAGE_SIZE + 1;
+    const endIdNum = startIdNum + PAGE_SIZE - 1;
 
-    const [display, setDisplay] = useState<ReactNode>(<>
-        {badgeCollection && Number(endId) - Number(startId) + 1 > 0
-            && Number(endId) >= 0 &&
-            Number(startId) >= 0
-            && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
-                return <div key={idx} style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}>
-                    <BadgeAvatar
-                        size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
-                        badge={badgeCollection}
-                        metadata={badgeCollection.badgeMetadata[idx + Number(startId) - 1]}
-                        badgeId={idx + Number(startId)}
-                        balance={userBalance}
-                        showId={showIds}
-                    />
-                </div>
-            })
-        }
-    </>);
-
-
-    let stringified = JSON.stringify(individualBadgeMetadata);
-    useEffect(() => {
-        async function updateDisplay(badgeCollection: BitBadgeCollection | undefined) {
-            if (!badgeCollection || !setBadgeCollection) return;
-
-            setDisplay(<>
+    return <div>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+        }} >
+            <Pagination
+                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                current={currPage}
+                total={Number(endId) - Number(startId)}
+                pageSize={PAGE_SIZE}
+                onChange={(page) => {
+                    setCurrPage(page);
+                }}
+                hideOnSinglePage
+                showSizeChanger={false}
+            />
+        </div>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            maxHeight: 300,
+            overflow: 'auto',
+        }} >
+            <>
+                <br />
                 {
-                    badgeCollection && Number(endId) - Number(startId) + 1 > 0
-                    && Number(endId) >= 0 &&
-                    Number(startId) >= 0
-                    && new Array(Number(endId) - Number(startId) + 1).fill(0).map((_, idx) => {
+                    badgeCollection
+                    && Number(endIdNum) - Number(startIdNum) + 1 > 0
+                    && Number(endIdNum) >= 0 &&
+                    Number(startIdNum) >= 0
+                    && new Array(Number(endIdNum) - Number(startIdNum) + 1).fill(0).map((_, idx) => {
                         return <div key={idx} style={{
                             display: 'flex',
                             flexDirection: 'row',
@@ -72,32 +78,16 @@ export function BadgeAvatarDisplay({
                             alignItems: 'center',
                         }}>
                             <BadgeAvatar
-                                size={size && selectedId === idx + Number(startId) ? size * 1.4 : size}
+                                size={size && selectedId === idx + Number(startIdNum) ? size * 1.4 : size}
                                 badge={badgeCollection}
-                                metadata={badgeCollection.badgeMetadata[idx + Number(startId) - 1]}
-                                badgeId={idx + Number(startId)}
+                                metadata={badgeCollection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                badgeId={idx + Number(startIdNum)}
                                 balance={userBalance}
                                 showId={showIds}
                             />
                         </div>
                     })
-                }</>)
-
-        }
-        updateDisplay(badgeCollection);
-    }, [badgeCollection, stringified, individualBadgeMetadata, badgeCollection?.badgeMetadata, setBadgeCollection, endId, startId, userBalance, size, selectedId, hackyUpdatedFlag, showIds]);
-
-    if (!badgeCollection) return <></>;
-
-    return <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        maxHeight: 300,
-        overflow: 'auto',
-    }} >
-        {display}
+                }</>
+        </div>
     </div>
 }

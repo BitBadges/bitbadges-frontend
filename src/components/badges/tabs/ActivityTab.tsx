@@ -1,17 +1,18 @@
 import { Collapse, Divider, Empty } from 'antd';
-import { ActivityItem, BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { TransferDisplay } from '../../common/TransferDisplay';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { AddressDisplay } from '../../address/AddressDisplay';
 import { useEffect, useState } from 'react';
 import { getAccountInformationByAccountNumber } from '../../../bitbadges-api/api';
+import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { AddressDisplay } from '../../address/AddressDisplay';
+import { TransferDisplay } from '../../common/TransferDisplay';
 
 export function ActivityTab({ badgeCollection }: {
     badgeCollection: BitBadgeCollection | undefined;
 }) {
     const [users, setUsers] = useState<Map<string, BitBadgesUserInfo>>(new Map());
     const [updated, setUpdated] = useState<boolean>(false);
+    const [currPage, setCurrPage] = useState<number>(1);
 
     let activity = badgeCollection?.activity;
 
@@ -49,7 +50,7 @@ export function ActivityTab({ badgeCollection }: {
                     if (!currUserMap.has(to)) {
                         const userInfo = await getAccountInformationByAccountNumber(Number(to));
                         if (userInfo) {
-                            
+
                             currUserMap.set(to, {
                                 accountNumber: userInfo.account_number,
                                 address: userInfo.address,
