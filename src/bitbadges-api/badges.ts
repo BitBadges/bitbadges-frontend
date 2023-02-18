@@ -39,6 +39,9 @@ export function createCollectionFromMsgNewCollection(
         claims: [],
         activity: [],
         usedClaims: [],
+        originalClaims: [],
+        managerRequests: [],
+        balances: {},
     }
 
     return badgeCollection;
@@ -48,10 +51,8 @@ export function createCollectionFromMsgMintBadge(
     msgNewCollection: MessageMsgNewCollection,
     currCollection: BitBadgeCollection,
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: BadgeMetadata[],
-    chain: ChainContextType
+    individualBadgeMetadata: BadgeMetadata[]
 ) {
-
     const badgeCollection: BitBadgeCollection = {
         ...currCollection,
         nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount + currCollection.nextBadgeId - 1 : 0,

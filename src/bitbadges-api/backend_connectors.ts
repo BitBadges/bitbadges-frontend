@@ -1,6 +1,6 @@
 import { ChallengeParams } from "blockin";
 import { stringify } from "../utils/preserveJson";
-import { BadgeMetadata } from "../bitbadges-api/types";
+import { BadgeMetadata } from "./types";
 import { BACKEND_URL } from "../constants";
 
 /**

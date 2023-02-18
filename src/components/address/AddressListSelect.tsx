@@ -6,6 +6,8 @@ import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
 import TextArea from "antd/lib/input/TextArea";
 import { getAccountInformation } from "../../bitbadges-api/api";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
+import { convertToCosmosAddress } from "../../bitbadges-api/chains";
 
 export function AddressListSelect({
     users,
@@ -23,32 +25,33 @@ export function AddressListSelect({
 ) {
     const [showUserList, setShowUserList] = useState<boolean>(true);
     const [enterMethod, setEnterMethod] = useState(EnterMethod.Manual);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [batchAddAddressList, setBatchAddAddressList] = useState<string>('');
 
-    useEffect(() => {
-        console.log("updating");
-        async function updateUsers() {
-            const currBatchUserList = batchAddAddressList.split('\n');
-            if (currBatchUserList.length === 1 && currBatchUserList[0] === '') {
-                return;
-            }
-
-            let newUsers = [];
-            for (const address of currBatchUserList) {
-                if (users.find((u) => u.address === address)) {
-                    newUsers.push(users.find((u) => u.address === address));
-                } else {
-                    let accountInfo = await getAccountInformation(address);
-                    newUsers.push(accountInfo);
-                }
-            }
-            console.log(newUsers);
-
-            setUsers(newUsers);
+    async function updateUsers() {
+        const currBatchUserList = batchAddAddressList.split('\n');
+        if (currBatchUserList.length === 1 && currBatchUserList[0] === '') {
+            return;
         }
-        updateUsers();
-    }, [batchAddAddressList, users, setUsers]);
+
+        let newUsers = users;
+        for (const address of currBatchUserList) {
+            const existingUser = users.find((u) => u.address === address);
+            if (existingUser) {
+                newUsers.push(existingUser);
+            } else {
+                let accountInfo = await getAccountInformation(convertToCosmosAddress(address));
+                newUsers.push({
+                    ...accountInfo,
+                    accountNumber: accountInfo.account_number,
+                });
+            }
+        }
+        console.log(newUsers);
+
+        setUsers(newUsers);
+    }
 
 
 
@@ -88,6 +91,8 @@ export function AddressListSelect({
                     users={users}
                     setUsers={setUsers}
                     disallowedUsers={disallowedUsers}
+                    fontColor={PRIMARY_TEXT}
+
                 />
                 {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
                     <Typography.Text type="danger">
@@ -122,9 +127,11 @@ export function AddressListSelect({
                 currUserInfo={currUserInfo}
                 setCurrUserInfo={setCurrUserInfo}
                 title={"Add Recipient"}
+                fontColor={PRIMARY_TEXT}
                 icon={
                     <UserAddOutlined />
                 }
+                darkMode={darkMode}
             />
             <br />
             <Button
@@ -158,37 +165,23 @@ export function AddressListSelect({
         {enterMethod === EnterMethod.Upload && <>
             <br />
             <TextArea
+                style={{ minHeight: 200, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
                 value={batchAddAddressList}
                 onChange={(e) => setBatchAddAddressList(e.target.value)}
             //TODO:
             />
-            <p>TODO</p>
-            <p>*Only one address per line</p>
+            <p style={{ textAlign: 'left' }}>*Enter one address per line</p>
             <br />
             <Button
                 type="primary"
                 style={{ width: "100%" }}
-                disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
-                onClick={() => {
-                    //TODO:
-                    // if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
-                    //     return;
-                    // };
-                    // setUsers([
-                    //     ...users,
-                    //     {
-                    //         cosmosAddress: currUserInfo?.cosmosAddress,
-                    //         accountNumber: currUserInfo?.accountNumber,
-                    //         chain: currUserInfo?.chain,
-                    //         address: currUserInfo?.address
-                    //     }
-                    // ]);
-                    // setCurrUserInfo({
-                    //     chain: currUserInfo?.chain,
-                    //     address: '',
-                    //     cosmosAddress: '',
-                    //     accountNumber: -1,
-                    // } as BitBadgesUserInfo);
+                disabled={batchAddAddressList.length === 0}
+                loading={loading}
+                onClick={async () => {
+                    setLoading(true);
+                    await updateUsers();
+                    setBatchAddAddressList('');
+                    setLoading(false);
                 }}>
                 <UserAddOutlined /> Add Users
             </Button>

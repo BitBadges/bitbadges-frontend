@@ -2,17 +2,14 @@ import WalletConnectProvider from '@walletconnect/web3-provider';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { PresetResource } from 'blockin';
-import { ethers, TypedDataField } from 'ethers';
-import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react';
+import { ethers } from 'ethers';
+import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
 import Web3Modal from "web3modal";
 import { getAccountInformation } from '../../bitbadges-api/api';
 import { CHAIN_DETAILS } from '../../constants';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
+import { Secp256k1 } from '@cosmjs/crypto';
 import { ChainSpecificContextType } from '../ChainContext';
-import elliptic from "elliptic";
-import { Secp256k1 } from '@cosmjs/crypto'
-import { getSenderInformation } from '../../bitbadges-api/broadcast';
-const secp256k1 = new elliptic.ec("secp256k1");
 
 export type EthereumContextType = ChainSpecificContextType & {
     web3Modal?: Web3Modal,
@@ -108,7 +105,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         const signerAddress = await signer.getAddress();
 
         const accountInformation = await getAccountInformation(ethToCosmos(signerAddress));
-        console.log("FETCHED ACCOUNT INFORMATION", accountInformation);
         setCosmosAddress(accountInformation.cosmosAddress);
         setSequence(Number(accountInformation.sequence));
         setPublicKey(accountInformation.pub_key);
@@ -120,7 +116,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setAddress(await signer.getAddress());
 
         instance.on("accountsChanged", async (accounts: string[]) => {
-
             console.log("accountsChanged", accounts);
             const provider = new ethers.providers.Web3Provider(instance);
             const signer = provider.getSigner();
@@ -153,7 +148,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         // provider.on("disconnect", async (error: { code: number; message: string }) => {
         //     console.log(error);
         // });
-
     }
 
     const incrementSequence = () => {

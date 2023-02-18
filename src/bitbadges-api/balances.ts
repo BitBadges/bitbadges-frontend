@@ -1,7 +1,7 @@
 //TODO: clean this up and put it in bitbadges-js
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SubtractBalancesForIdRanges } from "./balances-gpt";
-import { ClaimItem, UserBalance } from "./types";
+import { UserBalance } from "./types";
 
 export const getBlankBalance = () => {
     const blankBalance: UserBalance = {

@@ -1,51 +1,49 @@
 import axios from 'axios';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
+import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersRoute, GetPortfolioRoute } from './routes';
-import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod, SupportedChain } from './types';
+import { GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
+import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
+import Joi from 'joi';
 
-export async function getAccountInformation(bech32Address: string) {
-    const accountObject = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
-    console.log(accountObject);
-
-    return accountObject.accountInfo;
+//Get account by address
+export async function getAccountInformation(address: string) {
+    const bech32Address = convertToCosmosAddress(address);
+    const accountObject: CosmosAccountInformation = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
+    return accountObject;
 }
 
+//Get account by account number
 export async function getAccountInformationByAccountNumber(id: number) {
-    const accountObject = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
-    return accountObject.accountInfo;
+    const accountObject: CosmosAccountInformation = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
+    return accountObject;
 }
 
+//Get L1 token balance
 export async function getBalance(bech32Address: string) {
-    const balance = await axios.get(NODE_URL + GetBalanceRoute(bech32Address))
-        .then((res) => res.data);
-
-    if (balance.error) {
-        return Promise.reject(balance.error);
-    }
-
+    const balance = await axios.get(NODE_URL + GetBalanceRoute(bech32Address)).then((res) => res.data);
     return balance;
 }
 
+//Query owners for a specific badge
 export async function getBadgeOwners(collectionId: number, badgeId: number) {
-    const owners: { owners: any[], balances: any } = await axios.get(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
+    const owners: GetOwnersResponse = await axios.get(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
     return owners;
 }
 
-
-//TODO: pagination / scalability
+//Get a specific badge collection and all metadata
 export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
-    if (isNaN(collectionId) || collectionId < 0) {
-        console.error("Invalid collectionId: ", collectionId);
-        return Promise.reject(`Invalid collectionId: ${collectionId}`);
+    try {
+        Joi.assert(collectionId, Joi.number().integer().min(1).required());
+    } catch (err) {
+        return Promise.reject(err);
     }
 
     const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
 
-    let badgeData: BitBadgeCollection = badgeDataResponse.collection;
+    let badgeData: BitBadgeCollection = badgeDataResponse;
 
     // Convert the returned permissions (uint) to a Permissions object for easier use
     let permissionsNumber: any = badgeData.permissions;
@@ -80,6 +78,7 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
         }
     }
 
+
     badgeData.activity.reverse();
 
     return {
@@ -91,21 +90,19 @@ export async function getBadgeBalance(
     collectionId: number,
     accountNumber: number
 ): Promise<GetBadgeBalanceResponse> {
-    if (isNaN(collectionId) || collectionId < 0) {
-        console.error("Invalid collectionId: ", collectionId);
-        return Promise.reject(`Invalid collectionId: ${collectionId}`);
-    }
-
-    if (isNaN(accountNumber) || accountNumber < 0) {
-        console.error("Invalid accountNumber: ", accountNumber);
-        return Promise.reject(`Invalid accountNumber: ${accountNumber}`);
+    try {
+        Joi.assert(collectionId, Joi.number().integer().min(1).required());
+        Joi.assert(accountNumber, Joi.number().integer().min(0).required());
+    } catch (err) {
+        return Promise.reject(err);
     }
 
     const balanceRes: GetBadgeBalanceResponse = await axios.get(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
     return balanceRes;
 }
 
-export async function GetPortfolio(accountNumber: number) {
-    const portfolio = await axios.get(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
+//Get portfolio infromation for a specific account
+export async function getPortfolio(accountNumber: number) {
+    const portfolio: GetPortfolioResponse = await axios.get(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
     return portfolio;
 }

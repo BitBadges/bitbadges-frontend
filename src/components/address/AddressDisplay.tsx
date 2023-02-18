@@ -1,28 +1,16 @@
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { Tooltip, Typography } from 'antd';
-import { COSMOS } from 'bitbadgesjs-address-converter';
-import { ethers } from 'ethers';
 import { ReactNode } from 'react';
-import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT } from '../../constants';
-import { EnterMethod } from './AddressSelect';
+import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AddressWithBlockies } from './AddressWithBlockies';
 
 export function AddressDisplayTitle(
     {
-        accountNumber,
         title,
         icon,
-        showAccountNumber,
-        enterMethod,
-        setEnterMethod
     }: {
-        accountNumber: number,
         title: string | ReactNode,
         icon?: ReactNode,
-        showAccountNumber?: boolean
-        enterMethod?: EnterMethod,
-        setEnterMethod?: (enterMethod: EnterMethod) => void
     }
 ) {
 
@@ -33,25 +21,9 @@ export function AddressDisplayTitle(
         justifyContent: 'space-between',
         fontSize: 20
     }}>
-        {/* <br /> */}
-        {/* <div></div> */}
-        {/* <b>{title} {showAccountNumber && <>(ID #: {accountNumber === -1 ? 'None' : accountNumber})</>}</b> */}
-        <b>Add Recipients</b>
+        <b>{title ? title : 'Add Recipients'}</b>
 
-        <div style={{}}>
-            {/* {enterMethod && setEnterMethod &&
-                <Select
-                    defaultValue={EnterMethod.Manual}
-                    style={{ width: 120, marginRight: 8 }}
-                    onChange={(value: EnterMethod) => setEnterMethod(value)}
-                    options={[
-                        { value: EnterMethod.Manual, label: 'Manual' },
-                        { value: EnterMethod.Upload, label: 'Upload' },
-                    ]}
-                />
-            } */}
-            {icon}
-        </div>
+        <div>{icon}</div>
     </div>
 }
 
@@ -59,19 +31,21 @@ export function AddressDisplayList(
     {
         users,
         setUsers,
-        disallowedUsers
+        disallowedUsers,
+        fontColor
     }: {
         users: BitBadgesUserInfo[],
         setUsers: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: BitBadgesUserInfo[]
+        fontColor?: string
     }
 ) {
-    return <div style={{ maxHeight: 400, overflow: 'auto' }}>
+    return <div style={{ maxHeight: 400, overflow: 'auto', }}>
+        <h3>Added Recipients ({users.length})</h3>
         {
             users.map((user, index) => {
                 return (
-                    <div key={index}>
-                        {/* {index !== 0 && <Divider style={{ margin: '15px' }} />} */}
+                    <div key={index} style={{ marginRight: 8 }}>
                         <AddressDisplay
                             icon={
                                 <Tooltip title={"Remove User"}>
@@ -82,7 +56,7 @@ export function AddressDisplayList(
                             }
                             showAccountNumber={true}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
-                            fontColor={disallowedUsers?.find(u => u.address === user.address) ? 'red' : undefined}
+                            fontColor={disallowedUsers?.find(u => u.address === user.address) ? 'red' : fontColor}
                             hidePortfolioLink
                         />
                         <br />
@@ -103,7 +77,6 @@ export function AddressDisplay(
         showAccountNumber,
         fontColor,
         fontSize,
-        showCosmosAddress,
         hidePortfolioLink
     }: {
         userInfo: BitBadgesUserInfo,
@@ -113,42 +86,11 @@ export function AddressDisplay(
         fontColor?: string
         fontSize?: number,
         hideChains?: boolean
-        showCosmosAddress?: boolean
         hidePortfolioLink?: boolean
     }
 ) {
-
-    console.log(userInfo);
-
-    let isValidAddress = true;
-    let chainLogo = '';
-    switch (userInfo.chain) {
-        case SupportedChain.ETH:
-            isValidAddress = ethers.utils.isAddress(userInfo.address);
-            break;
-        case SupportedChain.COSMOS:
-            try {
-                COSMOS.decoder(userInfo.address);
-            } catch {
-                isValidAddress = false;
-            }
-            break;
-        case SupportedChain.UNKNOWN:
-            isValidAddress = true;
-            chainLogo = ETH_LOGO;
-            break;
-        default:
-            chainLogo = ETH_LOGO;
-            isValidAddress = false;
-            break;
-    }
-
-    if (userInfo.address == MINT_ACCOUNT.address) {
-        isValidAddress = true;
-    }
-
     return <>
-        {title && AddressDisplayTitle({ accountNumber: userInfo.accountNumber, title, icon, showAccountNumber })}
+        {title && AddressDisplayTitle({ title, icon })}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -168,7 +110,7 @@ export function AddressDisplay(
                     <div>
                         <Typography.Text strong style={{ marginLeft: 8, color: fontColor }}>ID #{userInfo.accountNumber}</Typography.Text>
                     </div>}
-                {showAccountNumber && userInfo.accountNumber === -1 && isValidAddress &&
+                {showAccountNumber && userInfo.accountNumber === -1 &&
                     <Tooltip
                         title='This address has not been registered on the BitBadges blockchain yet. We will register it before you submit your transaction.'
                         placement='bottom'
@@ -182,23 +124,7 @@ export function AddressDisplay(
                     {icon}
                 </div>
             </div>
-
         </div>
-        {showCosmosAddress &&
-            <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-            }}>
-                <AddressWithBlockies
-                    address={userInfo.cosmosAddress}
-                    chain={SupportedChain.COSMOS}
-                    fontSize={fontSize}
-                    fontColor={fontColor}
-                />
-            </div>
-        }
     </>
 }
 

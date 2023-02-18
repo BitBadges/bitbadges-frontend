@@ -64,6 +64,7 @@ export enum MetadataAddMethod {
     CSV = 'CSV',
 }
 
+
 export interface Claims {
     balances: Balance[];
     badgeIds: IdRange[];
@@ -104,6 +105,13 @@ export interface BitBadgeCollection {
     badgeMetadata: BadgeMetadata[],
     activity: ActivityItem[];
     usedClaims: string[];
+    originalClaims: Claims[];
+    managerRequests: number[];
+    balances: BalancesMap
+}
+
+export interface BalancesMap {
+    [accountNumber: number]: UserBalance;
 }
 
 export interface ActivityItem {
@@ -178,10 +186,10 @@ export interface SubassetSupply {
 export interface CosmosAccountInformation {
     account_number: number;
     sequence: number;
-    pub_key: {
-        key: string;
-    }
+    pub_key: string;
     address: string;
+    chain: SupportedChain;
+    cosmosAddress: string;
 }
 
 export interface BitBadgesUserInfo {

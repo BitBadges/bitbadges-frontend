@@ -1,9 +1,11 @@
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-import { Typography, Tooltip } from 'antd';
-import React from 'react';
-import { MINT_ACCOUNT } from '../../constants';
-import { IdcardOutlined, LinkOutlined } from '@ant-design/icons';
+import { IdcardOutlined } from '@ant-design/icons';
+import { Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
+import { MINT_ACCOUNT } from '../../constants';
+import { getAbbreviatedAddress } from '../../utils/AddressUtils';
+import { SupportedChain } from '../../bitbadges-api/types';
+import { ethers } from 'ethers';
+import { COSMOS } from 'bitbadgesjs-address-converter';
 
 const { Text } = Typography;
 
@@ -43,6 +45,29 @@ export function Address({
         displayAddress += getAbbreviatedAddress(address);
     } else {
         displayAddress = '...';
+    }
+
+    let isValidAddress = true;
+
+    switch (chain) {
+        case SupportedChain.ETH:
+        case SupportedChain.UNKNOWN:
+            isValidAddress = ethers.utils.isAddress(address);
+            break;
+        case SupportedChain.COSMOS:
+            try {
+                COSMOS.decoder(address);
+            } catch {
+                isValidAddress = false;
+            }
+            break;
+        default:
+            isValidAddress = false;
+            break;
+    }
+
+    if (address === MINT_ACCOUNT.address) {
+        isValidAddress = true;
     }
 
 
@@ -88,7 +113,7 @@ export function Address({
                     <Text
                         copyable={{ text: address }}
                         style={{
-                            color: fontColor ? fontColor : undefined,
+                            color: !isValidAddress ? 'red' : fontColor
                         }}
                         strong
                     >

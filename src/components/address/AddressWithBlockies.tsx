@@ -1,11 +1,11 @@
-import { ethers } from "ethers";
-import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
-import { Address } from "./Address";
-import Blockies from 'react-blockies';
-import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT, SECONDARY_BLUE, SECONDARY_TEXT } from "../../constants";
-import { Avatar, Tooltip } from "antd";
-import { COSMOS, cosmosToEth, ethToCosmos } from "bitbadgesjs-address-converter";
 import { WarningOutlined } from "@ant-design/icons";
+import { Avatar, Tooltip } from "antd";
+import { COSMOS, ethToCosmos } from "bitbadgesjs-address-converter";
+import { ethers } from "ethers";
+import Blockies from 'react-blockies';
+import { SupportedChain } from "../../bitbadges-api/types";
+import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT, SECONDARY_TEXT } from "../../constants";
+import { Address } from "./Address";
 import { AddressDisplay } from "./AddressDisplay";
 
 export function AddressWithBlockies({
@@ -25,36 +25,20 @@ export function AddressWithBlockies({
     accountNumber?: number,
     hidePortfolioLink?: boolean
 }) {
-    let isValidAddress = true;
     let chainLogo = '';
 
     switch (chain) {
         case SupportedChain.ETH:
         case SupportedChain.UNKNOWN:
             chainLogo = ETH_LOGO;
-            isValidAddress = ethers.utils.isAddress(address);
             break;
         case SupportedChain.COSMOS:
             chainLogo = COSMOS_LOGO;
-
-            try {
-                COSMOS.decoder(address);
-            } catch {
-                isValidAddress = false;
-            }
             break;
         default:
             chainLogo = ETH_LOGO;
-            isValidAddress = false;
             break;
     }
-
-    if (address === MINT_ACCOUNT.address) {
-        isValidAddress = true;
-    }
-
-
-    console.log(chain, address, ethers.utils.isAddress(address), isValidAddress);
 
     return <div style={{
         display: 'flex',
@@ -75,7 +59,7 @@ export function AddressWithBlockies({
         <Address fontSize={fontSize} address={address} chain={chain} hideChain={true}
             accountNumber={accountNumber}
             fontColor={
-                !isValidAddress ? 'red' : fontColor
+                fontColor
             }
             hidePortfolioLink={hidePortfolioLink}
         />

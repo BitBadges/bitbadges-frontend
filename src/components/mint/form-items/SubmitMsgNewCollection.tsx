@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { BadgeMetadata, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
-import { addMerkleTreeToIpfs, addToIpfs } from '../../../chain/backend_connectors';
+import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/backend_connectors';
 import { SHA256 } from 'crypto-js';
 
 export function SubmitMsgNewCollection({
