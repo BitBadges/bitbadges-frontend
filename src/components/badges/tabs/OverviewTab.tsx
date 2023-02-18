@@ -63,11 +63,6 @@ export function OverviewTab({
                     span={24}
                 />
                 <br />
-                <PermissionsOverview
-                    badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                    span={24}
-                />
-                <br />
                 <InformationDisplayCard
                     title={<>
                         Transferability
@@ -113,6 +108,12 @@ export function OverviewTab({
                         }
                     </div>
                 </InformationDisplayCard>
+                <br/>
+                <PermissionsOverview
+                    badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                    span={24}
+                />
+               
             </Col>
 
 

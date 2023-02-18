@@ -1,5 +1,5 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Collapse, Divider, Tooltip, Typography } from 'antd';
+import { Button, Collapse, Divider, InputNumber, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
@@ -15,6 +15,7 @@ import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
 import { BalancesInput } from '../../common/BalancesInput';
 import { TransferDisplay } from '../../common/TransferDisplay';
+import { AddressListSelect } from '../../address/AddressListSelect';
 
 const crypto = require('crypto');
 
@@ -57,7 +58,8 @@ export function CreateClaims({
         },
     ]);
 
-    const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({} as BitBadgesUserInfo);
+    const [users, setUsers] = useState<BitBadgesUserInfo[]>([]);
+    const [numCodes, setNumCodes] = useState<number>(1);
 
 
     const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
@@ -77,16 +79,30 @@ export function CreateClaims({
     }
 
     const addCode = () => {
-        let currLeafItem = undefined;
+        let leafItemsToAdd = [];
+
         if (distributionMethod === DistributionMethod.Codes) {
-            currLeafItem = createClaim(crypto.randomBytes(32).toString('hex'), '', currBalances[0]?.balance, currBalances[0]?.badgeIds, currUserInfo.accountNumber, currUserInfo);
+            for (let i = 0; i < numCodes; i++) {
+                leafItemsToAdd.push(createClaim(crypto.randomBytes(32).toString('hex'), '', currBalances[0]?.balance, currBalances[0]?.badgeIds, -1, {} as BitBadgesUserInfo));
+            }
         } else {
-            currLeafItem = createClaim('', currUserInfo.cosmosAddress, currBalances[0]?.balance, currBalances[0]?.badgeIds, currUserInfo.accountNumber, currUserInfo);
+            for (const userInfo of users) {
+                leafItemsToAdd.push(createClaim('', userInfo.cosmosAddress, currBalances[0]?.balance, currBalances[0]?.badgeIds, userInfo.accountNumber, userInfo));
+            }
         }
 
         // For codes, we add twice so that the same code can be both children in a Merkle tree node
         // This is so that if a user knows a code, they can prove that they know the code without needing to know an alternative code
-        const newClaimItems = distributionMethod === DistributionMethod.Codes ? [...claimItems, currLeafItem, currLeafItem] : [...claimItems, currLeafItem];
+        const newClaimItems = claimItems;
+        if (distributionMethod === DistributionMethod.Codes) {
+            for (const leafItem of leafItemsToAdd) {
+                newClaimItems.push(leafItem, leafItem);
+            }
+        } else {
+            for (const leafItem of leafItemsToAdd) {
+                newClaimItems.push(leafItem);
+            }
+        }
 
         calculateNewBalances(newClaimItems);
     }
@@ -193,13 +209,32 @@ export function CreateClaims({
 
                                 {distributionMethod === DistributionMethod.Whitelist && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <div style={{ minWidth: 500 }} >
-                                        <AddressSelect
-                                            fontColor={PRIMARY_TEXT}
-                                            title='Select Recipient'
-                                            currUserInfo={currUserInfo}
-                                            setCurrUserInfo={setCurrUserInfo}
+                                        <AddressListSelect
+                                            users={users}
+                                            setUsers={setUsers}
                                             darkMode
                                         />
+                                        <hr />
+                                    </div>
+                                </div>}
+
+                                {distributionMethod === DistributionMethod.Codes && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <div style={{ minWidth: 500 }} >
+                                        <div className='flex-between' style={{ flexDirection: 'column' }} >
+                                            <b>Number of Codes to Generate</b>
+                                            <InputNumber
+                                                min={1}
+                                                value={numCodes}
+                                                onChange={(value) => {
+                                                    setNumCodes(value);
+                                                }}
+                                                style={{
+                                                    backgroundColor: PRIMARY_BLUE,
+                                                    color: PRIMARY_TEXT,
+                                                }}
+                                            />
+                                        </div>
+
                                     </div>
                                 </div>}
                                 <br />
@@ -214,9 +249,9 @@ export function CreateClaims({
                                     ]}
                                     to={distributionMethod === DistributionMethod.Whitelist ?
                                         [
-                                            currUserInfo
+                                            ...users
                                         ] : []}
-                                    toCodes={distributionMethod === DistributionMethod.Codes ? ['First User to Enter Code'] : [
+                                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes).fill('First User to Enter Code') : [
 
                                     ]}
                                     amount={currBalances[0]?.balance}
@@ -240,7 +275,7 @@ export function CreateClaims({
                                             }])
 
                                         }}
-                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.Whitelist && !currUserInfo.cosmosAddress)}
+                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.Whitelist && !!users.find((x) => !x.cosmosAddress))}
                                     >
                                         {distributionMethod === DistributionMethod.Whitelist ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
                                     </Button>

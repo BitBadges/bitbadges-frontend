@@ -68,10 +68,10 @@ export function ActionsTab({
 
         if (badge.unmintedSupplys.length > 0) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Distribute Unminted Badges</div>,
+                title: <div style={{ color: PRIMARY_TEXT }}>Distribute Badges</div>,
                 description: (
                     <div style={{ color: SECONDARY_TEXT }}>
-                        Distribute Badges
+                        Distribute badges that are currently unminted.
                     </div>
                 ),
                 showModal: () => {
@@ -269,15 +269,16 @@ export function ActionsTab({
                 </>
             )}
 
-            {userBalance &&
+            {
                 <CreateTxMsgTransferBadgeModal
                     visible={transferIsVisible}
                     setVisible={setTransferIsVisible}
                     badge={badge}
                     setBadgeCollection={setBadgeCollection}
-                    userBalance={userBalance}
+                    userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
                     setUserBalance={setUserBalance}
-                />}
+                />
+            }
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}

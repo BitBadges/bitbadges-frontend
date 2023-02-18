@@ -44,7 +44,7 @@ export function TransferDisplay({
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {badge && setBadgeCollection &&
-                    <BadgeAvatarDisplay showIds badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} showIds />
+                    <BadgeAvatarDisplay showIds badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} />
                 }
             </div>
         })}
@@ -68,7 +68,7 @@ export function TransferDisplay({
                 <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                     {from.map((user, index) => {
                         return <>
-                            {index !== 0 && <hr color='white' />}
+                            {index !== 0 && <br color='white' />}
                             <AddressWithBlockies
                                 fontColor={fontColor}
                                 address={user.address}
@@ -86,7 +86,7 @@ export function TransferDisplay({
                 <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                     {to.map((user, index) => {
                         return <>
-                            {index !== 0 && <hr color='white' />}
+                            {index !== 0 && <br color='white' />}
                             <AddressWithBlockies
                                 fontColor={fontColor}
                                 address={user.address}
@@ -103,21 +103,18 @@ export function TransferDisplay({
                         /> */}
                         </>
                     })}
-                    {toCodes?.map((code, index) => {
-                        return <>
-                            {index !== 0 && <hr color='white' />}
+                    {toCodes?.length && toCodes?.length > 0 &&
+                        <>
                             <Text
-                                copyable={{ text: code }}
+                                copyable={{ text: 'First Users Who Enter Codes' }}
                                 style={{
                                     color: fontColor ? fontColor : undefined,
                                 }}
                                 strong
                             >
-                                {code}
+                                {'First Users Who Enter Codes'}
                             </Text>
-                        </>
-                    })}
-
+                        </>}
                 </Col>
             </Row>
         </div>
