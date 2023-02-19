@@ -2,6 +2,7 @@ import { ChallengeParams } from "blockin";
 import { stringify } from "../utils/preserveJson";
 import { BadgeMetadata } from "./types";
 import { BACKEND_URL } from "../constants";
+//TODO: Unify this file with api.ts
 
 /**
  * Here, we define the API function logic to call your backend.

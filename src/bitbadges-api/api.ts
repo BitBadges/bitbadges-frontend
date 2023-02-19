@@ -7,6 +7,7 @@ import { GetPermissions } from './permissions';
 import { GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
+import { convertToBitBadgesUserInfo } from './users';
 
 //Get account by address
 export async function getAccountInformation(address: string) {
@@ -52,15 +53,7 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
     // Convert the returned manager (bech32) to a BitBadgesUserInfo object for easier use
     let managerAccountNumber: any = badgeData.manager;
     let managerAccountInfo = await getAccountInformationByAccountNumber(managerAccountNumber);
-
-    if (managerAccountInfo) {
-        badgeData.manager = {
-            accountNumber: managerAccountInfo.account_number,
-            address: managerAccountInfo.address,
-            cosmosAddress: managerAccountInfo.cosmosAddress,
-            chain: managerAccountInfo.chain
-        };
-    }
+    badgeData.manager = convertToBitBadgesUserInfo(managerAccountInfo);
 
     //generate MerkleTreeJS objects from fetched leaves
     for (let idx = 0; idx < badgeData.claims.length; idx++) {
@@ -79,7 +72,7 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
     }
 
 
-    badgeData.activity.reverse();
+    badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
     return {
         collection: badgeData
