@@ -1,136 +1,99 @@
 import { SwapOutlined, UserAddOutlined } from "@ant-design/icons";
 import { Button, Divider, Tooltip, Typography } from "antd";
-import { useEffect, useState } from "react";
+import TextArea from "antd/lib/input/TextArea";
+import { useState } from "react";
+import { getAccountInformation } from "../../bitbadges-api/api";
+import { convertToCosmosAddress, isAddressValid } from "../../bitbadges-api/chains";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
-import TextArea from "antd/lib/input/TextArea";
-import { getAccountInformation } from "../../bitbadges-api/api";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
-import { convertToCosmosAddress } from "../../bitbadges-api/chains";
+import { convertToBitBadgesUserInfo } from "../../bitbadges-api/users";
 
 export function AddressListSelect({
     users,
     setUsers,
     disallowedUsers,
     darkMode
-}
-    :
-    {
-        users: BitBadgesUserInfo[],
-        setUsers: (users: BitBadgesUserInfo[]) => void,
-        disallowedUsers?: BitBadgesUserInfo[],
-        darkMode?: boolean
-    }
-) {
-    const [showUserList, setShowUserList] = useState<boolean>(true);
-    const [enterMethod, setEnterMethod] = useState(EnterMethod.Manual);
+}: {
+    users: BitBadgesUserInfo[],
+    setUsers: (users: BitBadgesUserInfo[]) => void,
+    disallowedUsers?: BitBadgesUserInfo[],
+    darkMode?: boolean
+}) {
+    const [enterMethod, setEnterMethod] = useState(EnterMethod.Single);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const [batchAddAddressList, setBatchAddAddressList] = useState<string>('');
-
-    async function updateUsers() {
-        const currBatchUserList = batchAddAddressList.split('\n');
-        if (currBatchUserList.length === 1 && currBatchUserList[0] === '') {
-            return;
-        }
-
-        let newUsers = users;
-        for (const address of currBatchUserList) {
-            const existingUser = users.find((u) => u.address === address);
-            if (existingUser) {
-                newUsers.push(existingUser);
-            } else {
-                let accountInfo = await getAccountInformation(convertToCosmosAddress(address));
-                newUsers.push({
-                    ...accountInfo,
-                    accountNumber: accountInfo.account_number,
-                });
-            }
-        }
-        console.log(newUsers);
-
-        setUsers(newUsers);
-    }
-
-
-
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
-        chain: SupportedChain.ETH,
+        chain: SupportedChain.UNKNOWN,
         address: '',
         cosmosAddress: '',
         accountNumber: -1,
     } as BitBadgesUserInfo);
+    const [batchAddAddressList, setBatchAddAddressList] = useState<string>('');
 
-    const handleChange = (userInfo: BitBadgesUserInfo) => {
-        setCurrUserInfo(userInfo);
+    async function updateUsers() {
+        const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '');
+
+        let newUserList = users;
+        for (const address of batchUsersList) {
+            if (isAddressValid(address)) {
+                const existingUser = users.find((u) => u.address === address);
+
+                //TODO: Batch get addresses instead of N HTTP requests
+                //Check if already in user list. If so, we duplicate it.
+                if (existingUser) {
+                    newUserList.push(existingUser);
+                } else {
+                    let accountInfo = await getAccountInformation(convertToCosmosAddress(address));
+                    newUserList.push(convertToBitBadgesUserInfo(accountInfo));
+                }
+            } else {
+                newUserList.push({
+                    accountNumber: -1,
+                    address: address,
+                    chain: SupportedChain.UNKNOWN,
+                    cosmosAddress: '',
+                });
+            }
+        }
+
+        setUsers(newUserList);
     }
 
 
     return <>
-        {users.length > 0 && <>
-            {/* <div className='flex-between'>
-                <Typography.Text style={{ fontSize: 18 }}>
-                    {users.length} recipient{users.length > 1 ? 's' : ''} added
-                </Typography.Text>
-                <Button
-                    onClick={() => setShowUserList(!showUserList)}
-                    disabled={users.length === 0}
-                >
-                    {showUserList ? 'Hide' : 'Show'} Recipient List
-                </Button>
-            </div> */}
+        <br />
+        <AddressDisplayList
+            users={users}
+            setUsers={setUsers}
+            disallowedUsers={disallowedUsers}
+            fontColor={PRIMARY_TEXT}
+        />
+        {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
+            <Typography.Text type="danger">
+                You are not approved to transfer to some of the selected recipients. Please remove these recipients.
+            </Typography.Text>
+        </div>}
 
-
-
-
-
-
-            {showUserList && <><br />
-                <AddressDisplayList
-                    users={users}
-                    setUsers={setUsers}
-                    disallowedUsers={disallowedUsers}
-                    fontColor={PRIMARY_TEXT}
-
-                />
-                {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
-                    <Typography.Text type="danger">
-                        You are not approved to transfer to some of the selected recipients. Please remove these recipients.
-                    </Typography.Text>
-                </div>}
-            </>
-            }
-
-
-            <Divider />
-        </>}
+        <Divider />
 
         <AddressDisplayTitle
-            accountNumber={currUserInfo.accountNumber ? currUserInfo.accountNumber : -1}
-            title={"Add Recipient"} icon={<Tooltip title={<>
-                {enterMethod === EnterMethod.Manual && <>Batch Add</>}
-                {enterMethod === EnterMethod.Upload && <>Manual Add</>}
+            title={"Add Recipient"}
+            icon={<Tooltip title={<>
+                {enterMethod === EnterMethod.Single && <>Batch Add</>}
+                {enterMethod === EnterMethod.Batch && <>Manual Add</>}
             </>}>
-                <SwapOutlined onClick={() => setEnterMethod(enterMethod == EnterMethod.Manual ?
-                    EnterMethod.Upload : EnterMethod.Manual
+                <SwapOutlined onClick={() => setEnterMethod(enterMethod == EnterMethod.Single ?
+                    EnterMethod.Batch : EnterMethod.Single
                 )} style={{ cursor: 'pointer' }} />
             </Tooltip>
             }
-            enterMethod={enterMethod}
-            setEnterMethod={setEnterMethod}
         />
-        {enterMethod === EnterMethod.Manual && <>
+        {enterMethod === EnterMethod.Single && <>
             <AddressSelect
-                enterMethod={enterMethod}
-                setEnterMethod={setEnterMethod}
                 currUserInfo={currUserInfo}
                 setCurrUserInfo={setCurrUserInfo}
-                title={"Add Recipient"}
                 fontColor={PRIMARY_TEXT}
-                icon={
-                    <UserAddOutlined />
-                }
                 darkMode={darkMode}
             />
             <br />
@@ -162,13 +125,12 @@ export function AddressListSelect({
             </Button>
         </>
         }
-        {enterMethod === EnterMethod.Upload && <>
+        {enterMethod === EnterMethod.Batch && <>
             <br />
             <TextArea
                 style={{ minHeight: 200, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
                 value={batchAddAddressList}
                 onChange={(e) => setBatchAddAddressList(e.target.value)}
-            //TODO:
             />
             <p style={{ textAlign: 'left' }}>*Enter one address per line</p>
             <br />

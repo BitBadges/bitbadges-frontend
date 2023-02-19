@@ -1,10 +1,10 @@
 import { WarningOutlined } from "@ant-design/icons";
 import { Avatar, Tooltip } from "antd";
-import { COSMOS, ethToCosmos } from "bitbadgesjs-address-converter";
-import { ethers } from "ethers";
+import { ethToCosmos } from "bitbadgesjs-address-converter";
 import Blockies from 'react-blockies';
+import { getChainLogo } from "../../bitbadges-api/chains";
 import { SupportedChain } from "../../bitbadges-api/types";
-import { COSMOS_LOGO, ETH_LOGO, MINT_ACCOUNT, SECONDARY_TEXT } from "../../constants";
+import { SECONDARY_TEXT } from "../../constants";
 import { Address } from "./Address";
 import { AddressDisplay } from "./AddressDisplay";
 
@@ -25,26 +25,12 @@ export function AddressWithBlockies({
     accountNumber?: number,
     hidePortfolioLink?: boolean
 }) {
-    let chainLogo = '';
-
-    switch (chain) {
-        case SupportedChain.ETH:
-        case SupportedChain.UNKNOWN:
-            chainLogo = ETH_LOGO;
-            break;
-        case SupportedChain.COSMOS:
-            chainLogo = COSMOS_LOGO;
-            break;
-        default:
-            chainLogo = ETH_LOGO;
-            break;
-    }
+    const chainLogo = getChainLogo(chain);
 
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        // justifyContent: 'space-between',
     }}>
         <Tooltip
             title={chain}
@@ -56,11 +42,11 @@ export function AddressWithBlockies({
             />
         </Tooltip>
         <Blockies scale={blockiesScale} seed={address ? address.toLowerCase() : ''} />
-        <Address fontSize={fontSize} address={address} chain={chain} hideChain={true}
+        <Address fontSize={fontSize}
+            address={address}
+            chain={chain}
             accountNumber={accountNumber}
-            fontColor={
-                fontColor
-            }
+            fontColor={fontColor}
             hidePortfolioLink={hidePortfolioLink}
         />
 
@@ -84,7 +70,6 @@ export function AddressWithBlockies({
                         accountNumber: -1,
                     }}
                     hidePortfolioLink
-
                 />
 
                 <br />

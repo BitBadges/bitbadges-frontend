@@ -1,11 +1,7 @@
 import { IdcardOutlined } from '@ant-design/icons';
 import { Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { MINT_ACCOUNT } from '../../constants';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
-import { SupportedChain } from '../../bitbadges-api/types';
-import { ethers } from 'ethers';
-import { COSMOS } from 'bitbadgesjs-address-converter';
+import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
 
 const { Text } = Typography;
 
@@ -15,7 +11,6 @@ export function Address({
     fontSize,
     fontColor,
     hideTooltip,
-    hideChain,
     accountNumber,
     hidePortfolioLink,
 }: {
@@ -26,51 +21,13 @@ export function Address({
     fontSize?: number | string;
     fontColor?: string;
     hideTooltip?: boolean;
-    hideChain?: boolean;
     accountNumber?: number,
     hidePortfolioLink?: boolean
 }) {
     const router = useRouter();
 
-    let displayAddress = '';
-    let isMintAddress = address === MINT_ACCOUNT.address;
-
-    if (isMintAddress) {
-        displayAddress += `Mint`;
-    } else if (address) {
-        if (!hideChain) {
-            displayAddress += `${chain}: `;
-        }
-
-        displayAddress += getAbbreviatedAddress(address);
-    } else {
-        displayAddress = '...';
-    }
-
-    let isValidAddress = true;
-
-    switch (chain) {
-        case SupportedChain.ETH:
-        case SupportedChain.UNKNOWN:
-            isValidAddress = ethers.utils.isAddress(address);
-            break;
-        case SupportedChain.COSMOS:
-            try {
-                COSMOS.decoder(address);
-            } catch {
-                isValidAddress = false;
-            }
-            break;
-        default:
-            isValidAddress = false;
-            break;
-    }
-
-    if (address === MINT_ACCOUNT.address) {
-        isValidAddress = true;
-    }
-
-
+    let displayAddress = getAbbreviatedAddress(address);
+    let isValidAddress = isAddressValid(address, chain);
 
     const innerContent = !hideTooltip ? (
         <Tooltip
