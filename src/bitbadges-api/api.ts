@@ -4,7 +4,7 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
@@ -22,6 +22,11 @@ export async function getAccountInformationByAccountNumber(id: number) {
     return accountObject;
 }
 
+export async function getAccountsByAccountNumbers(accountNums: number[]) {
+    const accountObjects: { accounts: CosmosAccountInformation[] } = await axios.post(BACKEND_URL + GetAccountsByNumberRoute(), { accountNums }).then((res) => res.data);
+    return accountObjects.accounts;
+}
+
 //Get L1 token balance
 export async function getBalance(bech32Address: string) {
     const balance = await axios.get(NODE_URL + GetBalanceRoute(bech32Address)).then((res) => res.data);
@@ -36,10 +41,13 @@ export async function getBadgeOwners(collectionId: number, badgeId: number) {
 
 //Get a specific badge collection and all metadata
 export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
-    try {
-        Joi.assert(collectionId, Joi.number().integer().min(1).required());
-    } catch (err) {
-        return Promise.reject(err);
+    if (collectionId === undefined || collectionId === -1) {
+        return Promise.reject("collectionId is invalid");
+    }
+
+    let error = Joi.number().integer().min(-1).required().validate(collectionId).error
+    if (error) {
+        return Promise.reject(error);
     }
 
     const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
@@ -83,12 +91,25 @@ export async function getBadgeBalance(
     collectionId: number,
     accountNumber: number
 ): Promise<GetBadgeBalanceResponse> {
-    try {
-        Joi.assert(collectionId, Joi.number().integer().min(1).required());
-        Joi.assert(accountNumber, Joi.number().integer().min(0).required());
-    } catch (err) {
-        return Promise.reject(err);
+    if (collectionId === undefined || collectionId === -1) {
+        return Promise.reject("collectionId is invalid");
     }
+    if (accountNumber === undefined || accountNumber === -1) {
+        return Promise.reject("accountNumber is invalid");
+    }
+
+    console.log("collectionId: " + collectionId, "accountNumber: " + accountNumber);
+
+    let error = Joi.number().integer().min(1).required().validate(collectionId).error
+    if (error) {
+        return Promise.reject(error);
+    }
+
+    error = Joi.number().integer().min(-1).required().validate(accountNumber).error
+    if (error) {
+        return Promise.reject(error);
+    }
+
 
     const balanceRes: GetBadgeBalanceResponse = await axios.get(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
     return balanceRes;

@@ -3,7 +3,7 @@ import { Col, Row, Tooltip } from "antd";
 import { AllAddressesTransferMapping } from "../../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
 import { InformationDisplayCard } from "../../common/InformationDisplayCard";
-import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
+import { BadgeAvatarDisplay } from "../../common/BadgeAvatarDisplay";
 import { BalanceOverview } from "../BalanceOverview";
 import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
@@ -47,7 +47,7 @@ export function OverviewTab({
         >
             <Col span={10}>
                 <CollectionOverview
-                    badge={collection}
+                    collection={collection}
                     metadata={collectionMetadata}
                     span={24}
                 />
@@ -108,7 +108,7 @@ export function OverviewTab({
 
 
             <BalanceOverview
-                badge={collection}
+                collection={collection}
                 refreshCollection={refreshCollection}
                 refreshUserBalance={refreshUserBalance}
                 metadata={collectionMetadata}

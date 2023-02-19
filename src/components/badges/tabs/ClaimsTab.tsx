@@ -1,6 +1,5 @@
 import { Empty } from 'antd';
 import { useState } from 'react';
-import { getBlankBalance } from '../../../bitbadges-api/balances';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { ClaimDisplay } from '../../common/ClaimDisplay';
@@ -27,7 +26,6 @@ export function ClaimsTab({ collection, refreshCollection, refreshUserBalance }:
                     return <div key={idx}>
                         <ClaimDisplay
                             collection={collection}
-                            setCollection={refreshCollection}
                             claim={claim}
                             claimId={idx}
                             openModal={(code) => {
@@ -53,11 +51,10 @@ export function ClaimsTab({ collection, refreshCollection, refreshUserBalance }:
                 />
             }
             <CreateTxMsgClaimBadgeModal
-                badge={collection}
+                collection={collection}
                 refreshCollection={refreshCollection}
                 refreshUserBalance={refreshUserBalance}
                 claimId={claimId}
-                balance={getBlankBalance()}
                 visible={modalVisible}
                 setVisible={setModalVisible}
                 code={code}

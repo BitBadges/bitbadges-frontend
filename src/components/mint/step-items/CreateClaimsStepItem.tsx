@@ -9,7 +9,7 @@ export function CreateClaimsStepItem(
     distributionMethod: DistributionMethod,
     claimItems: ClaimItem[],
     setClaimItems: (claimItems: ClaimItem[]) => void,
-    individualBadgeMetadata: BadgeMetadata[],
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
     collectionMetadata: BadgeMetadata,
     balancesToDistribute?: Balance[],
 ) {

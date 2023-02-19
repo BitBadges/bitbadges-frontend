@@ -8,6 +8,11 @@ export const GetAccountByNumberRoute = (id: number) => {
     return `/api/user/id/${id}`;
 }
 
+export const GetAccountsByNumberRoute = () => {
+    return `/api/user/id/batch`;
+}
+
+
 export const GetBalanceRoute = (bech32address: string) => {
     return `/cosmos/bank/balances/${bech32address}`;
 }
@@ -44,7 +49,7 @@ export interface GetBadgeBalanceResponse {
 }
 
 export interface GetOwnersResponse {
-    owners: CosmosAccountInformation[],
+    owners: number[],
     balances: BalancesMap
 }
 

@@ -4,7 +4,7 @@ import { Col, Row, Typography } from "antd";
 import { getBlankBalance } from "../../bitbadges-api/balances";
 import { BitBadgeCollection, BitBadgesUserInfo, IdRange } from "../../bitbadges-api/types";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 
 const { Text } = Typography
 

@@ -42,9 +42,6 @@ export function UpdateMetadataTimeline({
     //The method used to add metadata to the collection and individual badges
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
 
-    //Very bad code to force a re-render when the badge metadata is updated
-    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState<boolean>(false);
-
     const setCollectionMetadata = (metadata: BadgeMetadata) => {
         setCollection({
             ...collection,
@@ -52,19 +49,18 @@ export function UpdateMetadataTimeline({
         });
     }
 
-    const setIndividualBadgeMetadata = (metadata: BadgeMetadata[]) => {
+    const setIndividualBadgeMetadata = (metadata: { [badgeId: string]: BadgeMetadata }) => {
         setCollection({
             ...collection,
             badgeMetadata: metadata,
         });
-        setHackyUpdatedFlag(!hackyUpdatedFlag);
     }
 
 
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collection.collectionMetadata, setCollectionMetadata);
-    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, collection.badgeMetadata, setIndividualBadgeMetadata, collection.collectionMetadata, addMethod, setAddMethod, hackyUpdatedFlag);
+    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, collection.badgeMetadata, setIndividualBadgeMetadata, collection.collectionMetadata, addMethod);
     const UpdateMetadataStep = UpdateUrisStepItem(collection, setCollection, newCollectionMsg, addMethod);
 
 

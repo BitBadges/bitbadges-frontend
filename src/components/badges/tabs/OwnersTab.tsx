@@ -1,9 +1,9 @@
 import { Empty } from 'antd';
 import { useEffect, useState } from 'react';
+import { useAccountsContext } from '../../../accounts/AccountsContext';
 import { getBadgeOwners } from '../../../bitbadges-api/api';
 import { getSupplyByBadgeId } from '../../../bitbadges-api/balances';
-import { BitBadgeCollection, BitBadgesUserInfo } from '../../../bitbadges-api/types';
-import { convertToBitBadgesUserInfo } from '../../../bitbadges-api/users';
+import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { InformationDisplayCard } from '../../common/InformationDisplayCard';
@@ -12,20 +12,25 @@ export function OwnersTab({ collection, badgeId }: {
     collection: BitBadgeCollection | undefined;
     badgeId: number
 }) {
-    const [badgeOwners, setBadgeOwners] = useState<BitBadgesUserInfo[]>([]);
+    const accounts = useAccountsContext();
+
+    const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
     const [balances, setBalances] = useState<any>({});
 
     useEffect(() => {
         async function getOwners() {
             if (collection) {
                 const ownersRes = await getBadgeOwners(collection?.collectionId, badgeId)
-                const badgeOwners = ownersRes.owners.map((x) => convertToBitBadgesUserInfo(x));
+                const badgeOwners = ownersRes.owners;
+
+                await accounts.fetchAccountsByNumber(badgeOwners);
+
                 setBadgeOwners(badgeOwners);
                 setBalances(ownersRes.balances);
             }
         }
         getOwners();
-    }, [collection, badgeId]);
+    }, [collection, badgeId, accounts]);
 
     return (
         <div >
@@ -50,11 +55,11 @@ export function OwnersTab({ collection, badgeId }: {
                                 return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', margin: 10 }}>
                                     <div>
                                         <AddressDisplay
-                                            userInfo={owner}
+                                            userInfo={accounts.accounts[owner]}
                                             fontColor={PRIMARY_TEXT} />
                                     </div>
                                     <div>
-                                        x{getSupplyByBadgeId(badgeId, balances[owner.accountNumber].balances)}
+                                        x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
                                     </div>
                                 </div>
                             })}

@@ -5,11 +5,11 @@ import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-
 import { useChainContext } from '../../chain/ChainContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
 import { BadgeOverview } from '../badges/BadgeOverview';
-import { Tabs } from '../common/Tabs';
-import { BadgePageHeader } from './BadgePageHeader';
-import { OwnersTab } from './tabs/OwnersTab';
+import { Tabs } from './Tabs';
+import { BadgePageHeader } from '../badges/BadgePageHeader';
+import { OwnersTab } from '../badges/tabs/OwnersTab';
 import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
-import { ActivityTab } from './tabs/ActivityTab';
+import { ActivityTab } from '../badges/tabs/ActivityTab';
 
 const { Content } = Layout;
 const { Text } = Typography;

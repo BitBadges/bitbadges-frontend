@@ -16,12 +16,12 @@ export function ActionsTab({
     collection,
     refreshCollection,
     userBalance,
-    setUserBalance,
+    refreshUserBalance,
 }: {
     collection?: BitBadgeCollection;
     refreshCollection: () => void;
     userBalance?: UserBalance;
-    setUserBalance: () => void;
+    refreshUserBalance: () => void;
 }) {
     const router = useRouter();
     const chain = useChainContext();
@@ -263,7 +263,7 @@ export function ActionsTab({
                 collection={collection}
                 refreshCollection={refreshCollection}
                 userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
-                setUserBalance={setUserBalance}
+                refreshUserBalance={refreshUserBalance}
             />
 
             <CreateTxMsgTransferManagerModal

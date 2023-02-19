@@ -102,7 +102,7 @@ export interface BitBadgeCollection {
     claims: Claims[];
     standard: number;
     collectionMetadata: BadgeMetadata,
-    badgeMetadata: BadgeMetadata[],
+    badgeMetadata: { [badgeId: string]: BadgeMetadata },
     activity: ActivityItem[];
     usedClaims: string[];
     originalClaims: Claims[];

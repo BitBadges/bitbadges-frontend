@@ -28,7 +28,7 @@ export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
 export function createCollectionFromMsgNewCollection(
     msgNewCollection: MessageMsgNewCollection,
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: BadgeMetadata[],
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
     chain: ChainContextType,
     collection?: BitBadgeCollection
 ) {
@@ -65,7 +65,7 @@ export function createCollectionFromMsgMintBadge(
     msgNewCollection: MessageMsgNewCollection,
     currCollection: BitBadgeCollection,
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: BadgeMetadata[]
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }
 ) {
     const badgeCollection: BitBadgeCollection = {
         ...currCollection,

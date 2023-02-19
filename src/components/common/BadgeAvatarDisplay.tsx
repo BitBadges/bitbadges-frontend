@@ -1,5 +1,5 @@
 import { Pagination } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
@@ -11,7 +11,6 @@ export function BadgeAvatarDisplay({
     endId,
     size,
     selectedId,
-    hackyUpdatedFlag,
     showIds,
     pageSize
 }: {
@@ -22,17 +21,24 @@ export function BadgeAvatarDisplay({
     size?: number;
     pageSize?: number;
     selectedId?: number;
-    hackyUpdatedFlag?: boolean;
     showIds?: boolean;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
+    let stringifiedMetadata = JSON.stringify(collection?.badgeMetadata);
+    useEffect(() => {
+
+    }, [stringifiedMetadata]);
 
     if (!collection) return <></>;
 
     const PAGE_SIZE = pageSize ? pageSize : 50;
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
+
+    console.log("Updated BadgeAvatarDisplay");
+
+
 
     return <div>
         <div style={{
@@ -79,11 +85,10 @@ export function BadgeAvatarDisplay({
                             <BadgeAvatar
                                 size={size && selectedId === idx + Number(startIdNum) ? size * 1.4 : size}
                                 collection={collection}
-                                metadata={collection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                metadata={collection.badgeMetadata[idx + Number(startIdNum)]}
                                 badgeId={idx + Number(startIdNum)}
                                 balance={userBalance}
                                 showId={showIds}
-                                hackyUpdatedFlag={hackyUpdatedFlag}
                             />
                         </div>
                     })

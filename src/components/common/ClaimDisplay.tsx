@@ -8,7 +8,7 @@ import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedCha
 import { useChainContext } from "../../chain/ChainContext";
 import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { BalanceDisplay } from "./BalanceDisplay";
 import { TransferDisplay } from "./TransferDisplay";

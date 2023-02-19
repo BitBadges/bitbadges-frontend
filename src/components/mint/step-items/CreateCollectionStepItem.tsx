@@ -8,7 +8,7 @@ export function CreateCollectionStepItem(
     addMethod: MetadataAddMethod,
     claimItems: ClaimItem[],
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: BadgeMetadata[],
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
     distributionMethod: DistributionMethod,
 ) {
     return {

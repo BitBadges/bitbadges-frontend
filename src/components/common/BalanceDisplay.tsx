@@ -1,5 +1,5 @@
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 
 export function BalanceDisplay({
     collection,

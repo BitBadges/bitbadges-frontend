@@ -22,7 +22,6 @@ export function MetadataForm({
     metadata,
     setMetadata,
     addMethod,
-    setAddMethod,
 
     id,
     newCollectionMsg,
@@ -30,11 +29,10 @@ export function MetadataForm({
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
-    metadata: BadgeMetadata | BadgeMetadata[];
-    setMetadata: (metadata: BadgeMetadata | BadgeMetadata[]) => void;
+    metadata: BadgeMetadata | { [badgeId: string]: BadgeMetadata };
+    setMetadata: (metadata: BadgeMetadata | { [badgeId: string]: BadgeMetadata }) => void;
     id?: number;
     addMethod: MetadataAddMethod;
-    setAddMethod: (method: MetadataAddMethod) => void;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
@@ -69,8 +67,8 @@ export function MetadataForm({
         setCurrentMetadata(newMetadata);
 
         if (!isNaN(Number(id)) && Number(id) >= 0) {
-            let currMetadata: BadgeMetadata[] = metadata as BadgeMetadata[];
-            currMetadata[Number(id) - 1] = newMetadata;
+            let currMetadata: { [badgeId: string]: BadgeMetadata } = metadata as { [badgeId: string]: BadgeMetadata };
+            currMetadata[Number(id)] = newMetadata;
             return currMetadata;
         } else {
             return newMetadata;
@@ -79,10 +77,9 @@ export function MetadataForm({
 
     let stringifiedMetadata = JSON.stringify(metadata);
     useEffect(() => {
-        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadata[])[Number(id) - 1] : metadata as BadgeMetadata;
+        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as { [badgeId: string]: BadgeMetadata })[Number(id)] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
         console.log('set metadata to', m)
-
 
     }, [metadata, stringifiedMetadata, id, images])
 
@@ -503,7 +500,7 @@ export function MetadataForm({
                             value={currentMetadata.tags}
                             onChange={(e) =>
                                 setMetadata({
-                                    ...metadata,
+                                    ...currentMetadata,
                                     tags: e.target.value.split(','),
                                 })}
                             style={{

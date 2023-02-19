@@ -1,6 +1,6 @@
 import { Input } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
-import { getAccountInformation } from '../../bitbadges-api/api';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 import { convertToCosmosAddress, getChainForAddress } from '../../bitbadges-api/chains';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
@@ -22,6 +22,8 @@ export function AddressSelect({
     fontColor?: string,
     darkMode?: boolean,
 }) {
+    const accounts = useAccountsContext();
+
     return <>
         <br />
         <Input.Group compact style={{ display: 'flex' }}>
@@ -49,8 +51,8 @@ export function AddressSelect({
                     let accountNum = -1;
                     try {
                         COSMOS.decoder(bech32Address); //throws on decode error, so we don't spam getAccountInformation with invalid addresses
-                        const acctInformation = await getAccountInformation(bech32Address);
-                        accountNum = acctInformation.account_number;
+                        const acctInformation = await accounts.fetchAccounts([bech32Address]);
+                        accountNum = acctInformation[0].accountNumber;
                     } catch (err) {
 
                     }

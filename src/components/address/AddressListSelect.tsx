@@ -2,13 +2,12 @@ import { SwapOutlined, UserAddOutlined } from "@ant-design/icons";
 import { Button, Divider, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { useState } from "react";
-import { getAccountInformation } from "../../bitbadges-api/api";
-import { convertToCosmosAddress, isAddressValid } from "../../bitbadges-api/chains";
+import { useAccountsContext } from "../../accounts/AccountsContext";
+import { isAddressValid } from "../../bitbadges-api/chains";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
-import { convertToBitBadgesUserInfo } from "../../bitbadges-api/users";
 
 export function AddressListSelect({
     users,
@@ -21,6 +20,8 @@ export function AddressListSelect({
     disallowedUsers?: BitBadgesUserInfo[],
     darkMode?: boolean
 }) {
+    const accounts = useAccountsContext();
+
     const [enterMethod, setEnterMethod] = useState(EnterMethod.Single);
     const [loading, setLoading] = useState<boolean>(false);
     const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
@@ -44,8 +45,8 @@ export function AddressListSelect({
                 if (existingUser) {
                     newUserList.push(existingUser);
                 } else {
-                    let accountInfo = await getAccountInformation(convertToCosmosAddress(address));
-                    newUserList.push(convertToBitBadgesUserInfo(accountInfo));
+                    let accountInfo = await accounts.fetchAccounts([address]);
+                    newUserList.push(accountInfo[0]);
                 }
             } else {
                 newUserList.push({

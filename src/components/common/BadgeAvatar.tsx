@@ -11,8 +11,7 @@ export function BadgeAvatar({
     size,
     badgeId,
     balance,
-    showId,
-    hackyUpdatedFlag,
+    showId
 }: {
     collection: BitBadgeCollection,
     metadata: BadgeMetadata,
@@ -20,33 +19,27 @@ export function BadgeAvatar({
     badgeId: number,
     balance?: UserBalance,
     showId?: boolean,
-    hackyUpdatedFlag?: boolean,
 }) {
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
-    const [displayMetadata, setDisplayMetadata] = useState<BadgeMetadata>(metadata);
 
-    let stringified = JSON.stringify(metadata);
-    useEffect(() => {
-        setDisplayMetadata(metadata);
-    }, [stringified, metadata, hackyUpdatedFlag]);
 
-    return displayMetadata ? <Tooltip
+
+    return metadata ? <Tooltip
         placement="bottom"
-        title={`${displayMetadata.name} (ID: ${badgeId})`}
+        title={`${metadata.name} (ID: ${badgeId})`}
         open={modalIsVisible ? false : undefined}
     >
-        {displayMetadata.image ? (
+        {metadata.image ? (
             <div style={{ textAlign: 'center' }}>
                 <Avatar
                     style={{
                         verticalAlign: 'middle',
-                        border: '1px solid',
-                        borderColor: displayMetadata.color || 'black',
+                        border: `1px solid ${metadata.color || 'black'}`,
                         margin: 4,
                         cursor: 'pointer',
                     }}
                     className="badge-avatar"
-                    src={displayMetadata.image}
+                    src={metadata.image}
                     size={size}
                     onClick={() => setModalIsVisible(true)}
                     onError={() => {
@@ -61,12 +54,9 @@ export function BadgeAvatar({
 
                 <Avatar
                     style={{
-                        backgroundColor: displayMetadata.color,
-                        borderColor: metadata?.color
-                            ? metadata?.color
-                            : 'black',
+                        backgroundColor: metadata.color,
+                        border: `1px solid ${metadata.color || 'black'}`,
                         verticalAlign: 'middle',
-                        border: '1px solid black',
                         margin: 4,
                         cursor: 'pointer',
                     }}
@@ -80,7 +70,7 @@ export function BadgeAvatar({
         )}
         <BadgeModal
             collection={collection}
-            metadata={displayMetadata}
+            metadata={metadata}
             visible={modalIsVisible}
             setVisible={setModalIsVisible}
             balance={balance ? balance : getBlankBalance()}

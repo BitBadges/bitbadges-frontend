@@ -60,7 +60,7 @@ export function MintCollectionTimeline() {
 
     //Metadata for the collection and individual badges
     const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
-    const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadata[]>([]);
+    const [individualBadgeMetadata, setBadgeMetadata] = useState<{ [badgeId: string]: BadgeMetadata }>({});
 
     //The method used to add metadata to the collection and individual badges
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -70,9 +70,6 @@ export function MintCollectionTimeline() {
 
     //The claim items that will be used to distribute the badges (used for claim vis codes/whitelist)
     const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
-
-    //Very bad code to force a re-render when the badge metadata is updated
-    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState<boolean>(false);
 
     //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({
@@ -88,6 +85,9 @@ export function MintCollectionTimeline() {
 
     //Whether the whitelisted addresses are sent the badges manually by the manager or via a claiming process
     const [manualSend, setManualSend] = useState(false);
+
+    //Bad code but it works and triggers a re-render
+    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState(false);
 
     //This simulates a BitBadgeCollection object representing the collection after creation (used for compatibility) 
     const collection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
@@ -106,7 +106,7 @@ export function MintCollectionTimeline() {
         setHandledPermissions({ ...newHandledPermissions });
     }
 
-    const setIndividualBadgeMetadata = (metadata: BadgeMetadata[]) => {
+    const setIndividualBadgeMetadata = (metadata: { [badgeId: string]: BadgeMetadata }) => {
         setBadgeMetadata(metadata);
         setHackyUpdatedFlag(!hackyUpdatedFlag);
     }
@@ -114,9 +114,9 @@ export function MintCollectionTimeline() {
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys[0]) {
-            let metadata = [];
-            for (let i = 0; i < newCollectionMsg.badgeSupplys[0].amount; i++) {
-                metadata.push(DefaultPlaceholderMetadata);
+            let metadata: { [badgeId: string]: BadgeMetadata } = {};
+            for (let i = 1; i <= newCollectionMsg.badgeSupplys[0].amount; i++) {
+                metadata[`${i}`] = DefaultPlaceholderMetadata;
             }
             setBadgeMetadata(metadata);
         }
@@ -133,7 +133,7 @@ export function MintCollectionTimeline() {
     const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
-    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, setAddMethod, hackyUpdatedFlag);
+    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)

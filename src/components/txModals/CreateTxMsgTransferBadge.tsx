@@ -2,7 +2,7 @@ import { Avatar, Divider } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
-import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
+import { getBadgeBalance } from '../../bitbadges-api/api';
 import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, UserBalance } from '../../bitbadges-api/types';
@@ -14,6 +14,7 @@ import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { BalancesInput } from '../common/BalancesInput';
 import { TransferDisplay } from '../common/TransferDisplay';
 import { TxModal } from './TxModal';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 
 //TODO: check for disallowedTransfers / managerApprovedTransfers
 export function CreateTxMsgTransferBadgeModal(
@@ -30,6 +31,7 @@ export function CreateTxMsgTransferBadgeModal(
     }
 ) {
     const chain = useChainContext();
+    const accounts = useAccountsContext();
 
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [balances, setBalances] = useState<Balance[]>([
@@ -105,8 +107,8 @@ export function CreateTxMsgTransferBadgeModal(
         let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
         let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
         for (const user of newUsersToRegister) {
-            const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
-                return accountInfo.account_number;
+            const newAccountNumber = await accounts.fetchAccounts([user.cosmosAddress]).then((accountInfo) => {
+                return accountInfo[0].accountNumber;
             });
             allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
         }

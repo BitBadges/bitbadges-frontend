@@ -10,12 +10,11 @@ import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimIte
 import { useChainContext } from '../../../chain/ChainContext';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
-import { AddressSelect } from '../../address/AddressSelect';
+import { AddressListSelect } from '../../address/AddressListSelect';
 import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
 import { BalancesInput } from '../../common/BalancesInput';
 import { TransferDisplay } from '../../common/TransferDisplay';
-import { AddressListSelect } from '../../address/AddressListSelect';
 
 const crypto = require('crypto');
 
@@ -39,7 +38,7 @@ export function CreateClaims({
     claimItems: ClaimItem[];
     setClaimItems: (leaves: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
-    individualBadgeMetadata: BadgeMetadata[];
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata };
     balancesToDistribute?: Balance[];
 }) {
     const chain = useChainContext();
@@ -116,7 +115,7 @@ export function CreateClaims({
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: 800 }}>
 
             <div style={{ width: '100%' }}>
-                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} setCollection={() => { }} balance={newBalances} />}
+                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} balance={newBalances} />}
 
                 {/* <Divider /> */}
 
@@ -164,8 +163,7 @@ export function CreateClaims({
                                 {/* <hr /> */}
                                 {/* <h3>Claim #{currIndex + 1}</h3> */}
                                 <TransferDisplay
-                                    badge={badgeCollection}
-                                    setCollection={() => { }}
+                                    collection={badgeCollection}
                                     fontColor={PRIMARY_TEXT}
                                     from={[
                                         MINT_ACCOUNT
@@ -241,8 +239,8 @@ export function CreateClaims({
                                 <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
                                 <br />
                                 <TransferDisplay
-                                    badge={badgeCollection}
-                                    setCollection={() => { }}
+                                    collection={badgeCollection}
+
                                     fontColor={PRIMARY_TEXT}
                                     from={[
                                         MINT_ACCOUNT

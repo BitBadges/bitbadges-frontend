@@ -74,7 +74,7 @@ export const addMerkleTreeToIpfs = async (leaves: string[]) => {
     return addToIpfsRes;
 }
 
-export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: BadgeMetadata[]) => {
+export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }) => {
     const bodyStr = stringify({
         collectionMetadata,
         individualBadgeMetadata

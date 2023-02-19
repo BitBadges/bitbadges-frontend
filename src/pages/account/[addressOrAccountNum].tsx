@@ -1,17 +1,17 @@
+import { LinkOutlined } from '@ant-design/icons';
 import { Avatar, Divider, Layout, Tooltip } from 'antd';
+import { COSMOS, ethToCosmos } from 'bitbadgesjs-address-converter';
+import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { getPortfolio, getAccountInformation, getAccountInformationByAccountNumber } from '../../bitbadges-api/api';
+import { useAccountsContext } from '../../accounts/AccountsContext';
+import { getPortfolio } from '../../bitbadges-api/api';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { AccountDisplay } from '../../components/common/AccountDisplay';
 import { BalanceDisplay } from '../../components/common/BalanceDisplay';
 import { InformationDisplayCard } from '../../components/common/InformationDisplayCard';
 import { Tabs } from '../../components/common/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
-import { COSMOS, ethToCosmos } from 'bitbadgesjs-address-converter';
-import { ethers } from 'ethers';
-import { AccountDisplay } from '../../components/common/AccountDisplay';
-import { LinkOutlined } from '@ant-design/icons';
 const { Content } = Layout;
 
 const tabInfo = [
@@ -23,9 +23,9 @@ const tabInfo = [
 
 function CollectionPage() {
     const router = useRouter()
-    const chain = useChainContext();
-
     const { addressOrAccountNum } = router.query;
+
+    const accounts = useAccountsContext();
 
     const [accountInfo, setAccountInfo] = useState<BitBadgesUserInfo>();
     const [userInfo, setUserInfo] = useState<any>();
@@ -49,22 +49,15 @@ function CollectionPage() {
             let fetchedInfo;
             if (bech32address !== '') {
                 console.log(bech32address);
-                fetchedInfo = await getAccountInformation(bech32address as string);
+                fetchedInfo = await accounts.fetchAccounts([bech32address as string]);
                 if (!fetchedInfo) return;
-                accountNum = fetchedInfo?.account_number;
+                accountNum = fetchedInfo[0].accountNumber;
             } else {
-                fetchedInfo = await getAccountInformationByAccountNumber(accountNum);
+                fetchedInfo = await accounts.fetchAccountsByNumber([accountNum]);
             }
 
-            setAccountInfo({
-                accountNumber: fetchedInfo?.account_number,
-                address: fetchedInfo?.address,
-                cosmosAddress: fetchedInfo?.cosmosAddress,
-                chain: fetchedInfo?.chain
-            });
+            setAccountInfo(fetchedInfo[0]);
 
-
-            console.log(accountNum);
 
             const portfolioInfo = await getPortfolio(accountNum);
             if (!portfolioInfo) return;
@@ -73,7 +66,7 @@ function CollectionPage() {
             //TODO: get all profile info, balances here
         }
         getUserInfo();
-    }, [addressOrAccountNum]);
+    }, [addressOrAccountNum, accounts]);
 
     const [tab, setTab] = useState('collected');
 
@@ -141,7 +134,6 @@ function CollectionPage() {
                                                 <BalanceDisplay
                                                     message='Collected Badges'
                                                     collection={collection}
-                                                    setCollection={() => { }}
                                                     balance={collection.balances[accountInfo?.accountNumber || 0]} />
                                             </div>
                                         </InformationDisplayCard>

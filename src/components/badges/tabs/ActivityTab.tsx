@@ -1,10 +1,9 @@
 import { Collapse, Divider, Empty } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { useEffect, useState } from 'react';
-import { getAccountInformationByAccountNumber } from '../../../bitbadges-api/api';
+import { useEffect } from 'react';
+import { useAccountsContext } from '../../../accounts/AccountsContext';
 import { filterBadgeActivityForBadgeId } from '../../../bitbadges-api/badges';
-import { ActivityItem, BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
-import { convertToBitBadgesUserInfo } from '../../../bitbadges-api/users';
+import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { TransferDisplay } from '../../common/TransferDisplay';
@@ -12,10 +11,10 @@ import { TransferDisplay } from '../../common/TransferDisplay';
 
 
 export function ActivityTab({ collection, badgeId }: {
-    collection: BitBadgeCollection | undefined;
+    collection: BitBadgeCollection;
     badgeId?: number
 }) {
-    const [users, setUsers] = useState<Map<string, BitBadgesUserInfo>>(new Map());
+    const accounts = useAccountsContext();
 
     let activity: ActivityItem[];
     //If we are showing a badge's activity, filter the activity to only show that badge's activity
@@ -27,40 +26,26 @@ export function ActivityTab({ collection, badgeId }: {
         activity = [];
     }
 
-    //TODO: this needs to be more efficient; need to update on map change; and need to cache the user info
     useEffect(() => {
         async function getActivity() {
             if (!activity) return;
-            const currUserMap = new Map();
-            //Set the mint user
-            currUserMap.set("Mint",
-                {
-                    accountNumber: -1,
-                    address: "Mint",
-                    cosmosAddress: "Mint",
-                    chain: SupportedChain.COSMOS
-                }
-            );
 
+            const accountsToFetch = [];
             for (const activityItem of activity) {
                 for (const from of activityItem.from) {
-                    if (!currUserMap.has(from)) {
-                        const userInfo = await getAccountInformationByAccountNumber(Number(from));
-                        currUserMap.set(from, convertToBitBadgesUserInfo(userInfo));
-                    }
+                    if (from === 'Mint') continue;
+                    accountsToFetch.push(Number(from));
                 }
 
                 for (const to of activityItem.to) {
-                    if (!currUserMap.has(to)) {
-                        const userInfo = await getAccountInformationByAccountNumber(Number(to));
-                        currUserMap.set(to, convertToBitBadgesUserInfo(userInfo));
-                    }
+                    accountsToFetch.push(Number(to));
                 }
             }
-            setUsers(currUserMap);
+
+            await accounts.fetchAccountsByNumber(accountsToFetch);
         }
         getActivity();
-    }, [activity]);
+    }, [activity, accounts]);
 
     if (!activity) return <></>
 
@@ -89,13 +74,13 @@ export function ActivityTab({ collection, badgeId }: {
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                         {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={users.get(x) || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            userInfo={accounts.accounts[x] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
                                         />)}
                                     </div>
                                     <b style={{ marginRight: 8 }}>to</b>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                         {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={users.get(x) || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            userInfo={accounts.accounts[x] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
                                         />)}
                                     </div>
                                 </div>
@@ -124,7 +109,7 @@ export function ActivityTab({ collection, badgeId }: {
                                                 key={idx}
                                                 collection={collection}
                                                 from={activity.from.map((from) => {
-                                                    return users.get(from) || {
+                                                    return accounts.accounts[from] || {
                                                         accountNumber: -1,
                                                         address: '',
                                                         cosmosAddress: '',
@@ -132,7 +117,7 @@ export function ActivityTab({ collection, badgeId }: {
                                                     }
                                                 })}
                                                 to={activity.to.map((to) => {
-                                                    return users.get(to) || {
+                                                    return accounts.accounts[to] || {
                                                         accountNumber: -1,
                                                         address: '',
                                                         cosmosAddress: '',
