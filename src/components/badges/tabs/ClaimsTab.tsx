@@ -1,21 +1,19 @@
 import { Empty } from 'antd';
 import { useState } from 'react';
 import { getBlankBalance } from '../../../bitbadges-api/balances';
-import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { ClaimDisplay } from '../../common/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 
-export function ClaimsTab({ badgeCollection, setBadgeCollection, balance, setUserBalance }: {
-    badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: () => void;
-    setUserBalance: () => void;
-    balance: UserBalance | undefined;
+export function ClaimsTab({ collection, refreshCollection, refreshUserBalance }: {
+    collection: BitBadgeCollection | undefined;
+    refreshCollection: () => void;
+    refreshUserBalance: () => void;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [code, setCode] = useState<string>("");
-
 
     return (
         <div
@@ -25,11 +23,11 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance, setUse
                 justifyContent: 'center',
             }}>
             {
-                badgeCollection?.claims.map((claim, idx) => {
+                collection?.claims.map((claim, idx) => {
                     return <div key={idx}>
                         <ClaimDisplay
-                            collection={badgeCollection}
-                            setCollection={setBadgeCollection}
+                            collection={collection}
+                            setCollection={refreshCollection}
                             claim={claim}
                             claimId={idx}
                             openModal={(code) => {
@@ -47,7 +45,7 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance, setUse
                 })
             }
             {
-                !badgeCollection?.claims.find((x) => x.balances.length > 0) &&
+                !collection?.claims.find((x) => x.balances.length > 0) &&
                 <Empty
                     style={{ color: PRIMARY_TEXT }}
                     description="At the moment, there are no active claims for this badge."
@@ -55,9 +53,9 @@ export function ClaimsTab({ badgeCollection, setBadgeCollection, balance, setUse
                 />
             }
             <CreateTxMsgClaimBadgeModal
-                badge={badgeCollection}
-                setBadgeCollection={setBadgeCollection}
-                setUserBalance={setUserBalance}
+                badge={collection}
+                refreshCollection={refreshCollection}
+                refreshUserBalance={refreshUserBalance}
                 claimId={claimId}
                 balance={getBlankBalance()}
                 visible={modalVisible}

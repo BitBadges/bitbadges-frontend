@@ -1,5 +1,5 @@
-import { Col, Row, Typography } from "antd"
-import { ReactNode } from "react"
+import { Col, Row, Typography } from "antd";
+import { ReactNode } from "react";
 import { PRIMARY_TEXT } from "../../constants";
 
 const { Text } = Typography;

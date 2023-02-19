@@ -1,26 +1,22 @@
 import { Pagination } from 'antd';
+import { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeCard } from '../BadgeCard';
-import { useState } from 'react';
 
-export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeId, setBadgeId }: {
-    badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: (badgeCollection: BitBadgeCollection) => void;
+export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
+    collection: BitBadgeCollection | undefined;
     balance: UserBalance | undefined;
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
-    const modalToOpen = !isNaN(badgeId) ? badgeId : -1;
-
-    const individualBadgeMetadata = badgeCollection?.badgeMetadata;
-
-    const startId = 1;
-    const endId = badgeCollection?.nextBadgeId ? badgeCollection?.nextBadgeId - 1 : 1;
+    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. ?id=1)
 
     const PAGE_SIZE = 25;
+    const startId = 1;
+    const endId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
@@ -55,27 +51,27 @@ export function BadgesTab({ badgeCollection, setBadgeCollection, balance, badgeI
                 }}
             >
                 {
-                    badgeCollection && Number(endIdNum) - Number(startIdNum) + 1 > 0
-                    && Number(endIdNum) >= 0 &&
-                    Number(startIdNum) >= 0
+                    collection
+                    && Number(endIdNum) - Number(startIdNum) + 1 > 0
+                    && Number(endIdNum) >= 0
+                    && Number(startIdNum) >= 0
                     && new Array(Number(endIdNum) - Number(startIdNum) + 1).fill(0).map((_, idx) => {
                         return <div key={idx}>
                             <BadgeCard
                                 isModalOpen={modalToOpen === idx}
                                 setBadgeId={setBadgeId}
                                 balance={balance}
-                                collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                                metadata={badgeCollection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                collection={collection}
+                                metadata={collection.badgeMetadata[idx + Number(startIdNum) - 1]}
                                 id={idx + Number(startIdNum)}
                             />
                         </div>
                     })}
             </div>
 
-
             {DEV_MODE &&
                 <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(badgeCollection, null, 2)}
+                    {JSON.stringify(collection, null, 2)}
                 </pre>
             }
         </div >

@@ -35,7 +35,7 @@ export function AddressDisplayList(
         fontColor
     }: {
         users: BitBadgesUserInfo[],
-        setUsers: (users: BitBadgesUserInfo[]) => void
+        setUsers?: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: BitBadgesUserInfo[]
         fontColor?: string
     }
@@ -48,6 +48,7 @@ export function AddressDisplayList(
                     <div key={index} style={{ marginRight: 8 }}>
                         <AddressDisplay
                             icon={
+                                setUsers &&
                                 <Tooltip title={"Remove User"}>
                                     <UserDeleteOutlined onClick={() => {
                                         setUsers(users.filter((_, i) => i !== index))

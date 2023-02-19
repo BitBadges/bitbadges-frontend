@@ -105,7 +105,7 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setBadgeCollection={getBadgeInformation}
+                        <OverviewTab setTab={setTab} badgeCollection={badgeCollection} setCollection={getBadgeInformation}
                             setUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
                         />
@@ -113,7 +113,7 @@ function CollectionPage() {
                     {tab === 'badges' && (
                         <BadgesTab
                             badgeCollection={badgeCollection}
-                            setBadgeCollection={setBadgeCollection}
+                            setCollection={setBadgeCollection}
                             balance={userBalance}
                             badgeId={badgeIdNumber}
                             setBadgeId={setBadgeIdNumber}
@@ -123,7 +123,7 @@ function CollectionPage() {
                     {tab === 'claims' && (
                         <ClaimsTab
                             badgeCollection={badgeCollection}
-                            setBadgeCollection={getBadgeInformation}
+                            setCollection={getBadgeInformation}
                             setUserBalance={setBadgeUserBalance}
                             balance={userBalance}
                         />
@@ -132,7 +132,7 @@ function CollectionPage() {
                     {tab === 'actions' && (
                         <ActionsTab
                             badge={badgeCollection}
-                            setBadgeCollection={getBadgeInformation}
+                            setCollection={getBadgeInformation}
                             setUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
                         />

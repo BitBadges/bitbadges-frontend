@@ -1,33 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import { Avatar, Divider } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
-import { BitBadgeCollection, BitBadgesUserInfo, UserBalance, Balance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
-import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
-import { AddressListSelect } from '../address/AddressListSelect';
-import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
-import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
-import { TransferDisplay } from '../common/TransferDisplay';
-import { BalancesInput } from '../common/BalancesInput';
-import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
-import { Avatar, Divider, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
+import { getAccountInformation, getBadgeBalance } from '../../bitbadges-api/api';
+import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
+import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, UserBalance } from '../../bitbadges-api/types';
+import { useChainContext } from '../../chain/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { AddressListSelect } from '../address/AddressListSelect';
 import { AddressSelect } from '../address/AddressSelect';
+import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
+import { BalancesInput } from '../common/BalancesInput';
+import { TransferDisplay } from '../common/TransferDisplay';
+import { TxModal } from './TxModal';
 
 //TODO: check for disallowedTransfers / managerApprovedTransfers
 export function CreateTxMsgTransferBadgeModal(
     {
-        badge, visible, setVisible, children, userBalance, setBadgeCollection, setUserBalance, transferOnBehalf
+        collection, visible, setVisible, children, userBalance, refreshCollection, refreshUserBalance
     }: {
-        badge: BitBadgeCollection,
-        setBadgeCollection: () => void,
-        setUserBalance: () => void,
+        collection: BitBadgeCollection,
+        refreshCollection: () => void
+        refreshUserBalance: () => void
         userBalance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
-        transferOnBehalf?: boolean
     }
 ) {
     const chain = useChainContext();
@@ -36,7 +35,7 @@ export function CreateTxMsgTransferBadgeModal(
     const [balances, setBalances] = useState<Balance[]>([
         {
             balance: 1,
-            badgeIds: getFullBadgeIdRanges(badge)
+            badgeIds: getFullBadgeIdRanges(collection)
         },
     ]);
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
@@ -63,12 +62,12 @@ export function CreateTxMsgTransferBadgeModal(
     useEffect(() => {
         async function getFromUserBalance() {
             if (!fromUser) return;
-            const balanceRes = await getBadgeBalance(badge.collectionId, fromUser.accountNumber);
+            const balanceRes = await getBadgeBalance(collection.collectionId, fromUser.accountNumber);
             if (!balanceRes?.balance) return;
             setFromUserBalance(balanceRes.balance);
         }
         getFromUserBalance();
-    }, [fromUser, badge, balances, toAddresses.length]);
+    }, [fromUser, collection, balances, toAddresses.length]);
 
     useEffect(() => {
         let postTransferBalanceObj = userBalance;
@@ -86,13 +85,13 @@ export function CreateTxMsgTransferBadgeModal(
         }
 
         setPostTransferBalance(postTransferBalanceObj);
-    }, [balances, userBalance, badge, toAddresses.length, fromUserBalance, chain.accountNumber, fromUser.accountNumber])
+    }, [balances, userBalance, collection, toAddresses.length, fromUserBalance, chain.accountNumber, fromUser.accountNumber])
 
     const unregisteredUsers = toAddresses.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
 
     const txCosmosMsg: MessageMsgTransferBadge = {
         creator: chain.cosmosAddress,
-        collectionId: badge.collectionId,
+        collectionId: collection.collectionId,
         from: fromUser ? fromUser.accountNumber : chain.accountNumber,
         transfers: [
             {
@@ -130,17 +129,17 @@ export function CreateTxMsgTransferBadgeModal(
     const managerUnapprovedAddresses: any[] = [];
 
     for (const address of toAddresses) {
-        for (const managerApprovedTransferMapping of badge.managerApprovedTransfers) {
+        for (const managerApprovedTransferMapping of collection.managerApprovedTransfers) {
             let fromIsApproved = false;
             let toIsApproved = false;
 
-            if (managerApprovedTransferMapping.from.options === 2 && chain.accountNumber === badge.manager.accountNumber) {
+            if (managerApprovedTransferMapping.from.options === 2 && chain.accountNumber === collection.manager.accountNumber) {
                 //exclude manager and we are the manager
                 fromIsApproved = false;
             } else {
                 if (managerApprovedTransferMapping.from.options === 1) {
                     //include manager and we are the manager
-                    if (chain.accountNumber === badge.manager.accountNumber) {
+                    if (chain.accountNumber === collection.manager.accountNumber) {
                         fromIsApproved = true;
                     }
                 }
@@ -154,13 +153,13 @@ export function CreateTxMsgTransferBadgeModal(
                 }
             }
 
-            if (managerApprovedTransferMapping.to.options === 2 && address.accountNumber === badge.manager.accountNumber) {
+            if (managerApprovedTransferMapping.to.options === 2 && address.accountNumber === collection.manager.accountNumber) {
                 //exclude manager and we are the manager
                 toIsApproved = false;
             } else {
                 if (managerApprovedTransferMapping.to.options === 1) {
                     //include manager and we are the manager
-                    if (address.accountNumber === badge.manager.accountNumber) {
+                    if (address.accountNumber === collection.manager.accountNumber) {
                         toIsApproved = true;
                     }
                 }
@@ -181,17 +180,17 @@ export function CreateTxMsgTransferBadgeModal(
     }
 
     for (const address of toAddresses) {
-        for (const disallowedTransferMapping of badge.disallowedTransfers) {
+        for (const disallowedTransferMapping of collection.disallowedTransfers) {
             let fromIsForbidden = false;
             let toIsForbidden = false;
 
-            if (disallowedTransferMapping.from.options === 2 && chain.accountNumber === badge.manager.accountNumber) {
+            if (disallowedTransferMapping.from.options === 2 && chain.accountNumber === collection.manager.accountNumber) {
                 //exclude manager and we are the manager
                 fromIsForbidden = false;
             } else {
                 if (disallowedTransferMapping.from.options === 1) {
                     //include manager and we are the manager
-                    if (chain.accountNumber === badge.manager.accountNumber) {
+                    if (chain.accountNumber === collection.manager.accountNumber) {
                         fromIsForbidden = true;
                     }
                 }
@@ -205,13 +204,13 @@ export function CreateTxMsgTransferBadgeModal(
                 }
             }
 
-            if (disallowedTransferMapping.to.options === 2 && address.accountNumber === badge.manager.accountNumber) {
+            if (disallowedTransferMapping.to.options === 2 && address.accountNumber === collection.manager.accountNumber) {
                 //exclude manager and we are the manager
                 toIsForbidden = false;
             } else {
                 if (disallowedTransferMapping.to.options === 1) {
                     //include manager and we are the manager
-                    if (address.accountNumber === badge.manager.accountNumber) {
+                    if (address.accountNumber === collection.manager.accountNumber) {
                         toIsForbidden = true;
                     }
                 }
@@ -245,7 +244,7 @@ export function CreateTxMsgTransferBadgeModal(
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
     let canTransfer = false;
-    if (chain.accountNumber === badge.manager.accountNumber && isManagerApprovedTransfer) {
+    if (chain.accountNumber === collection.manager.accountNumber && isManagerApprovedTransfer) {
         canTransfer = true;
     } else if (!isDisallowedTransfer && !isUnapprovedTransfer) {
         canTransfer = true;
@@ -255,7 +254,7 @@ export function CreateTxMsgTransferBadgeModal(
     if (!canTransfer) {
         badUsers = [...forbiddenAddresses, ...unapprovedAddresses];
 
-        if (chain.accountNumber === badge.manager.accountNumber) {
+        if (chain.accountNumber === collection.manager.accountNumber) {
             //only show overlap between the two
             badUsers = badUsers.filter((user) => managerUnapprovedAddresses.includes(user));
         }
@@ -299,7 +298,6 @@ export function CreateTxMsgTransferBadgeModal(
                     </div>
 
                     <AddressSelect
-                        title='Select New Sender'
                         currUserInfo={fromUser}
                         setCurrUserInfo={setFromUser}
                     />
@@ -322,7 +320,7 @@ export function CreateTxMsgTransferBadgeModal(
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
-                    collection={badge}
+                    collection={collection}
                 />
                 {/* <hr /> */}
                 <Divider />
@@ -333,8 +331,7 @@ export function CreateTxMsgTransferBadgeModal(
                             hideAddresses
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
-                            badge={badge}
-                            setBadgeCollection={setBadgeCollection}
+                            collection={collection}
                             from={[{
                                 chain: chain.chain,
                                 address: chain.address,
@@ -347,7 +344,7 @@ export function CreateTxMsgTransferBadgeModal(
                     </div>
                 })}
                 <Divider />
-                {postTransferBalance && <BalanceBeforeAndAfter collection={badge} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
+                {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
             disabled: secondStepDisabled
         },
@@ -365,7 +362,7 @@ export function CreateTxMsgTransferBadgeModal(
             txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            onSuccessfulTx={() => { setBadgeCollection(); setUserBalance(); }}
+            onSuccessfulTx={() => { refreshCollection(); refreshUserBalance(); }}
             displayMsg={<div>
                 {balances.map((balance, index) => {
                     // console.log(balance);
@@ -373,8 +370,7 @@ export function CreateTxMsgTransferBadgeModal(
                         <TransferDisplay
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
-                            badge={badge}
-                            setBadgeCollection={setBadgeCollection}
+                            collection={collection}
                             from={[fromUser]}
                             to={toAddresses}
                         />

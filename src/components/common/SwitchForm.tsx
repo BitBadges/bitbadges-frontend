@@ -1,7 +1,7 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { Typography, Card } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { Card, Typography } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import { ReactNode, useState } from 'react';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 
 interface SwitchFormOption {
     title: string;

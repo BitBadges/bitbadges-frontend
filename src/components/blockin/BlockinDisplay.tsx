@@ -173,7 +173,7 @@ export const BlockinDisplay = ({
                 />
             }
         </div>
-        <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} chain={chain} hideChain />}</div>
+        <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} chain={chain} />}</div>
         <div> {address && <Text
             strong
             style={{ fontSize: 30, color: PRIMARY_TEXT }}

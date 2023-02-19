@@ -36,7 +36,7 @@ export function FormTimeline({
         if (formStepNum === 1) {
             return;
         }
-        
+
         setFormStepNum(formStepNum - 1);
         setNextButton(formStepNum - 1);
     };

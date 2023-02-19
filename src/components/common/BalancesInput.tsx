@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { InputNumber } from 'antd';
 import { Balance, BitBadgeCollection } from '../../bitbadges-api/types';
-import { Divider, InputNumber } from 'antd';
-import { IdRangesInput } from './IdRangesInput';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { IdRangesInput } from './IdRangesInput';
 
 //TODO: support multiple balances
 export function BalancesInput({
@@ -49,7 +48,6 @@ export function BalancesInput({
             />
         </div>
         <IdRangesInput
-            idRanges={balances[0]?.badgeIds}
             setIdRanges={(badgeIds) => {
                 setBalances([
                     {

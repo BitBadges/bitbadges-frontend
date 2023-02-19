@@ -1,25 +1,20 @@
-import { Address } from '../address/Address';
-import { Divider, Typography, Col, Row, Table } from 'antd';
-import React from 'react';
 import {
     CheckCircleFilled,
     WarningFilled,
 } from '@ant-design/icons';
+import { Col, Divider, Row, Typography } from 'antd';
+import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../../constants';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { Permissions } from '../../bitbadges-api/permissions';
 import { TableRow } from '../common/TableRow';
 
 const { Text } = Typography;
 
-
-export function BadgeOverview({ badge, metadata, balance, badgeId }: {
-    badge: BitBadgeCollection | undefined;
+export function BadgeOverview({ collection, metadata, badgeId }: {
+    collection: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
-    balance: UserBalance | undefined;
     badgeId: number
 }) {
-    if (!badge || !metadata) return <></>
+    if (!collection || !metadata) return <></>
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
     let validForever = true;
@@ -84,9 +79,6 @@ export function BadgeOverview({ badge, metadata, balance, badgeId }: {
                     }
                 </Col>
             </Row>
-
-
-
         </div >
     );
 }

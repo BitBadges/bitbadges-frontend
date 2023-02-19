@@ -1,7 +1,5 @@
 import Search from 'antd/lib/input/Search';
 
-import { Tabs } from './Tabs';
-import Blockies from 'react-blockies';
 import {
     GlobalOutlined,
     HomeOutlined,
@@ -9,15 +7,15 @@ import {
     SearchOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Typography, Layout, Select, message, Avatar, Menu, Tooltip } from 'antd';
-import React from 'react';
+import { Avatar, Layout, Menu, Select, Typography } from 'antd';
+import { ethers } from 'ethers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
+import Blockies from 'react-blockies';
 import { useChainContext } from '../../chain/ChainContext';
-import { ethers } from 'ethers';
+import { Tabs } from './Tabs';
+import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
 
 const { Header } = Layout;
 const { Option } = Select;

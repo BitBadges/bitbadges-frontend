@@ -1,7 +1,21 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
-import { BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
+import { ActivityItem, BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
+
+export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
+    return activity.filter((x) => {
+        for (const balance of x.balances) {
+            for (const badgeIdRange of balance.badgeIds) {
+                if (badgeId >= badgeIdRange.start && badgeId <= badgeIdRange.end) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    }) as ActivityItem[];
+}
 
 export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
     const range: IdRange = {

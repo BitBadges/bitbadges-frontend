@@ -3,12 +3,10 @@ import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 export function BalanceDisplay({
     collection,
-    setCollection,
     balance,
     message,
 }: {
     collection: BitBadgeCollection;
-    setCollection: () => void;
     balance: UserBalance;
     message?: string;
 }) {
@@ -38,8 +36,7 @@ export function BalanceDisplay({
                                 <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}><b>x{balanceAmount.balance}</b></span> of IDs {idRange.start} to {idRange.end}<br />
                             </>
                             <BadgeAvatarDisplay
-                                badgeCollection={collection}
-                                setBadgeCollection={setCollection}
+                                collection={collection}
                                 userBalance={balance}
                                 startId={Number(idRange.start)}
                                 endId={Number(idRange.end)}

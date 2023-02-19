@@ -1,13 +1,15 @@
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
+import { Empty } from 'antd';
 import { useEffect, useState } from 'react';
 import { getBadgeOwners } from '../../../bitbadges-api/api';
+import { getSupplyByBadgeId } from '../../../bitbadges-api/balances';
+import { BitBadgeCollection, BitBadgesUserInfo } from '../../../bitbadges-api/types';
+import { convertToBitBadgesUserInfo } from '../../../bitbadges-api/users';
+import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { InformationDisplayCard } from '../../common/InformationDisplayCard';
-import { Empty } from 'antd';
 
-export function OwnersTab({ badgeCollection, badgeId }: {
-    badgeCollection: BitBadgeCollection | undefined;
+export function OwnersTab({ collection, badgeId }: {
+    collection: BitBadgeCollection | undefined;
     badgeId: number
 }) {
     const [badgeOwners, setBadgeOwners] = useState<BitBadgesUserInfo[]>([]);
@@ -15,25 +17,17 @@ export function OwnersTab({ badgeCollection, badgeId }: {
 
     useEffect(() => {
         async function getOwners() {
-            if (badgeCollection) {
-                const ownersRes = await getBadgeOwners(badgeCollection?.collectionId, badgeId)
-                const badgeOwners = ownersRes.owners.map((x) => {
-                    return {
-                        accountNumber: x.account_number,
-                        address: x.address,
-                        cosmosAddress: x.cosmosAddress,
-                        chain: x.chain
-                    }
-                })
+            if (collection) {
+                const ownersRes = await getBadgeOwners(collection?.collectionId, badgeId)
+                const badgeOwners = ownersRes.owners.map((x) => convertToBitBadgesUserInfo(x));
                 setBadgeOwners(badgeOwners);
                 setBalances(ownersRes.balances);
             }
         }
         getOwners();
-    }, []);
+    }, [collection, badgeId]);
 
     return (
-
         <div >
             <div style={{
                 color: PRIMARY_TEXT,
@@ -60,11 +54,7 @@ export function OwnersTab({ badgeCollection, badgeId }: {
                                             fontColor={PRIMARY_TEXT} />
                                     </div>
                                     <div>
-                                        x{balances[owner.accountNumber].balances.find((x: Balance) => {
-                                            return x.badgeIds.find((y) => {
-                                                return y.start <= badgeId && y.end >= badgeId;
-                                            })
-                                        }).balance}
+                                        x{getSupplyByBadgeId(badgeId, balances[owner.accountNumber].balances)}
                                     </div>
                                 </div>
                             })}

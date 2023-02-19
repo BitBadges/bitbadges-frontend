@@ -1,23 +1,21 @@
-import { Divider, Tag, Tooltip } from 'antd';
-import React from 'react';
 import {
     CheckCircleFilled,
     LinkOutlined,
     WarningFilled,
 } from '@ant-design/icons';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { Divider, Tag, Tooltip } from 'antd';
 import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
+import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { useChainContext } from '../../chain/ChainContext';
-import { TableRow } from '../common/TableRow';
 import { InformationDisplayCard } from '../common/InformationDisplayCard';
+import { TableRow } from '../common/TableRow';
 
-export function CollectionOverview({ badge, metadata, span }: {
-    badge: BitBadgeCollection | undefined;
+export function CollectionOverview({ collection, metadata, span }: {
+    collection: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
     span?: number;
 }) {
-    if (!badge || !metadata) return <></>
+    if (!collection || !metadata) return <></>
 
     let endTimestamp = MAX_DATE_TIMESTAMP;
     let validForever = true;
@@ -36,9 +34,9 @@ export function CollectionOverview({ badge, metadata, span }: {
             title="Collection Info"
             span={span}
         >
-            <TableRow label={"Collection ID"} value={badge.collectionId} labelSpan={9} valueSpan={15} />
-            <TableRow label={"Type"} value={badge.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />
-            {badge.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
+            <TableRow label={"Collection ID"} value={collection.collectionId} labelSpan={9} valueSpan={15} />
+            <TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />
+            {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
                     display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
@@ -46,40 +44,33 @@ export function CollectionOverview({ badge, metadata, span }: {
                     <AddressDisplay
                         fontSize={14}
                         fontColor={SECONDARY_TEXT}
-                        userInfo={badge?.manager}
-                        // userInfo={{
-                        //     address: chain.address,
-                        //     chain: chain.chain,
-                        //     accountNumber: chain.accountNumber,
-                        //     cosmosAddress: chain.cosmosAddress,
-                        // }}
+                        userInfo={collection?.manager}
                         hideChains
                     />
                 </div>
 
             </div>} labelSpan={9} valueSpan={15} />}
             {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
-            {/* {<TableRow label={} value={} labelSpan={9} valueSpan={15} />"Sub-Badges", subassetSupplyComponent)} */}
-            {badge.collectionUri && <TableRow label={"Collection Metadata"} value={
+            {collection.collectionUri && <TableRow label={"Collection Metadata"} value={
                 <div>
-                    <Tooltip placement='bottom' title={badge.collectionUri}>
-                        <a href={badge.collectionUri} target="_blank" rel="noreferrer">{badge.collectionUri.slice(0, 10) + '...' + badge.collectionUri.slice(badge.collectionUri.length - 13)} <LinkOutlined /></a>
+                    <Tooltip placement='bottom' title={collection.collectionUri}>
+                        <a href={collection.collectionUri} target="_blank" rel="noreferrer">{collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
-            {badge.badgeUri && <TableRow label={"Badge Metadata"} value={
+            {collection.badgeUri && <TableRow label={"Badge Metadata"} value={
                 <div>
                     <Tooltip placement='bottom' title={<>
-                        {badge.badgeUri}
+                        {collection.badgeUri}
                         <br />
                         <br />
                         {"Replace {id} with the badge ID to get the badge metadata."}
                     </>}>
-                        <a href={badge.badgeUri} target="_blank" rel="noreferrer">{badge.badgeUri.slice(0, 10) + '...' + badge.badgeUri.slice(badge.badgeUri.length - 13)} <LinkOutlined /></a>
+                        <a href={collection.badgeUri} target="_blank" rel="noreferrer">{collection.badgeUri.slice(0, 10) + '...' + collection.badgeUri.slice(collection.badgeUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
-            {badge.bytes && <TableRow label={"Arbitrary Bytes"} value={badge.bytes} labelSpan={9} valueSpan={15} />}
+            {collection.bytes && <TableRow label={"Arbitrary Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />}
             <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
                 {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
                     ? 'Until ' +
@@ -117,7 +108,7 @@ export function CollectionOverview({ badge, metadata, span }: {
 
             {DEV_MODE &&
                 <pre style={{ maxHeight: 500, marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(badge, null, 2)}
+                    {JSON.stringify(collection, null, 2)}
                 </pre>
             }
         </InformationDisplayCard>

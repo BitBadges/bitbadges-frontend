@@ -1,12 +1,8 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useEffect, useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../bitbadges-api/types';
+import { useState } from 'react';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { FormTimeline } from '../common/FormTimeline';
-import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
-import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
-import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
-import { UpdateUrisStepItem } from './step-items/UpdateUrisStepItem';
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 import { UpdateDisallowedStepItem } from './step-items/UpdateDisallowedStepItem';
 
@@ -19,10 +15,8 @@ export const EmptyStepItem = {
 
 export function UpdateDisallowedTimeline({
     collection, //collection is the information about the actual badge collection that is being distributed/minted
-    setCollection,
 }: {
     collection: BitBadgeCollection;
-    setCollection: (collection: BitBadgeCollection) => void;
 }) {
     const chain = useChainContext();
 

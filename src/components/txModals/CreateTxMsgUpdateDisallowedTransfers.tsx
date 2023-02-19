@@ -1,6 +1,5 @@
-import { MessageMsgUpdateDisallowedTransfers, MessageMsgUpdateUris, createTxMsgUpdateDisallowedTransfers, createTxMsgUpdateUris } from 'bitbadgesjs-transactions';
+import { MessageMsgUpdateDisallowedTransfers, createTxMsgUpdateDisallowedTransfers } from 'bitbadgesjs-transactions';
 import React from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { TxModal } from './TxModal';
 
 

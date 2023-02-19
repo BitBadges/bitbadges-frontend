@@ -1,12 +1,12 @@
 import { Avatar, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { useEffect, useState } from "react";
-import { BadgeModal } from "./BadgeModal";
+import { getBlankBalance } from '../../bitbadges-api/balances';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";
-import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
+import { BadgeModal } from "./BadgeModal";
 
 export function BadgeAvatar({
-    badge,
+    collection,
     metadata,
     size,
     badgeId,
@@ -14,7 +14,7 @@ export function BadgeAvatar({
     showId,
     hackyUpdatedFlag,
 }: {
-    badge: BitBadgeCollection,
+    collection: BitBadgeCollection,
     metadata: BadgeMetadata,
     size?: number,
     badgeId: number,
@@ -42,9 +42,6 @@ export function BadgeAvatar({
                         verticalAlign: 'middle',
                         border: '1px solid',
                         borderColor: displayMetadata.color || 'black',
-                        // backgroundColor: metadata?.image
-                        //     ? PRIMARY_TEXT
-                        //     : metadata?.color,
                         margin: 4,
                         cursor: 'pointer',
                     }}
@@ -82,7 +79,7 @@ export function BadgeAvatar({
             </div>
         )}
         <BadgeModal
-            badge={badge}
+            collection={collection}
             metadata={displayMetadata}
             visible={modalIsVisible}
             setVisible={setModalIsVisible}

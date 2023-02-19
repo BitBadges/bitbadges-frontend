@@ -1,54 +1,43 @@
-import { Col, Empty, Row, Tooltip } from "antd";
+import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
+import { Col, Row, Tooltip } from "antd";
+import { AllAddressesTransferMapping } from "../../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
 import { InformationDisplayCard } from "../../common/InformationDisplayCard";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 import { BalanceOverview } from "../BalanceOverview";
 import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
-import { PRIMARY_TEXT } from "../../../constants";
-import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { AllAddressesTransferMapping } from "../../../bitbadges-api/badges";
 
 export function OverviewTab({
-    badgeCollection,
-    setBadgeCollection,
-    setUserBalance,
+    collection,
+    refreshCollection,
+    refreshUserBalance,
     userBalance,
     setTab,
 }: {
-    badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: () => void;
-    setUserBalance: () => void;
+    collection: BitBadgeCollection | undefined;
+    refreshCollection: () => void;
+    refreshUserBalance: () => void;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
 }) {
-    if (!badgeCollection) return <></>;
-    const collectionMetadata = badgeCollection?.collectionMetadata;
+    if (!collection) return <></>;
+    const collectionMetadata = collection?.collectionMetadata;
 
     return <>
         <InformationDisplayCard
             title="Collection"
         >
-            <BadgeAvatarDisplay showIds size={55} setBadgeCollection={setBadgeCollection} badgeCollection={badgeCollection} userBalance={userBalance} startId={1} endId={badgeCollection?.nextBadgeId - 1} />
+            <BadgeAvatarDisplay
+                showIds
+                size={55}
+                collection={collection}
+                userBalance={userBalance}
+                startId={1}
+                endId={collection?.nextBadgeId - 1}
+            />
         </InformationDisplayCard>
         <br />
-        {/* <InformationDisplayCard
-            title="Claims"
-        >
-
-
-            
-
-            <CreateTxMsgClaimBadgeModal
-                badge={badgeCollection}
-                setBadgeCollection={setBadgeCollection}
-                claimId={claimId}
-                balance={getBlankBalance()}
-                visible={modalVisible}
-                setVisible={setModalVisible}
-                merkleTree={merkleTrees[claimId]}
-            />
-        </InformationDisplayCard> */}
         <br />
         <Row
             style={{
@@ -58,7 +47,7 @@ export function OverviewTab({
         >
             <Col span={10}>
                 <CollectionOverview
-                    badge={badgeCollection}
+                    badge={collection}
                     metadata={collectionMetadata}
                     span={24}
                 />
@@ -69,7 +58,7 @@ export function OverviewTab({
                         <Tooltip title="Which badge owners can transfer to which badge owners?">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>
-                        {!badgeCollection.permissions.CanUpdateDisallowed ?
+                        {!collection.permissions.CanUpdateDisallowed ?
                             <Tooltip title="The transferability is locked and can never be changed.">
                                 <LockOutlined style={{ marginLeft: 4 }} />
                             </Tooltip> :
@@ -81,15 +70,18 @@ export function OverviewTab({
                     </>
                     }
                 >
+                    {
+                        //TODO: Refactor this
+                    }
                     <div style={{ margin: 8 }}>
                         {
-                            !badgeCollection.disallowedTransfers?.length ?
+                            !collection.disallowedTransfers?.length ?
                                 <>Badges in this collection are transferable.</> : <>
-                                    {badgeCollection.disallowedTransfers.length === 1
-                                        && JSON.stringify(badgeCollection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
+                                    {collection.disallowedTransfers.length === 1
+                                        && JSON.stringify(collection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
                                         <>Badges in this collection are non-transferable and tied to an account.</>
                                         : <>                                        {
-                                            badgeCollection.disallowedTransfers.map((transfer, index) => {
+                                            collection.disallowedTransfers.map((transfer) => {
                                                 return <>
                                                     The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
                                                         return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
@@ -100,7 +92,6 @@ export function OverviewTab({
                                                     <br />
                                                 </>
                                             })
-
                                         }
                                         </>
                                     }
@@ -108,19 +99,18 @@ export function OverviewTab({
                         }
                     </div>
                 </InformationDisplayCard>
-                <br/>
+                <br />
                 <PermissionsOverview
-                    badgeCollection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
+                    collection={collection}
                     span={24}
                 />
-               
             </Col>
 
 
             <BalanceOverview
-                badge={badgeCollection}
-                setBadge={setBadgeCollection}
-                setUserBalance={setUserBalance}
+                badge={collection}
+                refreshCollection={refreshCollection}
+                refreshUserBalance={refreshUserBalance}
                 metadata={collectionMetadata}
                 balance={userBalance}
                 span={13}

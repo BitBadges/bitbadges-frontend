@@ -7,7 +7,7 @@ import { UpdateMetadataTimeline } from '../../components/mint/UpdateMetadataTime
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
-import { UpdateDisallowedTimeline } from '../../components/mint/UpdateDIsallowedTimeline';
+import { UpdateDisallowedTimeline } from '../../components/mint/UpdateDisallowedTimeline';
 
 const { Content } = Layout;
 

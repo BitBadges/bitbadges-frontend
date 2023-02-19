@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { FormTimeline } from '../common/FormTimeline';

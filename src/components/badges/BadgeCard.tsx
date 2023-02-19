@@ -1,26 +1,11 @@
-import Meta from 'antd/lib/card/Meta';
-import { Avatar, Card, Tooltip } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { BadgeMetadata, Balance, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { BadgeModal } from './BadgeModal';
-import { getBlankBalance } from '../../bitbadges-api/balances';
 import { InfoCircleOutlined } from '@ant-design/icons';
-
-//Can probably add this to bitbadges-js
-const getSupplyByBadgeId = (badgeId: number, supplys: Balance[]) => {
-    let supply = supplys.find((supply) => {
-        return supply.badgeIds.find((idRange) => {
-            if (idRange.start === undefined || idRange.end === undefined) {
-                return false;
-            }
-            return badgeId >= idRange.start && badgeId <= idRange.end;
-        });
-    });
-
-    return supply?.balance ?? 0;
-}
-
+import { Avatar, Card, Tooltip } from 'antd';
+import Meta from 'antd/lib/card/Meta';
+import { useEffect, useState } from 'react';
+import { getBlankBalance, getSupplyByBadgeId } from '../../bitbadges-api/balances';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { BadgeModal } from './BadgeModal';
 
 export function BadgeCard({
     metadata,
@@ -43,6 +28,7 @@ export function BadgeCard({
 }) {
     const [visible, setVisible] = useState<boolean>(isModalOpen ? isModalOpen : false);
 
+    //Handle open exact badgeId modal w/in URL params
     useEffect(() => {
         if (isModalOpen && !visible && setBadgeId) {
             setBadgeId(-1);
@@ -60,9 +46,6 @@ export function BadgeCard({
     for (const claim of collection.claims) {
         claimableSupply += getSupplyByBadgeId(id, claim.balances);
     }
-
-
-
     let distributedSupply = totalSupply - undistributedSupply - claimableSupply;
 
     return (
@@ -99,13 +82,7 @@ export function BadgeCard({
                                     : 'black',
                                 marginTop: '1rem',
                                 cursor: 'pointer',
-                                // backgroundColor: metadata?.image
-                                //     ? PRIMARY_TEXT
-                                //     : (metadata?.color
-                                //         ? metadata.color
-                                //         : 'black'),
                             }}
-                            // className="metadata-avatar"   //For scaling on hover
                             src={
                                 metadata?.image
                                     ? metadata.image
@@ -148,7 +125,6 @@ export function BadgeCard({
                                     fontSize: 17,
                                     width: '100%',
                                     justifyContent: 'center',
-
                                 }}
                             >
                                 ID: {id}
@@ -174,17 +150,8 @@ export function BadgeCard({
                                 </>
                                 }
                                 {balance && <><br />
-                                    You own x{balance?.balances.find((balanceAmount) => {
-                                        const found = balanceAmount.badgeIds.find((idRange) => {
-                                            if (idRange.end === undefined) {
-                                                idRange.end = idRange.start;
-                                            }
-                                            return id >= idRange.start && id <= idRange.end;
-                                        });
-                                        return found !== undefined;
-                                    })?.balance ?? 0}</>}
-
-                                {/* {metadata?.description} */}
+                                    You own x{getSupplyByBadgeId(id, balance.balances)}
+                                </>}
                             </div>
                         }
                     />
@@ -192,7 +159,7 @@ export function BadgeCard({
             </Card>
 
             <BadgeModal
-                badge={collection}
+                collection={collection}
                 metadata={metadata}
                 visible={visible}
                 setVisible={setVisible}

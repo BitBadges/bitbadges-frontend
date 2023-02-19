@@ -7,9 +7,9 @@ import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { DEV_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
-import { getAbbreviatedAddress } from '../../utils/AddressUtils';
 import { useRouter } from 'next/router';
 import { Content } from 'antd/lib/layout/layout';
+import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
 
 const { Step } = Steps;
 

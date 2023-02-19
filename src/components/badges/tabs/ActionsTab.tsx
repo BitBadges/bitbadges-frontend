@@ -13,37 +13,57 @@ import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxM
 import { CreateTxMsgTransferBadgeModal } from '../../txModals/CreateTxMsgTransferBadge';
 
 export function ActionsTab({
-    badge,
-    setBadgeCollection,
+    collection,
+    refreshCollection,
     userBalance,
     setUserBalance,
 }: {
-    badge?: BitBadgeCollection;
-    setBadgeCollection: () => void;
+    collection?: BitBadgeCollection;
+    refreshCollection: () => void;
     userBalance?: UserBalance;
     setUserBalance: () => void;
 }) {
     const router = useRouter();
+    const chain = useChainContext();
+    const accountNumber = chain.accountNumber;
+
+    //Modal visibilities
     const [transferIsVisible, setTransferIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
 
-    const chain = useChainContext();
-    const accountNumber = chain.accountNumber;
+    if (!collection) return <></>;
+    const isManager = collection.manager.accountNumber === accountNumber;
 
-    if (!badge) return <></>;
+    const getTitleElem = (title: string) => {
+        return (
+            <div style={{ color: PRIMARY_TEXT }}>
+                {title}
+            </div>
+        );
+    };
 
-    let actions: any[] = [];
-    const isManager = badge.manager.accountNumber === accountNumber;
+    const getDescriptionElem = (description: string) => {
+        return (
+            <div style={{ color: SECONDARY_TEXT }}>
+                {description}
+            </div>
+        );
+    };
+
+    let actions: {
+        title: React.ReactNode,
+        description: React.ReactNode,
+        showModal: () => void,
+        disabled?: boolean
+    }[] = [];
 
     actions.push({
-        title: <div style={{ color: PRIMARY_TEXT }}>Transfer</div>,
-        description: (
-            <div style={{ color: SECONDARY_TEXT }}>
-                Transfer badge(s) in this collection.
-            </div>
+        title: getTitleElem("Transfer"),
+        description: getDescriptionElem(
+            "Transfer badge(s) in this collection."
         ),
         showModal: () => {
             setTransferIsVisible(!transferIsVisible);
@@ -52,89 +72,60 @@ export function ActionsTab({
 
 
     if (isManager) {
-        if (badge.permissions.CanCreateMoreBadges) {
+        if (collection.permissions.CanCreateMoreBadges) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Add New Badge to Collection</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        New Badge
-                    </div>
+                title: getTitleElem("Add New Badge to Collection"),
+                description: getDescriptionElem(
+                    "New Badge"
                 ),
                 showModal: () => {
-                    router.push(`/mint/badge/${badge.collectionId}`)
+                    router.push(`/mint/badge/${collection.collectionId}`)
                 },
             });
         }
 
-        if (badge.unmintedSupplys.length > 0) {
+        if (collection.unmintedSupplys.length > 0) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Distribute Badges</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Distribute badges that are currently unminted.
-                    </div>
+                title: getTitleElem("Distribute Badges"),
+                description: getDescriptionElem(
+                    "Distribute badges that are currently unminted."
                 ),
                 showModal: () => {
-                    router.push(`/distribute/${badge.collectionId}`)
+                    router.push(`/distribute/${collection.collectionId}`)
                 },
             });
         }
 
-        if (badge.permissions.CanUpdateUris) {
+        if (collection.permissions.CanUpdateUris) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Update Metadata</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Update the metadata of this collection and badges.
-                    </div>
+                title: getTitleElem("Update Metadata"),
+                description: getDescriptionElem(
+                    "Update the metadata of this collection and badges."
                 ),
                 showModal: () => {
-                    router.push(`/updateMetadata/${badge.collectionId}`)
+                    router.push(`/updateMetadata/${collection.collectionId}`)
                 },
             });
         }
 
-
-
-        //TODO:
-        // if (badge.permissions.CanRevoke) {
-        //     actions.push({
-        //         title: <div style={{ color: PRIMARY_TEXT }}>Revoke</div>,
-        //         description: (
-        //             <div style={{ color: SECONDARY_TEXT }}>
-        //                 Revoke a badge from an existing owner
-        //             </div>
-        //         ),
-        //         showModal: () => {
-        //             setRevokeIsVisible(!revokeIsVisible);
-        //         },
-        //     });
-        // }
-
-        if (badge.permissions.CanUpdateDisallowed) {
+        if (collection.permissions.CanUpdateDisallowed) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Update Disallowed Transfers</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Freeze or unfreeze if badge owners able to transfer.
-                    </div>
+                title: getTitleElem("Update Disallowed Transfers"),
+                description: getDescriptionElem(
+                    "Freeze or unfreeze if badge owners able to transfer."
                 ),
                 showModal: () => {
                     setFreezeIsVisible(!freezeIsVisible);
-                    router.push(`/updateDisallowed/${badge.collectionId}`);
+                    router.push(`/updateDisallowed/${collection.collectionId}`);
                 },
             });
         }
 
-        if (badge.permissions.CanManagerBeTransferred) {
+        if (collection.permissions.CanManagerBeTransferred) {
             actions.push({
-                title: (
-                    <div style={{ color: PRIMARY_TEXT }}>Transfer Manager</div>
-                ),
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Transfer manager privileges to new address
-                    </div>
+                title: getTitleElem("Transfer Manager"),
+                description: getDescriptionElem(
+                    "Transfer manager privileges to new address"
                 ),
                 showModal: () => {
                     setTransferManagerIsVisible(!transferManagerIsVisible);
@@ -144,11 +135,9 @@ export function ActionsTab({
 
 
         actions.push({
-            title: <div style={{ color: PRIMARY_TEXT }}>Update Permissions</div>,
-            description: (
-                <div style={{ color: SECONDARY_TEXT }}>
-                    Update the permissions of this collection.
-                </div>
+            title: getTitleElem("Update Permissions"),
+            description: getDescriptionElem(
+                "Update the permissions of this collection."
             ),
             showModal: () => {
                 setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
@@ -157,13 +146,11 @@ export function ActionsTab({
     }
 
     if (!isManager) {
-        if (badge.permissions.CanManagerBeTransferred) {
+        if (collection.permissions.CanManagerBeTransferred) {
             actions.push({
-                title: <div style={{ color: PRIMARY_TEXT }}>Request Manager Transfer</div>,
-                description: (
-                    <div style={{ color: SECONDARY_TEXT }}>
-                        Request to become the manager of this collection.
-                    </div>
+                title: getTitleElem("Request Manager Transfer"),
+                description: getDescriptionElem(
+                    "Request to become the manager of this collection."
                 ),
                 showModal: () => {
                     setRequestTransferManagerIsVisible(!requestTransferManagerIsVisible);
@@ -269,42 +256,36 @@ export function ActionsTab({
                 </>
             )}
 
-            {
-                <CreateTxMsgTransferBadgeModal
-                    visible={transferIsVisible}
-                    setVisible={setTransferIsVisible}
-                    badge={badge}
-                    setBadgeCollection={setBadgeCollection}
-                    userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
-                    setUserBalance={setUserBalance}
-                />
-            }
+
+            <CreateTxMsgTransferBadgeModal
+                visible={transferIsVisible}
+                setVisible={setTransferIsVisible}
+                collection={collection}
+                refreshCollection={refreshCollection}
+                userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
+                setUserBalance={setUserBalance}
+            />
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
                 setVisible={setTransferManagerIsVisible}
-                collection={badge}
-                setBadgeCollection={setBadgeCollection}
+                collection={collection}
+                refreshCollection={refreshCollection}
             />
 
             <CreateTxMsgRequestTransferManagerModal
                 visible={requestTransferManagerIsVisible}
                 setVisible={setRequestTransferManagerIsVisible}
-                collection={badge}
-                setBadgeCollection={setBadgeCollection}
+                collection={collection}
+                refreshCollection={refreshCollection}
             />
 
             <CreateTxMsgUpdatePermissionsModal
                 visible={updatePermissionsIsVisible}
                 setVisible={setUpdatePermissionsIsVisible}
-                badge={badge}
-                setBadgeCollection={setBadgeCollection}
+                collection={collection}
+                refreshCollection={refreshCollection}
             />
-
-
-            {
-                //TODO: -slowly introduce additional functionality (approvals,  new subbadges, etc)
-            }
         </div >
     );
 }

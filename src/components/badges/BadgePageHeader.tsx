@@ -1,11 +1,9 @@
 import { Avatar, Col, Row, Typography } from 'antd';
-import React, { useEffect } from 'react';
-import { PRIMARY_TEXT } from '../../constants';
-import { BadgeMetadata } from '../../bitbadges-api/types';
 import { marked } from 'marked';
+import { useEffect } from 'react';
 import sanitizeHtml from 'sanitize-html';
-import { BadgeAvatar } from './BadgeAvatar';
-
+import { BadgeMetadata } from '../../bitbadges-api/types';
+import { PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;
 
@@ -20,9 +18,6 @@ export function BadgePageHeader({ metadata }: {
     }, [metadata]);
 
     if (!metadata) return <></>;
-
-
-
 
     return (<>
         <div
@@ -58,11 +53,7 @@ export function BadgePageHeader({ metadata }: {
                                     ? metadata?.color
                                     : 'black',
                                 margin: 4,
-                                // backgroundColor: metadata?.image
-                                //     ? PRIMARY_TEXT
-                                //     : metadata?.color,
                             }}
-                            // className="badge-avatar"   //For scaling on hover
                             src={
                                 metadata?.image ? metadata?.image : undefined
                             }

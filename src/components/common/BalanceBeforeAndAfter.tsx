@@ -38,7 +38,6 @@ export function BalanceBeforeAndAfter({
         }}>
             <div style={{ margin: 20, width: '50%' }}>
                 <BalanceDisplay
-                    setCollection={() => { }}
                     collection={collection}
                     balance={balance}
                     message={beforeMessage ? beforeMessage : 'Before'}
@@ -46,7 +45,6 @@ export function BalanceBeforeAndAfter({
             </div>
             <div style={{ margin: 20, width: '50%' }}>
                 <BalanceDisplay
-                    setCollection={() => { }}
                     collection={collection}
                     balance={newBalance}
                     message={afterMessage ? afterMessage : 'After'}

@@ -1,22 +1,18 @@
 import { InputNumber } from "antd";
-import { IdRange } from "../../bitbadges-api/types";
 import { useState } from "react";
+import { IdRange } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 
 //TODO: support multiple IdRanges
-export function IdRangesInput(
-    {
-        idRanges,
-        setIdRanges,
-        maximum,
-        darkMode
-    }: {
-        idRanges: IdRange[],
-        setIdRanges: (idRanges: IdRange[]) => void,
-        maximum?: number,
-        darkMode?: boolean,
-    }
-) {
+export function IdRangesInput({
+    setIdRanges,
+    maximum,
+    darkMode
+}: {
+    setIdRanges: (idRanges: IdRange[]) => void,
+    maximum?: number,
+    darkMode?: boolean,
+}) {
     const [startBadgeId, setStartBadgeId] = useState<number>(1);
     const [endBadgeId, setEndBadgeId] = useState<number>(maximum ?? 0);
 

@@ -1,11 +1,10 @@
-import { Divider, Empty, Tooltip, Typography } from "antd"
-import { PRIMARY_TEXT } from "../../constants";
-import { BitBadgeCollection } from "../../bitbadges-api/types";
-import { TableRow } from "../common/TableRow";
-import { InformationDisplayCard } from "../common/InformationDisplayCard";
-import { TransferDisplay } from "../common/TransferDisplay";
-import { InfoCircleOutlined, InfoOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { Divider, Tooltip, Typography } from "antd";
 import { AllAddressesTransferMapping } from "../../bitbadges-api/badges";
+import { BitBadgeCollection } from "../../bitbadges-api/types";
+import { PRIMARY_TEXT } from "../../constants";
+import { InformationDisplayCard } from "../common/InformationDisplayCard";
+import { TableRow } from "../common/TableRow";
 
 export function PermissionsOverview({
     badgeCollection,
@@ -16,16 +15,12 @@ export function PermissionsOverview({
 }) {
     if (!badgeCollection?.permissions) return <></>
 
-    console.log(badgeCollection.managerApprovedTransfers[0], AllAddressesTransferMapping, badgeCollection.managerApprovedTransfers?.length === 1 && badgeCollection.managerApprovedTransfers[0] === AllAddressesTransferMapping)
-
     return <InformationDisplayCard title={'Manager Permissions'} span={span}>
         <>
             {!badgeCollection.permissions.CanUpdateDisallowed &&
-                // !badgeCollection.freezeRanges?.length && TODO:
                 !badgeCollection.permissions.CanCreateMoreBadges &&
                 !badgeCollection.permissions.CanUpdateUris &&
                 !badgeCollection.permissions.CanUpdateBytes &&
-                // !badgeCollection.permissions.CanRevoke &&
                 !badgeCollection.permissions.CanManagerBeTransferred ?
                 <Typography.Text strong style={{ color: PRIMARY_TEXT, padding: 10 }}>
                     This collection is completely frozen!
@@ -55,7 +50,7 @@ export function PermissionsOverview({
                                     {badgeCollection.managerApprovedTransfers.length === 1
                                         && JSON.stringify(badgeCollection.managerApprovedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
                                         <>The manager can revoke or transfer any badge in this collection without approval of the badge owner.</>
-                                        : <>{badgeCollection.managerApprovedTransfers.map((transfer, index) => {
+                                        : <>{badgeCollection.managerApprovedTransfers.map((transfer) => {
                                             return <>
                                                 The manager can forcefully transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {
                                                     return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>

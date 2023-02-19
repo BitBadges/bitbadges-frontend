@@ -1,28 +1,25 @@
-import React, { useState } from 'react';
-import { Layout, Drawer, Divider, Empty, Row, Col, Typography } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
+import { Col, Divider, Drawer, Layout, Row, Typography } from 'antd';
+import React, { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { useChainContext } from '../../chain/ChainContext';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
+import { BadgeOverview } from '../badges/BadgeOverview';
 import { Tabs } from '../common/Tabs';
 import { BadgePageHeader } from './BadgePageHeader';
-import { CollectionOverview } from '../badges/CollectionOverview';
-import { BadgeOverview } from '../badges/BadgeOverview';
-import { BalanceOverview } from './BalanceOverview';
-import { PermissionsOverview } from './PermissionsOverview';
-import { useChainContext } from '../../chain/ChainContext';
 import { OwnersTab } from './tabs/OwnersTab';
-import { BadgeActivityTab } from './tabs/BadgeActivityTab';
+import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
+import { ActivityTab } from './tabs/ActivityTab';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
-export function BadgeModal({ badge, metadata, visible, setVisible, children, balance, badgeId }
+export function BadgeModal({ collection, metadata, visible, setVisible, balance, badgeId }
     : {
-        badge: BitBadgeCollection,
+        collection: BitBadgeCollection,
         metadata: BadgeMetadata,
         visible: boolean,
         setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
         balance: UserBalance,
         badgeId: number
     }) {
@@ -34,6 +31,7 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
         { key: 'owners', content: 'Owners' },
         { key: 'activity', content: 'Activity' },
     ];
+
     return (
         <Drawer
             onClose={() => { setVisible(false) }}
@@ -90,15 +88,7 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
                             <BadgePageHeader
                                 metadata={metadata}
                             />
-                            {chain.connected && <>You have x{balance?.balances?.find((balanceAmount) => {
-                                const found = balanceAmount.badgeIds.find((idRange) => {
-                                    if (idRange.end === undefined) {
-                                        idRange.end = idRange.start;
-                                    }
-                                    return badgeId >= idRange.start && badgeId <= idRange.end;
-                                });
-                                return found !== undefined;
-                            })?.balance ?? 0} of this badge.</>}
+                            {chain.connected && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
                             <Divider />
                             <Row
                                 style={{
@@ -111,12 +101,9 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
                                 <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
 
                                     <Text style={{ color: SECONDARY_TEXT }}>
-
-
                                         <BadgeOverview
-                                            badge={badge}
-                                            metadata={badge.badgeMetadata[badgeId - 1]}
-                                            balance={balance}
+                                            collection={collection}
+                                            metadata={collection.badgeMetadata[badgeId - 1]}
                                             badgeId={badgeId}
                                         />
                                     </Text>
@@ -127,190 +114,18 @@ export function BadgeModal({ badge, metadata, visible, setVisible, children, bal
                         )}
 
                         {tab === 'activity' && (
-                            <BadgeActivityTab
-                                badgeCollection={badge}
+                            <ActivityTab
+                                collection={collection}
                                 badgeId={badgeId}
-
                             />
                         )}
 
                         {tab === 'owners' && (
                             <OwnersTab
-                                badgeCollection={badge}
+                                collection={collection}
                                 badgeId={badgeId}
                             />
                         )}
-
-                        {/* {pending.map((pendingData) => (
-                    <div key={pendingData.badge.id}>
-                        {tab === 'incoming' && (
-                            <>
-                                <PendingModalItem
-                                    address={
-                                        pendingData.from === ETH_NULL_ADDRESS
-                                            ? badgeMap[pendingData.badge].manager
-                                            : pendingData.from
-                                    }
-                                    title={
-                                        <>
-                                            {pendingData.from !==
-                                                ETH_NULL_ADDRESS ? (
-                                                <>
-                                                    <Tooltip
-                                                        title={pendingData.from}
-                                                    >
-                                                        {' '}
-                                                        {getAbbreviatedAddress(
-                                                            pendingData.from
-                                                        )}{' '}
-                                                    </Tooltip>
-                                                    wants to send you{' '}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Tooltip
-                                                        title={
-                                                            badgeMap[
-                                                                pendingData.badge
-                                                            ].manager
-                                                        }
-                                                    >
-                                                        {' '}
-                                                        {getAbbreviatedAddress(
-                                                            badgeMap[
-                                                                pendingData.badge
-                                                            ].manager
-                                                        )}{' '}
-                                                    </Tooltip>
-                                                    wants to mint you{' '}
-                                                </>
-                                            )}
-                                            {pendingData.amount}{' '}
-                                            {
-                                                badgeMap[pendingData.badge].metadata
-                                                    .name
-                                            }{' '}
-                                            badges{' '}
-                                        </>
-                                    }
-                                    info={
-                                        <>
-                                            {[
-                                                badgeMap[pendingData.badge]
-                                                    .permissions.canOwnerTransfer
-                                                    ? badgeMap[pendingData.badge]
-                                                        .permissions.canRevoke
-                                                        ? 'This badge is transferable, but the manager can revoke it at anytime.'
-                                                        : 'This badge is transferable and can never be revoked by the manager.'
-                                                    : badgeMap[pendingData.badge]
-                                                        .permissions.canRevoke
-                                                        ? 'This badge is non-transferable, but the manager can revoke it.'
-                                                        : 'This badge is non-transferable and can never be revoked by the manager. Once you accept this badge, it will permanently live in your account forever.',
-                                                badgeMap[pendingData.badge]
-                                                    .permissions.canMintMore
-                                                    ? 'The supply of this badge is not locked. The badge manager can mint more of this badge.'
-                                                    : 'The supply of this badge is locked. The badge manager can not mint anymore of this badge ever.',
-                                            ].map((item) => (
-                                                <List.Item
-                                                    key={item}
-                                                    style={{
-                                                        padding: '4px 0px',
-                                                        color: PRIMARY_TEXT,
-                                                    }}
-                                                >
-                                                    <Typography.Text>
-                                                        <div
-                                                            style={{
-                                                                color: PRIMARY_TEXT,
-                                                            }}
-                                                        >
-                                                            <WarningOutlined
-                                                                style={{
-                                                                    color: 'orange',
-                                                                }}
-                                                            />
-                                                            {item}
-                                                        </div>
-                                                    </Typography.Text>{' '}
-                                                </List.Item>
-                                            ))}
-                                        </>
-                                    }
-                                    badge={badgeMap[pendingData.badge]}
-                                    balance={pendingData.amount}
-                                    id={pendingData.id}
-                                    showButtons
-                                />
-                            </>
-                        )}
-                        {tab === 'outgoing' && (
-                            <PendingModalItem
-                                address={pendingData.to}
-                                title={
-                                    <>
-                                        {' '}
-                                        You are sending {pendingData.amount}{' '}
-                                        {badgeMap[pendingData.badge].metadata.name}{' '}
-                                        badges to{' '}
-                                        <Tooltip title={pendingData.to}>
-                                            {' '}
-                                            {getAbbreviatedAddress(
-                                                pendingData.to
-                                            )}{' '}
-                                        </Tooltip>
-                                    </>
-                                }
-                                info={
-                                    <>
-                                        {[
-                                            `If the recipient declines this
-                                            transfer request, the badges will be
-                                            added back to your account's
-                                            balances.`,
-                                        ].map((item) => (
-                                            <List.Item
-                                                key={item}
-                                                style={{
-                                                    padding: '4px 0px',
-                                                    color: PRIMARY_TEXT,
-                                                }}
-                                            >
-                                                <Typography.Text>
-                                                    <div
-                                                        style={{
-                                                            color: PRIMARY_TEXT,
-                                                        }}
-                                                    >
-                                                        <WarningOutlined
-                                                            style={{
-                                                                color: 'orange',
-                                                            }}
-                                                        />
-                                                        {item}
-                                                    </div>
-                                                </Typography.Text>{' '}
-                                            </List.Item>
-                                        ))}
-                                    </>
-                                }
-                                badge={badgeMap[pendingData.badge]}
-                                balance={pendingData.amount}
-                                id={pendingData.id}
-                            />
-                        )}
-                    </div>
-                ))}
-                {(!pending || pending.length === 0) && (
-                    <Empty
-                        description={
-                            <div style={{ color: PRIMARY_TEXT }}>
-                                No Badges Found
-                            </div>
-                        }
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                )} */}
-
                     </div>
                 </Content>
             </Layout>

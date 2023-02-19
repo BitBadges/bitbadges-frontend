@@ -40,6 +40,9 @@ export function AccountDisplay({
 
     return (
         <div>
+            {
+            //TODO: refactor to ButtonDisplay
+}
             <div style={{ position: 'absolute', right: 10, top: 74 }}>
                 {twitter && (
                     <a href={twitter} target="_blank" rel="noreferrer">

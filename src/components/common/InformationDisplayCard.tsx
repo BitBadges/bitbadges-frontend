@@ -1,5 +1,5 @@
-import { Row, Col, Typography, Divider } from "antd";
-import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
+import { Col, Divider, Row, Typography } from "antd";
+import { PRIMARY_TEXT } from "../../constants";
 
 const { Text } = Typography;
 

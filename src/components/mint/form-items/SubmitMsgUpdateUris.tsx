@@ -70,8 +70,8 @@ export function SubmitMsgUpdateUris({
             visible={visible}
             setVisible={setVisible}
             txCosmosMsg={updateUrisMsg}
-            badge={collection}
-            setBadgeCollection={() => { }}
+            collection={collection}
+            setCollection={() => { }}
         />
     </div>
 }

@@ -1,28 +1,26 @@
-import { useEffect, useState } from "react";
-import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedChain, UserBalance } from "../../bitbadges-api/types"
-import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
-import { useChainContext } from "../../chain/ChainContext";
-import { Button, Row, Tooltip, Divider, Card, Typography, Input } from "antd";
 import { ClockCircleOutlined } from "@ant-design/icons";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { TransferDisplay } from "./TransferDisplay";
-import { parseClaim } from "../../bitbadges-api/claims";
-import { BlockinDisplay } from "../blockin/BlockinDisplay";
-import { getBlankBalance } from "../../bitbadges-api/balances";
+import { Button, Card, Divider, Input, Row, Tooltip, Typography } from "antd";
 import { SHA256 } from "crypto-js";
+import { useState } from "react";
+import { getBlankBalance } from "../../bitbadges-api/balances";
+import { parseClaim } from "../../bitbadges-api/claims";
+import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedChain } from "../../bitbadges-api/types";
+import { useChainContext } from "../../chain/ChainContext";
+import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { BalanceDisplay } from "./BalanceDisplay";
+import { TransferDisplay } from "./TransferDisplay";
 
 export function ClaimDisplay({
     claim,
     collection,
-    setCollection,
     openModal,
     claimId,
 }: {
     claim: Claims,
     collection: BitBadgeCollection,
-    setCollection: (collection: BitBadgeCollection) => void,
     openModal: (code?: string) => void,
     claimId: number,
 }) {
@@ -59,15 +57,13 @@ export function ClaimDisplay({
             {/* <h1>Claim #{claimId}</h1> */}
             {collection.claims[claimId]?.leaves?.length === 0 &&
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
-
                     <h2>
                         Claim x{claim.amountPerClaim} of each of the badges below:
                         {claim.badgeIds.map((id, idx) => {
                             console.log(id)
                             return <BadgeAvatarDisplay
                                 key={idx}
-                                badgeCollection={collection}
-                                setBadgeCollection={setCollection}
+                                collection={collection}
                                 startId={Number(id.start)}
                                 endId={Number(id.end)}
                                 userBalance={getBlankBalance()}
@@ -85,7 +81,6 @@ export function ClaimDisplay({
             <BalanceDisplay
                 message={'Badges Left Available to Claim'}
                 collection={collection}
-                setCollection={setCollection}
                 balance={{
                     approvals: [],
                     balances: claim.balances
@@ -118,8 +113,7 @@ export function ClaimDisplay({
 
                                 <div style={{ color: PRIMARY_TEXT }}>
                                     <TransferDisplay
-                                        badge={collection}
-                                        setBadgeCollection={setCollection}
+                                        collection={collection}
                                         fontColor={PRIMARY_TEXT}
                                         from={[
                                             MINT_ACCOUNT
@@ -166,17 +160,6 @@ export function ClaimDisplay({
                                         <h3>You have been whitelisted!</h3>
                                         <p>See your available claims below</p>
                                     </div>}
-                                    {/* <div className='flex-between' style={{ justifyContent: 'center' }}>
-                                        <AddressDisplay
-                                            fontColor={PRIMARY_TEXT}
-                                            userInfo={{
-                                                address: chain.address,
-                                                accountNumber: chain.accountNumber,
-                                                cosmosAddress: chain.cosmosAddress,
-                                                chain: chain.chain,
-                                            }} />
-                                    </div> */}
-
                                 </div>}
                             {collection.claims[claimId]?.leaves?.map((x) => {
                                 const currLeaf: ClaimItem = parseClaim(x);
@@ -188,8 +171,7 @@ export function ClaimDisplay({
                                     <Divider />
                                     <hr />
                                     <TransferDisplay
-                                        badge={collection}
-                                        setBadgeCollection={setCollection}
+                                        collection={collection}
                                         fontColor={PRIMARY_TEXT}
                                         from={[
                                             MINT_ACCOUNT
@@ -199,7 +181,6 @@ export function ClaimDisplay({
                                             accountNumber: 0,
                                             cosmosAddress: currLeaf.address,
                                             chain: SupportedChain.COSMOS,
-
                                         }]}
                                         toCodes={[]}
                                         amount={currLeaf.amount}

@@ -165,7 +165,7 @@ export function CreateClaims({
                                 {/* <h3>Claim #{currIndex + 1}</h3> */}
                                 <TransferDisplay
                                     badge={badgeCollection}
-                                    setBadgeCollection={() => { }}
+                                    setCollection={() => { }}
                                     fontColor={PRIMARY_TEXT}
                                     from={[
                                         MINT_ACCOUNT
@@ -242,7 +242,7 @@ export function CreateClaims({
                                 <br />
                                 <TransferDisplay
                                     badge={badgeCollection}
-                                    setBadgeCollection={() => { }}
+                                    setCollection={() => { }}
                                     fontColor={PRIMARY_TEXT}
                                     from={[
                                         MINT_ACCOUNT

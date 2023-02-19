@@ -1,18 +1,17 @@
-import React from 'react';
 import { MessageMsgClaimBadge, createTxMsgClaimBadge } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
-import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
 import SHA256 from 'crypto-js/sha256';
+import React from 'react';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { useChainContext } from '../../chain/ChainContext';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        badge, visible, setVisible, children, balance, setBadgeCollection, claimId, code, setUserBalance
+        collection, visible, setVisible, children, refreshCollection, claimId, code, refreshUserBalance
     }: {
-        badge: BitBadgeCollection | undefined,
-        setBadgeCollection: () => void,
-        setUserBalance: () => void,
-        balance: UserBalance,
+        collection: BitBadgeCollection | undefined,
+        refreshCollection: () => void
+        refreshUserBalance: () => void
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
@@ -21,15 +20,15 @@ export function CreateTxMsgClaimBadgeModal(
     }
 ) {
     const chain = useChainContext();
-    const claimObject = badge?.claims[claimId];
+    const claimObject = collection?.claims[claimId];
 
-    if (!claimObject || !badge) return <></>;
+    if (!claimObject || !collection) return <></>;
 
     const proofObj = claimObject.tree?.getProof(SHA256(code).toString());
 
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,
-        collectionId: badge.collectionId,
+        collectionId: collection.collectionId,
         claimId,
         proof: {
             aunts: proofObj?.map((proof) => {
@@ -49,7 +48,7 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
-            onSuccessfulTx={() => { setBadgeCollection(); setUserBalance(); }}
+            onSuccessfulTx={() => { refreshCollection(); refreshUserBalance(); }}
         >
             {children}
         </TxModal>

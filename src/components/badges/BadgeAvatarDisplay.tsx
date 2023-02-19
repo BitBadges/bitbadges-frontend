@@ -1,12 +1,11 @@
-import { ReactNode, useEffect, useState } from "react";
-import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { BadgeAvatar } from "./BadgeAvatar";
 import { Pagination } from "antd";
+import { useState } from "react";
+import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
+import { BadgeAvatar } from "./BadgeAvatar";
 
 export function BadgeAvatarDisplay({
-    badgeCollection,
-    setBadgeCollection,
+    collection,
     userBalance,
     startId,
     endId,
@@ -16,8 +15,7 @@ export function BadgeAvatarDisplay({
     showIds,
     pageSize
 }: {
-    badgeCollection: BitBadgeCollection | undefined;
-    setBadgeCollection: () => void;
+    collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
     startId: number;
     endId: number;
@@ -30,7 +28,7 @@ export function BadgeAvatarDisplay({
     const [currPage, setCurrPage] = useState<number>(1);
 
 
-    if (!badgeCollection) return <></>;
+    if (!collection) return <></>;
 
     const PAGE_SIZE = pageSize ? pageSize : 50;
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
@@ -67,7 +65,7 @@ export function BadgeAvatarDisplay({
             <>
                 <br />
                 {
-                    badgeCollection && (hackyUpdatedFlag || !hackyUpdatedFlag)
+                    collection
                     && Number(endIdNum) - Number(startIdNum) + 1 > 0
                     && Number(endIdNum) >= 0 &&
                     Number(startIdNum) >= 0
@@ -80,8 +78,8 @@ export function BadgeAvatarDisplay({
                         }}>
                             <BadgeAvatar
                                 size={size && selectedId === idx + Number(startIdNum) ? size * 1.4 : size}
-                                badge={badgeCollection}
-                                metadata={badgeCollection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                collection={collection}
+                                metadata={collection.badgeMetadata[idx + Number(startIdNum) - 1]}
                                 badgeId={idx + Number(startIdNum)}
                                 balance={userBalance}
                                 showId={showIds}

@@ -2,26 +2,37 @@ import { Collapse, Divider, Empty } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
 import { getAccountInformationByAccountNumber } from '../../../bitbadges-api/api';
-import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
+import { filterBadgeActivityForBadgeId } from '../../../bitbadges-api/badges';
+import { ActivityItem, BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../../bitbadges-api/types';
+import { convertToBitBadgesUserInfo } from '../../../bitbadges-api/users';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { TransferDisplay } from '../../common/TransferDisplay';
 
-export function ActivityTab({ badgeCollection }: {
-    badgeCollection: BitBadgeCollection | undefined;
+
+
+export function ActivityTab({ collection, badgeId }: {
+    collection: BitBadgeCollection | undefined;
+    badgeId?: number
 }) {
     const [users, setUsers] = useState<Map<string, BitBadgesUserInfo>>(new Map());
-    const [updated, setUpdated] = useState<boolean>(false);
-    const [currPage, setCurrPage] = useState<number>(1);
 
-    let activity = badgeCollection?.activity;
+    let activity: ActivityItem[];
+    //If we are showing a badge's activity, filter the activity to only show that badge's activity
+    if (badgeId && collection) {
+        activity = filterBadgeActivityForBadgeId(badgeId, collection?.activity);
+    } else if (collection) {
+        activity = collection.activity;
+    } else {
+        activity = [];
+    }
 
-
-
+    //TODO: this needs to be more efficient; need to update on map change; and need to cache the user info
     useEffect(() => {
         async function getActivity() {
             if (!activity) return;
-            const currUserMap = users;
+            const currUserMap = new Map();
+            //Set the mint user
             currUserMap.set("Mint",
                 {
                     accountNumber: -1,
@@ -35,37 +46,21 @@ export function ActivityTab({ badgeCollection }: {
                 for (const from of activityItem.from) {
                     if (!currUserMap.has(from)) {
                         const userInfo = await getAccountInformationByAccountNumber(Number(from));
-                        if (userInfo) {
-                            console.log(userInfo.chain);
-                            currUserMap.set(from, {
-                                accountNumber: userInfo.account_number,
-                                address: userInfo.address,
-                                cosmosAddress: userInfo.cosmosAddress,
-                                chain: userInfo.chain,
-                            });
-                        }
+                        currUserMap.set(from, convertToBitBadgesUserInfo(userInfo));
                     }
                 }
+
                 for (const to of activityItem.to) {
                     if (!currUserMap.has(to)) {
                         const userInfo = await getAccountInformationByAccountNumber(Number(to));
-                        if (userInfo) {
-
-                            currUserMap.set(to, {
-                                accountNumber: userInfo.account_number,
-                                address: userInfo.address,
-                                cosmosAddress: userInfo.cosmosAddress,
-                                chain: userInfo.chain,
-                            });
-                        }
+                        currUserMap.set(to, convertToBitBadgesUserInfo(userInfo));
                     }
                 }
             }
             setUsers(currUserMap);
-            setUpdated(!updated);
         }
         getActivity();
-    }, [activity, users, updated]);
+    }, [activity]);
 
     if (!activity) return <></>
 
@@ -78,7 +73,6 @@ export function ActivityTab({ badgeCollection }: {
 
     return (
         <div>
-            {/* <h2>Activity</h2> */}
             <div
                 style={{
                     color: PRIMARY_TEXT,
@@ -128,9 +122,7 @@ export function ActivityTab({ badgeCollection }: {
                                             <TransferDisplay
                                                 fontColor={PRIMARY_TEXT}
                                                 key={idx}
-                                                badge={badgeCollection}
-                                                // setBadgeCollection={setBadgeCollection}
-                                                setBadgeCollection={() => { }}
+                                                collection={collection}
                                                 from={activity.from.map((from) => {
                                                     return users.get(from) || {
                                                         accountNumber: -1,
@@ -164,7 +156,7 @@ export function ActivityTab({ badgeCollection }: {
             {
                 DEV_MODE &&
                 <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(badgeCollection, null, 2)}
+                    {JSON.stringify(collection, null, 2)}
                 </pre>
             }
         </div >

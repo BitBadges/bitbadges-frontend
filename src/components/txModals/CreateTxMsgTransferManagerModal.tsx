@@ -5,10 +5,10 @@ import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadges
 import { TxModal } from './TxModal';
 import { AddressSelect } from '../address/AddressSelect';
 
-export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children, setBadgeCollection }
+export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children, refreshCollection }
     : {
         collection: BitBadgeCollection,
-        setBadgeCollection: () => void,
+        refreshCollection: () => void
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
@@ -46,7 +46,7 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
         {
             title: 'Select Address',
             description: <>
-                <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} title={"New Manager"} />
+                <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} />
                 <br />
                 *This will only go through if the address you select has submitted a request to become the manager of this collection.
             </>,
@@ -62,7 +62,7 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
             txName="Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferManager}
-            onSuccessfulTx={() => { setBadgeCollection();  }}
+            onSuccessfulTx={() => { refreshCollection(); }}
         >
             {children}
         </TxModal>

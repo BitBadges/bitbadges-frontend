@@ -83,7 +83,7 @@ export function BadgeSupply({
                             color: PRIMARY_TEXT,
                         }}
                         onClick={() => {
-                            let value = 1000000; //TODO: uint64 max
+                            let value = 1000000; //TODO: uint64 max 
                             setSupplyToCreate(value as number);
                             addTokens(value);
                         }}>Max</Button>

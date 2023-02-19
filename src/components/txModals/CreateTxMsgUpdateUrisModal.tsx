@@ -7,7 +7,6 @@ import { TxModal } from './TxModal';
 export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, txCosmosMsg }
     : {
         badge: BitBadgeCollection,
-        setBadgeCollection: () => void,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,

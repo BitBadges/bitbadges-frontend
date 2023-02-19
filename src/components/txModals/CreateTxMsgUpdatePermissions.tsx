@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import { Switch, Tooltip } from 'antd';
 import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
+import React, { useEffect, useState } from 'react';
+import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
-import { Switch, Tooltip } from 'antd';
-import { CanCreateMoreBadgesDigit, CanUpdateDisallowedDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
+import { TxModal } from './TxModal';
 
 
-export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, children, setBadgeCollection, }
+export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, refreshCollection, }
     : {
-        badge: BitBadgeCollection,
-        setBadgeCollection: () => void,
+        collection: BitBadgeCollection,
+        refreshCollection: () => void
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode
     }) {
     const chain = useChainContext();
-    const [currPermissions, setCurrPermissions] = useState<number>(GetPermissionNumberValue(badge.permissions));
+    const [currPermissions, setCurrPermissions] = useState<number>(GetPermissionNumberValue(collection.permissions));
 
     const txCosmosMsg: MessageMsgUpdatePermissions = {
         creator: chain.cosmosAddress,
-        collectionId: badge.collectionId,
+        collectionId: collection.collectionId,
         permissions: currPermissions
     };
 
     //Upon visible turning to false, reset to initial state
     useEffect(() => {
         if (!visible) {
-            setCurrPermissions(GetPermissionNumberValue(badge.permissions));
+            setCurrPermissions(GetPermissionNumberValue(collection.permissions));
         }
-    }, [visible, badge.permissions]);
+    }, [visible, collection.permissions]);
 
     const items = [
         {
@@ -39,7 +39,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                     Can Freeze / Unfreeze Addresses
                     <div>
                         <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                            <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateDisallowed} defaultChecked={GetPermissions(currPermissions).CanUpdateDisallowed} onChange={() => {
+                            <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateDisallowed} defaultChecked={GetPermissions(currPermissions).CanUpdateDisallowed} onChange={() => {
                                 setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateDisallowedDigit, !GetPermissions(currPermissions).CanUpdateDisallowed))
                             }} />
                         </Tooltip>
@@ -48,7 +48,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Create More Badges
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
                         }} />
                     </Tooltip>
@@ -56,7 +56,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Uris (Metadata)
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
                         }} />
                     </Tooltip>
@@ -64,7 +64,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Update Bytes
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
                         }} />
                     </Tooltip>
@@ -72,7 +72,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     Can Manager Be Transferred
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(badge.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
                         }} />
                     </Tooltip>
@@ -91,7 +91,7 @@ export function CreateTxMsgUpdatePermissionsModal({ badge, visible, setVisible, 
             txName="Update Permissions"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdatePermissions}
-            onSuccessfulTx={() => { setBadgeCollection(); }}
+            onSuccessfulTx={() => { refreshCollection(); }}
         >
             {children}
         </TxModal>

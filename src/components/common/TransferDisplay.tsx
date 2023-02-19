@@ -1,18 +1,17 @@
-import { Col, Divider, Row, Typography } from "antd"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { BitBadgeCollection, BitBadgesUserInfo, IdRange, SupportedChain, UserBalance } from "../../bitbadges-api/types";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { AddressWithBlockies } from "../address/AddressWithBlockies";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Col, Row, Typography } from "antd";
 import { getBlankBalance } from "../../bitbadges-api/balances";
+import { BitBadgeCollection, BitBadgesUserInfo, IdRange } from "../../bitbadges-api/types";
+import { AddressWithBlockies } from "../address/AddressWithBlockies";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 const { Text } = Typography
 
 export function TransferDisplay({
     from,
     to,
-    badge,
-    setBadgeCollection,
+    collection,
     amount,
     badgeIds,
     fontColor,
@@ -21,8 +20,7 @@ export function TransferDisplay({
 }: {
     from: BitBadgesUserInfo[];
     to: BitBadgesUserInfo[];
-    badge?: BitBadgeCollection;
-    setBadgeCollection?: () => void;
+    collection: BitBadgeCollection;
     amount: number;
     badgeIds: IdRange[];
     fontColor?: string;
@@ -43,8 +41,8 @@ export function TransferDisplay({
                 <div style={{ textAlign: 'center' }}>
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
-                {badge && setBadgeCollection &&
-                    <BadgeAvatarDisplay showIds badgeCollection={badge} startId={startId} endId={endId} userBalance={getBlankBalance()} setBadgeCollection={setBadgeCollection} />
+                {collection &&
+                    <BadgeAvatarDisplay showIds collection={collection} startId={startId} endId={endId} userBalance={getBlankBalance()} />
                 }
             </div>
         })}
@@ -94,13 +92,6 @@ export function TransferDisplay({
                                 fontSize={14}
                                 blockiesScale={3}
                             />
-                            {/* <AddressWithBlockies
-                            fontColor={fontColor}
-                            address={user.cosmosAddress}
-                            chain={SupportedChain.COSMOS}
-                            fontSize={14}
-                            blockiesScale={3}
-                        /> */}
                         </>
                     })}
                     {toCodes?.length && toCodes?.length > 0 &&

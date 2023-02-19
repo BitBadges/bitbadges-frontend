@@ -42,7 +42,7 @@ export function SetIndividualBadgeMetadataStepItem(
                 <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
                     <BadgeAvatarDisplay
                         badgeCollection={collection}
-                        setBadgeCollection={() => { }}
+                        setCollection={() => { }}
                         userBalance={getBlankBalance()}
                         startId={1}
                         endId={individualBadgeMetadata.length}

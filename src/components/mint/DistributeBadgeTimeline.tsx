@@ -40,8 +40,6 @@ export function MintAndDistributeTimeline({
     const [manualSend, setManualSend] = useState<boolean>(false);
 
 
-
-
     const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, claimItems, distributionMethod);
 
     //TODO: think how to handle first come first serve on redistribute; current solution will not work and is not possible

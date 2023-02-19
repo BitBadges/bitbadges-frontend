@@ -1,25 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-import React, { useEffect } from 'react';
-import { Menu, Dropdown, Popover, MenuTheme, MenuProps } from 'antd';
-import { ItemType } from 'antd/lib/menu/hooks/useItems';
-// import MenuItem from 'antd/lib/menu/MenuItem';
-
-type MenuItem = Required<MenuProps>['items'][number];
-
-function getItem(
-    label: React.ReactNode,
-    key?: React.Key | null,
-    icon?: React.ReactNode,
-    children?: MenuItem[],
-): MenuItem {
-    return {
-        key,
-        icon,
-        children,
-        label,
-    } as MenuItem;
-}
-
+import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 
 export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
     tab: string;
@@ -33,7 +12,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
         ? `calc(100% / ${tabInfo.length})`
         : undefined;
 
-    const tabs = tabInfo.map((tab, idx) => {
+    const tabs = tabInfo.map((tab) => {
         const menuItem = (
             <Menu.Item
                 disabled={tab.disabled}
