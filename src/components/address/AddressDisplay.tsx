@@ -40,8 +40,8 @@ export function AddressDisplayList(
         fontColor?: string
     }
 ) {
-    return <div style={{ maxHeight: 400, overflow: 'auto', }}>
-        <h3>Added Recipients ({users.length})</h3>
+    return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor }}>
+        <h3 style={{ color: fontColor }} >Added Recipients ({users.length})</h3>
         {
             users.map((user, index) => {
                 return (

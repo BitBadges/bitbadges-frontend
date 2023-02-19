@@ -39,12 +39,12 @@ export function AddressSelect({
                     const chain = getChainForAddress(e.target.value);
 
                     //TODO: I uncommented this out to test (maybe add a loading spinner?)
-                    // setCurrUserInfo({
-                    //     chain: chain,
-                    //     address: e.target.value,
-                    //     cosmosAddress: bech32Address,
-                    //     accountNumber: -1,
-                    // });
+                    setCurrUserInfo({
+                        chain: chain,
+                        address: e.target.value,
+                        cosmosAddress: bech32Address,
+                        accountNumber: -1,
+                    });
 
 
                     //Try and get account number; if still -1, we assume accont is unregistered still

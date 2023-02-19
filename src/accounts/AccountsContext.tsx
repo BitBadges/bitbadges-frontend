@@ -13,15 +13,15 @@ export type AccountsContextType = {
     accountNumbers: {
         [address: string]: number;
     },
-    fetchAccounts: (accountsToFetch: string[]) => Promise<void>,
-    fetchAccountsByNumber: (accountNumsToFetch: number[]) => Promise<void>,
+    fetchAccounts: (accountsToFetch: string[]) => Promise<BitBadgesUserInfo[]>,
+    fetchAccountsByNumber: (accountNumsToFetch: number[]) => Promise<BitBadgesUserInfo[]>,
 }
 
 const AccountsContext = createContext<AccountsContextType>({
     accounts: {},
     accountNumbers: {},
-    fetchAccounts: async () => { },
-    fetchAccountsByNumber: async () => { },
+    fetchAccounts: async () => { return [] },
+    fetchAccountsByNumber: async () => { return [] },
 });
 
 type Props = {
@@ -57,6 +57,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 fetchedAccounts.push(accounts[accountNumbers[account]]);
             }
         }
+
+        return fetchedAccounts;
     }
 
     const fetchAccountsByNumber = async (accountNums: number[]) => {
@@ -80,7 +82,20 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 [accountInfo.cosmosAddress]: accountInfo.account_number
             });
         }
+
+        const accountsToReturn = [];
+        for (const accountNum of accountNums) {
+            if (accounts[accountNum] === undefined) {
+                const accountInfo = fetchedAccounts.find(account => account.account_number === accountNum);
+                if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
+            } else {
+                accountsToReturn.push(accounts[accountNum]);
+            }
+        }
+
+        return accountsToReturn;
     }
+
 
 
 

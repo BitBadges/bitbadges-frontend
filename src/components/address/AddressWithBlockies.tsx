@@ -2,11 +2,12 @@ import { WarningOutlined } from "@ant-design/icons";
 import { Avatar, Tooltip } from "antd";
 import { ethToCosmos } from "bitbadgesjs-address-converter";
 import Blockies from 'react-blockies';
-import { getChainLogo } from "../../bitbadges-api/chains";
+import { getChainLogo, isAddressValid } from "../../bitbadges-api/chains";
 import { SupportedChain } from "../../bitbadges-api/types";
 import { SECONDARY_TEXT } from "../../constants";
 import { Address } from "./Address";
 import { AddressDisplay } from "./AddressDisplay";
+import { isAddress } from "ethers/lib/utils";
 
 export function AddressWithBlockies({
     address,
@@ -50,7 +51,7 @@ export function AddressWithBlockies({
             hidePortfolioLink={hidePortfolioLink}
         />
 
-        {chain == SupportedChain.UNKNOWN && <Tooltip placement='bottom'
+        {chain == SupportedChain.UNKNOWN && isAddressValid(address) && <Tooltip placement='bottom'
             style={{ minWidth: 400 }}
             color={'black'}
             title={<div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -71,7 +72,6 @@ export function AddressWithBlockies({
                     }}
                     hidePortfolioLink
                 />
-
                 <br />
             </div>}>
             <WarningOutlined

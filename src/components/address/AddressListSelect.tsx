@@ -45,7 +45,7 @@ export function AddressListSelect({
                 if (existingUser) {
                     newUserList.push(existingUser);
                 } else {
-                    let accountInfo = await accounts.fetchAccounts([address]);
+                    const accountInfo = await accounts.fetchAccounts([address]);
                     newUserList.push(accountInfo[0]);
                 }
             } else {
@@ -68,7 +68,7 @@ export function AddressListSelect({
             users={users}
             setUsers={setUsers}
             disallowedUsers={disallowedUsers}
-            fontColor={PRIMARY_TEXT}
+            fontColor={darkMode ? PRIMARY_TEXT : 'black'}
         />
         {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
             <Typography.Text type="danger">
@@ -129,7 +129,7 @@ export function AddressListSelect({
         {enterMethod === EnterMethod.Batch && <>
             <br />
             <TextArea
-                style={{ minHeight: 200, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                style={{ minHeight: 200, backgroundColor: darkMode ? PRIMARY_BLUE : undefined, color: darkMode ? PRIMARY_TEXT : undefined }}
                 value={batchAddAddressList}
                 onChange={(e) => setBatchAddAddressList(e.target.value)}
             />

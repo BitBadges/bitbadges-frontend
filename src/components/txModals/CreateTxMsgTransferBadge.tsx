@@ -16,7 +16,6 @@ import { TransferDisplay } from '../common/TransferDisplay';
 import { TxModal } from './TxModal';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 
-//TODO: check for disallowedTransfers / managerApprovedTransfers
 export function CreateTxMsgTransferBadgeModal(
     {
         collection, visible, setVisible, children, userBalance, refreshCollection, refreshUserBalance

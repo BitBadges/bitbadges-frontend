@@ -28,7 +28,9 @@ export function convertToCosmosAddress(address: string) {
         COSMOS.decoder(address);
         bech32Address = address;
     } catch {
-        bech32Address = ethToCosmos(address);
+        if (ethers.utils.isAddress(address)) {
+            bech32Address = ethToCosmos(address);
+        }
     }
 
     return bech32Address;
