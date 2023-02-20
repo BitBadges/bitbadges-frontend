@@ -1,7 +1,7 @@
 import { Divider, Empty, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { getBadgeBalance, getBadgeCollection } from '../../bitbadges-api/api';
+import { getBadgeBalance, getBadgeCollection, updateMetadata } from '../../bitbadges-api/api';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { BadgePageHeader } from '../../components/badges/BadgePageHeader';
@@ -38,12 +38,21 @@ function CollectionPage() {
     const [collection, setCollection] = useState<BitBadgeCollection>();
     const collectionMetadata = collection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
+    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState<boolean>(false);
 
     async function refreshCollection() {
         await new Promise(r => setTimeout(r, 3000));
 
         const res = await getBadgeCollection(collectionIdNumber);
         setCollection(res.collection);
+        setHackyUpdatedFlag(!hackyUpdatedFlag);
+    }
+
+    async function updateCollectionMetadata(startBadgeId: number) {
+        if (!collection) return;
+        const newCollection = await updateMetadata(collection, startBadgeId);
+        setHackyUpdatedFlag(!hackyUpdatedFlag);
+        setCollection(newCollection);
     }
 
     async function setBadgeUserBalance() {
@@ -105,9 +114,11 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} collection={collection} refreshCollection={refreshCollection}
+                        <OverviewTab setTab={setTab} collection={collection}
+                            refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
+                            updateCollectionMetadata={updateCollectionMetadata}
                         />
                     )}
                     {tab === 'badges' && (
@@ -116,6 +127,7 @@ function CollectionPage() {
                             balance={userBalance}
                             badgeId={badgeIdNumber}
                             setBadgeId={setBadgeIdNumber}
+                            updateCollectionMetadata={updateCollectionMetadata}
                         />
                     )}
 
@@ -133,6 +145,7 @@ function CollectionPage() {
                             refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
+
                         />
                     )}
 

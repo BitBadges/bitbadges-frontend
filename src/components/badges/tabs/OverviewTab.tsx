@@ -14,12 +14,14 @@ export function OverviewTab({
     refreshUserBalance,
     userBalance,
     setTab,
+    updateCollectionMetadata
 }: {
     collection: BitBadgeCollection | undefined;
     refreshCollection: () => void;
     refreshUserBalance: () => void;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
@@ -35,6 +37,7 @@ export function OverviewTab({
                 userBalance={userBalance}
                 startId={1}
                 endId={collection?.nextBadgeId - 1}
+                updateCollectionMetadata={updateCollectionMetadata}
             />
         </InformationDisplayCard>
         <br />

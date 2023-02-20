@@ -150,10 +150,6 @@ export function MetadataForm({
                 </>}
                 {addMethod === MetadataAddMethod.Manual && <>
                     <br />
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                        <h3>{isNaN(Number(id)) ? `Set Collection Metadata` : `Set Metadata for Badge ${id}`}</h3>
-                    </div>
-                    <br />
                     <Form.Item
                         label={
                             <Text

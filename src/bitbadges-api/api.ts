@@ -4,7 +4,7 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
@@ -82,9 +82,23 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
+    badgeData = await updateMetadata(badgeData, 1);
+
     return {
         collection: badgeData
     };
+}
+
+export async function updateMetadata(collection: BitBadgeCollection, startBadgeId?: number) {
+    let metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBadgeId }).then((res) => res.data);
+    collection.collectionMetadata = metadataRes.collectionMetadata;
+    console.log("METADATA RES: ", metadataRes);
+    collection.badgeMetadata = {
+        ...collection.badgeMetadata,
+        ...metadataRes.badgeMetadata
+    };
+
+    return collection;
 }
 
 export async function getBadgeBalance(

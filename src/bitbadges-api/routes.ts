@@ -33,6 +33,10 @@ export const GetPortfolioRoute = (accountNumber: number) => {
     return `/api/user/portfolio/${accountNumber}`
 }
 
+export const GetMetadataRoute = (collectionId: number) => {
+    return `/api/metadata/${collectionId}`;
+}
+
 export interface GetCollectionResponse {
     error?: any;
     collection?: BitBadgeCollection;

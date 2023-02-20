@@ -158,6 +158,7 @@ export function WalletHeader() {
             <div className="navbar-expanded"
                 style={{
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     width: '50%',
                 }}

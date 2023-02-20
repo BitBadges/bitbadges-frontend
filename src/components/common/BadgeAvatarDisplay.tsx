@@ -12,7 +12,8 @@ export function BadgeAvatarDisplay({
     size,
     selectedId,
     showIds,
-    pageSize
+    pageSize,
+    updateCollectionMetadata,
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -22,6 +23,7 @@ export function BadgeAvatarDisplay({
     pageSize?: number;
     selectedId?: number;
     showIds?: boolean;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
@@ -37,7 +39,13 @@ export function BadgeAvatarDisplay({
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
     console.log("Updated BadgeAvatarDisplay");
-
+    
+    for (let i = startIdNum; i <= endIdNum; i++) {
+        if (!collection?.badgeMetadata[i]) {
+            updateCollectionMetadata(i);
+            break;
+        }
+    }
 
 
     return <div>

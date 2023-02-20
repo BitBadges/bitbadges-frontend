@@ -4,21 +4,29 @@ import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeCard } from '../../common/BadgeCard';
 
-export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
+export function BadgesTab({ collection, balance, badgeId, setBadgeId, updateCollectionMetadata }: {
     collection: BitBadgeCollection | undefined;
     balance: UserBalance | undefined;
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
 
-    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. ?id=1)
+    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e.?id=1)
 
     const PAGE_SIZE = 25;
     const startId = 1;
     const endId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
+
+    for (let i = startIdNum; i <= endIdNum; i++) {
+        if (!collection?.badgeMetadata[i]) {
+            updateCollectionMetadata(i);
+            break;
+        }
+    }
 
     return (
         <div
@@ -62,8 +70,9 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
                                 setBadgeId={setBadgeId}
                                 balance={balance}
                                 collection={collection}
-                                metadata={collection.badgeMetadata[idx + Number(startIdNum) - 1]}
+                                metadata={collection.badgeMetadata[idx + Number(startIdNum)]}
                                 id={idx + Number(startIdNum)}
+                                updateCollectionMetadata={updateCollectionMetadata}
                             />
                         </div>
                     })}
