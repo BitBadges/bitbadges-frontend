@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Card, Tooltip } from 'antd';
+import { Avatar, Card, Spin, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { useEffect, useState } from 'react';
 import { getBlankBalance, getSupplyByBadgeId } from '../../bitbadges-api/balances';
@@ -34,9 +34,6 @@ export function BadgeCard({
             setBadgeId(-1);
         }
     }, [isModalOpen, visible, setBadgeId]);
-
-    if (!collection || !metadata) return <></>
-
 
     if (!size) size = 100;
 
@@ -87,7 +84,7 @@ export function BadgeCard({
                             src={
                                 metadata?.image
                                     ? metadata.image
-                                    : undefined
+                                    : <Spin size='large' />
                             }
                             size={size}
                             onError={() => {

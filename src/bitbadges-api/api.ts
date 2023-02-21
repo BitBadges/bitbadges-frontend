@@ -4,7 +4,7 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
@@ -22,8 +22,8 @@ export async function getAccountInformationByAccountNumber(id: number) {
     return accountObject;
 }
 
-export async function getAccountsByAccountNumbers(accountNums: number[]) {
-    const accountObjects: { accounts: CosmosAccountInformation[] } = await axios.post(BACKEND_URL + GetAccountsByNumberRoute(), { accountNums }).then((res) => res.data);
+export async function getAccounts(accountNums: number[], addresses: string[]) {
+    const accountObjects: { accounts: CosmosAccountInformation[] } = await axios.post(BACKEND_URL + GetAccountsRoute(), { accountNums, addresses }).then((res) => res.data);
     return accountObjects.accounts;
 }
 

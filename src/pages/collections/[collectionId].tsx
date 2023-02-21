@@ -12,6 +12,7 @@ import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
 import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
 import { Tabs } from '../../components/common/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 const { Content } = Layout;
 
 const tabInfo = [
@@ -25,9 +26,11 @@ const tabInfo = [
 function CollectionPage() {
     const router = useRouter()
     const chain = useChainContext();
+    const collections = useCollectionsContext();
 
     const { collectionId, badgeId } = router.query;
     const collectionIdNumber = collectionId ? Number(collectionId) : -1;
+
 
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
 
@@ -35,25 +38,12 @@ function CollectionPage() {
 
 
     const [tab, setTab] = useState(badgeIdNumber ? 'badges' : 'overview');
-    const [collection, setCollection] = useState<BitBadgeCollection>();
+
+    const collection = collections.collections[`${collectionIdNumber}`];
+
     const collectionMetadata = collection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
-    const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState<boolean>(false);
-
-    async function refreshCollection() {
-        await new Promise(r => setTimeout(r, 3000));
-
-        const res = await getBadgeCollection(collectionIdNumber);
-        setCollection(res.collection);
-        setHackyUpdatedFlag(!hackyUpdatedFlag);
-    }
-
-    async function updateCollectionMetadata(startBadgeId: number) {
-        if (!collection) return;
-        const newCollection = await updateMetadata(collection, startBadgeId);
-        setHackyUpdatedFlag(!hackyUpdatedFlag);
-        setCollection(newCollection);
-    }
+    
 
     async function setBadgeUserBalance() {
         await new Promise(r => setTimeout(r, 3000));
@@ -65,11 +55,10 @@ function CollectionPage() {
     // Get badge collection information
     useEffect(() => {
         async function refreshCollection() {
-            const res = await getBadgeCollection(collectionIdNumber);
-            setCollection(res.collection);
+            await collections.fetchCollections([collectionIdNumber]);
         }
         refreshCollection();
-    }, [collectionIdNumber]);
+    }, [collectionIdNumber, collections]);
 
     useEffect(() => {
         const badgeIdNum = Number(badgeId);
@@ -115,10 +104,9 @@ function CollectionPage() {
                     {/* Tab Content */}
                     {tab === 'overview' && (
                         <OverviewTab setTab={setTab} collection={collection}
-                            refreshCollection={refreshCollection}
+                            
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
-                            updateCollectionMetadata={updateCollectionMetadata}
                         />
                     )}
                     {tab === 'badges' && (
@@ -127,26 +115,21 @@ function CollectionPage() {
                             balance={userBalance}
                             badgeId={badgeIdNumber}
                             setBadgeId={setBadgeIdNumber}
-                            updateCollectionMetadata={updateCollectionMetadata}
                         />
                     )}
 
                     {tab === 'claims' && (
                         <ClaimsTab
                             collection={collection}
-                            refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
-                            updateCollectionMetadata={updateCollectionMetadata} 
                         />
                     )}
 
                     {tab === 'actions' && (
                         <ActionsTab
                             collection={collection}
-                            refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
-                            updateCollectionMetadata={updateCollectionMetadata} 
                         />
                     )}
 

@@ -8,8 +8,8 @@ export const GetAccountByNumberRoute = (id: number) => {
     return `/api/user/id/${id}`;
 }
 
-export const GetAccountsByNumberRoute = () => {
-    return `/api/user/id/batch`;
+export const GetAccountsRoute = () => {
+    return `/api/user/batch`;
 }
 
 

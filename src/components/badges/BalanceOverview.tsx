@@ -13,15 +13,13 @@ import { InformationDisplayCard } from '../common/InformationDisplayCard';
 import { CreateTxMsgTransferBadgeModal } from '../txModals/CreateTxMsgTransferBadge';
 
 
-export function BalanceOverview({ collection, refreshCollection, metadata, balance, span, setTab, refreshUserBalance, updateCollectionMetadata }: {
+export function BalanceOverview({ collection, metadata, balance, span, setTab, refreshUserBalance }: {
     collection: BitBadgeCollection | undefined;
-    refreshCollection: () => void;
     refreshUserBalance: () => void;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     span?: number;
     setTab: (tab: string) => void;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const chain = useChainContext();
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
@@ -68,19 +66,16 @@ export function BalanceOverview({ collection, refreshCollection, metadata, balan
                 {balance && <BalanceDisplay
                     collection={collection}
                     balance={balance}
-                    updateCollectionMetadata={updateCollectionMetadata}
                 />}
             </div>
         </InformationDisplayCard>
 
         <CreateTxMsgTransferBadgeModal
             collection={collection}
-            refreshCollection={refreshCollection}
             visible={transferIsVisible}
             setVisible={setTransferIsVisible}
             userBalance={balance ? balance : getBlankBalance()}
             refreshUserBalance={refreshUserBalance}
-            updateCollectionMetadata={updateCollectionMetadata} 
         />
     </>
     );

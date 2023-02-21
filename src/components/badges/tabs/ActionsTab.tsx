@@ -13,16 +13,13 @@ import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpd
 
 export function ActionsTab({
     collection,
-    refreshCollection,
+    
     userBalance,
-    refreshUserBalance,
-    updateCollectionMetadata
+    refreshUserBalance
 }: {
     collection?: BitBadgeCollection;
-    refreshCollection: () => void;
     userBalance?: UserBalance;
     refreshUserBalance: () => void;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const router = useRouter();
     const chain = useChainContext();
@@ -263,31 +260,26 @@ export function ActionsTab({
                 visible={transferIsVisible}
                 setVisible={setTransferIsVisible}
                 collection={collection}
-                refreshCollection={refreshCollection}
                 userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
                 refreshUserBalance={refreshUserBalance}
-                updateCollectionMetadata={updateCollectionMetadata}
             />
 
             <CreateTxMsgTransferManagerModal
                 visible={transferManagerIsVisible}
                 setVisible={setTransferManagerIsVisible}
                 collection={collection}
-                refreshCollection={refreshCollection}
             />
 
             <CreateTxMsgRequestTransferManagerModal
                 visible={requestTransferManagerIsVisible}
                 setVisible={setRequestTransferManagerIsVisible}
                 collection={collection}
-                refreshCollection={refreshCollection}
             />
 
             <CreateTxMsgUpdatePermissionsModal
                 visible={updatePermissionsIsVisible}
                 setVisible={setUpdatePermissionsIsVisible}
                 collection={collection}
-                refreshCollection={refreshCollection}
             />
         </div >
     );

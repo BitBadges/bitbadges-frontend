@@ -10,18 +10,14 @@ import { PermissionsOverview } from "../PermissionsOverview";
 
 export function OverviewTab({
     collection,
-    refreshCollection,
     refreshUserBalance,
     userBalance,
-    setTab,
-    updateCollectionMetadata
+    setTab
 }: {
     collection: BitBadgeCollection | undefined;
-    refreshCollection: () => void;
     refreshUserBalance: () => void;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
@@ -37,7 +33,6 @@ export function OverviewTab({
                 userBalance={userBalance}
                 startId={1}
                 endId={collection?.nextBadgeId - 1}
-                updateCollectionMetadata={updateCollectionMetadata}
             />
         </InformationDisplayCard>
         <br />
@@ -112,7 +107,6 @@ export function OverviewTab({
 
             <BalanceOverview
                 collection={collection}
-                refreshCollection={refreshCollection}
                 refreshUserBalance={refreshUserBalance}
                 metadata={collectionMetadata}
                 balance={userBalance}

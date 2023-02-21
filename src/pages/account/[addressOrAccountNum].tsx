@@ -12,6 +12,7 @@ import { BalanceDisplay } from '../../components/common/BalanceDisplay';
 import { InformationDisplayCard } from '../../components/common/InformationDisplayCard';
 import { Tabs } from '../../components/common/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 const { Content } = Layout;
 
 const tabInfo = [
@@ -24,6 +25,8 @@ const tabInfo = [
 function CollectionPage() {
     const router = useRouter()
     const { addressOrAccountNum } = router.query;
+
+    const collections = useCollectionsContext();
 
     const accounts = useAccountsContext();
 
@@ -61,12 +64,14 @@ function CollectionPage() {
 
             const portfolioInfo = await getPortfolio(accountNum);
             if (!portfolioInfo) return;
+            await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
+
             setUserInfo(portfolioInfo);
 
             //TODO: get all profile info, balances here
         }
         getUserInfo();
-    }, [addressOrAccountNum, accounts]);
+    }, [addressOrAccountNum, accounts, collections]);
 
     const [tab, setTab] = useState('collected');
 
@@ -100,6 +105,7 @@ function CollectionPage() {
                     {tab === 'collected' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', }}>
                             {userInfo?.collected.map((collection: any) => {
+                                collection = collections.collections[`${collection.collectionId}`];
                                 return (
                                     <div key={collection.collectionId} style={{ width: 400, margin: 10, display: 'flex' }}>
                                         <InformationDisplayCard
@@ -134,8 +140,8 @@ function CollectionPage() {
                                                 <BalanceDisplay
                                                     message='Collected Badges'
                                                     collection={collection}
-                                                    balance={collection.balances[accountInfo?.accountNumber || 0]} 
-                                                    
+                                                    balance={collection.balances[accountInfo?.accountNumber || 0]}
+
                                                 />
                                             </div>
                                         </InformationDisplayCard>
@@ -148,6 +154,7 @@ function CollectionPage() {
                     {tab === 'managing' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', }}>
                             {userInfo?.managing.map((collection: any) => {
+                                collection = collections.collections[`${collection.collectionId}`];
                                 return (
                                     <div key={collection.collectionId} style={{ width: 400, margin: 10, display: 'flex' }}>
                                         <InformationDisplayCard

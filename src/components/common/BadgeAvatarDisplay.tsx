@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
+import { useCollectionsContext } from "../../collections/CollectionsContext";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -13,7 +14,6 @@ export function BadgeAvatarDisplay({
     selectedId,
     showIds,
     pageSize,
-    updateCollectionMetadata,
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -23,9 +23,9 @@ export function BadgeAvatarDisplay({
     pageSize?: number;
     selectedId?: number;
     showIds?: boolean;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
+    const collections = useCollectionsContext();
 
     let stringifiedMetadata = JSON.stringify(collection?.badgeMetadata);
     useEffect(() => {
@@ -38,11 +38,10 @@ export function BadgeAvatarDisplay({
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
-    console.log("Updated BadgeAvatarDisplay");
-    
+
     for (let i = startIdNum; i <= endIdNum; i++) {
         if (!collection?.badgeMetadata[i]) {
-            updateCollectionMetadata(i);
+            collections.updateCollectionMetadata(collection.collectionId, i);
             break;
         }
     }

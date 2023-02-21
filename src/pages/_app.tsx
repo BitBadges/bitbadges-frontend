@@ -9,6 +9,7 @@ import { WalletFooter } from '../components/common/WebsiteFooter';
 import '../styles/antd-override-styles.css'
 import '../styles/index.css'
 import { AccountsContextProvider } from '../accounts/AccountsContext';
+import { CollectionsContextProvider } from '../collections/CollectionsContext';
 
 // const createdWeb3Modal = createWeb3Modal();
 
@@ -19,11 +20,13 @@ const App = ({ Component, pageProps }: AppProps) => {
             <AlgorandContextProvider>
                 <ChainContextProvider>
                     <AccountsContextProvider>
-                        <Layout className="layout">
-                            <WalletHeader />
-                            <Component {...pageProps} />
-                            <WalletFooter />
-                        </Layout>
+                        <CollectionsContextProvider>
+                            <Layout className="layout">
+                                <WalletHeader />
+                                <Component {...pageProps} />
+                                <WalletFooter />
+                            </Layout>
+                        </CollectionsContextProvider>
                     </AccountsContextProvider>
                 </ChainContextProvider>
             </AlgorandContextProvider>

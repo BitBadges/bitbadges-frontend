@@ -5,17 +5,18 @@ import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesD
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { TxModal } from './TxModal';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 
-export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, refreshCollection, }
+export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, }
     : {
         collection: BitBadgeCollection,
-        refreshCollection: () => void
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode
     }) {
     const chain = useChainContext();
+    const collections = useCollectionsContext();
     const [currPermissions, setCurrPermissions] = useState<number>(GetPermissionNumberValue(collection.permissions));
 
     const txCosmosMsg: MessageMsgUpdatePermissions = {
@@ -91,7 +92,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
             txName="Update Permissions"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdatePermissions}
-            onSuccessfulTx={() => { refreshCollection(); }}
+            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
         >
             {children}
         </TxModal>

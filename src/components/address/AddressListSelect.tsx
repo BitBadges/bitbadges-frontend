@@ -35,6 +35,10 @@ export function AddressListSelect({
     async function updateUsers() {
         const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '');
 
+        const fetchedAccounts = await accounts.fetchAccounts(batchUsersList.filter(address => {
+            return isAddressValid(address) && !users.find((u) => u.address === address);
+        }));
+
         let newUserList = users;
         for (const address of batchUsersList) {
             if (isAddressValid(address)) {
@@ -45,8 +49,8 @@ export function AddressListSelect({
                 if (existingUser) {
                     newUserList.push(existingUser);
                 } else {
-                    const accountInfo = await accounts.fetchAccounts([address]);
-                    newUserList.push(accountInfo[0]);
+                    const userInfo = fetchedAccounts.find((u) => u.address === address || u.cosmosAddress === address);
+                    if (userInfo) newUserList.push(userInfo);
                 }
             } else {
                 newUserList.push({

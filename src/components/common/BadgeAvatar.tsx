@@ -1,4 +1,4 @@
-import { Avatar, Tooltip } from "antd";
+import { Avatar, Spin, Tooltip } from "antd";
 import { useState } from "react";
 import { getBlankBalance } from '../../bitbadges-api/balances';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
@@ -76,5 +76,23 @@ export function BadgeAvatar({
             balance={balance ? balance : getBlankBalance()}
             badgeId={badgeId}
         />
-    </Tooltip> : <></>
+    </Tooltip> : <div style={{ textAlign: 'center' }}>
+
+        <Avatar
+            style={{
+                verticalAlign: 'middle',
+                margin: 4,
+                cursor: 'pointer',
+            }}
+            className="badge-avatar"
+            src={<Spin />}
+            size={size}
+            onClick={() => setModalIsVisible(true)}
+            onError={() => {
+                return false;
+            }}
+        />
+        <br />
+        {showId && <span>{badgeId}</span>}
+    </div>
 }

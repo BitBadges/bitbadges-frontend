@@ -3,15 +3,16 @@ import { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeCard } from '../../common/BadgeCard';
+import { useCollectionsContext } from '../../../collections/CollectionsContext';
 
-export function BadgesTab({ collection, balance, badgeId, setBadgeId, updateCollectionMetadata }: {
-    collection: BitBadgeCollection | undefined;
+export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
+    collection: BitBadgeCollection;
     balance: UserBalance | undefined;
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
+    const collections = useCollectionsContext();
 
     const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e.?id=1)
 
@@ -23,7 +24,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, updateColl
 
     for (let i = startIdNum; i <= endIdNum; i++) {
         if (!collection?.badgeMetadata[i]) {
-            updateCollectionMetadata(i);
+            collections.updateCollectionMetadata(collection.collectionId, i);
             break;
         }
     }

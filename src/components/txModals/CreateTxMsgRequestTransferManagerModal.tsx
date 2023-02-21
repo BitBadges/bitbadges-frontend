@@ -4,17 +4,18 @@ import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { Switch } from 'antd';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 
-export function CreateTxMsgRequestTransferManagerModal({ collection, visible, setVisible, children, refreshCollection }
+export function CreateTxMsgRequestTransferManagerModal({ collection, visible, setVisible, children }
     : {
         collection: BitBadgeCollection,
-        visible: boolean,
-        refreshCollection: () => void
+        visible: boolean
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
     }) {
     const chain = useChainContext();
+    const collections = useCollectionsContext();
     const [request, setRequest] = useState<boolean>(true);
 
 
@@ -55,7 +56,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            onSuccessfulTx={() => { refreshCollection(); }}
+            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
             displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for collection ${collection.collectionId}`}
         >
             {children}

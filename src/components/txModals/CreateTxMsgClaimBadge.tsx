@@ -4,13 +4,13 @@ import React from 'react';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { TxModal } from './TxModal';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        collection, visible, setVisible, children, refreshCollection, claimId, code, refreshUserBalance
+        collection, visible, setVisible, children, claimId, code, refreshUserBalance
     }: {
         collection: BitBadgeCollection | undefined,
-        refreshCollection: () => void
         refreshUserBalance: () => void
         visible: boolean,
         setVisible: (visible: boolean) => void,
@@ -20,6 +20,7 @@ export function CreateTxMsgClaimBadgeModal(
     }
 ) {
     const chain = useChainContext();
+    const collections = useCollectionsContext();
     const claimObject = collection?.claims[claimId];
 
     if (!claimObject || !collection) return <></>;
@@ -48,7 +49,7 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
-            onSuccessfulTx={() => { refreshCollection(); refreshUserBalance(); }}
+            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
         >
             {children}
         </TxModal>

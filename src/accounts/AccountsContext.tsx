@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
-import { getAccountInformation, getAccountsByAccountNumbers } from '../bitbadges-api/api';
+import { getAccountInformation, getAccounts } from '../bitbadges-api/api';
 import { BitBadgesUserInfo, SupportedChain } from '../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
 import { convertToCosmosAddress, getChainForAddress } from '../bitbadges-api/chains';
@@ -42,51 +42,53 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
     const ethereum = useEthereumContext();
 
-
-    //TODO: batch fetch
     const fetchAccounts = async (accountsToFetch: string[]) => {
         console.log(accountsToFetch);
-        const fetchedAccounts = [];
+
+        const accountsToFetchFromDB = [];
         for (const account of accountsToFetch) {
-            if (account === 'Mint') continue;
-
             if (accountNumbers[account] === undefined) {
-                const accountInfo = await getAccountInformation(convertToCosmosAddress(account));
-                setAccounts({
-                    ...accounts,
-                    [accountInfo.account_number]: convertToBitBadgesUserInfo(accountInfo)
-                });
-                setAccountNumbers({
-                    ...accountNumbers,
-                    [accountInfo.address]: accountInfo.account_number,
-                    [accountInfo.cosmosAddress]: accountInfo.account_number
-                });
-
-                fetchedAccounts.push(convertToBitBadgesUserInfo(accountInfo));
-                console.log("TESTING IF STATEMENT", accountInfo.chain === SupportedChain.ETH
-                    && ethereum.selectedChainInfo
-                    && ethereum.selectedChainInfo.getNameForAddress)
-
-                if (getChainForAddress(account) === SupportedChain.ETH
-                    && ethereum.selectedChainInfo
-                    && ethereum.selectedChainInfo.getNameForAddress) {
-                    let ensName = await ethereum.selectedChainInfo?.getNameForAddress(account);
-                    console.log("ENS NAME", ensName);
-                    if (ensName) {
-                        setAccountNames({
-                            ...accountNames,
-                            [account]: ensName
-                        });
-                    }
-                }
-            } else {
-                fetchedAccounts.push(accounts[accountNumbers[account]]);
+                accountsToFetchFromDB.push(account);
             }
         }
 
+        const fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
+        for (const accountInfo of fetchedAccounts) {
+            setAccounts({
+                ...accounts,
+                [accountInfo.account_number]: convertToBitBadgesUserInfo(accountInfo)
+            });
+            setAccountNumbers({
+                ...accountNumbers,
+                [accountInfo.address]: accountInfo.account_number,
+                [accountInfo.cosmosAddress]: accountInfo.account_number
+            });
 
+            if (getChainForAddress(accountInfo.address) === SupportedChain.ETH
+                && ethereum.selectedChainInfo
+                && ethereum.selectedChainInfo.getNameForAddress) {
+                let ensName = await ethereum.selectedChainInfo?.getNameForAddress(accountInfo.address);
+                console.log("ENS NAME", ensName);
+                if (ensName) {
+                    setAccountNames({
+                        ...accountNames,
+                        [accountInfo.address]: ensName
+                    });
+                }
+            }
+        }
 
-        return fetchedAccounts;
+        const accountsToReturn = [];
+        for (const account of accountsToFetch) {
+            if (accountNumbers[account] === undefined) {
+                const accountInfo = fetchedAccounts.find(fetchedAccount => fetchedAccount.address === account || fetchedAccount.cosmosAddress === account);
+                if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
+            } else {
+                accountsToReturn.push(accounts[accountNumbers[account]]);
+            }
+        }
+
+        return accountsToReturn;
     }
 
     const fetchAccountsByNumber = async (accountNums: number[]) => {
@@ -98,7 +100,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
             }
         }
 
-        const fetchedAccounts = await getAccountsByAccountNumbers(accountsToFetch);
+        const fetchedAccounts = await getAccounts(accountsToFetch, []);
         for (const accountInfo of fetchedAccounts) {
             setAccounts({
                 ...accounts,

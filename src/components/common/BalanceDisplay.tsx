@@ -4,13 +4,11 @@ import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 export function BalanceDisplay({
     collection,
     balance,
-    message,
-    updateCollectionMetadata
+    message
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
     message?: string;
-    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     return <>
         <div style={{
@@ -44,7 +42,6 @@ export function BalanceDisplay({
                                 endId={Number(idRange.end)}
                                 showIds
                                 pageSize={25}
-                                updateCollectionMetadata={updateCollectionMetadata}
                             />
                         </div>
                     })

@@ -15,23 +15,23 @@ import { BalancesInput } from '../common/BalancesInput';
 import { TransferDisplay } from '../common/TransferDisplay';
 import { TxModal } from './TxModal';
 import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 export function CreateTxMsgTransferBadgeModal(
     {
-        collection, visible, setVisible, children, userBalance, refreshCollection, refreshUserBalance, updateCollectionMetadata
+        collection, visible, setVisible, children, userBalance, refreshUserBalance
     }: {
         collection: BitBadgeCollection,
-        refreshCollection: () => void
         refreshUserBalance: () => void
         userBalance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
-        updateCollectionMetadata: (startBadgeId: number) => void
+        children?: React.ReactNode
     }
 ) {
     const chain = useChainContext();
     const accounts = useAccountsContext();
+    const collections = useCollectionsContext();
 
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [balances, setBalances] = useState<Balance[]>([
@@ -106,6 +106,8 @@ export function CreateTxMsgTransferBadgeModal(
     const onRegister = async () => {
         let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
         let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
+
+
         for (const user of newUsersToRegister) {
             const newAccountNumber = await accounts.fetchAccounts([user.cosmosAddress]).then((accountInfo) => {
                 return accountInfo[0].accountNumber;
@@ -330,7 +332,6 @@ export function CreateTxMsgTransferBadgeModal(
                     // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
-                            updateCollectionMetadata={updateCollectionMetadata}
                             hideAddresses
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
@@ -347,7 +348,7 @@ export function CreateTxMsgTransferBadgeModal(
                     </div>
                 })}
                 <Divider />
-                {postTransferBalance && <BalanceBeforeAndAfter updateCollectionMetadata={updateCollectionMetadata} collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
+                {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
             disabled: secondStepDisabled
         },
@@ -365,13 +366,12 @@ export function CreateTxMsgTransferBadgeModal(
             txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            onSuccessfulTx={() => { refreshCollection(); refreshUserBalance(); }}
+            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
             displayMsg={<div>
                 {balances.map((balance, index) => {
                     // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
-                            updateCollectionMetadata={updateCollectionMetadata}
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
                             collection={collection}

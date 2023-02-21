@@ -103,7 +103,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                     <Text style={{ color: SECONDARY_TEXT }}>
                                         <BadgeOverview
                                             collection={collection}
-                                            metadata={collection.badgeMetadata[badgeId - 1]}
+                                            metadata={collection.badgeMetadata[badgeId]}
                                             badgeId={badgeId}
                                         />
                                     </Text>
