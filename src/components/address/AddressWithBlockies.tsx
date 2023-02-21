@@ -11,6 +11,7 @@ export function AddressWithBlockies({
     fontColor,
     blockiesScale,
     accountNumber,
+    hideTooltip,
     hidePortfolioLink
 }: {
     address: string;
@@ -21,6 +22,7 @@ export function AddressWithBlockies({
     blockiesScale?: number,
     accountNumber?: number,
     hidePortfolioLink?: boolean
+    hideTooltip?: boolean
 }) {
     const chainLogo = getChainLogo(getChainForAddress(address));
 
@@ -43,9 +45,9 @@ export function AddressWithBlockies({
             address={address}
             addressName={addressName}
             chain={chain}
-            accountNumber={accountNumber}
             fontColor={fontColor}
             hidePortfolioLink={hidePortfolioLink}
+            hideTooltip={hideTooltip}
         />
     </div>
 }

@@ -42,7 +42,7 @@ export function TransferDisplay({
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {collection &&
-                    <BadgeAvatarDisplay showIds collection={collection} badgeIds={[range]} userBalance={getBlankBalance()} />
+                    <BadgeAvatarDisplay showIds collection={collection} badgeIds={[range]} userBalance={getBlankBalance()} size={50} />
                 }
             </div>
         })}

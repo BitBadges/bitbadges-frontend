@@ -17,8 +17,8 @@ export type AccountsContextType = {
     accountNames: {
         [address: string]: string;
     },
-    fetchAccounts: (accountsToFetch: string[]) => Promise<BitBadgesUserInfo[]>,
-    fetchAccountsByNumber: (accountNumsToFetch: number[]) => Promise<BitBadgesUserInfo[]>,
+    fetchAccounts: (accountsToFetch: string[], forecful?: boolean) => Promise<BitBadgesUserInfo[]>,
+    fetchAccountsByNumber: (accountNumsToFetch: number[], forecful?: boolean) => Promise<BitBadgesUserInfo[]>,
 }
 
 const AccountsContext = createContext<AccountsContextType>({
@@ -42,15 +42,18 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
     const ethereum = useEthereumContext();
 
-    const fetchAccounts = async (accountsToFetch: string[]) => {
-        console.log(accountsToFetch);
 
+
+    const fetchAccounts = async (accountsToFetch: string[], forceful?: boolean) => {
         const accountsToFetchFromDB = [];
         for (const account of accountsToFetch) {
-            if (accountNumbers[account] === undefined) {
+            if (forceful || accountNumbers[account] === undefined) {
                 accountsToFetchFromDB.push(account);
             }
         }
+
+
+        console.log("FETCHING ACCOUNTS", accountsToFetchFromDB);
 
         const fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
         for (const accountInfo of fetchedAccounts) {
@@ -80,7 +83,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
         const accountsToReturn = [];
         for (const account of accountsToFetch) {
-            if (accountNumbers[account] === undefined) {
+            if (forceful || accountNumbers[account] === undefined) {
                 const accountInfo = fetchedAccounts.find(fetchedAccount => fetchedAccount.address === account || fetchedAccount.cosmosAddress === account);
                 if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
             } else {
@@ -91,11 +94,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         return accountsToReturn;
     }
 
-    const fetchAccountsByNumber = async (accountNums: number[]) => {
+    const fetchAccountsByNumber = async (accountNums: number[], forceful?: boolean) => {
 
         const accountsToFetch = [];
         for (const accountNum of accountNums) {
-            if (accounts[accountNum] === undefined) {
+            if (forceful || accounts[accountNum] === undefined) {
                 accountsToFetch.push(accountNum);
             }
         }
@@ -128,7 +131,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
         const accountsToReturn = [];
         for (const accountNum of accountNums) {
-            if (accounts[accountNum] === undefined) {
+            if (forceful || accounts[accountNum] === undefined) {
                 const accountInfo = fetchedAccounts.find(account => account.account_number === accountNum);
                 if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
             } else {

@@ -79,7 +79,9 @@ export function AddressDisplay(
         showAccountNumber,
         fontColor,
         fontSize,
-        hidePortfolioLink
+        hidePortfolioLink,
+        hideTooltip,
+        darkMode
     }: {
         userInfo: BitBadgesUserInfo,
         title?: string | ReactNode,
@@ -89,10 +91,12 @@ export function AddressDisplay(
         fontSize?: number,
         hideChains?: boolean
         hidePortfolioLink?: boolean
+        hideTooltip?: boolean
+        darkMode?: boolean
     }
 ) {
     const accounts = useAccountsContext();
-    console.log("USER INFO", userInfo)
+
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
@@ -106,9 +110,10 @@ export function AddressDisplay(
                 chain={userInfo.chain}
                 addressName={accounts.accountNames[userInfo.address]}
                 fontSize={fontSize}
-                fontColor={fontColor}
+                fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}
                 hidePortfolioLink={hidePortfolioLink}
+                hideTooltip={hideTooltip}
             />
             <div style={{ display: 'flex', alignItems: 'center', color: fontColor }} >
                 {showAccountNumber && userInfo.accountNumber !== -1 &&

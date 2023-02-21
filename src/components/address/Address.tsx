@@ -1,11 +1,11 @@
-import { IdcardOutlined } from '@ant-design/icons';
-import { Tooltip, Typography } from 'antd';
+import { Popover, Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { SupportedChain } from '../../bitbadges-api/types';
 import { AddressDisplay } from './AddressDisplay';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
-import { SECONDARY_TEXT } from '../../constants';
-import { SupportedChain } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 
@@ -15,7 +15,6 @@ export function Address({
     fontSize,
     fontColor,
     hideTooltip,
-    accountNumber,
     hidePortfolioLink,
     addressName
 }: {
@@ -26,48 +25,55 @@ export function Address({
     fontSize?: number | string;
     fontColor?: string;
     hideTooltip?: boolean;
-    accountNumber?: number,
     hidePortfolioLink?: boolean
     addressName?: string
 }) {
     const router = useRouter();
+    const accounts = useAccountsContext();
 
     let displayAddress = addressName ? addressName : getAbbreviatedAddress(address);
     let isValidAddress = isAddressValid(address, chain);
+    const accountNumber = accounts.accountNumbers[address];
 
     const innerContent = !hideTooltip ? (
         <Tooltip
             placement="bottom"
+            color='black'
             title={
                 <div style={{
                     textAlign: 'center',
+                    color: PRIMARY_TEXT,
+                    minWidth: 400
                 }}>
-                    {`${chain} Address${accountNumber && accountNumber !== -1 ? ` (BitBadges ID #${accountNumber})` : ``}`}
+                    {`${chain} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
                     <br />
                     <br />
                     {`${address}`}
                     <br />
+                    <br />
 
                     {"Other equivalent addresses include: "}
                     <br />
-                    {/* <AddressDisplay
-                        fontColor={SECONDARY_TEXT}
-                        userInfo={{
-                            address: ethToCosmos(address),
-                            cosmosAddress: ethToCosmos(address),
-                            chain: SupportedChain.COSMOS,
-                            accountNumber: -1,
-                        }}
-                        hidePortfolioLink
-                    /> */}
+                    {chain === SupportedChain.ETH && isAddressValid(address) && <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <AddressDisplay
+                            darkMode
+                            userInfo={{
+                                address: ethToCosmos(address),
+                                cosmosAddress: ethToCosmos(address),
+                                chain: SupportedChain.COSMOS,
+                                accountNumber: -1,
+                            }}
+                            hidePortfolioLink
+                            hideTooltip
+                        />
+                        <br />
+                    </div>
+                    }
+
                 </div>
             }
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                textAlign: 'center',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
+            overlayStyle={{
+                minWidth: 400
             }}
         >
             {displayAddress}
@@ -92,27 +98,25 @@ export function Address({
                         style={{
                             color: !isValidAddress ? 'red' : fontColor
                         }}
+                        className={hidePortfolioLink ? undefined : 'link-button-nav'}
                         strong
+                        onClick={hidePortfolioLink ? undefined : () => {
+                            router.push(`/account/${address}`);
+                        }}
                     >
                         {innerContent}
-                        {!hidePortfolioLink && <Tooltip title="Go to Portfolio">
-                            <a>
-                                <IdcardOutlined
-                                    style={{ marginLeft: 4 }}
-                                    onClick={() => {
-                                        router.push(`/account/${address}`);
-                                    }}
-                                />
-                            </a>
-                        </Tooltip>}
                     </Text>
                 ) : (
                     <Text
+                        className={hidePortfolioLink ? undefined : 'link-button-nav'}
+                        strong
+                        onClick={hidePortfolioLink ? undefined : () => {
+                            router.push(`/account/${address}`);
+                        }}
                         copyable={true}
                         style={{
                             color: fontColor ? fontColor : undefined,
                         }}
-                        strong
                     >
                         {innerContent}
                     </Text>

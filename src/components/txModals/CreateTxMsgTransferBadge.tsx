@@ -16,6 +16,7 @@ import { TransferDisplay } from '../common/TransferDisplay';
 import { TxModal } from './TxModal';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { PRIMARY_TEXT } from '../../constants';
 
 export function CreateTxMsgTransferBadgeModal(
     {
@@ -104,18 +105,24 @@ export function CreateTxMsgTransferBadgeModal(
     };
 
     const onRegister = async () => {
-        let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
-        let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
+        console.log(unregisteredUsers);
+        
+        const newAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
 
+        console.log(newAccounts);
 
-        for (const user of newUsersToRegister) {
-            const newAccountNumber = await accounts.fetchAccounts([user.cosmosAddress]).then((accountInfo) => {
-                return accountInfo[0].accountNumber;
-            });
-            allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
+        const newAddresses = [];
+        for (const toAddress of toAddresses) {
+            if (toAddress.accountNumber !== -1) {
+                newAddresses.push(toAddress);
+                continue;
+            }
+            const user = newAccounts.find((account) => account.cosmosAddress === toAddress.cosmosAddress)
+            console.log("USER: ", user);
+            if (user) newAddresses.push(user);
         }
-
-        setToAddresses(allRegisteredUsers);
+        console.log("NEW ADDRESSES: ", newAddresses);
+        setToAddresses(newAddresses);
     }
 
 
@@ -298,12 +305,15 @@ export function CreateTxMsgTransferBadgeModal(
                                 chain: chain.chain,
                             }}
                             hidePortfolioLink
+                            darkMode
                         />
                     </div>
 
                     <AddressSelect
                         currUserInfo={fromUser}
                         setCurrUserInfo={setFromUser}
+                        darkMode
+                        hideAddressDisplay
                     />
                 </div>
             </div >
@@ -314,6 +324,7 @@ export function CreateTxMsgTransferBadgeModal(
                 users={toAddresses}
                 setUsers={setToAddresses}
                 disallowedUsers={badUsers}
+                darkMode
             />,
             disabled: firstStepDisabled || !canTransfer,
         },
@@ -325,6 +336,7 @@ export function CreateTxMsgTransferBadgeModal(
                     balances={balances}
                     setBalances={setBalances}
                     collection={collection}
+                    darkMode
                 />
                 {/* <hr /> */}
                 <Divider />
@@ -332,6 +344,7 @@ export function CreateTxMsgTransferBadgeModal(
                     // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
+                            fontColor={PRIMARY_TEXT}
                             hideAddresses
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}

@@ -87,7 +87,6 @@ export function BadgeAvatarDisplay({
             justifyContent: 'center',
             alignItems: 'center',
             flexWrap: 'wrap',
-            maxHeight: 400,
             overflow: 'auto',
         }} >
             <>

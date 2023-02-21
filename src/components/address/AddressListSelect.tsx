@@ -68,22 +68,25 @@ export function AddressListSelect({
 
     return <>
         <br />
-        <AddressDisplayList
-            users={users}
-            setUsers={setUsers}
-            disallowedUsers={disallowedUsers}
-            fontColor={darkMode ? PRIMARY_TEXT : 'black'}
-        />
-        {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
-            <Typography.Text type="danger">
-                You are not approved to transfer to some of the selected recipients. Please remove these recipients.
-            </Typography.Text>
+        {users.length > 0 && <div>
+
+            <AddressDisplayList
+                users={users}
+                setUsers={setUsers}
+                disallowedUsers={disallowedUsers}
+                fontColor={darkMode ? PRIMARY_TEXT : 'black'}
+            />
+            {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />
+                <Typography.Text type="danger">
+                    You are not approved to transfer to some of the selected recipients. Please remove these recipients.
+                </Typography.Text>
+            </div>}
+
+            <Divider />
         </div>}
 
-        <Divider />
-
         <AddressDisplayTitle
-            title={"Add Recipient"}
+            title={"Add Recipients"}
             icon={<Tooltip title={<>
                 {enterMethod === EnterMethod.Single && <>Batch Add</>}
                 {enterMethod === EnterMethod.Batch && <>Manual Add</>}

@@ -4,12 +4,14 @@ import { TransactionStatus } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { DEV_MODE } from '../../constants';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import { Content } from 'antd/lib/layout/layout';
 import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
+import { CloseOutlined } from '@ant-design/icons';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 
 const { Step } = Steps;
 
@@ -35,6 +37,7 @@ export function TxModal(
 ) {
     if (!msgSteps) msgSteps = [];
     const chain = useChainContext();
+    const accounts = useAccountsContext();
     const router = useRouter();
 
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -109,9 +112,8 @@ export function TxModal(
 
             try {
                 await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 onRegister();
-
-
             } catch (err: any) { }
         }
     };
@@ -169,8 +171,12 @@ export function TxModal(
 
     return (
         <Modal
-            title={<b>{txName}</b>}
+            title={<div style={{
+                backgroundColor: PRIMARY_BLUE,
+                color: PRIMARY_TEXT,
+            }}><b>{txName}</b></div>}
             open={visible}
+
             style={{
                 paddingLeft: '12px',
                 paddingRight: '0px',
@@ -179,12 +185,17 @@ export function TxModal(
                 borderBottom: '0px',
                 ...style
             }}
-            width={800}
-            closeIcon={closeIcon}
+            width={'80%'}
+            closeIcon={<div style={{
+                backgroundColor: PRIMARY_BLUE,
+                color: PRIMARY_TEXT,
+            }}>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
             bodyStyle={{
                 paddingTop: 8,
                 fontSize: 20,
-                ...bodyStyle
+                ...bodyStyle,
+                backgroundColor: PRIMARY_BLUE,
+                color: PRIMARY_TEXT
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
@@ -207,7 +218,7 @@ export function TxModal(
                     <Step
                         key={index}
                         title={<b>{item.title}</b>} description={
-                            <div>
+                            <div style={{ color: PRIMARY_TEXT }}>
                                 {currentStep === index && <div>
                                     {item.description}
                                 </div>}
@@ -224,7 +235,7 @@ export function TxModal(
                             {currentStep === msgSteps.length && <div>
                                 {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
                                     {displayMsg &&
-                                        <div style={{ textAlign: 'center' }}>
+                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                             <br />
                                             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
                                                 {displayMsg}
@@ -234,7 +245,7 @@ export function TxModal(
                                     }
 
                                     <br />
-                                    <div style={{ textAlign: 'center' }}>
+                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
                                             Please confirm all transaction details are correct before signing
                                             because blockchain transactions are permanent!
@@ -258,12 +269,13 @@ export function TxModal(
                                         }}
                                         // title={"Your Connected Wallet"}
                                         showAccountNumber
+
                                     />
                                 </>}
                                 {
                                     unregisteredUsers && unregisteredUsers.length > 0 &&
-                                    <div style={{ textAlign: 'center' }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
                                             The following addresses ({unregisteredUsers.map((address) => getAbbreviatedAddress(address)).join(", ")}) are not currently registered on the BitBadges blockchain!
                                             To proceed, we first need to register them which is a one-time transaction.
                                             You will not need to register these addresses again.

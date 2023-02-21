@@ -82,6 +82,38 @@
     margin-bottom: 100px;
 }
 
+.ant-modal-header {
+    background-color: #001529;
+    color: white;
+}
+
+.ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+.ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
+    color: white;
+}
+
+.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+
+.ant-steps-item-finish .ant-steps-item-icon, .ant-steps-item-wait .ant-steps-item-icon {
+    background-color:  #001529;
+    color: white;
+    border-color: white;
+}
+
+.ant-modal-footer {
+    background-color: #001529;
+}
+
 h1, h2, h3, h4, h5, h6 {
     color: white;
 }
