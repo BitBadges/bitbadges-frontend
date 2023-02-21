@@ -1,5 +1,7 @@
+import { Empty } from "antd";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 
 export function BalanceDisplay({
     collection,
@@ -54,18 +56,24 @@ export function BalanceDisplay({
                         </>
                     })}
                 </div>
-                <br />
-                <BadgeAvatarDisplay
-                    collection={collection}
-                    userBalance={balance}
-                    badgeIds={badgeIds}
-                    showIds
-                    pageSize={30}
-                    showBalance
-                    size={50}
-                />
-                {(!balance || balance.balances?.length === 0) && <div style={{ textAlign: 'center' }}>
-                    <span>None</span>
+
+                {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
+                    <Empty
+                        style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description={'None'}
+                    />
+                </div> : <div>
+                    <br />
+                    <BadgeAvatarDisplay
+                        collection={collection}
+                        userBalance={balance}
+                        badgeIds={badgeIds}
+                        showIds
+                        pageSize={30}
+                        showBalance
+                        size={50}
+                    />
                 </div>}
 
 

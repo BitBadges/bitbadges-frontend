@@ -13,11 +13,13 @@ export function AddressListSelect({
     users,
     setUsers,
     disallowedUsers,
+    disallowedMessages,
     darkMode
 }: {
     users: BitBadgesUserInfo[],
     setUsers: (users: BitBadgesUserInfo[]) => void,
     disallowedUsers?: BitBadgesUserInfo[],
+    disallowedMessages?: string[],
     darkMode?: boolean
 }) {
     const accounts = useAccountsContext();
@@ -74,6 +76,7 @@ export function AddressListSelect({
                 users={users}
                 setUsers={setUsers}
                 disallowedUsers={disallowedUsers}
+                disallowedMessages={disallowedMessages}
                 fontColor={darkMode ? PRIMARY_TEXT : 'black'}
             />
             {disallowedUsers && disallowedUsers?.length > 0 && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><br />

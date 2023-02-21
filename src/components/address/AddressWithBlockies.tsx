@@ -5,17 +5,14 @@ import { Address } from "./Address";
 
 export function AddressWithBlockies({
     address,
-    chain,
     fontSize,
     addressName,
     fontColor,
     blockiesScale,
-    accountNumber,
     hideTooltip,
     hidePortfolioLink
 }: {
     address: string;
-    chain: string;
     addressName?: string,
     fontSize?: number,
     fontColor?: string,
@@ -32,7 +29,7 @@ export function AddressWithBlockies({
         alignItems: 'center',
     }}>
         <Tooltip
-            title={chain}
+            title={getChainForAddress(address)}
             placement="bottom"
         >
             <Avatar
@@ -44,7 +41,6 @@ export function AddressWithBlockies({
         <Address fontSize={fontSize}
             address={address}
             addressName={addressName}
-            chain={chain}
             fontColor={fontColor}
             hidePortfolioLink={hidePortfolioLink}
             hideTooltip={hideTooltip}

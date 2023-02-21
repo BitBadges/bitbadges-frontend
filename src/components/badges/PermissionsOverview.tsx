@@ -38,18 +38,18 @@ export function PermissionsOverview({
 
                     <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
                     <h3>{"Manager's Approved Transfers"}
-                        <Tooltip title="The manager's approved transfers are those that they can a) execute without needing the owner's permission and b) execute even if the transfer is forbidden.">
+                        <Tooltip title="The manager's approved transfers are those that they can execute without needing the owner's permission. These transfers forcefully override any other transfer restrictions (e.g. non-transferable).">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>
                     </h3>
                     <div style={{ margin: 4 }}>
                         {
                             !collection.managerApprovedTransfers?.length ?
-                                <>The manager can not revoke or transfer any badge in this collection without approval of the badge owner.</>
+                                <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>None</Typography.Text>
                                 : <>
                                     {collection.managerApprovedTransfers.length === 1
                                         && JSON.stringify(collection.managerApprovedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
-                                        <>The manager can revoke or transfer any badge in this collection without approval of the badge owner.</>
+                                        <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>The manager can transfer any badge without the approval of the owner.</Typography.Text>
                                         : <>{collection.managerApprovedTransfers.map((transfer) => {
                                             return <>
                                                 The manager can forcefully transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {

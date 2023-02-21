@@ -1,7 +1,7 @@
 import { Popover, Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../accounts/AccountsContext';
-import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { SupportedChain } from '../../bitbadges-api/types';
 import { AddressDisplay } from './AddressDisplay';
@@ -11,7 +11,6 @@ const { Text } = Typography;
 
 export function Address({
     address,
-    chain,
     fontSize,
     fontColor,
     hideTooltip,
@@ -19,7 +18,6 @@ export function Address({
     addressName
 }: {
     address: string;
-    chain: string;
     blockExplorer?: string;
     size?: string;
     fontSize?: number | string;
@@ -32,7 +30,8 @@ export function Address({
     const accounts = useAccountsContext();
 
     let displayAddress = addressName ? addressName : getAbbreviatedAddress(address);
-    let isValidAddress = isAddressValid(address, chain);
+    const chain = getChainForAddress(address);
+    let isValidAddress = isAddressValid(address);
     const accountNumber = accounts.accountNumbers[address];
 
     const innerContent = !hideTooltip ? (
@@ -45,7 +44,7 @@ export function Address({
                     color: PRIMARY_TEXT,
                     minWidth: 400
                 }}>
-                    {`${chain} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
+                    {`${getChainForAddress(address)} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
                     <br />
                     <br />
                     {`${address}`}

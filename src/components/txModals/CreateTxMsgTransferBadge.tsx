@@ -17,6 +17,9 @@ import { TxModal } from './TxModal';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
 import { PRIMARY_TEXT } from '../../constants';
+import { IdRangesInput } from '../common/IdRangesInput';
+import { BalanceDisplay } from '../common/BalanceDisplay';
+import { BadgeAvatarDisplay } from '../common/BadgeAvatarDisplay';
 
 export function CreateTxMsgTransferBadgeModal(
     {
@@ -106,7 +109,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const onRegister = async () => {
         console.log(unregisteredUsers);
-        
+
         const newAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
 
         console.log(newAccounts);
@@ -250,7 +253,7 @@ export function CreateTxMsgTransferBadgeModal(
     const isDisallowedTransfer = forbiddenAddresses.length > 0;
 
 
-    const firstStepDisabled = toAddresses.length === 0 || forbiddenAddresses.length > 0;
+    const firstStepDisabled = toAddresses.length === 0;
 
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
@@ -261,16 +264,53 @@ export function CreateTxMsgTransferBadgeModal(
         canTransfer = true;
     }
 
+    let messages: string[] = [];
     let badUsers = [];
-    if (!canTransfer) {
-        badUsers = [...forbiddenAddresses, ...unapprovedAddresses];
 
-        if (chain.accountNumber === collection.manager.accountNumber) {
-            //only show overlap between the two
-            badUsers = badUsers.filter((user) => managerUnapprovedAddresses.includes(user));
+    for (const address of toAddresses) {
+        if (address.cosmosAddress === fromUser.cosmosAddress) {
+            messages.push('Recipient cannot equal sender.');
+            badUsers.push({
+                address: chain.address,
+                cosmosAddress: chain.cosmosAddress,
+                accountNumber: chain.accountNumber,
+                chain: chain.chain,
+            });
+            canTransfer = false;
+        }
+    }
+
+    if (!canTransfer) {
+        for (const address of forbiddenAddresses) {
+            messages.push(`Transfer to this recipient has been disallowed by the manager.`);
         }
 
+        for (const address of unapprovedAddresses) {
+            messages.push(`You are not approved to transfer on behalf of the sender.`);
+        }
+
+        badUsers.push(...forbiddenAddresses, ...unapprovedAddresses);
+
+        if (chain.accountNumber === fromUser.accountNumber && chain.accountNumber === collection.manager.accountNumber) {
+            //only show overlap between the two
+            badUsers = badUsers.filter((user, idx) => {
+                if (managerUnapprovedAddresses.includes(user)) {
+                    //filter out the messages that has an index of idx
+                    messages = messages.filter((_, index) => index !== idx);
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        console.log('badUsers', badUsers);
+        if (badUsers.length === 0) {
+            canTransfer = true;
+        }
     }
+
+
 
 
     const items = [
@@ -324,12 +364,53 @@ export function CreateTxMsgTransferBadgeModal(
                 users={toAddresses}
                 setUsers={setToAddresses}
                 disallowedUsers={badUsers}
+                disallowedMessages={messages}
                 darkMode
             />,
             disabled: firstStepDisabled || !canTransfer,
         },
         {
-            title: 'Select Badges and Amounts',
+            title: 'Select Badges',
+            description: <div>
+                <br />
+                <IdRangesInput
+                    setIdRanges={(badgeIds) => {
+                        setBalances([
+                            {
+                                balance: balances[0]?.balance || 0,
+                                badgeIds
+                            }
+                        ]);
+                    }}
+                    maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
+                    darkMode
+                />
+                <Divider />
+                {balances.map((balance, index) => {
+                    // console.log(balance);
+                    return <div key={index}>
+                        <TransferDisplay
+                            fontColor={PRIMARY_TEXT}
+                            hideAddresses
+                            amount={Number(balance.balance) * toAddresses.length}
+                            badgeIds={balance.badgeIds}
+                            collection={collection}
+                            from={[{
+                                chain: chain.chain,
+                                address: chain.address,
+                                accountNumber: chain.accountNumber,
+                                cosmosAddress: chain.cosmosAddress,
+                            }]}
+                            to={toAddresses}
+                            hideBalances={true}
+                        />
+                        {/* <hr /> */}
+                    </div>
+                })}
+            </div>
+        },
+        {
+            title: 'Select Amounts',
             description: <div>
                 <br />
                 <BalancesInput
@@ -383,13 +464,14 @@ export function CreateTxMsgTransferBadgeModal(
             displayMsg={<div>
                 {balances.map((balance, index) => {
                     // console.log(balance);
-                    return <div key={index}>
+                    return <div key={index} style={{ color: PRIMARY_TEXT }}>
                         <TransferDisplay
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
                             collection={collection}
                             from={[fromUser]}
                             to={toAddresses}
+                            fontColor={PRIMARY_TEXT}
                         />
                     </div>
                 })}

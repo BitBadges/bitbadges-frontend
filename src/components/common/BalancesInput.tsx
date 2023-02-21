@@ -15,9 +15,9 @@ export function BalancesInput({
     setBalances: (balances: Balance[]) => void,
     darkMode?: boolean,
 }) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
+    return <div style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div className='flex-between' style={{ flexDirection: 'column' }} >
-            <b>Amount to Transfer</b>
+            <b>Select Amount to Transfer</b>
             <InputNumber
                 min={1}
                 title='Amount to Transfer'
@@ -47,7 +47,7 @@ export function BalancesInput({
                 } : undefined}
             />
         </div>
-        <IdRangesInput
+        {/* <IdRangesInput
             setIdRanges={(badgeIds) => {
                 setBalances([
                     {
@@ -58,6 +58,6 @@ export function BalancesInput({
             }}
             maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
             darkMode={darkMode}
-        />
+        /> */}
     </div>
 }

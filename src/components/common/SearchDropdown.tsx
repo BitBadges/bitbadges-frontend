@@ -13,6 +13,9 @@ import { AddressDisplay } from '../address/AddressDisplay';
 const { Header } = Layout;
 const { Option } = Select;
 
+const OPEN_KEYS = [];
+
+
 export function SearchDropdown({
     searchValue,
     onSearch,
@@ -39,11 +42,16 @@ export function SearchDropdown({
             console.log("SEARCH RESULTS", results);
         }
         updateSearchValue(searchValue);
+
     }, [searchValue, accounts]);
 
 
 
-    return <Menu className='dropdown'>
+    return <Menu className='dropdown' onKeyDown={(e) => {
+        if (e.key === '') {
+            onSearch(searchValue);
+        }
+    }}>
         <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
         {!accountsResults.find((result: BitBadgesUserInfo) => result.address === searchValue) &&
             <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }}>

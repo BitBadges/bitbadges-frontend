@@ -1,9 +1,10 @@
 import { Divider, Empty, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { getBadgeBalance, getBadgeCollection, updateMetadata } from '../../bitbadges-api/api';
-import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { getBadgeBalance } from '../../bitbadges-api/api';
+import { UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 import { BadgePageHeader } from '../../components/badges/BadgePageHeader';
 import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
 import { ActivityTab } from '../../components/badges/tabs/ActivityTab';
@@ -12,7 +13,6 @@ import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
 import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
 import { Tabs } from '../../components/common/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
 const { Content } = Layout;
 
 const tabInfo = [
@@ -103,7 +103,8 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} collection={collection}
+                        <OverviewTab setTab={setTab} 
+                            collection={collection}
                             
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}

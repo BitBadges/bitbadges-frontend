@@ -246,12 +246,12 @@ export function TxModal(
 
                                     <br />
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
                                             Please confirm all transaction details are correct before signing
                                             because blockchain transactions are permanent!
                                         </Typography.Text>
                                         <Divider />
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
                                             By clicking the button below, you will be prompted to sign and submit a transaction
                                             from the address displayed below.
                                         </Typography.Text>
@@ -260,17 +260,20 @@ export function TxModal(
                                     </div>
                                     <br />
                                     <br />
-                                    <AddressDisplay
-                                        userInfo={{
-                                            chain: chain.chain,
-                                            address: chain.address,
-                                            cosmosAddress: chain.cosmosAddress,
-                                            accountNumber: chain.accountNumber,
-                                        }}
-                                        // title={"Your Connected Wallet"}
-                                        showAccountNumber
-
-                                    />
+                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                        <AddressDisplay
+                                            userInfo={{
+                                                chain: chain.chain,
+                                                address: chain.address,
+                                                cosmosAddress: chain.cosmosAddress,
+                                                accountNumber: chain.accountNumber,
+                                            }}
+                                            // title={"Your Connected Wallet"}
+                                            // showAccountNumber
+                                            hidePortfolioLink
+                                            darkMode
+                                        />
+                                    </div>
                                 </>}
                                 {
                                     unregisteredUsers && unregisteredUsers.length > 0 &&

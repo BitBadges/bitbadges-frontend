@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { Col, Row, Tooltip } from "antd";
+import { Col, Row, Tooltip, Typography } from "antd";
 import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
 import { InformationDisplayCard } from "../../common/InformationDisplayCard";
@@ -7,6 +7,9 @@ import { BadgeAvatarDisplay } from "../../common/BadgeAvatarDisplay";
 import { BalanceOverview } from "../BalanceOverview";
 import { CollectionOverview } from "../CollectionOverview";
 import { PermissionsOverview } from "../PermissionsOverview";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { PRIMARY_TEXT } from "../../../constants";
 
 export function OverviewTab({
     collection,
@@ -56,11 +59,12 @@ export function OverviewTab({
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>
                         {!collection.permissions.CanUpdateDisallowed ?
-                            <Tooltip title="The transferability is locked and can never be changed.">
-                                <LockOutlined style={{ marginLeft: 4 }} />
+                            <Tooltip title="The transferability is frozen and can never be changed.">
+                                <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
                             </Tooltip> :
                             <Tooltip title="Note that the manager can change the transferability.">
-                                <UnlockOutlined style={{ marginLeft: 4 }} />
+                                <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faUserPen} />
+
                             </Tooltip>
                         }
 
@@ -73,10 +77,10 @@ export function OverviewTab({
                     <div style={{ margin: 8 }}>
                         {
                             !collection.disallowedTransfers?.length ?
-                                <>Badges in this collection are transferable.</> : <>
+                                <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Transferable</Typography.Text> : <>
                                     {collection.disallowedTransfers.length === 1
                                         && JSON.stringify(collection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
-                                        <>Badges in this collection are non-transferable and tied to an account.</>
+                                        <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Non-Transferable</Typography.Text>
                                         : <>                                        {
                                             collection.disallowedTransfers.map((transfer) => {
                                                 return <>

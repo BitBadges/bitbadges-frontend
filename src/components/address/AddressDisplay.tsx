@@ -33,11 +33,13 @@ export function AddressDisplayList(
         users,
         setUsers,
         disallowedUsers,
+        disallowedMessages,
         fontColor
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
-        disallowedUsers?: BitBadgesUserInfo[]
+        disallowedUsers?: BitBadgesUserInfo[],
+        disallowedMessages?: string[],
         fontColor?: string
     }
 ) {
@@ -45,6 +47,16 @@ export function AddressDisplayList(
         <h3 style={{ color: fontColor }} >Added Recipients ({users.length})</h3>
         {
             users.map((user, index) => {
+                let isDisallowed = false;
+                let isDisallowedIdx = -1;
+                let disallowedMessage = '';
+                if (disallowedUsers) {
+                    isDisallowed = !!disallowedUsers.find(u => u.address === user.address);
+                    isDisallowedIdx = disallowedUsers.findIndex(u => u.address === user.address);
+                    if (disallowedMessages) disallowedMessage = disallowedMessages[isDisallowedIdx];
+                }
+
+
                 return (
                     <div key={index} style={{ marginRight: 8 }}>
                         <AddressDisplay
@@ -61,6 +73,11 @@ export function AddressDisplayList(
                             fontColor={disallowedUsers?.find(u => u.address === user.address) ? 'red' : fontColor}
                             hidePortfolioLink
                         />
+                        {disallowedMessage && disallowedMessage.length > 0 &&
+                            <div style={{ color: 'red' }}>
+                                Reason: {disallowedMessage}
+                            </div>
+                        }
                         <br />
                     </div>
                 )
@@ -68,7 +85,6 @@ export function AddressDisplayList(
         }
     </div>
 }
-
 
 
 export function AddressDisplay(
@@ -107,7 +123,6 @@ export function AddressDisplay(
         }}>
             <AddressWithBlockies
                 address={userInfo.address}
-                chain={userInfo.chain}
                 addressName={accounts.accountNames[userInfo.address]}
                 fontSize={fontSize}
                 fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}

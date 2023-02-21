@@ -85,6 +85,7 @@
 .ant-modal-header {
     background-color: #001529;
     color: white;
+    border: none;
 }
 
 .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
@@ -112,6 +113,7 @@
 
 .ant-modal-footer {
     background-color: #001529;
+    border: none;
 }
 
 h1, h2, h3, h4, h5, h6 {

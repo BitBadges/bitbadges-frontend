@@ -1,4 +1,4 @@
-import { Empty } from 'antd';
+import { Empty, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../../accounts/AccountsContext';
 import { getBadgeOwners } from '../../../bitbadges-api/api';
@@ -16,6 +16,7 @@ export function OwnersTab({ collection, badgeId }: {
 
     const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
     const [balances, setBalances] = useState<any>({});
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         async function getOwners() {
@@ -27,6 +28,7 @@ export function OwnersTab({ collection, badgeId }: {
 
                 setBadgeOwners(badgeOwners);
                 setBalances(ownersRes.balances);
+                setLoaded(true);
             }
         }
         getOwners();
@@ -44,31 +46,33 @@ export function OwnersTab({ collection, badgeId }: {
                     <InformationDisplayCard
                         title="Owners"
                     >
-                        <div
-                            style={{
-                                color: PRIMARY_TEXT,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex'
-                            }}>
-                            {badgeOwners?.map((owner, idx) => {
-                                return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', margin: 10 }}>
-                                    <div>
-                                        <AddressDisplay
-                                            userInfo={accounts.accounts[owner]}
-                                            fontColor={PRIMARY_TEXT} />
+                        {loaded ?
+                            <div
+                                style={{
+                                    color: PRIMARY_TEXT,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    display: 'flex'
+                                }}>
+                                {badgeOwners?.map((owner, idx) => {
+                                    return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', margin: 10 }}>
+                                        <div>
+                                            <AddressDisplay
+                                                userInfo={accounts.accounts[owner]}
+                                                fontColor={PRIMARY_TEXT} />
+                                        </div>
+                                        <div>
+                                            x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
+                                        </div>
                                     </div>
-                                    <div>
-                                        x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
-                                    </div>
-                                </div>
-                            })}
-                            {badgeOwners.length === 0 && <Empty
-                                description="No owners found for this badge."
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                style={{ color: PRIMARY_TEXT }}
-                            />}
-                        </div>
+                                })}
+                                {badgeOwners.length === 0 && <Empty
+                                    description="No owners found for this badge."
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    style={{ color: PRIMARY_TEXT }}
+                                />}
+                            </div> : <div><br /><Spin size={'large'} /><br /></div>
+                        }
 
                     </InformationDisplayCard>
                 </div>
