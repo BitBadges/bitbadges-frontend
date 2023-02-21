@@ -16,7 +16,7 @@ import { useState } from 'react';
 import Blockies from 'react-blockies';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 import { getSearchResults } from '../../bitbadges-api/api';
-import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
+import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Tabs } from './Tabs';
@@ -140,46 +140,66 @@ export function WalletHeader() {
             overlay={<Menu className='dropdown'>
 
 
-                <h3 style={{ color: 'black' }}>Accounts</h3>
+                <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
                 {!accountsResults.find((result: BitBadgesUserInfo) => result.address === searchValue) &&
                     <Menu.Item className='dropdown-item' onClick={() => {
                         onSearch(searchValue);
                     }}>
-                        <AddressDisplay
-                            userInfo={{
-                                address: searchValue,
-                                cosmosAddress: '',
-                                chain: SupportedChain.UNKNOWN,
-                                accountNumber: -1,
-                            }}
-                            hidePortfolioLink
-                        />
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <AddressDisplay
+                                    userInfo={{
+                                        address: searchValue,
+                                        cosmosAddress: '',
+                                        chain: SupportedChain.UNKNOWN,
+                                        accountNumber: -1,
+                                    }}
+                                    hidePortfolioLink
+                                />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                {isAddressValid(searchValue) ? 'Unregistered' : ''}
+                            </div>
+                        </div>
                     </Menu.Item>
                 }
                 {accountsResults.map((result: BitBadgesUserInfo, idx) => {
                     return <Menu.Item key={idx} className='dropdown-item' onClick={() => {
                         onSearch(result.address);
                     }}>
-
-                        <AddressDisplay
-                            userInfo={result}
-                            hidePortfolioLink
-                        />
-                    </Menu.Item>
-                })}
-
-                <hr />
-                <h3 style={{ color: 'black' }}>Collections</h3>
-                {collectionsResults.map((result: BadgeMetadata, idx) => {
-                    return <Menu.Item key={'collection' + idx} className='dropdown-item' onClick={() => {
-                        onSearch(`${result._id.split(':')[0]}`);
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar src={result.image} style={{ marginRight: 8 }} />
-                            {result.name} (Collection ID: {result._id.split(':')[0]})
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <AddressDisplay
+                                    userInfo={result}
+                                    hidePortfolioLink
+                                />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                {result.accountNumber ? 'ID: ' + result.accountNumber : 'Unregistered'}
+                            </div>
                         </div>
                     </Menu.Item>
                 })}
+                {collectionsResults.length > 0 && <>
+                    <hr />
+                    <Typography.Text strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+                    {collectionsResults.map((result: BadgeMetadata, idx) => {
+                        return <Menu.Item key={'collection' + idx + result._id} className='dropdown-item' onClick={() => {
+                            onSearch(`${result._id.split(':')[0]}`);
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Avatar src={result.image} style={{ marginRight: 8 }} />
+                                    {result.name}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    ID: {result._id.split(':')[0]}
+                                </div>
+                            </div>
+                        </Menu.Item>
+                    })}
+                </>}
             </Menu>}
             trigger={['hover', 'click']}
         // key={`${tab.key}`}

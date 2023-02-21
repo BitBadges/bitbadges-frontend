@@ -59,18 +59,13 @@ export function ClaimDisplay({
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
                     <h2>
                         Claim x{claim.amountPerClaim} of each of the badges below:
-                        {claim.badgeIds.map((id, idx) => {
-                            console.log(id)
-                            return <BadgeAvatarDisplay
-                                key={idx}
-                                collection={collection}
-                                startId={Number(id.start)}
-                                endId={Number(id.end)}
-                                userBalance={getBlankBalance()}
-                                size={50}
-                                showIds
-                            />
-                        })}
+                        <BadgeAvatarDisplay
+                            collection={collection}
+                            badgeIds={claim.badgeIds}
+                            userBalance={getBlankBalance()}
+                            size={50}
+                            showIds
+                        />
                         {claim.incrementIdsBy > 0 && <Typography.Text style={{ color: PRIMARY_TEXT }} strong>*Note that IDs increment by {claim.incrementIdsBy} each claim, so you are not guaranteed this exact ID!</Typography.Text>}
                     </h2>
                 </Row>}

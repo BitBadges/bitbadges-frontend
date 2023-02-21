@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { Col, Row, Tooltip } from "antd";
-import { AllAddressesTransferMapping } from "../../../bitbadges-api/badges";
+import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
 import { InformationDisplayCard } from "../../common/InformationDisplayCard";
 import { BadgeAvatarDisplay } from "../../common/BadgeAvatarDisplay";
@@ -31,8 +31,7 @@ export function OverviewTab({
                 size={55}
                 collection={collection}
                 userBalance={userBalance}
-                startId={1}
-                endId={collection?.nextBadgeId - 1}
+                badgeIds={getFullBadgeIdRanges(collection)}
             />
         </InformationDisplayCard>
         <br />

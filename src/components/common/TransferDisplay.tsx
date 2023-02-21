@@ -33,7 +33,7 @@ export function TransferDisplay({
             const startId = range.start;
             const endId = range.end;
             const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
-
+            //TODO: badgeIds instead of [range]
             return <div key={index} >
                 <div style={{ textAlign: 'center' }}>
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{`x${amount * toLength} of each badge (IDs ${startId} to ${endId})`}</Typography.Text>
@@ -42,7 +42,7 @@ export function TransferDisplay({
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {collection &&
-                    <BadgeAvatarDisplay showIds collection={collection} startId={startId} endId={endId} userBalance={getBlankBalance()} />
+                    <BadgeAvatarDisplay showIds collection={collection} badgeIds={[range]} userBalance={getBlankBalance()} />
                 }
             </div>
         })}

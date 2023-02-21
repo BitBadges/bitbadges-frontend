@@ -46,8 +46,12 @@ export function SetIndividualBadgeMetadataStepItem(
                             badgeMetadata: individualBadgeMetadata
                         }}
                         userBalance={getBlankBalance()}
-                        startId={1}
-                        endId={Object.keys(individualBadgeMetadata).length}
+                        badgeIds={[
+                            {
+                                start: 1,
+                                end: Object.keys(individualBadgeMetadata).length
+                            }
+                        ]}
                         selectedId={id}
                         size={40}
                         showIds={true}
