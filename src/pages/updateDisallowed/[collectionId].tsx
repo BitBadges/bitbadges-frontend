@@ -57,7 +57,6 @@ function UpdateDisallowedTransfers() {
                                     {badgeCollection &&
                                         <UpdateDisallowedTimeline
                                             collection={badgeCollection}
-                                            setCollection={setBadgeCollection}
                                         />
                                     }
                                 </div>

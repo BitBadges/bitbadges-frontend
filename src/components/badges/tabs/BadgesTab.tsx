@@ -72,7 +72,6 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, updateColl
                                 collection={collection}
                                 metadata={collection.badgeMetadata[idx + Number(startIdNum)]}
                                 id={idx + Number(startIdNum)}
-                                updateCollectionMetadata={updateCollectionMetadata}
                             />
                         </div>
                     })}

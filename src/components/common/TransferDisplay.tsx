@@ -16,7 +16,8 @@ export function TransferDisplay({
     badgeIds,
     fontColor,
     toCodes,
-    hideAddresses
+    hideAddresses,
+    updateCollectionMetadata
 }: {
     from: BitBadgesUserInfo[];
     to: BitBadgesUserInfo[];
@@ -26,6 +27,7 @@ export function TransferDisplay({
     fontColor?: string;
     toCodes?: string[];
     hideAddresses?: boolean;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     // const maximum = badge?.nextBadgeId - 1 || 0;
     return <div style={{ minWidth: 600 }}>
@@ -42,7 +44,7 @@ export function TransferDisplay({
                     <Typography.Text style={{ fontSize: 16, textAlign: 'center', color: fontColor }} strong>{toLength > 1 ? ` (x${amount} to each recipient)` : ''}</Typography.Text>
                 </div>
                 {collection &&
-                    <BadgeAvatarDisplay showIds collection={collection} startId={startId} endId={endId} userBalance={getBlankBalance()} />
+                    <BadgeAvatarDisplay showIds collection={collection} startId={startId} endId={endId} userBalance={getBlankBalance()} updateCollectionMetadata={updateCollectionMetadata} />
                 }
             </div>
         })}

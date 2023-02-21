@@ -134,7 +134,9 @@ function CollectionPage() {
                                                 <BalanceDisplay
                                                     message='Collected Badges'
                                                     collection={collection}
-                                                    balance={collection.balances[accountInfo?.accountNumber || 0]} />
+                                                    balance={collection.balances[accountInfo?.accountNumber || 0]} 
+                                                    
+                                                />
                                             </div>
                                         </InformationDisplayCard>
                                     </div>

@@ -18,11 +18,13 @@ export function ClaimDisplay({
     collection,
     openModal,
     claimId,
+    updateCollectionMetadata
 }: {
     claim: Claims,
     collection: BitBadgeCollection,
     openModal: (code?: string) => void,
     claimId: number,
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const chain = useChainContext();
     const [currCode, setCurrCode] = useState("");
@@ -68,6 +70,7 @@ export function ClaimDisplay({
                                 endId={Number(id.end)}
                                 userBalance={getBlankBalance()}
                                 size={50}
+                                updateCollectionMetadata={updateCollectionMetadata}
                                 showIds
                             />
                         })}
@@ -85,6 +88,7 @@ export function ClaimDisplay({
                     approvals: [],
                     balances: claim.balances
                 }}
+                updateCollectionMetadata={updateCollectionMetadata}
             />
             <br />
 
@@ -122,6 +126,7 @@ export function ClaimDisplay({
                                         toCodes={[currLeaf.code]}
                                         amount={currLeaf.amount}
                                         badgeIds={currLeaf.badgeIds}
+                                        updateCollectionMetadata={updateCollectionMetadata}
                                     />
                                     <Divider />
                                 </div>
@@ -185,6 +190,7 @@ export function ClaimDisplay({
                                         toCodes={[]}
                                         amount={currLeaf.amount}
                                         badgeIds={currLeaf.badgeIds}
+                                        updateCollectionMetadata={updateCollectionMetadata}
                                     />
                                     <Divider />
 

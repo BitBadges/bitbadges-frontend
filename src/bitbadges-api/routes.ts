@@ -37,6 +37,10 @@ export const GetMetadataRoute = (collectionId: number) => {
     return `/api/metadata/${collectionId}`;
 }
 
+export const GetSearchRoute = (query: string) => {
+    return `/api/search/${query}`;
+}
+
 export interface GetCollectionResponse {
     error?: any;
     collection?: BitBadgeCollection;

@@ -5,10 +5,11 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
 import { ClaimDisplay } from '../../common/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge';
 
-export function ClaimsTab({ collection, refreshCollection, refreshUserBalance }: {
+export function ClaimsTab({ collection, refreshCollection, refreshUserBalance, updateCollectionMetadata }: {
     collection: BitBadgeCollection | undefined;
     refreshCollection: () => void;
     refreshUserBalance: () => void;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -33,6 +34,7 @@ export function ClaimsTab({ collection, refreshCollection, refreshUserBalance }:
                                 setModalVisible(true);
                                 setCode(code ? code : "");
                             }}
+                            updateCollectionMetadata={updateCollectionMetadata}
                         />
 
                         {DEV_MODE &&

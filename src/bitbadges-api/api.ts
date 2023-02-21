@@ -4,7 +4,7 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsByNumberRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
@@ -84,6 +84,8 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
 
     badgeData = await updateMetadata(badgeData, 1);
 
+    console.log("BADGEDATA", badgeData);
+
     return {
         collection: badgeData
     };
@@ -133,4 +135,10 @@ export async function getBadgeBalance(
 export async function getPortfolio(accountNumber: number) {
     const portfolio: GetPortfolioResponse = await axios.get(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
     return portfolio;
+}
+
+//Get search results
+export async function getSearchResults(searchTerm: string) {
+    const searchResults = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
+    return searchResults;
 }

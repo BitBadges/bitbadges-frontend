@@ -51,6 +51,7 @@ export function SetIndividualBadgeMetadataStepItem(
                         selectedId={id}
                         size={40}
                         showIds={true}
+                        updateCollectionMetadata={() => {}}
                     />
                 </div>
             </div>

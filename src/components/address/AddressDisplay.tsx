@@ -3,6 +3,7 @@ import { Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AddressWithBlockies } from './AddressWithBlockies';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 
 export function AddressDisplayTitle(
     {
@@ -90,6 +91,8 @@ export function AddressDisplay(
         hidePortfolioLink?: boolean
     }
 ) {
+    const accounts = useAccountsContext();
+    console.log("USER INFO", userInfo)
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
@@ -101,6 +104,7 @@ export function AddressDisplay(
             <AddressWithBlockies
                 address={userInfo.address}
                 chain={userInfo.chain}
+                addressName={accounts.accountNames[userInfo.address]}
                 fontSize={fontSize}
                 fontColor={fontColor}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}

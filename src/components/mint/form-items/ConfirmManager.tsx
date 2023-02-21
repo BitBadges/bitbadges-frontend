@@ -39,7 +39,7 @@ export function ConfirmManager() {
                         address={address}
                         chain={chain.chain}
                         fontColor={'lightgrey'}
-                        hideChain
+                        
                     />
                 </div>
             </div>

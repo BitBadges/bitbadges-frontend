@@ -8,13 +8,15 @@ export function BalanceBeforeAndAfter({
     hideTitle,
     beforeMessage,
     afterMessage,
-    collection
+    collection,
+    updateCollectionMetadata
 }: {
     balance: UserBalance;
     newBalance: UserBalance;
     partyString: string;
     hideTitle?: boolean;
     collection: BitBadgeCollection;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 
     beforeMessage?: string;
     afterMessage?: string;
@@ -40,6 +42,7 @@ export function BalanceBeforeAndAfter({
                 <BalanceDisplay
                     collection={collection}
                     balance={balance}
+                    updateCollectionMetadata={updateCollectionMetadata}
                     message={beforeMessage ? beforeMessage : 'Before'}
                 />
             </div>
@@ -47,6 +50,7 @@ export function BalanceBeforeAndAfter({
                 <BalanceDisplay
                     collection={collection}
                     balance={newBalance}
+                    updateCollectionMetadata={updateCollectionMetadata}
                     message={afterMessage ? afterMessage : 'After'}
                 />
             </div>

@@ -1,27 +1,28 @@
-import { Empty, Card, Divider, Typography, } from 'antd';
-import { useState } from 'react';
-import React from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
-import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
-import { useChainContext } from '../../../chain/ChainContext';
-import { BlockinDisplay } from '../../blockin/BlockinDisplay';
-import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
-import { useRouter } from 'next/router';
+import { Card, Divider, Empty, Typography } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
+import { useChainContext } from '../../../chain/ChainContext';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { BlockinDisplay } from '../../blockin/BlockinDisplay';
 import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxMsgRequestTransferManagerModal';
 import { CreateTxMsgTransferBadgeModal } from '../../txModals/CreateTxMsgTransferBadge';
+import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
+import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
 
 export function ActionsTab({
     collection,
     refreshCollection,
     userBalance,
     refreshUserBalance,
+    updateCollectionMetadata
 }: {
     collection?: BitBadgeCollection;
     refreshCollection: () => void;
     userBalance?: UserBalance;
     refreshUserBalance: () => void;
+    updateCollectionMetadata: (startBadgeId: number) => void;
 }) {
     const router = useRouter();
     const chain = useChainContext();
@@ -32,6 +33,7 @@ export function ActionsTab({
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
     const [freezeIsVisible, setFreezeIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
+    const [distributeIsVisible, setDistributeIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
 
     if (!collection) return <></>;
@@ -92,6 +94,7 @@ export function ActionsTab({
                 ),
                 showModal: () => {
                     router.push(`/distribute/${collection.collectionId}`)
+                    // setDistributeIsVisible(!distributeIsVisible);
                 },
             });
         }
@@ -256,7 +259,6 @@ export function ActionsTab({
                 </>
             )}
 
-
             <CreateTxMsgTransferBadgeModal
                 visible={transferIsVisible}
                 setVisible={setTransferIsVisible}
@@ -264,6 +266,7 @@ export function ActionsTab({
                 refreshCollection={refreshCollection}
                 userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
                 refreshUserBalance={refreshUserBalance}
+                updateCollectionMetadata={updateCollectionMetadata}
             />
 
             <CreateTxMsgTransferManagerModal

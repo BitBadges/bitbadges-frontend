@@ -18,7 +18,7 @@ import { useAccountsContext } from '../../accounts/AccountsContext';
 
 export function CreateTxMsgTransferBadgeModal(
     {
-        collection, visible, setVisible, children, userBalance, refreshCollection, refreshUserBalance
+        collection, visible, setVisible, children, userBalance, refreshCollection, refreshUserBalance, updateCollectionMetadata
     }: {
         collection: BitBadgeCollection,
         refreshCollection: () => void
@@ -27,6 +27,7 @@ export function CreateTxMsgTransferBadgeModal(
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
+        updateCollectionMetadata: (startBadgeId: number) => void
     }
 ) {
     const chain = useChainContext();
@@ -329,6 +330,7 @@ export function CreateTxMsgTransferBadgeModal(
                     // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
+                            updateCollectionMetadata={updateCollectionMetadata}
                             hideAddresses
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
@@ -345,7 +347,7 @@ export function CreateTxMsgTransferBadgeModal(
                     </div>
                 })}
                 <Divider />
-                {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
+                {postTransferBalance && <BalanceBeforeAndAfter updateCollectionMetadata={updateCollectionMetadata} collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
             disabled: secondStepDisabled
         },
@@ -369,6 +371,7 @@ export function CreateTxMsgTransferBadgeModal(
                     // console.log(balance);
                     return <div key={index}>
                         <TransferDisplay
+                            updateCollectionMetadata={updateCollectionMetadata}
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}
                             collection={collection}

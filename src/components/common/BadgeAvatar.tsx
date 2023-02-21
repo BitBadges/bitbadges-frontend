@@ -1,5 +1,5 @@
 import { Avatar, Tooltip } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getBlankBalance } from '../../bitbadges-api/balances';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";

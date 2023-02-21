@@ -29,7 +29,7 @@ export function CreateClaims({
     setClaimItems,
     collectionMetadata,
     individualBadgeMetadata,
-    balancesToDistribute,
+    balancesToDistribute
 }: {
     collection: BitBadgeCollection;
     newCollectionMsg: MessageMsgNewCollection;
@@ -115,7 +115,7 @@ export function CreateClaims({
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: 800 }}>
 
             <div style={{ width: '100%' }}>
-                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} balance={newBalances} />}
+                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} balance={newBalances} updateCollectionMetadata={() => { }} />}
 
                 {/* <Divider /> */}
 
@@ -163,6 +163,7 @@ export function CreateClaims({
                                 {/* <hr /> */}
                                 {/* <h3>Claim #{currIndex + 1}</h3> */}
                                 <TransferDisplay
+                                    updateCollectionMetadata={() => { }}
                                     collection={badgeCollection}
                                     fontColor={PRIMARY_TEXT}
                                     from={[
@@ -239,6 +240,7 @@ export function CreateClaims({
                                 <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
                                 <br />
                                 <TransferDisplay
+                                    updateCollectionMetadata={() => { }}
                                     collection={badgeCollection}
 
                                     fontColor={PRIMARY_TEXT}
@@ -257,7 +259,7 @@ export function CreateClaims({
                                 />
                                 <Divider />
                                 <hr />
-                                {newBalances && <BalanceBeforeAndAfter collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before Claim' afterMessage='After Claim' />}
+                                {newBalances && <BalanceBeforeAndAfter updateCollectionMetadata={() => { }} collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before Claim' afterMessage='After Claim' />}
 
                                 <br />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

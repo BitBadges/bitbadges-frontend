@@ -44,8 +44,16 @@ export function getChainForAddress(address: string) {
         if (ethers.utils.isAddress(address)) {
             return SupportedChain.ETH;
         }
-        return SupportedChain.UNKNOWN;
+
     }
+
+    if (address.startsWith('0x')) {
+        return SupportedChain.ETH;
+    } else if (address.startsWith('cosmos')) {
+        return SupportedChain.COSMOS;
+    }
+
+    return SupportedChain.UNKNOWN;
 }
 
 export function getAbbreviatedAddress(address: string) {

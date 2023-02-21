@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
 import { getAccountInformation, getAccountsByAccountNumbers } from '../bitbadges-api/api';
-import { BitBadgesUserInfo } from '../bitbadges-api/types';
+import { BitBadgesUserInfo, SupportedChain } from '../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
-import { convertToCosmosAddress } from '../bitbadges-api/chains';
+import { convertToCosmosAddress, getChainForAddress } from '../bitbadges-api/chains';
 import { MINT_ACCOUNT } from '../constants';
+import { useEthereumContext } from '../chain/ethereum/EthereumContext';
 
 export type AccountsContextType = {
     accounts: {
@@ -13,6 +14,9 @@ export type AccountsContextType = {
     accountNumbers: {
         [address: string]: number;
     },
+    accountNames: {
+        [address: string]: string;
+    },
     fetchAccounts: (accountsToFetch: string[]) => Promise<BitBadgesUserInfo[]>,
     fetchAccountsByNumber: (accountNumsToFetch: number[]) => Promise<BitBadgesUserInfo[]>,
 }
@@ -20,6 +24,7 @@ export type AccountsContextType = {
 const AccountsContext = createContext<AccountsContextType>({
     accounts: {},
     accountNumbers: {},
+    accountNames: {},
     fetchAccounts: async () => { return [] },
     fetchAccountsByNumber: async () => { return [] },
 });
@@ -33,9 +38,14 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         'Mint': MINT_ACCOUNT
     });
     const [accountNumbers, setAccountNumbers] = useState<{ [address: string]: number }>({});
+    const [accountNames, setAccountNames] = useState<{ [address: string]: string }>({});
+
+    const ethereum = useEthereumContext();
+
 
     //TODO: batch fetch
     const fetchAccounts = async (accountsToFetch: string[]) => {
+        console.log(accountsToFetch);
         const fetchedAccounts = [];
         for (const account of accountsToFetch) {
             if (account === 'Mint') continue;
@@ -53,10 +63,28 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 });
 
                 fetchedAccounts.push(convertToBitBadgesUserInfo(accountInfo));
+                console.log("TESTING IF STATEMENT", accountInfo.chain === SupportedChain.ETH
+                    && ethereum.selectedChainInfo
+                    && ethereum.selectedChainInfo.getNameForAddress)
+
+                if (getChainForAddress(account) === SupportedChain.ETH
+                    && ethereum.selectedChainInfo
+                    && ethereum.selectedChainInfo.getNameForAddress) {
+                    let ensName = await ethereum.selectedChainInfo?.getNameForAddress(account);
+                    console.log("ENS NAME", ensName);
+                    if (ensName) {
+                        setAccountNames({
+                            ...accountNames,
+                            [account]: ensName
+                        });
+                    }
+                }
             } else {
                 fetchedAccounts.push(accounts[accountNumbers[account]]);
             }
         }
+
+
 
         return fetchedAccounts;
     }
@@ -81,6 +109,19 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 [accountInfo.address]: accountInfo.account_number,
                 [accountInfo.cosmosAddress]: accountInfo.account_number
             });
+
+            if (getChainForAddress(accountInfo.address) === SupportedChain.ETH
+                && ethereum.selectedChainInfo
+                && ethereum.selectedChainInfo.getNameForAddress) {
+                let ensName = await ethereum.selectedChainInfo?.getNameForAddress(accountInfo.address);
+                console.log("ENS NAME", ensName);
+                if (ensName) {
+                    setAccountNames({
+                        ...accountNames,
+                        [accountInfo.address]: ensName
+                    });
+                }
+            }
         }
 
         const accountsToReturn = [];
@@ -102,6 +143,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     const accountsContext: AccountsContextType = {
         accounts,
         accountNumbers,
+        accountNames,
         fetchAccounts,
         fetchAccountsByNumber,
     };

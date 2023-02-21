@@ -136,6 +136,7 @@ function CollectionPage() {
                             collection={collection}
                             refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
+                            updateCollectionMetadata={updateCollectionMetadata} 
                         />
                     )}
 
@@ -145,7 +146,7 @@ function CollectionPage() {
                             refreshCollection={refreshCollection}
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
-
+                            updateCollectionMetadata={updateCollectionMetadata} 
                         />
                     )}
 

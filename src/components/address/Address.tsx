@@ -2,6 +2,10 @@ import { IdcardOutlined } from '@ant-design/icons';
 import { Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { AddressDisplay } from './AddressDisplay';
+import { ethToCosmos } from 'bitbadgesjs-address-converter';
+import { SECONDARY_TEXT } from '../../constants';
+import { SupportedChain } from '../../bitbadges-api/types';
 
 const { Text } = Typography;
 
@@ -13,6 +17,7 @@ export function Address({
     hideTooltip,
     accountNumber,
     hidePortfolioLink,
+    addressName
 }: {
     address: string;
     chain: string;
@@ -23,10 +28,11 @@ export function Address({
     hideTooltip?: boolean;
     accountNumber?: number,
     hidePortfolioLink?: boolean
+    addressName?: string
 }) {
     const router = useRouter();
 
-    let displayAddress = getAbbreviatedAddress(address);
+    let displayAddress = addressName ? addressName : getAbbreviatedAddress(address);
     let isValidAddress = isAddressValid(address, chain);
 
     const innerContent = !hideTooltip ? (
@@ -40,6 +46,20 @@ export function Address({
                     <br />
                     <br />
                     {`${address}`}
+                    <br />
+
+                    {"Other equivalent addresses include: "}
+                    <br />
+                    {/* <AddressDisplay
+                        fontColor={SECONDARY_TEXT}
+                        userInfo={{
+                            address: ethToCosmos(address),
+                            cosmosAddress: ethToCosmos(address),
+                            chain: SupportedChain.COSMOS,
+                            accountNumber: -1,
+                        }}
+                        hidePortfolioLink
+                    /> */}
                 </div>
             }
             style={{

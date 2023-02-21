@@ -15,8 +15,7 @@ export function BadgeCard({
     id,
     balance,
     isModalOpen,
-    setBadgeId,
-    updateCollectionMetadata
+    setBadgeId
 }: {
     id: number;
     metadata?: BadgeMetadata;
@@ -26,7 +25,6 @@ export function BadgeCard({
     balance?: UserBalance;
     isModalOpen?: boolean;
     setBadgeId?: (id: number) => void;
-    updateCollectionMetadata?: (startBadgeId: number) => void;
 }) {
     const [visible, setVisible] = useState<boolean>(isModalOpen ? isModalOpen : false);
 
