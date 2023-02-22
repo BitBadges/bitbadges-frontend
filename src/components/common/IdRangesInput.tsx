@@ -5,7 +5,6 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { SortIdRangesAndMergeIfNecessary } from "../../bitbadges-api/idRanges";
 import { DeleteOutlined } from "@ant-design/icons";
 
-//TODO: support multiple IdRanges
 export function IdRangesInput({
     setIdRanges,
     maximum,
@@ -16,7 +15,7 @@ export function IdRangesInput({
     darkMode?: boolean,
 }) {
     const [numRanges, setNumRanges] = useState(1);
-    const [sliderValues, setSliderValues] = useState<[number, number][]>([[1, maximum ?? 0]]);
+    const [sliderValues, setSliderValues] = useState<[number, number][]>([[1, maximum ?? 1]]);
 
     if (maximum == 0) {
         return <></>;
@@ -30,6 +29,14 @@ export function IdRangesInput({
             return start1 <= end2 && start2 <= end1;
         });
     });
+
+    if (maximum == 1) {
+        return <div style={{ display: "flex", alignItems: 'center', justifyContent: 'center' }}>
+            <div className='flex-between' style={{ flexDirection: 'column', minWidth: 500, marginRight: 12 }} >
+                There is only one badge in this collection, so we have automatically selected it for you!
+            </div>
+        </div>
+    }
 
     return <>
         {new Array(numRanges).fill(0).map((_, i) => {
@@ -91,7 +98,8 @@ export function IdRangesInput({
                 <div style={{ display: 'flex' }} >
                     <Tooltip title="Delete Range" placement='bottom'>
                         <DeleteOutlined
-                            style={{ fontSize: 24, marginLeft: 20, marginTop: 16,
+                            style={{
+                                fontSize: 24, marginLeft: 20, marginTop: 16,
                                 cursor: numRanges > 1 ? 'pointer' : 'not-allowed',
                             }}
                             onClick={() => {

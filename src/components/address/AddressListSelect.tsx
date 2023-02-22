@@ -46,7 +46,6 @@ export function AddressListSelect({
             if (isAddressValid(address)) {
                 const existingUser = users.find((u) => u.address === address);
 
-                //TODO: Batch get addresses instead of N HTTP requests
                 //Check if already in user list. If so, we duplicate it.
                 if (existingUser) {
                     newUserList.push(existingUser);

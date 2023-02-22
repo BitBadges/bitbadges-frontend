@@ -79,10 +79,16 @@ export function TxModal(
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
 
+
+            console.log(msgResponse.tx_response);
             //If it is a new collection, redirect to collection page
-            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "new_collection") {
-                const collectionId = msgResponse.tx_response.logs[0]?.events[0]?.attributes[4]?.value;
-                router.push(`/collections/${collectionId}`);
+            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
+                const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
+                if (collectionStr) {
+                    const collection = JSON.parse(collectionStr)
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    router.push(`/collections/${collection.collectionId}`);
+                }
             }
         } catch (err: any) {
             console.error(err);
@@ -118,58 +124,6 @@ export function TxModal(
             } catch (err: any) { }
         }
     };
-
-    //TODO: better handle unregistered
-    // if (chain.accountNumber === -1) {
-    //     return <Modal
-    //         title={<b>Register Account</b>}
-    //         open={visible && chain.accountNumber === -1}
-    //         style={{
-    //             paddingLeft: '12px',
-    //             paddingRight: '0px',
-    //             paddingTop: '0px',
-    //             paddingBottom: '0px',
-    //             borderBottom: '0px',
-    //             ...style
-    //         }}
-    //         width={800}
-    //         closeIcon={closeIcon}
-    //         bodyStyle={{
-    //             paddingTop: 8,
-    //             fontSize: 20,
-    //             ...bodyStyle
-    //         }}
-    //         // onOk={registerCurrentUser}
-    //         onCancel={() => setVisible(false)}
-    //         okText={"Register Account"}
-    //         cancelText={"Cancel"}
-    //         destroyOnClose={true}
-    //     >
-    //         <Content style={{ paddingTop: '15px' }}>
-    //             <Button
-    //                 type="primary"
-    //                 onClick={async () => {
-    //                     await navigator.clipboard.writeText(chain.cosmosAddress);
-    //                     window.open('http://localhost:4500', "_blank");
-    //                 }}
-    //                 style={{ margin: 5 }}
-    //             >
-    //                 Click here to go to the faucet and register your address (one-time)!
-    //             </Button>
-    //             <Button
-    //                 type="primary"
-    //                 onClick={async () => {
-    //                     await chain.connect();
-    //                 }}
-    //                 style={{ margin: 5 }}
-    //             >
-    //                 Refresh
-    //             </Button>
-    //         </Content>
-
-    //     </Modal>
-    // }
-
 
     return (
         <Modal

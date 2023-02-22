@@ -59,7 +59,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     async function updateCollectionMetadata(collectionId: number, startBadgeId: number) {
         if (!collections[`${collectionId}`]) return;
         const collection = collections[`${collectionId}`];
-        const newCollection = await updateMetadata(collection, startBadgeId);
+        const newCollection = await updateMetadata(collection, startBadgeId < 1 ? 1 : startBadgeId);
         setCollections({
             ...collections,
             [`${collectionId}`]: newCollection

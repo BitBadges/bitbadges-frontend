@@ -7,7 +7,9 @@ export function SubmitNewMintMsgStepItem(
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
     collection: BitBadgeCollection,
     claimItems: ClaimItem[],
-    distributionMethod: DistributionMethod
+    setClaimItems: (claimItems: ClaimItem[]) => void,
+    distributionMethod: DistributionMethod,
+    manualSend: boolean
 ) {
     return {
         title: 'Distribute Badges',
@@ -18,6 +20,8 @@ export function SubmitNewMintMsgStepItem(
             collection={collection}
             claimItems={claimItems}
             distributionMethod={distributionMethod}
+            setClaimItems={setClaimItems}
+            manualSend={manualSend}
         />,
     }
 }

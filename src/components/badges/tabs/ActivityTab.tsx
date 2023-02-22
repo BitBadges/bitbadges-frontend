@@ -1,6 +1,6 @@
-import { Collapse, Divider, Empty } from 'antd';
+import { Collapse, Divider, Empty, Pagination } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../../accounts/AccountsContext';
 import { filterBadgeActivityForBadgeId } from '../../../bitbadges-api/badges';
 import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../../bitbadges-api/types';
@@ -15,6 +15,9 @@ export function ActivityTab({ collection, badgeId }: {
     badgeId?: number
 }) {
     const accounts = useAccountsContext();
+    const [currPage, setCurrPage] = useState<number>(1);
+
+
 
     let activity: ActivityItem[];
     //If we are showing a badge's activity, filter the activity to only show that badge's activity
@@ -25,6 +28,12 @@ export function ActivityTab({ collection, badgeId }: {
     } else {
         activity = [];
     }
+
+    const PAGE_SIZE = 25;
+    const startId = 0;
+    const endId = activity.length ? activity.length - 1 : 0;
+    const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
+    const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
     useEffect(() => {
         async function getActivity() {
@@ -58,6 +67,25 @@ export function ActivityTab({ collection, badgeId }: {
 
     return (
         <div>
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }} >
+                <Pagination
+                    style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                    current={currPage}
+                    total={activity.length}
+                    pageSize={PAGE_SIZE}
+                    onChange={(page) => {
+                        setCurrPage(page);
+                    }}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                />
+            </div>
+            <br />
             <div
                 style={{
                     color: PRIMARY_TEXT,
@@ -66,8 +94,11 @@ export function ActivityTab({ collection, badgeId }: {
                     display: 'flex'
                 }}>
 
+
+
                 <Collapse style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, width: '100%' }}>
                     {activity.map((activity, idx) => {
+                        if (!(idx >= startIdNum && idx <= endIdNum)) return <></>;
                         return <CollapsePanel
                             key={idx}
                             header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
@@ -100,9 +131,9 @@ export function ActivityTab({ collection, badgeId }: {
                                     display: 'flex'
                                 }}>
 
-                                <div key={idx} style={{ color: PRIMARY_TEXT, maxWidth: 800 }}>
+                                <div key={idx} style={{ color: PRIMARY_TEXT }}>
                                     {activity.balances.map((balance, idx) => {
-                                        return <>
+                                        return <div key={idx} style={{ width: 600 }}>
                                             <h2>Transaction Type: {activity.method}</h2>
                                             <TransferDisplay
                                                 fontColor={PRIMARY_TEXT}
@@ -128,7 +159,7 @@ export function ActivityTab({ collection, badgeId }: {
                                                 badgeIds={balance.badgeIds}
                                             />
                                             <Divider />
-                                        </>
+                                        </div>
                                     })}
                                 </div>
                             </div>

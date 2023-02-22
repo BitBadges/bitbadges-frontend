@@ -102,6 +102,7 @@ export function BadgeAvatarDisplay({
                             flexDirection: 'row',
                             justifyContent: 'space-between',
                             alignItems: 'center',
+                            margin: 2
                         }}>
                             <BadgeAvatar
                                 size={size && selectedId === ids[idx + Number(startIdNum)] ? size * 1.4 : size}

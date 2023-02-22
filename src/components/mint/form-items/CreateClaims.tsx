@@ -126,6 +126,20 @@ export function CreateClaims({
             distributionMethod === DistributionMethod.Codes ? numCodes : users.length);
     }
 
+    const idRangesOverlap = currBalances[0].badgeIds.some(({ start, end }, i) => {
+        const start1 = start;
+        const end1 = end
+        return currBalances[0].badgeIds.some(({ start, end }, j) => {
+            const start2 = start;
+            const end2 = end;
+            if (i === j) {
+                return false;
+            }
+            return start1 <= end2 && start2 <= end1;
+        });
+    });
+    console.log("ID RANGES OVERLAP", idRangesOverlap)
+
     return <div style={{ justifyContent: 'center', width: '100%' }}>
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
 
@@ -444,9 +458,8 @@ export function CreateClaims({
                                     </div>}
                                 </div>
                             }
-                            disabled={distributionMethod === DistributionMethod.Codes ? numCodes === 0 : users.length === 0 || (currBalances.length == 0 || !!postCurrBalance?.balances?.find((balance) => balance.balance < 0))}
+                            disabled={idRangesOverlap || distributionMethod === DistributionMethod.Codes ? numCodes === 0 : users.length === 0}
                         />
-
                     </Steps>
 
 

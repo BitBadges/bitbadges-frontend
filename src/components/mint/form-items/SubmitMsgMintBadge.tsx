@@ -6,23 +6,32 @@ import { SHA256 } from 'crypto-js';
 import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
 import { addMerkleTreeToIpfs } from '../../../bitbadges-api/api';
 import { CreateTxMsgMintBadgeModal } from '../../txModals/CreateTxMsgMintBadgeModal';
+import { useAccountsContext } from '../../../accounts/AccountsContext';
+import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
+import { getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
 
 export function SubmitNewMintMsg({
     newCollectionMsg,
     setNewCollectionMsg,
     collection,
     claimItems,
+    setClaimItems,
     distributionMethod,
+    manualSend
 }: {
     collection: BitBadgeCollection,
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     claimItems: ClaimItem[];
+    setClaimItems: (claimItems: ClaimItem[]) => void;
     distributionMethod: DistributionMethod;
+    manualSend: boolean;
 }) {
     const [visible, setVisible] = useState<boolean>(false);
 
     const [loading, setLoading] = useState<boolean>(false);
+
+    const accounts = useAccountsContext();
 
 
     const newMintMsg: MessageMsgMintBadge = {
@@ -31,6 +40,64 @@ export function SubmitNewMintMsg({
         claims: newCollectionMsg.claims,
         transfers: newCollectionMsg.transfers,
         badgeSupplys: newCollectionMsg.badgeSupplys,
+    }
+
+    const unregisteredUsers = manualSend
+        && newCollectionMsg.transfers.length > 0
+        ? claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+
+    const onRegister = async () => {
+        setLoading(true);
+
+        let newUsersToRegister = claimItems.filter((x) => x.userInfo.accountNumber === -1);
+
+        const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
+        const newClaimItems = [];
+        for (const claimItem of claimItems) {
+            if (claimItem.userInfo.accountNumber === -1) {
+                const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
+                if (newAccount) {
+                    newClaimItems.push({
+                        ...claimItem,
+                        userInfo: newAccount,
+                        address: newAccount.cosmosAddress,
+                        accountNum: newAccount.accountNumber,
+                    });
+                }
+            } else {
+                newClaimItems.push(claimItem);
+            }
+        }
+
+        setClaimItems([...newClaimItems]);
+
+        if (manualSend) {
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                transfers: newClaimItems.map((x) => ({
+                    toAddresses: [x.accountNum],
+                    balances: [
+                        {
+                            balance: x.amount,
+                            badgeIds: x.badgeIds,
+                        }
+                    ]
+                })),
+                claims: []
+            });
+        } else if (!manualSend) {
+            const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+            const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
+
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                transfers: [],
+                claims: claimRes.claims
+            })
+        }
+
+        setVisible(true);
+        setLoading(false);
     }
 
     return (
@@ -79,6 +146,8 @@ export function SubmitNewMintMsg({
                 <CreateTxMsgMintBadgeModal
                     visible={visible}
                     setVisible={setVisible}
+                    unregisteredUsers={unregisteredUsers}
+                    onRegister={onRegister}
                     txCosmosMsg={newMintMsg}
                 />
             </div>

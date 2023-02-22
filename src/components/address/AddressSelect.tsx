@@ -54,7 +54,6 @@ export function AddressSelect({
                         const bech32Address = convertToCosmosAddress(e.target.value)
                         const chain = getChainForAddress(e.target.value);
 
-                        //TODO: I uncommented this out to test (maybe add a loading spinner?)
                         setCurrUserInfo({
                             chain: chain,
                             address: e.target.value,

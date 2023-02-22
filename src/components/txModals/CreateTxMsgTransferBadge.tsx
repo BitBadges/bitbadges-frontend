@@ -2,24 +2,23 @@ import { Avatar, Divider } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
+import { useAccountsContext } from '../../accounts/AccountsContext';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressListSelect } from '../address/AddressListSelect';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceBeforeAndAfter } from '../common/BalanceBeforeAndAfter';
 import { BalancesInput } from '../common/BalancesInput';
+import { IdRangesInput } from '../common/IdRangesInput';
 import { TransferDisplay } from '../common/TransferDisplay';
 import { TxModal } from './TxModal';
-import { useAccountsContext } from '../../accounts/AccountsContext';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
-import { PRIMARY_TEXT } from '../../constants';
-import { IdRangesInput } from '../common/IdRangesInput';
-import { BalanceDisplay } from '../common/BalanceDisplay';
-import { BadgeAvatarDisplay } from '../common/BadgeAvatarDisplay';
+import { InfoCircleOutlined, InfoOutlined } from '@ant-design/icons';
 
 export function CreateTxMsgTransferBadgeModal(
     {
@@ -310,6 +309,19 @@ export function CreateTxMsgTransferBadgeModal(
         }
     }
 
+    const idRangesOverlap = balances[0].badgeIds.some(({ start, end }, i) => {
+        const start1 = start;
+        const end1 = end
+        return balances[0].badgeIds.some(({ start, end }, j) => {
+            const start2 = start;
+            const end2 = end;
+            if (i === j) {
+                return false;
+            }
+            return start1 <= end2 && start2 <= end1;
+        });
+    });
+
 
 
     //TODO: Add helper messages about account being frozen / manager transfers in this card; catch it earlier
@@ -349,12 +361,18 @@ export function CreateTxMsgTransferBadgeModal(
                         />
                     </div>
 
+                    {fromUser.address != chain.address && <div style={{}}>
+                        <br />
+                        <InfoCircleOutlined /> If you select an address other than yours, you must be approved to transfer on their behalf.
+                    </div>}
+
                     <AddressSelect
                         currUserInfo={fromUser}
                         setCurrUserInfo={setFromUser}
                         darkMode
                         hideAddressDisplay
                     />
+
                 </div>
             </div >
         },
@@ -385,7 +403,7 @@ export function CreateTxMsgTransferBadgeModal(
                     maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                     darkMode
                 />
-                
+
                 <Divider />
                 {balances.map((balance, index) => {
                     // console.log(balance);
@@ -408,7 +426,8 @@ export function CreateTxMsgTransferBadgeModal(
                         {/* <hr /> */}
                     </div>
                 })}
-            </div>
+            </div>,
+            disabled: idRangesOverlap || firstStepDisabled || !canTransfer,
         },
         {
             title: 'Select Amounts',
@@ -445,7 +464,7 @@ export function CreateTxMsgTransferBadgeModal(
                 <Divider />
                 {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={fromUserBalance} newBalance={postTransferBalance} partyString='Your' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
-            disabled: secondStepDisabled
+            disabled: idRangesOverlap || secondStepDisabled
         },
 
     ];

@@ -7,9 +7,11 @@ export function CreateCollectionStepItem(
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod,
     claimItems: ClaimItem[],
+    setClaimItems: (claimItems: ClaimItem[]) => void,
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
     distributionMethod: DistributionMethod,
+    manualSend: boolean
 ) {
     return {
         title: 'Submit Transaction',
@@ -22,6 +24,9 @@ export function CreateCollectionStepItem(
             collectionMetadata={collectionMetadata}
             individualBadgeMetadata={individualBadgeMetadata}
             distributionMethod={distributionMethod}
+            setClaimItems={setClaimItems}
+            manualSend={manualSend}
+
         />
     }
 }

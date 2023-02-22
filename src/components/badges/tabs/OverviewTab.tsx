@@ -27,7 +27,7 @@ export function OverviewTab({
 
     return <>
         <InformationDisplayCard
-            title="Collection"
+            title="Badges in Collection"
         >
             <BadgeAvatarDisplay
                 showIds

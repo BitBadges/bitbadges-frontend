@@ -6,6 +6,9 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
 import { SHA256 } from 'crypto-js';
+import { useAccountsContext } from '../../../accounts/AccountsContext';
+import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
+import { getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
 
 export function SubmitMsgNewCollection({
     newCollectionMsg,
@@ -15,6 +18,8 @@ export function SubmitMsgNewCollection({
     addMethod,
     claimItems,
     distributionMethod,
+    setClaimItems,
+    manualSend
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -23,9 +28,13 @@ export function SubmitMsgNewCollection({
     collectionMetadata: BadgeMetadata;
     individualBadgeMetadata: { [badgeId: string]: BadgeMetadata };
     distributionMethod: DistributionMethod;
+    setClaimItems: (claimItems: ClaimItem[]) => void;
+    manualSend: boolean;
 }) {
     const [visible, setVisible] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const accounts = useAccountsContext();
 
     async function updateIPFSUris() {
         let badgeMsg = newCollectionMsg;
@@ -56,6 +65,65 @@ export function SubmitMsgNewCollection({
         setNewCollectionMsg(badgeMsg);
     }
 
+    const unregisteredUsers = manualSend
+        && newCollectionMsg.transfers.length > 0
+        ? claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+
+    const onRegister = async () => {
+        setLoading(true);
+
+        let newUsersToRegister = claimItems.filter((x) => x.userInfo.accountNumber === -1);
+
+        const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
+        const newClaimItems = [];
+        for (const claimItem of claimItems) {
+            if (claimItem.userInfo.accountNumber === -1) {
+                const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
+                if (newAccount) {
+                    newClaimItems.push({
+                        ...claimItem,
+                        userInfo: newAccount,
+                        address: newAccount.cosmosAddress,
+                        accountNum: newAccount.accountNumber,
+                    });
+                }
+            } else {
+                newClaimItems.push(claimItem);
+            }
+        }
+
+        setClaimItems([...newClaimItems]);
+
+        if (manualSend) {
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                transfers: newClaimItems.map((x) => ({
+                    toAddresses: [x.accountNum],
+                    balances: [
+                        {
+                            balance: x.amount,
+                            badgeIds: x.badgeIds,
+                        }
+                    ]
+                })),
+                claims: []
+            });
+        } else if (!manualSend) {
+            const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+            const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
+
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                transfers: [],
+                claims: claimRes.claims
+            })
+        }
+        
+        setVisible(true);
+        setLoading(false);
+    }
+
+
     return <div
         style={{
             width: '100%',
@@ -83,6 +151,8 @@ export function SubmitMsgNewCollection({
             visible={visible}
             setVisible={setVisible}
             txCosmosMsg={newCollectionMsg}
+            unregisteredUsers={unregisteredUsers}
+            onRegister={onRegister}
         />
     </div>
 }

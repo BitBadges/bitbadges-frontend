@@ -2,7 +2,7 @@ import { Popover, Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { SupportedChain } from '../../bitbadges-api/types';
 import { AddressDisplay } from './AddressDisplay';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
@@ -39,37 +39,45 @@ export function Address({
             placement="bottom"
             color='black'
             title={
-                <div style={{
+                address === MINT_ACCOUNT.address ? <div style={{
                     textAlign: 'center',
                     color: PRIMARY_TEXT,
                     minWidth: 400
                 }}>
-                    {`${getChainForAddress(address)} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
-                    <br />
-                    <br />
-                    {`${address}`}
-                    <br />
-                    <br />
-
-                    {"Other equivalent addresses include: "}
-                    <br />
-                    {chain === SupportedChain.ETH && isAddressValid(address) && <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <AddressDisplay
-                            darkMode
-                            userInfo={{
-                                address: ethToCosmos(address),
-                                cosmosAddress: ethToCosmos(address),
-                                chain: SupportedChain.COSMOS,
-                                accountNumber: -1,
-                            }}
-                            hidePortfolioLink
-                            hideTooltip
-                        />
-                        <br />
-                    </div>
-                    }
-
+                    This is a special address used when badges are minted.
                 </div>
+                    :
+                    <div style={{
+                        textAlign: 'center',
+                        color: PRIMARY_TEXT,
+                        minWidth: 400
+                    }}>
+                        {`${getChainForAddress(address)} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
+                        <br />
+                        <br />
+                        {`${address}`}
+                        <br />
+                        <br />
+
+                        {"Other equivalent addresses include: "}
+                        <br />
+                        {chain === SupportedChain.ETH && isAddressValid(address) && <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <AddressDisplay
+                                darkMode
+                                userInfo={{
+                                    address: ethToCosmos(address),
+                                    cosmosAddress: ethToCosmos(address),
+                                    chain: SupportedChain.COSMOS,
+                                    accountNumber: -1,
+                                }}
+                                hidePortfolioLink
+                                hideTooltip
+                            />
+                            <br />
+                        </div>
+                        }
+
+                    </div>
             }
             overlayStyle={{
                 minWidth: 400

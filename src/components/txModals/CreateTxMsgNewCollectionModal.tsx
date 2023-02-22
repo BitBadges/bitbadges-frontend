@@ -1,35 +1,18 @@
-import React from 'react';
 import { MessageMsgNewCollection, createTxMsgNewCollection } from 'bitbadgesjs-transactions';
+import React from 'react';
 import { TxModal } from './TxModal';
-import { useRouter } from 'next/router';
 
 export function CreateTxMsgNewCollectionModal(
-    { txCosmosMsg, visible, setVisible, children }
+    { txCosmosMsg, visible, setVisible, children, unregisteredUsers, onRegister }
         :
         {
             txCosmosMsg: MessageMsgNewCollection,
             visible: boolean,
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
+            unregisteredUsers?: string[],
+            onRegister?: () => Promise<void>
         }) {
-    const router = useRouter();
-
-    //TODO: Handle unregisted users
-    // const unregisteredUsers = txCosmosMsg.transfers.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
-
-    // const onRegister = async () => {
-    //     let allRegisteredUsers = toAddresses.filter((user) => user.accountNumber !== -1);
-    //     let newUsersToRegister = toAddresses.filter((user) => user.accountNumber === -1);
-    //     for (const user of newUsersToRegister) {
-    //         const newAccountNumber = await getAccountInformation(user.cosmosAddress).then((accountInfo) => {
-    //             return accountInfo.account_number;
-    //         });
-    //         allRegisteredUsers.push({ ...user, accountNumber: newAccountNumber });
-    //     }
-
-    //     setToAddresses(allRegisteredUsers);
-    // }
-
     return (
         <TxModal
             visible={visible}
@@ -37,6 +20,8 @@ export function CreateTxMsgNewCollectionModal(
             txName="Create Collection"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgNewCollection}
+            onRegister={onRegister}
+            unregisteredUsers={unregisteredUsers}
             onSuccessfulTx={async () => {
                 // await collections.refreshCollection(txCosmosMsg.collectionId);
                 // router.push(`/collections/${txCosmosMsg.collectionId}`)  TODO: navigate

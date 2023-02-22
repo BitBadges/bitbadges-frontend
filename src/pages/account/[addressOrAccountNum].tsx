@@ -67,8 +67,6 @@ function CollectionPage() {
             await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
 
             setUserInfo(portfolioInfo);
-
-            //TODO: get all profile info, balances here
         }
         getUserInfo();
     }, [addressOrAccountNum, accounts, collections]);

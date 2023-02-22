@@ -1,9 +1,7 @@
 import { InputNumber } from 'antd';
 import { Balance, BitBadgeCollection } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { IdRangesInput } from './IdRangesInput';
 
-//TODO: support multiple balances
 export function BalancesInput({
     collection,
     balances,
@@ -47,17 +45,5 @@ export function BalancesInput({
                 } : undefined}
             />
         </div>
-        {/* <IdRangesInput
-            setIdRanges={(badgeIds) => {
-                setBalances([
-                    {
-                        balance: balances[0]?.balance || 0,
-                        badgeIds
-                    }
-                ]);
-            }}
-            maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
-            darkMode={darkMode}
-        /> */}
     </div>
 }

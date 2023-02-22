@@ -5,13 +5,15 @@ import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 export function CreateTxMsgMintBadgeModal(
-    { txCosmosMsg, visible, setVisible, children }
+    { txCosmosMsg, visible, setVisible, children, unregisteredUsers, onRegister }
         :
         {
             txCosmosMsg: MessageMsgMintBadge,
             visible: boolean,
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
+            unregisteredUsers?: string[],
+            onRegister?: () => Promise<void>
         }
 ) {
     const router = useRouter();
@@ -28,6 +30,8 @@ export function CreateTxMsgMintBadgeModal(
                 await collections.refreshCollection(txCosmosMsg.collectionId);
                 router.push(`/collections/${txCosmosMsg.collectionId}`)
             }}
+            onRegister={onRegister}
+            unregisteredUsers={unregisteredUsers}
         >
             {children}
         </TxModal>
