@@ -2,6 +2,7 @@ import MerkleTree from "merkletreejs";
 import { getPostTransferBalance } from "./balances";
 import { BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from "./types";
 import { SHA256 } from "crypto-js";
+import { GO_MAX_UINT_64 } from "../constants";
 
 //Claims will have the format "CODE-ADDRESS-AMOUNT-STARTID-ENDID"
 

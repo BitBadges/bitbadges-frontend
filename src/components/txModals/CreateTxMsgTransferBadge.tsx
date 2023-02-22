@@ -385,6 +385,7 @@ export function CreateTxMsgTransferBadgeModal(
                     maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                     darkMode
                 />
+                
                 <Divider />
                 {balances.map((balance, index) => {
                     // console.log(balance);
