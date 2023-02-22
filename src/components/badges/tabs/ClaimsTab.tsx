@@ -1,4 +1,4 @@
-import { Empty } from 'antd';
+import { Empty, Pagination } from 'antd';
 import { useState } from 'react';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
@@ -7,33 +7,57 @@ import { CreateTxMsgClaimBadgeModal } from '../../txModals/CreateTxMsgClaimBadge
 
 export function ClaimsTab({ collection, refreshUserBalance }: {
     collection: BitBadgeCollection | undefined;
-    
+
     refreshUserBalance: () => void;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [code, setCode] = useState<string>("");
 
+    const [currPage, setCurrPage] = useState<number>(1);
+
+    const activeClaimIds: number[] = []
+    const activeClaims = collection ? collection?.claims.filter((x, idx) => {
+        if (x.balances.length > 0) {
+            activeClaimIds.push(idx);
+            return true;
+        }
+        return false;
+    }) : [];
+
     return (
         <div
             style={{
                 color: PRIMARY_TEXT,
-                display: 'flex',
                 justifyContent: 'center',
             }}>
+            <Pagination
+                current={currPage}
+                total={activeClaims.length}
+                pageSize={1}
+                onChange={(page) => {
+                    setCurrPage(page);
+                }}
+                hideOnSinglePage
+            />
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                {activeClaims && activeClaims.length > 0 && collection &&
+                    <ClaimDisplay
+                        collection={collection}
+                        claim={collection.claims[activeClaimIds[currPage - 1]]}
+                        claimId={activeClaimIds[currPage - 1]}
+                        openModal={(code) => {
+                            setClaimId(activeClaimIds[currPage - 1])
+                            setModalVisible(true);
+                            setCode(code ? code : "");
+                        }}
+                    />
+                }
+            </div>
             {
                 collection?.claims.map((claim, idx) => {
                     return <div key={idx}>
-                        <ClaimDisplay
-                            collection={collection}
-                            claim={claim}
-                            claimId={idx}
-                            openModal={(code) => {
-                                setClaimId(idx)
-                                setModalVisible(true);
-                                setCode(code ? code : "");
-                            }}
-                        />
+
 
                         {DEV_MODE &&
                             <pre>

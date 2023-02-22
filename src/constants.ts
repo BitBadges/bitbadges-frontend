@@ -6,7 +6,7 @@ export const BACKEND_URL = 'http://localhost:3001';
 
 export const WEBSITE_HOSTNAME = 'http://localhost:3000'
 
-export const DEV_MODE = false;
+export const DEV_MODE = true;
 
 // export const PRIVATE_API_URL = 'https://bitbadges-private-api.herokuapp.com';
 // export const PRIVATE_API_URL = 'https://api.circlegame.io';
@@ -31,7 +31,7 @@ export const ETH_LOGO =
 export const COSMOS_LOGO =
     'https://cryptologos.cc/logos/cosmos-atom-logo.png'
 
-export const GO_MAX_UINT_64 = 100000000; //TODO:
+export const GO_MAX_UINT_64 = 1000000000000000; //TODO:
 
 export const CHAIN_DETAILS = {
     chainId: 1,

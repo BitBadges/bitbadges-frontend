@@ -6,11 +6,13 @@ import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 export function BalanceDisplay({
     collection,
     balance,
-    message
+    message,
+    size,
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
     message?: string;
+    size?: number;
 }) {
     const badgeIds = [];
     for (const balanceAmount of balance.balances) {
@@ -72,7 +74,7 @@ export function BalanceDisplay({
                         showIds
                         pageSize={30}
                         showBalance
-                        size={50}
+                        size={size ? size : 50}
                     />
                 </div>}
 

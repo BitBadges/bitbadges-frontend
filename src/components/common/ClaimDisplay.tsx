@@ -12,6 +12,7 @@ import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { BalanceDisplay } from "./BalanceDisplay";
 import { TransferDisplay } from "./TransferDisplay";
+import { useAccountsContext } from "../../accounts/AccountsContext";
 
 export function ClaimDisplay({
     claim,
@@ -26,17 +27,22 @@ export function ClaimDisplay({
 }) {
     const chain = useChainContext();
     const [currCode, setCurrCode] = useState("");
+    const accounts = useAccountsContext();
 
     let endTimestamp = claim.timeRange.end;
     let validForever = claim.timeRange.end >= MAX_DATE_TIMESTAMP;
 
     const endDateString = validForever ? `Forever` : new Date(
         endTimestamp * 1000
-    ).toLocaleDateString();
+    ).toLocaleDateString() + ' ' + new Date(
+        endTimestamp * 1000
+    ).toLocaleTimeString();
 
     const startDateString = new Date(
         claim.timeRange.start * 1000
-    ).toLocaleDateString();
+    ).toLocaleDateString() + ' ' + new Date(
+        claim.timeRange.start * 1000
+    ).toLocaleTimeString();
 
     const currLeaf: ClaimItem = parseClaim(currCode);
 
@@ -45,7 +51,8 @@ export function ClaimDisplay({
     return <Card
         // title={<h1>Claim</h1>}
         style={{
-            minWidth: 400,
+            width: 600,
+
             margin: 8,
             textAlign: 'center',
             backgroundColor: PRIMARY_BLUE,
@@ -54,7 +61,12 @@ export function ClaimDisplay({
         }}
     >
         <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
-            {/* <h1>Claim #{claimId}</h1> */}
+            <h1>Claim #{claimId + 1}</h1>
+            <h3>Type:{' '}
+                {claim.distributionMethod === DistributionMethod.Whitelist && 'Whitelist'}
+                {claim.distributionMethod === DistributionMethod.Codes && 'Codes'}
+                {claim.distributionMethod === DistributionMethod.FirstComeFirstServe && 'First Come, First Serve'}
+            </h3>
             {collection.claims[claimId]?.leaves?.length === 0 &&
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
                     <h2>
@@ -71,15 +83,16 @@ export function ClaimDisplay({
                 </Row>}
 
             <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                <h3><ClockCircleOutlined /> Open from {startDateString} until {endDateString}</h3>
+                <h3><ClockCircleOutlined /> Open from {startDateString} to {endDateString}</h3>
             </Row>
             <BalanceDisplay
-                message={'Badges Left Available to Claim'}
+                message={'Unclaimed Badges'}
                 collection={collection}
                 balance={{
                     approvals: [],
                     balances: claim.balances
                 }}
+                size={35}
             />
             <br />
 
@@ -92,6 +105,8 @@ export function ClaimDisplay({
 
                     {collection.claims[claimId]?.distributionMethod === DistributionMethod.Codes ?
                         <>
+                            <hr />
+                            <h3>Enter Code to Claim</h3>
                             <Input
                                 placeholder="Enter Code"
                                 value={currCode}
@@ -103,7 +118,7 @@ export function ClaimDisplay({
                                     color: PRIMARY_TEXT,
                                 }}
                             />
-                            {currCode.length > 0 && <>
+                            {currCode.length > 0 && currLeaf.badgeIds.length > 0 && <>
                                 <Divider />
 
                                 <div style={{ color: PRIMARY_TEXT }}>
@@ -122,12 +137,18 @@ export function ClaimDisplay({
                                 </div>
                             </>}
 
-
-                            <Button disabled={!chain.connected} type='primary' onClick={() => openModal(currCode)} style={{ width: '100%' }}>Claim via Code</Button>
+                            <br />
+                            <br />
+                            <Button disabled={!chain.connected} type='primary' onClick={() => openModal(currCode)} style={{ width: '100%' }}>Claim</Button>
                         </>
                         :
                         <>
-                            {!chain.connected && <BlockinDisplay hideLogo />}
+                            <hr />
+                            {!chain.connected && <>
+                                {claim.distributionMethod === DistributionMethod.Whitelist && <h3>Connect your wallet to see if you are on the whitelist!</h3>}
+                                {/* {claim.distributionMethod !== DistributionMethod.Whitelist && <h3>Connect your wallet to claim!</h3>} */}
+                                <BlockinDisplay hideLogo />
+                            </>}
                             {chain.connected && !collection.claims[claimId]?.leaves?.find((x) => {
                                 if (parseClaim(x).address === chain.cosmosAddress) {
                                     if (collection.usedClaims.find((y) => y === SHA256(parseClaim(x).fullCode).toString())) {
@@ -153,7 +174,6 @@ export function ClaimDisplay({
                                 <div>
                                     {chain.connected && <div>
                                         <h3>You have been whitelisted!</h3>
-                                        <p>See your available claims below</p>
                                     </div>}
                                 </div>}
                             {collection.claims[claimId]?.leaves?.map((x) => {
@@ -161,22 +181,16 @@ export function ClaimDisplay({
                                 if (currLeaf.address != chain.cosmosAddress) return <></>
 
                                 if (collection.usedClaims.find((x) => x === SHA256(currLeaf.fullCode).toString())) return <></>
+                                accounts.fetchAccounts([currLeaf.address]);
+                                return accounts.accounts[accounts.accountNumbers[currLeaf.address]] && <>
 
-                                return <>
-                                    <Divider />
-                                    <hr />
                                     <TransferDisplay
                                         collection={collection}
                                         fontColor={PRIMARY_TEXT}
                                         from={[
                                             MINT_ACCOUNT
                                         ]}
-                                        to={[{
-                                            address: currLeaf.address,
-                                            accountNumber: 0,
-                                            cosmosAddress: currLeaf.address,
-                                            chain: SupportedChain.COSMOS,
-                                        }]}
+                                        to={[accounts.accounts[accounts.accountNumbers[currLeaf.address]]]}
                                         toCodes={[]}
                                         amount={currLeaf.amount}
                                         badgeIds={currLeaf.badgeIds}

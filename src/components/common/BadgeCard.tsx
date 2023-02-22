@@ -109,6 +109,7 @@ export function BadgeCard({
                                     fontSize: 20,
                                     color: PRIMARY_TEXT,
                                     fontWeight: 'bolder',
+                                    whiteSpace: 'normal'
                                 }}
                             >
                                 {metadata?.name}

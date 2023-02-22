@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { SHA256 } from 'crypto-js';
 import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
-import { addMerkleTreeToIpfs } from '../../../bitbadges-api/backend_connectors';
+import { addMerkleTreeToIpfs } from '../../../bitbadges-api/api';
 import { CreateTxMsgMintBadgeModal } from '../../txModals/CreateTxMsgMintBadgeModal';
 
 export function SubmitNewMintMsg({

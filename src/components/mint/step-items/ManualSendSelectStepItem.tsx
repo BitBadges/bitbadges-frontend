@@ -39,12 +39,7 @@ export function ManualSendSelectStepItem(
                             balances: [
                                 {
                                     balance: x.amount,
-                                    badgeIds: [
-                                        {
-                                            start: x.badgeIds[0].start,
-                                            end: x.badgeIds[0].end,
-                                        }
-                                    ]
+                                    badgeIds: x.badgeIds,
                                 }
                             ]
                         })),

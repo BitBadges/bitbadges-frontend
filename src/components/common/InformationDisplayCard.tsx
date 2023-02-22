@@ -27,7 +27,7 @@ export function InformationDisplayCard({
                                 {title}
                             </Text>
                         </Row>
-                        <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
+                        <Divider style={{ margin: "0px 0px", color: 'gray', background: 'gray' }}></Divider>
                         {children}
                     </Col>
                 </Row>

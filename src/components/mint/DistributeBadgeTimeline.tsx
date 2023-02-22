@@ -9,6 +9,7 @@ import { DistributionMethodStepItem } from './step-items/DistributionMethodStepI
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { SubmitNewMintMsgStepItem } from './step-items/SubmitNewMintMsgStepItem';
+import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 
 
 export function MintAndDistributeTimeline({
@@ -41,6 +42,7 @@ export function MintAndDistributeTimeline({
 
 
     const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, claimItems, distributionMethod);
+    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collection.collectionMetadata, collection, collection.claims.length + 1);
 
     //TODO: think how to handle first come first serve on redistribute; current solution will not work and is not possible
     const fungible = collection.maxSupplys[0].badgeIds[0].end === 0; //TODO: probably not the right way to handle this
@@ -54,6 +56,9 @@ export function MintAndDistributeTimeline({
                 distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
                     ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, collection.badgeMetadata, collection.collectionMetadata, collection.unmintedSupplys) : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod) : EmptyStepItem,
+                claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
+                    ? DownloadCodesStep : EmptyStepItem,
+
                 SubmitStepItem,
             ]}
         />

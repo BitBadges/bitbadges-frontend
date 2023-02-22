@@ -4,17 +4,23 @@ import { BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance 
 import { SHA256 } from "crypto-js";
 import { GO_MAX_UINT_64 } from "../constants";
 
-//Claims will have the format "CODE-ADDRESS-AMOUNT-STARTID-ENDID"
+//Claims will have the format "CODE-ADDRESS-AMOUNT-STARTID-ENDID-STARTID-ENDID..."
 
 export function parseClaim(fullClaimString: string): ClaimItem {
+    const values = fullClaimString.split('-');
+    const badgeIds = [];
+    for (let i = 3; i < values.length; i += 2) {
+        badgeIds.push({
+            start: Number(values[i]),
+            end: Number(values[i + 1]),
+        })
+    }
+
     const currLeaf: ClaimItem = {
-        code: fullClaimString.split('-')[0],
-        address: fullClaimString.split('-')[1],
-        amount: Number(fullClaimString.split('-')[2]),
-        badgeIds: [{
-            start: Number(fullClaimString.split('-')[3]),
-            end: Number(fullClaimString.split('-')[4]),
-        }],
+        code: values[0],
+        address: values[1],
+        amount: Number(values[2]),
+        badgeIds: badgeIds,
         fullCode: fullClaimString,
         accountNum: -1,
         userInfo: {
@@ -29,12 +35,17 @@ export function parseClaim(fullClaimString: string): ClaimItem {
 }
 
 export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number, currUserInfo: BitBadgesUserInfo): ClaimItem {
+    let fullCode = `${code}-${address}-${amount}`
+    for (const badgeId of badgeIds) {
+        fullCode += `-${badgeId.start}-${badgeId.end}`
+    }
+
     return {
         code,
         address,
         amount,
         badgeIds,
-        fullCode: `${code}-${address}-${amount}-${badgeIds[0].start}-${badgeIds[0].end}`,
+        fullCode: fullCode,
         accountNum,
         userInfo: currUserInfo,
     }
@@ -50,14 +61,19 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
     if (distributionMethod === DistributionMethod.Codes) {
         for (let i = 0; i < claimItems.length; i += 2) {
             const leaf = claimItems[i];
-            const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
-            balance.balances = newBalance.balances;
+            for (const badgeId of leaf.badgeIds) {
+                const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, leaf.amount, 1);
+                balance.balances = newBalance.balances;
+            }
+
         }
     } else if (distributionMethod === DistributionMethod.Whitelist) {
         for (let i = 0; i < claimItems.length; i++) {
             const leaf = claimItems[i];
-            const newBalance = getPostTransferBalance(balance, leaf.badgeIds[0].start, leaf.badgeIds[0].end, leaf.amount, 1);
-            balance.balances = newBalance.balances;
+            for (const badgeId of leaf.badgeIds) {
+                const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, leaf.amount, 1);
+                balance.balances = newBalance.balances;
+            }
         }
     }
 

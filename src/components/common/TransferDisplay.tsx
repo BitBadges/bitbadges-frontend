@@ -32,7 +32,7 @@ export function TransferDisplay({
     // const maximum = badge?.nextBadgeId - 1 || 0;
 
     const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
-    return <div style={{ minWidth: 600 }}>
+    return <div style={{}}>
         {!hideBalances && <div>
             <div style={{ fontSize: 15, textAlign: 'center' }}>
                 <span style={{ color: amount < 0 ? 'red' : undefined }}>
@@ -65,7 +65,7 @@ export function TransferDisplay({
                     badgeIds: badgeIds
                 }],
                 approvals: []
-            }} size={50} />
+            }} size={40} />
         }
 
         {
@@ -114,16 +114,16 @@ export function TransferDisplay({
                                 />
                             </>
                         })}
-                        {toCodes?.length && toCodes?.length > 0 &&
+                        {!!toCodes?.length && toCodes?.length > 0 &&
                             <>
                                 <Text
-                                    copyable={{ text: 'First Users Who Enter Codes' }}
+                                    copyable
                                     style={{
                                         color: fontColor ? fontColor : undefined,
                                     }}
                                     strong
                                 >
-                                    {'First Users Who Enter Codes'}
+                                    {'First User To Enter Code'}
                                 </Text>
                             </>}
                     </Col>

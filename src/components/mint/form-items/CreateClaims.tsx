@@ -1,5 +1,5 @@
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Collapse, Divider, InputNumber, Tooltip, Typography } from 'antd';
+import { CloseOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Collapse, Divider, Empty, InputNumber, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
@@ -15,10 +15,14 @@ import { BalanceBeforeAndAfter } from '../../common/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../../common/BalanceDisplay';
 import { BalancesInput } from '../../common/BalancesInput';
 import { TransferDisplay } from '../../common/TransferDisplay';
+import { InformationDisplayCard } from '../../common/InformationDisplayCard';
+import { IdRangesInput } from '../../common/IdRangesInput';
 
 const crypto = require('crypto');
 
 const { Text } = Typography;
+
+const { Step } = Steps;
 
 export function CreateClaims({
     collection,
@@ -59,6 +63,13 @@ export function CreateClaims({
 
     const [users, setUsers] = useState<BitBadgesUserInfo[]>([]);
     const [numCodes, setNumCodes] = useState<number>(1);
+    const [showForm, setShowForm] = useState<boolean>(false);
+
+    const [currentStep, setCurrentStep] = useState(0);
+
+    const onStepChange = (value: number) => {
+        setCurrentStep(value);
+    };
 
 
     const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
@@ -108,183 +119,340 @@ export function CreateClaims({
 
     const nonFungible = newCollectionMsg.badgeSupplys[0]?.amount - 1 ? newCollectionMsg.badgeSupplys[0].amount - 1 : badgeCollection.nextBadgeId - 1 > 1;
 
-    const postCurrBalance = getPostTransferBalance(JSON.parse(JSON.stringify(newBalances)), currBalances[0]?.badgeIds[0]?.start, currBalances[0]?.badgeIds[0]?.end, currBalances[0]?.balance, 1)
+    let postCurrBalance = newBalances;
+
+    for (const badgeId of currBalances[0]?.badgeIds) {
+        postCurrBalance = getPostTransferBalance(JSON.parse(JSON.stringify(postCurrBalance)), badgeId.start, badgeId.end, currBalances[0]?.balance,
+            distributionMethod === DistributionMethod.Codes ? numCodes : users.length);
+    }
+
+    return <div style={{ justifyContent: 'center', width: '100%' }}>
+        <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
+
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ width: '48%', display: 'flex' }}>
+                    <InformationDisplayCard
+                        title='Undistributed Badges'
+                    >
+                        {newBalances.balances.length > 0 && <BalanceDisplay
+                            size={40}
+                            collection={badgeCollection} balance={newBalances}
+                        />}
+                        {newBalances.balances.length === 0 && <Empty
+                            style={{ color: PRIMARY_TEXT }}
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description='No badges to distribute.' />}
 
 
-    return <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: 800 }}>
+                    </InformationDisplayCard>
+                </div>
+                <div style={{ width: '48%', display: 'flex' }}>
+                    <InformationDisplayCard
+                        title={distributionMethod === DistributionMethod.Codes ? 'Codes' : 'Whitelist'}
+                    ><>
+                            {claimItems.length === 0 && <Empty
+                                style={{ color: PRIMARY_TEXT }}
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : 'No users added.'} />}
 
-            <div style={{ width: '100%' }}>
-                {newBalances?.balances?.length > 0 && <BalanceDisplay message='Undistributed Badges' collection={badgeCollection} balance={newBalances} />}
-
-                {/* <Divider /> */}
-
-                {claimItems.length > 0 && <><br /><h3>Created Claims</h3><Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-
-                    {claimItems.map((leaf, index) => {
-                        let currIndex = index;
-                        if (distributionMethod === DistributionMethod.Codes) {
-                            if (index % 2 === 1) {
-                                return <></>
-                            }
-
-                            currIndex = index / 2;
-                        }
-
-                        return <CollapsePanel header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                                {distributionMethod === DistributionMethod.Codes ? <Text copyable style={{ color: PRIMARY_TEXT }}>
-                                    {'Code: ' + leaf.fullCode}</Text> :
-                                    <>
-                                        <AddressDisplay userInfo={leaf.userInfo} fontColor={PRIMARY_TEXT} fontSize={14} />
-                                    </>
-                                }
-                            </div>
-                            <div>
-                                <Tooltip title='Delete Claim'>
-
-                                    <DeleteOutlined onClick={
-                                        () => {
-                                            if (distributionMethod === DistributionMethod.Codes) {
-                                                const newClaimItems = claimItems.filter((_, i) => i !== index && i !== index + 1);
-                                                calculateNewBalances(newClaimItems);
-
-                                            } else {
-                                                const newClaimItems = claimItems.filter((_, i) => i !== index);
-                                                calculateNewBalances(newClaimItems);
+                            {claimItems.length > 0 && <>
+                                <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, margin: 0 }}>
+                                    {claimItems.map((leaf, index) => {
+                                        let currIndex = index;
+                                        if (distributionMethod === DistributionMethod.Codes) {
+                                            if (index % 2 === 1) {
+                                                return <></>
                                             }
+
+                                            currIndex = index / 2;
                                         }
-                                    } />
-                                </Tooltip>
-                            </div>
-                        </div>}
-                            key={index} style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                            <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                                {/* <hr /> */}
-                                {/* <h3>Claim #{currIndex + 1}</h3> */}
-                                <TransferDisplay
 
-                                    collection={badgeCollection}
-                                    fontColor={PRIMARY_TEXT}
-                                    from={[
-                                        MINT_ACCOUNT
-                                    ]}
-                                    to={distributionMethod === DistributionMethod.Whitelist ?
-                                        [
-                                            leaf.userInfo
-                                        ] : []}
-                                    toCodes={distributionMethod === DistributionMethod.Codes ? [leaf.fullCode] : [
+                                        return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
+                                                {distributionMethod === DistributionMethod.Codes ? <Text copyable style={{ color: PRIMARY_TEXT }}>
+                                                    {`Code #${currIndex + 1}`}
+                                                </Text> :
+                                                    <>
+                                                        <AddressDisplay userInfo={leaf.userInfo} fontColor={PRIMARY_TEXT} fontSize={14} />
+                                                    </>
+                                                }
+                                            </div>
+                                            <div>
+                                                <Tooltip title='Delete'>
 
-                                    ]}
-                                    amount={leaf.amount}
-                                    badgeIds={leaf.badgeIds}
-                                />
+                                                    <DeleteOutlined onClick={
+                                                        () => {
+                                                            if (distributionMethod === DistributionMethod.Codes) {
+                                                                const newClaimItems = claimItems.filter((_, i) => i !== index && i !== index + 1);
+                                                                calculateNewBalances(newClaimItems);
 
+                                                            } else {
+                                                                const newClaimItems = claimItems.filter((_, i) => i !== index);
+                                                                calculateNewBalances(newClaimItems);
+                                                            }
+                                                        }
+                                                    } />
+                                                </Tooltip>
+                                            </div>
+                                        </div>}
+                                            key={index} style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
+                                            <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
+                                                {distributionMethod === DistributionMethod.Codes ? <>
+                                                    <Text strong style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
+                                                        Code
+                                                    </Text>
+                                                    <br />
+                                                    <Text copyable strong style={{ color: PRIMARY_TEXT, fontSize: 16, }}>
+                                                        {leaf.fullCode}
+                                                    </Text>
+                                                    <Divider />
+                                                </> :
+                                                    <></>
+                                                }
+                                                {/* <hr /> */}
+                                                {/* <h3>Claim #{currIndex + 1}</h3> */}
+                                                <TransferDisplay
+
+                                                    collection={badgeCollection}
+                                                    fontColor={PRIMARY_TEXT}
+                                                    from={[
+                                                        MINT_ACCOUNT
+                                                    ]}
+                                                    to={distributionMethod === DistributionMethod.Whitelist ?
+                                                        [
+                                                            leaf.userInfo
+                                                        ] : []}
+                                                    toCodes={distributionMethod === DistributionMethod.Codes ? [leaf.fullCode] : [
+
+                                                    ]}
+
+                                                    amount={leaf.amount}
+                                                    badgeIds={leaf.badgeIds}
+                                                />
+
+                                                <Divider />
+                                            </div>
+                                        </CollapsePanel>
+                                    })}
+                                </Collapse>
                                 <Divider />
-                            </div>
-                        </CollapsePanel>
-                    })}
-                </Collapse>
-                    <Divider />
-                </>}
+                            </>}
 
 
 
 
 
-                <br />
-                <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                    <CollapsePanel key='create' header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>Create New Claim?</div>
-                        <PlusOutlined />
-                    </div>}
-                        style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
 
-                        {newBalances?.balances.length === 0 ? <h2>No badges left to distribute!</h2> : <h2>Create New Claim</h2>}
+                        </>
+                    </InformationDisplayCard>
 
 
-                        {newBalances && newBalances.balances.length > 0 ?
-                            <div style={{ color: PRIMARY_TEXT }}>
+                </div>
 
-                                {distributionMethod === DistributionMethod.Whitelist && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div style={{ minWidth: 500 }} >
-                                        <AddressListSelect
-                                            users={users}
-                                            setUsers={setUsers}
+            </div>
+
+        </div >
+        <br />
+
+
+        {!showForm && newBalances?.balances.length > 0 &&
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <Button
+                    type='primary'
+                    onClick={() => {
+                        setShowForm(true);
+                    }}
+                >
+                    <div>{distributionMethod === DistributionMethod.Codes ? 'Generate New Code(s)' : 'Add Users to Whitelist'}</div>
+                </Button>
+            </div>
+        }
+
+        {showForm && <>
+            <br />
+            <hr />
+            <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'space-between' }}>
+                <div></div>
+                <h2>
+                    {distributionMethod === DistributionMethod.Codes ? 'Generate New Code(s)' : 'Add Users to Whitelist'}
+                </h2>
+                <div>
+                    <Tooltip title='Cancel'>
+                        <CloseOutlined onClick={() => {
+                            setShowForm(false);
+                        }}
+                            size={40}
+                            style={{
+                                color: PRIMARY_TEXT
+                            }}
+                        />
+                    </Tooltip>
+                </div>
+            </div>
+            {newBalances && newBalances.balances.length > 0 ?
+                <div style={{ color: PRIMARY_TEXT }}>
+                    <Steps
+                        current={currentStep}
+                        onChange={onStepChange}
+                        direction="vertical"
+                    >
+                        <Step
+                            title={<b>{distributionMethod === DistributionMethod.Codes ? `Select Number of Codes (${numCodes})` : `Select Recipients (${users.length})`}</b>}
+                            description={
+                                <div style={{ color: PRIMARY_TEXT }}>
+                                    {currentStep === 0 && <div>
+                                        {distributionMethod === DistributionMethod.Whitelist && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <div style={{ minWidth: 500 }} >
+                                                <AddressListSelect
+                                                    users={users}
+                                                    setUsers={setUsers}
+                                                    darkMode
+                                                />
+                                            </div>
+                                        </div>}
+                                        {distributionMethod === DistributionMethod.Codes && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <div style={{ minWidth: 500 }} >
+                                                <div className='flex-between' style={{ flexDirection: 'column' }} >
+                                                    <b>Number of Codes to Generate</b>
+                                                    <InputNumber
+                                                        min={1}
+                                                        value={numCodes}
+                                                        onChange={(value) => {
+                                                            setNumCodes(value);
+                                                        }}
+                                                        style={{
+                                                            backgroundColor: PRIMARY_BLUE,
+                                                            color: PRIMARY_TEXT,
+                                                        }}
+                                                    />
+                                                </div>
+
+                                            </div>
+                                        </div>}
+                                    </div>}
+                                </div>
+                            }
+                            disabled={distributionMethod === DistributionMethod.Codes ? numCodes === 0 : users.length === 0}
+                        />
+                        <Step
+                            title={<b>{'Select Badges'}</b>}
+                            description={
+                                <div style={{ color: PRIMARY_TEXT }}>
+                                    {currentStep === 1 && <div>
+                                        <IdRangesInput
+                                            setIdRanges={(badgeIds) => {
+                                                setCurrBalances([
+                                                    {
+                                                        balance: currBalances[0]?.balance || 0,
+                                                        badgeIds
+                                                    }
+                                                ]);
+                                            }}
+                                            maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                                             darkMode
                                         />
-                                        <hr />
-                                    </div>
-                                </div>}
-
-                                {distributionMethod === DistributionMethod.Codes && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div style={{ minWidth: 500 }} >
-                                        <div className='flex-between' style={{ flexDirection: 'column' }} >
-                                            <b>Number of Codes to Generate</b>
-                                            <InputNumber
-                                                min={1}
-                                                value={numCodes}
-                                                onChange={(value) => {
-                                                    setNumCodes(value);
-                                                }}
-                                                style={{
-                                                    backgroundColor: PRIMARY_BLUE,
-                                                    color: PRIMARY_TEXT,
-                                                }}
-                                            />
-                                        </div>
-
-                                    </div>
-                                </div>}
-                                <br />
-                                <BalancesInput darkMode collection={collection} balances={currBalances} setBalances={setCurrBalances} />
-                                <br />
-                                <TransferDisplay
-
-                                    collection={badgeCollection}
-
-                                    fontColor={PRIMARY_TEXT}
-                                    from={[
-                                        MINT_ACCOUNT
-                                    ]}
-                                    to={distributionMethod === DistributionMethod.Whitelist ?
-                                        [
-                                            ...users
-                                        ] : []}
-                                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes).fill('First User to Enter Code') : [
-
-                                    ]}
-                                    amount={currBalances[0]?.balance}
-                                    badgeIds={currBalances[0]?.badgeIds}
-                                />
-                                <Divider />
-                                <hr />
-                                {newBalances && <BalanceBeforeAndAfter collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before Claim' afterMessage='After Claim' />}
-
-                                <br />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-                                    <Button
-                                        type='primary'
-                                        style={{ width: '100%' }}
-                                        onClick={() => {
-                                            addCode();
-                                            setCurrBalances([{
-                                                balance: 1,
-                                                badgeIds: getFullBadgeIdRanges(collection)
-                                            }])
-
-                                        }}
-                                        disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.Whitelist && !!users.find((x) => !x.cosmosAddress))}
-                                    >
-                                        {distributionMethod === DistributionMethod.Whitelist ? 'Generate Claim (by Address)' : 'Generate Claim (by Code)'}
-                                    </Button>
+                                        <Divider />
+                                        {currBalances.map((balance, index) => {
+                                            // console.log(balance);
+                                            return <div key={index}>
+                                                <TransferDisplay
+                                                    fontColor={PRIMARY_TEXT}
+                                                    hideAddresses
+                                                    amount={Number(balance.balance) * users.length}
+                                                    badgeIds={balance.badgeIds}
+                                                    collection={collection}
+                                                    from={[{
+                                                        chain: chain.chain,
+                                                        address: chain.address,
+                                                        accountNumber: chain.accountNumber,
+                                                        cosmosAddress: chain.cosmosAddress,
+                                                    }]}
+                                                    to={users}
+                                                    toCodes={new Array(numCodes)}
+                                                    hideBalances={true}
+                                                />
+                                                {/* <hr /> */}
+                                            </div>
+                                        })}
+                                    </div>}
                                 </div>
-                            </div> : <></>
-                        }
-                    </CollapsePanel>
-                </Collapse>
-            </div>
-        </div >
-    </div >
+                            }
+                            disabled={distributionMethod === DistributionMethod.Codes ? numCodes === 0 : users.length === 0}
+                        />
+                        <Step
+                            title={<b>{'Select Amounts'}</b>}
+                            description={
+                                <div style={{ color: PRIMARY_TEXT }}>
+                                    {currentStep === 2 && <div>
+                                        <br />
+                                        <BalancesInput
+                                            balances={currBalances}
+                                            setBalances={setCurrBalances}
+                                            collection={collection}
+                                            darkMode
+                                        />
+                                        {/* <hr /> */}
+                                        <Divider />
+                                        {currBalances.map((balance, index) => {
+                                            // console.log(balance);
+                                            return <div key={index}>
+                                                <TransferDisplay
+                                                    fontColor={PRIMARY_TEXT}
+                                                    hideAddresses
+                                                    amount={
+                                                        distributionMethod === DistributionMethod.Codes ?
+                                                            Number(balance.balance) * numCodes :
+                                                            Number(balance.balance) * users.length}
+                                                    badgeIds={balance.badgeIds}
+                                                    collection={collection}
+                                                    toCodes={new Array(numCodes)}
+                                                    from={[{
+                                                        chain: chain.chain,
+                                                        address: chain.address,
+                                                        accountNumber: chain.accountNumber,
+                                                        cosmosAddress: chain.cosmosAddress,
+                                                    }]}
+                                                    to={users}
+                                                />
+                                                {/* <hr /> */}
+                                            </div>
+                                        })}
+                                        <Divider />
+                                        {newBalances && <BalanceBeforeAndAfter collection={badgeCollection} balance={newBalances} newBalance={postCurrBalance} partyString='Undistributed' beforeMessage='Before' afterMessage='After' />}
+                                        <Divider />
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+                                            <Button
+                                                type='primary'
+                                                style={{ width: '100%' }}
+                                                onClick={() => {
+                                                    addCode();
+                                                    setCurrBalances([{
+                                                        balance: 1,
+                                                        badgeIds: getFullBadgeIdRanges(collection)
+                                                    }])
+                                                    setShowForm(false);
+                                                    setCurrentStep(1);
+
+                                                }}
+                                                disabled={currBalances[0]?.balance <= 0 || currBalances[0]?.badgeIds[0]?.start < 0 || currBalances[0]?.badgeIds[0]?.end < 0 || currBalances[0]?.badgeIds[0]?.start > currBalances[0]?.badgeIds[0]?.end || !!postCurrBalance.balances.find((balance) => balance.balance < 0) || (distributionMethod === DistributionMethod.Whitelist && !!users.find((x) => !x.cosmosAddress))}
+                                            >
+                                                {distributionMethod === DistributionMethod.Whitelist ? 'Add Users to Whitelist' : 'Generate Codes'}
+                                            </Button>
+                                        </div>
+                                        <Divider />
+                                    </div>}
+                                </div>
+                            }
+                            disabled={distributionMethod === DistributionMethod.Codes ? numCodes === 0 : users.length === 0 || (currBalances.length == 0 || !!postCurrBalance?.balances?.find((balance) => balance.balance < 0))}
+                        />
+
+                    </Steps>
+
+
+                </div> : <></>
+            }
+        </>
+        }
+    </div>
 }

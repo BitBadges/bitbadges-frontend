@@ -14,7 +14,7 @@ export function CreateClaimsStepItem(
     balancesToDistribute?: Balance[],
 ) {
     return {
-        title: `Create Claims`,
+        title: `${distributionMethod === DistributionMethod.Codes ? 'Generate Codes' : 'Whitelist'}`,
         description: '',
         node: <CreateClaims
             collection={collection}

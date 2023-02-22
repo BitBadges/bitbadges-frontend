@@ -36,7 +36,6 @@ export function SearchDropdown({
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            console.log(searchValue)
             const updateSearchValue = async (value: string) => {
                 accounts.fetchAccounts([value]);
                 const results = await getSearchResults(value);
@@ -47,7 +46,7 @@ export function SearchDropdown({
                 console.log("SEARCH RESULTS", results);
             }
             updateSearchValue(searchValue);
-        }, 3000)
+        }, 300)
 
         return () => clearTimeout(delayDebounceFn)
     }, [searchValue, accounts])

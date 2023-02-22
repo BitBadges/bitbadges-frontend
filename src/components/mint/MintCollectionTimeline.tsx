@@ -138,7 +138,7 @@ export function MintCollectionTimeline() {
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)
     const CreateClaims = CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, individualBadgeMetadata, collectionMetadata);
-    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata);
+    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, collection, 1);
     const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, collectionMetadata, individualBadgeMetadata, distributionMethod);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
     const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
