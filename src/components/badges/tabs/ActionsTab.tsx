@@ -161,12 +161,6 @@ export function ActionsTab({
 
     if (!chain.connected) {
         return <div>
-            <Divider />
-            {chain.connected &&
-                <Typography style={{ color: PRIMARY_TEXT, textAlign: 'center', fontSize: 20, paddingBottom: '5px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    Your connected address is not the manager of this collection.
-                </Typography>
-            }
             <BlockinDisplay />
         </div>
 

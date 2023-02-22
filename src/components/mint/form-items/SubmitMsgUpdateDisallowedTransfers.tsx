@@ -1,11 +1,8 @@
 import { Button } from 'antd';
-import { MessageMsgNewCollection, MessageMsgUpdateDisallowedTransfers, MessageMsgUpdateUris } from 'bitbadgesjs-transactions';
+import { MessageMsgNewCollection, MessageMsgUpdateDisallowedTransfers } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { addToIpfs } from '../../../bitbadges-api/backend_connectors';
-import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
+import { BitBadgeCollection } from '../../../bitbadges-api/types';
 import { useChainContext } from '../../../chain/ChainContext';
-import { CreateTxMsgUpdateUrisModal } from '../../txModals/CreateTxMsgUpdateUrisModal';
 import { CreateTxMsgUpdateDisallowedTransfersModal } from '../../txModals/CreateTxMsgUpdateDisallowedTransfers';
 
 export function SubmitMsgUpdateDisallowedTransfers({

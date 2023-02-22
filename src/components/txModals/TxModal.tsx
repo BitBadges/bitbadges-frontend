@@ -17,7 +17,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width
     }: {
         createTxFunction: any,
         txCosmosMsg: object,
@@ -30,9 +30,10 @@ export function TxModal(
         bodyStyle?: React.CSSProperties,
         unregisteredUsers?: string[],
         onRegister?: () => void,
-        onSuccessfulTx?: () => void,
+        onSuccessfulTx?: () => Promise<void>,
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
+        width?: number | string
     }
 ) {
     if (!msgSteps) msgSteps = [];
@@ -118,55 +119,56 @@ export function TxModal(
         }
     };
 
-    if (chain.accountNumber === -1) {
-        return <Modal
-            title={<b>Register Account</b>}
-            open={visible && chain.accountNumber === -1}
-            style={{
-                paddingLeft: '12px',
-                paddingRight: '0px',
-                paddingTop: '0px',
-                paddingBottom: '0px',
-                borderBottom: '0px',
-                ...style
-            }}
-            width={800}
-            closeIcon={closeIcon}
-            bodyStyle={{
-                paddingTop: 8,
-                fontSize: 20,
-                ...bodyStyle
-            }}
-            // onOk={registerCurrentUser}
-            onCancel={() => setVisible(false)}
-            okText={"Register Account"}
-            cancelText={"Cancel"}
-            destroyOnClose={true}
-        >
-            <Content style={{ paddingTop: '15px' }}>
-                <Button
-                    type="primary"
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(chain.cosmosAddress);
-                        window.open('http://localhost:4500', "_blank");
-                    }}
-                    style={{ margin: 5 }}
-                >
-                    Click here to go to the faucet and register your address (one-time)!
-                </Button>
-                <Button
-                    type="primary"
-                    onClick={async () => {
-                        await chain.connect();
-                    }}
-                    style={{ margin: 5 }}
-                >
-                    Refresh
-                </Button>
-            </Content>
+    //TODO: better handle unregistered
+    // if (chain.accountNumber === -1) {
+    //     return <Modal
+    //         title={<b>Register Account</b>}
+    //         open={visible && chain.accountNumber === -1}
+    //         style={{
+    //             paddingLeft: '12px',
+    //             paddingRight: '0px',
+    //             paddingTop: '0px',
+    //             paddingBottom: '0px',
+    //             borderBottom: '0px',
+    //             ...style
+    //         }}
+    //         width={800}
+    //         closeIcon={closeIcon}
+    //         bodyStyle={{
+    //             paddingTop: 8,
+    //             fontSize: 20,
+    //             ...bodyStyle
+    //         }}
+    //         // onOk={registerCurrentUser}
+    //         onCancel={() => setVisible(false)}
+    //         okText={"Register Account"}
+    //         cancelText={"Cancel"}
+    //         destroyOnClose={true}
+    //     >
+    //         <Content style={{ paddingTop: '15px' }}>
+    //             <Button
+    //                 type="primary"
+    //                 onClick={async () => {
+    //                     await navigator.clipboard.writeText(chain.cosmosAddress);
+    //                     window.open('http://localhost:4500', "_blank");
+    //                 }}
+    //                 style={{ margin: 5 }}
+    //             >
+    //                 Click here to go to the faucet and register your address (one-time)!
+    //             </Button>
+    //             <Button
+    //                 type="primary"
+    //                 onClick={async () => {
+    //                     await chain.connect();
+    //                 }}
+    //                 style={{ margin: 5 }}
+    //             >
+    //                 Refresh
+    //             </Button>
+    //         </Content>
 
-        </Modal>
-    }
+    //     </Modal>
+    // }
 
 
     return (
@@ -185,7 +187,7 @@ export function TxModal(
                 borderBottom: '0px',
                 ...style
             }}
-            width={'80%'}
+            width={width ? width : '80%'}
             closeIcon={<div style={{
                 backgroundColor: PRIMARY_BLUE,
                 color: PRIMARY_TEXT,

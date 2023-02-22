@@ -144,10 +144,6 @@ export function MetadataForm({
                         });
                     }} />
                 </>}
-                {addMethod === MetadataAddMethod.CSV && <>
-                    {/* //TODO: 
-                    */}
-                </>}
                 {addMethod === MetadataAddMethod.Manual && <>
                     <br />
                     <Form.Item

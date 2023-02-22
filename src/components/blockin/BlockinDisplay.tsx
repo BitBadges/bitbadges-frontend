@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react"
 import { SignChallengeResponse, useChainContext } from "../../chain/ChainContext"
-import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/backend_connectors"
+import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api"
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChallengeResponse, SupportedChainMetadata } from 'blockin';
 import { PRIMARY_TEXT } from "../../constants";
@@ -173,7 +173,7 @@ export const BlockinDisplay = ({
                 />
             }
         </div>
-        <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} chain={chain} />}</div>
+        <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} />}</div>
         <div> {address && <Text
             strong
             style={{ fontSize: 30, color: PRIMARY_TEXT }}

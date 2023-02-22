@@ -6,6 +6,7 @@ import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { TxModal } from './TxModal';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 
 export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, }
@@ -37,7 +38,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
             title: 'Select Permissions To Update',
             description: <>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Freeze / Unfreeze Addresses
+                    Freeze / Unfreeze Addresses (Edit Transferability)
                     <div>
                         <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                             <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateDisallowed} defaultChecked={GetPermissions(currPermissions).CanUpdateDisallowed} onChange={() => {
@@ -47,7 +48,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Create More Badges
+                    Add More Badges to Collection
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
@@ -55,7 +56,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     </Tooltip>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Update Uris (Metadata)
+                    Update Metadata URLs
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
@@ -63,7 +64,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     </Tooltip>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Update Bytes
+                    Update Bytes
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
@@ -71,7 +72,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     </Tooltip>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    Can Manager Be Transferred
+                    Transfer the Manager Role
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
@@ -79,7 +80,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     </Tooltip>
                 </div>
                 <br />
-                *Once a permission is turned off, it cannot be turned back on.
+                <InfoCircleOutlined /> Once a permission is turned off, it cannot be turned back on.
             </>
         }
     ]

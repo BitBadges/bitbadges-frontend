@@ -4,10 +4,13 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
+import { ChallengeParams } from "blockin";
+import { stringify } from "../utils/preserveJson";
+import { BadgeMetadata } from "./types";
 
 //Get account by address
 export async function getAccountInformation(address: string) {
@@ -39,21 +42,7 @@ export async function getBadgeOwners(collectionId: number, badgeId: number) {
     return owners;
 }
 
-//Get a specific badge collection and all metadata
-export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
-    if (collectionId === undefined || collectionId === -1) {
-        return Promise.reject("collectionId is invalid");
-    }
-
-    let error = Joi.number().integer().min(-1).required().validate(collectionId).error
-    if (error) {
-        return Promise.reject(error);
-    }
-
-    const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
-
-    let badgeData: BitBadgeCollection = badgeDataResponse;
-
+async function cleanCollection(badgeData: BitBadgeCollection) {
     // Convert the returned permissions (uint) to a Permissions object for easier use
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
@@ -86,6 +75,50 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
 
     console.log("BADGEDATA", badgeData);
 
+    return badgeData;
+}
+
+export async function getCollections(collectionIds: number[]) {
+    for (const collectionId of collectionIds) {
+        if (collectionId === undefined || collectionId === -1) {
+            return Promise.reject("collectionId is invalid");
+        }
+
+        let error = Joi.number().integer().min(-1).required().validate(collectionId).error
+        if (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    let collections: BitBadgeCollection[] = [];
+    const badgeDataResponse = await axios.post(BACKEND_URL + GetCollectionsRoute(), {
+        collections: collectionIds.map((x) => Number(x))
+    }).then((res) => res.data);
+
+    for (const collection of badgeDataResponse.collections) {
+        console.log("COLLECTION", collection);
+        let badgeData: BitBadgeCollection = collection;
+        badgeData = await cleanCollection(badgeData);
+        collections.push(badgeData);
+    }
+
+    return collections;
+}
+
+//Get a specific badge collection and all metadata
+export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
+    if (collectionId === undefined || collectionId === -1) {
+        return Promise.reject("collectionId is invalid");
+    }
+
+    let error = Joi.number().integer().min(-1).required().validate(collectionId).error
+    if (error) {
+        return Promise.reject(error);
+    }
+
+    const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
+    let badgeData: BitBadgeCollection = badgeDataResponse;
+    badgeData = await cleanCollection(badgeData);
     return {
         collection: badgeData
     };
@@ -141,4 +174,108 @@ export async function getPortfolio(accountNumber: number) {
 export async function getSearchResults(searchTerm: string) {
     const searchResults = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
     return searchResults;
+}
+
+
+/**
+ * Here, we define the API function logic to call your backend.
+ */
+export const getChallenge = async (chain: string, address: string, assetIds: string[]) => {
+    const assets = [];
+    for (const assetId of assetIds) {
+        assets.push('Asset ID: ' + assetId);
+    }
+
+    const message = await getChallengeFromBlockin(chain, address, assets);
+    return message;
+}
+
+
+const getChallengeFromBlockin = async (chain: string, address: string, assetIds: string[]): Promise<string> => {
+    const data = await fetch(BACKEND_URL + '/api/getChallenge', {
+        method: 'post',
+        body: JSON.stringify({
+            address,
+            assetIds,
+            chain
+        }),
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return data.message;
+}
+
+export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
+    const data = await fetch(BACKEND_URL + '/api/getChallengeParams', {
+        method: 'post',
+        body: JSON.stringify({
+            address,
+            chain
+        }),
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return data;
+}
+
+export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uint8Array, signatureBytes: Uint8Array) => {
+    const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
+    console.log(bodyStr);
+
+    const verificationRes = await fetch(BACKEND_URL + '/api/verifyChallenge', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return verificationRes;
+}
+
+
+export const addMerkleTreeToIpfs = async (leaves: string[]) => {
+
+    const bodyStr = stringify({
+        leaves
+    }); //hack to preserve uint8 arrays
+
+    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addMerkleTreeToIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return addToIpfsRes;
+}
+
+export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }) => {
+    const bodyStr = stringify({
+        collectionMetadata,
+        individualBadgeMetadata
+    }); //hack to preserve uint8 arrays
+
+    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addToIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json());
+
+    return addToIpfsRes;
+}
+
+export interface GetFromIPFSResponse {
+    file: string
+}
+
+export const getFromIpfs = async (path: string) => {
+    const bodyStr = stringify({ path }); //hack to preserve uint8 arrays
+
+    const addToIpfsRes: GetFromIPFSResponse = await fetch(BACKEND_URL + '/api/getFromIpfs', {
+        method: 'post',
+        body: bodyStr,
+        headers: { 'Content-Type': 'application/json' }
+    }).then(res => {
+        return res.json()
+    });
+
+    return addToIpfsRes;
 }

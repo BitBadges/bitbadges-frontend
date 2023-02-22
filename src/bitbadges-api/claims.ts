@@ -79,7 +79,7 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
                 data: root,
                 timeRange: {
                     start: 0,
-                    end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
+                    end: GO_MAX_UINT_64
                 },
                 incrementIdsBy: 0,
                 badgeIds: [],

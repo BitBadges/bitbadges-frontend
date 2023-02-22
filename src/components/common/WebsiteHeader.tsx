@@ -62,8 +62,6 @@ export function WalletHeader() {
     const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined />} />), subMenuOverlay: MintTabMenu };
     const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
-    //TODO: Blockin Connect / Sign-In
-    //TODO: Add Chain Img if signed In
 
     //Connect and sign-in if nothing
     let signedIn = false; //Placeholder TODO:

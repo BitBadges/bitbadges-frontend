@@ -21,6 +21,10 @@ export const GetCollectionRoute = (collectionId: number) => {
     return `/api/collection/${collectionId}`;
 }
 
+export const GetCollectionsRoute = () => {
+    return `/api/collection/batch`;
+}
+
 export const GetBadgeBalanceRoute = (collectionId: number, accountNumber: number) => {
     return `/api/balance/${collectionId}/${accountNumber}`;
 }

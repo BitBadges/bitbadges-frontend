@@ -1,6 +1,7 @@
 import React from 'react';
 import { MessageMsgNewCollection, createTxMsgNewCollection } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
+import { useRouter } from 'next/router';
 
 export function CreateTxMsgNewCollectionModal(
     { txCosmosMsg, visible, setVisible, children }
@@ -11,6 +12,7 @@ export function CreateTxMsgNewCollectionModal(
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
         }) {
+    const router = useRouter();
 
     //TODO: Handle unregisted users
     // const unregisteredUsers = txCosmosMsg.transfers.filter((user) => user.accountNumber === -1).map((user) => user.cosmosAddress);
@@ -35,7 +37,9 @@ export function CreateTxMsgNewCollectionModal(
             txName="Create Collection"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgNewCollection}
-            onSuccessfulTx={() => { //TODO: navigate to page
+            onSuccessfulTx={async () => {
+                // await collections.refreshCollection(txCosmosMsg.collectionId);
+                // router.push(`/collections/${txCosmosMsg.collectionId}`)  TODO: navigate
             }}
         >
             {children}

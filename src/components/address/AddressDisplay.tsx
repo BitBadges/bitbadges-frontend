@@ -34,17 +34,19 @@ export function AddressDisplayList(
         setUsers,
         disallowedUsers,
         disallowedMessages,
-        fontColor
+        fontColor,
+        darkMode,
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: BitBadgesUserInfo[],
         disallowedMessages?: string[],
         fontColor?: string
+        darkMode?: boolean
     }
 ) {
-    return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor }}>
-        <h3 style={{ color: fontColor }} >Added Recipients ({users.length})</h3>
+    return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>
+        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >Added Recipients ({users.length})</h3>
         {
             users.map((user, index) => {
                 let isDisallowed = false;
@@ -130,10 +132,10 @@ export function AddressDisplay(
                 hidePortfolioLink={hidePortfolioLink}
                 hideTooltip={hideTooltip}
             />
-            <div style={{ display: 'flex', alignItems: 'center', color: fontColor }} >
+            <div style={{ display: 'flex', alignItems: 'center', color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >
                 {showAccountNumber && userInfo.accountNumber !== -1 &&
                     <div>
-                        <Typography.Text strong style={{ marginLeft: 8, color: fontColor }}>ID #{userInfo.accountNumber}</Typography.Text>
+                        <Typography.Text strong style={{ marginLeft: 8, color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>ID #{userInfo.accountNumber}</Typography.Text>
                     </div>}
                 {showAccountNumber && userInfo.accountNumber === -1 &&
                     <Tooltip
@@ -141,7 +143,7 @@ export function AddressDisplay(
                         placement='bottom'
                     >
                         <div>
-                            <Typography.Text strong style={{ marginLeft: 8, color: fontColor }}>Unregistered</Typography.Text>
+                            <Typography.Text strong style={{ marginLeft: 8, color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>Unregistered</Typography.Text>
                         </div>
                     </Tooltip>
                 }

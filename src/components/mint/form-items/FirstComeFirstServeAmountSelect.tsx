@@ -2,7 +2,8 @@ import { InputNumber } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
-import { PRIMARY_TEXT } from '../../../constants';
+import { GO_MAX_UINT_64, PRIMARY_TEXT } from '../../../constants';
+import { ClaimType } from '../../../bitbadges-api/types';
 
 export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,
@@ -34,7 +35,7 @@ export function FirstComeFirstServeAmountSelect({
                     data: "",
                     timeRange: {
                         start: 0,
-                        end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
+                        end: GO_MAX_UINT_64
                     },
                 }
             ]
@@ -48,7 +49,7 @@ export function FirstComeFirstServeAmountSelect({
                 {
                     amountPerClaim: amountToClaim,
                     balances: beforeBalances.balances,
-                    type: 1, //TODO: change to enum
+                    type: ClaimType.Anyone,
                     badgeIds: [{
                         start: 0,
                         end: 0,
@@ -58,7 +59,7 @@ export function FirstComeFirstServeAmountSelect({
                     data: "",
                     timeRange: {
                         start: 0,
-                        end: Number.MAX_SAFE_INTEGER //TODO: change to max uint64,
+                        end: GO_MAX_UINT_64
                     },
                 }
             ]

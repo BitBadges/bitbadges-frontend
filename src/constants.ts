@@ -31,6 +31,8 @@ export const ETH_LOGO =
 export const COSMOS_LOGO =
     'https://cryptologos.cc/logos/cosmos-atom-logo.png'
 
+export const GO_MAX_UINT_64 = 100000000; //TODO:
+
 export const CHAIN_DETAILS = {
     chainId: 1,
     cosmosChainId: 'bitbadges_1-1',

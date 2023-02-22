@@ -2,6 +2,8 @@ import { MessageMsgUpdateUris, createTxMsgUpdateUris } from 'bitbadgesjs-transac
 import React from 'react';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { TxModal } from './TxModal';
+import { useRouter } from 'next/router';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 
 export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, txCosmosMsg }
@@ -12,6 +14,8 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, txCo
         children?: React.ReactNode,
         txCosmosMsg: MessageMsgUpdateUris
     }) {
+    const router = useRouter();
+    const collections = useCollectionsContext();
 
     return (
         <TxModal
@@ -21,7 +25,9 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, txCo
             txName="Update Metadata"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdateUris}
-            onSuccessfulTx={() => { //TODO: reroute to collection page
+            onSuccessfulTx={async () => {
+                await collections.refreshCollection(txCosmosMsg.collectionId);
+                router.push(`/collections/${txCosmosMsg.collectionId}`)
             }}
         >
             {children}

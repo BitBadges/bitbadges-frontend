@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
-import { getBadgeCollection, updateMetadata } from '../bitbadges-api/api';
+import { getBadgeCollection, getCollections, updateMetadata } from '../bitbadges-api/api';
 import { BitBadgeCollection } from '../bitbadges-api/types';
 
 export type CollectionsContextType = {
@@ -26,7 +26,6 @@ type Props = {
 export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const [collections, setCollections] = useState<{ [collectionId: string]: BitBadgeCollection }>({});
 
-    //TODO: batch collections
     const fetchCollections = async (collectionIds: number[]) => {
         const collectionsToFetch = [];
 
@@ -36,14 +35,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             }
         }
 
-        for (const collectionId of collectionsToFetch) {
-            const collection = await getBadgeCollection(collectionId);
-            if (collection.collection) {
-                setCollections({
-                    ...collections,
-                    [`${collectionId}`]: collection.collection
-                });
-            }
+        const fetchedCollections = await getCollections(collectionsToFetch);
+        for (const collection of fetchedCollections) {
+            setCollections({
+                ...collections,
+                [`${collection.collectionId}`]: collection
+            });
         }
     }
 

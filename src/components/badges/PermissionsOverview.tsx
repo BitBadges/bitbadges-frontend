@@ -27,14 +27,10 @@ export function PermissionsOverview({
                     Badges cannot be created, transferred, updated, or revoked!
                 </Typography.Text> :
                 <>
-                    {/* //TODO: update bytes */}
-
                     {<TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                     {<TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-                    {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} /> //TODO: explain this does not mean the metadata can be updated; only the URL updates
-                    }
+                    {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                     {<TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-
 
                     <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
                     <h3>{"Manager's Approved Transfers"}

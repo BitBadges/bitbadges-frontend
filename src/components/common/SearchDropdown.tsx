@@ -1,19 +1,12 @@
 
 import { Avatar, Layout, Menu, Select, Typography } from 'antd';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../accounts/AccountsContext';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
-import { useChainContext } from '../../chain/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
-
-const { Header } = Layout;
-const { Option } = Select;
-
-const OPEN_KEYS = [];
 
 
 export function SearchDropdown({
@@ -31,19 +24,34 @@ export function SearchDropdown({
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
     const [collectionsResults, setCollectionsResults] = useState<BadgeMetadata[]>([]);
 
-    useEffect(() => {
-        const updateSearchValue = async (value: string) => {
-            accounts.fetchAccounts([value]);
-            const results = await getSearchResults(value);
-            await accounts.fetchAccounts(results.accounts.map((result: CosmosAccountInformation) => result.address));
-            setAccountsResults(results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
-            setCollectionsResults(results.collections);
 
-            console.log("SEARCH RESULTS", results);
-        }
-        updateSearchValue(searchValue);
+
+    useEffect(() => {
+
+
+
 
     }, [searchValue, accounts]);
+
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            console.log(searchValue)
+            const updateSearchValue = async (value: string) => {
+                accounts.fetchAccounts([value]);
+                const results = await getSearchResults(value);
+                await accounts.fetchAccounts(results.accounts.map((result: CosmosAccountInformation) => result.address));
+                setAccountsResults(results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
+                setCollectionsResults(results.collections);
+
+                console.log("SEARCH RESULTS", results);
+            }
+            updateSearchValue(searchValue);
+        }, 3000)
+
+        return () => clearTimeout(delayDebounceFn)
+    }, [searchValue, accounts])
+
 
 
 

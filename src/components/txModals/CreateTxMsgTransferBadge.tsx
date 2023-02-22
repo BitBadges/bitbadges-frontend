@@ -312,7 +312,7 @@ export function CreateTxMsgTransferBadgeModal(
 
 
 
-
+    //TODO: Add helper messages about account being frozen / manager transfers in this card; catch it earlier
     const items = [
         {
             title: 'Select Sender',
@@ -460,7 +460,7 @@ export function CreateTxMsgTransferBadgeModal(
             txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
+            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
             displayMsg={<div>
                 {balances.map((balance, index) => {
                     // console.log(balance);

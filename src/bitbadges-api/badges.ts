@@ -2,6 +2,7 @@ import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { ChainContextType } from "../chain/ChainContext";
 import { GetPermissions } from "./permissions";
 import { ActivityItem, BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
+import { GO_MAX_UINT_64 } from "../constants";
 
 export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
     return activity.filter((x) => {
@@ -92,7 +93,7 @@ export const AllAddressesTransferMapping: TransferMapping = {
         accountNums: [
             {
                 start: 0,
-                end: 1000 //TODO: change to max uint64
+                end: GO_MAX_UINT_64
             }
         ],
         options: 0,
@@ -101,7 +102,7 @@ export const AllAddressesTransferMapping: TransferMapping = {
         accountNums: [
             {
                 start: 0,
-                end: 1000 //TODO: change to max uint64
+                end: GO_MAX_UINT_64
             }
         ],
         options: 0,

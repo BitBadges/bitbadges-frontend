@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { InputNumber, Button } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { GO_MAX_UINT_64, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 
 export function BadgeSupply({
@@ -83,7 +83,7 @@ export function BadgeSupply({
                             color: PRIMARY_TEXT,
                         }}
                         onClick={() => {
-                            let value = 1000000; //TODO: uint64 max 
+                            let value = GO_MAX_UINT_64
                             setSupplyToCreate(value as number);
                             addTokens(value);
                         }}>Max</Button>

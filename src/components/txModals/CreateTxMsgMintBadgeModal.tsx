@@ -1,6 +1,8 @@
 import React from 'react';
 import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
+import { useRouter } from 'next/router';
+import { useCollectionsContext } from '../../collections/CollectionsContext';
 
 export function CreateTxMsgMintBadgeModal(
     { txCosmosMsg, visible, setVisible, children }
@@ -12,6 +14,8 @@ export function CreateTxMsgMintBadgeModal(
             children?: React.ReactNode,
         }
 ) {
+    const router = useRouter();
+    const collections = useCollectionsContext();
 
     return (
         <TxModal
@@ -20,7 +24,9 @@ export function CreateTxMsgMintBadgeModal(
             txName="Mint Badges"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgMintBadge}
-            onSuccessfulTx={() => { //TODO: navigate to page
+            onSuccessfulTx={async () => {
+                await collections.refreshCollection(txCosmosMsg.collectionId);
+                router.push(`/collections/${txCosmosMsg.collectionId}`)
             }}
         >
             {children}

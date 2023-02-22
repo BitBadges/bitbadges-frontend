@@ -5,6 +5,7 @@ import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadges
 import { TxModal } from './TxModal';
 import { AddressSelect } from '../address/AddressSelect';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { InfoCircleOutlined, InfoOutlined } from '@ant-design/icons';
 
 export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children }
     : {
@@ -47,9 +48,9 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
         {
             title: 'Select Address',
             description: <>
-                <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} />
+                <AddressSelect currUserInfo={currUserInfo} setCurrUserInfo={setCurrUserInfo} darkMode />
                 <br />
-                *This will only go through if the address you select has submitted a request to become the manager of this collection.
+                <InfoCircleOutlined /> The new manager must have already submitted a transfer manager request.
             </>,
             disabled: newManagerAccountNumber === undefined || newManagerAccountNumber === null || newManagerAccountNumber < 0
         }

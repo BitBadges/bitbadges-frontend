@@ -2,7 +2,7 @@ import { Button } from 'antd';
 import { MessageMsgNewCollection, MessageMsgUpdateUris } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { addToIpfs } from '../../../bitbadges-api/backend_connectors';
+import { addToIpfs } from '../../../bitbadges-api/api';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { useChainContext } from '../../../chain/ChainContext';
 import { CreateTxMsgUpdateUrisModal } from '../../txModals/CreateTxMsgUpdateUrisModal';

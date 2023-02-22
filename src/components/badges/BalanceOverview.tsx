@@ -26,8 +26,6 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
 
     if (!collection || !metadata) return <></>;
 
-    //TODO: Add helper messages about account being frozen / manager transfers in this card
-
     const buttons: ButtonDisplayProps[] = [];
     buttons.push(...[
         {

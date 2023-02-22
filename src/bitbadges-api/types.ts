@@ -87,6 +87,11 @@ export interface Proof {
 }
 //# sourceMappingURL=typeUtils.d.ts.map
 
+export enum ClaimType {
+    MerkleTree = 0,
+    Anyone = 1
+}
+
 export interface BitBadgeCollection {
     collectionId: number;
     collectionUri: string;
