@@ -45,6 +45,10 @@ export const GetSearchRoute = (query: string) => {
     return `/api/search/${query}`;
 }
 
+export const GetStatusRoute = () => {
+    return `/api/status`;
+}
+
 export interface GetCollectionResponse {
     error?: any;
     collection?: BitBadgeCollection;

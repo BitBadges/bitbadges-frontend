@@ -1,17 +1,17 @@
-import React, { ReactNode, useState } from 'react';
-import { Typography, Modal, Steps, StepProps, Divider, notification, Button } from 'antd';
-import { TransactionStatus } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
-import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
-import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { AddressDisplay } from '../address/AddressDisplay';
+import { CloseOutlined } from '@ant-design/icons';
+import { Divider, Modal, StepProps, Steps, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
-import { Content } from 'antd/lib/layout/layout';
-import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
-import { CloseOutlined } from '@ant-design/icons';
+import React, { ReactNode, useState } from 'react';
 import { useAccountsContext } from '../../accounts/AccountsContext';
+import { getStatus } from '../../bitbadges-api/api';
+import { broadcastTransaction } from '../../bitbadges-api/broadcast';
+import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
+import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
+import { TransactionStatus } from '../../bitbadges-api/types';
+import { useChainContext } from '../../chain/ChainContext';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { AddressDisplay } from '../address/AddressDisplay';
 
 const { Step } = Steps;
 
@@ -72,24 +72,33 @@ export function TxModal(
                 }
             }
 
+            
+            console.log(msgResponse.tx_response);
+
+            let currHeight = 0;
+            while (currHeight < Number(msgResponse.tx_response.height)) {
+                if (currHeight != 0) await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const response = await getStatus();
+                currHeight = response.status.block.height;
+            }
+
+
+            //If it is a new collection, redirect to collection page
+            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
+                const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
+                if (collectionStr) {
+                    const collection = JSON.parse(collectionStr)
+                    router.push(`/collections/${collection.collectionId}`);
+                }
+            }
+
             setTransactionStatus(TransactionStatus.None);
 
             notification.success({
                 message: 'Transaction Successful',
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
-
-
-            console.log(msgResponse.tx_response);
-            //If it is a new collection, redirect to collection page
-            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
-                const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
-                if (collectionStr) {
-                    const collection = JSON.parse(collectionStr)
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    router.push(`/collections/${collection.collectionId}`);
-                }
-            }
         } catch (err: any) {
             console.error(err);
             setError(err.message);
@@ -119,7 +128,7 @@ export function TxModal(
 
             try {
                 await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
-                await new Promise(resolve => setTimeout(resolve, 3000));
+
                 onRegister();
             } catch (err: any) { }
         }

@@ -483,8 +483,9 @@ export function CreateTxMsgTransferBadgeModal(
             onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
             displayMsg={<div>
                 {balances.map((balance, index) => {
-                    // console.log(balance);
+
                     return <div key={index} style={{ color: PRIMARY_TEXT }}>
+                        <br />
                         <TransferDisplay
                             amount={Number(balance.balance) * toAddresses.length}
                             badgeIds={balance.badgeIds}

@@ -43,11 +43,9 @@ function CollectionPage() {
 
     const collectionMetadata = collection?.collectionMetadata;
     const [userBalance, setUserBalance] = useState<UserBalance>();
-    
+
 
     async function setBadgeUserBalance() {
-        await new Promise(r => setTimeout(r, 3000));
-
         const res = await getBadgeBalance(collectionIdNumber, accountNumber);
         setUserBalance(res.balance);
     }
@@ -103,9 +101,9 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'overview' && (
-                        <OverviewTab setTab={setTab} 
+                        <OverviewTab setTab={setTab}
                             collection={collection}
-                            
+
                             refreshUserBalance={setBadgeUserBalance}
                             userBalance={userBalance}
                         />

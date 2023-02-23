@@ -45,8 +45,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     async function refreshCollection(collectionIdNumber: number) {
-        await new Promise(r => setTimeout(r, 3000));
-
         const res = await getBadgeCollection(collectionIdNumber);
         if (res.collection) {
             setCollections({

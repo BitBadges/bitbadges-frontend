@@ -4,7 +4,7 @@ import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute } from './routes';
+import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
 import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
@@ -17,6 +17,18 @@ export async function getAccountInformation(address: string) {
     const bech32Address = convertToCosmosAddress(address);
     const accountObject: CosmosAccountInformation = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
     return accountObject;
+}
+
+//Get indexer status
+export async function getStatus() {
+    const status: {
+        status: {
+            block: {
+                height: number;
+            }
+        }
+    } = await axios.get(BACKEND_URL + GetStatusRoute()).then((res) => res.data);
+    return status;
 }
 
 //Get account by account number
