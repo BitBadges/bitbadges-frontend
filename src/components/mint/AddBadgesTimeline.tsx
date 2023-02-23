@@ -1,29 +1,25 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
-import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
-import { BadgeMetadata, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { DefaultPlaceholderMetadata } from '../../constants';
 import { FormTimeline } from '../common/FormTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
-import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
-import { ChooseBadgeTypeStepItem } from './step-items/ChooseBadgeTypeStepItem';
-import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
-import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
+import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
-import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
-import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
+import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
+import { SubmitNewMintMsgStepItem } from './step-items/SubmitNewMintMsgStepItem';
+import { SubmitMsgUpdateUris } from './form-items/SubmitMsgUpdateUris';
 
 export const EmptyStepItem = {
     title: '',
@@ -32,14 +28,11 @@ export const EmptyStepItem = {
     doNotDisplay: true,
 }
 
-//TODO: add more badges to collection later
-//TODO: bytes and updateBytes
-//TODO: more metadata!!!!!
-//TODO: previews and cnfirmations
-//TODO: confirmations
-//TODO: add other common customizable options for transferability, managerApprovedTransfers, freeze
-
-export function MintCollectionTimeline() {
+export function AddBadgesTimeline({
+    collection, //collection is the information about the actual badge collection that is being distributed/minted
+}: {
+    collection: BitBadgeCollection;
+}) {
     const chain = useChainContext();
 
     //The MsgNewCollection Cosmos message that will be sent to the chain
@@ -58,8 +51,8 @@ export function MintCollectionTimeline() {
     });
 
     //Metadata for the collection and individual badges
-    const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
-    const [individualBadgeMetadata, setBadgeMetadata] = useState<{ [badgeId: string]: BadgeMetadata }>({});
+    const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>(collection.collectionMetadata);
+    const [individualBadgeMetadata, setBadgeMetadata] = useState<{ [badgeId: string]: BadgeMetadata }>(collection.badgeMetadata);
 
     //The method used to add metadata to the collection and individual badges
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -88,9 +81,6 @@ export function MintCollectionTimeline() {
     //Bad code but it works and triggers a re-render
     const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState(false);
 
-    //This simulates a BitBadgeCollection object representing the collection after creation (used for compatibility) 
-    const collection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
-
     const updatePermissions = (digit: number, value: boolean) => {
         const newPermissions = UpdatePermissions(newCollectionMsg.permissions, digit, value);
         setNewCollectionMsg({
@@ -103,8 +93,6 @@ export function MintCollectionTimeline() {
         let newHandledPermissionsNumber = UpdatePermissions(handledPermissionsAsNumber, digit, true);
         let newHandledPermissions = GetPermissions(newHandledPermissionsNumber);
         setHandledPermissions({ ...newHandledPermissions });
-
-        return newPermissions;
     }
 
     const setIndividualBadgeMetadata = (metadata: { [badgeId: string]: BadgeMetadata }) => {
@@ -114,9 +102,13 @@ export function MintCollectionTimeline() {
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
-        let nextBadgeId = 1;
+        let nextBadgeId = collection.nextBadgeId ? collection.nextBadgeId : 1;
+
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
-            let metadata: { [badgeId: string]: BadgeMetadata } = {};
+            let metadata: { [badgeId: string]: BadgeMetadata } = {
+                ...collection.badgeMetadata
+            };
+
 
             for (const badgeSupplyObj of newCollectionMsg.badgeSupplys) {
                 for (let i = nextBadgeId; i <= badgeSupplyObj.amount + nextBadgeId - 1; i++) {
@@ -125,52 +117,43 @@ export function MintCollectionTimeline() {
                 nextBadgeId += badgeSupplyObj.amount;
             }
 
+            console.log("BADGE METADATA", metadata);
+
             setBadgeMetadata(metadata);
         }
-    }, [newCollectionMsg.badgeSupplys])
+    }, [newCollectionMsg.badgeSupplys, collection.nextBadgeId, collection.badgeMetadata])
 
 
     //If all supply amounts are 1, it is fungible
     const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
     const nonFungible = newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.supply === 1);
 
+    const simulatedCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, collection);
+
+    console.log("SIMULATED COLLECTION", simulatedCollection);
+
 
     //All mint timeline step items
-    const ChooseBadgeType = ChooseBadgeTypeStepItem(newCollectionMsg);
-    const ConfirmManager = ConfirmManagerStepItem();
-    const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, collection, false)
-    const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
-    const FreezeSelectStep = FreezeSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions);
-    const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(newCollectionMsg, handledPermissions, updatePermissions);
+    const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, true);
+
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
-    const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible, nonFungible)
     const CreateClaims = CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, individualBadgeMetadata, collectionMetadata);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, collection, 1);
-    const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, setClaimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend);
+    const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, collectionMetadata, individualBadgeMetadata, claimItems, setClaimItems, distributionMethod, manualSend, addMethod, true);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
-    const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
-    const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
 
     return (
         <FormTimeline
             items={[
-                ChooseBadgeType,
-                ConfirmManager,
                 BadgeSupplySelectStep,
-                TransferableSelectStep,
-                FreezeSelectStep,
-                CanManagerBeTransferredStep,
-                ManagerApprovedSelect,
                 MetadataStorageSelectStep,
                 SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
-                CanCreateMoreStep,
-                UpdatableMetadataSelectStep,
                 DistributionMethodStep,
                 distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible)
                     ? FirstComeFirstServeSelect : EmptyStepItem,
@@ -180,7 +163,7 @@ export function MintCollectionTimeline() {
                     ? ManualSendSelect : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
                     ? DownloadCodesStep : EmptyStepItem,
-                CreateCollectionStep
+                SubmitStepItem
             ]}
         />
     );

@@ -8,11 +8,13 @@ export function BalanceDisplay({
     balance,
     message,
     size,
+    showingSupplyPreview
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
     message?: string;
     size?: number;
+    showingSupplyPreview?: boolean;
 }) {
     const badgeIds = [];
     for (const balanceAmount of balance.balances) {
@@ -46,7 +48,7 @@ export function BalanceDisplay({
                         return <>
                             <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}>
                                 {idx !== 0 && <br />}
-                                <b>x{balanceAmount.balance}</b> of IDs
+                                {showingSupplyPreview ? <>Supply of </> : <></>}<b>x{balanceAmount.balance}</b> - IDs
 
                                 {balanceAmount.badgeIds.map((idRange, idx) => {
                                     return <span key={idx}>

@@ -3,8 +3,8 @@ import { useState } from 'react';
 
 import { MessageMsgMintBadge, MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { SHA256 } from 'crypto-js';
-import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../../bitbadges-api/types';
-import { addMerkleTreeToIpfs } from '../../../bitbadges-api/api';
+import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
 import { CreateTxMsgMintBadgeModal } from '../../txModals/CreateTxMsgMintBadgeModal';
 import { useAccountsContext } from '../../../accounts/AccountsContext';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
@@ -17,15 +17,23 @@ export function SubmitNewMintMsg({
     claimItems,
     setClaimItems,
     distributionMethod,
-    manualSend
+    manualSend,
+    collectionMetadata,
+    individualBadgeMetadata,
+    addMethod,
+    updateMetadata
 }: {
     collection: BitBadgeCollection,
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
+    addMethod: MetadataAddMethod;
     claimItems: ClaimItem[];
     setClaimItems: (claimItems: ClaimItem[]) => void;
+    collectionMetadata: BadgeMetadata;
+    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata };
     distributionMethod: DistributionMethod;
     manualSend: boolean;
+    updateMetadata: boolean;
 }) {
     const [visible, setVisible] = useState<boolean>(false);
 
@@ -40,6 +48,8 @@ export function SubmitNewMintMsg({
         claims: newCollectionMsg.claims,
         transfers: newCollectionMsg.transfers,
         badgeSupplys: newCollectionMsg.badgeSupplys,
+        collectionUri: updateMetadata ? newCollectionMsg.collectionUri : "",
+        badgeUri: updateMetadata ? newCollectionMsg.badgeUri : ""
     }
 
     const unregisteredUsers = manualSend
@@ -121,6 +131,14 @@ export function SubmitNewMintMsg({
 
                         let badgeMsg = newCollectionMsg;
 
+                        //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
+                        if (addMethod == MetadataAddMethod.Manual && updateMetadata) {
+                            let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
+
+                            badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
+                            badgeMsg.badgeUri = 'ipfs://' + res.cid + '/{id}';
+                        }
+
                         if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.Whitelist) {
                             //Store N-1 layers of the tree
                             if (badgeMsg.claims?.length > 0) {
@@ -135,6 +153,7 @@ export function SubmitNewMintMsg({
                         }
 
                         setNewCollectionMsg(badgeMsg);
+
 
                         setVisible(true);
 

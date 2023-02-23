@@ -29,11 +29,6 @@ export function BadgeAvatarDisplay({
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
 
-    let stringifiedMetadata = JSON.stringify(collection?.badgeMetadata);
-    useEffect(() => {
-
-    }, [stringifiedMetadata]);
-
     if (!collection) return <></>;
 
     const PAGE_SIZE = pageSize ? pageSize : 50;

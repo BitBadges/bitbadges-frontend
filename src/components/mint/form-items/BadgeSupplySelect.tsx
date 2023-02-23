@@ -1,42 +1,31 @@
-import React, { useState } from 'react';
-import { InputNumber, Button } from 'antd';
-import { GO_MAX_UINT_64, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { InputNumber, Divider } from 'antd';
+import { useState } from 'react';
+import { BadgeSupplyAndAmount } from '../../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 
 export function BadgeSupply({
-    newCollectionMsg,
-    setNewCollectionMsg,
+    currentSupply,
+    setCurrentSupply,
     fungible
 }: {
-    newCollectionMsg: MessageMsgNewCollection;
-    setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
+    currentSupply: BadgeSupplyAndAmount,
+    setCurrentSupply: (currentSupply: BadgeSupplyAndAmount) => void,
     fungible: boolean;
 }) {
     const [supplyToCreate, setSupplyToCreate] = useState<number>(0);
 
+
     const addTokens = (supply: number) => {
-
         if (supply > 0) {
-            let newSupplyObjs = newCollectionMsg.badgeSupplys;
-
             if (!fungible) {
-                newSupplyObjs = [{
+                setCurrentSupply({
                     amount: supply,
                     supply: 1
-                }];
-
-                setNewCollectionMsg({
-                    ...newCollectionMsg,
-                    badgeSupplys: newSupplyObjs
                 })
             } else {
-                newSupplyObjs = [{
+                setCurrentSupply({
                     amount: 1,
                     supply: supply
-                }];
-                setNewCollectionMsg({
-                    ...newCollectionMsg,
-                    badgeSupplys: newSupplyObjs
                 })
             }
         }
@@ -44,16 +33,8 @@ export function BadgeSupply({
 
     return (
         <div>
-            <div
-                style={{
-                    padding: '0',
-                    textAlign: 'center',
-                    color: PRIMARY_TEXT,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 20,
-                }}
-            >
+            <div className='flex-between' style={{ flexDirection: 'column' }} >
+                <b>Select Amount to Create</b>
                 <InputNumber value={supplyToCreate}
                     style={{
                         backgroundColor: PRIMARY_BLUE,
@@ -67,27 +48,8 @@ export function BadgeSupply({
                             addTokens(value);
                         }
                     } />
-            </div >
-            {fungible &&
-                <div style={{
-                    padding: '0',
-                    textAlign: 'center',
-                    color: PRIMARY_TEXT,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 20,
-                }}>
-                    <Button
-                        style={{
-                            backgroundColor: 'transparent',
-                            color: PRIMARY_TEXT,
-                        }}
-                        onClick={() => {
-                            let value = GO_MAX_UINT_64
-                            setSupplyToCreate(value as number);
-                            addTokens(value);
-                        }}>Max</Button>
-                </div>}
+                <Divider />
+            </div>
         </div >
     )
 }

@@ -13,7 +13,7 @@ import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpd
 
 export function ActionsTab({
     collection,
-    
+
     userBalance,
     refreshUserBalance
 }: {
@@ -72,15 +72,15 @@ export function ActionsTab({
 
     if (isManager) {
         if (collection.permissions.CanCreateMoreBadges) {
-            actions.push({
-                title: getTitleElem("Add New Badge to Collection"),
-                description: getDescriptionElem(
-                    "New Badge"
-                ),
-                showModal: () => {
-                    router.push(`/mint/badge/${collection.collectionId}`)
-                },
-            });
+        actions.push({
+            title: getTitleElem("Add Badges"),
+            description: getDescriptionElem(
+                "Add new badges to the collection."
+            ),
+            showModal: () => {
+                router.push(`/add/${collection.collectionId}`)
+            },
+        });
         }
 
         if (collection.unmintedSupplys.length > 0) {

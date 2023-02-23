@@ -48,5 +48,5 @@ export const MINT_ACCOUNT: BitBadgesUserInfo = {
 export const DefaultPlaceholderMetadata: BadgeMetadata = {
     name: 'Placeholder',
     description: '',
-    image: 'https://www.webfx.com/wp-content/uploads/2021/10/generic-image-placeholder.png',
+    image: 'https://bitbadges.web.app/img/icons/logo.png',
 }

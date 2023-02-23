@@ -6,7 +6,7 @@ import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { TxModal } from './TxModal';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 
 
 export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, }
@@ -32,6 +32,8 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
             setCurrPermissions(GetPermissionNumberValue(collection.permissions));
         }
     }, [visible, collection.permissions]);
+
+    const isIPFS = collection.badgeUri.startsWith('ipfs://') || collection.collectionUri.startsWith('ipfs://');
 
     const items = [
         {
@@ -81,7 +83,15 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                 </div>
                 <br />
                 <InfoCircleOutlined /> Once a permission is turned off, it cannot be turned back on.
-            </>
+                <br />
+                {isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges && <div style={{ color: 'red' }}>
+                    <WarningOutlined /> {"To have the \"Add More Badges\" permission turned on, you must also have the \"Update Metadata URLs\" permission turned on. This is because this collection uses IPFS for its metadata storage."}
+
+
+                </div>
+                }
+            </>,
+            disabled: isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges
         }
     ]
 
@@ -93,7 +103,9 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
             txName="Update Permissions"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdatePermissions}
-            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
+            onSuccessfulTx={async () => {
+                collections.refreshCollection(collection.collectionId);
+            }}
         >
             {children}
         </TxModal>

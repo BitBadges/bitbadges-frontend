@@ -33,6 +33,10 @@ export function createCollectionFromMsgNewCollection(
     chain: ChainContextType,
     collection?: BitBadgeCollection
 ) {
+    let nextBadgeId = 1;
+    for (const supplyObj of msgNewCollection.badgeSupplys) {
+        nextBadgeId += supplyObj.amount;
+    }
 
     const badgeCollection: BitBadgeCollection = {
         ...msgNewCollection,
@@ -43,11 +47,11 @@ export function createCollectionFromMsgNewCollection(
             address: chain.address,
             cosmosAddress: chain.cosmosAddress,
         },
-        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount + 1 : collection?.nextBadgeId ? collection?.nextBadgeId : 0,
+        nextBadgeId: nextBadgeId > 1 ? nextBadgeId : collection?.nextBadgeId ? collection?.nextBadgeId : 1,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
-        unmintedSupplys: [],
-        maxSupplys: [],
+        unmintedSupplys: collection?.unmintedSupplys ? collection.unmintedSupplys : [],
+        maxSupplys: collection?.maxSupplys ? collection.maxSupplys : [],
         permissions: GetPermissions(msgNewCollection.permissions),
         disallowedTransfers: [],
         managerApprovedTransfers: [],
@@ -68,9 +72,14 @@ export function createCollectionFromMsgMintBadge(
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }
 ) {
+    let nextBadgeId = 1;
+    for (const supplyObj of msgNewCollection.badgeSupplys) {
+        nextBadgeId += supplyObj.amount;
+    }
+
     const badgeCollection: BitBadgeCollection = {
         ...currCollection,
-        nextBadgeId: msgNewCollection.badgeSupplys[0] ? msgNewCollection.badgeSupplys[0].amount + currCollection.nextBadgeId - 1 : 0,
+        nextBadgeId: nextBadgeId > 1 ? nextBadgeId : currCollection?.nextBadgeId ? currCollection?.nextBadgeId : 1,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
         unmintedSupplys: [],

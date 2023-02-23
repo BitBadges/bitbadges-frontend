@@ -4,11 +4,12 @@ import { FirstComeFirstServeAmountSelect } from "../form-items/FirstComeFirstSer
 export function FirstComeFirstServeSelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
-    fungible: boolean
+    fungible: boolean,
+    nonFungible: boolean
 ) {
     return {
         title: `How Many Badges Can Each Account Claim?`,
         description: `This collection has ${newCollectionMsg.badgeSupplys[0]?.supply ?? '?'} identical badges. How many will each account be able to receive per claim?`,
-        node: <FirstComeFirstServeAmountSelect newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} />,
+        node: <FirstComeFirstServeAmountSelect newCollectionMsg={newCollectionMsg} setNewCollectionMsg={setNewCollectionMsg} fungible={fungible} nonFungible={nonFungible} />,
     }
 }

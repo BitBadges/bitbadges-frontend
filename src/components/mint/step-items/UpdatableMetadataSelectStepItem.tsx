@@ -9,25 +9,40 @@ export function UpdatableMetadataSelectStepItem(
     updatePermissions: (digit: number, value: boolean) => void,
     addMethod: MetadataAddMethod
 ) {
+    const options = [];
+    if (addMethod === MetadataAddMethod.Manual && GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges) {
+
+    } else {
+        options.push({
+            title: 'No',
+            message: `The metadata cannot be updated.`,
+            isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
+        })
+    }
+
+    options.push({
+        title: 'Yes',
+        message: `The metadata can be updated.`,
+        isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
+    });
+
+    let description = `In the future, can the collection and badge metadata be edited?`;
+    if (addMethod === MetadataAddMethod.Manual && GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges) {
+        description += ` This must be selected since you are storing metadata with IPFS and have selcted to be able to add badges to the collection in the future.`;
+    }
+
+    if (addMethod === MetadataAddMethod.UploadUrl) {
+        description += ` Since you are self-hosting, this only applies to the collection and badge metadata URLs. We can not control the metadata you store at those URLs.`;
+    }
+
     return {
         title: 'Updatable Metadata?',
-        description: `In the future, can the collection and badge metadata be updated? ${addMethod === MetadataAddMethod.UploadUrl ? 'Note this is for whether you can update your self-hosted metadata URIs or not (not the actual metadata). We can not control what metadata is returned from your server.' : ''}`,
+        description: description,
         node: <SwitchForm
             noSelectUntilClick
-            options={[
-                {
-                    title: 'No',
-                    message: `The metadata cannot be updated!`,
-                    isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
-                },
-                {
-                    title: 'Yes',
-                    message: `The metadata can be updated in the future.`,
-                    isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
-                },
-            ]}
-            onSwitchChange={(idx) => {
-                updatePermissions(CanUpdateUrisDigit, idx === 1);
+            options={options}
+            onSwitchChange={(idx, name) => {
+                updatePermissions(CanUpdateUrisDigit, name === 'Yes');
             }}
         />,
         disabled: !handledPermissions.CanUpdateUris

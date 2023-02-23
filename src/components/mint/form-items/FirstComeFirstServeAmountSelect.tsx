@@ -8,11 +8,13 @@ import { ClaimType } from '../../../bitbadges-api/types';
 export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,
     setNewCollectionMsg,
-    fungible
+    fungible,
+    nonFungible
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     fungible: boolean;
+    nonFungible: boolean;
 }) {
 
     const beforeBalances = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
@@ -27,8 +29,8 @@ export function FirstComeFirstServeAmountSelect({
                     balances: beforeBalances.balances,
                     type: 1,
                     badgeIds: [{
-                        start: 0,
-                        end: 0,
+                        start: 1,
+                        end: 1,
                     }],
                     incrementIdsBy: fungible ? 0 : 1,
                     uri: "",
@@ -51,8 +53,8 @@ export function FirstComeFirstServeAmountSelect({
                     balances: beforeBalances.balances,
                     type: ClaimType.Anyone,
                     badgeIds: [{
-                        start: 0,
-                        end: 0,
+                        start: 1,
+                        end: 1,
                     }],
                     incrementIdsBy: fungible ? 0 : 1,
                     uri: "",

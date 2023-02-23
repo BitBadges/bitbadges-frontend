@@ -1,6 +1,6 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
-import { BitBadgeCollection, ClaimItem, DistributionMethod } from '../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../chain/ChainContext';
 import { FormTimeline } from '../common/FormTimeline';
 import { EmptyStepItem } from './MintCollectionTimeline';
@@ -41,18 +41,20 @@ export function MintAndDistributeTimeline({
     const [manualSend, setManualSend] = useState<boolean>(false);
 
 
-    const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, claimItems, setClaimItems, distributionMethod, manualSend);
+    const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, collection.collectionMetadata, collection.badgeMetadata, claimItems, setClaimItems, distributionMethod, manualSend, MetadataAddMethod.None, false);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collection.collectionMetadata, collection, collection.claims.length + 1);
 
-    //TODO: think how to handle first come first serve on redistribute; current solution will not work and is not possible
-    const fungible = collection.maxSupplys[0].badgeIds[0].end === 0; //TODO: probably not the right way to handle this
-    //fungible variable currently does nothing meaningful
+
+    //If all supply amounts are 1, it is fungible
+    const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
+    const nonFungible = newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.supply === 1);
+
 
     return (
         <FormTimeline
             items={[
-                DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, true, true),
-                distributionMethod === DistributionMethod.FirstComeFirstServe && fungible ? FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible) : EmptyStepItem,
+                DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, true, true),
+                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible) ? FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible, nonFungible) : EmptyStepItem,
                 distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
                     ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, collection.badgeMetadata, collection.collectionMetadata, collection.unmintedSupplys) : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod) : EmptyStepItem,
