@@ -88,12 +88,24 @@
     border: none;
 }
 
+.ant-steps-navigation {
+    min-height: 60px;
+}
+
 .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
     color: white;
 }
 
 .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
     color: white;
+}
+
+.ant-steps-navigation .ant-steps-item-container {
+    padding-bottom: 0;
+}
+
+.ant-steps-navigation .ant-steps-item::after {
+    border-color: white;
 }
 
 .ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {

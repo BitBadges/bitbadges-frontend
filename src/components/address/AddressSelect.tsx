@@ -31,7 +31,7 @@ export function AddressSelect({
         <br />
         <Input.Group compact style={{ display: 'flex' }}>
             <Dropdown
-                open={currUserInfo.address !== '' && !isAddressValid(currUserInfo.address)}
+                open={currUserInfo && currUserInfo.address !== '' && !isAddressValid(currUserInfo.address)}
                 placement="bottom"
                 overlay={<SearchDropdown onlyAddresses searchValue={currUserInfo.address} onSearch={(searchValue: string) => {
                     console.log(searchValue)

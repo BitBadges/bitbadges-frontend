@@ -72,7 +72,7 @@ export function TxModal(
                 }
             }
 
-            
+
             console.log(msgResponse.tx_response);
 
             let currHeight = 0;
@@ -202,9 +202,9 @@ export function TxModal(
                                     {displayMsg &&
                                         <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                             <br />
-                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}>
-                                                {displayMsg}
-                                            </Typography.Text>
+                                            {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
+                                            {displayMsg}
+                                            {/* </Typography.Text> */}
                                             <hr />
                                         </div>
                                     }

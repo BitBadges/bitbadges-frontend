@@ -60,7 +60,7 @@ export function IdRangesInput({
                         value={sliderValues[i][0]}
                         onChange={
                             (value: number) => {
-                                if (value >= 0 && sliderValues[i][1] >= 0 && value <= sliderValues[i][0]) {
+                                if (value >= 0 && value <= sliderValues[i][1]) {
                                     const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
                                     setSliderValues(newSliderValues);
                                     setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
@@ -82,7 +82,7 @@ export function IdRangesInput({
                         value={sliderValues[i][1]}
                         onChange={
                             (value: number) => {
-                                if (value >= 0 && sliderValues[i][0] >= 0 && value >= sliderValues[i][1]) {
+                                if (value >= 0 && value >= sliderValues[i][0]) {
                                     const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
                                     setSliderValues(newSliderValues);
                                     setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));

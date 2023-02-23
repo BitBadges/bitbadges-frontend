@@ -1,134 +1,202 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Col, Row, Typography } from "antd";
+import { Avatar, Button, Col, Divider, Empty, Pagination, Row, Tooltip, Typography } from "antd";
 import { getBlankBalance } from "../../bitbadges-api/balances";
-import { BitBadgeCollection, BitBadgesUserInfo, IdRange } from "../../bitbadges-api/types";
+import { BitBadgeCollection, BitBadgesUserInfo, IdRange, Transfers } from "../../bitbadges-api/types";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
+import { PRIMARY_TEXT } from "../../constants";
+import { useState } from "react";
+import { useAccountsContext } from "../../accounts/AccountsContext";
+import { DeleteOutlined } from "@ant-design/icons";
 
 const { Text } = Typography
 
 export function TransferDisplay({
-    from,
-    to,
+    transfers,
     collection,
-    amount,
-    badgeIds,
+    from,
     fontColor,
     toCodes,
     hideAddresses,
-    hideBalances
+    hideBalances,
+    setTransfers,
+    deletable,
 }: {
-    from: BitBadgesUserInfo[];
-    to: BitBadgesUserInfo[];
+    from: BitBadgesUserInfo[]
+    transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[],
     collection: BitBadgeCollection;
-    amount: number;
-    badgeIds: IdRange[];
     fontColor?: string;
     toCodes?: string[];
     hideAddresses?: boolean;
     hideBalances?: boolean;
+    setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
+    deletable?: boolean;
 }) {
     // const maximum = badge?.nextBadgeId - 1 || 0;
+    // from: BitBadgesUserInfo[];
+    // to: BitBadgesUserInfo[];
+    // amount,
+    // badgeIds,
+    const [transfersPage, setTransfersPage] = useState(0);
+    const accounts = useAccountsContext();
 
-    const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
-    return <div style={{}}>
-        {!hideBalances && <div>
-            <div style={{ fontSize: 15, textAlign: 'center' }}>
-                <span style={{ color: amount < 0 ? 'red' : undefined }}>
+    return <div>
+        {transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
+            <Empty description='No Transfers Added'
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ marginTop: 20, color: PRIMARY_TEXT }}
+            />
+        </div> :
+            <div style={{ textAlign: 'center' }}>
+                <Pagination defaultCurrent={1}
+                    total={transfers.length}
+                    onChange={(page, pageSize) => {
+                        setTransfersPage(page - 1);
+                    }}
+                    pageSize={1}
+                    hideOnSinglePage
+                />
+            </div>}
+        <br />
 
-                    <b>x{amount}</b> of IDs
-
-                    {badgeIds.map((idRange, idx) => {
-                        return <span key={idx}>
-                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
-                        </span>
-                    })}
-                </span>
 
 
-            </div>
-            <div style={{ fontSize: 15, textAlign: 'center' }}>
-                <span style={{ color: amount < 0 ? 'red' : undefined }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <Typography.Text style={{ fontSize: 15, textAlign: 'center', color: fontColor }}>{toLength > 1 ? `x${amount / toLength} to each of the ${toLength} recipient${toLength > 1 ? 's' : ""}` : ''}</Typography.Text>
-                    </div>
 
-                </span>
-            </div>
-        </div>}
-        {
-            collection &&
-            <BadgeAvatarDisplay showBalance={!hideBalances} showIds collection={collection} badgeIds={badgeIds} userBalance={{
-                balances: [{
-                    balance: amount,
-                    badgeIds: badgeIds
-                }],
-                approvals: []
-            }} size={40} />
+        {transfers.map((transfer, _index) => {
+            if (_index !== transfersPage) return <></>;
+
+
+            //TODO: Handle balances[] in one
+            return transfer.balances.map((balance, index) => {
+                
+                accounts.fetchAccountsByNumber(transfer.toAddresses);
+                const to = transfer.toAddresses.map((accountNumber) => { return accounts.accounts[accountNumber] });
+
+                const badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
+                const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
+                const amount = Number(balance.balance) * toLength;
+
+                return <div key={index}>
+                    <div style={{}}>
+                        {!hideBalances && <div>
+                            <div style={{ fontSize: 15, textAlign: 'center' }}>
+                                <span style={{ color: amount < 0 ? 'red' : undefined }}>
+
+                                    Transferring <b>x{amount}</b> of IDs
+
+                                    {badgeIds.map((idRange, idx) => {
+                                        return <span key={idx}>
+                                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
+                                        </span>
+                                    })}
+                                </span>
+
+
+                            </div>
+                            <div style={{ fontSize: 15, textAlign: 'center' }}>
+                                <span style={{ color: amount < 0 ? 'red' : undefined }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Typography.Text style={{ fontSize: 15, textAlign: 'center', color: fontColor }}>{toLength > 1 ? `x${amount / toLength} to each of the ${toLength} recipient${toLength > 1 ? 's' : ""}` : ''}</Typography.Text>
+                                    </div>
+
+                                </span>
+                            </div>
+                        </div>}
+                        {
+                            collection &&
+                            <BadgeAvatarDisplay
+
+                                showBalance={!hideBalances} showIds collection={collection} badgeIds={badgeIds} userBalance={{
+                                    balances: [{
+                                        balance: amount,
+                                        badgeIds: badgeIds
+                                    }],
+                                    approvals: []
+                                }} size={40} />
+                        }
+
+                        {
+                            !hideAddresses && <div style={{ color: fontColor }}>
+                                <br />
+                                <Row>
+                                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
+                                        <b>From</b>
+                                    </Col>
+                                    <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+                                    </Col>
+                                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
+                                        {/* <b>{to.length ? 'To' : ''}</b> */}
+                                        <b>To</b>
+                                        {/* <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b> */}
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                        {from.map((user, index) => {
+                                            return <>
+                                                {index !== 0 && <br color='white' />}
+                                                <AddressWithBlockies
+                                                    fontColor={fontColor}
+                                                    address={user.address}
+                                                    fontSize={14}
+                                                    blockiesScale={3}
+                                                />
+                                            </>
+                                        })}
+                                    </Col>
+                                    <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <FontAwesomeIcon icon={faArrowRight} />
+                                    </Col>
+
+                                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                        {to.map((user, index) => {
+                                            return <>
+                                                {index !== 0 && <br color='white' />}
+                                                <AddressWithBlockies
+                                                    fontColor={fontColor}
+                                                    address={user.address}
+                                                    fontSize={14}
+                                                    blockiesScale={3}
+                                                />
+                                            </>
+                                        })}
+                                        {!!toCodes?.length && toCodes?.length > 0 &&
+                                            <>
+                                                <Text
+                                                    copyable
+                                                    style={{
+                                                        color: fontColor ? fontColor : undefined,
+                                                    }}
+                                                    strong
+                                                >
+                                                    {'First User To Enter Code'}
+                                                </Text>
+                                            </>}
+                                    </Col>
+                                </Row>
+                            </div>
+                        }
+                    </div >
+                    {deletable && <div style={{ textAlign: 'center' }}>
+                        <br />
+                        <Avatar
+                            className='screen-button'
+                            style={{ cursor: 'pointer', fontSize: 14 }}
+                            onClick={() => {
+                                setTransfers(transfers.filter((_, index) => index !== transfersPage));
+                            }}>
+                            <Tooltip title='Delete Transfer'>
+                                <DeleteOutlined />
+                            </Tooltip>
+                        </Avatar>
+                        <br />
+                    </div>}
+                </div>
+            })
         }
+        )}
+    </div>
 
-        {
-            !hideAddresses && <div style={{ color: fontColor }}>
-                <br />
-                <Row>
-                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
-                        <b>From</b>
-                    </Col>
-                    <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-
-                    </Col>
-                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
-                        {/* <b>{to.length ? 'To' : ''}</b> */}
-                        <b>To</b>
-                        {/* <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b> */}
-                    </Col>
-                </Row>
-                <Row>
-                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                        {from.map((user, index) => {
-                            return <>
-                                {index !== 0 && <br color='white' />}
-                                <AddressWithBlockies
-                                    fontColor={fontColor}
-                                    address={user.address}
-                                    fontSize={14}
-                                    blockiesScale={3}
-                                />
-                            </>
-                        })}
-                    </Col>
-                    <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </Col>
-
-                    <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                        {to.map((user, index) => {
-                            return <>
-                                {index !== 0 && <br color='white' />}
-                                <AddressWithBlockies
-                                    fontColor={fontColor}
-                                    address={user.address}
-                                    fontSize={14}
-                                    blockiesScale={3}
-                                />
-                            </>
-                        })}
-                        {!!toCodes?.length && toCodes?.length > 0 &&
-                            <>
-                                <Text
-                                    copyable
-                                    style={{
-                                        color: fontColor ? fontColor : undefined,
-                                    }}
-                                    strong
-                                >
-                                    {'First User To Enter Code'}
-                                </Text>
-                            </>}
-                    </Col>
-                </Row>
-            </div>
-        }
-    </div >
 }

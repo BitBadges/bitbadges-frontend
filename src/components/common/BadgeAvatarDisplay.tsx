@@ -14,6 +14,7 @@ export function BadgeAvatarDisplay({
     showIds,
     pageSize,
     showBalance,
+    prefixMessage,
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -23,6 +24,7 @@ export function BadgeAvatarDisplay({
     selectedId?: number;
     showIds?: boolean;
     showBalance?: boolean;
+    prefixMessage?: string;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
