@@ -1,8 +1,6 @@
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { MetadataAddMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../common/FormTimeline';
+import { TxTimelineProps } from './TxTimeline';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
@@ -16,53 +14,25 @@ export const EmptyStepItem = {
 }
 
 export function UpdateMetadataTimeline({
-    collection, //collection is the information about the actual badge collection that is being distributed/minted
-    setCollection,
+    txTimelineProps
 }: {
-    collection: BitBadgeCollection;
-    setCollection: (collection: BitBadgeCollection) => void;
+    txTimelineProps: TxTimelineProps
 }) {
-    const chain = useChainContext();
-
-    //The MsgNewCollection Cosmos message that will be sent to the chain
-    const [newCollectionMsg, setNewCollectionMsg] = useState<MessageMsgNewCollection>({
-        creator: chain.cosmosAddress,
-        badgeUri: '',
-        collectionUri: '',
-        bytes: '',
-        permissions: 0,
-        standard: 0,
-        badgeSupplys: [],
-        transfers: [],
-        disallowedTransfers: [],
-        claims: [],
-        managerApprovedTransfers: [],
-    });
-
-    //The method used to add metadata to the collection and individual badges
-    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
-
-    const setCollectionMetadata = (metadata: BadgeMetadata) => {
-        setCollection({
-            ...collection,
-            collectionMetadata: metadata,
-        });
-    }
-
-    const setIndividualBadgeMetadata = (metadata: { [badgeId: string]: BadgeMetadata }) => {
-        setCollection({
-            ...collection,
-            badgeMetadata: metadata,
-        });
-    }
-
+    const newCollectionMsg = txTimelineProps.newCollectionMsg;
+    const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
+    const collection = txTimelineProps.existingCollection;
+    const addMethod = txTimelineProps.addMethod;
+    const setAddMethod = txTimelineProps.setAddMethod;
+    const collectionMetadata = txTimelineProps.collectionMetadata;
+    const badgeMetadata = txTimelineProps.individualBadgeMetadata;
+    const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
+    const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
 
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collection.collectionMetadata, setCollectionMetadata);
-    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, collection.badgeMetadata, setIndividualBadgeMetadata, collection.collectionMetadata, addMethod);
-    const UpdateMetadataStep = UpdateUrisStepItem(collection, setCollection, newCollectionMsg, addMethod);
-
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
+    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
+    const UpdateMetadataStep = UpdateUrisStepItem(collection, newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, badgeMetadata);
 
     return (
         <FormTimeline

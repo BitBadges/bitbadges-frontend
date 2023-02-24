@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
 import { Layout } from 'antd';
-import { DEV_MODE, PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
+import { useRouter } from 'next/router';
+import { TxTimeline } from '../../components/mint/TxTimeline';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { MintAndDistributeTimeline } from '../../components/mint/DistributeBadgeTimeline';
-import { getBadgeCollection } from '../../bitbadges-api/api';
-import { useRouter } from 'next/router';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { UpdateMetadataTimeline } from '../../components/mint/UpdateMetadataTimeline';
+import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
 
 const { Content } = Layout;
 
@@ -16,17 +12,6 @@ function UpdateMetadata() {
 
     const { collectionId } = router.query;
     const collectionIdNumber = Number(collectionId);
-
-    const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
-
-    // Get badge collection information
-    useEffect(() => {
-        async function getBadgeInformation() {
-            const res = await getBadgeCollection(collectionIdNumber);
-            setBadgeCollection(res.collection);
-        }
-        getBadgeInformation();
-    }, [collectionIdNumber]);
 
     return (
         <DisconnectedWrapper
@@ -54,12 +39,10 @@ function UpdateMetadata() {
                                         background: PRIMARY_BLUE,
                                     }}
                                 >
-                                    {badgeCollection &&
-                                        <UpdateMetadataTimeline
-                                            collection={badgeCollection}
-                                            setCollection={setBadgeCollection}
-                                        />
-                                    }
+                                    <TxTimeline
+                                        collectionId={collectionIdNumber}
+                                        txType='UpdateMetadata'
+                                    />
                                 </div>
                             </Content>
                         </Layout>

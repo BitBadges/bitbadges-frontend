@@ -1,25 +1,25 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { SubmitNewMintMsg } from "../form-items/SubmitMsgMintBadge";
-import { BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from "../../../bitbadges-api/types";
+import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from "../../../bitbadges-api/types";
 import { SubmitMsgUpdateUris } from "../form-items/SubmitMsgUpdateUris";
 
 export function UpdateUrisStepItem(
     collection: BitBadgeCollection,
-    setCollection: (collection: BitBadgeCollection) => void,
     newCollectionMsg: MessageMsgNewCollection,
+    setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod,
+    collectionMetadata: BadgeMetadata,
+    badgeMetadata: { [key: string]: BadgeMetadata },
 ) {
     return {
         title: 'Distribute Badges',
         description: '',
         node: <SubmitMsgUpdateUris
-            collection={{
-                ...collection,
-                collectionUri: addMethod === MetadataAddMethod.UploadUrl ? newCollectionMsg.collectionUri : collection.collectionUri,
-                badgeUri: addMethod === MetadataAddMethod.UploadUrl ? newCollectionMsg.badgeUri : collection.badgeUri,
-            }}
-            setCollection={setCollection}
+            collectionMetadata={collectionMetadata}
+            badgeMetadata={badgeMetadata}
+            newCollectionMsg={newCollectionMsg}
+            setNewCollectionMsg={setNewCollectionMsg}
             addMethod={addMethod}
+            collectionId={collection.collectionId}
         />,
     }
 }

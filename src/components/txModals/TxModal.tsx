@@ -93,12 +93,21 @@ export function TxModal(
                 }
             }
 
+
+
             setTransactionStatus(TransactionStatus.None);
 
             notification.success({
                 message: 'Transaction Successful',
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
+
+            if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateUris") {
+                notification.info({
+                    message: 'Refreshing Metadata',
+                    description: 'We have added your new metadata to the refresh queue. It may take awhile for it to be processed and reflected on the site.'
+                });
+            }
         } catch (err: any) {
             console.error(err);
             setError(err.message);

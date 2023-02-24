@@ -54,7 +54,7 @@ export async function getBadgeOwners(collectionId: number, badgeId: number) {
     return owners;
 }
 
-async function cleanCollection(badgeData: BitBadgeCollection) {
+async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: boolean = false) {
     // Convert the returned permissions (uint) to a Permissions object for easier use
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
@@ -83,14 +83,20 @@ async function cleanCollection(badgeData: BitBadgeCollection) {
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
-    badgeData = await updateMetadata(badgeData, 1);
+    if (fetchAllMetadata) {
+        for (let idx = 1; idx < badgeData.nextBadgeId; idx += 100) {
+            badgeData = await updateMetadata(badgeData, idx);
+        }
+    } else {
+        badgeData = await updateMetadata(badgeData, 1);
+    }
 
     console.log("BADGEDATA", badgeData);
 
     return badgeData;
 }
 
-export async function getCollections(collectionIds: number[]) {
+export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
     for (const collectionId of collectionIds) {
         if (collectionId === undefined || collectionId === -1) {
             return Promise.reject("collectionId is invalid");

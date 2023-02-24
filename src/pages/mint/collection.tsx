@@ -1,9 +1,9 @@
-import { MintCollectionTimeline } from '../../components/mint/MintCollectionTimeline';
 import React from 'react';
 import { Layout } from 'antd';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
+import { TxTimeline } from '../../components/mint/TxTimeline';
 
 const { Content } = Layout;
 
@@ -34,7 +34,7 @@ function Mint() {
                                         background: PRIMARY_BLUE,
                                     }}
                                 >
-                                    <MintCollectionTimeline />
+                                    <TxTimeline txType='NewCollection' />
                                 </div>
                             </Content>
                         </Layout>

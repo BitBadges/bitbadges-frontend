@@ -1,13 +1,9 @@
 import { Layout } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { getBadgeCollection } from '../../bitbadges-api/api';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { UpdateMetadataTimeline } from '../../components/mint/UpdateMetadataTimeline';
+import { TxTimeline } from '../../components/mint/TxTimeline';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
-import { UpdateDisallowedTimeline } from '../../components/mint/UpdateDisallowedTimeline';
 
 const { Content } = Layout;
 
@@ -16,17 +12,6 @@ function UpdateDisallowedTransfers() {
 
     const { collectionId } = router.query;
     const collectionIdNumber = Number(collectionId);
-
-    const [badgeCollection, setBadgeCollection] = useState<BitBadgeCollection>();
-
-    // Get badge collection information
-    useEffect(() => {
-        async function getBadgeInformation() {
-            const res = await getBadgeCollection(collectionIdNumber);
-            setBadgeCollection(res.collection);
-        }
-        getBadgeInformation();
-    }, [collectionIdNumber]);
 
     return (
         <DisconnectedWrapper
@@ -54,11 +39,10 @@ function UpdateDisallowedTransfers() {
                                         background: PRIMARY_BLUE,
                                     }}
                                 >
-                                    {badgeCollection &&
-                                        <UpdateDisallowedTimeline
-                                            collection={badgeCollection}
-                                        />
-                                    }
+                                    <TxTimeline
+                                        txType='UpdateDisallowed'
+                                        collectionId={collectionIdNumber}
+                                    />
                                 </div>
                             </Content>
                         </Layout>

@@ -1,9 +1,6 @@
 import { Layout } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
-import { AddBadgesTimeline } from '../../components/mint/AddBadgesTimeline';
+import { TxTimeline } from '../../components/mint/TxTimeline';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
@@ -15,17 +12,6 @@ function AddBadges() {
 
     const { collectionId } = router.query;
     const collectionIdNumber = Number(collectionId);
-
-    const collections = useCollectionsContext();
-    const badgeCollection = collections.collections[collectionIdNumber];
-
-    // Get badge collection information
-    useEffect(() => {
-        async function getBadgeInformation() {
-            await collections.fetchCollections([collectionIdNumber]);
-        }
-        getBadgeInformation();
-    }, [collectionIdNumber, collections]);
 
     return (
         <DisconnectedWrapper
@@ -54,11 +40,10 @@ function AddBadges() {
                                         background: PRIMARY_BLUE,
                                     }}
                                 >
-                                    {badgeCollection &&
-                                        <AddBadgesTimeline
-                                            collection={badgeCollection ? badgeCollection : {} as BitBadgeCollection}
-                                        />
-                                    }
+                                    <TxTimeline
+                                        txType='AddBadges'
+                                        collectionId={collectionIdNumber}
+                                    />
                                 </div>
                             </Content>
                         </Layout>

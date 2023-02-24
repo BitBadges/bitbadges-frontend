@@ -1,14 +1,13 @@
 import { MessageMsgUpdateUris, createTxMsgUpdateUris } from 'bitbadgesjs-transactions';
-import React from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
+import React from 'react';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { TxModal } from './TxModal';
 
 
 export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, txCosmosMsg }
     : {
-        badge: BitBadgeCollection,
+
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,

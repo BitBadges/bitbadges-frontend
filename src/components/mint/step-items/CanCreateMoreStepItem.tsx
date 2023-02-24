@@ -1,14 +1,11 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { CanCreateMoreBadgesDigit, GetPermissions, Permissions } from "../../../bitbadges-api/permissions";
 import { SwitchForm } from "../../common/SwitchForm";
-import { CanCreateMoreBadgesDigit, CanUpdateUrisDigit, GetPermissions, Permissions } from "../../../bitbadges-api/permissions";
-import { MetadataAddMethod } from "../../../bitbadges-api/types";
 
 export function CanCreateMoreStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     handledPermissions: Permissions,
-    updatePermissions: (digit: number, value: boolean) => number,
-    addMethod: MetadataAddMethod
-
+    updatePermissions: (digit: number, value: boolean) => void
 ) {
     return {
         title: 'Can Add Badges to Collection?',

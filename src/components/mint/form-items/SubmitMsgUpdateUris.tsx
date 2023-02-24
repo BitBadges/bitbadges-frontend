@@ -1,20 +1,25 @@
 import { Button } from 'antd';
 import { MessageMsgNewCollection, MessageMsgUpdateUris } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { addToIpfs } from '../../../bitbadges-api/api';
-import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
+import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { useChainContext } from '../../../chain/ChainContext';
 import { CreateTxMsgUpdateUrisModal } from '../../txModals/CreateTxMsgUpdateUrisModal';
 
 export function SubmitMsgUpdateUris({
-    collection,
-    setCollection,
-    addMethod
+    newCollectionMsg,
+    setNewCollectionMsg,
+    addMethod,
+    collectionMetadata,
+    badgeMetadata,
+    collectionId,
 }: {
-    collection: BitBadgeCollection;
+    newCollectionMsg: MessageMsgNewCollection,
+    setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod;
-    setCollection: (collection: BitBadgeCollection) => void;
+    collectionMetadata: BadgeMetadata;
+    badgeMetadata: { [key: string]: BadgeMetadata };
+    collectionId: number;
 }) {
     const chain = useChainContext();
     const [visible, setVisible] = useState<boolean>(false);
@@ -24,12 +29,11 @@ export function SubmitMsgUpdateUris({
 
 
     async function updateIPFSUris() {
-
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (addMethod == MetadataAddMethod.Manual) {
-            let res = await addToIpfs(collection.collectionMetadata, collection.badgeMetadata);
-            setCollection({
-                ...collection,
+            let res = await addToIpfs(collectionMetadata, badgeMetadata);
+            setNewCollectionMsg({
+                ...newCollectionMsg,
                 collectionUri: 'ipfs://' + res.cid + '/collection',
                 badgeUri: 'ipfs://' + res.cid + '/{id}',
             });
@@ -38,9 +42,9 @@ export function SubmitMsgUpdateUris({
 
     const updateUrisMsg: MessageMsgUpdateUris = {
         creator: chain.cosmosAddress,
-        collectionId: collection.collectionId,
-        collectionUri: collection.collectionUri,
-        badgeUri: collection.badgeUri,
+        collectionId: collectionId,
+        collectionUri: newCollectionMsg.collectionUri,
+        badgeUri: newCollectionMsg.badgeUri,
     }
 
     return <div
@@ -70,8 +74,6 @@ export function SubmitMsgUpdateUris({
             visible={visible}
             setVisible={setVisible}
             txCosmosMsg={updateUrisMsg}
-            collection={collection}
-            setCollection={() => { }}
         />
     </div>
 }

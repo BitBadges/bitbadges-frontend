@@ -7,8 +7,8 @@ export type CollectionsContextType = {
     collections: {
         [collectionId: string]: BitBadgeCollection;
     }
-    fetchCollections: (collectionIds: number[]) => Promise<void>,
-    refreshCollection: (collectionId: number) => Promise<void>,
+    fetchCollections: (collectionIds: number[], fetchAllMetadata?: boolean) => Promise<void>,
+    refreshCollection: (collectionId: number, fetchAllMetadata?: boolean) => Promise<void>,
     updateCollectionMetadata: (collectionId: number, startBadgeId: number) => Promise<void>,
 }
 
@@ -26,7 +26,7 @@ type Props = {
 export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const [collections, setCollections] = useState<{ [collectionId: string]: BitBadgeCollection }>({});
 
-    const fetchCollections = async (collectionIds: number[]) => {
+    const fetchCollections = async (collectionIds: number[], fetchAllMetadata?: boolean) => {
         const collectionsToFetch = [];
 
         for (const collectionId of collectionIds) {
@@ -35,7 +35,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             }
         }
 
-        const fetchedCollections = await getCollections(collectionsToFetch);
+        const fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
         for (const collection of fetchedCollections) {
             setCollections({
                 ...collections,
@@ -44,12 +44,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
-    async function refreshCollection(collectionIdNumber: number) {
-        const res = await getBadgeCollection(collectionIdNumber);
-        if (res.collection) {
+    async function refreshCollection(collectionIdNumber: number, fetchAllMetadata?: boolean) {
+        const res = await getCollections([collectionIdNumber], fetchAllMetadata);
+        if (res && res[0]) {
             setCollections({
                 ...collections,
-                [`${collectionIdNumber}`]: res.collection
+                [`${collectionIdNumber}`]: res[0]
             });
         }
     }
