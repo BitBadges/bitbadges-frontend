@@ -19,6 +19,7 @@ import { useChainContext } from '../../chain/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { SearchDropdown } from './SearchDropdown';
 import { Tabs } from './Tabs';
+import { logout } from '../../bitbadges-api/api';
 
 const { Header } = Layout;
 const { Option } = Select;
@@ -59,7 +60,7 @@ export function WalletHeader() {
 
 
     //Connect and sign-in if nothing
-    let signedIn = false; //Placeholder TODO:
+    let signedIn = chain.loggedIn;
     const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
@@ -74,7 +75,6 @@ export function WalletHeader() {
             /> : `Not Connected / Not Signed In`}</b></p>
         </div>
         <hr />
-
         {!address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
         {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
@@ -83,12 +83,14 @@ export function WalletHeader() {
             {/* <Menu.Item className='dropdown-item'>Settings</Menu.Item> */}
         </>}
 
-        {/* onClicks */}
-        {/* TODO: sign outs */}
         {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
         {address && signedIn && <>
-            <Menu.Item className='dropdown-item'>Sign Out</Menu.Item>
-            <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect and Sign Out</Menu.Item>
+            {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
+            <Menu.Item className='dropdown-item' onClick={() => {
+                chain.disconnect();
+                logout();
+                chain.setLoggedIn(false);
+            }}>Disconnect and Sign Out</Menu.Item>
         </>}
     </Menu>
 

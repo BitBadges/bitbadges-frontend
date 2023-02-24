@@ -8,7 +8,7 @@ import { useChainContext } from '../chain/ChainContext';
 const { Content } = Layout;
 const { Text } = Typography;
 
-function ConnectScreen({ message }: { message?: string }) {
+function ConnectScreen({ message, requireLogin }: { message?: string, requireLogin?: boolean }) {
     const router = useRouter();
     const {
         loggedIn,
@@ -34,10 +34,10 @@ function ConnectScreen({ message }: { message?: string }) {
                         </Text>
                     </Content>
                     <Content style={{ paddingTop: '15px' }}>
-                        <BlockinDisplay />
+                        <BlockinDisplay  />
                     </Content>
                 </div>
-                {true && connected && //TODO: change to actually loggedIn
+                {true && connected && loggedIn &&
                     <div>
                         <Content style={{ paddingTop: '15px' }}>
                             <Button type='primary' style={{ width: '50%' }} onClick={() => {

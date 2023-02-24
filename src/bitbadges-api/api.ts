@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosApi from 'axios';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { BACKEND_URL, NODE_URL } from '../constants';
@@ -11,6 +11,13 @@ import { convertToBitBadgesUserInfo } from './users';
 import { ChallengeParams } from "blockin";
 import { stringify } from "../utils/preserveJson";
 import { BadgeMetadata } from "./types";
+
+const axios = axiosApi.create({
+    withCredentials: true,
+    headers: {
+        "Content-type": "application/json",
+    },
+});
 
 //Get account by address
 export async function getAccountInformation(address: string) {
@@ -198,55 +205,26 @@ export async function getSearchResults(searchTerm: string) {
 /**
  * Here, we define the API function logic to call your backend.
  */
-export const getChallenge = async (chain: string, address: string, assetIds: string[]) => {
-    const assets = [];
-    for (const assetId of assetIds) {
-        assets.push('Asset ID: ' + assetId);
-    }
-
-    const message = await getChallengeFromBlockin(chain, address, assets);
-    return message;
-}
-
-
-const getChallengeFromBlockin = async (chain: string, address: string, assetIds: string[]): Promise<string> => {
-    const data = await fetch(BACKEND_URL + '/api/getChallenge', {
-        method: 'post',
-        body: JSON.stringify({
-            address,
-            assetIds,
-            chain
-        }),
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
-
-    return data.message;
-}
-
 export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
-    const data = await fetch(BACKEND_URL + '/api/getChallengeParams', {
-        method: 'post',
-        body: JSON.stringify({
-            address,
-            chain
-        }),
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
+    const data = await axios.post(BACKEND_URL + '/api/getChallengeParams', {
+        address,
+        chain
+    }).then(res => res.data);
 
-    return data;
+    return data.params;
 }
 
 export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uint8Array, signatureBytes: Uint8Array) => {
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
     console.log(bodyStr);
 
-    const verificationRes = await fetch(BACKEND_URL + '/api/verifyChallenge', {
-        method: 'post',
-        body: bodyStr,
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
+    const verificationRes = await axios.post(BACKEND_URL + '/api/verifyChallenge', bodyStr).then(res => res.data);
 
     return verificationRes;
+}
+
+export const logout = async () => {
+    await axios.post(BACKEND_URL + '/api/logout').then(res => res.data);
 }
 
 

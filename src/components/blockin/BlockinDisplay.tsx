@@ -72,8 +72,6 @@ export const BlockinDisplay = ({
              * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
              * anything else that needs to be updated.
              */
-            //TODO: cookies 
-            alert(verificationResponse.message);
             setLoggedIn(true);
             return {
                 success: true, message: `${verificationResponse.message}`
@@ -111,7 +109,7 @@ export const BlockinDisplay = ({
     }
 
     return <>
-        <div style={{ display: 'flex', justifyContent: 'center', color: `${PRIMARY_TEXT}` }}>
+        <div style={{ display: 'flex', justifyContent: 'center', color: 'black' }}>
             {
                 <BlockinUIDisplay
                     connected={connected}
@@ -141,6 +139,7 @@ export const BlockinDisplay = ({
                         // { name: 'Avalanche' },
                         // { name: 'BSC' },
                     ]}
+
                     address={address}
                     selectedChainInfo={selectedChainInfo}
                     onChainUpdate={handleUpdateChain}
