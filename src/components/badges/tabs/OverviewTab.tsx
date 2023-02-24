@@ -25,6 +25,12 @@ export function OverviewTab({
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
 
+    const isTransferable = !collection.disallowedTransfers?.length;
+    const isNonTransferable = collection.disallowedTransfers?.length === 1
+        && JSON.stringify(collection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping);
+
+
+
     return <>
         <InformationDisplayCard
             title="Badges in Collection"
@@ -71,32 +77,26 @@ export function OverviewTab({
                     </>
                     }
                 >
-                    {
-                        //TODO: Refactor this
-                    }
                     <div style={{ margin: 8 }}>
                         {
-                            !collection.disallowedTransfers?.length ?
-                                <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Transferable</Typography.Text> : <>
-                                    {collection.disallowedTransfers.length === 1
-                                        && JSON.stringify(collection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
-                                        <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Non-Transferable</Typography.Text>
-                                        : <>                                        {
-                                            collection.disallowedTransfers.map((transfer) => {
-                                                return <>
-                                                    The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
-                                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                                    })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''} cannot
-                                                    transfer to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
-                                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                                    })} {transfer.from.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
-                                                    <br />
-                                                </>
-                                            })
-                                        }
-                                        </>
+                            isTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Transferable</Typography.Text> : <>
+                                {isNonTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Non-Transferable</Typography.Text>
+                                    : <>                                        {
+                                        collection.disallowedTransfers.map((transfer) => {
+                                            return <>
+                                                The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
+                                                    return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                                })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''} cannot
+                                                transfer to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                                    return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
+                                                })} {transfer.from.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
+                                                <br />
+                                            </>
+                                        })
                                     }
-                                </>
+                                    </>
+                                }
+                            </>
                         }
                     </div>
                 </InformationDisplayCard>
