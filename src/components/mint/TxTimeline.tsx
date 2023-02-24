@@ -42,7 +42,8 @@ export interface TxTimelineProps {
     setHackyUpdatedFlag: (flag: boolean) => void
     fungible: boolean,
     nonFungible: boolean,
-    simulatedCollection: BitBadgeCollection
+    simulatedCollection: BitBadgeCollection,
+    onFinish?: (txState: TxTimelineProps) => void
 }
 
 
@@ -50,10 +51,12 @@ export function TxTimeline(
     {
         txType,
         collectionId,
+        onFinish,
     }:
         {
             txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
-            collectionId?: number
+            collectionId?: number,
+            onFinish?: (txState: TxTimelineProps) => void
         }
 ) {
     const chain = useChainContext();
@@ -136,7 +139,7 @@ export function TxTimeline(
     }
 
     //This simulates a BitBadgeCollection object representing what the collection will look like after creation (used for compatibility) 
-    const simulatedCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain);
+    const simulatedCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, existingCollection);
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
@@ -188,7 +191,8 @@ export function TxTimeline(
         hackyUpdatedFlag,
         setHackyUpdatedFlag,
         fungible,
-        nonFungible
+        nonFungible,
+        onFinish
     }
 
     if (txType === 'NewCollection') {

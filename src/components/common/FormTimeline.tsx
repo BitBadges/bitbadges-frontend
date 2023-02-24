@@ -19,8 +19,10 @@ interface Item {
 
 export function FormTimeline({
     items,
+    onFinish
 }: {
     items: Item[]
+    onFinish?: () => void
 }) {
     const [formStepNum, setFormStepNum] = useState(1);
     const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
@@ -48,7 +50,11 @@ export function FormTimeline({
 
     useEffect(() => {
         setNextButton(formStepNum);
-    }, [filteredItems])
+
+        if (formStepNum === filteredItems.length && onFinish) {
+            onFinish();
+        }
+    }, [filteredItems, formStepNum])
 
     const getTitleElem = (title: string | JSX.Element) => {
         return (
@@ -115,6 +121,6 @@ export function FormTimeline({
                     {filteredItems[formStepNum - 1].node}
                 </Form>
             </Form.Provider>
-        </div >
+        </div>
     );
 }

@@ -1,4 +1,4 @@
-import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { DistributionMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../common/FormTimeline';
 import { EmptyStepItem } from './NewCollectionTimeline';
 import { TxTimelineProps } from './TxTimeline';
@@ -7,7 +7,6 @@ import { DistributionMethodStepItem } from './step-items/DistributionMethodStepI
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
-import { SubmitNewMintMsgStepItem } from './step-items/SubmitNewMintMsgStepItem';
 
 export function DistributeTimeline({
     txTimelineProps
@@ -27,7 +26,6 @@ export function DistributeTimeline({
     const nonFungible = txTimelineProps.nonFungible;
 
 
-    const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, collection, collection.collectionMetadata, collection.badgeMetadata, claimItems, setClaimItems, distributionMethod, manualSend, MetadataAddMethod.None, false);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collection.collectionMetadata, collection, collection.claims.length + 1)
 
     return (
@@ -40,9 +38,10 @@ export function DistributeTimeline({
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod) : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
                     ? DownloadCodesStep : EmptyStepItem,
-
-                SubmitStepItem,
             ]}
+            onFinish={() => {
+                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+            }}
         />
     );
 }

@@ -1,7 +1,6 @@
 import { FormTimeline } from '../common/FormTimeline';
 import { TxTimelineProps } from './TxTimeline';
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
-import { UpdateDisallowedStepItem } from './step-items/UpdateDisallowedStepItem';
 
 export const EmptyStepItem = {
     title: '',
@@ -17,10 +16,6 @@ export function UpdateDisallowedTimeline({
 }) {
     const newCollectionMsg = txTimelineProps.newCollectionMsg;
     const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
-    const collection = txTimelineProps.existingCollection;
-
-    //All mint timeline step items
-    const UpdateDisallowedStep = UpdateDisallowedStepItem(newCollectionMsg, setNewCollectionMsg, collection);
 
     const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
 
@@ -28,8 +23,10 @@ export function UpdateDisallowedTimeline({
         <FormTimeline
             items={[
                 TransferableSelectStep,
-                UpdateDisallowedStep
             ]}
+            onFinish={() => {
+                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+            }}
         />
     );
 }

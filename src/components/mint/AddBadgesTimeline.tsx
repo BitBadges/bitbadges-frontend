@@ -10,7 +10,6 @@ import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem'
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
-import { SubmitNewMintMsgStepItem } from './step-items/SubmitNewMintMsgStepItem';
 
 export const EmptyStepItem = {
     title: '',
@@ -53,7 +52,6 @@ export function AddBadgesTimeline({
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible, nonFungible)
     const CreateClaims = CreateClaimsStepItem(existingCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, individualBadgeMetadata, collectionMetadata);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, existingCollection, 1);
-    const SubmitStepItem = SubmitNewMintMsgStepItem(newCollectionMsg, setNewCollectionMsg, existingCollection, collectionMetadata, individualBadgeMetadata, claimItems, setClaimItems, distributionMethod, manualSend, addMethod, true);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
 
     return (
@@ -73,8 +71,11 @@ export function AddBadgesTimeline({
                     ? ManualSendSelect : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
                     ? DownloadCodesStep : EmptyStepItem,
-                SubmitStepItem
+
             ]}
+            onFinish={() => {
+                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+            }}
         />
     );
 }

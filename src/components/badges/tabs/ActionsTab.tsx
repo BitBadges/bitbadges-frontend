@@ -10,6 +10,9 @@ import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxM
 import { CreateTxMsgTransferBadgeModal } from '../../txModals/CreateTxMsgTransferBadge';
 import { CreateTxMsgTransferManagerModal } from '../../txModals/CreateTxMsgTransferManagerModal';
 import { CreateTxMsgUpdatePermissionsModal } from '../../txModals/CreateTxMsgUpdatePermissions';
+import { CreateTxMsgUpdateUrisModal } from '../../txModals/CreateTxMsgUpdateUrisModal';
+import { CreateTxMsgMintBadgeModal } from '../../txModals/CreateTxMsgMintBadgeModal';
+import { CreateTxMsgUpdateDisallowedTransfersModal } from '../../txModals/CreateTxMsgUpdateDisallowedTransfers';
 
 export function ActionsTab({
     collection,
@@ -28,10 +31,12 @@ export function ActionsTab({
     //Modal visibilities
     const [transferIsVisible, setTransferIsVisible] = useState(false);
     const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
-    const [freezeIsVisible, setFreezeIsVisible] = useState(false);
     const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
     const [distributeIsVisible, setDistributeIsVisible] = useState(false);
+    const [addBadgesIsVisible, setAddBadgesIsVisible] = useState(false);
+    const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
+    const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
 
     if (!collection) return <></>;
     const isManager = collection.manager.accountNumber === accountNumber;
@@ -72,15 +77,15 @@ export function ActionsTab({
 
     if (isManager) {
         if (collection.permissions.CanCreateMoreBadges) {
-        actions.push({
-            title: getTitleElem("Add Badges"),
-            description: getDescriptionElem(
-                "Add new badges to the collection."
-            ),
-            showModal: () => {
-                router.push(`/add/${collection.collectionId}`)
-            },
-        });
+            actions.push({
+                title: getTitleElem("Add Badges"),
+                description: getDescriptionElem(
+                    "Add new badges to the collection."
+                ),
+                showModal: () => {
+                    setAddBadgesIsVisible(!addBadgesIsVisible);
+                },
+            });
         }
 
         if (collection.unmintedSupplys.length > 0) {
@@ -90,8 +95,7 @@ export function ActionsTab({
                     "Distribute badges that are currently unminted."
                 ),
                 showModal: () => {
-                    router.push(`/distribute/${collection.collectionId}`)
-                    // setDistributeIsVisible(!distributeIsVisible);
+                    setDistributeIsVisible(!distributeIsVisible);
                 },
             });
         }
@@ -103,7 +107,7 @@ export function ActionsTab({
                     "Update the metadata of this collection and badges."
                 ),
                 showModal: () => {
-                    router.push(`/updateMetadata/${collection.collectionId}`)
+                    setUpdateMetadataIsVisible(!updateMetadataIsVisible);
                 },
             });
         }
@@ -115,8 +119,8 @@ export function ActionsTab({
                     "Freeze or unfreeze if badge owners able to transfer."
                 ),
                 showModal: () => {
-                    setFreezeIsVisible(!freezeIsVisible);
-                    router.push(`/updateDisallowed/${collection.collectionId}`);
+                    setUpdateDisallowedIsVisible(!updateDisallowedIsVisible);
+                    // router.push(`/updateDisallowed/${collection.collectionId}`);
                 },
             });
         }
@@ -250,6 +254,27 @@ export function ActionsTab({
                 </>
             )}
 
+            <CreateTxMsgMintBadgeModal
+                visible={addBadgesIsVisible}
+                setVisible={setAddBadgesIsVisible}
+                txType='AddBadges'
+                collectionId={collection.collectionId}
+            />
+
+            <CreateTxMsgMintBadgeModal
+                visible={distributeIsVisible}
+                setVisible={setDistributeIsVisible}
+                txType='DistributeBadges'
+                collectionId={collection.collectionId}
+            />
+
+
+            <CreateTxMsgUpdateUrisModal
+                visible={updateMetadataIsVisible}
+                setVisible={setUpdateMetadataIsVisible}
+                collectionId={collection.collectionId}
+            />
+
             <CreateTxMsgTransferBadgeModal
                 visible={transferIsVisible}
                 setVisible={setTransferIsVisible}
@@ -274,6 +299,12 @@ export function ActionsTab({
                 visible={updatePermissionsIsVisible}
                 setVisible={setUpdatePermissionsIsVisible}
                 collection={collection}
+            />
+
+            <CreateTxMsgUpdateDisallowedTransfersModal
+                visible={updateDisallowedIsVisible}
+                setVisible={setUpdateDisallowedIsVisible}
+                collectionId={collection.collectionId}
             />
         </div >
     );

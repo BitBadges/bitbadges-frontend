@@ -4,7 +4,6 @@ import { TxTimelineProps } from './TxTimeline';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
-import { UpdateUrisStepItem } from './step-items/UpdateUrisStepItem';
 
 export const EmptyStepItem = {
     title: '',
@@ -32,7 +31,6 @@ export function UpdateMetadataTimeline({
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
-    const UpdateMetadataStep = UpdateUrisStepItem(collection, newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, badgeMetadata);
 
     return (
         <FormTimeline
@@ -41,8 +39,10 @@ export function UpdateMetadataTimeline({
                 SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
-                UpdateMetadataStep
             ]}
+            onFinish={() => {
+                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+            }}
         />
     );
 }

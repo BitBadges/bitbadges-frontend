@@ -1,31 +1,57 @@
 import { MessageMsgUpdateDisallowedTransfers, createTxMsgUpdateDisallowedTransfers } from 'bitbadgesjs-transactions';
-import React from 'react';
+import React, { useState } from 'react';
 import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useChainContext } from '../../chain/ChainContext';
+import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
 
 
-export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible, children, txCosmosMsg }
+export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible, children, collectionId }
     : {
         visible: boolean,
         setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
-        txCosmosMsg: MessageMsgUpdateDisallowedTransfers
+        children?: React.ReactNode
+        collectionId: number,
     }) {
     const router = useRouter();
     const collections = useCollectionsContext();
+    const chain = useChainContext();
+
+    const [txState, setTxState] = useState<TxTimelineProps>();
+
+
+
+    const [disabled, setDisabled] = useState<boolean>(true);
+
+    const updateDisallowedTransfersMsg: MessageMsgUpdateDisallowedTransfers = {
+        creator: chain.cosmosAddress,
+        collectionId: collectionId,
+        disallowedTransfers: txState ? txState.newCollectionMsg.disallowedTransfers : []
+    }
+
+    const msgSteps = [
+        {
+            title: 'Update Metadata',
+            description: <TxTimeline txType='UpdateDisallowed' collectionId={collectionId} onFinish={(txState: TxTimelineProps) => {
+                setDisabled(false);
+                setTxState(txState);
+            }} />,
+            disabled: disabled,
+        }
+    ];
 
     return (
         <TxModal
-            // msgSteps={items}
+            msgSteps={msgSteps}
             visible={visible}
             setVisible={setVisible}
             txName="Update Disallowed Transfers"
-            txCosmosMsg={txCosmosMsg}
+            txCosmosMsg={updateDisallowedTransfersMsg}
             createTxFunction={createTxMsgUpdateDisallowedTransfers}
             onSuccessfulTx={async () => {
-                await collections.refreshCollection(txCosmosMsg.collectionId);
-                router.push(`/collections/${txCosmosMsg.collectionId}`)
+                await collections.refreshCollection(collectionId);
+                router.push(`/collections/${collectionId}`)
             }}
         >
             {children}

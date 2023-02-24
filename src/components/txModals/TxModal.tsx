@@ -17,7 +17,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx
     }: {
         createTxFunction: any,
         txCosmosMsg: object,
@@ -31,6 +31,7 @@ export function TxModal(
         unregisteredUsers?: string[],
         onRegister?: () => void,
         onSuccessfulTx?: () => Promise<void>,
+        beforeTx?: () => Promise<void>,
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
         width?: number | string
@@ -38,7 +39,6 @@ export function TxModal(
 ) {
     if (!msgSteps) msgSteps = [];
     const chain = useChainContext();
-    const accounts = useAccountsContext();
     const router = useRouter();
 
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -54,6 +54,8 @@ export function TxModal(
     const submitTx = async (createTxFunction: any, cosmosMsg: object) => {
         setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
+        if (beforeTx) await beforeTx();
+
         try {
             //Sign and broadcast transaction
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);

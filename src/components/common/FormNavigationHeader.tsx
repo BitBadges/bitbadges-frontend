@@ -26,20 +26,23 @@ export function FormNavigationHeader({
                 justifyContent: 'center',
             }}
         >
-            <button
-                style={{
-                    backgroundColor: 'inherit',
-                    color: '#ddd',
-                    fontSize: 17,
-                    cursor: backButtonDisabled ? 'not-allowed' : undefined,
-                }}
-                onClick={() => decrementStep()}
-                className="opacity link-button"
-                disabled={backButtonDisabled}
-            >
-                <CaretLeftFilled size={40} />
-                Back
-            </button>
+            <div>
+                <button
+                    style={{
+                        backgroundColor: 'inherit',
+                        color: '#ddd',
+                        fontSize: 17,
+                        cursor: backButtonDisabled ? 'not-allowed' : undefined,
+                        visibility: stepNum === 1 ? 'hidden' : undefined
+                    }}
+                    onClick={() => decrementStep()}
+                    className="opacity link-button"
+                    disabled={backButtonDisabled || stepNum === 1}
+                >
+                    <CaretLeftFilled size={40} />
+                    Back
+                </button>
+            </div>
             <Typography.Text
                 strong
                 style={{
@@ -51,21 +54,24 @@ export function FormNavigationHeader({
             >
                 {stepNum} / {finalStepNumber}
             </Typography.Text>
+            <div>
+                <button
+                    style={{
+                        backgroundColor: 'inherit',
+                        color: '#ddd',
+                        fontSize: 17,
+                        cursor: nextButtonDisabled ? 'not-allowed' : undefined,
+                        visibility: stepNum === finalStepNumber ? 'hidden' : undefined
+                    }}
+                    onClick={() => incrementStep()}
+                    className="opacity link-button"
+                    disabled={nextButtonDisabled || stepNum === finalStepNumber}
 
-            <button
-                style={{
-                    backgroundColor: 'inherit',
-                    color: '#ddd',
-                    fontSize: 17,
-                    cursor: nextButtonDisabled ? 'not-allowed' : undefined,
-                }}
-                onClick={() => incrementStep()}
-                className="opacity link-button"
-                disabled={nextButtonDisabled}
-            >
-                Next
-                <CaretRightFilled size={40} />
-            </button>
+                >
+                    Next
+                    <CaretRightFilled size={40} />
+                </button>
+            </div>
         </div>
     );
 }
