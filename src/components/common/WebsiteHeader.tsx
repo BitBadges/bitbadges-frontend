@@ -15,15 +15,10 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Blockies from 'react-blockies';
 import { useAccountsContext } from '../../accounts/AccountsContext';
-import { getSearchResults } from '../../bitbadges-api/api';
-import { getAbbreviatedAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { useChainContext } from '../../chain/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { Tabs } from './Tabs';
-import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
-import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
-import { PRIMARY_BLUE, SECONDARY_BLUE, TERTIARY_BLUE } from '../../constants';
 import { SearchDropdown } from './SearchDropdown';
+import { Tabs } from './Tabs';
 
 const { Header } = Layout;
 const { Option } = Select;

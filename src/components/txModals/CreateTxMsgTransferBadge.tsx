@@ -111,7 +111,6 @@ export function CreateTxMsgTransferBadgeModal(
 
 
 
-    //TODO: Add helper messages about account being frozen / manager transfers in this card; catch it earlier
     const items = [
         {
             title: 'Select Sender',
