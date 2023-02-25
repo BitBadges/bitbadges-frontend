@@ -11,7 +11,7 @@ export function DisconnectedWrapper({ node, message, requireLogin }: { node: JSX
 
     return (
         <>
-            {needToConnect ? node : <ConnectScreen message={message} requireLogin={requireLogin}/>}
+            {needToConnect ? <ConnectScreen message={message} requireLogin={requireLogin} /> : node}
         </>
     );
 }

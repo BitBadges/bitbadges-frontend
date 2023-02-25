@@ -91,6 +91,7 @@ export function FormTimeline({
                     style={{
                         color: PRIMARY_TEXT,
                         fontSize: 14,
+                        textAlign: 'center',
                     }}
                     strong
                 >

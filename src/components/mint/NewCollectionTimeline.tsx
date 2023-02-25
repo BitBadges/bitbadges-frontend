@@ -27,7 +27,6 @@ export const EmptyStepItem = {
     doNotDisplay: true,
 }
 
-//TODO: add more badges to collection later
 //TODO: bytes and updateBytes
 //TODO: more metadata!!!!!
 //TODO: previews and cnfirmations

@@ -33,12 +33,12 @@ export function PermissionsOverview({
                     {<TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
 
                     <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
-                    <h3>{"Manager's Approved Transfers"}
+                    <h3 style={{ color: PRIMARY_TEXT }}>{"Manager's Approved Transfers"}
                         <Tooltip title="The manager's approved transfers are those that they can execute without needing the owner's permission. These transfers forcefully override any other transfer restrictions (e.g. non-transferable).">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>
                     </h3>
-                    <div style={{ margin: 4 }}>
+                    <div style={{ margin: 4, color: PRIMARY_TEXT }}>
                         {
                             !collection.managerApprovedTransfers?.length ?
                                 <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>None</Typography.Text>

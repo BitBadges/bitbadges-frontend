@@ -1,4 +1,4 @@
-import { Button, InputNumber, Slider, Tooltip } from "antd";
+import { Button, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
 import { IdRange } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
@@ -16,6 +16,8 @@ export function IdRangesInput({
 }) {
     const [numRanges, setNumRanges] = useState(1);
     const [sliderValues, setSliderValues] = useState<[number, number][]>([[1, maximum ?? 1]]);
+    const [inputStr, setInputStr] = useState(`1-${maximum ?? 1}`);
+
 
     if (maximum == 0) {
         return <></>;
@@ -49,6 +51,7 @@ export function IdRangesInput({
                             const newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
                             setSliderValues(newSliderValues);
                             setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                            setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                         }}
                     />
                 </div>
@@ -64,6 +67,7 @@ export function IdRangesInput({
                                     const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
                                     setSliderValues(newSliderValues);
                                     setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                                    setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                                 }
                             }
                         }
@@ -86,6 +90,7 @@ export function IdRangesInput({
                                     const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
                                     setSliderValues(newSliderValues);
                                     setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                                    setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                                 }
                             }
                         }
@@ -107,12 +112,14 @@ export function IdRangesInput({
                                     setNumRanges(numRanges - 1);
                                     setSliderValues(sliderValues.filter((_, j) => i !== j));
                                     setIdRanges(sliderValues.filter((_, j) => i !== j).map(([start, end]) => ({ start, end })));
+                                    setInputStr(sliderValues.filter((_, j) => i !== j).map(([start, end]) => `${start}-${end}`).join(', '));
                                 }
                             }}
                             disabled={numRanges === 1}
                         />
                     </Tooltip>
                 </div>
+
             </div>
         })}
 
@@ -124,6 +131,7 @@ export function IdRangesInput({
                     setNumRanges(numRanges + 1)
                     setSliderValues([...sliderValues, [1, maximum ?? 0]]);
                     setIdRanges([...sliderValues, [1, maximum ?? 0]].map(([start, end]) => ({ start, end })));
+                    setInputStr([...sliderValues, [1, maximum ?? 0]].map(([start, end]) => `${start}-${end}`).join(', '));
                 }}>
                 Add Range
             </Button>
@@ -134,6 +142,7 @@ export function IdRangesInput({
                         setNumRanges(newIdRanges.length);
                         setSliderValues(newIdRanges.map(({ start, end }) => [start, end]));
                         setIdRanges(newIdRanges);
+                        setInputStr(newIdRanges.map(({ start, end }) => [start, end]).map(([start, end]) => `${start}-${end}`).join(', '));
                     }}>
                     Sort Ranges And Remove Overlaps
                 </Button>
@@ -145,5 +154,35 @@ export function IdRangesInput({
                 <b>Overlapping ranges are not allowed.</b>
             </div>
         }
+
+        <br />
+        <div style={{ display: 'flex' }} >
+            <Input
+                style={{ width: '100%', marginTop: 16, color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
+                value={inputStr}
+                onChange={(e) => {
+                    setInputStr(e.target.value);
+
+
+                    let sliderValues: [number, number][] = [];
+
+                    const splitSliderValues = e.target.value.split(', ');
+                    for (const sliderValue of splitSliderValues) {
+                        if (sliderValue.split('-').length !== 2) {
+                            continue;
+                        } else {
+                            if (sliderValue.split('-')[0] === '' || sliderValue.split('-')[1] === '') {
+                                continue;
+                            }
+                            sliderValues.push([parseInt(sliderValue.split('-')[0]), parseInt(sliderValue.split('-')[1])]);
+                        }
+                    }
+
+                    setSliderValues(sliderValues);
+                    setNumRanges(sliderValues.length);
+                    setIdRanges(sliderValues.map(([start, end]) => ({ start, end })));
+                }}
+            />
+        </div>
     </>
 }

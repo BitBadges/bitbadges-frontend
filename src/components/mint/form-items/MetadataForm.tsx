@@ -7,6 +7,7 @@ import MarkdownIt from 'markdown-it';
 import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { SelfHostedUri } from './SelfHostedUri';
+import MdEditor from 'react-markdown-editor-lite'
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
 
@@ -130,6 +131,10 @@ export function MetadataForm({
 
     function handleEditorChange({ html, text }: any) {
         console.log('handleEditorChange', html, text);
+        setMetadata(getMetadataToUpdate({
+            ...currentMetadata,
+            description: text
+        }));
     }
 
     return (
@@ -315,9 +320,14 @@ export function MetadataForm({
                             </Text>
                         }
                     >
-                        {/* TODO: Markdown */}
-                        {/* <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange} /> */}
-                        <Input.TextArea
+                        <MdEditor style={{
+                            height: '500px',
+                            backgroundColor: PRIMARY_BLUE,
+                            color: PRIMARY_TEXT
+                        }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                            value={currentMetadata.description}
+                        />
+                        {/* <Input.TextArea
                             value={currentMetadata.description}
                             onChange={(e) => {
                                 setMetadata(getMetadataToUpdate({
@@ -329,7 +339,7 @@ export function MetadataForm({
                                 backgroundColor: PRIMARY_BLUE,
                                 color: PRIMARY_TEXT,
                             }}
-                        />
+                        /> */}
                     </Form.Item>
 
 

@@ -230,11 +230,11 @@ export function TransferSelect({
 
 
     if (!canTransfer) {
-        for (const address of forbiddenAddresses) {
+        for (const _ of forbiddenAddresses) {
             messages.push(`Transfer to this recipient has been disallowed by the manager.`);
         }
 
-        for (const address of unapprovedAddresses) {
+        for (const _ of unapprovedAddresses) {
             messages.push(`You are not approved to transfer on behalf of the sender.`);
         }
 
@@ -283,6 +283,8 @@ export function TransferSelect({
             return start1 <= end2 && start2 <= end1;
         });
     });
+
+    const idRangesLengthEqualsZero = balances[0].badgeIds.length === 0;
 
     //TODO: disableds
 
@@ -357,7 +359,7 @@ export function TransferSelect({
                     hideBalances
                 />
             </div>,
-            disabled: idRangesOverlap || firstStepDisabled || !canTransfer,
+            disabled: idRangesOverlap || idRangesLengthEqualsZero || firstStepDisabled || !canTransfer,
         },
         {
             title: 'Amounts',
@@ -388,7 +390,7 @@ export function TransferSelect({
                 <Divider />
                 {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
             </div>,
-            disabled: idRangesOverlap || secondStepDisabled
+            disabled: idRangesOverlap || idRangesLengthEqualsZero || secondStepDisabled
         },
         {
 
@@ -443,7 +445,7 @@ export function TransferSelect({
                 !addTransferIsVisible && !hideTransferDisplay && <div>
                     <div className='flex-between'>
                         <div></div>
-                        <h2 style={{ textAlign: 'center' }}>Added Transfers ({transfers.length})</h2>
+                        <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Added Transfers ({transfers.length})</h2>
                         <div></div>
                     </div>
 
@@ -467,7 +469,7 @@ export function TransferSelect({
                         < div className='flex-between' >
                             <div></div>
 
-                            <h2 style={{ textAlign: 'center' }}>Add Transfer?</h2>
+                            <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Add Transfer?</h2>
                             <div>
                                 <Tooltip title='Cancel' placement='bottom'>
                                     <CloseOutlined

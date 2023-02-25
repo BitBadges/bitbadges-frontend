@@ -163,3 +163,36 @@
     background-color: #001529;
     color: white;
 }
+
+.rc-md-editor .rc-md-navigation {
+    background-color: #001529 !important;
+}
+
+.rc-md-editor .rc-md-navigation .button-wrap .button {
+    background-color: #001529 !important;
+    color: white !important;
+}
+
+.rc-md-editor .drop-wrap {
+    background-color: #001529 !important;
+}
+
+.rc-md-editor .editor-container .sec-md .input {
+    background-color: #001529 !important;
+    color: white !important;
+}
+
+.custom-html-style h1, 
+.custom-html-style h2,
+.custom-html-style h3,
+.custom-html-style h4,
+.custom-html-style h5,
+.custom-html-style h6,
+.custom-html-style p,
+.custom-html-style blockquote {
+    color: white !important;
+}
+
+.custom-html-style {
+    color: white !important;
+}

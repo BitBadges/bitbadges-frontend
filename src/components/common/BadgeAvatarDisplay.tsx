@@ -49,7 +49,7 @@ export function BadgeAvatarDisplay({
     const endIdNum = endIdx < startIdNum + PAGE_SIZE - 1 ? endIdx : startIdNum + PAGE_SIZE - 1;
 
 
-
+    console.log(collection.badgeMetadata);
 
     for (let i = startIdNum; i <= endIdNum; i++) {
         if (!collection?.badgeMetadata[ids[i]]) {

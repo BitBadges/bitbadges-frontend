@@ -143,13 +143,13 @@ export function TxTimeline(
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
-        if (!existingCollection) return;
+        if (existingCollection) {
+            setCollectionMetadata(existingCollection.collectionMetadata);
+        }
 
-        setCollectionMetadata(existingCollection.collectionMetadata);
-
-        let nextBadgeId = existingCollection.nextBadgeId ? existingCollection.nextBadgeId : 1;
+        let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
         let metadata: { [badgeId: string]: BadgeMetadata } = {
-            ...existingCollection.badgeMetadata
+            ...existingCollection?.badgeMetadata
         };
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
             for (const badgeSupplyObj of newCollectionMsg.badgeSupplys) {
@@ -168,9 +168,10 @@ export function TxTimeline(
     const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
     const nonFungible = newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.supply === 1);
 
+
     const txTimelineProps: TxTimelineProps = {
         txType,
-        existingCollection: existingCollection ? existingCollection : {} as BitBadgeCollection,
+        existingCollection: existingCollection ? existingCollection : simulatedCollection,
         simulatedCollection,
         newCollectionMsg,
         setNewCollectionMsg,
