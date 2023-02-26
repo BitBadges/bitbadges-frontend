@@ -200,10 +200,16 @@ export function TransferSelect({
 
 
     const unapprovedAddresses: any[] = [];
-    for (const approvalBalance of userBalance.approvals) {
-        //TODO: approvals
+    if (chain.accountNumber !== fromUser.accountNumber) {
+        const approval = userBalance.approvals.find((approval) => approval.address === chain.accountNumber);
+        if (!approval || (approval && approval.balances.length === 0)) {
+            for (const address of toAddresses) {
+                unapprovedAddresses.push(address);
+            }
+        }
     }
 
+    console.log("UNAPPROVED ADDRESSES", unapprovedAddresses);
 
     const isUnapprovedTransfer = unapprovedAddresses.length > 0;
     const isDisallowedTransfer = forbiddenAddresses.length > 0;
@@ -223,9 +229,11 @@ export function TransferSelect({
 
 
 
-
     let messages: string[] = [];
     let badUsers = [];
+
+    console.log("Can transfer?", canTransfer);
+    console.log(managerUnapprovedAddresses);
 
 
 
@@ -235,7 +243,7 @@ export function TransferSelect({
         }
 
         for (const _ of unapprovedAddresses) {
-            messages.push(`You are not approved to transfer on behalf of the sender.`);
+            messages.push(`The selected sender has not approved you to transfer on their behalf.`);
         }
 
         badUsers.push(...forbiddenAddresses, ...unapprovedAddresses);

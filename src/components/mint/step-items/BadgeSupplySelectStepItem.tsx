@@ -56,7 +56,7 @@ export function BadgeSupplySelectStepItem(
             <Divider />
 
             {selectIsVisible && <div>
-                <h2 style={{ textAlign: 'center' }}>Add Badges?</h2>
+                <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Add Badges?</h2>
                 {<div>
                     <Steps
                         current={currentStep}

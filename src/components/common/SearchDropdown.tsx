@@ -7,6 +7,7 @@ import { getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { useEthereumContext } from '../../chain/ethereum/EthereumContext';
 
 
 export function SearchDropdown({
@@ -21,17 +22,9 @@ export function SearchDropdown({
     }
 ) {
     const accounts = useAccountsContext();
+    const ethereum = useEthereumContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
     const [collectionsResults, setCollectionsResults] = useState<BadgeMetadata[]>([]);
-
-
-
-    useEffect(() => {
-
-
-
-
-    }, [searchValue, accounts]);
 
 
     useEffect(() => {
@@ -39,8 +32,27 @@ export function SearchDropdown({
             const updateSearchValue = async (value: string) => {
                 accounts.fetchAccounts([value]);
                 const results = await getSearchResults(value);
-                await accounts.fetchAccounts(results.accounts.map((result: CosmosAccountInformation) => result.address));
-                setAccountsResults(results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
+                const resolvedAddresses: string[] = []
+                if (ethereum.selectedChainInfo?.getAddressForName) {
+                    const address = await ethereum.selectedChainInfo?.getAddressForName(value);
+                    console.log("RESOLVED ADDRESS", address);
+                    if (address) resolvedAddresses.push(address);
+                }
+
+                console.log([...results.accounts, ...resolvedAddresses]);
+
+                const newAccounts = await accounts.fetchAccounts([...resolvedAddresses, ...results.accounts.map((result: CosmosAccountInformation) => result.address)]);
+                console.log(newAccounts);
+
+                const resolvedAccount = newAccounts.find((account: BitBadgesUserInfo) => account.address === resolvedAddresses[0])
+                const accountsToSet = [];
+                if (resolvedAccount) {
+                    accountsToSet.push(resolvedAccount);
+                }
+                accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
+                
+                
+                setAccountsResults(accountsToSet);
                 setCollectionsResults(results.collections);
 
                 console.log("SEARCH RESULTS", results);
@@ -49,7 +61,7 @@ export function SearchDropdown({
         }, 300)
 
         return () => clearTimeout(delayDebounceFn)
-    }, [searchValue, accounts])
+    }, [searchValue, accounts, ethereum.selectedChainInfo])
 
 
 

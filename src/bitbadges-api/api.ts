@@ -198,6 +198,8 @@ export async function getPortfolio(accountNumber: number) {
 //Get search results
 export async function getSearchResults(searchTerm: string) {
     const searchResults = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
+
+
     return searchResults;
 }
 

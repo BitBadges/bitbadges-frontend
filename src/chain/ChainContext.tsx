@@ -53,7 +53,7 @@ export type ChainSpecificContextType = {
     signTxn: (txn: object) => Promise<any>,
     getPublicKey: (cosmosAddress: string) => Promise<string>,
     displayedResources: PresetResource[],
-    selectedChainInfo: SupportedChainMetadata | undefined,
+    selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
     ownedAssetIds: string[],
 }
 
