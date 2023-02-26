@@ -7,7 +7,7 @@ import { AddressWithBlockies } from "../address/AddressWithBlockies";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { PRIMARY_TEXT } from "../../constants";
 import { useState } from "react";
-import { useAccountsContext } from "../../accounts/AccountsContext";
+import { useAccountsContext } from "../../contexts/AccountsContext";
 import { DeleteOutlined } from "@ant-design/icons";
 
 const { Text } = Typography
@@ -69,7 +69,7 @@ export function TransferDisplay({
 
             //TODO: Handle balances[] in one
             return transfer.balances.map((balance, index) => {
-                
+
                 accounts.fetchAccountsByNumber(transfer.toAddresses);
                 const to = transfer.toAddresses.map((accountNumber) => { return accounts.accounts[accountNumber] });
 

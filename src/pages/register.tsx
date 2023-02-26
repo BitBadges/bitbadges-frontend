@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
-import { useChainContext } from '../chain/ChainContext';
+import { useChainContext } from '../contexts/ChainContext';
 
 const { Content } = Layout;
 const { Text } = Typography;

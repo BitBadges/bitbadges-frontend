@@ -6,7 +6,7 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../txModals/CreateTxMsgNewCollectionModal';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
 import { SHA256 } from 'crypto-js';
-import { useAccountsContext } from '../../../accounts/AccountsContext';
+import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
 
@@ -118,7 +118,7 @@ export function SubmitMsgNewCollection({
                 claims: claimRes.claims
             })
         }
-        
+
         setVisible(true);
         setLoading(false);
     }

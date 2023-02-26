@@ -1,6 +1,6 @@
 import { Dropdown, Input } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { convertToCosmosAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
@@ -38,7 +38,7 @@ export function AddressSelect({
                     console.log(accounts.accountNumbers)
                     console.log(accounts.accounts[accounts.accountNumbers[searchValue]])
                     console.log(accounts.accountNumbers[searchValue])
-                    
+
                     setCurrUserInfo(accounts.accounts[accounts.accountNumbers[searchValue]]);
                 }} />}
                 trigger={['hover', 'click']}

@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { addToIpfs } from '../../bitbadges-api/api';
 import { MetadataAddMethod } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
 import { TxModal } from './TxModal';
 

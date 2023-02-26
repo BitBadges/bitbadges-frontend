@@ -1,12 +1,12 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Button, Divider, InputNumber, Steps, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, Transfers, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { AddressListSelect } from '../address/AddressListSelect';
 import { TransferDisplay } from '../common/TransferDisplay';

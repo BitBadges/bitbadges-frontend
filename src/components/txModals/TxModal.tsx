@@ -3,13 +3,13 @@ import { Divider, Modal, StepProps, Steps, Typography, notification } from 'antd
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useState } from 'react';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getStatus } from '../../bitbadges-api/api';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { TransactionStatus } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 

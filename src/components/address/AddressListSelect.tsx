@@ -2,7 +2,7 @@ import { SwapOutlined, UserAddOutlined } from "@ant-design/icons";
 import { Button, Divider, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { useState } from "react";
-import { useAccountsContext } from "../../accounts/AccountsContext";
+import { useAccountsContext } from "../../contexts/AccountsContext";
 import { isAddressValid } from "../../bitbadges-api/chains";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";

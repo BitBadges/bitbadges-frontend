@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react"
-import { SignChallengeResponse, useChainContext } from "../../chain/ChainContext"
+import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext"
 import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api"
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChallengeResponse, SupportedChainMetadata } from 'blockin';

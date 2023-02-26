@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getClaimsValueFromClaimItems } from '../../bitbadges-api/claims';
 import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
 

@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
-import { getAccountInformation, getAccounts } from '../bitbadges-api/api';
+import { getAccounts } from '../bitbadges-api/api';
+import { getChainForAddress } from '../bitbadges-api/chains';
 import { BitBadgesUserInfo, SupportedChain } from '../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
-import { convertToCosmosAddress, getChainForAddress } from '../bitbadges-api/chains';
+import { useEthereumContext } from './ethereum/EthereumContext';
 import { MINT_ACCOUNT } from '../constants';
-import { useEthereumContext } from '../chain/ethereum/EthereumContext';
 
 export type AccountsContextType = {
     accounts: {
@@ -52,9 +52,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
             }
         }
 
-
-        console.log("FETCHING ACCOUNTS", accountsToFetchFromDB);
-
         const fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
         for (const accountInfo of fetchedAccounts) {
             setAccounts({
@@ -71,7 +68,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 && ethereum.selectedChainInfo
                 && ethereum.selectedChainInfo.getNameForAddress) {
                 let ensName = await ethereum.selectedChainInfo?.getNameForAddress(accountInfo.address);
-                console.log("ENS NAME", ensName);
                 if (ensName) {
                     setAccountNames({
                         ...accountNames,
@@ -119,7 +115,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 && ethereum.selectedChainInfo
                 && ethereum.selectedChainInfo.getNameForAddress) {
                 let ensName = await ethereum.selectedChainInfo?.getNameForAddress(accountInfo.address);
-                console.log("ENS NAME", ensName);
                 if (ensName) {
                     setAccountNames({
                         ...accountNames,

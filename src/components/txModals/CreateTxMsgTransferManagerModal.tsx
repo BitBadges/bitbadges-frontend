@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { AddressSelect } from '../address/AddressSelect';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { InfoCircleOutlined, InfoOutlined } from '@ant-design/icons';
 
 export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children }

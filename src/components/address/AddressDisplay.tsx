@@ -3,7 +3,7 @@ import { Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AddressWithBlockies } from './AddressWithBlockies';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 
 export function AddressDisplayTitle(
     {

@@ -1,6 +1,6 @@
 import { Popover, Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { SupportedChain } from '../../bitbadges-api/types';

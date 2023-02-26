@@ -1,13 +1,13 @@
 
 import { Avatar, Layout, Menu, Select, Typography } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { useEthereumContext } from '../../chain/ethereum/EthereumContext';
+import { useEthereumContext } from '../../contexts/ethereum/EthereumContext';
 
 
 export function SearchDropdown({
@@ -50,8 +50,8 @@ export function SearchDropdown({
                     accountsToSet.push(resolvedAccount);
                 }
                 accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
-                
-                
+
+
                 setAccountsResults(accountsToSet);
                 setCollectionsResults(results.collections);
 

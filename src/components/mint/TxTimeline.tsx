@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { DefaultPlaceholderMetadata } from '../../constants';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
 import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 
 export const EmptyStepItem = {
     title: '',

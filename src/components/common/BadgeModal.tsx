@@ -2,7 +2,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Col, Divider, Drawer, Layout, Row, Typography } from 'antd';
 import React, { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
 import { BadgeOverview } from '../badges/BadgeOverview';
 import { Tabs } from './Tabs';

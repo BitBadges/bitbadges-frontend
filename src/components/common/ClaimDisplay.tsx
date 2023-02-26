@@ -5,14 +5,14 @@ import { useState } from "react";
 import { getBlankBalance } from "../../bitbadges-api/balances";
 import { parseClaim } from "../../bitbadges-api/claims";
 import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedChain } from "../../bitbadges-api/types";
-import { useChainContext } from "../../chain/ChainContext";
+import { useChainContext } from "../../contexts/ChainContext";
 import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { BalanceDisplay } from "./BalanceDisplay";
 import { TransferDisplay } from "./TransferDisplay";
-import { useAccountsContext } from "../../accounts/AccountsContext";
+import { useAccountsContext } from "../../contexts/AccountsContext";
 
 export function ClaimDisplay({
     claim,

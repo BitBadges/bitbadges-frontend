@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { BadgeCard } from '../../common/BadgeCard';
-import { useCollectionsContext } from '../../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../../contexts/CollectionsContext';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
     collection: BitBadgeCollection;

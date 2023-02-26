@@ -1,7 +1,7 @@
 import { Collapse, Divider, Empty, Pagination } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../../accounts/AccountsContext';
+import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { filterBadgeActivityForBadgeId } from '../../../bitbadges-api/badges';
 import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';

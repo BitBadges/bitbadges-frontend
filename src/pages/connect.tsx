@@ -3,7 +3,7 @@ import { Button, Layout, Typography } from 'antd';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
 import { useRouter } from 'next/router';
-import { useChainContext } from '../chain/ChainContext';
+import { useChainContext } from '../contexts/ChainContext';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -34,7 +34,7 @@ function ConnectScreen({ message, requireLogin }: { message?: string, requireLog
                         </Text>
                     </Content>
                     <Content style={{ paddingTop: '15px' }}>
-                        <BlockinDisplay  />
+                        <BlockinDisplay />
                     </Content>
                 </div>
                 {true && connected && loggedIn &&

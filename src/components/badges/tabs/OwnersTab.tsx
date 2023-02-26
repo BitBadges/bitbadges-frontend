@@ -1,6 +1,6 @@
 import { Empty, Spin } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../../accounts/AccountsContext';
+import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { getBadgeOwners } from '../../../bitbadges-api/api';
 import { getSupplyByBadgeId } from '../../../bitbadges-api/balances';
 import { BitBadgeCollection } from '../../../bitbadges-api/types';

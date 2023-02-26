@@ -2,8 +2,8 @@ import { MessageMsgUpdateDisallowedTransfers, createTxMsgUpdateDisallowedTransfe
 import React, { useState } from 'react';
 import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
-import { useChainContext } from '../../chain/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
 
 

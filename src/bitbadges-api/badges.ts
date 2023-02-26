@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { ChainContextType } from "../chain/ChainContext";
+import { ChainContextType } from "../contexts/ChainContext";
 import { GetPermissions } from "./permissions";
 import { ActivityItem, BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
 import { GO_MAX_UINT_64 } from "../constants";

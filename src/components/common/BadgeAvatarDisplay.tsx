@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
-import { useCollectionsContext } from "../../collections/CollectionsContext";
+import { useCollectionsContext } from "../../contexts/CollectionsContext";
 
 export function BadgeAvatarDisplay({
     collection,

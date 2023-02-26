@@ -1,5 +1,5 @@
 import { Layout, Typography } from 'antd';
-import { useChainContext } from '../chain/ChainContext';
+import { useChainContext } from '../contexts/ChainContext';
 
 function BrowseScreen({ message }: { message?: string }) {
     const chain = useChainContext();

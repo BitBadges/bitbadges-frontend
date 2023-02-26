@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import RegisterScreen from '../../pages/register';
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {

@@ -3,7 +3,7 @@ import Meta from 'antd/lib/card/Meta';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { useChainContext } from '../../../chain/ChainContext';
+import { useChainContext } from '../../../contexts/ChainContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { BlockinDisplay } from '../../blockin/BlockinDisplay';
 import { CreateTxMsgRequestTransferManagerModal } from '../../txModals/CreateTxMsgRequestTransferManagerModal';

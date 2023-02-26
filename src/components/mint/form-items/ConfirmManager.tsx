@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, Avatar } from 'antd';
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
-import { useChainContext } from '../../../chain/ChainContext';
+import { useChainContext } from '../../../contexts/ChainContext';
 import Blockies from 'react-blockies'
 import { Address } from '../../address/Address';
 import { useRouter } from 'next/router';
@@ -39,7 +39,7 @@ export function ConfirmManager() {
                         address={address}
                         chain={chain.chain}
                         fontColor={'lightgrey'}
-                        
+
                     />
                 </div>
             </div>

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
 import { TxModal } from './TxModal';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { Switch } from 'antd';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 
 
 export function CreateTxMsgRequestTransferManagerModal({ collection, visible, setVisible, children }
@@ -65,7 +65,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
             onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
-            // displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for collection ${collection.collectionId}`}
+        // displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for collection ${collection.collectionId}`}
         >
             {children}
         </TxModal>

@@ -4,7 +4,7 @@ import { COSMOS, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../accounts/AccountsContext';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getPortfolio } from '../../bitbadges-api/api';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AccountDisplay } from '../../components/common/AccountDisplay';
@@ -12,7 +12,7 @@ import { BalanceDisplay } from '../../components/common/BalanceDisplay';
 import { InformationDisplayCard } from '../../components/common/InformationDisplayCard';
 import { Tabs } from '../../components/common/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
-import { useCollectionsContext } from '../../collections/CollectionsContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 const { Content } = Layout;
 
 const tabInfo = [

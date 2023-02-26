@@ -6,7 +6,7 @@ import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/bad
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { createClaim, getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
 import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
-import { useChainContext } from '../../../chain/ChainContext';
+import { useChainContext } from '../../../contexts/ChainContext';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { BalanceDisplay } from '../../common/BalanceDisplay';

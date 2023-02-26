@@ -5,7 +5,7 @@ import {
 import { useState } from 'react';
 import { getBlankBalance } from '../../bitbadges-api/balances';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { BalanceDisplay } from '../common/BalanceDisplay';
 import { ButtonDisplay, ButtonDisplayProps } from '../common/ButtonDisplay';

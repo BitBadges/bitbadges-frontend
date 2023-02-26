@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChainContext } from '../../chain/ChainContext';
+import { useChainContext } from '../../contexts/ChainContext';
 import ConnectScreen from '../../pages/connect';
 
 export function DisconnectedWrapper({ node, message, requireLogin }: { node: JSX.Element, message?: string, requireLogin?: boolean }) {
