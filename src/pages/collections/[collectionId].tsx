@@ -6,12 +6,12 @@ import { UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgePageHeader } from '../../components/badges/BadgePageHeader';
-import { ActionsTab } from '../../components/badges/tabs/ActionsTab';
-import { ActivityTab } from '../../components/badges/tabs/ActivityTab';
-import { BadgesTab } from '../../components/badges/tabs/BadgesTab';
-import { ClaimsTab } from '../../components/badges/tabs/ClaimsTab';
-import { OverviewTab } from '../../components/badges/tabs/OverviewTab';
-import { Tabs } from '../../components/common/Tabs';
+import { ActionsTab } from '../../components/collection-page/tabs/ActionsTab';
+import { ActivityTab } from '../../components/collection-page/tabs/ActivityTab';
+import { BadgesTab } from '../../components/collection-page/tabs/BadgesTab';
+import { ClaimsTab } from '../../components/collection-page/tabs/ClaimsTab';
+import { OverviewTab } from '../../components/collection-page/tabs/OverviewTab';
+import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 const { Content } = Layout;
 

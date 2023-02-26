@@ -4,8 +4,8 @@ import { ChainContextProvider } from '../contexts/ChainContext';
 import { AlgorandContextProvider } from '../contexts/algorand/AlgorandContext';
 import { EthereumContextProvider } from '../contexts/ethereum/EthereumContext';
 import { Layout } from 'antd';
-import { WalletHeader } from '../components/common/WebsiteHeader';
-import { WalletFooter } from '../components/common/WebsiteFooter';
+import { WalletHeader } from '../components/navigation/WebsiteHeader';
+import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import '../styles/antd-override-styles.css'
 import '../styles/index.css'
 import { AccountsContextProvider } from '../contexts/AccountsContext';

@@ -5,7 +5,7 @@ import { convertToCosmosAddress, getChainForAddress, isAddressValid } from '../.
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from './AddressDisplay';
-import { SearchDropdown } from '../common/SearchDropdown';
+import { SearchDropdown } from '../navigation/SearchDropdown';
 
 export enum EnterMethod {
     Single = 'Single',
