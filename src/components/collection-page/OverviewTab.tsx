@@ -1,15 +1,15 @@
 import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../../bitbadges-api/badges";
-import { BitBadgeCollection, UserBalance } from "../../../bitbadges-api/types";
-import { InformationDisplayCard } from "../../display/InformationDisplayCard";
-import { BadgeAvatarDisplay } from "../../common/badges/BadgeAvatarDisplay";
-import { BalanceOverview } from "../BalanceOverview";
-import { CollectionOverview } from "../CollectionOverview";
-import { PermissionsOverview } from "../PermissionsOverview";
+import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../bitbadges-api/badges";
+import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BalanceOverview } from "./BalancesInfo";
+import { CollectionOverview } from "./CollectionInfo";
+import { PermissionsOverview } from "./PermissionsInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { PRIMARY_TEXT } from "../../../constants";
+import { PRIMARY_TEXT } from "../../constants";
 
 export function OverviewTab({
     collection,

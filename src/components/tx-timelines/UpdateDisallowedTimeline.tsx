@@ -2,12 +2,7 @@ import { FormTimeline } from '../navigation/FormTimeline';
 import { TxTimelineProps } from './TxTimeline';
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 
-export const EmptyStepItem = {
-    title: '',
-    description: '',
-    node: <></>,
-    doNotDisplay: true,
-}
+//See TxTimeline for explanations and documentation
 
 export function UpdateDisallowedTimeline({
     txTimelineProps

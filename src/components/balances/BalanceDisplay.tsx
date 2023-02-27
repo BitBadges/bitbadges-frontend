@@ -1,7 +1,7 @@
 import { Empty } from "antd";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { BadgeAvatarDisplay } from "../common/badges/BadgeAvatarDisplay";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 export function BalanceDisplay({
     collection,

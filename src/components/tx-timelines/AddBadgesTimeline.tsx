@@ -1,6 +1,6 @@
 import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../navigation/FormTimeline';
-import { TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
@@ -11,12 +11,7 @@ import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelec
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 
-export const EmptyStepItem = {
-    title: '',
-    description: '',
-    node: <></>,
-    doNotDisplay: true,
-}
+//See TxTimeline for explanations and documentation
 
 export function AddBadgesTimeline({
     txTimelineProps
@@ -46,7 +41,7 @@ export function AddBadgesTimeline({
     //All mint timeline step items
     const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, true);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, existingCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible, nonFungible)

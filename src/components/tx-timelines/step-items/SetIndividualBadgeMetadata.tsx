@@ -1,23 +1,22 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BadgeMetadata, BitBadgeCollection, MetadataAddMethod } from "../../../bitbadges-api/types";
 import { Button, Divider, InputNumber } from "antd";
-import { BadgeAvatarDisplay } from "../../common/badges/BadgeAvatarDisplay";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
+import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { useState } from "react";
 import { getBlankBalance } from "../../../bitbadges-api/balances";
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, MetadataAddMethod } from "../../../bitbadges-api/types";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
+import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { MetadataForm } from "../form-items/MetadataForm";
-import { useEffect, useState } from "react";
 
 export function SetIndividualBadgeMetadataStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void,
     collection: BitBadgeCollection,
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
-    setIndividualBadgeMetadata: (metadata: { [badgeId: string]: BadgeMetadata }) => void,
+    individualBadgeMetadata: BadgeMetadataMap,
+    setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void,
     collectionMetadata: BadgeMetadata,
     addMethod: MetadataAddMethod,
 ) {
     const [id, setId] = useState(1);
-
 
     return {
         title: 'Set Individual Badge Metadata',

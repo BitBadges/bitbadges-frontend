@@ -3,7 +3,7 @@ import { Layout } from 'antd';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../../constants';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { TxTimeline } from '../../components/mint/TxTimeline';
+import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
 
 const { Content } = Layout;
 

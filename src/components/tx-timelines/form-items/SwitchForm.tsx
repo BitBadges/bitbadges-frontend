@@ -31,8 +31,6 @@ export function SwitchForm({
                         textAlign: 'center',
                         color: PRIMARY_TEXT,
                         justifyContent: 'center',
-                        // alignItems: 'center',
-                        // marginTop: 20,
                         display: 'flex',
                         flexWrap: 'wrap',
                     }}
@@ -50,8 +48,6 @@ export function SwitchForm({
                                 border: option.isSelected && canShowSelected ? '1px solid #1890ff' : undefined,
                                 display: 'flex',
                                 justifyContent: 'center',
-                                // alignItems: 'center',
-                                // minHeight: 150,
                             }}
                             onClick={() => {
                                 onSwitchChange(index, option.title);

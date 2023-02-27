@@ -1,16 +1,11 @@
 import { MetadataAddMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../navigation/FormTimeline';
-import { TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 
-export const EmptyStepItem = {
-    title: '',
-    description: '',
-    node: <></>,
-    doNotDisplay: true,
-}
+//See TxTimeline for explanations and documentation
 
 export function UpdateMetadataTimeline({
     txTimelineProps
@@ -29,7 +24,7 @@ export function UpdateMetadataTimeline({
 
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
 
     return (

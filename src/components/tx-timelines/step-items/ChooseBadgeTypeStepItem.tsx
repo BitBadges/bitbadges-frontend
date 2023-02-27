@@ -14,7 +14,7 @@ export function ChooseBadgeTypeStepItem(newCollectionMsg: MessageMsgNewCollectio
                     isSelected: newCollectionMsg.standard === 0,
                 },
             ]}
-            onSwitchChange={(idx, title) => { }}
+            onSwitchChange={() => { }}
         />
     }
 }

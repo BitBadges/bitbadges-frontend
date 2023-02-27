@@ -4,11 +4,9 @@ import { BadgeSupplyAndAmount } from '../../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 
 export function BadgeSupply({
-    currentSupply,
     setCurrentSupply,
     fungible
 }: {
-    currentSupply: BadgeSupplyAndAmount,
     setCurrentSupply: (currentSupply: BadgeSupplyAndAmount) => void,
     fungible: boolean;
 }) {

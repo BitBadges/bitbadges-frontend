@@ -1,9 +1,9 @@
 import { Empty, Pagination } from 'antd';
 import { useState } from 'react';
-import { BitBadgeCollection } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
-import { ClaimDisplay } from '../../claims/ClaimDisplay';
-import { CreateTxMsgClaimBadgeModal } from '../../tx-modals/CreateTxMsgClaimBadge';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_TEXT } from '../../constants';
+import { ClaimDisplay } from '../claims/ClaimDisplay';
+import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 
 export function ClaimsTab({ collection, refreshUserBalance }: {
     collection: BitBadgeCollection | undefined;

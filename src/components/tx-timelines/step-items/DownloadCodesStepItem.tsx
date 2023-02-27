@@ -82,18 +82,26 @@ export function DownloadCodesStepItem(
                                         </Text>
                                         <Divider />
                                     </>
-                                    {/* <hr /> */}
-                                    {/* <h3>Claim #{currIndex + 1}</h3> */}
                                     <TransferDisplay
                                         collection={collection}
                                         fontColor={PRIMARY_TEXT}
                                         from={[
                                             MINT_ACCOUNT
                                         ]}
-                                        to={[]}
+                                        transfers={[
+                                            {
+                                                toAddresses: [],
+                                                toAddressInfo: [],
+                                                balances: [
+                                                    {
+                                                        balance: leaf.amount,
+                                                        badgeIds: leaf.badgeIds,
+                                                    }
+                                                ],
+                                            },
+                                        ]}
                                         toCodes={[leaf.fullCode]}
-                                        amount={leaf.amount}
-                                        badgeIds={leaf.badgeIds}
+                                        setTransfers={() => { }}
                                     />
 
                                     <Divider />

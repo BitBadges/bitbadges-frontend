@@ -5,17 +5,17 @@ import { addToIpfs } from '../../bitbadges-api/api';
 import { MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
 import { TxModal } from './TxModal';
+import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 
 
-export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, collectionId }
-    : {
-        collectionId: number,
-        visible: boolean,
-        setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
-    }) {
+export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, collectionId
+}: {
+    collectionId: number,
+    visible: boolean,
+    setVisible: (visible: boolean) => void,
+    children?: React.ReactNode,
+}) {
     const router = useRouter();
     const collections = useCollectionsContext();
     const chain = useChainContext();
@@ -48,10 +48,13 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
     const msgSteps = [
         {
             title: 'Update Metadata',
-            description: <TxTimeline txType='UpdateMetadata' collectionId={collectionId} onFinish={(txState: TxTimelineProps) => {
-                setDisabled(false);
-                setTxState(txState);
-            }} />,
+            description: <TxTimeline txType='UpdateMetadata'
+                collectionId={collectionId}
+                onFinish={(txState: TxTimelineProps) => {
+                    setDisabled(false);
+                    setTxState(txState);
+                }}
+            />,
             disabled: disabled,
         }
     ];

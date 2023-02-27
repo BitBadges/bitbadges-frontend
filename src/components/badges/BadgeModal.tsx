@@ -1,15 +1,15 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Col, Divider, Drawer, Layout, Row, Typography } from 'antd';
 import React, { useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { useChainContext } from '../../../contexts/ChainContext';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../../constants';
-import { BadgeOverview } from '../../badges/BadgeOverview';
-import { Tabs } from '../../navigation/Tabs';
-import { BadgePageHeader } from '../../badges/BadgePageHeader';
-import { OwnersTab } from '../../collection-page/tabs/OwnersTab';
-import { getSupplyByBadgeId } from '../../../bitbadges-api/balances';
-import { ActivityTab } from '../../collection-page/tabs/ActivityTab';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { useChainContext } from '../../contexts/ChainContext';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
+import { BadgeOverview } from '../collection-page/BadgeInfo';
+import { Tabs } from '../navigation/Tabs';
+import { BadgePageHeader } from '../collection-page/BadgePageHeader';
+import { OwnersTab } from '../collection-page/OwnersTab';
+import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
+import { ActivityTab } from '../collection-page/ActivityTab';
 
 const { Content } = Layout;
 const { Text } = Typography;

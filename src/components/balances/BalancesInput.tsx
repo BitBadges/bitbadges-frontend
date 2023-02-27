@@ -1,14 +1,12 @@
 import { InputNumber } from 'antd';
-import { Balance, BitBadgeCollection } from '../../bitbadges-api/types';
+import { Balance } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 export function BalancesInput({
-    collection,
     balances,
     setBalances,
     darkMode,
 }: {
-    collection?: BitBadgeCollection
     balances: Balance[],
     setBalances: (balances: Balance[]) => void,
     darkMode?: boolean,

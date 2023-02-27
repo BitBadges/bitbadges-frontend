@@ -34,12 +34,7 @@ export function AddressSelect({
                 open={currUserInfo && currUserInfo.address !== '' && !isAddressValid(currUserInfo.address)}
                 placement="bottom"
                 overlay={<SearchDropdown onlyAddresses searchValue={currUserInfo.address} onSearch={(searchValue: string) => {
-                    console.log(searchValue)
-                    console.log(accounts.accountNumbers)
-                    console.log(accounts.accounts[accounts.accountNumbers[searchValue]])
-                    console.log(accounts.accountNumbers[searchValue])
-
-                    setCurrUserInfo(accounts.accounts[accounts.accountNumbers[searchValue]]);
+                    setCurrUserInfo(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
                 }} />}
                 trigger={['hover', 'click']}
             >

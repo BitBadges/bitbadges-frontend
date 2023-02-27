@@ -4,15 +4,15 @@ import { SHA256 } from "crypto-js";
 import { useState } from "react";
 import { getBlankBalance } from "../../bitbadges-api/balances";
 import { parseClaim } from "../../bitbadges-api/claims";
-import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod, SupportedChain } from "../../bitbadges-api/types";
+import { BitBadgeCollection, ClaimItem, Claims, DistributionMethod } from "../../bitbadges-api/types";
 import { useChainContext } from "../../contexts/ChainContext";
 import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
-import { BadgeAvatarDisplay } from "../common/badges/BadgeAvatarDisplay";
-import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { TransferDisplay } from "../transfers/TransferDisplay";
 import { useAccountsContext } from "../../contexts/AccountsContext";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { BlockinDisplay } from "../blockin/BlockinDisplay";
 
 export function ClaimDisplay({
     claim,
@@ -96,11 +96,7 @@ export function ClaimDisplay({
             />
             <br />
 
-            {/* <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                <h3>Only {Math.floor(claim.balance.balance / claim.amountPerClaim)} more users can claim!</h3>
-            </Row> */}
             {Number(claim.type) === 0 && <>
-                {/* <h3>Whitelist ({collection.claims[claimId]?.leaves?.length})</h3> */}
                 <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
 
                     {collection.claims[claimId]?.distributionMethod === DistributionMethod.Codes ?
@@ -123,15 +119,23 @@ export function ClaimDisplay({
 
                                 <div style={{ color: PRIMARY_TEXT }}>
                                     <TransferDisplay
+                                        transfers={[
+                                            {
+                                                toAddresses: [],
+                                                balances: [{
+                                                    balance: currLeaf.amount,
+                                                    badgeIds: currLeaf.badgeIds,
+                                                }],
+                                                toAddressInfo: [],
+                                            }
+                                        ]}
+                                        setTransfers={() => { }}
                                         collection={collection}
                                         fontColor={PRIMARY_TEXT}
                                         from={[
                                             MINT_ACCOUNT
                                         ]}
-                                        to={[]}
                                         toCodes={[currLeaf.code]}
-                                        amount={currLeaf.amount}
-                                        badgeIds={currLeaf.badgeIds}
                                     />
                                     <Divider />
                                 </div>
@@ -182,7 +186,7 @@ export function ClaimDisplay({
 
                                 if (collection.usedClaims.find((x) => x === SHA256(currLeaf.fullCode).toString())) return <></>
                                 accounts.fetchAccounts([currLeaf.address]);
-                                return accounts.accounts[accounts.accountNumbers[currLeaf.address]] && <>
+                                return accounts.accounts[accounts.cosmosAddresses[currLeaf.address]] && <>
 
                                     <TransferDisplay
                                         collection={collection}
@@ -190,10 +194,18 @@ export function ClaimDisplay({
                                         from={[
                                             MINT_ACCOUNT
                                         ]}
-                                        to={[accounts.accounts[accounts.accountNumbers[currLeaf.address]]]}
+                                        transfers={[
+                                            {
+                                                toAddresses: [accounts.accountNumbers[currLeaf.address]],
+                                                balances: [{
+                                                    balance: currLeaf.amount,
+                                                    badgeIds: currLeaf.badgeIds,
+                                                }],
+                                                toAddressInfo: [accounts.accounts[accounts.cosmosAddresses[currLeaf.address]]],
+                                            }
+                                        ]}
+                                        setTransfers={() => { }}
                                         toCodes={[]}
-                                        amount={currLeaf.amount}
-                                        badgeIds={currLeaf.badgeIds}
                                     />
                                     <Divider />
 

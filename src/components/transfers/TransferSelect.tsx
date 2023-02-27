@@ -1,25 +1,23 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Button, Divider, InputNumber, Steps, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getFullBadgeIdRanges } from '../../bitbadges-api/badges';
+import { getFullBadgeIdRanges, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, Transfers, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
 import { AddressListSelect } from '../address/AddressListSelect';
-import { TransferDisplay } from './TransferDisplay';
 import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
 import { BalancesInput } from '../balances/BalancesInput';
 import { IdRangesInput } from '../balances/IdRangesInput';
+import { TransferDisplay } from './TransferDisplay';
 
 const { Step } = Steps;
 
 export function TransferSelect({
     transfers,
     setTransfers,
-    fromUser,
+    sender,
     collection,
     userBalance,
     distributionMethod,
@@ -27,19 +25,16 @@ export function TransferSelect({
 }: {
     transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[],
     setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
-    fromUser: BitBadgesUserInfo,
+    sender: BitBadgesUserInfo,
     userBalance: UserBalance,
     collection: BitBadgeCollection;
     distributionMethod: DistributionMethod;
     hideTransferDisplay?: boolean;
 }) {
-    const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const chain = useChainContext();
-    const accounts = useAccountsContext();
-    const collections = useCollectionsContext();
 
+    const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
-
     const [currentStep, setCurrentStep] = useState(0);
 
     const onStepChange = (value: number) => {
@@ -47,7 +42,6 @@ export function TransferSelect({
     };
 
     const [numCodes, setNumCodes] = useState<number>(1);
-
     const [balances, setBalances] = useState<Balance[]>([
         {
             balance: 1,
@@ -57,10 +51,11 @@ export function TransferSelect({
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
 
+    //Whenever something changes, update the pre and post transfer balances
     useEffect(() => {
         let postTransferBalanceObj = userBalance;
         let preTransferBalanceObj = userBalance;
-        if (fromUser.accountNumber !== chain.accountNumber) {
+        if (sender.accountNumber !== chain.accountNumber) {
             postTransferBalanceObj = userBalance;
             preTransferBalanceObj = userBalance;
         }
@@ -87,120 +82,16 @@ export function TransferSelect({
 
         setPostTransferBalance(postTransferBalanceObj);
         setPreTransferBalance(preTransferBalanceObj);
-    }, [balances, userBalance, collection, toAddresses.length, chain.accountNumber, fromUser.accountNumber, transfers, distributionMethod, numCodes])
+    }, [balances, userBalance, collection, toAddresses.length, chain.accountNumber, sender.accountNumber, transfers, distributionMethod, numCodes])
 
 
+    const forbiddenAddresses = getMatchingAddressesFromTransferMapping(collection.disallowedTransfers, toAddresses, chain, collection.manager.accountNumber);
+    const managerApprovedAddresses = getMatchingAddressesFromTransferMapping(collection.managerApprovedTransfers, toAddresses, chain, collection.manager.accountNumber);
 
-    const forbiddenAddresses = [];
-
-    let isManagerApprovedTransfer = false;
-    const managerUnapprovedAddresses: any[] = [];
-
-    for (const address of toAddresses) {
-        for (const managerApprovedTransferMapping of collection.managerApprovedTransfers) {
-            let fromIsApproved = false;
-            let toIsApproved = false;
-
-            if (managerApprovedTransferMapping.from.options === 2 && chain.accountNumber === collection.manager.accountNumber) {
-                //exclude manager and we are the manager
-                fromIsApproved = false;
-            } else {
-                if (managerApprovedTransferMapping.from.options === 1) {
-                    //include manager and we are the manager
-                    if (chain.accountNumber === collection.manager.accountNumber) {
-                        fromIsApproved = true;
-                    }
-                }
-
-
-                for (const idRange of managerApprovedTransferMapping.from.accountNums) {
-                    if (idRange.start <= chain.accountNumber && idRange.end >= chain.accountNumber) {
-                        fromIsApproved = true;
-                        break;
-                    }
-                }
-            }
-
-            if (managerApprovedTransferMapping.to.options === 2 && address.accountNumber === collection.manager.accountNumber) {
-                //exclude manager and we are the manager
-                toIsApproved = false;
-            } else {
-                if (managerApprovedTransferMapping.to.options === 1) {
-                    //include manager and we are the manager
-                    if (address.accountNumber === collection.manager.accountNumber) {
-                        toIsApproved = true;
-                    }
-                }
-
-                for (const idRange of managerApprovedTransferMapping.to.accountNums) {
-                    if (idRange.start <= address.accountNumber && idRange.end >= address.accountNumber) {
-                        toIsApproved = true;
-                        break;
-                    }
-                }
-            }
-
-            if (fromIsApproved && toIsApproved) {
-                isManagerApprovedTransfer = true;
-                managerUnapprovedAddresses.push(address);
-            }
-        }
-    }
-
-    for (const address of toAddresses) {
-        for (const disallowedTransferMapping of collection.disallowedTransfers) {
-            let fromIsForbidden = false;
-            let toIsForbidden = false;
-
-            if (disallowedTransferMapping.from.options === 2 && chain.accountNumber === collection.manager.accountNumber) {
-                //exclude manager and we are the manager
-                fromIsForbidden = false;
-            } else {
-                if (disallowedTransferMapping.from.options === 1) {
-                    //include manager and we are the manager
-                    if (chain.accountNumber === collection.manager.accountNumber) {
-                        fromIsForbidden = true;
-                    }
-                }
-
-
-                for (const idRange of disallowedTransferMapping.from.accountNums) {
-                    if (idRange.start <= chain.accountNumber && idRange.end >= chain.accountNumber) {
-                        fromIsForbidden = true;
-                        break;
-                    }
-                }
-            }
-
-            if (disallowedTransferMapping.to.options === 2 && address.accountNumber === collection.manager.accountNumber) {
-                //exclude manager and we are the manager
-                toIsForbidden = false;
-            } else {
-                if (disallowedTransferMapping.to.options === 1) {
-                    //include manager and we are the manager
-                    if (address.accountNumber === collection.manager.accountNumber) {
-                        toIsForbidden = true;
-                    }
-                }
-
-                for (const idRange of disallowedTransferMapping.to.accountNums) {
-                    if (idRange.start <= address.accountNumber && idRange.end >= address.accountNumber) {
-                        toIsForbidden = true;
-                        break;
-                    }
-                }
-            }
-
-            if (fromIsForbidden && toIsForbidden) {
-                forbiddenAddresses.push(address);
-            }
-        }
-    }
-
-
-
+    //If sender !== current user, check if they have any approvals. 
+    //In the future, we should check the exact approvals. For now, we just check if approval.balances.length > 0.
     const unapprovedAddresses: any[] = [];
-    if (chain.accountNumber !== fromUser.accountNumber) {
+    if (chain.accountNumber !== sender.accountNumber) {
         const approval = userBalance.approvals.find((approval) => approval.address === chain.accountNumber);
         if (!approval || (approval && approval.balances.length === 0)) {
             for (const address of toAddresses) {
@@ -209,75 +100,32 @@ export function TransferSelect({
         }
     }
 
-    console.log("UNAPPROVED ADDRESSES", unapprovedAddresses);
+    let forbiddenUsersMap: { [cosmosAddress: string]: string } = {};
+    for (const address of toAddresses) {
+        //If forbidden or unapproved, add to map
+        if (forbiddenAddresses.includes(address)) {
+            forbiddenUsersMap[address.cosmosAddress] = `Transfer to this recipient has been disallowed by the manager.`;
+        }
 
-    const isUnapprovedTransfer = unapprovedAddresses.length > 0;
-    const isDisallowedTransfer = forbiddenAddresses.length > 0;
+        if (unapprovedAddresses.includes(address)) {
+            forbiddenUsersMap[address.cosmosAddress] = `The selected sender has not approved you to transfer on their behalf.`;
+        }
 
+        //If manager approved transfer, this overrides the disallowed transfer
+        if (chain.accountNumber === collection.manager.accountNumber && managerApprovedAddresses.includes(address)) {
+            delete forbiddenUsersMap[address.cosmosAddress];
+        }
 
+        //Even in the case of manager approved transfer, the sender cannot be the recipient
+        if (address.cosmosAddress === sender.cosmosAddress) {
+            forbiddenUsersMap[address.cosmosAddress] = `Recipient cannot equal sender.`;
+        }
+    }
+
+    let canTransfer = Object.values(forbiddenUsersMap).find((message) => message !== '') === undefined;
 
     const firstStepDisabled = distributionMethod === DistributionMethod.Codes ? numCodes <= 0 : toAddresses.length === 0;
-
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
-
-    let canTransfer = false;
-    if (chain.accountNumber === collection.manager.accountNumber && isManagerApprovedTransfer) {
-        canTransfer = true;
-    } else if (!isDisallowedTransfer && !isUnapprovedTransfer) {
-        canTransfer = true;
-    }
-
-
-
-    let messages: string[] = [];
-    let badUsers = [];
-
-    console.log("Can transfer?", canTransfer);
-    console.log(managerUnapprovedAddresses);
-
-
-
-    if (!canTransfer) {
-        for (const _ of forbiddenAddresses) {
-            messages.push(`Transfer to this recipient has been disallowed by the manager.`);
-        }
-
-        for (const _ of unapprovedAddresses) {
-            messages.push(`The selected sender has not approved you to transfer on their behalf.`);
-        }
-
-        badUsers.push(...forbiddenAddresses, ...unapprovedAddresses);
-
-        if (chain.accountNumber === fromUser.accountNumber && chain.accountNumber === collection.manager.accountNumber) {
-            //only show overlap between the two
-            badUsers = badUsers.filter((user, idx) => {
-                if (managerUnapprovedAddresses.includes(user)) {
-                    //filter out the messages that has an index of idx
-                    messages = messages.filter((_, index) => index !== idx);
-                    return true;
-                }
-
-                return false;
-            });
-        }
-
-        if (badUsers.length === 0) {
-            canTransfer = true;
-        }
-    }
-
-    for (const address of toAddresses) {
-        if (address.cosmosAddress === fromUser.cosmosAddress) {
-            messages.push('Recipient cannot equal sender.');
-            badUsers.push({
-                address: chain.address,
-                cosmosAddress: chain.cosmosAddress,
-                accountNumber: chain.accountNumber,
-                chain: chain.chain,
-            });
-            canTransfer = false;
-        }
-    }
 
     const idRangesOverlap = balances[0].badgeIds.some(({ start, end }, i) => {
         const start1 = start;
@@ -294,10 +142,7 @@ export function TransferSelect({
 
     const idRangesLengthEqualsZero = balances[0].badgeIds.length === 0;
 
-    //TODO: disableds
-
     const TransferSteps = [
-
         distributionMethod === DistributionMethod.Codes ? {
             title: `Codes (${numCodes})`,
             description: < div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -326,8 +171,7 @@ export function TransferSelect({
                 description: <AddressListSelect
                     users={toAddresses}
                     setUsers={setToAddresses}
-                    disallowedUsers={badUsers}
-                    disallowedMessages={messages}
+                    disallowedUsers={forbiddenUsersMap}
                     darkMode
                 />,
                 disabled: firstStepDisabled || !canTransfer,
@@ -361,7 +205,7 @@ export function TransferSelect({
                     ]}
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
-                    from={[fromUser]}
+                    from={[sender]}
                     toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
                     hideAddresses
                     hideBalances
@@ -376,7 +220,6 @@ export function TransferSelect({
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
-                    collection={collection}
                     darkMode
                 />
                 {/* <hr /> */}
@@ -390,7 +233,7 @@ export function TransferSelect({
                     ]}
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
-                    from={[fromUser]}
+                    from={[sender]}
                     setTransfers={setTransfers}
                     toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
                     hideAddresses
@@ -416,7 +259,7 @@ export function TransferSelect({
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
                     toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
-                    from={[fromUser]}
+                    from={[sender]}
                 />
 
                 <Divider />
@@ -462,7 +305,7 @@ export function TransferSelect({
                         setTransfers={setTransfers}
                         collection={collection}
                         fontColor={PRIMARY_TEXT}
-                        from={[fromUser]}
+                        from={[sender]}
                         toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
                         deletable
                     />

@@ -49,7 +49,7 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
-            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
+            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
         >
             {children}
         </TxModal>

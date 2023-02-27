@@ -28,11 +28,15 @@ export function Address({
 }) {
     const router = useRouter();
     const accounts = useAccountsContext();
-
-    let displayAddress = addressName ? addressName : getAbbreviatedAddress(address);
     const chain = getChainForAddress(address);
+
+    const doesChainMatchName = chain === SupportedChain.ETH && addressName?.includes('.eth') ? true : false;
+
+
+    let displayAddress = addressName && doesChainMatchName ? addressName : getAbbreviatedAddress(address);
+    
     let isValidAddress = isAddressValid(address);
-    const accountNumber = accounts.accountNumbers[address];
+    const accountNumber = accounts.accounts[accounts.cosmosAddresses[address]]?.accountNumber;
 
     const innerContent = !hideTooltip ? (
         <Tooltip
@@ -74,8 +78,7 @@ export function Address({
                                 hideTooltip
                             />
                             <br />
-                        </div>
-                        }
+                        </div>}
 
                     </div>
             }

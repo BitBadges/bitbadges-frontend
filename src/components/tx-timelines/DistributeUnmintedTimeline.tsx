@@ -1,12 +1,13 @@
 import { DistributionMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../navigation/FormTimeline';
-import { EmptyStepItem } from './NewCollectionTimeline';
-import { TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
+
+//See TxTimeline for explanations and documentation
 
 export function DistributeTimeline({
     txTimelineProps

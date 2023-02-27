@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
-import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
+import MdEditor from 'react-markdown-editor-lite';
+import { BadgeMetadata, BadgeMetadataMap, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { SelfHostedUri } from './SelfHostedUri';
-import MdEditor from 'react-markdown-editor-lite'
+import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
 
@@ -15,8 +15,6 @@ const { Text } = Typography;
 const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
-
-//TODO: export all these to own components
 
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
@@ -30,8 +28,8 @@ export function MetadataForm({
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
-    metadata: BadgeMetadata | { [badgeId: string]: BadgeMetadata };
-    setMetadata: (metadata: BadgeMetadata | { [badgeId: string]: BadgeMetadata }) => void;
+    metadata: BadgeMetadata | BadgeMetadataMap;
+    setMetadata: (metadata: BadgeMetadata | BadgeMetadataMap) => void;
     id?: number;
     addMethod: MetadataAddMethod;
 }) {
@@ -68,7 +66,7 @@ export function MetadataForm({
         setCurrentMetadata(newMetadata);
 
         if (!isNaN(Number(id)) && Number(id) >= 0) {
-            let currMetadata: { [badgeId: string]: BadgeMetadata } = metadata as { [badgeId: string]: BadgeMetadata };
+            let currMetadata: BadgeMetadataMap = metadata as BadgeMetadataMap;
             currMetadata[Number(id)] = newMetadata;
             return currMetadata;
         } else {
@@ -78,7 +76,7 @@ export function MetadataForm({
 
     let stringifiedMetadata = JSON.stringify(metadata);
     useEffect(() => {
-        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as { [badgeId: string]: BadgeMetadata })[Number(id)] : metadata as BadgeMetadata;
+        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadataMap)[Number(id)] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
         console.log('set metadata to', m)
 
@@ -141,7 +139,7 @@ export function MetadataForm({
         <>
             <div>
                 {addMethod === MetadataAddMethod.UploadUrl && <>
-                    <SelfHostedUri setUri={(collectionUri: string, badgeUri: string) => {
+                    <MetadataUriSelect setUri={(collectionUri: string, badgeUri: string) => {
                         setNewCollectionMsg({
                             ...newCollectionMsg,
                             collectionUri,

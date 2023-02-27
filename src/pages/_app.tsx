@@ -11,8 +11,6 @@ import '../styles/index.css'
 import { AccountsContextProvider } from '../contexts/AccountsContext';
 import { CollectionsContextProvider } from '../contexts/CollectionsContext';
 
-// const createdWeb3Modal = createWeb3Modal();
-
 const App = ({ Component, pageProps }: AppProps) => {
 
     return (

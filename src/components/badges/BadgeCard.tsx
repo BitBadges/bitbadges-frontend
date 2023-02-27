@@ -2,9 +2,9 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Card, Spin, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { useEffect, useState } from 'react';
-import { getBlankBalance, getSupplyByBadgeId } from '../../../bitbadges-api/balances';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { getBlankBalance, getSupplyByBadgeId } from '../../bitbadges-api/balances';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeModal } from './BadgeModal';
 
 export function BadgeCard({
@@ -37,14 +37,16 @@ export function BadgeCard({
 
     if (!size) size = 100;
 
+    //Calculate total, undistributed, claimable, and distributed supplys
     let totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
     let undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
-
     let claimableSupply = 0;
     for (const claim of collection.claims) {
         claimableSupply += getSupplyByBadgeId(id, claim.balances);
     }
     let distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+
+    if (!metadata) return <></>
 
     return (
         <>
@@ -159,7 +161,7 @@ export function BadgeCard({
 
             <BadgeModal
                 collection={collection}
-                metadata={metadata}
+                metadata={collection.collectionMetadata}
                 visible={visible}
                 setVisible={setVisible}
                 balance={balance ? balance : getBlankBalance()}

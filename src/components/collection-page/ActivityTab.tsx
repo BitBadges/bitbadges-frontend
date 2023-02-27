@@ -1,12 +1,12 @@
 import { Collapse, Divider, Empty, Pagination } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
-import { filterBadgeActivityForBadgeId } from '../../../bitbadges-api/badges';
-import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { AddressDisplay } from '../../address/AddressDisplay';
-import { TransferDisplay } from '../../transfers/TransferDisplay';
+import { useAccountsContext } from '../../contexts/AccountsContext';
+import { filterBadgeActivityForBadgeId } from '../../bitbadges-api/badges';
+import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { AddressDisplay } from '../address/AddressDisplay';
+import { TransferDisplay } from '../transfers/TransferDisplay';
 
 
 
@@ -140,23 +140,32 @@ export function ActivityTab({ collection, badgeId }: {
                                                 key={idx}
                                                 collection={collection}
                                                 from={activity.from.map((from) => {
-                                                    return accounts.accounts[from] || {
+                                                    return accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]] || {
                                                         accountNumber: -1,
                                                         address: '',
                                                         cosmosAddress: '',
                                                         chain: SupportedChain.COSMOS,
                                                     }
                                                 })}
-                                                to={activity.to.map((to) => {
-                                                    return accounts.accounts[to] || {
-                                                        accountNumber: -1,
-                                                        address: '',
-                                                        cosmosAddress: '',
-                                                        chain: SupportedChain.COSMOS,
+                                                transfers={[
+                                                    {
+                                                        toAddresses: activity.to.map((x) => Number(x)),
+                                                        toAddressInfo: activity.to.map((to) => {
+                                                            return accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] || {
+                                                                accountNumber: -1,
+                                                                address: '',
+                                                                cosmosAddress: '',
+                                                                chain: SupportedChain.COSMOS,
+                                                            }
+                                                        }),
+                                                        balances: [{
+                                                            balance: balance.balance,
+                                                            badgeIds: balance.badgeIds
+                                                        }]
                                                     }
-                                                })}
-                                                amount={balance.balance}
-                                                badgeIds={balance.badgeIds}
+
+                                                ]}
+                                                setTransfers={() => { }}
                                             />
                                             <Divider />
                                         </div>

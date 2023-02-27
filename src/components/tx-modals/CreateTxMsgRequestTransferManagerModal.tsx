@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
 import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
+import React from 'react';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
-import { Switch } from 'antd';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { TxModal } from './TxModal';
 
 
 export function CreateTxMsgRequestTransferManagerModal({ collection, visible, setVisible, children }
@@ -16,21 +15,12 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
     }) {
     const chain = useChainContext();
     const collections = useCollectionsContext();
-    const [request, setRequest] = useState<boolean>(true);
-
 
     const txCosmosMsg: MessageMsgRequestTransferManager = {
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
         addRequest: collection.managerRequests.find((request) => request === chain.accountNumber) === undefined,
     };
-
-    //Reset states when modal is closed
-    useEffect(() => {
-        if (!visible) {
-            setRequest(true);
-        }
-    }, [visible]);
 
     const items = [
         {
@@ -64,8 +54,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
-        // displayMsg={`You are ${request ? "requesting" : "cancelling your request"} to be the manager for collection ${collection.collectionId}`}
+            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); }}
         >
             {children}
         </TxModal>

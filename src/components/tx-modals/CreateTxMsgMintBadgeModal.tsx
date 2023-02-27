@@ -3,16 +3,14 @@ import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transacti
 import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
+import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getClaimsValueFromClaimItems } from '../../bitbadges-api/claims';
+import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../bitbadges-api/claims';
 import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
-        :
-        {
-
+        : {
             visible: boolean,
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
@@ -27,7 +25,6 @@ export function CreateTxMsgMintBadgeModal(
 
     const [txState, setTxState] = useState<TxTimelineProps>();
 
-
     const newMintMsg: MessageMsgMintBadge = {
         creator: txState ? txState?.newCollectionMsg.creator : '',
         collectionId: collectionId,
@@ -38,8 +35,7 @@ export function CreateTxMsgMintBadgeModal(
         badgeUri: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.badgeUri : ""
     }
 
-    const unregisteredUsers = txState?.manualSend
-        && txState?.newCollectionMsg.transfers.length > 0
+    const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
         ? txState.claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
 
     const onRegister = async () => {
@@ -69,15 +65,7 @@ export function CreateTxMsgMintBadgeModal(
         if (txState.manualSend) {
             txState.setNewCollectionMsg({
                 ...txState?.newCollectionMsg,
-                transfers: newClaimItems.map((x) => ({
-                    toAddresses: [x.accountNum],
-                    balances: [
-                        {
-                            balance: x.amount,
-                            badgeIds: x.badgeIds,
-                        }
-                    ]
-                })),
+                transfers: getTransfersFromClaimItems(newClaimItems),
                 claims: []
             });
         } else if (!txState.manualSend) {

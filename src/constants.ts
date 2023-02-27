@@ -3,6 +3,7 @@ import { BadgeMetadata, BitBadgesUserInfo, SupportedChain } from './bitbadges-ap
 // export const NODE_URL = 'https://bit-badges.herokuapp.com';
 export const NODE_URL = 'http://localhost:1317';
 export const BACKEND_URL = 'http://localhost:3001';
+export const FAUCET_URL = 'http://localhost:4500';
 
 export const WEBSITE_HOSTNAME = 'http://localhost:3000'
 

@@ -39,9 +39,6 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
                 <Dropdown
                     placement="bottom"
                     overlay={tab.subMenuOverlay ? tab.subMenuOverlay : <></>}
-                    // onClick={() => {
-                    //     navigate(tab.key);
-                    // }}
                     trigger={tab.subMenuTrigger}
                     key={`${tab.key}`}
                 >

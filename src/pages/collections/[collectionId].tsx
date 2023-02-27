@@ -1,18 +1,19 @@
-import { Divider, Empty, Layout } from 'antd';
+import { Divider, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { BadgePageHeader } from '../../components/badges/BadgePageHeader';
-import { ActionsTab } from '../../components/collection-page/tabs/ActionsTab';
-import { ActivityTab } from '../../components/collection-page/tabs/ActivityTab';
-import { BadgesTab } from '../../components/collection-page/tabs/BadgesTab';
-import { ClaimsTab } from '../../components/collection-page/tabs/ClaimsTab';
-import { OverviewTab } from '../../components/collection-page/tabs/OverviewTab';
+import { BadgePageHeader } from '../../components/collection-page/BadgePageHeader';
+import { ActionsTab } from '../../components/collection-page/ActionsTab';
+import { ActivityTab } from '../../components/collection-page/ActivityTab';
+import { BadgesTab } from '../../components/collection-page/BadgesTab';
+import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
+import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
+
 const { Content } = Layout;
 
 const tabInfo = [
@@ -27,37 +28,28 @@ function CollectionPage() {
     const router = useRouter()
     const chain = useChainContext();
     const collections = useCollectionsContext();
-
     const { collectionId, badgeId } = router.query;
+    const accountNumber = chain.accountNumber;
     const collectionIdNumber = collectionId ? Number(collectionId) : -1;
 
+    const collection = collections.collections[`${collectionIdNumber}`];
+    const collectionMetadata = collection?.collectionMetadata;
 
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
-
-    const accountNumber = chain.accountNumber;
-
-
+    const [userBalance, setUserBalance] = useState<UserBalance>();
     const [tab, setTab] = useState(badgeIdNumber ? 'badges' : 'overview');
 
-    const collection = collections.collections[`${collectionIdNumber}`];
-
-    const collectionMetadata = collection?.collectionMetadata;
-    const [userBalance, setUserBalance] = useState<UserBalance>();
-
-
-    async function setBadgeUserBalance() {
+    async function refreshBadgeBalance() {
         const res = await getBadgeBalance(collectionIdNumber, accountNumber);
         setUserBalance(res.balance);
     }
 
-    // Get badge collection information
+    //Get collection information
     useEffect(() => {
-        async function refreshCollection() {
-            await collections.fetchCollections([collectionIdNumber]);
-        }
-        refreshCollection();
+        collections.fetchCollections([collectionIdNumber]);
     }, [collectionIdNumber, collections]);
 
+    //Set tab to badges if badgeId is in query
     useEffect(() => {
         const badgeIdNum = Number(badgeId);
         if (!isNaN(badgeIdNum)) {
@@ -104,7 +96,7 @@ function CollectionPage() {
                         <OverviewTab setTab={setTab}
                             collection={collection}
 
-                            refreshUserBalance={setBadgeUserBalance}
+                            refreshUserBalance={refreshBadgeBalance}
                             userBalance={userBalance}
                         />
                     )}
@@ -120,14 +112,14 @@ function CollectionPage() {
                     {tab === 'claims' && (
                         <ClaimsTab
                             collection={collection}
-                            refreshUserBalance={setBadgeUserBalance}
+                            refreshUserBalance={refreshBadgeBalance}
                         />
                     )}
 
                     {tab === 'actions' && (
                         <ActionsTab
                             collection={collection}
-                            refreshUserBalance={setBadgeUserBalance}
+                            refreshUserBalance={refreshBadgeBalance}
                             userBalance={userBalance}
                         />
                     )}
@@ -135,14 +127,6 @@ function CollectionPage() {
                     {tab === 'activity' && collection && (
                         <ActivityTab
                             collection={collection}
-                        />
-                    )}
-
-                    {tab === 'owners' && (
-                        <Empty
-                            style={{ color: PRIMARY_TEXT }}
-                            description="This feature is coming soon..."
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
                         />
                     )}
                 </div>

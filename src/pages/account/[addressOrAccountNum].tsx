@@ -1,78 +1,63 @@
-import { LinkOutlined } from '@ant-design/icons';
-import { Avatar, Divider, Layout, Tooltip } from 'antd';
-import { COSMOS, ethToCosmos } from 'bitbadgesjs-address-converter';
-import { ethers } from 'ethers';
+import { Divider, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getPortfolio } from '../../bitbadges-api/api';
-import { BitBadgesUserInfo } from '../../bitbadges-api/types';
-import { AccountDisplay } from '../../components/portfolio-page/AccountDisplay';
-import { BalanceDisplay } from '../../components/balances/BalanceDisplay';
-import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
+import { convertToCosmosAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { GetPortfolioResponse } from '../../bitbadges-api/routes';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { CollectionDisplay } from '../../components/collections/CollectionDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
+import { AccountDisplay } from '../../components/portfolio-page/AccountDisplay';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+
 const { Content } = Layout;
 
 const tabInfo = [
     { key: 'collected', content: 'Collected', disabled: false },
     { key: 'managing', content: 'Managing', disabled: false },
-    { key: 'activity', content: 'Activity', disabled: false },
-    // { key: 'actions', content: 'Actions', disabled: false },
+    { key: 'activity', content: 'Activity', disabled: false }
 ];
 
 function CollectionPage() {
-    const router = useRouter()
+    const router = useRouter();
+    const collections = useCollectionsContext();
+    const accounts = useAccountsContext();
     const { addressOrAccountNum } = router.query;
 
-    const collections = useCollectionsContext();
+    const [accountNum, setAccountNum] = useState<number>(-1);
+    const [cosmosAddress, setCosmosAddress] = useState<string>('');
+    const [portfolioInfo, setPortfolioInfo] = useState<GetPortfolioResponse>();
+    const [tab, setTab] = useState('collected');
 
-    const accounts = useAccountsContext();
-
-    const [accountInfo, setAccountInfo] = useState<BitBadgesUserInfo>();
-    const [userInfo, setUserInfo] = useState<any>();
+    const accountInfo = accounts.accounts[cosmosAddress];
 
     useEffect(() => {
-        async function getUserInfo() {
+        async function getPortfolioInfo() {
+            //Check if addressOrAccountNum is an address or account number and fetch portfolio accordingly
             if (!addressOrAccountNum) return;
 
-            let accountNum = Number(addressOrAccountNum);
-            let bech32address = ''
-            try {
-                COSMOS.decoder(addressOrAccountNum as string);
-                bech32address = addressOrAccountNum as string;
-            } catch (e) {
-
-            }
-            if (ethers.utils.isAddress(addressOrAccountNum as string)) {
-                bech32address = ethToCosmos(addressOrAccountNum as string);
-            }
-
             let fetchedInfo;
-            if (bech32address !== '') {
-                console.log(bech32address);
-                fetchedInfo = await accounts.fetchAccounts([bech32address as string]);
-                if (!fetchedInfo) return;
-                accountNum = fetchedInfo[0].accountNumber;
+            if (isAddressValid(addressOrAccountNum as string)) {
+
+                fetchedInfo = await accounts.fetchAccounts([addressOrAccountNum as string]);
             } else {
-                fetchedInfo = await accounts.fetchAccountsByNumber([accountNum]);
+                fetchedInfo = await accounts.fetchAccountsByNumber([parseInt(addressOrAccountNum as string)]);
             }
+            let accountNum = fetchedInfo[0].accountNumber
+            setCosmosAddress(fetchedInfo[0].cosmosAddress);
+            setAccountNum(accountNum);
 
-            setAccountInfo(fetchedInfo[0]);
-
-
+            //TODO: address redundancies between GetPortfolio repsonse and fetch collections
             const portfolioInfo = await getPortfolio(accountNum);
             if (!portfolioInfo) return;
             await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
 
-            setUserInfo(portfolioInfo);
+            setPortfolioInfo(portfolioInfo);
         }
-        getUserInfo();
+        getPortfolioInfo();
     }, [addressOrAccountNum, accounts, collections]);
-
-    const [tab, setTab] = useState('collected');
-
 
     return (
         <Layout>
@@ -94,56 +79,20 @@ function CollectionPage() {
                     }}
                 >
                     {/* Overview and Tabs */}
-                    {accountInfo &&
-                        <AccountDisplay accountInfo={accountInfo} />}
+                    {accountInfo && <AccountDisplay accountInfo={accountInfo} />}
                     <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
                     <br />
 
                     {/* Tab Content */}
                     {tab === 'collected' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', }}>
-                            {userInfo?.collected.map((collection: any) => {
-                                collection = collections.collections[`${collection.collectionId}`];
+                            {portfolioInfo?.collected.map((collection: BitBadgeCollection) => {
                                 return (
-                                    <div key={collection.collectionId} style={{ width: 400, margin: 10, display: 'flex' }}>
-                                        <InformationDisplayCard
-                                            title={<>
-                                                <Avatar
-                                                    src={collection.collectionMetadata?.image}
-                                                    size={50}
-                                                    style={{
-                                                        verticalAlign: 'middle',
-                                                        border: '3px solid',
-                                                        borderColor: collection.collectionMetadata?.color
-                                                            ? collection.collectionMetadata?.color
-                                                            : 'black',
-                                                        margin: 4,
-                                                    }}
-                                                />
-                                                <br />
-                                                {collection.collectionMetadata?.name}
-
-                                                <a style={{ marginLeft: 4 }}>
-                                                    <Tooltip title="Go to collection page">
-                                                        <LinkOutlined
-                                                            onClick={() => {
-                                                                router.push('/collections/' + collection.collectionId)
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                </a>
-                                            </>}
-                                        >
-                                            <div key={collection.collectionId} style={{ color: PRIMARY_TEXT }}>
-                                                <BalanceDisplay
-                                                    message='Collected Badges'
-                                                    collection={collection}
-                                                    balance={collection.balances[accountInfo?.accountNumber || 0]}
-
-                                                />
-                                            </div>
-                                        </InformationDisplayCard>
-                                    </div>
+                                    <CollectionDisplay
+                                        key={collection.collectionId}
+                                        collectionId={collection.collectionId}
+                                        cosmosAddress={cosmosAddress}
+                                    />
                                 )
                             })}
                         </div>
@@ -151,65 +100,28 @@ function CollectionPage() {
 
                     {tab === 'managing' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', }}>
-                            {userInfo?.managing.map((collection: any) => {
-                                collection = collections.collections[`${collection.collectionId}`];
+                            {portfolioInfo?.managing.map((collection: BitBadgeCollection) => {
                                 return (
-                                    <div key={collection.collectionId} style={{ width: 400, margin: 10, display: 'flex' }}>
-                                        <InformationDisplayCard
-                                            title={<>
-                                                <Avatar
-                                                    src={collection.collectionMetadata?.image}
-                                                    size={50}
-                                                    style={{
-                                                        verticalAlign: 'middle',
-                                                        border: '3px solid',
-                                                        borderColor: collection.collectionMetadata?.color
-                                                            ? collection.collectionMetadata?.color
-                                                            : 'black',
-                                                        margin: 4,
-                                                    }}
-                                                />
-                                                <br />
-                                                {collection.collectionMetadata?.name}
-                                                <a style={{ marginLeft: 4 }}>
-                                                    <Tooltip title="Go to collection page">
-                                                        <LinkOutlined
-                                                            onClick={() => {
-                                                                router.push('/collections/' + collection.collectionId)
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                </a>
-                                            </>}
-                                        >
-                                            <div key={collection.collectionId} style={{ color: PRIMARY_TEXT }}>
-                                                {collection.collectionMetadata?.description ?
-                                                    collection.collectionMetadata?.description
-                                                    : 'No description provided'
-                                                }
-                                            </div>
-                                            <br />
-                                        </InformationDisplayCard>
-                                    </div>
+                                    <CollectionDisplay
+                                        key={collection.collectionId}
+                                        collectionId={collection.collectionId}
+                                        cosmosAddress={cosmosAddress}
+                                    />
                                 )
                             })}
                         </div>
-                    </>
-                    )}
+                    </>)}
 
-                    {tab === 'actions' && (<></>
-                    )}
+                    {tab === 'actions' && (<></>)}
 
-                    {tab === 'activity' && (<></>
-                    )}
+                    {tab === 'activity' && (<></>)}
 
-                    {tab === 'owners' && (<></>
-                    )}
+                    {tab === 'owners' && (<></>)}
                 </div>
                 {
                     DEV_MODE && (
                         <pre style={{ color: PRIMARY_TEXT }}>
-                            PORTFOLIO INFO: {JSON.stringify(userInfo, null, 2)}
+                            PORTFOLIO INFO: {JSON.stringify(portfolioInfo, null, 2)}
                         </pre>
                     )
                 }

@@ -1,10 +1,9 @@
-import React from 'react';
-import { Typography, Avatar } from 'antd';
+import { Avatar, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import Blockies from 'react-blockies';
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { useChainContext } from '../../../contexts/ChainContext';
-import Blockies from 'react-blockies'
-import { Address } from '../../address/Address';
-import { useRouter } from 'next/router';
+import { AddressDisplay } from '../../address/AddressDisplay';
 
 
 export function ConfirmManager() {
@@ -34,12 +33,16 @@ export function ConfirmManager() {
                     }
                 />
 
-                <div style={{ marginBottom: 10, marginTop: 4 }}>
-                    <Address
-                        address={address}
-                        chain={chain.chain}
-                        fontColor={'lightgrey'}
-
+                <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
+                    <AddressDisplay
+                        userInfo={{
+                            address,
+                            chain: chain.chain,
+                            cosmosAddress: chain.cosmosAddress,
+                            accountNumber: chain.accountNumber,
+                        }}
+                        hidePortfolioLink
+                        darkMode
                     />
                 </div>
             </div>

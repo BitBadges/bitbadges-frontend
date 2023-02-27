@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { createClaim, getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
-import { BadgeMetadata, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BadgeMetadataMap, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
 import { useChainContext } from '../../../contexts/ChainContext';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
@@ -37,12 +37,11 @@ export function CreateClaims({
     claimItems: ClaimItem[];
     setClaimItems: (leaves: ClaimItem[]) => void;
     collectionMetadata: BadgeMetadata;
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata };
+    individualBadgeMetadata: BadgeMetadataMap;
     balancesToDistribute?: Balance[];
 }) {
     const chain = useChainContext();
     const badgeCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, collection);
-
 
     const [claimBalances, setClaimBalances] = useState<UserBalance>(
         balancesToDistribute ? {
@@ -67,8 +66,6 @@ export function CreateClaims({
         setTransfers(newTransfers);
         addCode(newTransfers);
     }
-
-
 
     const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
         const balance = balancesToDistribute ? {
@@ -174,7 +171,6 @@ export function CreateClaims({
                                             </div>
                                             <div>
                                                 <Tooltip title='Delete'>
-
                                                     <DeleteOutlined onClick={
                                                         () => {
                                                             if (distributionMethod === DistributionMethod.Codes) {
@@ -257,7 +253,7 @@ export function CreateClaims({
                         approvals: [],
                     } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)}
                     distributionMethod={distributionMethod}
-                    fromUser={MINT_ACCOUNT}
+                    sender={MINT_ACCOUNT}
                     collection={badgeCollection}
                     hideTransferDisplay={true}
                 />

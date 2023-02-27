@@ -23,8 +23,7 @@ export function CreateTxMsgNewCollectionModal(
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}
             onSuccessfulTx={async () => {
-                // await collections.refreshCollection(txCosmosMsg.collectionId);
-                // router.push(`/collections/${txCosmosMsg.collectionId}`)  TODO: navigate
+                //navigating to the new collection page is handled in TxModal
             }}
         >
             {children}

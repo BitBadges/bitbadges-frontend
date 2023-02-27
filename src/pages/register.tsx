@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Layout, Typography } from 'antd';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
+import { FAUCET_URL, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { useChainContext } from '../contexts/ChainContext';
 
 const { Content } = Layout;
@@ -33,7 +33,7 @@ function RegisterScreen({ message }: { message?: string }) {
                             type="primary"
                             onClick={async () => {
                                 await navigator.clipboard.writeText(address);
-                                window.open('http://localhost:4500', "_blank");
+                                window.open(FAUCET_URL, "_blank");
                             }}
                             style={{ margin: 5 }}
                         >

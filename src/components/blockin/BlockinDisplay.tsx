@@ -9,6 +9,7 @@ import { Address } from "../address/Address";
 import Blockies from 'react-blockies'
 import { Avatar, Typography, notification } from "antd";
 import Image from 'next/image';
+import { AddressDisplay } from "../address/AddressDisplay";
 
 const { Text } = Typography;
 
@@ -28,7 +29,9 @@ export const BlockinDisplay = ({
         signChallenge,
         selectedChainInfo,
         displayedResources,
-        connected
+        connected,
+        accountNumber,
+        cosmosAddress,
     } = useChainContext();
 
     const [challengeParams, setChallengeParams] = useState({
@@ -60,7 +63,7 @@ export const BlockinDisplay = ({
         return response;
     }
 
-    const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, challengeObj?: ChallengeParams) => {
+    const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, _challengeObj?: ChallengeParams) => {
         const verificationResponse = await verifyChallengeOnBackend(chain, originalBytes, signatureBytes);
 
         if (!verificationResponse.verified) {
@@ -172,7 +175,13 @@ export const BlockinDisplay = ({
                 />
             }
         </div>
-        <div> {address && <Address address={address} fontColor={PRIMARY_TEXT} fontSize={36} />}</div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}> {address &&
+            <AddressDisplay
+                userInfo={{
+                    address, accountNumber, cosmosAddress, chain
+                }}
+                fontColor={PRIMARY_TEXT} fontSize={36}
+            />}</div>
         <div> {address && <Text
             strong
             style={{ fontSize: 30, color: PRIMARY_TEXT }}

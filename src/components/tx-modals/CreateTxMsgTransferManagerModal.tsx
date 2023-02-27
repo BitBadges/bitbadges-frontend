@@ -1,11 +1,11 @@
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
-import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
-import { AddressSelect } from '../address/AddressSelect';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { InfoCircleOutlined, InfoOutlined } from '@ant-design/icons';
+import { AddressSelect } from '../address/AddressSelect';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children }
     : {
@@ -64,7 +64,7 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
             txName="Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferManager}
-            onSuccessfulTx={() => { collections.refreshCollection(collection.collectionId); }}
+            onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); }}
         >
             {children}
         </TxModal>

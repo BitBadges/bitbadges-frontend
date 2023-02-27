@@ -1,14 +1,14 @@
 import { Button } from 'antd';
 import React from 'react';
 import { useState } from 'react';
-import { BadgeMetadata, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
 import { SHA256 } from 'crypto-js';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
-import { getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
+import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
 
 export function SubmitMsgNewCollection({
     newCollectionMsg,
@@ -26,7 +26,7 @@ export function SubmitMsgNewCollection({
     addMethod: MetadataAddMethod;
     claimItems: ClaimItem[];
     collectionMetadata: BadgeMetadata;
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata };
+    individualBadgeMetadata: BadgeMetadataMap;
     distributionMethod: DistributionMethod;
     setClaimItems: (claimItems: ClaimItem[]) => void;
     manualSend: boolean;
@@ -65,16 +65,16 @@ export function SubmitMsgNewCollection({
         setNewCollectionMsg(badgeMsg);
     }
 
-    const unregisteredUsers = manualSend
-        && newCollectionMsg.transfers.length > 0
+    const unregisteredUsers = manualSend && newCollectionMsg.transfers.length > 0
         ? claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
 
     const onRegister = async () => {
         setLoading(true);
 
         let newUsersToRegister = claimItems.filter((x) => x.userInfo.accountNumber === -1);
-
         const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
+
+        //Update claim items with new account informations
         const newClaimItems = [];
         for (const claimItem of claimItems) {
             if (claimItem.userInfo.accountNumber === -1) {
@@ -94,18 +94,11 @@ export function SubmitMsgNewCollection({
 
         setClaimItems([...newClaimItems]);
 
+        //If we are manually sending, we need to update the transfers field. If not, we updae the claims.
         if (manualSend) {
             setNewCollectionMsg({
                 ...newCollectionMsg,
-                transfers: newClaimItems.map((x) => ({
-                    toAddresses: [x.accountNum],
-                    balances: [
-                        {
-                            balance: x.amount,
-                            badgeIds: x.badgeIds,
-                        }
-                    ]
-                })),
+                transfers: getTransfersFromClaimItems(newClaimItems),
                 claims: []
             });
         } else if (!manualSend) {

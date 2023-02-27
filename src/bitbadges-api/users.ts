@@ -7,6 +7,7 @@ export function convertToBitBadgesUserInfo(
         accountNumber: accountInfo.account_number,
         address: accountInfo.address,
         cosmosAddress: accountInfo.cosmosAddress,
-        chain: accountInfo.chain
+        chain: accountInfo.chain,
+        name: accountInfo.name
     };
 }

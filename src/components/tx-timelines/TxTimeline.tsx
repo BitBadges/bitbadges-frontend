@@ -2,7 +2,7 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
-import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
 import { DefaultPlaceholderMetadata } from '../../constants';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
@@ -19,15 +19,28 @@ export const EmptyStepItem = {
     doNotDisplay: true,
 }
 
+//For the MsgNewCollection, MsgMintBadge, MsgUpdateUris, and MsgUpdateDisallowedTransfers transactions, we use this TxTimeline component. 
+//We use the txType prop to determine which timeline compoennt to use.
+//Each timeline makes use of the necessary, reusable components in the step-items and form-items folders.
+//The step-items are the individual steps in the timeline, and the form-items are the helper components that are displayed in each step.
+//For reusability purposes, we treat everything as a MessageMsgNewCollection, even if it's not, because that Msg has all the necessary fields for all transactions.
+//We then convert the Msg to the appropriate transaction type at the end.
+
+//NewCollection: Creates a new badge collection
+//UpdateMetadata: Updates the metadata URIs of a badge collection
+//UpdateDisallowed: Updates the disallowed transfers of a badge collection
+//DistributeBadges: Distributes the unminted badges of a badge collection
+//AddBadges: Adds new badges to a badge collection
+
 export interface TxTimelineProps {
-    txType: 'NewCollection' | 'MintBadge' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
+    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
     existingCollection: BitBadgeCollection
     newCollectionMsg: MessageMsgNewCollection
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void
     collectionMetadata: BadgeMetadata
     setCollectionMetadata: (metadata: BadgeMetadata) => void
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }
-    setIndividualBadgeMetadata: (metadata: { [badgeId: string]: BadgeMetadata }) => void
+    individualBadgeMetadata: BadgeMetadataMap
+    setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void
     addMethod: MetadataAddMethod
     setAddMethod: (method: MetadataAddMethod) => void
     distributionMethod: DistributionMethod
@@ -47,18 +60,15 @@ export interface TxTimelineProps {
 }
 
 
-export function TxTimeline(
-    {
-        txType,
-        collectionId,
-        onFinish,
-    }:
-        {
-            txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
-            collectionId?: number,
-            onFinish?: (txState: TxTimelineProps) => void
-        }
-) {
+export function TxTimeline({
+    txType,
+    collectionId,
+    onFinish,
+}: {
+    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
+    collectionId?: number,
+    onFinish?: (txState: TxTimelineProps) => void
+}) {
     const chain = useChainContext();
     const collections = useCollectionsContext();
 
@@ -90,7 +100,7 @@ export function TxTimeline(
 
     //Metadata for the collection and individual badges
     const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
-    const [individualBadgeMetadata, setBadgeMetadata] = useState<{ [badgeId: string]: BadgeMetadata }>({});
+    const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadataMap>({});
 
     //The method used to add metadata to the collection and individual badges
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -133,7 +143,7 @@ export function TxTimeline(
         return newPermissions;
     }
 
-    const setIndividualBadgeMetadata = (metadata: { [badgeId: string]: BadgeMetadata }) => {
+    const setIndividualBadgeMetadata = (metadata: BadgeMetadataMap) => {
         setBadgeMetadata(metadata);
         setHackyUpdatedFlag(!hackyUpdatedFlag);
     }
@@ -148,7 +158,7 @@ export function TxTimeline(
         }
 
         let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
-        let metadata: { [badgeId: string]: BadgeMetadata } = {
+        let metadata: BadgeMetadataMap = {
             ...existingCollection?.badgeMetadata
         };
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
@@ -195,6 +205,7 @@ export function TxTimeline(
         nonFungible,
         onFinish
     }
+
 
     if (txType === 'NewCollection') {
         return <MintCollectionTimeline txTimelineProps={txTimelineProps} />

@@ -1,12 +1,13 @@
-import { Button, Divider, Steps } from "antd";
+import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
 import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
 import { BadgeSupplyAndAmount, BitBadgeCollection } from "../../../bitbadges-api/types";
-import { PRIMARY_TEXT, TERTIARY_BLUE } from "../../../constants";
+import { PRIMARY_TEXT } from "../../../constants";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { BadgeSupply } from "../form-items/BadgeSupplySelect";
+import { DeleteOutlined, MinusOutlined, PlusCircleOutlined, PlusOutlined, UndoOutlined } from "@ant-design/icons";
 
 const { Step } = Steps;
 
@@ -37,23 +38,48 @@ export function BadgeSupplySelectStepItem(
         title: `How Many Badges To Create?`,
         description: ``,
         node: <div style={{ color: PRIMARY_TEXT }}>
-            {newCollectionMsg.badgeSupplys.length > 0 &&
-                <BalanceDisplay
-                    collection={collection}
-                    balance={getBadgeSupplysFromMsgNewCollection(newCollectionMsg, addingMore ? collection : undefined)}
-                    size={35}
-                    message={'Badge Supplys for This Collection'}
-                    showingSupplyPreview
-                />}
-            <Divider />
-            {!selectIsVisible && <Button
-                type='primary'
-                onClick={() => setSelectIsVisible(true)}
-                style={{ width: '100%' }}
-            >
-                Add Badges to Collection
-            </Button>}
-            <Divider />
+            <BalanceDisplay
+                collection={collection}
+                balance={getBadgeSupplysFromMsgNewCollection(newCollectionMsg, addingMore ? collection : undefined)}
+                size={35}
+                message={'Badge Supplys for This Collection'}
+                showingSupplyPreview
+            />
+            <br />
+            {<div style={{ display: 'flex', justifyContent: 'center' }}>
+                <Tooltip title={!selectIsVisible ? 'Add More Badges' : 'Hide'}>
+                    <Avatar
+                        className='screen-button'
+                        onClick={() => setSelectIsVisible(!selectIsVisible)}
+                        // src={ }
+                        style={{
+                            cursor: 'pointer',
+                            margin: 10,
+                        }}
+                    >
+                        {!selectIsVisible ? <PlusOutlined /> : <MinusOutlined />}
+                    </Avatar>
+                </Tooltip>
+
+                <Tooltip title={'Reset All'}>
+                    <Avatar
+                        className='screen-button'
+                        onClick={() => setNewCollectionMsg({
+                            ...newCollectionMsg,
+                            badgeSupplys: []
+                        })}
+                        // src={ }
+                        style={{
+                            cursor: 'pointer',
+                            margin: 10,
+                        }}
+                    >
+                        <DeleteOutlined />
+                    </Avatar>
+                </Tooltip>
+            </div>
+            }
+            <br />
 
             {selectIsVisible && <div>
                 <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Add Badges?</h2>
@@ -104,7 +130,6 @@ export function BadgeSupplySelectStepItem(
                     {currentStep === 1 && <div>
                         <Divider />
                         <BadgeSupply
-                            currentSupply={currentSupply}
                             setCurrentSupply={setCurrentSupply}
                             fungible={fungible}
                         />
@@ -134,19 +159,22 @@ export function BadgeSupplySelectStepItem(
                     </div>}
                     <Divider />
                 </div>}
-            </div>}
-            {newCollectionMsg.badgeSupplys.length > 0 && <Button
-                className='screen-button'
-                onClick={() => setNewCollectionMsg({
-                    ...newCollectionMsg,
-                    badgeSupplys: []
-                })}
-                style={{ width: '100%' }}
-            >
-                Reset All
-            </Button>}
+            </div>
+            }
+            {/* {
+                newCollectionMsg.badgeSupplys.length > 0 && <Button
+                    className='screen-button'
+                    onClick={() => setNewCollectionMsg({
+                        ...newCollectionMsg,
+                        badgeSupplys: []
+                    })}
+                    style={{ width: '100%' }}
+                >
+                    Reset All
+                </Button>
+            } */}
             <Divider />
-        </div>,
+        </div >,
         disabled: newCollectionMsg.badgeSupplys?.length == 0
     }
 }

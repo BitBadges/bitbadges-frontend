@@ -1,9 +1,9 @@
 import { Pagination } from "antd";
-import { useEffect, useState } from "react";
-import { BitBadgeCollection, IdRange, UserBalance } from "../../../bitbadges-api/types";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
+import { useState } from "react";
+import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
-import { useCollectionsContext } from "../../../contexts/CollectionsContext";
+import { useCollectionsContext } from "../../contexts/CollectionsContext";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -13,8 +13,7 @@ export function BadgeAvatarDisplay({
     selectedId,
     showIds,
     pageSize,
-    showBalance,
-    prefixMessage,
+    showBalance
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -24,7 +23,6 @@ export function BadgeAvatarDisplay({
     selectedId?: number;
     showIds?: boolean;
     showBalance?: boolean;
-    prefixMessage?: string;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();

@@ -33,14 +33,12 @@ export function AddressDisplayList(
         users,
         setUsers,
         disallowedUsers,
-        disallowedMessages,
         fontColor,
         darkMode,
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
-        disallowedUsers?: BitBadgesUserInfo[],
-        disallowedMessages?: string[],
+        disallowedUsers?: { [cosmosAddress: string]: string },
         fontColor?: string
         darkMode?: boolean
     }
@@ -49,15 +47,10 @@ export function AddressDisplayList(
         <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >Added Recipients ({users.length})</h3>
         {
             users.map((user, index) => {
-                let isDisallowed = false;
-                let isDisallowedIdx = -1;
                 let disallowedMessage = '';
                 if (disallowedUsers) {
-                    isDisallowed = !!disallowedUsers.find(u => u.address === user.address);
-                    isDisallowedIdx = disallowedUsers.findIndex(u => u.address === user.address);
-                    if (disallowedMessages) disallowedMessage = disallowedMessages[isDisallowedIdx];
+                    disallowedMessage = disallowedUsers[user.cosmosAddress];
                 }
-
 
                 return (
                     <div key={index} style={{ marginRight: 8 }}>
@@ -72,7 +65,7 @@ export function AddressDisplayList(
                             }
                             showAccountNumber={true}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
-                            fontColor={disallowedUsers?.find(u => u.address === user.address) ? 'red' : fontColor}
+                            fontColor={disallowedMessage ? 'red' : fontColor}
                             hidePortfolioLink
                         />
                         {disallowedMessage && disallowedMessage.length > 0 &&
@@ -125,7 +118,7 @@ export function AddressDisplay(
         }}>
             <AddressWithBlockies
                 address={userInfo.address}
-                addressName={accounts.accountNames[userInfo.address]}
+                addressName={accounts.accounts[userInfo.cosmosAddress]?.name}
                 fontSize={fontSize}
                 fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}

@@ -18,14 +18,9 @@ import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadat
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 
-export const EmptyStepItem = {
-    title: '',
-    description: '',
-    node: <></>,
-    doNotDisplay: true,
-}
+//See TxTimeline for explanations and documentation
 
 //TODO: bytes and updateBytes
 //TODO: more metadata!!!!!
@@ -67,7 +62,7 @@ export function MintCollectionTimeline({
     const FreezeSelectStep = FreezeSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, setAddMethod, collectionMetadata, setCollectionMetadata);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);

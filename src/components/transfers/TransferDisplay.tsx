@@ -1,14 +1,13 @@
+import { DeleteOutlined } from "@ant-design/icons";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Avatar, Button, Col, Divider, Empty, Pagination, Row, Tooltip, Typography } from "antd";
-import { getBlankBalance } from "../../bitbadges-api/balances";
-import { BitBadgeCollection, BitBadgesUserInfo, IdRange, Transfers } from "../../bitbadges-api/types";
-import { AddressWithBlockies } from "../address/AddressWithBlockies";
-import { BadgeAvatarDisplay } from "../common/badges/BadgeAvatarDisplay";
-import { PRIMARY_TEXT } from "../../constants";
+import { Avatar, Col, Empty, Pagination, Row, Tooltip, Typography } from "antd";
 import { useState } from "react";
+import { BitBadgeCollection, BitBadgesUserInfo, Transfers } from "../../bitbadges-api/types";
+import { PRIMARY_TEXT } from "../../constants";
 import { useAccountsContext } from "../../contexts/AccountsContext";
-import { DeleteOutlined } from "@ant-design/icons";
+import { AddressWithBlockies } from "../address/AddressWithBlockies";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 const { Text } = Typography
 
@@ -33,11 +32,6 @@ export function TransferDisplay({
     setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
     deletable?: boolean;
 }) {
-    // const maximum = badge?.nextBadgeId - 1 || 0;
-    // from: BitBadgesUserInfo[];
-    // to: BitBadgesUserInfo[];
-    // amount,
-    // badgeIds,
     const [transfersPage, setTransfersPage] = useState(0);
     const accounts = useAccountsContext();
 
@@ -51,7 +45,7 @@ export function TransferDisplay({
             <div style={{ textAlign: 'center' }}>
                 <Pagination defaultCurrent={1}
                     total={transfers.length}
-                    onChange={(page, pageSize) => {
+                    onChange={(page) => {
                         setTransfersPage(page - 1);
                     }}
                     pageSize={1}
@@ -106,8 +100,11 @@ export function TransferDisplay({
                         {
                             collection &&
                             <BadgeAvatarDisplay
-
-                                showBalance={!hideBalances} showIds collection={collection} badgeIds={badgeIds} userBalance={{
+                                showBalance={!hideBalances}
+                                showIds
+                                collection={collection}
+                                badgeIds={badgeIds}
+                                userBalance={{
                                     balances: [{
                                         balance: amount,
                                         badgeIds: badgeIds
@@ -195,8 +192,7 @@ export function TransferDisplay({
                     </div>}
                 </div>
             })
-        }
-        )}
+        })}
     </div>
 
 }

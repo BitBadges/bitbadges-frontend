@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Steps } from 'antd';
+import { Avatar } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
@@ -32,18 +32,16 @@ export function CreateTxMsgTransferBadgeModal(
     const collections = useCollectionsContext();
 
     const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>([]);
-
-    const [fromUser, setFromUser] = useState<BitBadgesUserInfo>({
+    const [sender, setSender] = useState<BitBadgesUserInfo>({
         cosmosAddress: chain.cosmosAddress,
         accountNumber: chain.accountNumber,
         address: chain.address,
         chain: chain.chain,
     });
-
-    const [fromUserBalance, setFromUserBalance] = useState<UserBalance>(userBalance);
+    const [senderBalance, setSenderBalance] = useState<UserBalance>(userBalance);
 
     useEffect(() => {
-        setFromUser({
+        setSender({
             cosmosAddress: chain.cosmosAddress,
             accountNumber: chain.accountNumber,
             address: chain.address,
@@ -51,22 +49,28 @@ export function CreateTxMsgTransferBadgeModal(
         });
     }, [chain.cosmosAddress, chain.accountNumber, chain.address, chain.chain]);
 
+    useEffect(() => {
+        async function getSenderBalance() {
+            if (!sender) return;
+            const balanceRes = await getBadgeBalance(collection.collectionId, sender.accountNumber);
+            if (!balanceRes?.balance) return;
+            setSenderBalance(balanceRes.balance);
+        }
+        getSenderBalance();
+    }, [sender, collection]);
 
     useEffect(() => {
-        async function getFromUserBalance() {
-            if (!fromUser) return;
-            const balanceRes = await getBadgeBalance(collection.collectionId, fromUser.accountNumber);
-            if (!balanceRes?.balance) return;
-            setFromUserBalance(balanceRes.balance);
+        for (const transfer of transfers) {
+            for (const toAddressNum of transfer.toAddresses) {
+                accounts.fetchAccountsByNumber([toAddressNum]);
+            }
         }
-        getFromUserBalance();
-    }, [fromUser, collection]);
+    }, [transfers, accounts]);
 
     const unregisteredUsers: string[] = [];
     for (const transfer of transfers) {
-        for (const toAddress of transfer.toAddresses) {
-            accounts.fetchAccountsByNumber([toAddress]);
-            const account = accounts.accounts[toAddress];
+        for (const toAddressNum of transfer.toAddresses) {
+            const account = accounts.accounts[toAddressNum];
             if (account.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
         }
     }
@@ -74,31 +78,25 @@ export function CreateTxMsgTransferBadgeModal(
     const txCosmosMsg: MessageMsgTransferBadge = {
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
-        from: fromUser ? fromUser.accountNumber : chain.accountNumber,
+        from: sender ? sender.accountNumber : chain.accountNumber,
         transfers: transfers
     };
 
     const onRegister = async () => {
-        console.log(unregisteredUsers);
-
         const newAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
-
-        console.log(newAccounts);
 
         const newTransfers = [];
         for (const transfer of transfers) {
             const newAddresses = [];
-
             for (const toAddress of transfer.toAddressInfo) {
-
                 if (toAddress.accountNumber !== -1) {
                     newAddresses.push(toAddress);
                     continue;
                 }
                 const user = newAccounts.find((account) => account.cosmosAddress === toAddress.cosmosAddress)
-                console.log("USER: ", user);
                 if (user) newAddresses.push(user);
             }
+
             newTransfers.push({
                 ...transfer,
                 toAddresses: newAddresses.map((address) => address.accountNumber),
@@ -107,9 +105,6 @@ export function CreateTxMsgTransferBadgeModal(
         }
         setTransfers(newTransfers);
     }
-
-
-
 
     const items = [
         {
@@ -128,7 +123,7 @@ export function CreateTxMsgTransferBadgeModal(
                         size={150}
                         src={
                             <Blockies
-                                seed={fromUser.address.toLowerCase()}
+                                seed={sender.address.toLowerCase()}
                                 size={40}
                             />
                         }
@@ -137,24 +132,24 @@ export function CreateTxMsgTransferBadgeModal(
                     <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
                         <AddressDisplay
                             userInfo={{
-                                cosmosAddress: fromUser.cosmosAddress,
-                                accountNumber: fromUser.accountNumber,
-                                address: fromUser.address,
-                                chain: fromUser.chain,
+                                cosmosAddress: sender.cosmosAddress,
+                                accountNumber: sender.accountNumber,
+                                address: sender.address,
+                                chain: sender.chain,
                             }}
                             hidePortfolioLink
                             darkMode
                         />
                     </div>
 
-                    {fromUser.address != chain.address && <div style={{}}>
+                    {sender.address != chain.address && <div style={{}}>
                         <br />
                         <InfoCircleOutlined /> If you select an address other than yours, you must be approved to transfer on their behalf.
                     </div>}
 
                     <AddressSelect
-                        currUserInfo={fromUser}
-                        setCurrUserInfo={setFromUser}
+                        currUserInfo={sender}
+                        setCurrUserInfo={setSender}
                         darkMode
                         hideAddressDisplay
                     />
@@ -169,8 +164,8 @@ export function CreateTxMsgTransferBadgeModal(
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <TransferSelect
                         collection={collection}
-                        fromUser={fromUser}
-                        userBalance={fromUserBalance}
+                        sender={sender}
+                        userBalance={senderBalance}
                         setTransfers={setTransfers}
                         transfers={transfers}
                         distributionMethod={DistributionMethod.Whitelist}
@@ -197,7 +192,7 @@ export function CreateTxMsgTransferBadgeModal(
                     transfers={transfers}
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
-                    from={[fromUser]}
+                    from={[sender]}
                     setTransfers={setTransfers}
                 />
             </div>}

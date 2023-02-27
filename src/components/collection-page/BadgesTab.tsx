@@ -1,9 +1,10 @@
 import { Pagination } from 'antd';
 import { useState } from 'react';
-import { BitBadgeCollection, UserBalance } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { BadgeCard } from '../../common/badges/BadgeCard';
-import { useCollectionsContext } from '../../../contexts/CollectionsContext';
+import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { BadgeCard } from '../badges/BadgeCard';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
     collection: BitBadgeCollection;

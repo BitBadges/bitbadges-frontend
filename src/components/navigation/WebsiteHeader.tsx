@@ -8,26 +8,23 @@ import {
     UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Dropdown, Layout, Menu, Select, Typography } from 'antd';
-import { ethers } from 'ethers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Blockies from 'react-blockies';
-import { useAccountsContext } from '../../contexts/AccountsContext';
+import { logout } from '../../bitbadges-api/api';
+import { isAddressValid } from '../../bitbadges-api/chains';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { SearchDropdown } from './SearchDropdown';
 import { Tabs } from '../navigation/Tabs';
-import { logout } from '../../bitbadges-api/api';
+import { SearchDropdown } from './SearchDropdown';
 
 const { Header } = Layout;
-const { Option } = Select;
 
 export function WalletHeader() {
     const router = useRouter()
     const chain = useChainContext();
-    const accounts = useAccountsContext();
 
     const [searchValue, setSearchValue] = useState<string>('');
 
@@ -36,7 +33,7 @@ export function WalletHeader() {
     const onSearch = async (value: string) => {
         if (!value) return;
 
-        if (ethers.utils.isAddress(value)) {
+        if (isAddressValid(value)) {
             router.push('/account/' + value);
         } else {
             router.push('/collections/' + value);
@@ -59,20 +56,17 @@ export function WalletHeader() {
     const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
 
-    //Connect and sign-in if nothing
     let signedIn = chain.loggedIn;
     const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
-
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
-            <p><b>{address ? <AddressDisplay
-                userInfo={{
-                    address: chain.address,
-                    cosmosAddress: chain.cosmosAddress,
-                    accountNumber: chain.accountNumber,
-                    chain: chain.chain,
-                }}
+            <p><b>{address ? <AddressDisplay userInfo={{
+                address: chain.address,
+                cosmosAddress: chain.cosmosAddress,
+                accountNumber: chain.accountNumber,
+                chain: chain.chain,
+            }}
                 hidePortfolioLink
-            /> : `Not Connected / Not Signed In`}</b></p>
+            /> : `Not Connected`}</b></p>
         </div>
         <hr />
         {!address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
@@ -101,12 +95,11 @@ export function WalletHeader() {
                 {!address ? (
                     <Avatar src={<UserOutlined />} />
                 ) : (
-                    <Avatar
-                        src={
-                            <Blockies
-                                seed={address.toLowerCase()}
-                            />
-                        }
+                    <Avatar src={
+                        <Blockies
+                            seed={address.toLowerCase()}
+                        />
+                    }
                     />
                 )}
             </>
@@ -114,28 +107,28 @@ export function WalletHeader() {
         subMenuOverlay: UserTabMenu,
     };
 
+    const SearchBar = <Search
+        defaultValue=""
+        placeholder="Enter an Address, Collection Name, or Collection ID Number"
+        onSearch={onSearch}
+        value={searchValue}
+        onChange={async (e) => {
+            setSearchValue(e.target.value);
+        }}
+        enterButton
+        allowClear
+        size="large"
+    />;
+
     const ExpandedSearchBar = <>
         <Dropdown
             open={searchValue !== ''}
             placement="bottom"
             overlay={<SearchDropdown searchValue={searchValue} onSearch={onSearch} />}
             trigger={['hover', 'click']}
-        // key={`${tab.key}`}
         >
-            <Search
-                defaultValue=""
-                placeholder="Enter an Address, Collection Name, or Collection ID Number"
-                onSearch={onSearch}
-                value={searchValue}
-                onChange={async (e) => {
-                    setSearchValue(e.target.value);
-                }}
-                enterButton
-                allowClear
-                size="large"
-            />
+            {SearchBar}
         </Dropdown >
-
     </>
 
 
@@ -153,23 +146,7 @@ export function WalletHeader() {
                     width: '85vw',
                 }}
             >
-                <Search
-                    addonBefore={
-                        <Select defaultValue={'eth'}>
-                            <Option value="eth">ETH</Option>
-                        </Select>
-                    }
-                    style={{
-                        width: '100%',
-                        padding: 8,
-                    }}
-                    defaultValue=""
-                    placeholder="Enter Address (0x....)"
-                    onSearch={onSearch}
-                    enterButton
-                    allowClear
-                    size="large"
-                />
+                {SearchBar}
             </div>
         ),
     }

@@ -51,6 +51,18 @@ export function createClaim(code: string, address: string, amount: number, badge
     }
 }
 
+export const getTransfersFromClaimItems = (claimItems: ClaimItem[]) => {
+    return claimItems.map((x) => ({
+        toAddresses: [x.accountNum],
+        balances: [
+            {
+                balance: x.amount,
+                badgeIds: x.badgeIds,
+            }
+        ]
+    }));
+}
+
 export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[], distributionMethod: DistributionMethod) => {
     balance = JSON.parse(JSON.stringify(balance));
     const claimBalance = JSON.parse(JSON.stringify(balance));

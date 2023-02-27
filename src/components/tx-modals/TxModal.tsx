@@ -3,14 +3,13 @@ import { Divider, Modal, StepProps, Steps, Typography, notification } from 'antd
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useState } from 'react';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getStatus } from '../../bitbadges-api/api';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
 import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { TransactionStatus } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 
 const { Step } = Steps;
@@ -43,20 +42,19 @@ export function TxModal(
 
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
-
     const [currentStep, setCurrentStep] = useState(0);
 
     const onStepChange = (value: number) => {
         setCurrentStep(value);
     };
 
-
     const submitTx = async (createTxFunction: any, cosmosMsg: object) => {
         setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
-        if (beforeTx) await beforeTx();
 
         try {
+            if (beforeTx) await beforeTx();
+
             //Sign and broadcast transaction
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);
             const rawTx = await chain.signTxn(unsignedTx);

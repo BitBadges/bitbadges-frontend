@@ -1,7 +1,7 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { Chain, MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { ChainContextType } from "../contexts/ChainContext";
 import { GetPermissions } from "./permissions";
-import { ActivityItem, BadgeMetadata, BitBadgeCollection, IdRange, TransferMapping } from "./types";
+import { ActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, IdRange, TransferMapping } from "./types";
 import { GO_MAX_UINT_64 } from "../constants";
 
 export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
@@ -29,7 +29,7 @@ export function getFullBadgeIdRanges(collection: BitBadgeCollection) {
 export function createCollectionFromMsgNewCollection(
     msgNewCollection: MessageMsgNewCollection,
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata },
+    individualBadgeMetadata: BadgeMetadataMap,
     chain: ChainContextType,
     collection?: BitBadgeCollection
 ) {
@@ -70,7 +70,7 @@ export function createCollectionFromMsgMintBadge(
     msgNewCollection: MessageMsgNewCollection,
     currCollection: BitBadgeCollection,
     collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }
+    individualBadgeMetadata: BadgeMetadataMap
 ) {
     let nextBadgeId = 1;
     for (const supplyObj of msgNewCollection.badgeSupplys) {
@@ -116,4 +116,59 @@ export const AllAddressesTransferMapping: TransferMapping = {
         ],
         options: 0,
     },
+}
+
+export const getMatchingAddressesFromTransferMapping = (mapping: TransferMapping[], toAddresses: BitBadgesUserInfo[], chain: ChainContextType, managerAccountNumber: number) => {
+    const matchingAddresses: any[] = [];
+    for (const address of toAddresses) {
+        for (const transfer of mapping) {
+            let fromIsApproved = false;
+            let toIsApproved = false;
+
+            if (transfer.from.options === 2 && chain.accountNumber === managerAccountNumber) {
+                //exclude manager and we are the manager
+                fromIsApproved = false;
+            } else {
+                if (transfer.from.options === 1) {
+                    //include manager and we are the manager
+                    if (chain.accountNumber === managerAccountNumber) {
+                        fromIsApproved = true;
+                    }
+                }
+
+
+                for (const idRange of transfer.from.accountNums) {
+                    if (idRange.start <= chain.accountNumber && idRange.end >= chain.accountNumber) {
+                        fromIsApproved = true;
+                        break;
+                    }
+                }
+            }
+
+            if (transfer.to.options === 2 && address.accountNumber === managerAccountNumber) {
+                //exclude manager and we are the manager
+                toIsApproved = false;
+            } else {
+                if (transfer.to.options === 1) {
+                    //include manager and we are the manager
+                    if (address.accountNumber === managerAccountNumber) {
+                        toIsApproved = true;
+                    }
+                }
+
+                for (const idRange of transfer.to.accountNums) {
+                    if (idRange.start <= address.accountNumber && idRange.end >= address.accountNumber) {
+                        toIsApproved = true;
+                        break;
+                    }
+                }
+            }
+
+            if (fromIsApproved && toIsApproved) {
+                matchingAddresses.push(address);
+            }
+        }
+    }
+
+    return matchingAddresses;
 }

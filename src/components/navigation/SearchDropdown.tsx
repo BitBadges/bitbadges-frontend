@@ -9,7 +9,6 @@ import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useEthereumContext } from '../../contexts/ethereum/EthereumContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 
-
 export function SearchDropdown({
     searchValue,
     onSearch,
@@ -24,44 +23,32 @@ export function SearchDropdown({
     const accounts = useAccountsContext();
     const ethereum = useEthereumContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
-    const [collectionsResults, setCollectionsResults] = useState<BadgeMetadata[]>([]);
+    const [collectionsResults, setCollectionsResults] = useState<((BadgeMetadata & { _id: string }))[]>([]);
 
 
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            const updateSearchValue = async (value: string) => {
-                accounts.fetchAccounts([value]);
-                const results = await getSearchResults(value);
-                const resolvedAddresses: string[] = []
-                if (ethereum.selectedChainInfo?.getAddressForName) {
-                    const address = await ethereum.selectedChainInfo?.getAddressForName(value);
-                    console.log("RESOLVED ADDRESS", address);
-                    if (address) resolvedAddresses.push(address);
-                }
+        const updateSearchValue = async (value: string) => {
+            if (!value) return
+            await accounts.fetchAccounts([value]);
+            const results = await getSearchResults(value);
+            const resolvedAddresses: string[] = []
 
-                console.log([...results.accounts, ...resolvedAddresses]);
+            const newAccounts = await accounts.fetchAccounts([...resolvedAddresses, ...results.accounts.map((result: CosmosAccountInformation) => result.address)]);
 
-                const newAccounts = await accounts.fetchAccounts([...resolvedAddresses, ...results.accounts.map((result: CosmosAccountInformation) => result.address)]);
-                console.log(newAccounts);
-
-                const resolvedAccount = newAccounts.find((account: BitBadgesUserInfo) => account.address === resolvedAddresses[0])
-                const accountsToSet = [];
-                if (resolvedAccount) {
-                    accountsToSet.push(resolvedAccount);
-                }
-                accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
-
-
-                setAccountsResults(accountsToSet);
-                setCollectionsResults(results.collections);
-
-                console.log("SEARCH RESULTS", results);
+            const resolvedAccount = newAccounts.find((account: BitBadgesUserInfo) => account.address === resolvedAddresses[0])
+            const accountsToSet = [];
+            if (resolvedAccount) {
+                accountsToSet.push(resolvedAccount);
             }
-            updateSearchValue(searchValue);
-        }, 300)
+            accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
 
-        return () => clearTimeout(delayDebounceFn)
-    }, [searchValue, accounts, ethereum.selectedChainInfo])
+            setAccountsResults(accountsToSet);
+            setCollectionsResults(results.collections);
+
+            console.log("SEARCH RESULTS", results);
+        }
+        updateSearchValue(searchValue);
+    }, [searchValue, accounts])
 
 
 
@@ -72,17 +59,25 @@ export function SearchDropdown({
         }
     }}>
         <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
+
+        {/* Current Search Value Address Helper */}
         {!accountsResults.find((result: BitBadgesUserInfo) => result.address === searchValue) &&
-            <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }}>
+            <Menu.Item className='dropdown-item' disabled={!accounts.cosmosAddressesByAccountNames[searchValue] && !isAddressValid(searchValue)} style={{ cursor: 'disabled' }} onClick={() => {
+                accounts.cosmosAddressesByAccountNames[searchValue] ?
+                    onSearch(accounts.cosmosAddressesByAccountNames[searchValue]) :
+                    onSearch(searchValue);
+            }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <AddressDisplay
-                            userInfo={{
-                                address: searchValue,
-                                cosmosAddress: '',
-                                chain: SupportedChain.UNKNOWN,
-                                accountNumber: -1,
-                            }}
+                            userInfo={accounts.cosmosAddressesByAccountNames[searchValue] ?
+                                accounts.accounts[accounts.cosmosAddressesByAccountNames[searchValue]] :
+                                {
+                                    address: searchValue,
+                                    cosmosAddress: '',
+                                    chain: SupportedChain.UNKNOWN,
+                                    accountNumber: -1,
+                                }}
                             hidePortfolioLink
                             hideTooltip
                         />
@@ -93,6 +88,8 @@ export function SearchDropdown({
                 </div>
             </Menu.Item>
         }
+
+        {/* {Account Results} */}
         {accountsResults.map((result: BitBadgesUserInfo, idx) => {
             return <Menu.Item key={idx} className='dropdown-item' onClick={() => {
                 onSearch(result.address);
@@ -123,10 +120,12 @@ export function SearchDropdown({
                 </div>
             </Menu.Item>
         })}
+
+        {/* Collection Results */}
         {!onlyAddresses && collectionsResults.length > 0 && <>
             <hr />
             <Typography.Text strong style={{ fontSize: 20 }}>Collections</Typography.Text>
-            {collectionsResults.map((result: BadgeMetadata, idx) => {
+            {collectionsResults.map((result, idx) => {
                 return <Menu.Item key={'collection' + idx + result._id} className='dropdown-item' onClick={() => {
                     onSearch(`${result._id.split(':')[0]}`);
                 }}>

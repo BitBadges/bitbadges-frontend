@@ -5,7 +5,7 @@ import { BACKEND_URL, NODE_URL } from '../constants';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
 import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
-import { BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
+import { BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
 import Joi from 'joi';
 import { convertToBitBadgesUserInfo } from './users';
 import { ChallengeParams } from "blockin";
@@ -245,7 +245,7 @@ export const addMerkleTreeToIpfs = async (leaves: string[]) => {
     return addToIpfsRes;
 }
 
-export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: { [badgeId: string]: BadgeMetadata }) => {
+export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: BadgeMetadataMap) => {
     const bodyStr = stringify({
         collectionMetadata,
         individualBadgeMetadata

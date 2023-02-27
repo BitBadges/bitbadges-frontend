@@ -107,12 +107,24 @@ export interface BitBadgeCollection {
     claims: Claims[];
     standard: number;
     collectionMetadata: BadgeMetadata,
-    badgeMetadata: { [badgeId: string]: BadgeMetadata },
+    badgeMetadata: BadgeMetadataMap,
     activity: ActivityItem[];
     usedClaims: string[];
     originalClaims: Claims[];
     managerRequests: number[];
     balances: BalancesMap
+}
+
+export interface BadgeMetadataMap {
+    [badgeId: string]: BadgeMetadata;
+}
+
+export interface CollectionMap {
+    [collectionId: string]: BitBadgeCollection
+}
+
+export interface AccountMap {
+    [cosmosAddress: string]: BitBadgesUserInfo;
 }
 
 export interface BalancesMap {
@@ -195,6 +207,7 @@ export interface CosmosAccountInformation {
     address: string;
     chain: SupportedChain;
     cosmosAddress: string;
+    name?: string;
 }
 
 export interface BitBadgesUserInfo {
@@ -202,4 +215,5 @@ export interface BitBadgesUserInfo {
     accountNumber: number,
     chain: string,
     address: string,
+    name?: string
 }

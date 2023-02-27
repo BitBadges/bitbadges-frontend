@@ -8,41 +8,15 @@ import { ClaimType } from '../../../bitbadges-api/types';
 export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,
     setNewCollectionMsg,
-    fungible,
-    nonFungible
+    fungible
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     fungible: boolean;
-    nonFungible: boolean;
 }) {
 
     const beforeBalances = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
     const [amountToClaim, setAmountToClaim] = useState<number>(1);
-
-    useEffect(() => {
-        setNewCollectionMsg({
-            ...newCollectionMsg,
-            claims: [
-                {
-                    amountPerClaim: amountToClaim,
-                    balances: beforeBalances.balances,
-                    type: 1,
-                    badgeIds: [{
-                        start: 1,
-                        end: 1,
-                    }],
-                    incrementIdsBy: fungible ? 0 : 1,
-                    uri: "",
-                    data: "",
-                    timeRange: {
-                        start: 0,
-                        end: GO_MAX_UINT_64
-                    },
-                }
-            ]
-        })
-    })
 
     useEffect(() => {
         setNewCollectionMsg({

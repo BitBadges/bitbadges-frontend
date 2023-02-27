@@ -4,7 +4,7 @@ import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { useChainContext } from '../../contexts/ChainContext';
-import { TxTimeline, TxTimelineProps } from '../mint/TxTimeline';
+import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 
 
 export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible, children, collectionId }
@@ -32,7 +32,7 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
 
     const msgSteps = [
         {
-            title: 'Update Metadata',
+            title: 'Update Disallowed Transfers',
             description: <TxTimeline txType='UpdateDisallowed' collectionId={collectionId} onFinish={(txState: TxTimelineProps) => {
                 setDisabled(false);
                 setTxState(txState);

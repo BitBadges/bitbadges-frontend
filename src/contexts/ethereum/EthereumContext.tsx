@@ -68,18 +68,18 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
 
     const resolveAddressToENS = async (address: string) => {
-        if (address) {
-            const ensAddress = await ethers.getDefaultProvider('homestead', { quorum: 1 }).lookupAddress(address);
-            if (ensAddress) return ensAddress;
-        }
+        // if (address) {
+        //     const ensAddress = await ethers.getDefaultProvider('homestead', { quorum: 1 }).lookupAddress(address);
+        //     if (ensAddress) return ensAddress;
+        // }
         return undefined;
     }
 
     const resolveENSFromAddress = async (name: string) => {
-        if (name) {
-            const address = await ethers.getDefaultProvider('homestead', { quorum: 1 }).resolveName(name);
-            if (address) return address;
-        }
+        // if (name) {
+        //     const address = await ethers.getDefaultProvider('homestead', { quorum: 1 }).resolveName(name);
+        //     if (address) return address;
+        // }
         return undefined;
     }
 

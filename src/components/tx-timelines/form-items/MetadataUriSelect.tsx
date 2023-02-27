@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 
-export function SelfHostedUri({
+export function MetadataUriSelect({
     setUri,
 }: {
     setUri: (collectionUri: string, badgeUri: string) => void;
@@ -52,8 +52,6 @@ export function SelfHostedUri({
             <Input
                 onChange={(e: any) => {
                     setBadgeUri(e.target.value);
-
-
                 }}
                 style={{
                     backgroundColor: PRIMARY_BLUE,

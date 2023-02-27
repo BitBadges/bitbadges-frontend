@@ -6,7 +6,6 @@ export function SetCollectionMetadataStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod,
-    setAddMethod: (addMethod: MetadataAddMethod) => void,
     collectionMetadata: BadgeMetadata,
     setCollectionMetadata: (metadata: BadgeMetadata) => void
 ) {
@@ -15,7 +14,6 @@ export function SetCollectionMetadataStepItem(
         description: `Provide details about the badge collection.`,
         node: <MetadataForm
             addMethod={addMethod}
-            setAddMethod={setAddMethod}
             metadata={collectionMetadata}
             setMetadata={setCollectionMetadata as any}
             setNewCollectionMsg={setNewCollectionMsg}

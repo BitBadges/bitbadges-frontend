@@ -2,7 +2,7 @@ import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
-import { getClaimsValueFromClaimItems } from "../../../bitbadges-api/claims";
+import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
 
 export function ManualSendSelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
@@ -34,15 +34,7 @@ export function ManualSendSelectStepItem(
                 if (idx === 0) {
                     setNewCollectionMsg({
                         ...newCollectionMsg,
-                        transfers: claimItems.map((x) => ({
-                            toAddresses: [x.accountNum],
-                            balances: [
-                                {
-                                    balance: x.amount,
-                                    badgeIds: x.badgeIds,
-                                }
-                            ]
-                        })),
+                        transfers: getTransfersFromClaimItems(claimItems),
                         claims: []
                     });
                 } else if (idx === 1) {

@@ -1,12 +1,12 @@
 import { Empty, Spin } from 'antd';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
-import { getBadgeOwners } from '../../../bitbadges-api/api';
-import { getSupplyByBadgeId } from '../../../bitbadges-api/balances';
-import { BitBadgeCollection } from '../../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_TEXT } from '../../../constants';
-import { AddressDisplay } from '../../address/AddressDisplay';
-import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { useAccountsContext } from '../../contexts/AccountsContext';
+import { getBadgeOwners } from '../../bitbadges-api/api';
+import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { DEV_MODE, PRIMARY_TEXT } from '../../constants';
+import { AddressDisplay } from '../address/AddressDisplay';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
 
 export function OwnersTab({ collection, badgeId }: {
     collection: BitBadgeCollection | undefined;
