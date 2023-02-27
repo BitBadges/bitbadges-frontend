@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
 import { getAccounts } from '../bitbadges-api/api';
-import { AccountMap, BitBadgesUserInfo } from '../bitbadges-api/types';
+import { AccountMap, BitBadgesUserInfo, CosmosAccountInformation } from '../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
 import { MINT_ACCOUNT } from '../constants';
 
@@ -18,6 +18,7 @@ export type AccountsContextType = {
     },
     fetchAccounts: (accountsToFetch: string[], forceful?: boolean) => Promise<BitBadgesUserInfo[]>,
     fetchAccountsByNumber: (accountNumsToFetch: number[], forceful?: boolean) => Promise<BitBadgesUserInfo[]>,
+    setAccounts: (accounts: CosmosAccountInformation[]) => void,
 }
 
 const AccountsContext = createContext<AccountsContextType>({
@@ -27,6 +28,7 @@ const AccountsContext = createContext<AccountsContextType>({
     cosmosAddresses: {},
     fetchAccounts: async () => { return [] },
     fetchAccountsByNumber: async () => { return [] },
+    setAccounts: async () => { }
 });
 
 type Props = {
@@ -34,28 +36,18 @@ type Props = {
 };
 
 export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
-    const [accounts, setAccounts] = useState<AccountMap>({
+    const [accounts, setAccountsMap] = useState<AccountMap>({
         'Mint': MINT_ACCOUNT
     });
     const [cosmosAddresses, setCosmosAddresses] = useState<{ [address: string]: string }>({});
-    const [cosmosAddressesByAccountNumbers, setCosmosAddressesByAccountNumbers] = useState<{ [accountNum: string]: string }>({});
+    const [cosmosAddressesByAccountNumbers, setCosmosAddressesByAccountNumbers] = useState<{ [accountNum: string]: string }>({
+        'Mint': 'Mint'
+    });
     const [cosmosAddressesByAccountNames, setCosmosAddressesByAccountNames] = useState<{ [name: string]: string }>({});
 
-
-    const fetchAccounts = async (accountsToFetch: string[], forceful?: boolean) => {
-        const accountsToFetchFromDB = [];
-        for (const account of accountsToFetch) {
-            const isName = cosmosAddressesByAccountNames[account] !== undefined;
-            const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
-
-            if (forceful || emptyEntry) {
-                accountsToFetchFromDB.push(account);
-            }
-        }
-
-        const fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
+    const setAccounts = async (fetchedAccounts: CosmosAccountInformation[]) => {
         for (const accountInfo of fetchedAccounts) {
-            setAccounts({
+            setAccountsMap({
                 ...accounts,
                 [accountInfo.cosmosAddress]: convertToBitBadgesUserInfo(accountInfo)
             });
@@ -77,6 +69,26 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                     [accountInfo.name]: accountInfo.cosmosAddress,
                 });
             }
+        }
+    }
+
+
+    const fetchAccounts = async (accountsToFetch: string[], forceful?: boolean) => {
+        accountsToFetch = [...new Set(accountsToFetch)]; //remove duplicates
+        const accountsToFetchFromDB = [];
+        for (const account of accountsToFetch) {
+            const isName = cosmosAddressesByAccountNames[account] !== undefined;
+            const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
+
+            if (forceful || emptyEntry) {
+                accountsToFetchFromDB.push(account);
+            }
+        }
+
+        let fetchedAccounts: CosmosAccountInformation[] = [];
+        if (accountsToFetchFromDB.length > 0) {
+            fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
+            setAccounts(fetchedAccounts);
         }
 
         const accountsToReturn = [];
@@ -96,6 +108,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const fetchAccountsByNumber = async (accountNums: number[], forceful?: boolean) => {
+        accountNums = [...new Set(accountNums)]; //remove duplicates
         const accountsToFetch = [];
         for (const accountNum of accountNums) {
             if (forceful || accounts[cosmosAddressesByAccountNumbers[accountNum]] === undefined) {
@@ -103,31 +116,10 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
             }
         }
 
-        const fetchedAccounts = await getAccounts(accountsToFetch, []);
-        for (const accountInfo of fetchedAccounts) {
-            setAccounts({
-                ...accounts,
-                [accountInfo.cosmosAddress]: convertToBitBadgesUserInfo(accountInfo)
-            });
-
-            setCosmosAddresses({
-                ...cosmosAddresses,
-                [accountInfo.address]: accountInfo.cosmosAddress,
-                [accountInfo.cosmosAddress]: accountInfo.cosmosAddress
-            });
-
-
-            setCosmosAddressesByAccountNumbers({
-                ...cosmosAddressesByAccountNumbers,
-                [`${accountInfo.account_number}`]: accountInfo.cosmosAddress,
-            });
-
-            if (accountInfo.name) {
-                setCosmosAddressesByAccountNames({
-                    ...cosmosAddressesByAccountNames,
-                    [accountInfo.name]: accountInfo.cosmosAddress,
-                });
-            }
+        let fetchedAccounts: CosmosAccountInformation[] = [];
+        if (accountsToFetch.length > 0) {
+            fetchedAccounts = await getAccounts(accountsToFetch, []);
+            setAccounts(fetchedAccounts);
         }
 
         const accountsToReturn = [];
@@ -150,6 +142,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         cosmosAddresses,
         fetchAccounts,
         fetchAccountsByNumber,
+        setAccounts,
     };
 
     return <AccountsContext.Provider value={accountsContext}>

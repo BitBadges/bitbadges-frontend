@@ -25,20 +25,22 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const [collections, setCollections] = useState<CollectionMap>({});
 
     const fetchCollections = async (collectionIds: number[], fetchAllMetadata?: boolean) => {
+        collectionIds = [...new Set(collectionIds)]; //remove duplicates
         const collectionsToFetch = [];
-
         for (const collectionId of collectionIds) {
             if (collections[`${collectionId}`] === undefined) {
                 collectionsToFetch.push(collectionId);
             }
         }
 
-        const fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
-        for (const collection of fetchedCollections) {
-            setCollections({
-                ...collections,
-                [`${collection.collectionId}`]: collection
-            });
+        if (collectionsToFetch.length > 0) {
+            const fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
+            for (const collection of fetchedCollections) {
+                setCollections({
+                    ...collections,
+                    [`${collection.collectionId}`]: collection
+                });
+            }
         }
     }
 

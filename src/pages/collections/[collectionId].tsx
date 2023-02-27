@@ -47,7 +47,8 @@ function CollectionPage() {
     //Get collection information
     useEffect(() => {
         collections.fetchCollections([collectionIdNumber]);
-    }, [collectionIdNumber, collections]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectionIdNumber]);
 
     //Set tab to badges if badgeId is in query
     useEffect(() => {
@@ -58,9 +59,11 @@ function CollectionPage() {
         }
     }, [badgeId])
 
+
     // Get user's badge balance
     useEffect(() => {
         async function getBadgeBalanceFromApi() {
+            console.log("GETTING BADGE BALANCE");
             const res = await getBadgeBalance(collectionIdNumber, accountNumber);
             setUserBalance(res.balance);
         }

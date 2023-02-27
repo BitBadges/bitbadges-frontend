@@ -34,6 +34,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
 
     return (
         <Drawer
+            destroyOnClose
             onClose={() => { setVisible(false) }}
             open={visible}
             placement={'bottom'}

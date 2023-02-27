@@ -76,12 +76,10 @@ export function TxTimeline({
 
     // Get badge collection information
     useEffect(() => {
-        async function getBadgeInformation() {
-            if (!collectionId) return;
-            await collections.fetchCollections([collectionId], true);
-        }
-        getBadgeInformation();
-    }, [collectionId, collections]);
+        if (!collectionId) return;
+        collections.fetchCollections([collectionId], true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectionId]);
 
     //The MsgNewCollection Cosmos message that will be sent to the chain. We use this for all TXs (for compatibility) and convert to respective Msg at the end.
     const [newCollectionMsg, setNewCollectionMsg] = useState<MessageMsgNewCollection>({

@@ -1,5 +1,5 @@
 import { Pagination } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
@@ -27,7 +27,7 @@ export function BadgeAvatarDisplay({
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
 
-    if (!collection) return <></>;
+
 
     const PAGE_SIZE = pageSize ? pageSize : 50;
     let total = 0;
@@ -47,15 +47,18 @@ export function BadgeAvatarDisplay({
     const endIdNum = endIdx < startIdNum + PAGE_SIZE - 1 ? endIdx : startIdNum + PAGE_SIZE - 1;
 
 
-    console.log(collection.badgeMetadata);
-
-    for (let i = startIdNum; i <= endIdNum; i++) {
-        if (!collection?.badgeMetadata[ids[i]]) {
-            collections.updateCollectionMetadata(collection.collectionId, ids[i]);
-            break;
+    useEffect(() => {
+        if (!collection) return;
+        for (let i = startIdNum; i <= endIdNum; i++) {
+            if (!collection?.badgeMetadata[ids[i]]) {
+                collections.updateCollectionMetadata(collection.collectionId, ids[i]);
+                break;
+            }
         }
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startIdNum, endIdNum]);
 
+    if (!collection) return <></>;
 
     return <div>
         <div style={{

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { filterBadgeActivityForBadgeId } from '../../bitbadges-api/badges';
 import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { DEV_MODE, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 
@@ -54,7 +54,8 @@ export function ActivityTab({ collection, badgeId }: {
             await accounts.fetchAccountsByNumber(accountsToFetch);
         }
         getActivity();
-    }, [activity, accounts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activity]);
 
     if (!activity) return <></>
 
@@ -105,13 +106,13 @@ export function ActivityTab({ collection, badgeId }: {
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                         {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={accounts.accounts[x] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
                                         />)}
                                     </div>
                                     <b style={{ marginRight: 8 }}>to</b>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                         {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={accounts.accounts[x] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
                                         />)}
                                     </div>
                                 </div>
@@ -134,29 +135,33 @@ export function ActivityTab({ collection, badgeId }: {
                                 <div key={idx} style={{ color: PRIMARY_TEXT }}>
                                     {activity.balances.map((balance, idx) => {
                                         return <div key={idx} style={{ width: 600 }}>
-                                            <h2>Transaction Type: {activity.method}</h2>
+                                            <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
                                             <TransferDisplay
                                                 fontColor={PRIMARY_TEXT}
                                                 key={idx}
                                                 collection={collection}
                                                 from={activity.from.map((from) => {
-                                                    return accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]] || {
-                                                        accountNumber: -1,
-                                                        address: '',
-                                                        cosmosAddress: '',
-                                                        chain: SupportedChain.COSMOS,
-                                                    }
+                                                    console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]])
+                                                    return accounts.cosmosAddressesByAccountNumbers[from] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]]
+                                                        ? accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]] : {
+                                                            accountNumber: -1,
+                                                            address: '',
+                                                            cosmosAddress: '',
+                                                            chain: SupportedChain.COSMOS,
+                                                        }
                                                 })}
                                                 transfers={[
                                                     {
                                                         toAddresses: activity.to.map((x) => Number(x)),
                                                         toAddressInfo: activity.to.map((to) => {
-                                                            return accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] || {
-                                                                accountNumber: -1,
-                                                                address: '',
-                                                                cosmosAddress: '',
-                                                                chain: SupportedChain.COSMOS,
-                                                            }
+                                                            console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]])
+                                                            return accounts.cosmosAddressesByAccountNumbers[to] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] ?
+                                                                accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] : {
+                                                                    accountNumber: -1,
+                                                                    address: '',
+                                                                    cosmosAddress: '',
+                                                                    chain: SupportedChain.COSMOS,
+                                                                }
                                                         }),
                                                         balances: [{
                                                             balance: balance.balance,

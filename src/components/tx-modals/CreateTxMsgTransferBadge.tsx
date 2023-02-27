@@ -51,21 +51,20 @@ export function CreateTxMsgTransferBadgeModal(
 
     useEffect(() => {
         async function getSenderBalance() {
-            if (!sender) return;
+            console.log("Getting sender balance");
             const balanceRes = await getBadgeBalance(collection.collectionId, sender.accountNumber);
             if (!balanceRes?.balance) return;
             setSenderBalance(balanceRes.balance);
         }
         getSenderBalance();
-    }, [sender, collection]);
+    }, [sender.accountNumber, collection]);
 
     useEffect(() => {
         for (const transfer of transfers) {
-            for (const toAddressNum of transfer.toAddresses) {
-                accounts.fetchAccountsByNumber([toAddressNum]);
-            }
+            accounts.fetchAccountsByNumber(transfer.toAddresses);
         }
-    }, [transfers, accounts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transfers]);
 
     const unregisteredUsers: string[] = [];
     for (const transfer of transfers) {

@@ -78,7 +78,6 @@ export function MetadataForm({
     useEffect(() => {
         const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadataMap)[Number(id)] : metadata as BadgeMetadata;
         setCurrentMetadata(m);
-        console.log('set metadata to', m)
 
     }, [metadata, stringifiedMetadata, id, images])
 

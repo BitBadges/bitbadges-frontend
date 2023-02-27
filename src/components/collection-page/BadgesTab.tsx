@@ -1,5 +1,5 @@
 import { Pagination } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
@@ -23,12 +23,15 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
     const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
     const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
 
-    for (let i = startIdNum; i <= endIdNum; i++) {
-        if (!collection?.badgeMetadata[i]) {
-            collections.updateCollectionMetadata(collection.collectionId, i);
-            break;
+    useEffect(() => {
+        for (let i = startIdNum; i <= endIdNum; i++) {
+            if (!collection?.badgeMetadata[i]) {
+                collections.updateCollectionMetadata(collection.collectionId, i);
+                break;
+            }
         }
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startIdNum, endIdNum]);
 
     return (
         <div

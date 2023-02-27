@@ -46,12 +46,9 @@ export const BlockinDisplay = ({
      * Update challengeParams when address or chain changes
      */
     useEffect(() => {
+        if (!address) return;
         updateChallengeParams();
-    }, []);
-
-    useEffect(() => {
-        updateChallengeParams();
-    }, [chain, address]);
+    }, [address]);
 
     const updateChallengeParams = async () => {
         const challengeParams = await getChallengeParams(chain, address);

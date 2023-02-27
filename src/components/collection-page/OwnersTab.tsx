@@ -32,7 +32,8 @@ export function OwnersTab({ collection, badgeId }: {
             }
         }
         getOwners();
-    }, [collection, badgeId, accounts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div >
@@ -58,7 +59,7 @@ export function OwnersTab({ collection, badgeId }: {
                                     return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', margin: 10 }}>
                                         <div>
                                             <AddressDisplay
-                                                userInfo={accounts.accounts[owner]}
+                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]]}
                                                 fontColor={PRIMARY_TEXT} />
                                         </div>
                                         <div>
@@ -71,7 +72,8 @@ export function OwnersTab({ collection, badgeId }: {
                                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     style={{ color: PRIMARY_TEXT }}
                                 />}
-                            </div> : <div><br /><Spin size={'large'} /><br /></div>
+                            </div>
+                            : <div><br /><Spin size={'large'} /><br /></div>
                         }
 
                     </InformationDisplayCard>

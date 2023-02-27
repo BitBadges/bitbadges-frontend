@@ -2,11 +2,10 @@
 import { Avatar, Menu, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
-import { getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { isAddressValid } from '../../bitbadges-api/chains';
 import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
 import { useAccountsContext } from '../../contexts/AccountsContext';
-import { useEthereumContext } from '../../contexts/ethereum/EthereumContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 
 export function SearchDropdown({
@@ -20,36 +19,27 @@ export function SearchDropdown({
         onlyAddresses?: boolean
     }
 ) {
-    const accounts = useAccountsContext();
-    const ethereum = useEthereumContext();
+    const { setAccounts, cosmosAddressesByAccountNames, accounts, cosmosAddresses } = useAccountsContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
     const [collectionsResults, setCollectionsResults] = useState<((BadgeMetadata & { _id: string }))[]>([]);
 
 
     useEffect(() => {
-        const updateSearchValue = async (value: string) => {
-            if (!value) return
-            await accounts.fetchAccounts([value]);
-            const results = await getSearchResults(value);
-            const resolvedAddresses: string[] = []
+        const delayDebounceFn = setTimeout(async () => {
+            if (!searchValue) return
 
-            const newAccounts = await accounts.fetchAccounts([...resolvedAddresses, ...results.accounts.map((result: CosmosAccountInformation) => result.address)]);
+            const results = await getSearchResults(searchValue);
+            setAccounts(results.accounts);
 
-            const resolvedAccount = newAccounts.find((account: BitBadgesUserInfo) => account.address === resolvedAddresses[0])
             const accountsToSet = [];
-            if (resolvedAccount) {
-                accountsToSet.push(resolvedAccount);
-            }
             accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
-
             setAccountsResults(accountsToSet);
             setCollectionsResults(results.collections);
+        }, 300)
 
-            console.log("SEARCH RESULTS", results);
-        }
-        updateSearchValue(searchValue);
-    }, [searchValue, accounts])
-
+        return () => clearTimeout(delayDebounceFn)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchValue])
 
 
 
@@ -61,17 +51,17 @@ export function SearchDropdown({
         <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
 
         {/* Current Search Value Address Helper */}
-        {!accountsResults.find((result: BitBadgesUserInfo) => result.address === searchValue) &&
-            <Menu.Item className='dropdown-item' disabled={!accounts.cosmosAddressesByAccountNames[searchValue] && !isAddressValid(searchValue)} style={{ cursor: 'disabled' }} onClick={() => {
-                accounts.cosmosAddressesByAccountNames[searchValue] ?
-                    onSearch(accounts.cosmosAddressesByAccountNames[searchValue]) :
+        {!accountsResults.find((result: BitBadgesUserInfo) => result.address === searchValue || result.name === searchValue) &&
+            <Menu.Item className='dropdown-item' disabled={!cosmosAddressesByAccountNames[searchValue] && !isAddressValid(searchValue)} style={{ cursor: 'disabled' }} onClick={() => {
+                cosmosAddressesByAccountNames[searchValue] ?
+                    onSearch(cosmosAddressesByAccountNames[searchValue]) :
                     onSearch(searchValue);
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <AddressDisplay
-                            userInfo={accounts.cosmosAddressesByAccountNames[searchValue] ?
-                                accounts.accounts[accounts.cosmosAddressesByAccountNames[searchValue]] :
+                            userInfo={cosmosAddressesByAccountNames[searchValue] ?
+                                accounts[cosmosAddressesByAccountNames[searchValue]] :
                                 {
                                     address: searchValue,
                                     cosmosAddress: '',
@@ -97,18 +87,9 @@ export function SearchDropdown({
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <AddressDisplay
-                            userInfo={getChainForAddress(searchValue) === SupportedChain.ETH ?
-                                {
-                                    address: result.address,
-                                    cosmosAddress: result.cosmosAddress,
-                                    chain: SupportedChain.ETH,
-                                    accountNumber: result.accountNumber,
-                                } : {
-                                    address: result.cosmosAddress,
-                                    cosmosAddress: result.cosmosAddress,
-                                    chain: SupportedChain.COSMOS,
-                                    accountNumber: result.accountNumber,
-                                }
+                            userInfo={result.name && cosmosAddressesByAccountNames[result.name] ?
+                                accounts[cosmosAddressesByAccountNames[result.name]] :
+                                accounts[cosmosAddresses[result.address]]
                             }
                             hidePortfolioLink
                             hideTooltip

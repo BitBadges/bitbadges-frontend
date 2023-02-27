@@ -26,7 +26,6 @@ function CollectionPage() {
     const accounts = useAccountsContext();
     const { addressOrAccountNum } = router.query;
 
-    const [accountNum, setAccountNum] = useState<number>(-1);
     const [cosmosAddress, setCosmosAddress] = useState<string>('');
     const [portfolioInfo, setPortfolioInfo] = useState<GetPortfolioResponse>();
     const [tab, setTab] = useState('collected');
@@ -40,24 +39,25 @@ function CollectionPage() {
 
             let fetchedInfo;
             if (isAddressValid(addressOrAccountNum as string)) {
-
                 fetchedInfo = await accounts.fetchAccounts([addressOrAccountNum as string]);
             } else {
                 fetchedInfo = await accounts.fetchAccountsByNumber([parseInt(addressOrAccountNum as string)]);
             }
             let accountNum = fetchedInfo[0].accountNumber
             setCosmosAddress(fetchedInfo[0].cosmosAddress);
-            setAccountNum(accountNum);
 
-            //TODO: address redundancies between GetPortfolio repsonse and fetch collections
-            const portfolioInfo = await getPortfolio(accountNum);
-            if (!portfolioInfo) return;
-            await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
+            if (accountNum) {
+                //TODO: address redundancies between GetPortfolio repsonse and fetch collections
+                const portfolioInfo = await getPortfolio(accountNum);
+                if (!portfolioInfo) return;
+                await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
 
-            setPortfolioInfo(portfolioInfo);
+                setPortfolioInfo(portfolioInfo);
+            }
         }
         getPortfolioInfo();
-    }, [addressOrAccountNum, accounts, collections]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [addressOrAccountNum]);
 
     return (
         <Layout>

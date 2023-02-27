@@ -65,7 +65,8 @@ export function TransferDisplay({
             return transfer.balances.map((balance, index) => {
 
                 accounts.fetchAccountsByNumber(transfer.toAddresses);
-                const to = transfer.toAddresses.map((accountNumber) => { return accounts.accounts[accountNumber] });
+
+                const to = transfer.toAddresses.map((accountNumber) => { return accounts.accounts[accounts.cosmosAddressesByAccountNumbers[accountNumber]] })
 
                 const badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
                 const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
@@ -149,6 +150,7 @@ export function TransferDisplay({
 
                                     <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                         {to.map((user, index) => {
+                                            console.log(user);
                                             return <>
                                                 {index !== 0 && <br color='white' />}
                                                 <AddressWithBlockies

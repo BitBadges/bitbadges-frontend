@@ -98,8 +98,6 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
         badgeData = await updateMetadata(badgeData, 1);
     }
 
-    console.log("BADGEDATA", badgeData);
-
     return badgeData;
 }
 
