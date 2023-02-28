@@ -60,9 +60,9 @@ export function getAbbreviatedAddress(address: string) {
     let isMintAddress = address === MINT_ACCOUNT.address;
     if (isMintAddress) return 'Mint';
     if (address.length == 0) return '...';
-    if (address.length < 13) return address;
+    if (address.length < 20) return address;
 
-    return address.substring(0, 10) + '...' + address.substring(address.length - 4, address.length);
+    return address.substring(0, 8) + '...' + address.substring(address.length - 4, address.length);
 }
 
 export function isAddressValid(address: string, chain?: string) {

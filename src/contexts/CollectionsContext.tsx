@@ -1,18 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
 import { getCollections, updateMetadata } from '../bitbadges-api/api';
-import { CollectionMap } from '../bitbadges-api/types';
+import { BitBadgeCollection, CollectionMap } from '../bitbadges-api/types';
+import { notification } from 'antd';
 
 export type CollectionsContextType = {
     collections: CollectionMap,
-    fetchCollections: (collectionIds: number[], fetchAllMetadata?: boolean) => Promise<void>,
+    fetchCollections: (collectionIds: number[], fetchAllMetadata?: boolean) => Promise<BitBadgeCollection[]>,
     refreshCollection: (collectionId: number, fetchAllMetadata?: boolean) => Promise<void>,
     updateCollectionMetadata: (collectionId: number, startBadgeId: number) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
     collections: {},
-    fetchCollections: async () => { },
+    fetchCollections: async () => { return [] },
     refreshCollection: async () => { },
     updateCollectionMetadata: async () => { },
 });
@@ -25,23 +26,45 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const [collections, setCollections] = useState<CollectionMap>({});
 
     const fetchCollections = async (collectionIds: number[], fetchAllMetadata?: boolean) => {
-        collectionIds = [...new Set(collectionIds)]; //remove duplicates
-        const collectionsToFetch = [];
-        for (const collectionId of collectionIds) {
-            if (collections[`${collectionId}`] === undefined) {
-                collectionsToFetch.push(collectionId);
+        const collectionsToReturn: BitBadgeCollection[] = [];
+        try {
+            collectionIds = [...new Set(collectionIds)]; //remove duplicates
+            const collectionsToFetch = [];
+            for (const collectionId of collectionIds) {
+                if (collections[`${collectionId}`] === undefined || fetchAllMetadata) {
+                    collectionsToFetch.push(collectionId);
+                }
             }
+
+            let fetchedCollections: BitBadgeCollection[] = [];
+            if (collectionsToFetch.length > 0) {
+                fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
+                for (const collection of fetchedCollections) {
+                    setCollections({
+                        ...collections,
+                        [`${collection.collectionId}`]: collection
+                    });
+                }
+            }
+
+            for (const collectionId of collectionIds) {
+                if (collections[`${collectionId}`]) {
+                    collectionsToReturn.push(collections[`${collectionId}`]);
+                } else {
+                    const fetchedCollection = fetchedCollections.find(c => c.collectionId === collectionId);
+                    if (fetchedCollection) collectionsToReturn.push(fetchedCollection);
+                }
+            }
+            return collectionsToReturn;
+        } catch (e: any) {
+            notification.error({
+                message: 'Oops! We ran into an error fetching the collection.',
+                // description: e.message
+            });
+            return [];
         }
 
-        if (collectionsToFetch.length > 0) {
-            const fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
-            for (const collection of fetchedCollections) {
-                setCollections({
-                    ...collections,
-                    [`${collection.collectionId}`]: collection
-                });
-            }
-        }
+
     }
 
     async function refreshCollection(collectionIdNumber: number, fetchAllMetadata?: boolean) {
@@ -55,13 +78,21 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     async function updateCollectionMetadata(collectionId: number, startBadgeId: number) {
-        if (!collections[`${collectionId}`]) return;
-        const collection = collections[`${collectionId}`];
-        const newCollection = await updateMetadata(collection, startBadgeId < 1 ? 1 : startBadgeId);
-        setCollections({
-            ...collections,
-            [`${collectionId}`]: newCollection
-        });
+        try {
+
+            if (!collections[`${collectionId}`]) return;
+            const collection = collections[`${collectionId}`];
+            const newCollection = await updateMetadata(collection, startBadgeId < 1 ? 1 : startBadgeId);
+            setCollections({
+                ...collections,
+                [`${collectionId}`]: newCollection
+            });
+        } catch (e: any) {
+            notification.error({
+                message: 'Oops! We ran into an error fetching the collection metadata.',
+                description: e.message
+            });
+        }
     }
 
     const collectionsContext: CollectionsContextType = {

@@ -2,10 +2,10 @@ import { Divider, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { UserBalance } from '../../bitbadges-api/types';
-import { BadgePageHeader } from '../../components/collection-page/BadgePageHeader';
+import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { ActivityTab } from '../../components/collection-page/ActivityTab';
+import { BadgePageHeader } from '../../components/collection-page/BadgePageHeader';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
@@ -24,15 +24,23 @@ const tabInfo = [
     { key: 'actions', content: 'Actions', disabled: false },
 ];
 
-function CollectionPage() {
+function CollectionPage({
+    collectionPreview, //Only used for previews on TxTimeline
+}
+    : {
+        collectionPreview: BitBadgeCollection
+    }
+) {
     const router = useRouter()
     const chain = useChainContext();
     const collections = useCollectionsContext();
     const { collectionId, badgeId } = router.query;
     const accountNumber = chain.accountNumber;
-    const collectionIdNumber = collectionId ? Number(collectionId) : -1;
+    const isPreview = collectionPreview ? true : false;
 
-    const collection = collections.collections[`${collectionIdNumber}`];
+    const collectionIdNumber = collectionId && !isPreview ? Number(collectionId) : -1;
+
+    const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
     const collectionMetadata = collection?.collectionMetadata;
 
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
@@ -40,12 +48,14 @@ function CollectionPage() {
     const [tab, setTab] = useState(badgeIdNumber ? 'badges' : 'overview');
 
     async function refreshBadgeBalance() {
+        if (isPreview) return;
         const res = await getBadgeBalance(collectionIdNumber, accountNumber);
         setUserBalance(res.balance);
     }
 
     //Get collection information
     useEffect(() => {
+        if (isPreview) return;
         collections.fetchCollections([collectionIdNumber]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectionIdNumber]);
@@ -62,13 +72,14 @@ function CollectionPage() {
 
     // Get user's badge balance
     useEffect(() => {
+        if (isPreview) return;
         async function getBadgeBalanceFromApi() {
             console.log("GETTING BADGE BALANCE");
             const res = await getBadgeBalance(collectionIdNumber, accountNumber);
             setUserBalance(res.balance);
         }
         getBadgeBalanceFromApi();
-    }, [collectionIdNumber, accountNumber])
+    }, [collectionIdNumber, accountNumber, isPreview])
 
     return (
         <Layout>
@@ -81,57 +92,61 @@ function CollectionPage() {
             >
                 <div
                     style={{
-                        marginLeft: '10vw',
-                        marginRight: '10vw',
-                        paddingLeft: '2vw',
-                        paddingRight: '2vw',
+                        marginLeft: !isPreview ? '10vw' : undefined,
+                        marginRight: !isPreview ? '10vw' : undefined,
+                        paddingLeft: !isPreview ? '2vw' : undefined,
+                        paddingRight: !isPreview ? '2vw' : undefined,
                         paddingTop: '20px',
                         background: PRIMARY_BLUE,
                     }}
                 >
-                    {/* Overview and Tabs */}
-                    <BadgePageHeader metadata={collectionMetadata} />
-                    <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
-                    <br />
+                    {collection && <>
+                        {/* Overview and Tabs */}
+                        <BadgePageHeader metadata={collectionMetadata} />
+                        <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+                        <br />
 
-                    {/* Tab Content */}
-                    {tab === 'overview' && (
-                        <OverviewTab setTab={setTab}
-                            collection={collection}
+                        {/* Tab Content */}
+                        {tab === 'overview' && (
+                            <OverviewTab setTab={setTab}
+                                collection={collection}
+                                refreshUserBalance={refreshBadgeBalance}
+                                userBalance={userBalance}
+                                isPreview={isPreview}
+                            />
+                        )}
+                        {tab === 'badges' && (
+                            <BadgesTab
+                                collection={collection}
+                                balance={userBalance}
+                                badgeId={badgeIdNumber}
+                                setBadgeId={setBadgeIdNumber}
+                                isPreview={isPreview}
+                            />
+                        )}
 
-                            refreshUserBalance={refreshBadgeBalance}
-                            userBalance={userBalance}
-                        />
-                    )}
-                    {tab === 'badges' && (
-                        <BadgesTab
-                            collection={collection}
-                            balance={userBalance}
-                            badgeId={badgeIdNumber}
-                            setBadgeId={setBadgeIdNumber}
-                        />
-                    )}
+                        {tab === 'claims' && (
+                            <ClaimsTab
+                                collection={collection}
+                                refreshUserBalance={refreshBadgeBalance}
+                            />
+                        )}
 
-                    {tab === 'claims' && (
-                        <ClaimsTab
-                            collection={collection}
-                            refreshUserBalance={refreshBadgeBalance}
-                        />
-                    )}
+                        {tab === 'actions' && !isPreview && (
+                            <ActionsTab
+                                collection={collection}
+                                refreshUserBalance={refreshBadgeBalance}
+                                userBalance={userBalance}
+                            />
+                        )}
 
-                    {tab === 'actions' && (
-                        <ActionsTab
-                            collection={collection}
-                            refreshUserBalance={refreshBadgeBalance}
-                            userBalance={userBalance}
-                        />
-                    )}
-
-                    {tab === 'activity' && collection && (
-                        <ActivityTab
-                            collection={collection}
-                        />
-                    )}
+                        {tab === 'activity' && collection  && (
+                            <ActivityTab
+                                collection={collection}
+                            />
+                        )}
+                    </>
+                    }
                 </div>
                 {DEV_MODE && (
                     <pre style={{ color: PRIMARY_TEXT }}>

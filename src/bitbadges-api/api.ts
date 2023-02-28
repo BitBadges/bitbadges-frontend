@@ -91,9 +91,21 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
     if (fetchAllMetadata) {
+        const promises = [];
+
         for (let idx = 1; idx < badgeData.nextBadgeId; idx += 100) {
-            badgeData = await updateMetadata(badgeData, idx);
+            promises.push(updateMetadata(badgeData, idx));
         }
+
+        await Promise.all(promises).then((values) => {
+            for (const res of values) {
+                badgeData.collectionMetadata = res.collectionMetadata;
+                badgeData.badgeMetadata = {
+                    ...badgeData.badgeMetadata,
+                    ...res.badgeMetadata
+                };
+            }
+        });
     } else {
         badgeData = await updateMetadata(badgeData, 1);
     }
@@ -101,7 +113,7 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     return badgeData;
 }
 
-export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
+export async function getCollections(collectionIds: number[], _fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
     for (const collectionId of collectionIds) {
         if (collectionId === undefined || collectionId === -1) {
             return Promise.reject("collectionId is invalid");
@@ -119,9 +131,8 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
     }).then((res) => res.data);
 
     for (const collection of badgeDataResponse.collections) {
-        console.log("COLLECTION", collection);
         let badgeData: BitBadgeCollection = collection;
-        badgeData = await cleanCollection(badgeData);
+        badgeData = await cleanCollection(badgeData, _fetchAllMetadata);
         collections.push(badgeData);
     }
 
@@ -150,7 +161,6 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
 export async function updateMetadata(collection: BitBadgeCollection, startBadgeId?: number) {
     let metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBadgeId }).then((res) => res.data);
     collection.collectionMetadata = metadataRes.collectionMetadata;
-    console.log("METADATA RES: ", metadataRes);
     collection.badgeMetadata = {
         ...collection.badgeMetadata,
         ...metadataRes.badgeMetadata

@@ -21,7 +21,8 @@ export function TransferSelect({
     collection,
     userBalance,
     distributionMethod,
-    hideTransferDisplay
+    hideTransferDisplay,
+    isWhitelist
 }: {
     transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[],
     setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
@@ -30,6 +31,7 @@ export function TransferSelect({
     collection: BitBadgeCollection;
     distributionMethod: DistributionMethod;
     hideTransferDisplay?: boolean;
+    isWhitelist?: boolean;
 }) {
     const chain = useChainContext();
 
@@ -123,6 +125,7 @@ export function TransferSelect({
     }
 
     let canTransfer = Object.values(forbiddenUsersMap).find((message) => message !== '') === undefined;
+    if (isWhitelist) canTransfer = true;
 
     const firstStepDisabled = distributionMethod === DistributionMethod.Codes ? numCodes <= 0 : toAddresses.length === 0;
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
@@ -171,7 +174,7 @@ export function TransferSelect({
                 description: <AddressListSelect
                     users={toAddresses}
                     setUsers={setToAddresses}
-                    disallowedUsers={forbiddenUsersMap}
+                    disallowedUsers={isWhitelist ? undefined : forbiddenUsersMap}
                     darkMode
                 />,
                 disabled: firstStepDisabled || !canTransfer,
@@ -239,7 +242,10 @@ export function TransferSelect({
                     hideAddresses
                 />
                 <Divider />
-                {postTransferBalance && <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer' afterMessage='After Transfer' />}
+                {postTransferBalance && <div>
+                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
+                    {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
+                </div>}
             </div>,
             disabled: idRangesOverlap || idRangesLengthEqualsZero || secondStepDisabled
         },
@@ -261,8 +267,7 @@ export function TransferSelect({
                     toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
                     from={[sender]}
                 />
-
-                <Divider />
+                <br />
                 <Button type='primary'
                     style={{ width: '100%' }}
                     onClick={async () => {

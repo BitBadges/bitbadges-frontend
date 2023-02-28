@@ -3,7 +3,6 @@ import { Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
 import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AddressWithBlockies } from './AddressWithBlockies';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 
 export function AddressDisplayTitle(
     {
@@ -35,16 +34,18 @@ export function AddressDisplayList(
         disallowedUsers,
         fontColor,
         darkMode,
+        title
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: { [cosmosAddress: string]: string },
         fontColor?: string
         darkMode?: boolean
+        title?: string
     }
 ) {
     return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>
-        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >Added Recipients ({users.length})</h3>
+        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Recipients'} ({users.length})</h3>
         {
             users.map((user, index) => {
                 let disallowedMessage = '';
@@ -106,8 +107,8 @@ export function AddressDisplay(
         darkMode?: boolean
     }
 ) {
-    const accounts = useAccountsContext();
 
+    console.log("ADDRESS DISPLAY", userInfo);
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
@@ -118,7 +119,7 @@ export function AddressDisplay(
         }}>
             <AddressWithBlockies
                 address={userInfo.address}
-                addressName={accounts.accounts[userInfo.cosmosAddress]?.name}
+                addressName={userInfo.name}
                 fontSize={fontSize}
                 fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}

@@ -7,6 +7,9 @@ import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../bitbadges-api/claims';
 import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
+import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
+import { SHA256 } from 'crypto-js';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
@@ -37,6 +40,57 @@ export function CreateTxMsgMintBadgeModal(
 
     const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
         ? txState.claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+
+    async function updateIPFSUris() {
+        if (!txState) return;
+
+        let collectionUri = txState.newCollectionMsg.collectionUri;
+        let badgeUri = txState.newCollectionMsg.badgeUri;
+        let claims = txState.newCollectionMsg.claims;
+
+        //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
+        if (txState?.addMethod == MetadataAddMethod.Manual && txType === 'AddBadges') {
+            let res = await addToIpfs(txState?.collectionMetadata, txState?.individualBadgeMetadata);
+
+            collectionUri = 'ipfs://' + res.cid + '/collection';
+            badgeUri = 'ipfs://' + res.cid + '/{id}';
+        }
+
+        //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
+        if (txState?.distributionMethod == DistributionMethod.Codes || txState?.distributionMethod == DistributionMethod.Whitelist) {
+            if (claims?.length > 0) {
+                //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
+                //For the whitelist, we store the full plaintext codes as leaves on IPFS
+                if (txState?.distributionMethod == DistributionMethod.Codes) {
+                    let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => SHA256(x.fullCode).toString()));
+                    claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                } else {
+                    let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode));
+                    claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                }
+            }
+        }
+
+        setTxState({
+            ...txState,
+            newCollectionMsg: {
+                ...txState.newCollectionMsg,
+                collectionUri,
+                badgeUri,
+                claims
+            }
+        });
+
+        return {
+            creator: txState ? txState?.newCollectionMsg.creator : '',
+            collectionId: collectionId,
+            claims,
+            transfers: txState ? txState?.newCollectionMsg.transfers : [],
+            badgeSupplys: txState ? txState?.newCollectionMsg.badgeSupplys : [],
+            collectionUri,
+            badgeUri
+        }
+    }
 
     const onRegister = async () => {
         if (!txState) return;
@@ -97,6 +151,10 @@ export function CreateTxMsgMintBadgeModal(
 
     return (
         <TxModal
+            beforeTx={async () => {
+                const newMsg = await updateIPFSUris();
+                return newMsg
+            }}
             msgSteps={msgSteps}
             visible={visible}
             setVisible={setVisible}

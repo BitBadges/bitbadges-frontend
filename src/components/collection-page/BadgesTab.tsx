@@ -6,11 +6,12 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgeCard } from '../badges/BadgeCard';
 
-export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
+export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
     collection: BitBadgeCollection;
     balance: UserBalance | undefined;
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
+    isPreview: boolean;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
@@ -77,6 +78,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId }: {
                                 collection={collection}
                                 metadata={collection.badgeMetadata[idx + Number(startIdNum)]}
                                 id={idx + Number(startIdNum)}
+                                hideModalBalances={isPreview}
                             />
                         </div>
                     })}

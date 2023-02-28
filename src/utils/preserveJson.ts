@@ -8,7 +8,7 @@ const FLAG_TYPED_ARRAY = "FLAG_TYPED_ARRAY";
  */
 
 export const parse = (str: string) => {
-    return JSON.parse(str, function (key, value) {
+    return JSON.parse(str, function (_key, value) {
         // the reviver function looks for the typed array flag
         try {
             if ("flag" in value && value.flag === FLAG_TYPED_ARRAY) {
@@ -24,7 +24,7 @@ export const parse = (str: string) => {
 }
 
 export const stringify = (obj: any) => {
-    return JSON.stringify(obj, function (key, value) {
+    return JSON.stringify(obj, function (_key, value) {
         if (value && value instanceof Uint8Array) {
             var replacement = {
                 constructor: value.constructor.name,

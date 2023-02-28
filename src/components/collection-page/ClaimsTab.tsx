@@ -8,7 +8,7 @@ import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 export function ClaimsTab({ collection, refreshUserBalance }: {
     collection: BitBadgeCollection | undefined;
 
-    refreshUserBalance: () => void;
+    refreshUserBalance: () => Promise<void>;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
     const [modalVisible, setModalVisible] = useState<boolean>(false);

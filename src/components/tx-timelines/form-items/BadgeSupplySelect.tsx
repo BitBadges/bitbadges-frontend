@@ -32,8 +32,9 @@ export function BadgeSupply({
     return (
         <div>
             <div className='flex-between' style={{ flexDirection: 'column' }} >
-                <b>Select Amount to Create</b>
-                <InputNumber value={supplyToCreate}
+                <b>Number of Badges</b>
+                <InputNumber
+                    value={supplyToCreate}
                     style={{
                         backgroundColor: PRIMARY_BLUE,
                         color: PRIMARY_TEXT,

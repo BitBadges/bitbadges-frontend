@@ -14,14 +14,15 @@ import { ActivityTab } from '../collection-page/ActivityTab';
 const { Content } = Layout;
 const { Text } = Typography;
 
-export function BadgeModal({ collection, metadata, visible, setVisible, balance, badgeId }
+export function BadgeModal({ collection, metadata, visible, setVisible, balance, badgeId, hideBalances }
     : {
         collection: BitBadgeCollection,
         metadata: BadgeMetadata,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         balance: UserBalance,
-        badgeId: number
+        badgeId: number,
+        hideBalances?: boolean,
     }) {
     const chain = useChainContext();
     const [tab, setTab] = useState('overview');
@@ -89,7 +90,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                             <BadgePageHeader
                                 metadata={metadata}
                             />
-                            {chain.connected && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
+                            {chain.connected && !hideBalances && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
                             <Divider />
                             <Row
                                 style={{

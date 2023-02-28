@@ -54,7 +54,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); }}
+            onSuccessfulTx={async () => { await  collections.refreshCollection(collection.collectionId); }}
         >
             {children}
         </TxModal>

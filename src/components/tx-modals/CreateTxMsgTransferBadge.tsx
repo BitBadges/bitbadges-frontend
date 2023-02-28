@@ -20,7 +20,7 @@ export function CreateTxMsgTransferBadgeModal(
         collection, visible, setVisible, children, userBalance, refreshUserBalance
     }: {
         collection: BitBadgeCollection,
-        refreshUserBalance: () => void
+        refreshUserBalance: () => Promise<void>,
         userBalance: UserBalance,
         visible: boolean,
         setVisible: (visible: boolean) => void,
@@ -61,6 +61,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     useEffect(() => {
         for (const transfer of transfers) {
+            console.log("Fetching accounts");
             accounts.fetchAccountsByNumber(transfer.toAddresses);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,8 +69,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const unregisteredUsers: string[] = [];
     for (const transfer of transfers) {
-        for (const toAddressNum of transfer.toAddresses) {
-            const account = accounts.accounts[toAddressNum];
+        for (const account of transfer.toAddressInfo) {
             if (account.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
         }
     }
@@ -135,6 +135,7 @@ export function CreateTxMsgTransferBadgeModal(
                                 accountNumber: sender.accountNumber,
                                 address: sender.address,
                                 chain: sender.chain,
+                                name: sender.name,
                             }}
                             hidePortfolioLink
                             darkMode
@@ -185,7 +186,7 @@ export function CreateTxMsgTransferBadgeModal(
             txName="Transfer Badge(s)"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
-            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
+            onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
             displayMsg={<div style={{ color: PRIMARY_TEXT }}>
                 <TransferDisplay
                     transfers={transfers}

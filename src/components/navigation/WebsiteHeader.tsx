@@ -7,7 +7,7 @@ import {
     SearchOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Dropdown, Layout, Menu, Select, Typography } from 'antd';
+import { Avatar, Dropdown, Layout, Menu, Typography } from 'antd';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';

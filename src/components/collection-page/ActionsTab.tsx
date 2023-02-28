@@ -1,18 +1,17 @@
-import { Card, Divider, Empty, Typography } from 'antd';
+import { Card, Empty } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { CreateTxMsgMintBadgeModal } from '../tx-modals/CreateTxMsgMintBadgeModal';
 import { CreateTxMsgRequestTransferManagerModal } from '../tx-modals/CreateTxMsgRequestTransferManagerModal';
 import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
 import { CreateTxMsgTransferManagerModal } from '../tx-modals/CreateTxMsgTransferManagerModal';
+import { CreateTxMsgUpdateDisallowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateDisallowedTransfers';
 import { CreateTxMsgUpdatePermissionsModal } from '../tx-modals/CreateTxMsgUpdatePermissions';
 import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisModal';
-import { CreateTxMsgMintBadgeModal } from '../tx-modals/CreateTxMsgMintBadgeModal';
-import { CreateTxMsgUpdateDisallowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateDisallowedTransfers';
 
 export function ActionsTab({
     collection,
@@ -22,9 +21,8 @@ export function ActionsTab({
 }: {
     collection?: BitBadgeCollection;
     userBalance?: UserBalance;
-    refreshUserBalance: () => void;
+    refreshUserBalance: () => Promise<void>;
 }) {
-    const router = useRouter();
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
 

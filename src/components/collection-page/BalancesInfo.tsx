@@ -13,13 +13,14 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
 
 
-export function BalanceOverview({ collection, metadata, balance, span, setTab, refreshUserBalance }: {
+export function BalanceOverview({ collection, metadata, balance, span, setTab, refreshUserBalance, isPreview }: {
     collection: BitBadgeCollection | undefined;
-    refreshUserBalance: () => void;
+    refreshUserBalance: () => Promise<void>;
     metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     span?: number;
     setTab: (tab: string) => void;
+    isPreview?: boolean;
 }) {
     const chain = useChainContext();
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
@@ -27,13 +28,14 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
     if (!collection || !metadata) return <></>;
 
     const buttons: ButtonDisplayProps[] = [];
+
     buttons.push(...[
         {
             name: <>Transfer</>,
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
             tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
-            // disabled: !balance
+            disabled: isPreview
         },
         {
             name: <>Claim</>,
@@ -41,7 +43,7 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             onClick: () => { setTab('claims') },
             tooltipMessage: `Check if you can claim this badge`,
             count: collection.claims?.filter(x => x.leaves?.indexOf(chain.cosmosAddress) >= 0).length,
-            disabled: false
+            disabled: isPreview
         },
     ]);
 
@@ -68,13 +70,14 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             </div>
         </InformationDisplayCard>
 
-        <CreateTxMsgTransferBadgeModal
-            collection={collection}
-            visible={transferIsVisible}
-            setVisible={setTransferIsVisible}
-            userBalance={balance ? balance : getBlankBalance()}
-            refreshUserBalance={refreshUserBalance}
-        />
+        {!isPreview &&
+            <CreateTxMsgTransferBadgeModal
+                collection={collection}
+                visible={transferIsVisible}
+                setVisible={setTransferIsVisible}
+                userBalance={balance ? balance : getBlankBalance()}
+                refreshUserBalance={refreshUserBalance}
+            />}
     </>
     );
 }

@@ -13,6 +13,7 @@ export function OwnersTab({ collection, badgeId }: {
     badgeId: number
 }) {
     const accounts = useAccountsContext();
+    const isPreview = collection?.collectionId === 0;
 
     const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
     const [balances, setBalances] = useState<any>({});
@@ -21,6 +22,10 @@ export function OwnersTab({ collection, badgeId }: {
     useEffect(() => {
         async function getOwners() {
             if (collection) {
+                if (collection.collectionId === 0) {
+                    //Is preview
+                    setLoaded(true);
+                }
                 const ownersRes = await getBadgeOwners(collection?.collectionId, badgeId)
                 const badgeOwners = ownersRes.owners;
 
@@ -68,7 +73,7 @@ export function OwnersTab({ collection, badgeId }: {
                                     </div>
                                 })}
                                 {badgeOwners.length === 0 && <Empty
-                                    description="No owners found for this badge."
+                                    description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
                                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     style={{ color: PRIMARY_TEXT }}
                                 />}

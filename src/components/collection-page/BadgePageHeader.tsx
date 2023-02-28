@@ -1,9 +1,8 @@
 import { Avatar, Col, Divider, Row, Typography } from 'antd';
+import MarkdownIt from 'markdown-it';
 import { useEffect } from 'react';
-import sanitizeHtml from 'sanitize-html';
 import { BadgeMetadata } from '../../bitbadges-api/types';
 import { PRIMARY_TEXT } from '../../constants';
-import MarkdownIt from 'markdown-it';
 
 const { Text } = Typography;
 

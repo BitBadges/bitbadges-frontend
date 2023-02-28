@@ -41,7 +41,7 @@ export function UpdatableMetadataSelectStepItem(
         node: <SwitchForm
             noSelectUntilClick
             options={options}
-            onSwitchChange={(idx, name) => {
+            onSwitchChange={(_idx, name) => {
                 updatePermissions(CanUpdateUrisDigit, name === 'Yes');
             }}
         />,

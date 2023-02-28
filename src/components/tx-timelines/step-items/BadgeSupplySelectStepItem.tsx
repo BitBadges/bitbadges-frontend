@@ -1,21 +1,19 @@
+import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
-import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
 import { BadgeSupplyAndAmount, BitBadgeCollection } from "../../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../../constants";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
-import { SwitchForm } from "../form-items/SwitchForm";
 import { BadgeSupply } from "../form-items/BadgeSupplySelect";
-import { DeleteOutlined, MinusOutlined, PlusCircleOutlined, PlusOutlined, UndoOutlined } from "@ant-design/icons";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 const { Step } = Steps;
 
 export function BadgeSupplySelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
-    collection: BitBadgeCollection,
-    addingMore: boolean
+    collection: BitBadgeCollection
 ) {
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -30,8 +28,8 @@ export function BadgeSupplySelectStepItem(
     const [selectIsVisible, setSelectIsVisible] = useState(false);
 
     const [currentSupply, setCurrentSupply] = useState<BadgeSupplyAndAmount>({
-        amount: 1,
-        supply: 1
+        amount: 0,
+        supply: 0,
     });
 
     return {
@@ -39,13 +37,16 @@ export function BadgeSupplySelectStepItem(
         description: ``,
         node: <div style={{ color: PRIMARY_TEXT }}>
             <BalanceDisplay
+                hideModalBalance={true}
                 collection={collection}
-                balance={getBadgeSupplysFromMsgNewCollection(newCollectionMsg, addingMore ? collection : undefined)}
+                balance={{
+                    balances: collection.maxSupplys,
+                    approvals: []
+                }}
                 size={35}
                 message={'Badge Supplys for This Collection'}
                 showingSupplyPreview
             />
-            <br />
             {<div style={{ display: 'flex', justifyContent: 'center' }}>
                 <Tooltip title={!selectIsVisible ? 'Add More Badges' : 'Hide'}>
                     <Avatar
@@ -56,12 +57,13 @@ export function BadgeSupplySelectStepItem(
                             cursor: 'pointer',
                             margin: 10,
                         }}
+                        size={40}
                     >
-                        {!selectIsVisible ? <PlusOutlined /> : <MinusOutlined />}
+                        {!selectIsVisible ? <PlusOutlined size={40} /> : <MinusOutlined size={40} />}
                     </Avatar>
                 </Tooltip>
 
-                <Tooltip title={'Reset All'}>
+                <Tooltip title={'Remove All Added Badges'}>
                     <Avatar
                         className='screen-button'
                         onClick={() => setNewCollectionMsg({
@@ -73,8 +75,9 @@ export function BadgeSupplySelectStepItem(
                             cursor: 'pointer',
                             margin: 10,
                         }}
+                        size={40}
                     >
-                        <DeleteOutlined />
+                        <DeleteOutlined size={40} />
                     </Avatar>
                 </Tooltip>
             </div>
@@ -135,6 +138,7 @@ export function BadgeSupplySelectStepItem(
                         />
                         <Button
                             type="primary"
+                            disabled={currentSupply.amount <= 0 || currentSupply.supply <= 0}
                             onClick={() => {
                                 setNewCollectionMsg({
                                     ...newCollectionMsg,
@@ -153,6 +157,7 @@ export function BadgeSupplySelectStepItem(
                             }
                             }
                             style={{ width: '100%' }}
+
                         >
                             Add Badges
                         </Button>

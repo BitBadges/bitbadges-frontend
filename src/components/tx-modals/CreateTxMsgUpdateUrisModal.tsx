@@ -28,11 +28,21 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (txState.addMethod == MetadataAddMethod.Manual) {
             let res = await addToIpfs(txState.collectionMetadata, txState.individualBadgeMetadata);
-            txState.setNewCollectionMsg({
-                ...txState.newCollectionMsg,
+
+            setTxState({
+                ...txState,
+                newCollectionMsg: {
+                    ...txState.newCollectionMsg,
+                    collectionUri: 'ipfs://' + res.cid + '/collection',
+                    badgeUri: 'ipfs://' + res.cid + '/{id}',
+                }
+            });
+            return {
+                creator: chain.cosmosAddress,
+                collectionId: collectionId,
                 collectionUri: 'ipfs://' + res.cid + '/collection',
                 badgeUri: 'ipfs://' + res.cid + '/{id}',
-            });
+            }
         }
     }
 
@@ -63,7 +73,8 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
     return (
         <TxModal
             beforeTx={async () => {
-                await updateIPFSUris();
+                const newMsg = await updateIPFSUris();
+                return newMsg;
             }}
             msgSteps={msgSteps}
             visible={visible}

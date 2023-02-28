@@ -13,6 +13,7 @@ export function BadgeAvatar({
     balance,
     showId,
     showBalance,
+    hideModalBalance,
 }: {
     collection: BitBadgeCollection,
     metadata: BadgeMetadata,
@@ -21,6 +22,7 @@ export function BadgeAvatar({
     balance?: UserBalance,
     showId?: boolean,
     showBalance?: boolean,
+    hideModalBalance?: boolean,
 }) {
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
 
@@ -77,6 +79,7 @@ export function BadgeAvatar({
                 setVisible={setModalIsVisible}
                 balance={balance ? balance : getBlankBalance()}
                 badgeId={badgeId}
+                hideBalances={hideModalBalance}
             />
         </Tooltip>
         <div style={{ textAlign: 'center' }}>

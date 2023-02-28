@@ -13,7 +13,8 @@ export function BadgeAvatarDisplay({
     selectedId,
     showIds,
     pageSize,
-    showBalance
+    showBalance,
+    hideModalBalance
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -23,6 +24,7 @@ export function BadgeAvatarDisplay({
     selectedId?: number;
     showIds?: boolean;
     showBalance?: boolean;
+    hideModalBalance?: boolean;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
@@ -103,13 +105,14 @@ export function BadgeAvatarDisplay({
                             margin: 2
                         }}>
                             <BadgeAvatar
-                                size={size && selectedId === ids[idx + Number(startIdNum)] ? size * 1.4 : size}
+                                size={size && selectedId === ids[idx + Number(startIdNum)] ? size * 1.5 : size}
                                 collection={collection}
                                 metadata={collection.badgeMetadata[ids[idx + Number(startIdNum)]]}
                                 badgeId={ids[idx + Number(startIdNum)]}
                                 balance={userBalance}
                                 showId={showIds}
                                 showBalance={showBalance}
+                                hideModalBalance={hideModalBalance}
                             />
                         </div>
                     })

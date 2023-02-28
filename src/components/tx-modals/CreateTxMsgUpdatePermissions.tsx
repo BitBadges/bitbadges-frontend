@@ -39,7 +39,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
         {
             title: 'Select Permissions To Update',
             description: <>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Freeze / Unfreeze Addresses (Edit Transferability)
                     <div>
                         <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
@@ -49,7 +49,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         </Tooltip>
                     </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Add More Badges to Collection
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
@@ -57,7 +57,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         }} />
                     </Tooltip>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Update Metadata URLs
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
@@ -65,7 +65,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         }} />
                     </Tooltip>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Update Bytes
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
@@ -73,7 +73,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         }} />
                     </Tooltip>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Transfer the Manager Role
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
@@ -102,7 +102,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgUpdatePermissions}
             onSuccessfulTx={async () => {
-                collections.refreshCollection(collection.collectionId);
+                await collections.refreshCollection(collection.collectionId);
             }}
         >
             {children}

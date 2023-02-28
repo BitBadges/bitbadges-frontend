@@ -1,5 +1,5 @@
 //TODO: clean up a lot and insert into bitbadges-js
-import { GetIdRangeToInsert, GetIdRangesToInsertToStorage, GetIdRangesWithOmitEmptyCaseHandled, GetIdxSpanForRange, GetIdxToInsertForNewId, InsertRangeToIdRanges, NormalizeIdRange, RemoveIdsFromIdRange, SortIdRangesAndMergeIfNecessary } from "./idRanges";
+import { GetIdRangeToInsert, GetIdRangesToInsertToStorage, GetIdRangesWithOmitEmptyCaseHandled, GetIdxSpanForRange, InsertRangeToIdRanges, NormalizeIdRange, RemoveIdsFromIdRange, SortIdRangesAndMergeIfNecessary } from "./idRanges";
 import { Balance, IdRange, UserBalance } from "./types";
 
 // Safe adds two uint64s and returns an error if the result overflows uint64.

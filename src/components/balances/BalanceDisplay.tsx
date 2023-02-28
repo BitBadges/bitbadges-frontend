@@ -8,13 +8,15 @@ export function BalanceDisplay({
     balance,
     message,
     size,
-    showingSupplyPreview
+    showingSupplyPreview,
+    hideModalBalance
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
     message?: string;
     size?: number;
     showingSupplyPreview?: boolean;
+    hideModalBalance?: boolean;
 }) {
     const badgeIds = [];
     for (const balanceAmount of balance.balances) {
@@ -77,6 +79,7 @@ export function BalanceDisplay({
                         pageSize={30}
                         showBalance
                         size={size ? size : 50}
+                        hideModalBalance={hideModalBalance}
                     />
                 </div>}
 

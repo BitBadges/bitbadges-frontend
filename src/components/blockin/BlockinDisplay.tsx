@@ -1,14 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react"
-import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext"
-import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api"
-import { BlockinUIDisplay } from 'blockin/dist/ui';
-import { ChallengeParams, constructChallengeObjectFromString, SignAndVerifyChallengeResponse, SupportedChainMetadata } from 'blockin';
-import { PRIMARY_TEXT } from "../../constants";
-import { Address } from "../address/Address";
-import Blockies from 'react-blockies'
 import { Avatar, Typography, notification } from "antd";
+import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
+import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
+import { useEffect, useState } from "react";
+import Blockies from 'react-blockies';
+import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api";
+import { PRIMARY_TEXT } from "../../constants";
+import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 
 const { Text } = Typography;
@@ -120,7 +119,7 @@ export const BlockinDisplay = ({
                             console.error("ERROR", e);
                             notification.error({
                                 message: e.message,
-                                description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This usually happens when you are not signed in to MetaMask before attempting to connect.' : ''}`
+                                description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This usually happens when you are not signed in to your wallet before attempting to connect.' : ''}`
                             })
                         }
                     }}

@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BadgeMetadata, BadgeMetadataMap, Balance, BitBadgeCollection, ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
+import { Balance, BitBadgeCollection, ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 import { CreateClaims } from "../form-items/CreateClaims";
 
 export function CreateClaimsStepItem(
@@ -9,8 +9,6 @@ export function CreateClaimsStepItem(
     distributionMethod: DistributionMethod,
     claimItems: ClaimItem[],
     setClaimItems: (claimItems: ClaimItem[]) => void,
-    individualBadgeMetadata: BadgeMetadataMap,
-    collectionMetadata: BadgeMetadata,
     balancesToDistribute?: Balance[],
 ) {
     return {
@@ -23,8 +21,6 @@ export function CreateClaimsStepItem(
             distributionMethod={distributionMethod}
             claimItems={claimItems}
             setClaimItems={setClaimItems}
-            individualBadgeMetadata={individualBadgeMetadata}
-            collectionMetadata={collectionMetadata}
             balancesToDistribute={balancesToDistribute}
         />,
         disabled: claimItems.length == 0

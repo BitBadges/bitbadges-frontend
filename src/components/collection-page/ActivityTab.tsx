@@ -1,10 +1,10 @@
 import { Collapse, Divider, Empty, Pagination } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { filterBadgeActivityForBadgeId } from '../../bitbadges-api/badges';
 import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../bitbadges-api/types';
-import { DEV_MODE, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 
@@ -97,7 +97,9 @@ export function ActivityTab({ collection, badgeId }: {
 
 
 
-                <Collapse style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, width: '100%' }}>
+                <Collapse style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, width: '100%', alignItems: 'center' }}
+                    expandIconPosition='start'
+                >
                     {activity.map((activity, idx) => {
                         if (!(idx >= startIdNum && idx <= endIdNum)) return <></>;
                         return <CollapsePanel
@@ -110,7 +112,7 @@ export function ActivityTab({ collection, badgeId }: {
                                         />)}
                                     </div>
                                     <b style={{ marginRight: 8 }}>to</b>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <div style={{ flexDirection: 'column' }}>
                                         {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
                                             userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
                                         />)}

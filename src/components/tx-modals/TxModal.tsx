@@ -1,16 +1,16 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Divider, Modal, StepProps, Steps, Typography, notification } from 'antd';
+import { Checkbox, Divider, Modal, StepProps, Steps, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useState } from 'react';
 import { getStatus } from '../../bitbadges-api/api';
 import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { getAbbreviatedAddress } from '../../bitbadges-api/chains';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
 import { TransactionStatus } from '../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
-import { AddressDisplay } from '../address/AddressDisplay';
+import { AddressDisplay, AddressDisplayList } from '../address/AddressDisplay';
 
 const { Step } = Steps;
 
@@ -30,7 +30,7 @@ export function TxModal(
         unregisteredUsers?: string[],
         onRegister?: () => void,
         onSuccessfulTx?: () => Promise<void>,
-        beforeTx?: () => Promise<void>,
+        beforeTx?: () => Promise<any>,
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
         width?: number | string
@@ -38,8 +38,11 @@ export function TxModal(
 ) {
     if (!msgSteps) msgSteps = [];
     const chain = useChainContext();
+    const accounts = useAccountsContext();
     const router = useRouter();
 
+    const [checked, setChecked] = useState(false);
+    const [irreversibleChecked, setIrreversibleChecked] = useState(false);
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
@@ -53,7 +56,10 @@ export function TxModal(
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
         try {
-            if (beforeTx) await beforeTx();
+            if (beforeTx) {
+                let newMsg = await beforeTx();
+                if (newMsg) cosmosMsg = newMsg;
+            }
 
             //Sign and broadcast transaction
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);
@@ -173,7 +179,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length,
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked)),
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
@@ -219,20 +225,18 @@ export function TxModal(
                                     }
 
                                     <br />
+
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+
+
+
+
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            Please confirm all transaction details are correct before signing
-                                            because blockchain transactions are permanent!
-                                        </Typography.Text>
-                                        <Divider />
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            By clicking the button below, you will be prompted to sign and submit a transaction
-                                            from the address displayed below.
+                                            This transaction is to be signed by the following address:
                                         </Typography.Text>
 
 
                                     </div>
-                                    <br />
                                     <br />
                                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                                         <AddressDisplay
@@ -248,15 +252,45 @@ export function TxModal(
                                             darkMode
                                         />
                                     </div>
+                                    <Divider />
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                            By checking the box below, I confirm that I have verified all transaction details are correct.
+                                        </Typography.Text>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Checkbox
+                                            checked={checked}
+                                            onChange={(e) => setChecked(e.target.checked)}
+                                        />
+                                    </div>
+                                    <br />
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                            By checking the box below, I understand that this transaction is irreversible.
+                                        </Typography.Text>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Checkbox
+                                            checked={irreversibleChecked}
+                                            onChange={(e) => setIrreversibleChecked(e.target.checked)}
+                                        />
+                                    </div>
                                 </>}
                                 {
                                     unregisteredUsers && unregisteredUsers.length > 0 &&
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            The following addresses ({unregisteredUsers.map((address) => getAbbreviatedAddress(address)).join(", ")}) are not currently registered on the BitBadges blockchain!
-                                            To proceed, we first need to register them which is a one-time transaction.
-                                            You will not need to register these addresses again.
+                                            Before proceeding with this transaction, we need to register the following addresses
+                                            because they have not interacted with BitBadges yet.
                                         </Typography.Text>
+                                        <Divider />
+                                        <AddressDisplayList
+                                            title={'Unregistered Addresses'}
+                                            users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
+                                            fontColor={PRIMARY_TEXT}
+                                        />
                                     </div>
                                 }</div>}
                         </div>
@@ -265,20 +299,24 @@ export function TxModal(
                 />
             </Steps>
 
-            {error && <div>
-                <hr />
-                <div style={{ color: 'red' }}>
-                    Oops! {error}
+            {
+                error && <div>
+                    <hr />
+                    <div style={{ color: 'red' }}>
+                        Oops! {error}
+                    </div>
                 </div>
-            </div>}
+            }
 
 
-            {DEV_MODE && <>
-                <hr />
-                <pre>
-                    {JSON.stringify(txCosmosMsg, null, 2)}
-                </pre>
-            </>}
-        </Modal>
+            {
+                DEV_MODE && <>
+                    <hr />
+                    <pre>
+                        {JSON.stringify(txCosmosMsg, null, 2)}
+                    </pre>
+                </>
+            }
+        </Modal >
     );
 }

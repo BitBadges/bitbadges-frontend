@@ -1,8 +1,11 @@
-import { Chain, MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { GO_MAX_UINT_64 } from "../constants";
 import { ChainContextType } from "../contexts/ChainContext";
 import { GetPermissions } from "./permissions";
-import { ActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, IdRange, TransferMapping } from "./types";
-import { GO_MAX_UINT_64 } from "../constants";
+import { ActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, TransferMapping, UserBalance } from "./types";
+import MerkleTree from "merkletreejs";
+import { SHA256 } from "crypto-js";
+import { getPostTransferBalance } from "./balances";
 
 export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
     return activity.filter((x) => {
@@ -31,64 +34,99 @@ export function createCollectionFromMsgNewCollection(
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: BadgeMetadataMap,
     chain: ChainContextType,
-    collection?: BitBadgeCollection
+    claimItems: ClaimItem[],
+    distributionMethod: DistributionMethod,
+    existingCollection?: BitBadgeCollection,
 ) {
-    let nextBadgeId = 1;
+    let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
+    let newMaxSupplys = existingCollection?.maxSupplys ? [...existingCollection.maxSupplys] : [];
+    let newUnmintedSupplys = existingCollection?.unmintedSupplys ? [...existingCollection.unmintedSupplys] : [];
+    console.log("NEW UNMINTED SUPPLYS 1", JSON.stringify(newUnmintedSupplys));
     for (const supplyObj of msgNewCollection.badgeSupplys) {
         nextBadgeId += supplyObj.amount;
+        newMaxSupplys.push({
+            balance: supplyObj.supply,
+            badgeIds: [{
+                start: nextBadgeId - supplyObj.amount,
+                end: nextBadgeId - 1,
+            }]
+        })
+        newUnmintedSupplys.push({
+            balance: supplyObj.supply,
+            badgeIds: [{
+                start: nextBadgeId - supplyObj.amount,
+                end: nextBadgeId - 1,
+            }]
+        })
     }
+
+    console.log("NEW UNMINTED SUPPLYS 2", JSON.stringify(newUnmintedSupplys));
+
+    let unmintedBalances: UserBalance = {
+        balances: newUnmintedSupplys,
+        approvals: [],
+    };
+
+    for (const transfer of msgNewCollection.transfers) {
+        for (const _ of transfer.toAddresses) {
+            for (const balance of transfer.balances) {
+                for (const badgeId of balance.badgeIds) {
+                    console.log("TRANSFER", badgeId.start, badgeId.end, balance.balance, 1);
+                    unmintedBalances = getPostTransferBalance(unmintedBalances, badgeId.start, badgeId.end, balance.balance, 1);
+                }
+            }
+        }
+    }
+
+
+
+    const newClaims = [...existingCollection?.claims ? existingCollection.claims : [], ...msgNewCollection.claims.map((x) => {
+        return {
+            ...x,
+            leaves: claimItems.map((y) => y.fullCode),
+            distributionMethod,
+            tree: new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
+        }
+    })];
+
+    for (const claim of msgNewCollection.claims) {
+        for (const balance of claim.balances) {
+            for (const badgeId of balance.badgeIds) {
+                console.log("CLAIM", badgeId.start, badgeId.end, balance.balance, 1);
+                unmintedBalances = getPostTransferBalance(unmintedBalances, badgeId.start, badgeId.end, balance.balance, 1);
+            }
+        }
+    }
+
+    console.log("NEW UNMINTED SUPPLYS 3", JSON.stringify(unmintedBalances));
 
     const badgeCollection: BitBadgeCollection = {
         ...msgNewCollection,
-        collectionId: collection?.collectionId ? collection.collectionId : 0,
-        manager: {
+        collectionId: existingCollection?.collectionId ? existingCollection.collectionId : 0,
+        manager: existingCollection?.manager ? existingCollection.manager : {
             chain: chain.chain,
             accountNumber: chain.accountNumber,
             address: chain.address,
             cosmosAddress: chain.cosmosAddress,
         },
-        nextBadgeId: nextBadgeId > 1 ? nextBadgeId : collection?.nextBadgeId ? collection?.nextBadgeId : 1,
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
-        unmintedSupplys: collection?.unmintedSupplys ? collection.unmintedSupplys : [],
-        maxSupplys: collection?.maxSupplys ? collection.maxSupplys : [],
+        //The next three are fine because we only show pre
         permissions: GetPermissions(msgNewCollection.permissions),
-        disallowedTransfers: [],
-        managerApprovedTransfers: [],
-        claims: [],
+        disallowedTransfers: msgNewCollection?.disallowedTransfers ? msgNewCollection.disallowedTransfers : existingCollection?.disallowedTransfers ? existingCollection.disallowedTransfers : [],
+        managerApprovedTransfers: msgNewCollection?.managerApprovedTransfers ? msgNewCollection.managerApprovedTransfers : existingCollection?.managerApprovedTransfers ? existingCollection.managerApprovedTransfers : [],
         activity: [],
         usedClaims: [],
-        originalClaims: [],
         managerRequests: [],
-        balances: {},
+        nextBadgeId: nextBadgeId,
+        claims: newClaims,
+        originalClaims: newClaims,
+        unmintedSupplys: unmintedBalances.balances,
+        maxSupplys: newMaxSupplys,
+        balances: {}, //Can support this later
     }
 
-    return badgeCollection;
-}
 
-export function createCollectionFromMsgMintBadge(
-    msgNewCollection: MessageMsgNewCollection,
-    currCollection: BitBadgeCollection,
-    collectionMetadata: BadgeMetadata,
-    individualBadgeMetadata: BadgeMetadataMap
-) {
-    let nextBadgeId = 1;
-    for (const supplyObj of msgNewCollection.badgeSupplys) {
-        nextBadgeId += supplyObj.amount;
-    }
-
-    const badgeCollection: BitBadgeCollection = {
-        ...currCollection,
-        nextBadgeId: nextBadgeId > 1 ? nextBadgeId : currCollection?.nextBadgeId ? currCollection?.nextBadgeId : 1,
-        badgeMetadata: individualBadgeMetadata,
-        collectionMetadata: collectionMetadata,
-        unmintedSupplys: [],
-        maxSupplys: [],
-        permissions: GetPermissions(msgNewCollection.permissions),
-        disallowedTransfers: [],
-        managerApprovedTransfers: [],
-        claims: [],
-    }
 
     return badgeCollection;
 }

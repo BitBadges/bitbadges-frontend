@@ -113,6 +113,6 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
                 incrementIdsBy: 0,
                 badgeIds: [],
             }
-        ]
+        ],
     }
 }

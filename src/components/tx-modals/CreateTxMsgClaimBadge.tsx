@@ -11,7 +11,7 @@ export function CreateTxMsgClaimBadgeModal(
         collection, visible, setVisible, children, claimId, code, refreshUserBalance
     }: {
         collection: BitBadgeCollection | undefined,
-        refreshUserBalance: () => void
+        refreshUserBalance: () => Promise<void>,
         visible: boolean,
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
@@ -49,7 +49,7 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
-            onSuccessfulTx={async () => { collections.refreshCollection(collection.collectionId); refreshUserBalance(); }}
+            onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
         >
             {children}
         </TxModal>

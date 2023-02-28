@@ -96,7 +96,7 @@ export function SearchDropdown({
                         />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {result.accountNumber ? 'ID: ' + result.accountNumber : 'Unregistered'}
+                        {result.accountNumber && result.accountNumber >= 0 ? 'ID: ' + result.accountNumber : 'Unregistered'}
                     </div>
                 </div>
             </Menu.Item>

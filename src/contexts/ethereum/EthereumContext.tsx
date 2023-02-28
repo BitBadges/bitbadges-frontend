@@ -67,23 +67,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [accountNumber, setAccountNumber] = useState<number>(-1);
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
 
-    const resolveAddressToENS = async (address: string) => {
-        // if (address) {
-        //     const ensAddress = await ethers.getDefaultProvider('homestead', { quorum: 1 }).lookupAddress(address);
-        //     if (ensAddress) return ensAddress;
-        // }
-        return undefined;
-    }
-
-    const resolveENSFromAddress = async (name: string) => {
-        // if (name) {
-        //     const address = await ethers.getDefaultProvider('homestead', { quorum: 1 }).resolveName(name);
-        //     if (address) return address;
-        // }
-        return undefined;
-    }
-
-    const selectedChainInfo = { getNameForAddress: resolveAddressToENS, getAddressForName: resolveENSFromAddress };
+    const selectedChainInfo = {};
     const displayedResources: PresetResource[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
 
     //If you would like to support this, you can call this with a useEffect every time connected or address is updated

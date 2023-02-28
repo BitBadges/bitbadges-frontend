@@ -16,7 +16,7 @@ export function DistributeTimeline({
 }) {
     const newCollectionMsg = txTimelineProps.newCollectionMsg;
     const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
-    const collection = txTimelineProps.existingCollection;
+    const collection = txTimelineProps.simulatedCollection;
     const distributionMethod = txTimelineProps.distributionMethod;
     const setDistributionMethod = txTimelineProps.setDistributionMethod;
     const claimItems = txTimelineProps.claimItems;
@@ -33,9 +33,9 @@ export function DistributeTimeline({
         <FormTimeline
             items={[
                 DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, true, true),
-                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible) ? FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible, nonFungible) : EmptyStepItem,
+                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible) ? FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible) : EmptyStepItem,
                 distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
-                    ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, collection.badgeMetadata, collection.collectionMetadata, collection.unmintedSupplys) : EmptyStepItem,
+                    ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, collection.unmintedSupplys) : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod) : EmptyStepItem,
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
                     ? DownloadCodesStep : EmptyStepItem,

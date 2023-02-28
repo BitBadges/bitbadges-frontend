@@ -2,7 +2,7 @@ import { Divider, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getPortfolio } from '../../bitbadges-api/api';
-import { convertToCosmosAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { isAddressValid } from '../../bitbadges-api/chains';
 import { GetPortfolioResponse } from '../../bitbadges-api/routes';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { CollectionDisplay } from '../../components/collections/CollectionDisplay';

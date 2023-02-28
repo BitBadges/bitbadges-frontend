@@ -1,26 +1,28 @@
-import { InfoCircleOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
 import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
 import { CollectionOverview } from "./CollectionInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { PRIMARY_TEXT } from "../../constants";
 
 export function OverviewTab({
     collection,
     refreshUserBalance,
     userBalance,
-    setTab
+    setTab,
+    isPreview
 }: {
     collection: BitBadgeCollection | undefined;
-    refreshUserBalance: () => void;
+    refreshUserBalance: () => Promise<void>;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
+    isPreview?: boolean;
 }) {
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
@@ -41,6 +43,7 @@ export function OverviewTab({
                 collection={collection}
                 userBalance={userBalance}
                 badgeIds={getFullBadgeIdRanges(collection)}
+                hideModalBalance={isPreview}
             />
         </InformationDisplayCard>
         <br />
@@ -115,6 +118,7 @@ export function OverviewTab({
                 balance={userBalance}
                 span={13}
                 setTab={setTab}
+                isPreview={isPreview}
             />
         </Row>
     </>

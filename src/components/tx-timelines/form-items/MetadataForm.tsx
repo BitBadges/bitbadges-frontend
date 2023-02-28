@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
-import { BadgeMetadata, BadgeMetadataMap, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
@@ -15,6 +15,7 @@ const { Text } = Typography;
 const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
+const DELAY_TIME = 450;
 
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
@@ -24,14 +25,18 @@ export function MetadataForm({
 
     id,
     newCollectionMsg,
-    setNewCollectionMsg
+    setNewCollectionMsg,
+    populateAllWithCollectionMetadata,
+    populateAllWithCurrentMetadata,
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
-    metadata: BadgeMetadata | BadgeMetadataMap;
-    setMetadata: (metadata: BadgeMetadata | BadgeMetadataMap) => void;
+    metadata: BadgeMetadata;
+    setMetadata: (metadata: BadgeMetadata) => void;
     id?: number;
     addMethod: MetadataAddMethod;
+    populateAllWithCollectionMetadata?: () => BadgeMetadata;
+    populateAllWithCurrentMetadata?: () => void;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
@@ -60,26 +65,13 @@ export function MetadataForm({
         setName(event.target.value);
     };
 
-    const [currentMetadata, setCurrentMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
+    const [currentMetadata, setCurrentMetadata] = useState(metadata);
 
-    const getMetadataToUpdate = (newMetadata: BadgeMetadata) => {
-        setCurrentMetadata(newMetadata);
-
-        if (!isNaN(Number(id)) && Number(id) >= 0) {
-            let currMetadata: BadgeMetadataMap = metadata as BadgeMetadataMap;
-            currMetadata[Number(id)] = newMetadata;
-            return currMetadata;
-        } else {
-            return newMetadata;
-        }
-    }
-
-    let stringifiedMetadata = JSON.stringify(metadata);
     useEffect(() => {
-        const m = !isNaN(Number(id)) && Number(id) >= 0 ? (metadata as BadgeMetadataMap)[Number(id)] : metadata as BadgeMetadata;
-        setCurrentMetadata(m);
+        setCurrentMetadata(metadata);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
-    }, [metadata, stringifiedMetadata, id, images])
 
     const props: UploadProps = {
         showUploadList: false,
@@ -97,7 +89,8 @@ export function MetadataForm({
 
             if (info.file.status === 'done') {
                 message.success(`${info.file.name} file uploaded successfully. ${JSON.stringify(info.file.url)}`);
-                const base64Image = file2Base64(info.file.originFileObj as File).then((base64) => {
+                //TODO: this is async should we await
+                file2Base64(info.file.originFileObj as File).then((base64) => {
                     console.log(base64);
                     setImages([
                         ...images,
@@ -106,10 +99,10 @@ export function MetadataForm({
                             label: info.file.url ? info.file.url : info.file.name,
                         },
                     ]);
-                    setMetadata(getMetadataToUpdate({
+                    setMetadata({
                         ...currentMetadata,
                         image: base64
-                    }));
+                    });
                 })
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed. ${JSON.stringify(info.file)}}`);
@@ -127,12 +120,26 @@ export function MetadataForm({
     }
 
     function handleEditorChange({ html, text }: any) {
-        console.log('handleEditorChange', html, text);
-        setMetadata(getMetadataToUpdate({
+        setCurrentMetadata({
             ...currentMetadata,
             description: text
-        }));
+        });
+        console.log('handleEditorChange', html, text);
     }
+
+
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            setMetadata({
+                ...currentMetadata,
+            });
+        }, DELAY_TIME)
+        console.log(delayDebounceFn);
+
+        return () => clearTimeout(delayDebounceFn)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentMetadata])
 
     return (
         <>
@@ -146,8 +153,58 @@ export function MetadataForm({
                         });
                     }} />
                 </>}
-                {addMethod === MetadataAddMethod.Manual && <>
+                {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
+
                     <br />
+                    {id && <>
+
+                        <Form.Item
+                            label={
+                                <Text
+
+                                    style={{ color: PRIMARY_TEXT }}
+                                    strong
+                                >
+                                    Shortcuts
+                                </Text>
+                            }
+                        >
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, width: '48%' }}
+                                    onClick={() => {
+                                        if (populateAllWithCollectionMetadata) {
+                                            const collectionMetadata = populateAllWithCollectionMetadata();
+                                            setCurrentMetadata(collectionMetadata);
+                                        }
+                                        // let newMetadata: BadgeMetadataMap = {
+
+                                        // };
+                                        // for (const key of Object.keys(individualBadgeMetadata)) {
+                                        //     newMetadata[key] = collectionMetadata;
+                                        // }
+
+                                        // setIndividualBadgeMetadata(newMetadata);
+                                    }}>Populate All with Collection Metadata</Button>
+                                <Button
+                                    style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, width: '48%' }}
+                                    onClick={() => {
+                                        if (populateAllWithCurrentMetadata) {
+                                            populateAllWithCurrentMetadata();
+                                        }
+                                        // let newMetadata: BadgeMetadataMap = {};
+                                        // for (const key of Object.keys(individualBadgeMetadata)) {
+                                        //     newMetadata[key] = individualBadgeMetadata[id];
+                                        // }
+
+                                        // setIndividualBadgeMetadata(newMetadata);
+                                    }}>{`Populate All with Badge ID ${id}'s Metadata`}</Button>
+                            </div>
+                        </Form.Item>
+
+                        <br />
+                        <br />
+                    </>}
                     <Form.Item
                         label={
                             <Text
@@ -162,10 +219,10 @@ export function MetadataForm({
                         <Input
                             value={currentMetadata.name}
                             onChange={(e: any) => {
-                                setMetadata(getMetadataToUpdate({
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     name: e.target.value
-                                }));
+                                });
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -188,10 +245,10 @@ export function MetadataForm({
                             className="selector"
                             value={currentMetadata.image}
                             onChange={(e) => {
-                                setMetadata(getMetadataToUpdate({
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     image: e
-                                }));
+                                });
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -258,10 +315,11 @@ export function MetadataForm({
                             value={currentMetadata.category}
                             placeholder="Default: None"
                             onChange={(e: any) => {
-                                setMetadata(getMetadataToUpdate({
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     category: e
-                                }));
+                                });
+
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -327,10 +385,10 @@ export function MetadataForm({
                         {/* <Input.TextArea
                             value={currentMetadata.description}
                             onChange={(e) => {
-                                setMetadata(getMetadataToUpdate({
+                                setMetadata({
                                     ...currentMetadata,
                                     description: e.target.value
-                                }));
+                                });
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -355,10 +413,10 @@ export function MetadataForm({
                             className="selector"
                             defaultValue={currentMetadata.color}
                             onSelect={(e: any) => {
-                                setMetadata(getMetadataToUpdate({
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     color: e
-                                }));
+                                });
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -433,10 +491,10 @@ export function MetadataForm({
                         <Input
                             value={currentMetadata.externalUrl}
                             onChange={(e) => {
-                                setMetadata(getMetadataToUpdate({
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     externalUrl: e.target.value
-                                }));
+                                });
                             }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
@@ -472,14 +530,14 @@ export function MetadataForm({
                                     }}
                                 />
                             }
-                            onChange={(date, dateString) => {
-                                setMetadata(getMetadataToUpdate({
+                            onChange={(_date, dateString) => {
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     validFrom: {
                                         start: Date.now() / 1000,
                                         end: new Date(dateString).valueOf() / 1000,
                                     }
-                                }));
+                                });
                             }}
                         />
                     </Form.Item>
@@ -497,11 +555,12 @@ export function MetadataForm({
                     >
                         <Input
                             value={currentMetadata.tags}
-                            onChange={(e) =>
-                                setMetadata({
+                            onChange={(e) => {
+                                setCurrentMetadata({
                                     ...currentMetadata,
                                     tags: e.target.value.split(','),
-                                })}
+                                })
+                            }}
                             style={{
                                 backgroundColor: PRIMARY_BLUE,
                                 color: PRIMARY_TEXT,
@@ -514,7 +573,7 @@ export function MetadataForm({
                         </div>
                     </Form.Item>
 
-                </>}
+                </Form>}
             </div>
         </>
     );

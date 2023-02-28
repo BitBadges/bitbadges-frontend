@@ -196,7 +196,7 @@ export function ClaimDisplay({
                                         ]}
                                         transfers={[
                                             {
-                                                toAddresses: [accounts.accountNumbers[currLeaf.address]],
+                                                toAddresses: [accounts.accounts[accounts.cosmosAddresses[currLeaf.address]]?.accountNumber],
                                                 balances: [{
                                                     balance: currLeaf.amount,
                                                     badgeIds: currLeaf.badgeIds,

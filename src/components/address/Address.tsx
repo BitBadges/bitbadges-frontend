@@ -1,11 +1,11 @@
-import { Popover, Tooltip, Typography } from 'antd';
-import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
-import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { SupportedChain } from '../../bitbadges-api/types';
-import { AddressDisplay } from './AddressDisplay';
+import { Tooltip, Typography } from 'antd';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
+import { useRouter } from 'next/router';
+import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { SupportedChain } from '../../bitbadges-api/types';
+import { MINT_ACCOUNT, PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
+import { AddressDisplay } from './AddressDisplay';
 
 const { Text } = Typography;
 
@@ -34,9 +34,9 @@ export function Address({
 
 
     let displayAddress = addressName && doesChainMatchName ? addressName : getAbbreviatedAddress(address);
-    
+
     let isValidAddress = isAddressValid(address);
-    const accountNumber = accounts.accounts[accounts.cosmosAddresses[address]]?.accountNumber;
+    const accountNumber = accounts.accounts[accounts.cosmosAddresses[address]]?.accountNumber || -1;
 
     const innerContent = !hideTooltip ? (
         <Tooltip

@@ -34,7 +34,6 @@ export const EmptyStepItem = {
 
 export interface TxTimelineProps {
     txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
-    existingCollection: BitBadgeCollection
     newCollectionMsg: MessageMsgNewCollection
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void
     collectionMetadata: BadgeMetadata
@@ -76,8 +75,26 @@ export function TxTimeline({
 
     // Get badge collection information
     useEffect(() => {
-        if (!collectionId) return;
-        collections.fetchCollections([collectionId], true);
+        async function fetchCollection() {
+            if (!collectionId) return;
+            const fetchedCollections = await collections.fetchCollections([collectionId], true);
+            const fetchedCollection = fetchedCollections[0];
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                creator: chain.cosmosAddress,
+                badgeUri: '',
+                collectionUri: '',
+                bytes: fetchedCollection.bytes,
+                permissions: 0, //We never change permissions except for NewCollectionTimeline so this is fine
+                standard: fetchedCollection.standard,
+                badgeSupplys: [],
+                transfers: [],
+                disallowedTransfers: fetchedCollection.disallowedTransfers,
+                claims: [],
+                managerApprovedTransfers: fetchedCollection.managerApprovedTransfers,
+            });
+        }
+        fetchCollection();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectionId]);
 
@@ -146,8 +163,13 @@ export function TxTimeline({
         setHackyUpdatedFlag(!hackyUpdatedFlag);
     }
 
+
     //This simulates a BitBadgeCollection object representing what the collection will look like after creation (used for compatibility) 
-    const simulatedCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, existingCollection);
+    const [simulatedCollection, setSimulatedCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod, existingCollection));
+    useEffect(() => {
+        setSimulatedCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod, existingCollection));
+    }, [newCollectionMsg, collectionMetadata, individualBadgeMetadata, claimItems, distributionMethod, existingCollection, hackyUpdatedFlag, chain])
+
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
@@ -179,7 +201,6 @@ export function TxTimeline({
 
     const txTimelineProps: TxTimelineProps = {
         txType,
-        existingCollection: existingCollection ? existingCollection : simulatedCollection,
         simulatedCollection,
         newCollectionMsg,
         setNewCollectionMsg,

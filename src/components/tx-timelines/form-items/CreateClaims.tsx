@@ -1,19 +1,16 @@
+import { DeleteOutlined } from '@ant-design/icons';
 import { Collapse, Divider, Empty, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
-import { createCollectionFromMsgNewCollection } from '../../../bitbadges-api/badges';
-import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { createClaim, getClaimsValueFromClaimItems } from '../../../bitbadges-api/claims';
-import { BadgeMetadata, BadgeMetadataMap, Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
-import { useChainContext } from '../../../contexts/ChainContext';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { TransferDisplay } from '../../transfers/TransferDisplay';
 import { TransferSelect } from '../../transfers/TransferSelect';
-import { DeleteOutlined } from '@ant-design/icons';
 
 const crypto = require('crypto');
 
@@ -26,8 +23,6 @@ export function CreateClaims({
     distributionMethod,
     claimItems,
     setClaimItems,
-    collectionMetadata,
-    individualBadgeMetadata,
     balancesToDistribute
 }: {
     collection: BitBadgeCollection;
@@ -36,18 +31,18 @@ export function CreateClaims({
     distributionMethod: DistributionMethod;
     claimItems: ClaimItem[];
     setClaimItems: (leaves: ClaimItem[]) => void;
-    collectionMetadata: BadgeMetadata;
-    individualBadgeMetadata: BadgeMetadataMap;
     balancesToDistribute?: Balance[];
 }) {
-    const chain = useChainContext();
-    const badgeCollection = createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, collection);
+    const badgeCollection = collection;
 
     const [claimBalances, setClaimBalances] = useState<UserBalance>(
         balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
-        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg));
+        } : {
+            balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
+            approvals: []
+        });
 
     const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>(claimItems ?
         claimItems.map((x) => ({
@@ -71,7 +66,10 @@ export function CreateClaims({
         const balance = balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
-        } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)
+        } : {
+            balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
+            approvals: []
+        };
 
         const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
 
@@ -93,8 +91,6 @@ export function CreateClaims({
                     leafItemsToAdd.push(createClaim(crypto.randomBytes(32).toString('hex'), '', transfer.balances[0]?.balance, transfer.balances[0]?.badgeIds, -1, {} as BitBadgesUserInfo));
                 }
             }
-
-
         } else {
             for (const transfer of newTransfers) {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
@@ -251,11 +247,15 @@ export function CreateClaims({
                     userBalance={balancesToDistribute ? {
                         balances: JSON.parse(JSON.stringify(balancesToDistribute)),
                         approvals: [],
-                    } : getBadgeSupplysFromMsgNewCollection(newCollectionMsg)}
+                    } : {
+                        balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
+                        approvals: []
+                    }}
                     distributionMethod={distributionMethod}
                     sender={MINT_ACCOUNT}
                     collection={badgeCollection}
                     hideTransferDisplay={true}
+                    isWhitelist
                 />
             </div>
         </div>

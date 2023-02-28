@@ -4,6 +4,7 @@ import { getAccounts } from '../bitbadges-api/api';
 import { AccountMap, BitBadgesUserInfo, CosmosAccountInformation } from '../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
 import { MINT_ACCOUNT } from '../constants';
+import { notification } from 'antd';
 
 export type AccountsContextType = {
     accounts: AccountMap,
@@ -46,93 +47,134 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     const [cosmosAddressesByAccountNames, setCosmosAddressesByAccountNames] = useState<{ [name: string]: string }>({});
 
     const setAccounts = async (fetchedAccounts: CosmosAccountInformation[]) => {
-        for (const accountInfo of fetchedAccounts) {
-            setAccountsMap({
-                ...accounts,
-                [accountInfo.cosmosAddress]: convertToBitBadgesUserInfo(accountInfo)
-            });
+        let newAccountsMap = { ...accounts };
+        let newCosmosAddresses = { ...cosmosAddresses };
+        let newCosmosAddressesByAccountNumbers = { ...cosmosAddressesByAccountNumbers };
+        let newCosmosAddressesByAccountNames = { ...cosmosAddressesByAccountNames };
 
-            setCosmosAddresses({
-                ...cosmosAddresses,
+        for (const accountInfo of fetchedAccounts) {
+            newAccountsMap = {
+                ...newAccountsMap,
+                [accountInfo.cosmosAddress]: convertToBitBadgesUserInfo(accountInfo)
+            };
+
+            newCosmosAddresses = {
+                ...newCosmosAddresses,
                 [accountInfo.address]: accountInfo.cosmosAddress,
                 [accountInfo.cosmosAddress]: accountInfo.cosmosAddress
-            });
+            };
 
-            setCosmosAddressesByAccountNumbers({
-                ...cosmosAddressesByAccountNumbers,
+            newCosmosAddressesByAccountNumbers = {
+                ...newCosmosAddressesByAccountNumbers,
                 [`${accountInfo.account_number}`]: accountInfo.cosmosAddress,
-            });
+            };
+
+
 
             if (accountInfo.name) {
-                setCosmosAddressesByAccountNames({
-                    ...cosmosAddressesByAccountNames,
+                newCosmosAddressesByAccountNames = {
+                    ...newCosmosAddressesByAccountNames,
                     [accountInfo.name]: accountInfo.cosmosAddress,
-                });
+                };
+
             }
         }
+
+        setAccountsMap(newAccountsMap);
+        setCosmosAddresses(newCosmosAddresses);
+        setCosmosAddressesByAccountNumbers(newCosmosAddressesByAccountNumbers);
+        setCosmosAddressesByAccountNames(newCosmosAddressesByAccountNames);
     }
 
 
     const fetchAccounts = async (accountsToFetch: string[], forceful?: boolean) => {
-        accountsToFetch = [...new Set(accountsToFetch)]; //remove duplicates
-        const accountsToFetchFromDB = [];
-        for (const account of accountsToFetch) {
-            const isName = cosmosAddressesByAccountNames[account] !== undefined;
-            const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
 
-            if (forceful || emptyEntry) {
-                accountsToFetchFromDB.push(account);
+        try {
+            console.log(accountsToFetch);
+            accountsToFetch = [...new Set(accountsToFetch)]; //remove duplicates
+            const accountsToFetchFromDB = [];
+            for (const account of accountsToFetch) {
+                const isName = cosmosAddressesByAccountNames[account] !== undefined;
+                const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
+
+                if (forceful || emptyEntry) {
+                    accountsToFetchFromDB.push(account);
+                }
             }
-        }
 
-        let fetchedAccounts: CosmosAccountInformation[] = [];
-        if (accountsToFetchFromDB.length > 0) {
-            fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
-            setAccounts(fetchedAccounts);
-        }
+            console.log(accountsToFetchFromDB);
 
-        const accountsToReturn = [];
-        for (const account of accountsToFetch) {
-            const isName = cosmosAddressesByAccountNames[account] !== undefined;
-            const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
-
-            if (forceful || emptyEntry) {
-                const accountInfo = fetchedAccounts.find(fetchedAccount => fetchedAccount.address === account || fetchedAccount.cosmosAddress === account);
-                if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
-            } else {
-                accountsToReturn.push(accounts[cosmosAddresses[account]]);
+            let fetchedAccounts: CosmosAccountInformation[] = [];
+            if (accountsToFetchFromDB.length > 0) {
+                fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
+                setAccounts(fetchedAccounts);
             }
-        }
 
-        return accountsToReturn;
+            const accountsToReturn = [];
+            for (const account of accountsToFetch) {
+                const isName = cosmosAddressesByAccountNames[account] !== undefined;
+                const emptyEntry = isName ? accounts[cosmosAddressesByAccountNames[account]] === undefined : accounts[cosmosAddresses[account]] === undefined;
+
+                if (forceful || emptyEntry) {
+                    const accountInfo = fetchedAccounts.find(fetchedAccount => fetchedAccount.address === account || fetchedAccount.cosmosAddress === account || fetchedAccount.name === account);
+                    if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
+                } else if (isName) {
+                    accountsToReturn.push(accounts[cosmosAddressesByAccountNames[account]]);
+                } else {
+                    accountsToReturn.push(accounts[cosmosAddresses[account]]);
+                }
+            }
+
+            return accountsToReturn;
+        } catch (e: any) {
+            console.error(e);
+            notification.error({
+                message: 'Oops! We ran into an error while fetching accounts.',
+                description: e.message
+            });
+            return [];
+        }
     }
 
     const fetchAccountsByNumber = async (accountNums: number[], forceful?: boolean) => {
-        accountNums = [...new Set(accountNums)]; //remove duplicates
-        const accountsToFetch = [];
-        for (const accountNum of accountNums) {
-            if (forceful || accounts[cosmosAddressesByAccountNumbers[accountNum]] === undefined) {
-                accountsToFetch.push(accountNum);
+        try {
+            console.log(accountNums);
+            accountNums = [...new Set(accountNums)]; //remove duplicates
+            const accountsToFetch = [];
+            for (const accountNum of accountNums) {
+                if (forceful || accounts[cosmosAddressesByAccountNumbers[accountNum]] === undefined) {
+                    accountsToFetch.push(accountNum);
+                }
             }
-        }
 
-        let fetchedAccounts: CosmosAccountInformation[] = [];
-        if (accountsToFetch.length > 0) {
-            fetchedAccounts = await getAccounts(accountsToFetch, []);
-            setAccounts(fetchedAccounts);
-        }
+            console.log(accountNums);
 
-        const accountsToReturn = [];
-        for (const accountNum of accountNums) {
-            if (forceful || accounts[cosmosAddressesByAccountNumbers[accountNum]] === undefined) {
-                const accountInfo = fetchedAccounts.find(account => account.account_number === accountNum);
-                if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
-            } else {
-                accountsToReturn.push(accounts[cosmosAddressesByAccountNumbers[accountNum]]);
+            let fetchedAccounts: CosmosAccountInformation[] = [];
+            if (accountsToFetch.length > 0) {
+                fetchedAccounts = await getAccounts(accountsToFetch, []);
+                console.log(fetchedAccounts);
+                setAccounts(fetchedAccounts);
             }
-        }
 
-        return accountsToReturn;
+            const accountsToReturn = [];
+            for (const accountNum of accountNums) {
+                if (forceful || accounts[cosmosAddressesByAccountNumbers[accountNum]] === undefined) {
+                    const accountInfo = fetchedAccounts.find(account => account.account_number === accountNum);
+                    if (accountInfo) accountsToReturn.push(convertToBitBadgesUserInfo(accountInfo)); //should always be the case
+                } else {
+                    accountsToReturn.push(accounts[cosmosAddressesByAccountNumbers[accountNum]]);
+                }
+            }
+
+            return accountsToReturn;
+        } catch (e: any) {
+            console.error(e);
+            notification.error({
+                message: 'Oops! We ran into an error while fetching accounts.',
+                description: e.message
+            });
+            return [];
+        }
     }
 
     const accountsContext: AccountsContextType = {

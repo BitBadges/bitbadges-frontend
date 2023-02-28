@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
-import { useAlgorandContext } from './algorand/AlgorandContext';
 import { useEthereumContext } from './ethereum/EthereumContext';
 
 export type SignChallengeResponse = {
@@ -97,7 +96,6 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     const [chain, setChain] = useState<string>('Ethereum');
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const ethereumContext = useEthereumContext();
-    const algorandContext = useAlgorandContext();
 
     useEffect(() => {
         if (chain === 'Ethereum') {
@@ -108,19 +106,21 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
             ethereumContext.setChainId('avalanche');
         } else if (chain === 'BSC') {
             ethereumContext.setChainId('bsc');
-        } else if (chain === 'Algorand Mainnet') {
-            algorandContext.setChainId('Mainnet');
-        } else if (chain === 'Algorand Testnet') {
-            algorandContext.setChainId('Testnet');
         }
-    }, [chain, setChain, algorandContext, ethereumContext]);
+        // else if (chain === 'Algorand Mainnet') {
+        //     algorandContext.setChainId('Mainnet');
+        // } else if (chain === 'Algorand Testnet') {
+        //     algorandContext.setChainId('Testnet');
+        // }
+    }, [chain, setChain, ethereumContext]);
 
     let currentChainContext: ChainSpecificContextType;
-    if (chain?.startsWith('Algorand')) {
-        currentChainContext = algorandContext;
-    } else {
-        currentChainContext = ethereumContext;
-    }
+    // if (chain?.startsWith('Algorand')) {
+    //     currentChainContext = algorandContext;
+    // } else {
+    //     currentChainContext = ethereumContext;
+    // }
+    currentChainContext = ethereumContext;
 
     const chainContext: ChainContextType = {
         chain,

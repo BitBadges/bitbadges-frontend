@@ -1,9 +1,8 @@
 import { SwapOutlined, UserAddOutlined } from "@ant-design/icons";
 import { Button, Divider, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../contexts/AccountsContext";
-import { isAddressValid } from "../../bitbadges-api/chains";
 import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
@@ -32,32 +31,65 @@ export function AddressListSelect({
     } as BitBadgesUserInfo);
     const [batchAddAddressList, setBatchAddAddressList] = useState<string>('');
 
+    useEffect(() => {
+        if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
+            return;
+        };
+        setUsers([
+            ...users,
+            {
+                cosmosAddress: currUserInfo?.cosmosAddress,
+                accountNumber: currUserInfo?.accountNumber,
+                chain: currUserInfo?.chain,
+                address: currUserInfo?.address,
+                name: currUserInfo?.name
+            }
+        ]);
+        setCurrUserInfo({
+            chain: currUserInfo?.chain,
+            address: '',
+            cosmosAddress: '',
+            accountNumber: -1
+        } as BitBadgesUserInfo);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currUserInfo]);
+
     async function updateUsers() {
+        console.log(batchAddAddressList);
         const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '');
+        console.log(batchUsersList);
+        console.log(batchUsersList.filter(address => {
+            return !users.find((u) => u.address === address || u.name === address);
+        }))
 
         const fetchedAccounts = await accounts.fetchAccounts(batchUsersList.filter(address => {
-            return isAddressValid(address) && !users.find((u) => u.address === address);
+            return !users.find((u) => u.address === address || u.name === address);
         }));
+
+        console.log(batchUsersList.filter(address => {
+            return !users.find((u) => u.address === address || u.name === address);
+        }))
+        console.log(fetchedAccounts);
 
         let newUserList = users;
         for (const address of batchUsersList) {
-            if (isAddressValid(address)) {
-                const existingUser = users.find((u) => u.address === address);
 
-                //Check if already in user list. If so, we duplicate it.
-                if (existingUser) {
-                    newUserList.push(existingUser);
-                } else {
-                    const userInfo = fetchedAccounts.find((u) => u.address === address || u.cosmosAddress === address);
-                    if (userInfo) newUserList.push(userInfo);
-                }
+            const existingUser = users.find((u) => u.address === address || u.cosmosAddress === address || u.name === address);
+
+            //Check if already in user list. If so, we duplicate it.
+            if (existingUser) {
+                newUserList.push(existingUser);
             } else {
-                newUserList.push({
-                    accountNumber: -1,
-                    address: address,
-                    chain: SupportedChain.UNKNOWN,
-                    cosmosAddress: '',
-                });
+                const userInfo = fetchedAccounts.find((u) => u.address === address || u.cosmosAddress === address || u.name === address);
+                if (userInfo) newUserList.push(userInfo);
+                else {
+                    newUserList.push({
+                        accountNumber: -1,
+                        address: address,
+                        chain: SupportedChain.UNKNOWN,
+                        cosmosAddress: '',
+                    });
+                }
             }
         }
 
@@ -102,34 +134,16 @@ export function AddressListSelect({
                 setCurrUserInfo={setCurrUserInfo}
                 fontColor={PRIMARY_TEXT}
                 darkMode={darkMode}
+                hideAddressDisplay
             />
-            <br />
+            {/* <br />
             <Button
                 type="primary"
                 style={{ width: "100%" }}
                 disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
-                onClick={() => {
-                    if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
-                        return;
-                    };
-                    setUsers([
-                        ...users,
-                        {
-                            cosmosAddress: currUserInfo?.cosmosAddress,
-                            accountNumber: currUserInfo?.accountNumber,
-                            chain: currUserInfo?.chain,
-                            address: currUserInfo?.address
-                        }
-                    ]);
-                    setCurrUserInfo({
-                        chain: currUserInfo?.chain,
-                        address: '',
-                        cosmosAddress: '',
-                        accountNumber: -1,
-                    } as BitBadgesUserInfo);
-                }}>
+                onClick={}>
                 <UserAddOutlined /> Add New User
-            </Button>
+            </Button> */}
         </>
         }
         {enterMethod === EnterMethod.Batch && <>
@@ -139,7 +153,7 @@ export function AddressListSelect({
                 value={batchAddAddressList}
                 onChange={(e) => setBatchAddAddressList(e.target.value)}
             />
-            <p style={{ textAlign: 'left' }}>*Enter one address per line</p>
+            <p style={{ textAlign: 'left' }}>Enter one address per line</p>
             <br />
             <Button
                 type="primary"
