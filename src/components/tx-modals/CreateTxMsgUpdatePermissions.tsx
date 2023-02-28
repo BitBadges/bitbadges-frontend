@@ -33,7 +33,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
         }
     }, [visible, collection.permissions]);
 
-    const isIPFS = collection.badgeUri.startsWith('ipfs://') || collection.collectionUri.startsWith('ipfs://');
+    const isIPFS = collection.badgeUris.some(x => x.uri.startsWith('ipfs://')) || collection.collectionUri.startsWith('ipfs://');
 
     const items = [
         {

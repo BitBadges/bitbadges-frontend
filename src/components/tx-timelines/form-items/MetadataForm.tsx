@@ -6,10 +6,11 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { GO_MAX_UINT_64, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
+import { getFullBadgeIdRanges } from '../../../bitbadges-api/badges';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -149,10 +150,17 @@ export function MetadataForm({
                         setNewCollectionMsg({
                             ...newCollectionMsg,
                             collectionUri,
-                            badgeUri,
+                            badgeUris: [{
+                                uri: badgeUri,
+                                badgeIds: {
+                                    start: 1,
+                                    end: GO_MAX_UINT_64
+                                }
+                            }],
                         });
                     }} />
                 </>}
+
                 {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
 
                     <br />

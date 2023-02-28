@@ -39,7 +39,7 @@ export function SetCollectionMetadataStepItem(
             />
         </div>,
         disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-            || (addMethod === MetadataAddMethod.UploadUrl && (newCollectionMsg.badgeUri.indexOf('{id}') == -1))
+            || (addMethod === MetadataAddMethod.UploadUrl && (newCollectionMsg.badgeUris[0]?.indexOf('{id}') == -1))
             || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
     }
 }

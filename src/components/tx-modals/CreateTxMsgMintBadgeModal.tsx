@@ -35,7 +35,7 @@ export function CreateTxMsgMintBadgeModal(
         transfers: txState ? txState?.newCollectionMsg.transfers : [],
         badgeSupplys: txState ? txState?.newCollectionMsg.badgeSupplys : [],
         collectionUri: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.collectionUri : "",
-        badgeUri: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.badgeUri : ""
+        badgeUris: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.badgeUris : []
     }
 
     const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
@@ -45,7 +45,7 @@ export function CreateTxMsgMintBadgeModal(
         if (!txState) return;
 
         let collectionUri = txState.newCollectionMsg.collectionUri;
-        let badgeUri = txState.newCollectionMsg.badgeUri;
+        let badgeUris = txState.newCollectionMsg.badgeUris;
         let claims = txState.newCollectionMsg.claims;
 
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
@@ -53,7 +53,15 @@ export function CreateTxMsgMintBadgeModal(
             let res = await addToIpfs(txState?.collectionMetadata, txState?.individualBadgeMetadata);
 
             collectionUri = 'ipfs://' + res.cid + '/collection';
-            badgeUri = 'ipfs://' + res.cid + '/{id}';
+            const keys = Object.keys(txState.individualBadgeMetadata);
+            const values = Object.values(txState.individualBadgeMetadata);
+            badgeUris = [];
+            for (let i = 0; i < keys.length; i++) {
+                badgeUris.push({
+                    uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
+                    badgeIds: values[i].badgeIds
+                });
+            }
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
@@ -76,7 +84,7 @@ export function CreateTxMsgMintBadgeModal(
             newCollectionMsg: {
                 ...txState.newCollectionMsg,
                 collectionUri,
-                badgeUri,
+                badgeUris,
                 claims
             }
         });
@@ -88,7 +96,7 @@ export function CreateTxMsgMintBadgeModal(
             transfers: txState ? txState?.newCollectionMsg.transfers : [],
             badgeSupplys: txState ? txState?.newCollectionMsg.badgeSupplys : [],
             collectionUri,
-            badgeUri
+            badgeUris
         }
     }
 

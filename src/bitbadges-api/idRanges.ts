@@ -41,22 +41,16 @@ export function RemoveIdsFromIdRange(rangeToRemove: IdRange, rangeObject: IdRang
     rangeToRemove = NormalizeIdRange(rangeToRemove)
     rangeObject = NormalizeIdRange(rangeObject)
 
-
     let newIdRanges: IdRange[] = [];
-    for (let i = rangeObject.start; i <= rangeObject.end; i++) {
-        if (!(i >= rangeToRemove.start && i <= rangeToRemove.end)) {
-            let lastIdRange = newIdRanges.length ? newIdRanges[newIdRanges.length - 1] : null;
-            if (!lastIdRange) {
-                newIdRanges.push(GetIdRangeToInsert(i, i));
-            } else {
-                if (lastIdRange.end + 1 === i) {
-                    lastIdRange.end = i;
-                } else {
-                    newIdRanges.push(GetIdRangeToInsert(i, i));
-                }
-            }
-        }
+    //add everything before rangeToRemove.start
+    if (rangeObject.start < rangeToRemove.start) {
+        newIdRanges.push(GetIdRangeToInsert(rangeObject.start, rangeToRemove.start - 1));
     }
+    //add everything after rangeToRemove.end
+    if (rangeObject.end > rangeToRemove.end) {
+        newIdRanges.push(GetIdRangeToInsert(rangeToRemove.end + 1, rangeObject.end));
+    }
+
     return newIdRanges;
 }
 

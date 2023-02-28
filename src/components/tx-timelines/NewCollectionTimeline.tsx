@@ -14,6 +14,7 @@ import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
+import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
@@ -51,6 +52,7 @@ export function MintCollectionTimeline({
     const fungible = txTimelineProps.fungible;
     const nonFungible = txTimelineProps.nonFungible;
     const simulatedCollection = txTimelineProps.simulatedCollection;
+    const metadataSize = txTimelineProps.metadataSize;
 
     //All mint timeline step items
     const ChooseBadgeType = ChooseBadgeTypeStepItem(newCollectionMsg);
@@ -72,6 +74,7 @@ export function MintCollectionTimeline({
     const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
+    const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
 
     return (
         <FormTimeline
@@ -87,6 +90,7 @@ export function MintCollectionTimeline({
                 SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
+                MetadataTooLargeStep,
                 CanCreateMoreStep,
                 UpdatableMetadataSelectStep,
                 DistributionMethodStep,

@@ -6,6 +6,7 @@ import { ActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitB
 import MerkleTree from "merkletreejs";
 import { SHA256 } from "crypto-js";
 import { getPostTransferBalance } from "./balances";
+import { SearchIdRangesForId } from "./idRanges";
 
 export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
     return activity.filter((x) => {
@@ -209,4 +210,18 @@ export const getMatchingAddressesFromTransferMapping = (mapping: TransferMapping
     }
 
     return matchingAddresses;
+}
+
+export function getMetadataForBadgeId(badgeId: number, metadataMap: BadgeMetadataMap) {
+    let currentMetadata = {} as BadgeMetadata;
+    for (const val of Object.values(metadataMap)) {
+        const res = SearchIdRangesForId(badgeId, val.badgeIds)
+        const found = res[1]
+        if (found) {
+            currentMetadata = val.metadata;
+            break;
+        }
+    }
+
+    return currentMetadata;
 }

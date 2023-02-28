@@ -28,13 +28,22 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (txState.addMethod == MetadataAddMethod.Manual) {
             let res = await addToIpfs(txState.collectionMetadata, txState.individualBadgeMetadata);
+            const keys = Object.keys(txState.individualBadgeMetadata);
+            const values = Object.values(txState.individualBadgeMetadata);
+            let badgeUris = [];
+            for (let i = 0; i < keys.length; i++) {
+                badgeUris.push({
+                    uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
+                    badgeIds: values[i].badgeIds
+                });
+            }
 
             setTxState({
                 ...txState,
                 newCollectionMsg: {
                     ...txState.newCollectionMsg,
                     collectionUri: 'ipfs://' + res.cid + '/collection',
-                    badgeUri: 'ipfs://' + res.cid + '/{id}',
+                    badgeUris
                 }
             });
             return {

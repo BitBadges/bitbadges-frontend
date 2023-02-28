@@ -55,7 +55,8 @@ export interface TxTimelineProps {
     fungible: boolean,
     nonFungible: boolean,
     simulatedCollection: BitBadgeCollection,
-    onFinish?: (txState: TxTimelineProps) => void
+    onFinish?: (txState: TxTimelineProps) => void,
+    metadataSize: number,
 }
 
 
@@ -70,8 +71,9 @@ export function TxTimeline({
 }) {
     const chain = useChainContext();
     const collections = useCollectionsContext();
-
     const existingCollection = collectionId ? collections.collections[collectionId] : undefined;
+
+    const [size, setSize] = useState(0);
 
     // Get badge collection information
     useEffect(() => {
@@ -82,7 +84,7 @@ export function TxTimeline({
             setNewCollectionMsg({
                 ...newCollectionMsg,
                 creator: chain.cosmosAddress,
-                badgeUri: '',
+                badgeUris: fetchedCollection.badgeUris,
                 collectionUri: '',
                 bytes: fetchedCollection.bytes,
                 permissions: 0, //We never change permissions except for NewCollectionTimeline so this is fine
@@ -101,7 +103,7 @@ export function TxTimeline({
     //The MsgNewCollection Cosmos message that will be sent to the chain. We use this for all TXs (for compatibility) and convert to respective Msg at the end.
     const [newCollectionMsg, setNewCollectionMsg] = useState<MessageMsgNewCollection>({
         creator: chain.cosmosAddress,
-        badgeUri: '',
+        badgeUris: [],
         collectionUri: '',
         bytes: '',
         permissions: 0,
@@ -161,6 +163,7 @@ export function TxTimeline({
     const setIndividualBadgeMetadata = (metadata: BadgeMetadataMap) => {
         setBadgeMetadata(metadata);
         setHackyUpdatedFlag(!hackyUpdatedFlag);
+        setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata })).length);
     }
 
 
@@ -182,15 +185,22 @@ export function TxTimeline({
             ...existingCollection?.badgeMetadata
         };
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
+            let origNextBadgeId = nextBadgeId;
             for (const badgeSupplyObj of newCollectionMsg.badgeSupplys) {
-                for (let i = nextBadgeId; i <= badgeSupplyObj.amount + nextBadgeId - 1; i++) {
-                    metadata[`${i}`] = DefaultPlaceholderMetadata;
-                }
+                // for (let i = nextBadgeId; i <= badgeSupplyObj.amount + nextBadgeId - 1; i++) {
+                //     metadata[`${i}`] = DefaultPlaceholderMetadata;
+                // }
                 nextBadgeId += badgeSupplyObj.amount;
+            }
+
+            metadata[Object.keys(metadata).length + 1] = {
+                metadata: DefaultPlaceholderMetadata,
+                badgeIds: [{ start: origNextBadgeId, end: nextBadgeId - 1 }]
             }
         }
 
         setBadgeMetadata(metadata);
+        setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
     }, [newCollectionMsg.badgeSupplys, existingCollection])
 
 
@@ -222,7 +232,8 @@ export function TxTimeline({
         setHackyUpdatedFlag,
         fungible,
         nonFungible,
-        onFinish
+        onFinish,
+        metadataSize: size,
     }
 
 

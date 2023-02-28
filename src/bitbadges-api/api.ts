@@ -93,8 +93,22 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     if (fetchAllMetadata) {
         const promises = [];
 
+        let ids: number[] = [];
         for (let idx = 1; idx < badgeData.nextBadgeId; idx += 100) {
-            promises.push(updateMetadata(badgeData, idx));
+            for (const badgeUri of badgeData.badgeUris) {
+                let j = 0;
+                for (const badgeIdRange of badgeUri.badgeIds) {
+                    if (Number(badgeIdRange.start) <= j && Number(badgeIdRange.end) >= j) {
+                        ids.push(j);
+                    }
+                    j++;
+                }
+            }
+        }
+
+        ids = [...new Set(ids)];
+        for (const id of ids) {
+            promises.push(updateMetadata(badgeData, id));
         }
 
         await Promise.all(promises).then((values) => {
@@ -158,8 +172,8 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
     };
 }
 
-export async function updateMetadata(collection: BitBadgeCollection, startBadgeId?: number) {
-    let metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBadgeId }).then((res) => res.data);
+export async function updateMetadata(collection: BitBadgeCollection, startBatchId?: number) {
+    let metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBatchId }).then((res) => res.data);
     collection.collectionMetadata = metadataRes.collectionMetadata;
     collection.badgeMetadata = {
         ...collection.badgeMetadata,

@@ -26,6 +26,12 @@ export interface Balance {
     balance: number;
     badgeIds: IdRange[];
 }
+
+export interface BadgeUri {
+    uri: string;
+    badgeIds: IdRange[];
+}
+
 export interface TransferMapping {
     to: Addresses;
     from: Addresses;
@@ -95,7 +101,7 @@ export enum ClaimType {
 export interface BitBadgeCollection {
     collectionId: number;
     collectionUri: string;
-    badgeUri: string;
+    badgeUris: BadgeUri[];
     bytes: string;
     manager: BitBadgesUserInfo;
     permissions: Permissions;
@@ -116,7 +122,10 @@ export interface BitBadgeCollection {
 }
 
 export interface BadgeMetadataMap {
-    [badgeId: string]: BadgeMetadata;
+    [batchId: string]: {
+        badgeIds: IdRange[],
+        metadata: BadgeMetadata
+    }
 }
 
 export interface CollectionMap {

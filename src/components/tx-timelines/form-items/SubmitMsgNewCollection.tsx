@@ -44,7 +44,15 @@ export function SubmitMsgNewCollection({
             let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
 
             badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
-            badgeMsg.badgeUri = 'ipfs://' + res.cid + '/{id}';
+
+            const keys = Object.keys(individualBadgeMetadata);
+            const values = Object.values(individualBadgeMetadata);
+            for (let i = 0; i < keys.length; i++) {
+                badgeMsg.badgeUris.push({
+                    uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
+                    badgeIds: values[i].badgeIds
+                });
+            }
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI

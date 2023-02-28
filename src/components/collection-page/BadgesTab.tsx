@@ -5,6 +5,7 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgeCard } from '../badges/BadgeCard';
+import { getMetadataForBadgeId } from '../../bitbadges-api/badges';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
     collection: BitBadgeCollection;
@@ -26,8 +27,17 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
 
     useEffect(() => {
         for (let i = startIdNum; i <= endIdNum; i++) {
-            if (!collection?.badgeMetadata[i]) {
-                collections.updateCollectionMetadata(collection.collectionId, i);
+            if (!getMetadataForBadgeId(i, collection.badgeMetadata)) {
+                for (const badgeUri of collection.badgeUris) {
+                    let idx = 0;
+                    for (const badgeIdRange of badgeUri.badgeIds) {
+                        if (Number(badgeIdRange.start) <= i && Number(badgeIdRange.end) >= i) {
+                            collections.updateCollectionMetadata(collection.collectionId, idx);
+                            break;
+                        }
+                        idx++;
+                    }
+                }
                 break;
             }
         }
@@ -76,7 +86,9 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
                                 setBadgeId={setBadgeId}
                                 balance={balance}
                                 collection={collection}
-                                metadata={collection.badgeMetadata[idx + Number(startIdNum)]}
+                                metadata={
+                                    getMetadataForBadgeId(idx + Number(startIdNum), collection.badgeMetadata)
+                                }
                                 id={idx + Number(startIdNum)}
                                 hideModalBalances={isPreview}
                             />

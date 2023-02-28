@@ -4,6 +4,7 @@ import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/ty
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
+import { getMetadataForBadgeId } from "../../bitbadges-api/badges";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -53,7 +54,16 @@ export function BadgeAvatarDisplay({
         if (!collection) return;
         for (let i = startIdNum; i <= endIdNum; i++) {
             if (!collection?.badgeMetadata[ids[i]]) {
-                collections.updateCollectionMetadata(collection.collectionId, ids[i]);
+                for (const badgeUri of collection.badgeUris) {
+                    let idx = 0;
+                    for (const badgeIdRange of badgeUri.badgeIds) {
+                        if (Number(badgeIdRange.start) <= ids[i] && Number(badgeIdRange.end) >= ids[i]) {
+                            collections.updateCollectionMetadata(collection.collectionId, idx);
+                            break;
+                        }
+                        idx++;
+                    }
+                }
                 break;
             }
         }
@@ -107,7 +117,9 @@ export function BadgeAvatarDisplay({
                             <BadgeAvatar
                                 size={size && selectedId === ids[idx + Number(startIdNum)] ? size * 1.5 : size}
                                 collection={collection}
-                                metadata={collection.badgeMetadata[ids[idx + Number(startIdNum)]]}
+                                metadata={
+                                    getMetadataForBadgeId(ids[idx + Number(startIdNum)], collection.badgeMetadata)
+                                }
                                 badgeId={ids[idx + Number(startIdNum)]}
                                 balance={userBalance}
                                 showId={showIds}
