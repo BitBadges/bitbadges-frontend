@@ -1,22 +1,20 @@
-import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, TimePicker, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../../constants';
+import { GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
-import 'react-markdown-editor-lite/lib/index.css';
-import moment from 'moment';
+import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { IdRangesInput } from '../../balances/IdRangesInput';
-import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
-import { getBlankBalance } from '../../../bitbadges-api/balances';
+import moment from 'moment';
+import 'react-markdown-editor-lite/lib/index.css';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
+import { IdRangesInput } from '../../balances/IdRangesInput';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -64,7 +62,8 @@ export function MetadataForm({
             end: endId ? endId : GO_MAX_UINT_64
         }
     ]);
-    const [images, setImages] = useState([
+
+    const sampleImages = [
         {
             value: 'https://bitbadges.web.app/img/icons/logo.png',
             label: 'BitBadges Logo',
@@ -77,7 +76,18 @@ export function MetadataForm({
             value: 'https://library.kissclipart.com/20191129/oq/kissclipart-gold-medal-058a93f291de9771.png',
             label: 'Medal',
         },
-    ]);
+    ]
+
+    const [images, setImages] = useState([
+        ...sampleImages,
+        metadata.image && !sampleImages.find(x => x.value === metadata.image)
+            ? {
+                value: metadata.image,
+                label: 'Custom Image',
+            } : undefined
+    ].filter(x => !!x));
+    const [imageIsUploading, setImageIsUploading] = useState(false);
+
     const [populateIsOpen, setPopulateIsOpen] = useState(false);
     const [fieldName, setFieldName] = useState('');
 
@@ -112,18 +122,19 @@ export function MetadataForm({
         headers: {
             authorization: 'authorization-text',
         },
-
         onChange(info) {
+
             if (info.file.status !== 'uploading') {
                 console.log(info.file, info.fileList);
+            } else {
+                if (!imageIsUploading) {
+                    message.info(`${info.file.name} file is uploading.`);
+                    setImageIsUploading(true);
+                }
             }
-            console.log(info.file);
 
             if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully. ${JSON.stringify(info.file.url)}`);
-                //TODO: this is async should we await
                 file2Base64(info.file.originFileObj as File).then((base64) => {
-                    console.log(base64);
                     setImages([
                         ...images,
                         {
@@ -135,9 +146,13 @@ export function MetadataForm({
                         ...currentMetadata,
                         image: base64
                     });
+                    setImageIsUploading(false);
+                    message.success(`${info.file.name} file uploaded successfully.`);
                 })
             } else if (info.file.status === 'error') {
-                message.error(`${info.file.name} file upload failed. ${JSON.stringify(info.file)}}`);
+                message.error(`${info.file.name} file upload failed.`);
+            } else {
+
             }
         },
     };
@@ -163,9 +178,7 @@ export function MetadataForm({
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
-            setMetadata({
-                ...currentMetadata,
-            });
+            setMetadata(currentMetadata);
         }, DELAY_TIME);
 
         return () => clearTimeout(delayDebounceFn)
@@ -229,9 +242,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'all'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('all');
@@ -318,9 +331,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'name'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('name');
@@ -372,12 +385,15 @@ export function MetadataForm({
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Select
                                 className="selector"
-                                value={currentMetadata.image}
+                                value={images.find((item: any) => item.value === currentMetadata.image)?.label}
                                 onChange={(e) => {
-                                    updateCurrentMetadata({
-                                        ...currentMetadata,
-                                        image: e
-                                    });
+                                    const newImage = images.find((item: any) => e === item.label)?.value;
+                                    if (newImage) {
+                                        updateCurrentMetadata({
+                                            ...currentMetadata,
+                                            image: newImage
+                                        });
+                                    }
                                 }}
                                 style={{
                                     backgroundColor: PRIMARY_BLUE,
@@ -407,8 +423,8 @@ export function MetadataForm({
                             >
                                 {images.map((item: any) => (
                                     <Option
-                                        key={item.value}
-                                        value={item.value}
+                                        key={item.label}
+                                        value={item.label}
                                     >
                                         <div
                                             style={{
@@ -433,9 +449,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'image'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('image');
@@ -540,9 +556,11 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'category'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{
+                                        cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)',
+                                    }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('category');
@@ -613,9 +631,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'description'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('description');
@@ -681,9 +699,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'externalUrl'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('externalUrl');
@@ -803,9 +821,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'validFrom'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('validFrom');
@@ -873,9 +891,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'tags'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('tags');
@@ -1013,9 +1031,9 @@ export function MetadataForm({
                                     className='screen-button'
                                     src={<FontAwesomeIcon
                                         icon={populateIsOpen && fieldName === 'color'
-                                            ? faMinus : faPlus}
+                                            ? faMinus : faReplyAll}
                                     />}
-                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
                                     onClick={() => {
                                         setPopulateIsOpen(!populateIsOpen);
                                         setFieldName('color');

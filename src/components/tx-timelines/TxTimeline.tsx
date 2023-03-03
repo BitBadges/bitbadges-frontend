@@ -273,6 +273,17 @@ export function TxTimeline({
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
     }, [newCollectionMsg.badgeSupplys, existingCollection])
 
+    useEffect(() => {
+        setNewCollectionMsg({
+            ...newCollectionMsg,
+            transfers: [],
+            claims: [],
+        })
+        setClaimItems([]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [distributionMethod]);
+
 
     //If all supply amounts are 1, it is fungible
     const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);

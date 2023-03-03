@@ -85,14 +85,12 @@ export function SetIndividualBadgeMetadataStepItem(
                         const res = SearchIdRangesForId(id, values[i].badgeIds)
                         const idx = res[0]
                         const found = res[1]
-                        console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
+
                         if (found) {
                             values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-                            console.log("new ids", JSON.stringify(values[i].badgeIds));
+
                         }
                     }
-
-                    console.log("new metadata after first loop", JSON.stringify(individualBadgeMetadata));
 
                     let metadataExists = false;
                     for (let i = 0; i < keys.length; i++) {
@@ -101,8 +99,6 @@ export function SetIndividualBadgeMetadataStepItem(
                             values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
                         }
                     }
-
-                    console.log("new metadata after metadata exists loop", JSON.stringify(individualBadgeMetadata));
 
                     let currIdx = 0;
                     individualBadgeMetadata = {};
@@ -115,8 +111,9 @@ export function SetIndividualBadgeMetadataStepItem(
                     }
 
                     if (!metadataExists) {
+
                         individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
-                            metadata: { ...metadata },
+                            metadata: metadata,
                             badgeIds: [{
                                 start: id,
                                 end: id,
@@ -125,7 +122,6 @@ export function SetIndividualBadgeMetadataStepItem(
                     }
 
                     setIndividualBadgeMetadata(individualBadgeMetadata);
-                    console.log("new metadata", JSON.stringify(individualBadgeMetadata));
                     setDisabled(false);
                     console.timeEnd("SET");
                 }}
@@ -145,14 +141,11 @@ export function SetIndividualBadgeMetadataStepItem(
                                 const res = SearchIdRangesForId(id, values[i].badgeIds)
                                 const idx = res[0]
                                 const found = res[1]
-                                console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
                                 if (found) {
                                     values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-                                    console.log("new ids", JSON.stringify(values[i].badgeIds));
+
                                 }
                             }
-
-                            console.log("new metadata after first loop", JSON.stringify(individualBadgeMetadata));
 
                             let metadataExists = false;
                             for (let i = 0; i < keys.length; i++) {
@@ -161,8 +154,6 @@ export function SetIndividualBadgeMetadataStepItem(
                                     values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
                                 }
                             }
-
-                            console.log("new metadata after metadata exists loop", JSON.stringify(individualBadgeMetadata));
 
                             let currIdx = 0;
                             individualBadgeMetadata = {};

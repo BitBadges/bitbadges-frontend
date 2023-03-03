@@ -33,8 +33,8 @@ export function TransferSelect({
     hideTransferDisplay,
     isWhitelist
 }: {
-    transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[],
-    setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
+    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[],
+    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => void;
     sender: BitBadgesUserInfo,
     userBalance: UserBalance,
     collection: BitBadgeCollection;
@@ -66,8 +66,12 @@ export function TransferSelect({
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
 
+    const [transfersToAdd, setTransfersToAdd] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>([]);
+
+
+    const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
     let numBadgeIds = 0;
-    let ids = [];
+    let ids: number[] = [];
     for (const balance of balances) {
         for (const badgeIdRange of balance.badgeIds) {
             numBadgeIds += badgeIdRange.end - badgeIdRange.start + 1;
@@ -77,51 +81,60 @@ export function TransferSelect({
         }
     }
 
-
-    let transfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[] = [];
-    const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
-
-    if ((amountSelectType === AmountSelectType.None && numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
-        transfersToAdd = [{
-            toAddresses: distributionMethod === DistributionMethod.Codes ? [] : toAddresses.map((user) => user.accountNumber),
-            balances: balances,
-            toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : toAddresses,
-        }];
-    } else if (amountSelectType === AmountSelectType.Linear) {
-        let numPerAddress = ids.length / numRecipients;
-
-        let currId = 0;
-        for (let i = 0; i < numRecipients; i++) {
-            let badgeIds: IdRange[] = [{ start: ids[currId], end: ids[currId] }];
-            for (let i = currId + 1; i < currId + numPerAddress; i++) {
-                badgeIds = InsertRangeToIdRanges({ start: ids[i], end: ids[i] }, badgeIds);
+    useEffect(() => {
+        const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
+        let ids: number[] = [];
+        for (const balance of balances) {
+            for (const badgeIdRange of balance.badgeIds) {
+                for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+                    ids.push(i);
+                }
             }
-            currId += numPerAddress;
-
-            transfersToAdd.push({
-                toAddresses: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i].accountNumber],
-                balances: [{
-                    balance: balances[0]?.balance || 1,
-                    badgeIds: badgeIds,
-                }],
-                toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i]],
-            });
         }
-    }
+        let newTransfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[] = [];
+        console.log("USEEFFECT2");
+
+        if ((amountSelectType === AmountSelectType.None && numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
+            newTransfersToAdd = [{
+                toAddresses: distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : toAddresses.map((user) => user.accountNumber),
+                balances: balances,
+                toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : toAddresses,
+            }];
+        } else if (amountSelectType === AmountSelectType.Linear) {
+            let numPerAddress = ids.length / numRecipients;
+
+            let currId = 0;
+            for (let i = 0; i < numRecipients; i++) {
+                let badgeIds: IdRange[] = [{ start: ids[currId], end: ids[currId] }];
+                for (let i = currId + 1; i < currId + numPerAddress; i++) {
+                    badgeIds = InsertRangeToIdRanges({ start: ids[i], end: ids[i] }, badgeIds);
+                }
+                currId += numPerAddress;
+
+                newTransfersToAdd.push({
+                    toAddresses: distributionMethod === DistributionMethod.Codes ? [0] : [toAddresses[i].accountNumber],
+                    balances: [{
+                        balance: balances[0]?.balance || 1,
+                        badgeIds: badgeIds,
+                    }],
+                    toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i]],
+                });
+            }
+        }
+
+        setTransfersToAdd(newTransfersToAdd);
+    }, [amountSelectType, numRecipients, balances, toAddresses, distributionMethod, numCodes]);
 
     //Whenever something changes, update the pre and post transfer balances
     useEffect(() => {
-        let postTransferBalanceObj = userBalance;
-        let preTransferBalanceObj = userBalance;
-        if (sender.accountNumber !== chain.accountNumber) {
-            postTransferBalanceObj = userBalance;
-            preTransferBalanceObj = userBalance;
-        }
+        let postTransferBalanceObj = { ...userBalance };
+        let preTransferBalanceObj = { ...userBalance };
 
         if (!postTransferBalanceObj || postTransferBalanceObj === getBlankBalance()) return;
         if (!preTransferBalanceObj || preTransferBalanceObj === getBlankBalance()) return;
 
 
+        console.log("USEEFFECT");
 
         for (const transfer of [...transfers]) {
             for (const balance of transfer.balances) {
@@ -143,8 +156,8 @@ export function TransferSelect({
 
         setPostTransferBalance(postTransferBalanceObj);
         setPreTransferBalance(preTransferBalanceObj);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [balances, userBalance, collection, toAddresses.length, chain.accountNumber, sender.accountNumber, transfers, distributionMethod, numCodes, amountSelectType])
+        //amountSelectType, numRecipients, balances, toAddresses, distributionMethod, numCodes
+    }, [userBalance, chain.accountNumber, sender.accountNumber, transfers, transfersToAdd, distributionMethod, amountSelectType, numCodes])
 
 
     const forbiddenAddresses = getMatchingAddressesFromTransferMapping(collection.disallowedTransfers, toAddresses, chain, collection.manager.accountNumber);
@@ -354,7 +367,7 @@ export function TransferSelect({
                         setAddTransferIsVisible(false);
                         setCurrentStep(0);
                     }}>
-                    Add Transfer
+                    Add Transfer(s)
                 </Button>
             </div>
 

@@ -23,13 +23,13 @@ export function TransferDisplay({
     deletable,
 }: {
     from: BitBadgesUserInfo[]
-    transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[],
+    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[],
     collection: BitBadgeCollection;
     fontColor?: string;
     toCodes?: string[];
     hideAddresses?: boolean;
     hideBalances?: boolean;
-    setTransfers: (transfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => void;
+    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => void;
     deletable?: boolean;
 }) {
     const [transfersPage, setTransfersPage] = useState(0);
@@ -65,8 +65,12 @@ export function TransferDisplay({
             //TODO: Handle balances[] in one
             return transfer.balances.map((balance, index) => {
 
-                const to = transfer.toAddressInfo;
-                accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
+                const origTo = transfer.toAddressInfo ? transfer.toAddressInfo: [];
+                const to: BitBadgesUserInfo[] = [];
+                for (const user of origTo) {
+                    if (user) to.push(user);
+                }
+                if (to.length) accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
 
                 const badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
                 const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
@@ -154,13 +158,13 @@ export function TransferDisplay({
                                             console.log(user);
                                             return <>
                                                 {index !== 0 && <br color='white' />}
-                                                <AddressWithBlockies
+                                                {user && <AddressWithBlockies
                                                     fontColor={fontColor}
                                                     address={user.address}
                                                     addressName={user.name}
                                                     fontSize={14}
                                                     blockiesScale={3}
-                                                />
+                                                />}
                                             </>
                                         })}
                                         {!!toCodes?.length && toCodes?.length > 0 &&

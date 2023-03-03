@@ -1,9 +1,10 @@
-import { Collapse, Divider, Typography } from "antd";
+import { Collapse, Divider, Pagination, Typography } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { BadgeMetadata, BitBadgeCollection, ClaimItem } from "../../../bitbadges-api/types";
+import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { downloadJson } from "../../../utils/downloadJson";
 import { TransferDisplay } from "../../transfers/TransferDisplay";
+import { useState } from "react";
 
 const { Text } = Typography;
 
@@ -13,6 +14,8 @@ export function DownloadCodesStepItem(
     collection: BitBadgeCollection,
     claimIdNumber: number
 ) {
+    const [currPage, setCurrPage] = useState(1);
+
     return {
         title: `Download Codes`,
         description: `IMPORTANT: You are in charge of storing and distributing the ${claimItems.length / 2} claim code${claimItems.length / 2 > 1 ? 's' : ' you have generated'}. If you lose these codes, they cannot be recovered!`,
@@ -51,8 +54,31 @@ export function DownloadCodesStepItem(
                 </button>
                 <Divider />
                 {claimItems.length > 0 && <>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }} >
+                        <Pagination
+                            style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, margin: 10 }}
+                            current={currPage}
+                            total={claimItems.length}
+                            pageSize={20}
+                            onChange={(page) => {
+                                setCurrPage(page);
+                            }}
+                            hideOnSinglePage
+                            showSizeChanger={false}
+                            defaultCurrent={1}
+                        />
+                    </div>
                     <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, margin: 0 }}>
+
                         {claimItems.map((leaf, index) => {
+                            if (index < (currPage - 1) * (20) || index >= currPage * (20)) {
+                                return <></>
+                            }
                             let currIndex = index;
                             if (index % 2 === 1) {
                                 return <></>

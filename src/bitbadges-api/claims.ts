@@ -34,7 +34,7 @@ export function parseClaim(fullClaimString: string): ClaimItem {
     return currLeaf;
 }
 
-export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number, currUserInfo: BitBadgesUserInfo): ClaimItem {
+export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number, currUserInfo?: BitBadgesUserInfo): ClaimItem {
     let fullCode = `${code}-${address}-${amount}`
     for (const badgeId of badgeIds) {
         fullCode += `-${badgeId.start}-${badgeId.end}`

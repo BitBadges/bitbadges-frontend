@@ -1,5 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Collapse, Divider, Empty, Tooltip, Typography } from 'antd';
+import { Collapse, Divider, Empty, Pagination, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
@@ -35,6 +35,7 @@ export function CreateClaims({
 }) {
     const badgeCollection = collection;
 
+    const [currPage, setCurrPage] = useState(1);
     const [claimBalances, setClaimBalances] = useState<UserBalance>(
         balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
@@ -44,7 +45,7 @@ export function CreateClaims({
             approvals: []
         });
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>(claimItems ?
+    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]>(claimItems ?
         claimItems.map((x) => ({
             toAddresses: [x.accountNum],
             balances: [
@@ -57,7 +58,7 @@ export function CreateClaims({
         })) : []
     );
 
-    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => {
+    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => {
         setTransfers(newTransfers);
         addCode(newTransfers);
     }
@@ -81,21 +82,21 @@ export function CreateClaims({
         setClaimItems(newClaimItems);
     }
 
-    const addCode = (newTransfers: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]) => {
+    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => {
         let leafItemsToAdd = [];
 
 
         if (distributionMethod === DistributionMethod.Codes) {
             for (const transfer of newTransfers) {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
-                    leafItemsToAdd.push(createClaim(crypto.randomBytes(32).toString('hex'), '', transfer.balances[0]?.balance, transfer.balances[0]?.badgeIds, -1, {} as BitBadgesUserInfo));
+                    leafItemsToAdd.push(createClaim(crypto.randomBytes(32).toString('hex'), '', transfer.balances[0]?.balance, transfer.balances[0]?.badgeIds, -1));
                 }
             }
         } else {
             for (const transfer of newTransfers) {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
                     const userInfo = transfer.toAddressInfo[i];
-                    leafItemsToAdd.push(createClaim('', userInfo.cosmosAddress, transfer.balances[0]?.balance, transfer.balances[0]?.badgeIds, userInfo.accountNumber, userInfo));
+                    if (userInfo) leafItemsToAdd.push(createClaim('', userInfo.cosmosAddress, transfer.balances[0]?.balance, transfer.balances[0]?.badgeIds, userInfo.accountNumber, userInfo));
                 }
             }
         }
@@ -144,9 +145,35 @@ export function CreateClaims({
                                 description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : 'No users added.'} />}
 
                             {claimItems.length > 0 && <>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }} >
+                                    <Pagination
+                                        style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, margin: 10 }}
+                                        current={currPage}
+                                        total={claimItems.length}
+                                        pageSize={distributionMethod == DistributionMethod.Codes ? 20 : 10}
+                                        onChange={(page) => {
+                                            setCurrPage(page);
+                                        }}
+                                        hideOnSinglePage
+                                        showSizeChanger={false}
+                                        defaultCurrent={1}
+                                    />
+                                </div>
                                 <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, margin: 0 }}>
+
                                     {claimItems.map((leaf, index) => {
+                                        if (index < (currPage - 1) * (distributionMethod === DistributionMethod.Codes ? 20 : 10) || index >= currPage * (distributionMethod === DistributionMethod.Codes ? 20 : 10)) {
+                                            return <></>
+                                        }
+
+
                                         let currIndex = index;
+
                                         if (distributionMethod === DistributionMethod.Codes) {
                                             if (index % 2 === 1) {
                                                 return <></>
@@ -156,12 +183,14 @@ export function CreateClaims({
                                         }
 
                                         return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+
                                             <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                                                {distributionMethod === DistributionMethod.Codes ? <Text copyable style={{ color: PRIMARY_TEXT }}>
+                                                {distributionMethod === DistributionMethod.Codes ? <Text strong style={{ color: PRIMARY_TEXT }}>
                                                     {`Code #${currIndex + 1}`}
                                                 </Text> :
                                                     <>
-                                                        <AddressDisplay userInfo={leaf.userInfo} fontColor={PRIMARY_TEXT} fontSize={14} />
+                                                        {leaf.userInfo && <AddressDisplay userInfo={leaf.userInfo} fontColor={PRIMARY_TEXT} fontSize={14} />}
                                                     </>
                                                 }
                                             </div>
@@ -208,7 +237,7 @@ export function CreateClaims({
                                                     transfers={[
                                                         {
                                                             toAddresses: distributionMethod === DistributionMethod.Whitelist ? [
-                                                                leaf.userInfo.accountNumber
+                                                                leaf.userInfo?.accountNumber ? leaf.userInfo.accountNumber : -1
                                                             ] : [],
                                                             balances: [
                                                                 {

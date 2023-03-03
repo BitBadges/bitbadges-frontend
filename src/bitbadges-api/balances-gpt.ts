@@ -39,10 +39,6 @@ export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances:
     badgeIds = SortIdRangesAndMergeIfNecessary(badgeIds)
     let idRangesNotFound = badgeIds
 
-    console.log("badgeIds: ", badgeIds);
-    console.log("currentUserBalances: ", currentUserBalances);
-
-
     for (let userBalanceObj of currentUserBalances) {
         userBalanceObj.badgeIds = GetIdRangesWithOmitEmptyCaseHandled(userBalanceObj.badgeIds)
 
@@ -137,16 +133,11 @@ export function AddBalancesForIdRanges(userBalanceInfo: UserBalance, ranges: IdR
 // Subtracts a balance to all ids specified in []ranges
 export function SubtractBalancesForIdRanges(userBalanceInfo: UserBalance, ranges: IdRange[], balanceToRemove: number) {
     let currBalances = GetBalancesForIdRanges(ranges, userBalanceInfo.balances);
-    console.log("currBalances: ", currBalances);
-    console.log("balanceToRemove: ", balanceToRemove);
-
 
     for (let currBalanceObj of currBalances) {
         let newBalance = SafeSubtract(currBalanceObj.balance, balanceToRemove);
         userBalanceInfo.balances = UpdateBalancesForIdRanges(currBalanceObj.badgeIds, newBalance, userBalanceInfo.balances);
     }
-
-    console.log("userBalanceInfo", userBalanceInfo);
 
     return GetBalanceInfoToInsertToStorage(userBalanceInfo);
 }
