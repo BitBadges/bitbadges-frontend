@@ -11,7 +11,7 @@ export function ManagerApprovedTransfersStepItem(
 
     return {
         title: 'Manager\'s Approved Transfers',
-        description: `The manager will have special permissions to execute these transfers without the badge owner's approval.`,
+        description: `Should the manager have special permissions to revoke and transfer badges?`,
         disabled: !handledManagerApprovedTransfers,
         node: <SwitchForm
             noSelectUntilClick
@@ -22,8 +22,8 @@ export function ManagerApprovedTransfersStepItem(
                     isSelected: handledManagerApprovedTransfers && newCollectionMsg.managerApprovedTransfers.length == 0
                 },
                 {
-                    title: 'Revoke Any Badge',
-                    message: `The manager is able to revoke badges from any user or transfer badges on behalf of any user without approval.`,
+                    title: 'Complete Control',
+                    message: `The manager will be able to revoke and transfer any badge without its owners' approval.`,
                     isSelected: handledManagerApprovedTransfers && newCollectionMsg.managerApprovedTransfers.length > 0
                 },
             ]}

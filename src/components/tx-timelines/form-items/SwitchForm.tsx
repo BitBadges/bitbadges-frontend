@@ -7,6 +7,7 @@ interface SwitchFormOption {
     title: string;
     message: string | ReactNode;
     isSelected: boolean;
+    disabled?: boolean;
 }
 
 export function SwitchForm({
@@ -48,8 +49,12 @@ export function SwitchForm({
                                 border: option.isSelected && canShowSelected ? '1px solid #1890ff' : undefined,
                                 display: 'flex',
                                 justifyContent: 'center',
+                                cursor: option.disabled ? 'not-allowed' : undefined
                             }}
                             onClick={() => {
+                                if (option.disabled) {
+                                    return;
+                                }
                                 onSwitchChange(index, option.title);
                                 setCanShowSelected(true);
                             }}

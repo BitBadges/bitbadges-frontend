@@ -21,11 +21,13 @@ export function UpdateMetadataTimeline({
     const collectionMetadata = txTimelineProps.collectionMetadata;
     const badgeMetadata = txTimelineProps.individualBadgeMetadata;
     const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
+    const individualBadgeMetadata = txTimelineProps.individualBadgeMetadata;
     const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
 
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
+
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const CollectionPreviewStep = PreviewCollectionStepItem(collection);
 

@@ -1,9 +1,9 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Divider, InputNumber, Steps, Tooltip } from 'antd';
+import { Button, Divider, InputNumber, Steps, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { getFullBadgeIdRanges, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, Transfers, UserBalance } from '../../bitbadges-api/types';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, Transfers, UserBalance } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressListSelect } from '../address/AddressListSelect';
@@ -11,8 +11,17 @@ import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
 import { BalancesInput } from '../balances/BalancesInput';
 import { IdRangesInput } from '../balances/IdRangesInput';
 import { TransferDisplay } from './TransferDisplay';
+import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
+import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
 
 const { Step } = Steps;
+
+export enum AmountSelectType {
+    None,
+    Custom,
+    Snake,
+    Linear,
+}
 
 export function TransferSelect({
     transfers,
@@ -35,9 +44,13 @@ export function TransferSelect({
 }) {
     const chain = useChainContext();
 
+    const [amountSelectType, setAmountSelectType] = useState(AmountSelectType.None);
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
     const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
+
+
+
 
     const onStepChange = (value: number) => {
         setCurrentStep(value);
@@ -53,6 +66,49 @@ export function TransferSelect({
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
 
+    let numBadgeIds = 0;
+    let ids = [];
+    for (const balance of balances) {
+        for (const badgeIdRange of balance.badgeIds) {
+            numBadgeIds += badgeIdRange.end - badgeIdRange.start + 1;
+            for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+                ids.push(i);
+            }
+        }
+    }
+
+
+    let transfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[] = [];
+    const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
+
+    if ((amountSelectType === AmountSelectType.None && numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
+        transfersToAdd = [{
+            toAddresses: distributionMethod === DistributionMethod.Codes ? [] : toAddresses.map((user) => user.accountNumber),
+            balances: balances,
+            toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : toAddresses,
+        }];
+    } else if (amountSelectType === AmountSelectType.Linear) {
+        let numPerAddress = ids.length / numRecipients;
+
+        let currId = 0;
+        for (let i = 0; i < numRecipients; i++) {
+            let badgeIds: IdRange[] = [{ start: ids[currId], end: ids[currId] }];
+            for (let i = currId + 1; i < currId + numPerAddress; i++) {
+                badgeIds = InsertRangeToIdRanges({ start: ids[i], end: ids[i] }, badgeIds);
+            }
+            currId += numPerAddress;
+
+            transfersToAdd.push({
+                toAddresses: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i].accountNumber],
+                balances: [{
+                    balance: balances[0]?.balance || 1,
+                    badgeIds: badgeIds,
+                }],
+                toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i]],
+            });
+        }
+    }
+
     //Whenever something changes, update the pre and post transfer balances
     useEffect(() => {
         let postTransferBalanceObj = userBalance;
@@ -65,26 +121,30 @@ export function TransferSelect({
         if (!postTransferBalanceObj || postTransferBalanceObj === getBlankBalance()) return;
         if (!preTransferBalanceObj || preTransferBalanceObj === getBlankBalance()) return;
 
-        const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length
 
-        for (const transfer of transfers) {
+
+        for (const transfer of [...transfers]) {
             for (const balance of transfer.balances) {
                 for (const idRange of balance.badgeIds) {
-                    postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, numRecipients);
-                    preTransferBalanceObj = getPostTransferBalance(preTransferBalanceObj, idRange.start, idRange.end, balance.balance, numRecipients);
+                    postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
+                    preTransferBalanceObj = getPostTransferBalance(preTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
                 }
             }
         }
 
-        for (const balance of balances) {
-            for (const idRange of balance.badgeIds) {
-                postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, numRecipients);
+        for (const transfer of [...transfersToAdd]) {
+            for (const balance of transfer.balances) {
+                for (const idRange of balance.badgeIds) {
+                    postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
+                    // preTransferBalanceObj = getPostTransferBalance(preTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
+                }
             }
         }
 
         setPostTransferBalance(postTransferBalanceObj);
         setPreTransferBalance(preTransferBalanceObj);
-    }, [balances, userBalance, collection, toAddresses.length, chain.accountNumber, sender.accountNumber, transfers, distributionMethod, numCodes])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [balances, userBalance, collection, toAddresses.length, chain.accountNumber, sender.accountNumber, transfers, distributionMethod, numCodes, amountSelectType])
 
 
     const forbiddenAddresses = getMatchingAddressesFromTransferMapping(collection.disallowedTransfers, toAddresses, chain, collection.manager.accountNumber);
@@ -145,6 +205,8 @@ export function TransferSelect({
 
     const idRangesLengthEqualsZero = balances[0].badgeIds.length === 0;
 
+
+
     const TransferSteps = [
         distributionMethod === DistributionMethod.Codes ? {
             title: `Codes (${numCodes})`,
@@ -184,6 +246,7 @@ export function TransferSelect({
             description: <div>
                 <br />
                 <IdRangesInput
+                    defaultAllSelected={false}
                     setIdRanges={(badgeIds) => {
                         setBalances([
                             {
@@ -194,24 +257,7 @@ export function TransferSelect({
                     }}
                     maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                     darkMode
-                />
-
-                <Divider />
-                <TransferDisplay
-                    setTransfers={setTransfers}
-                    transfers={[
-                        {
-                            toAddresses: toAddresses.map((user) => user.accountNumber),
-                            balances: balances,
-                            toAddressInfo: toAddresses,
-                        }
-                    ]}
                     collection={collection}
-                    fontColor={PRIMARY_TEXT}
-                    from={[sender]}
-                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
-                    hideAddresses
-                    hideBalances
                 />
             </div>,
             disabled: idRangesOverlap || idRangesLengthEqualsZero || firstStepDisabled || !canTransfer,
@@ -219,30 +265,60 @@ export function TransferSelect({
         {
             title: 'Amounts',
             description: <div>
+                {numRecipients > 1 && <div>
+                    <SwitchForm
+                        options={[{
+                            title: 'Custom',
+                            message: 'For all selected badges, send X to each recipient.',
+                            isSelected: amountSelectType === AmountSelectType.Custom,
+                        },
+                        {
+                            title: 'Evenly Distributed',
+                            message: `Distribute the ${numBadgeIds} badge IDs evenly across the ${numRecipients} selected recipients in increasing order. ${numBadgeIds % numRecipients !== 0 ? 'This option is currently disabled because the number of badge IDs is not evenly divisible by the number of recipients.' : ''}`,
+                            isSelected: amountSelectType === AmountSelectType.Linear,
+                            disabled: numBadgeIds % numRecipients !== 0,
+                        }]}
+                        onSwitchChange={(option, title) => {
+                            if (title === 'Custom') {
+                                setAmountSelectType(AmountSelectType.Custom);
+                            } else {
+                                setAmountSelectType(AmountSelectType.Linear);
+                            }
+                        }}
+                        noSelectUntilClick
+                    />
+                </div>}
                 <br />
+
+                <br />
+
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
+                    transferType={amountSelectType}
                     darkMode
                 />
-                {/* <hr /> */}
-                <TransferDisplay
-                    transfers={[
-                        {
-                            toAddresses: toAddresses.map((user) => user.accountNumber),
-                            balances: balances,
-                            toAddressInfo: toAddresses,
-                        }
-                    ]}
-                    collection={collection}
-                    fontColor={PRIMARY_TEXT}
-                    from={[sender]}
-                    setTransfers={setTransfers}
-                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
-                    hideAddresses
-                />
+                {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
+                    {/* <hr /> */}
+                    <TransferDisplay
+                        transfers={[
+                            {
+                                toAddresses: toAddresses.map((user) => user.accountNumber),
+                                balances: balances,
+                                toAddressInfo: toAddresses,
+                            }
+                        ]}
+                        collection={collection}
+                        fontColor={PRIMARY_TEXT}
+                        from={[sender]}
+                        setTransfers={setTransfers}
+                        toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
+                        hideAddresses
+                    />
+                </div>}
                 <Divider />
-                {postTransferBalance && <div>
+
+                {postTransferBalance && !(numRecipients > 1 && amountSelectType === AmountSelectType.None) && <div>
                     <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
                     {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
                 </div>}
@@ -255,16 +331,10 @@ export function TransferSelect({
             description: <div>
                 <TransferDisplay
                     setTransfers={setTransfers}
-                    transfers={[
-                        {
-                            toAddresses: toAddresses.map((user) => user.accountNumber),
-                            balances: balances,
-                            toAddressInfo: toAddresses,
-                        }
-                    ]}
+                    transfers={transfersToAdd}
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
-                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
+                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes ? numCodes / (transfersToAdd.length ? transfersToAdd.length : 1) : 0) : []}
                     from={[sender]}
                 />
                 <br />
@@ -272,11 +342,7 @@ export function TransferSelect({
                     style={{ width: '100%' }}
                     onClick={async () => {
 
-                        setTransfers([...transfers, {
-                            toAddresses: distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : toAddresses.map((user) => user.accountNumber),
-                            balances,
-                            toAddressInfo: toAddresses,
-                        }]);
+                        setTransfers([...transfers, ...transfersToAdd]);
                         setToAddresses([]);
                         setBalances([
                             {

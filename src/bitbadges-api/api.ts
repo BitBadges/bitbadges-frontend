@@ -95,15 +95,15 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
 
         let ids: number[] = [];
         for (let idx = 1; idx < badgeData.nextBadgeId; idx += 100) {
+            let j = 0;
             for (const badgeUri of badgeData.badgeUris) {
-                let j = 0;
                 for (const badgeIdRange of badgeUri.badgeIds) {
-                    if (Number(badgeIdRange.start) <= j && Number(badgeIdRange.end) >= j) {
+                    if (Number(badgeIdRange.start) <= idx && Number(badgeIdRange.end) >= idx) {
                         ids.push(j);
                     }
-                    j++;
                 }
-            }
+                j++;
+            }   
         }
 
         ids = [...new Set(ids)];
@@ -121,7 +121,7 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
             }
         });
     } else {
-        badgeData = await updateMetadata(badgeData, 1);
+        badgeData = await updateMetadata(badgeData, 0);
     }
 
     return badgeData;

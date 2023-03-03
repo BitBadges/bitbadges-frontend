@@ -33,7 +33,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
         }
     }, [visible, collection.permissions]);
 
-    const isIPFS = collection.badgeUris.some(x => x.uri.startsWith('ipfs://')) || collection.collectionUri.startsWith('ipfs://');
+    // const isIPFS = collection.badgeUris.some(x => x.uri.startsWith('ipfs://')) || collection.collectionUri.startsWith('ipfs://');
 
     const items = [
         {
@@ -84,12 +84,12 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                 <br />
                 <InfoCircleOutlined /> Once a permission is turned off, it cannot be turned back on.
                 <br />
-                {isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges && <div style={{ color: 'red' }}>
+                {/* {isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges && <div style={{ color: 'red' }}>
                     <WarningOutlined /> {"To have the \"Add More Badges\" permission turned on, you must also have the \"Update Metadata URLs\" permission turned on. This is because this collection uses IPFS for its metadata storage."}
-                </div>
-                }
+                </div> */}
+                {/* } */}
             </>,
-            disabled: isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges
+            // disabled: isIPFS && !GetPermissions(currPermissions).CanUpdateUris && GetPermissions(currPermissions).CanCreateMoreBadges
         }
     ]
 

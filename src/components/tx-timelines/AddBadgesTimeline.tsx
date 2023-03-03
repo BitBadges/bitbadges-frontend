@@ -9,7 +9,6 @@ import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstSe
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
-import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 
 //See TxTimeline for explanations and documentation
@@ -24,7 +23,6 @@ export function AddBadgesTimeline({
     const addMethod = txTimelineProps.addMethod;
     const setAddMethod = txTimelineProps.setAddMethod;
     const collectionMetadata = txTimelineProps.collectionMetadata;
-    const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
     const individualBadgeMetadata = txTimelineProps.individualBadgeMetadata;
     const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
     const distributionMethod = txTimelineProps.distributionMethod;
@@ -36,13 +34,14 @@ export function AddBadgesTimeline({
     const fungible = txTimelineProps.fungible;
     const nonFungible = txTimelineProps.nonFungible;
     const simulatedCollection = txTimelineProps.simulatedCollection;
+    const existingCollection = txTimelineProps.existingCollection;
 
 
     //All mint timeline step items
-    const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection);
+    const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, existingCollection);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
-    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
+    // const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
+    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection, true);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
     const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)
     const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems);
@@ -55,7 +54,7 @@ export function AddBadgesTimeline({
             items={[
                 BadgeSupplySelectStep,
                 MetadataStorageSelectStep,
-                SetCollectionMetadataStep,
+                // SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
                 DistributionMethodStep,
@@ -68,7 +67,6 @@ export function AddBadgesTimeline({
                 claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
                     ? DownloadCodesStep : EmptyStepItem,
                 CollectionPreviewStep
-
             ]}
             onFinish={() => {
                 if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);

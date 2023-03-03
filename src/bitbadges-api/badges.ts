@@ -42,7 +42,7 @@ export function createCollectionFromMsgNewCollection(
     let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
     let newMaxSupplys = existingCollection?.maxSupplys ? [...existingCollection.maxSupplys] : [];
     let newUnmintedSupplys = existingCollection?.unmintedSupplys ? [...existingCollection.unmintedSupplys] : [];
-    console.log("NEW UNMINTED SUPPLYS 1", JSON.stringify(newUnmintedSupplys));
+    
     for (const supplyObj of msgNewCollection.badgeSupplys) {
         nextBadgeId += supplyObj.amount;
         newMaxSupplys.push({
@@ -60,8 +60,6 @@ export function createCollectionFromMsgNewCollection(
             }]
         })
     }
-
-    console.log("NEW UNMINTED SUPPLYS 2", JSON.stringify(newUnmintedSupplys));
 
     let unmintedBalances: UserBalance = {
         balances: newUnmintedSupplys,
@@ -99,7 +97,7 @@ export function createCollectionFromMsgNewCollection(
         }
     }
 
-    console.log("NEW UNMINTED SUPPLYS 3", JSON.stringify(unmintedBalances));
+    
 
     const badgeCollection: BitBadgeCollection = {
         ...msgNewCollection,

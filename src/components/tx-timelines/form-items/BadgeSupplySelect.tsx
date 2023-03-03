@@ -12,7 +12,6 @@ export function BadgeSupply({
 }) {
     const [supplyToCreate, setSupplyToCreate] = useState<number>(0);
 
-
     const addTokens = (supply: number) => {
         if (supply > 0) {
             if (!fungible) {
@@ -47,7 +46,6 @@ export function BadgeSupply({
                             addTokens(value);
                         }
                     } />
-                <Divider />
             </div>
         </div >
     )

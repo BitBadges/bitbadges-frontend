@@ -26,52 +26,31 @@ export function BadgeAvatar({
 }) {
     const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
 
-
     return metadata ? <div>
         <Tooltip
             placement="bottom"
             title={`${metadata.name} (ID: ${badgeId})`}
             open={modalIsVisible ? false : undefined}
         >
-            {metadata.image ? (
-                <div style={{ textAlign: 'center' }}>
-                    <Avatar
-                        style={{
-                            verticalAlign: 'middle',
-                            border: `1px solid ${metadata.color || 'black'}`,
-                            margin: 4,
-                            cursor: 'pointer',
-                        }}
-                        className="badge-avatar"
-                        src={metadata.image}
-                        size={size}
-                        onClick={() => setModalIsVisible(true)}
-                        onError={() => {
-                            return false;
-                        }}
-                    />
 
-                </div>
-            ) : (
-                <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+                <Avatar
+                    style={{
+                        verticalAlign: 'middle',
+                        border: `1px solid ${metadata.color || 'black'}`,
+                        margin: 4,
+                        cursor: 'pointer',
+                    }}
+                    className="badge-avatar"
+                    src={metadata.image ? metadata.image : <Spin />}
+                    size={size}
+                    onClick={() => setModalIsVisible(true)}
+                    onError={() => {
+                        return false;
+                    }}
+                />
 
-                    <Avatar
-                        style={{
-                            backgroundColor: metadata.color,
-                            border: `1px solid ${metadata.color || 'black'}`,
-                            verticalAlign: 'middle',
-                            margin: 4,
-                            cursor: 'pointer',
-                        }}
-                        size={size}
-                        className="badge-avatar"
-                        onClick={() => setModalIsVisible(true)}
-                    ></Avatar>
-                    <br />
-                    {showId && <span style={{ color: PRIMARY_TEXT }}>{badgeId}</span>}
-                    {showId && <span>x{badgeId}</span>}
-                </div>
-            )}
+            </div>
             <BadgeModal
                 collection={collection}
                 metadata={metadata}

@@ -1,22 +1,30 @@
-import { CalendarOutlined, DownOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, DatePicker, Divider, Form, Input, Select, Space, Typography, Upload, UploadProps, message } from 'antd';
+import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, TimePicker, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
-import { BadgeMetadata, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { GO_MAX_UINT_64, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
-import { getFullBadgeIdRanges } from '../../../bitbadges-api/badges';
+import moment from 'moment';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { IdRangesInput } from '../../balances/IdRangesInput';
+import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
+import { getBlankBalance } from '../../../bitbadges-api/balances';
+import { BadgeAvatar } from '../../badges/BadgeAvatar';
 
 const { Text } = Typography;
 const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
-const DELAY_TIME = 450;
+const DELAY_TIME = 300;
+
+//TODO: Better shortcuts. More customizable (i.e. populate all with current title)
 
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
@@ -25,22 +33,37 @@ export function MetadataForm({
     addMethod,
 
     id,
+    setId,
     newCollectionMsg,
     setNewCollectionMsg,
-    populateAllWithCollectionMetadata,
-    populateAllWithCurrentMetadata,
+    populateOtherBadges,
+    startId,
+    endId,
+    toBeFrozen,
+    collection
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     metadata: BadgeMetadata;
     setMetadata: (metadata: BadgeMetadata) => void;
     id?: number;
+    setId?: (id: number) => void;
     addMethod: MetadataAddMethod;
-    populateAllWithCollectionMetadata?: () => BadgeMetadata;
-    populateAllWithCurrentMetadata?: () => void;
+    populateOtherBadges: (badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => void;
+    startId?: number;
+    endId?: number;
+    toBeFrozen?: boolean;
+    collection: BitBadgeCollection;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
+    const [validForeverChecked, setValidForeverChecked] = useState(metadata.validFrom?.end === MAX_DATE_TIMESTAMP);
+    const [idRanges, setIdRanges] = useState<IdRange[]>([
+        {
+            start: startId ? startId : 1,
+            end: endId ? endId : GO_MAX_UINT_64
+        }
+    ]);
     const [images, setImages] = useState([
         {
             value: 'https://bitbadges.web.app/img/icons/logo.png',
@@ -55,6 +78,8 @@ export function MetadataForm({
             label: 'Medal',
         },
     ]);
+    const [populateIsOpen, setPopulateIsOpen] = useState(false);
+    const [fieldName, setFieldName] = useState('');
 
     const addItem = (e: any) => {
         e.preventDefault();
@@ -67,6 +92,12 @@ export function MetadataForm({
     };
 
     const [currentMetadata, setCurrentMetadata] = useState(metadata);
+    const [updateParentMetadataFlag, setUpdateParentMetadataFlag] = useState(false);
+
+    const updateCurrentMetadata = (metadata: BadgeMetadata) => {
+        setCurrentMetadata(metadata);
+        setUpdateParentMetadataFlag(!updateParentMetadataFlag);
+    };
 
     useEffect(() => {
         setCurrentMetadata(metadata);
@@ -100,7 +131,7 @@ export function MetadataForm({
                             label: info.file.url ? info.file.url : info.file.name,
                         },
                     ]);
-                    setMetadata({
+                    updateCurrentMetadata({
                         ...currentMetadata,
                         image: base64
                     });
@@ -121,11 +152,11 @@ export function MetadataForm({
     }
 
     function handleEditorChange({ html, text }: any) {
-        setCurrentMetadata({
+        updateCurrentMetadata({
             ...currentMetadata,
             description: text
         });
-        console.log('handleEditorChange', html, text);
+        // console.log('handleEditorChange', html, text);
     }
 
 
@@ -135,12 +166,11 @@ export function MetadataForm({
             setMetadata({
                 ...currentMetadata,
             });
-        }, DELAY_TIME)
-        console.log(delayDebounceFn);
+        }, DELAY_TIME);
 
         return () => clearTimeout(delayDebounceFn)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentMetadata])
+    }, [updateParentMetadataFlag])
 
     return (
         <>
@@ -150,69 +180,114 @@ export function MetadataForm({
                         setNewCollectionMsg({
                             ...newCollectionMsg,
                             collectionUri,
-                            badgeUris: [{
-                                uri: badgeUri,
-                                badgeIds: {
-                                    start: 1,
-                                    end: GO_MAX_UINT_64
-                                }
-                            }],
+                            badgeUris: [
+                                ...newCollectionMsg.badgeUris,
+                                {
+                                    uri: badgeUri,
+                                    badgeIds: [
+                                        {
+                                            start: startId ? startId : 1,
+                                            end: endId ? endId : GO_MAX_UINT_64 //TODO: weird
+                                        }
+                                    ]
+                                },
+                            ],
                         });
                     }} />
                 </>}
 
                 {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
 
+                    {id && <div>
+                        <div style={{ color: PRIMARY_TEXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
+                            {/* <IdRangesInput setIdRanges={
+                    (ranges: IdRange[]) => {
+                        setIdRanges(ranges);
+                    }
+                }
+                    maximum={collection.nextBadgeId - 1}
+                    minimum={existingCollection?.nextBadgeId || 1}
+                    darkMode
+                    verb='Edit'
+                /> */}
+
+
+                            <div><b>Setting Metadata for Badge ID:{' '}</b></div>
+                            <InputNumber min={startId ? startId : 1} max={endId ? endId : GO_MAX_UINT_64}
+                                value={id}
+                                onChange={(e) => {
+                                    if (setId) setId(e)
+                                }}
+                                style={{
+                                    marginLeft: 8,
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                            <Tooltip title='Populate the metadata of other badges with the metadata of this badge.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'all'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('all');
+                                    }}
+                                />
+                            </Tooltip>
+
+                        </div>
+                        <br />
+                        <div style={{ color: PRIMARY_TEXT }}>
+                            <BadgeAvatar
+                                badgeId={id}
+                                metadata={currentMetadata}
+                                collection={collection}
+                                size={75}
+                                hideModalBalance
+                                showId
+                            />
+                        </div>
+                        <div>
+                            {populateIsOpen && fieldName === 'all' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                                <br />
+                                <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
+                                <br />
+                                <IdRangesInput
+                                    darkMode
+                                    minimum={startId ? startId : 1}
+                                    maximum={endId ? endId : GO_MAX_UINT_64}
+                                    setIdRanges={setIdRanges}
+                                    verb={'Update'}
+                                    collection={collection}
+                                />
+
+                                <Divider />
+                                {!id && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+                                    <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
+                                    <br />
+                                    <br />
+                                </div>}
+                                <Button type='primary'
+                                    style={{ width: '100%' }}
+                                    onClick={() => {
+                                        populateOtherBadges(idRanges, fieldName, '', currentMetadata);
+                                        setPopulateIsOpen(false);
+                                    }}
+                                > Update </Button>
+                                <Divider />
+                                <hr />
+                            </div>}
+                        </div>
+
+
+                    </div>
+
+                    }
                     <br />
-                    {id && <>
-
-                        <Form.Item
-                            label={
-                                <Text
-
-                                    style={{ color: PRIMARY_TEXT }}
-                                    strong
-                                >
-                                    Shortcuts
-                                </Text>
-                            }
-                        >
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Button style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, width: '48%' }}
-                                    onClick={() => {
-                                        if (populateAllWithCollectionMetadata) {
-                                            const collectionMetadata = populateAllWithCollectionMetadata();
-                                            setCurrentMetadata(collectionMetadata);
-                                        }
-                                        // let newMetadata: BadgeMetadataMap = {
-
-                                        // };
-                                        // for (const key of Object.keys(individualBadgeMetadata)) {
-                                        //     newMetadata[key] = collectionMetadata;
-                                        // }
-
-                                        // setIndividualBadgeMetadata(newMetadata);
-                                    }}>Populate All with Collection Metadata</Button>
-                                <Button
-                                    style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, width: '48%' }}
-                                    onClick={() => {
-                                        if (populateAllWithCurrentMetadata) {
-                                            populateAllWithCurrentMetadata();
-                                        }
-                                        // let newMetadata: BadgeMetadataMap = {};
-                                        // for (const key of Object.keys(individualBadgeMetadata)) {
-                                        //     newMetadata[key] = individualBadgeMetadata[id];
-                                        // }
-
-                                        // setIndividualBadgeMetadata(newMetadata);
-                                    }}>{`Populate All with Badge ID ${id}'s Metadata`}</Button>
-                            </div>
-                        </Form.Item>
-
-                        <br />
-                        <br />
-                    </>}
                     <Form.Item
                         label={
                             <Text
@@ -224,19 +299,64 @@ export function MetadataForm({
                         }
                         required
                     >
-                        <Input
-                            value={currentMetadata.name}
-                            onChange={(e: any) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    name: e.target.value
-                                });
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Input
+                                value={currentMetadata.name}
+                                onChange={(e: any) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        name: e.target.value
+                                    });
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                            <Tooltip title='Populate the metadata of other badges with this title.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'name'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('name');
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
+                        {populateIsOpen && fieldName === 'name' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this title?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            {!id && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+                                <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
+                                <br />
+                                <br />
+                            </div>}
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
                     <Form.Item
                         label={
@@ -249,64 +369,106 @@ export function MetadataForm({
                         }
                         required
                     >
-                        <Select
-                            className="selector"
-                            value={currentMetadata.image}
-                            onChange={(e) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    image: e
-                                });
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                            suffixIcon={
-                                <DownOutlined
-                                    style={{ color: PRIMARY_TEXT }}
-                                />
-                            }
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider
-                                        style={{ margin: '8px 0' }}
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Select
+                                className="selector"
+                                value={currentMetadata.image}
+                                onChange={(e) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        image: e
+                                    });
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                                suffixIcon={
+                                    <DownOutlined
+                                        style={{ color: PRIMARY_TEXT }}
                                     />
-                                    <Space
-                                        align="center"
-                                        style={{ padding: '0 8px 4px' }}
-                                    >
-                                        <Upload {...props}>
-                                            <Button icon={<UploadOutlined />}>Click to Upload New Image</Button>
-                                        </Upload>
-                                    </Space>
-                                </>
-                            )}
-                        >
-                            {images.map((item: any) => (
-                                <Option
-                                    key={item.value}
-                                    value={item.value}
-                                >
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                        }}
-                                    >
-                                        <img
-                                            src={item.value}
-                                            height="20px"
-                                            style={{ paddingRight: 10 }}
-                                            alt="Label"
+                                }
+                                dropdownRender={(menu) => (
+                                    <>
+                                        {menu}
+                                        <Divider
+                                            style={{ margin: '8px 0' }}
                                         />
-                                        <div>{item.label}</div>
-                                    </div>
-                                </Option>
-                            ))}
-                        </Select>
+                                        <Space
+                                            align="center"
+                                            style={{ padding: '0 8px 4px' }}
+                                        >
+                                            <Upload {...props}>
+                                                <Button icon={<UploadOutlined />}>Click to Upload New Image</Button>
+                                            </Upload>
+                                        </Space>
+                                    </>
+                                )}
+                            >
+                                {images.map((item: any) => (
+                                    <Option
+                                        key={item.value}
+                                        value={item.value}
+                                    >
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <img
+                                                src={item.value}
+                                                height="20px"
+                                                style={{ paddingRight: 10 }}
+                                                alt="Label"
+                                            />
+                                            <div>{item.label}</div>
+                                        </div>
+                                    </Option>
+                                ))}
+                            </Select>
+
+                            <Tooltip title='Populate the metadata of other badges with this image.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'image'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('image');
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
+                        {populateIsOpen && fieldName === 'image' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this image?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
+
                     <Form.Item
                         label={
                             <Text
@@ -318,60 +480,101 @@ export function MetadataForm({
                         }
                     // required={type === 0}
                     >
-                        <Select
-                            className="selector"
-                            value={currentMetadata.category}
-                            placeholder="Default: None"
-                            onChange={(e: any) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    category: e
-                                });
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Select
+                                className="selector"
+                                value={currentMetadata.category}
+                                placeholder="Default: None"
+                                onChange={(e: any) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        category: e
+                                    });
 
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                            suffixIcon={
-                                <DownOutlined
-                                    style={{ color: PRIMARY_TEXT }}
-                                />
-                            }
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider
-                                        style={{ margin: '8px 0' }}
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                                suffixIcon={
+                                    <DownOutlined
+                                        style={{ color: PRIMARY_TEXT }}
                                     />
-                                    <Space
-                                        align="center"
-                                        style={{ padding: '0 8px 4px' }}
-                                    >
-                                        <Input
-                                            placeholder="Add Custom Category"
-                                            value={name}
-                                            onChange={onNameChange}
+                                }
+                                dropdownRender={(menu) => (
+                                    <>
+                                        {menu}
+                                        <Divider
+                                            style={{ margin: '8px 0' }}
                                         />
-                                        <Typography.Link
-                                            onClick={addItem}
-                                            style={{
-                                                whiteSpace: 'nowrap',
-                                            }}
+                                        <Space
+                                            align="center"
+                                            style={{ padding: '0 8px 4px' }}
                                         >
-                                            <PlusOutlined /> Add
-                                            Category
-                                        </Typography.Link>
-                                    </Space>
-                                </>
-                            )}
-                        >
-                            {items.map((item: any) => (
-                                <Option key={item} value={item}>
-                                    {item}
-                                </Option>
-                            ))}
-                        </Select>
+                                            <Input
+                                                placeholder="Add Custom Category"
+                                                value={name}
+                                                onChange={onNameChange}
+                                            />
+                                            <Typography.Link
+                                                onClick={addItem}
+                                                style={{
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
+                                                <PlusOutlined /> Add
+                                                Category
+                                            </Typography.Link>
+                                        </Space>
+                                    </>
+                                )}
+                            >
+                                {items.map((item: any) => (
+                                    <Option key={item} value={item}>
+                                        {item}
+                                    </Option>
+                                ))}
+                            </Select>
+                            <Tooltip title='Populate the metadata of other badges with this category.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'category'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('category');
+                                    }}
+                                />
+                            </Tooltip>
+
+                        </div>
+                        {populateIsOpen && fieldName === 'category' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this category?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
                     <Form.Item
                         label={
@@ -383,14 +586,16 @@ export function MetadataForm({
                             </Text>
                         }
                     >
-                        <MdEditor style={{
-                            height: '500px',
-                            backgroundColor: PRIMARY_BLUE,
-                            color: PRIMARY_TEXT
-                        }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
-                            value={currentMetadata.description}
-                        />
-                        {/* <Input.TextArea
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <MdEditor style={{
+                                width: '100%',
+                                minHeight: '250px',
+                                backgroundColor: PRIMARY_BLUE,
+                                color: PRIMARY_TEXT
+                            }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                                value={currentMetadata.description}
+                            />
+                            {/* <Input.TextArea
                             value={currentMetadata.description}
                             onChange={(e) => {
                                 setMetadata({
@@ -403,117 +608,119 @@ export function MetadataForm({
                                 color: PRIMARY_TEXT,
                             }}
                         /> */}
-                    </Form.Item>
-
-
-
-                    <Form.Item
-                        label={
-                            <Text
-                                style={{ color: PRIMARY_TEXT }}
-                                strong
-                            >
-                                Color
-                            </Text>
-                        }
-                    >
-                        <Select
-                            className="selector"
-                            defaultValue={currentMetadata.color}
-                            onSelect={(e: any) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    color: e
-                                });
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                            suffixIcon={
-                                <DownOutlined
-                                    style={{ color: PRIMARY_TEXT }}
+                            <Tooltip title='Populate the metadata of other badges with this description.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'description'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('description');
+                                    }}
                                 />
-                            }
-                        >
-                            <Select.Option value="black">
-                                <span style={{ color: 'black' }}>
-                                    ⬤
-                                </span>{' '}
-                                Black
-                            </Select.Option>
-                            <Select.Option value="red">
-                                <span style={{ color: 'red' }}>⬤</span>{' '}
-                                Red
-                            </Select.Option>
-                            <Select.Option value="blue">
-                                <span style={{ color: 'blue' }}>⬤</span>{' '}
-                                Blue
-                            </Select.Option>
-                            <Select.Option value="green">
-                                <span style={{ color: 'green' }}>
-                                    ⬤
-                                </span>{' '}
-                                Green
-                            </Select.Option>
-                            <Select.Option value="orange">
-                                <span style={{ color: 'orange' }}>
-                                    ⬤
-                                </span>{' '}
-                                Orange
-                            </Select.Option>
-                            <Select.Option value="yellow">
-                                <span style={{ color: 'yellow' }}>
-                                    ⬤
-                                </span>{' '}
-                                Yellow
-                            </Select.Option>
-                            <Select.Option value="purple">
-                                <span style={{ color: 'purple' }}>
-                                    ⬤
-                                </span>{' '}
-                                Purple
-                            </Select.Option>
-                            <Select.Option value="pink">
-                                <span style={{ color: 'pink' }}>⬤</span>{' '}
-                                Pink
-                            </Select.Option>
-                            <Select.Option value="brown">
-                                <span style={{ color: 'brown' }}>
-                                    ⬤
-                                </span>{' '}
-                                Brown
-                            </Select.Option>
-                        </Select>
+                            </Tooltip>
+                        </div>
+                        {populateIsOpen && fieldName === 'description' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this description?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
+
+
                     <Form.Item
                         label={
                             <Text
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                URL
+                                Website <Tooltip title={'Provide a website link for users to learn more about this collection.'}>
+                                    <InfoCircleOutlined />
+                                </Tooltip>
                             </Text>
                         }
                     >
-                        <Input
-                            value={currentMetadata.externalUrl}
-                            onChange={(e) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    externalUrl: e.target.value
-                                });
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                        />
-                        {/* <div style={{ fontSize: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Input
+                                value={currentMetadata.externalUrl}
+                                onChange={(e) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        externalUrl: e.target.value
+                                    });
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                            <Tooltip title='Populate the metadata of other badges with this website.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'externalUrl'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('externalUrl');
+                                    }}
+                                />
+                            </Tooltip>
+
+                        </div>
+                        <div style={{ fontSize: 12 }}>
                             <Text style={{ color: 'lightgray' }}>
-                                *Please use a permanent fixed URL that will not change.
+                                {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
                             </Text>
-                        </div> */}
+                        </div>
+                        {populateIsOpen && fieldName === 'externalUrl' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this website?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
                     <Form.Item
                         label={
@@ -521,34 +728,118 @@ export function MetadataForm({
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                Expiration Date
+                                Expiration Date <Tooltip title={'How long will badges in this collection be valid? Note this has no on-chain significance and is only informational.'}>
+                                    <InfoCircleOutlined />
+                                </Tooltip>
                             </Text>
                         }
                     >
-                        <DatePicker
-                            style={{
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+                            <div style={{
                                 width: '100%',
                                 backgroundColor: PRIMARY_BLUE,
                                 color: PRIMARY_TEXT,
-                            }}
-                            suffixIcon={
-                                <CalendarOutlined
-                                    style={{
-                                        color: PRIMARY_TEXT,
+                            }}>
+                                {!validForeverChecked &&
+                                    <DatePicker
+                                        placeholder='Default: No Expiration Date'
+                                        value={currentMetadata.validFrom ? moment(new Date(currentMetadata.validFrom.end * 1000)) : undefined}
+                                        style={{
+                                            width: '100%',
+                                            backgroundColor: PRIMARY_BLUE,
+                                            color: PRIMARY_TEXT,
+                                        }}
+                                        suffixIcon={
+                                            <CalendarOutlined
+                                                style={{
+                                                    color: PRIMARY_TEXT,
+                                                }}
+                                            />
+                                        }
+                                        onChange={(_date, dateString) => {
+                                            updateCurrentMetadata({
+                                                ...currentMetadata,
+                                                validFrom: {
+                                                    start: Date.now() / 1000,
+                                                    end: new Date(dateString).valueOf() / 1000,
+                                                }
+                                            });
+                                        }}
+                                    />
+                                }
+                                <div style={{ color: PRIMARY_TEXT }}>
+                                    Valid Forever?
+                                    <Checkbox
+                                        checked={validForeverChecked}
+                                        style={{ marginLeft: 5 }}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                updateCurrentMetadata({
+                                                    ...currentMetadata,
+                                                    validFrom: {
+                                                        start: Date.now() / 1000,
+                                                        end: MAX_DATE_TIMESTAMP
+                                                    }
+                                                });
+                                            } else {
+                                                updateCurrentMetadata({
+                                                    ...currentMetadata,
+                                                    validFrom: {
+                                                        start: Date.now() / 1000,
+                                                        end: Date.now() / 1000,
+                                                    }
+                                                });
+                                            }
+                                            setValidForeverChecked(e.target.checked);
+                                        }}
+                                    />
+
+                                </div>
+
+                            </div>
+                            <Tooltip title='Populate the metadata of other badges with this expiration date.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'validFrom'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('validFrom');
                                     }}
                                 />
-                            }
-                            onChange={(_date, dateString) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    validFrom: {
-                                        start: Date.now() / 1000,
-                                        end: new Date(dateString).valueOf() / 1000,
-                                    }
-                                });
-                            }}
-                        />
+                            </Tooltip>
+
+                        </div>
+                        {populateIsOpen && fieldName === 'validFrom' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
+
 
 
                     <Form.Item
@@ -557,32 +848,211 @@ export function MetadataForm({
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                Tags / Keywords
+                                Tags / Keywords <Tooltip title={'Use tags and keywords to further categorize your badge and make it more searchable!'}>
+                                    <InfoCircleOutlined />
+                                </Tooltip>
                             </Text>
                         }
                     >
-                        <Input
-                            value={currentMetadata.tags}
-                            onChange={(e) => {
-                                setCurrentMetadata({
-                                    ...currentMetadata,
-                                    tags: e.target.value.split(','),
-                                })
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Input
+                                value={currentMetadata.tags}
+                                onChange={(e) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        tags: e.target.value.split(','),
+                                    })
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                            <Tooltip title='Populate the metadata of other badges with these tags.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'tags'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('tags');
+                                    }}
+                                />
+                            </Tooltip>
+
+                        </div>
                         <div style={{ fontSize: 12 }}>
                             <Text style={{ color: 'lightgray' }}>
-                                *Separate with a comma and a single space.
+                                *Separate with a comma.
                             </Text>
                         </div>
+                        <div style={{ display: 'flex', marginTop: 4 }}>
+                            {currentMetadata.tags?.map((tag: any, idx: number) => {
+                                if (tag === '') return;
+                                return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
+                                    {tag}
+                                </Tag>
+                            })}
+
+                        </div>
+
+                        {populateIsOpen && fieldName === 'tags' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have these tags?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
+                    </Form.Item>
+                    <Form.Item
+                        label={
+                            <Text
+                                style={{ color: PRIMARY_TEXT }}
+                                strong
+                            >
+                                Border Color <Tooltip title={'Add a colored border around the image!'}>
+                                    <InfoCircleOutlined />
+                                </Tooltip>
+                            </Text>
+                        }
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Select
+                                className="selector"
+                                defaultValue={currentMetadata.color}
+                                onSelect={(e: any) => {
+                                    updateCurrentMetadata({
+                                        ...currentMetadata,
+                                        color: e
+                                    });
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                                suffixIcon={
+                                    <DownOutlined
+                                        style={{ color: PRIMARY_TEXT }}
+                                    />
+                                }
+                            >
+                                <Select.Option value={undefined}>
+                                    None
+                                </Select.Option>
+                                <Select.Option value="black">
+                                    <span style={{ color: 'black' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Black
+                                </Select.Option>
+                                <Select.Option value="red">
+                                    <span style={{ color: 'red' }}>⬤</span>{' '}
+                                    Red
+                                </Select.Option>
+                                <Select.Option value="blue">
+                                    <span style={{ color: 'blue' }}>⬤</span>{' '}
+                                    Blue
+                                </Select.Option>
+                                <Select.Option value="green">
+                                    <span style={{ color: 'green' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Green
+                                </Select.Option>
+                                <Select.Option value="orange">
+                                    <span style={{ color: 'orange' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Orange
+                                </Select.Option>
+                                <Select.Option value="yellow">
+                                    <span style={{ color: 'yellow' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Yellow
+                                </Select.Option>
+                                <Select.Option value="purple">
+                                    <span style={{ color: 'purple' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Purple
+                                </Select.Option>
+                                <Select.Option value="pink">
+                                    <span style={{ color: 'pink' }}>⬤</span>{' '}
+                                    Pink
+                                </Select.Option>
+                                <Select.Option value="brown">
+                                    <span style={{ color: 'brown' }}>
+                                        ⬤
+                                    </span>{' '}
+                                    Brown
+                                </Select.Option>
+                            </Select>
+                            <Tooltip title='Populate the metadata of other badges with this border color.'>
+                                <Avatar
+                                    className='screen-button'
+                                    src={<FontAwesomeIcon
+                                        icon={populateIsOpen && fieldName === 'color'
+                                            ? faMinus : faPlus}
+                                    />}
+                                    style={{ cursor: 'pointer', marginLeft: 8 }}
+                                    onClick={() => {
+                                        setPopulateIsOpen(!populateIsOpen);
+                                        setFieldName('color');
+                                    }}
+                                />
+                            </Tooltip>
+
+                        </div>
+                        {populateIsOpen && fieldName === 'color' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+                            <br />
+                            <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this color?</h3>
+                            <br />
+                            <IdRangesInput
+                                darkMode
+                                minimum={startId ? startId : 1}
+                                maximum={endId ? endId : GO_MAX_UINT_64}
+                                setIdRanges={setIdRanges}
+                                verb={'Update'}
+                                collection={collection}
+                            />
+
+                            <Divider />
+                            <Button type='primary'
+                                style={{ width: '100%' }}
+                                onClick={() => {
+                                    populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                                    setPopulateIsOpen(false);
+                                }}
+                            > Update </Button>
+                            <Divider />
+                            <hr />
+                        </div>}
                     </Form.Item>
 
+
                 </Form>}
-            </div>
+            </div >
         </>
     );
 };

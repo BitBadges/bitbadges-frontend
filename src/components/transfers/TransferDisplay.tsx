@@ -50,6 +50,7 @@ export function TransferDisplay({
                     }}
                     pageSize={1}
                     hideOnSinglePage
+                    showSizeChanger={false}
                 />
             </div>}
         <br />
@@ -59,14 +60,13 @@ export function TransferDisplay({
 
         {transfers.map((transfer, _index) => {
             if (_index !== transfersPage) return <></>;
-
+            console.log("TRANSFER", transfer);
 
             //TODO: Handle balances[] in one
             return transfer.balances.map((balance, index) => {
-            
+
                 const to = transfer.toAddressInfo;
                 accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
-                
 
                 const badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
                 const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;

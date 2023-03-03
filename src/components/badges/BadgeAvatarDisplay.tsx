@@ -53,16 +53,16 @@ export function BadgeAvatarDisplay({
     useEffect(() => {
         if (!collection) return;
         for (let i = startIdNum; i <= endIdNum; i++) {
-            if (!collection?.badgeMetadata[ids[i]]) {
+            if (!getMetadataForBadgeId(ids[i], collection.badgeMetadata)) {
+                let idx = 0;
                 for (const badgeUri of collection.badgeUris) {
-                    let idx = 0;
                     for (const badgeIdRange of badgeUri.badgeIds) {
                         if (Number(badgeIdRange.start) <= ids[i] && Number(badgeIdRange.end) >= ids[i]) {
                             collections.updateCollectionMetadata(collection.collectionId, idx);
                             break;
                         }
-                        idx++;
                     }
+                    idx++;
                 }
                 break;
             }

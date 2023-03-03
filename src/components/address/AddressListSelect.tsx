@@ -71,7 +71,7 @@ export function AddressListSelect({
         }))
         console.log(fetchedAccounts);
 
-        let newUserList = users;
+        let newUserList = [...users];
         for (const address of batchUsersList) {
 
             const existingUser = users.find((u) => u.address === address || u.cosmosAddress === address || u.name === address);

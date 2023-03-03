@@ -1,9 +1,9 @@
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
 import { BadgeSupplyAndAmount, BitBadgeCollection } from "../../../bitbadges-api/types";
-import { PRIMARY_TEXT } from "../../../constants";
+import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { BadgeSupply } from "../form-items/BadgeSupplySelect";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -13,7 +13,8 @@ const { Step } = Steps;
 export function BadgeSupplySelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
-    collection: BitBadgeCollection
+    collection: BitBadgeCollection,
+    existingCollectionToExclude?: BitBadgeCollection
 ) {
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -32,23 +33,30 @@ export function BadgeSupplySelectStepItem(
         supply: 0,
     });
 
+    let collectionToShow = collection;
+    if (existingCollectionToExclude) {
+        collectionToShow.maxSupplys = collection.maxSupplys.filter((supply, idx) => {
+            return supply !== existingCollectionToExclude.maxSupplys[idx];
+        })
+    }
+
     return {
-        title: `How Many Badges To Create?`,
+        title: `Add Badges`,
         description: ``,
         node: <div style={{ color: PRIMARY_TEXT }}>
             <BalanceDisplay
                 hideModalBalance={true}
-                collection={collection}
+                collection={collectionToShow}
                 balance={{
-                    balances: collection.maxSupplys,
+                    balances: collectionToShow.maxSupplys,
                     approvals: []
                 }}
-                size={35}
-                message={'Badge Supplys for This Collection'}
+                size={40}
+                message={'Badge Supplys'}
                 showingSupplyPreview
             />
             {<div style={{ display: 'flex', justifyContent: 'center' }}>
-                <Tooltip title={!selectIsVisible ? 'Add More Badges' : 'Hide'}>
+                <Tooltip placement='bottom' title={!selectIsVisible ? 'Add More Badges' : 'Hide'}>
                     <Avatar
                         className='screen-button'
                         onClick={() => setSelectIsVisible(!selectIsVisible)}
@@ -63,7 +71,7 @@ export function BadgeSupplySelectStepItem(
                     </Avatar>
                 </Tooltip>
 
-                <Tooltip title={'Remove All Added Badges'}>
+                <Tooltip placement='bottom' title={'Remove All Added Badges'}>
                     <Avatar
                         className='screen-button'
                         onClick={() => setNewCollectionMsg({
@@ -113,13 +121,13 @@ export function BadgeSupplySelectStepItem(
                             noSelectUntilClick
                             options={[
                                 {
-                                    title: 'Identical',
-                                    message: 'Badges will all be identical. The collection will consist of 1 badge with supply Y (fungible).',
+                                    title: 'Fungible',
+                                    message: 'Add a fungible badge (i.e. 1 badge with X supply).',
                                     isSelected: fungible,
                                 },
                                 {
-                                    title: 'Unique',
-                                    message: 'Badges will have their own unique characteristics. The collection will consist of X badges each with supply 1 (non-fungible).',
+                                    title: 'Non-Fungible',
+                                    message: 'Add badges with unique characteristics (i.e. X badges each with a supply of 1).',
                                     isSelected: !fungible,
                                 },
                             ]}
@@ -131,11 +139,23 @@ export function BadgeSupplySelectStepItem(
                     </div>
                     }
                     {currentStep === 1 && <div>
-                        <Divider />
+                        <br />
                         <BadgeSupply
                             setCurrentSupply={setCurrentSupply}
                             fungible={fungible}
                         />
+                        <br />
+                        <div style={{ color: SECONDARY_TEXT, textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <InfoCircleOutlined style={{ marginRight: 4 }} />
+                            {' '}{currentSupply.amount}
+                            {' '}
+                            {fungible ? 'fungible' : 'non-fungible'}
+                            {' '}
+                            badge{currentSupply.amount !== 1 && 's'} with a supply of {currentSupply.supply} will be added to the collection.
+                            {' '}
+                            Note that the supply of each badge cannot be edited after they are created.
+                        </div>
+                        <Divider />
                         <Button
                             type="primary"
                             disabled={currentSupply.amount <= 0 || currentSupply.supply <= 0}

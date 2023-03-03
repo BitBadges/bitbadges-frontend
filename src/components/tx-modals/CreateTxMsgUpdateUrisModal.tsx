@@ -50,7 +50,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
                 creator: chain.cosmosAddress,
                 collectionId: collectionId,
                 collectionUri: 'ipfs://' + res.cid + '/collection',
-                badgeUri: 'ipfs://' + res.cid + '/{id}',
+                badgeUris: badgeUris
             }
         }
     }
@@ -59,7 +59,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
         creator: chain.cosmosAddress,
         collectionId: collectionId,
         collectionUri: txState ? txState?.newCollectionMsg.collectionUri : '',
-        badgeUri: txState ? txState?.newCollectionMsg.collectionUri : '',
+        badgeUris: txState ? txState?.newCollectionMsg.badgeUris : [],
     }
 
     const [disabled, setDisabled] = useState<boolean>(true);

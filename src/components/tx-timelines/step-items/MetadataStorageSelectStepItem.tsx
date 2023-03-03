@@ -1,5 +1,7 @@
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { MetadataAddMethod } from "../../../bitbadges-api/types";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { Tooltip } from "antd";
 
 export function MetadataStorageSelectStepItem(
     addMethod: MetadataAddMethod,
@@ -7,18 +9,27 @@ export function MetadataStorageSelectStepItem(
 ) {
     return {
         title: 'Metadata Storage',
-        description: `Choose how to store metadata for the badges in this collection.`,
+        description: `Choose how to store the metadata for this collection.`,
         node: <SwitchForm
             noSelectUntilClick
             options={[
                 {
                     title: 'Self-Hosted (Advanced)',
-                    message: `Select this option if you want to store and host the metadata yourself. You will provide a custom URI that is used to fetch the metadata.`,
+                    message: `Store and host the metadata yourself.`,
                     isSelected: addMethod === MetadataAddMethod.UploadUrl,
                 },
                 {
-                    title: 'IPFS (Recommended)',
-                    message: `We will handle the storage of the metadata for you! We do this using the InterPlanetary File System (IPFS).`,
+                    title: 'Outsourced (Recommended)',
+                    message: <div>{`We handle the metadata storage for you! This is done in a decentralized manner using IPFS`}
+                        <Tooltip
+                            placement='bottom'
+                            title={`IPFS, or Interplanetary File System, is a new way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}
+                        >
+                            <InfoCircleOutlined
+                                style={{ marginLeft: 4, marginRight: 4 }}
+                            />
+                        </Tooltip>
+                        .</div>,
                     isSelected: addMethod === MetadataAddMethod.Manual,
                 },
             ]}

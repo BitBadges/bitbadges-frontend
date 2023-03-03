@@ -8,25 +8,26 @@ export function FreezeSelectStepItem(
     updatePermissions: (digit: number, value: boolean) => void,
 ) {
     return {
-        title: `Can Manager Freeze and Unfreeze Addresses?`,
-        description: ``,
+        title: `Freezable?`,
+        description: `Can the manager freeze and unfreeze a user's ability to transfer?`, //You previously selected badges to be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable' : 'transferable'} by default.
         node: <SwitchForm
             noSelectUntilClick
             options={[
                 {
                     title: 'No',
-                    message: `The manager cannot freeze or unfreeze any owner's ability to transfer badges in this collection. Badges will always be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable.' : 'transferable.'}`,
+                    message: `The manager cannot freeze or unfreeze a user's ability to transfer. Badges will always be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable.' : 'transferable.'}`,
                     isSelected: handledPermissions.CanUpdateDisallowed && !GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                 },
                 {
                     title: 'Yes',
-                    message: `The manager can freeze and unfreeze any owner's ability to transfer badges in this collection.`,
+                    message: `The manager can freeze and unfreeze a user's ability to transfer.`,
                     isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                 },
             ]}
             onSwitchChange={(idx) => {
                 updatePermissions(CanUpdateDisallowedDigit, idx === 1);
             }}
+            helperMessage="Note: If this permission is enabled (set to Yes), the manager can disable it at anytime. However, once disabled (set to No), it can never be re-enabled."
         />,
         disabled: !handledPermissions.CanUpdateDisallowed
     }

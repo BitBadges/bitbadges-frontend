@@ -52,11 +52,11 @@ export function CreateTxMsgMintBadgeModal(
         if (txState?.addMethod == MetadataAddMethod.Manual && txType === 'AddBadges') {
             let res = await addToIpfs(txState?.collectionMetadata, txState?.individualBadgeMetadata);
 
-            collectionUri = 'ipfs://' + res.cid + '/collection';
+            // collectionUri = 'ipfs://' + res.cid + '/collection';
             const keys = Object.keys(txState.individualBadgeMetadata);
             const values = Object.values(txState.individualBadgeMetadata);
-            badgeUris = [];
-            for (let i = 0; i < keys.length; i++) {
+            //This is a little hack; we never alter the previous badges in AddBadges timeline, so we can just add the new metadata to the end of the array 
+            for (let i = badgeUris.length; i < keys.length; i++) {
                 badgeUris.push({
                     uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
                     badgeIds: values[i].badgeIds

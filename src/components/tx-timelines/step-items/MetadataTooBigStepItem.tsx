@@ -20,7 +20,7 @@ export const MetadataTooBigStepItem = (
     }
 
 
-    return size > 1048576 ? {
+    return size > 1048576 * 10 ? {
         title: 'Metadata Too Large',
         description: ``,
         node: <div>

@@ -4,13 +4,15 @@ import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
-import { DefaultPlaceholderMetadata } from '../../constants';
+import { DefaultPlaceholderMetadata, GO_MAX_UINT_64 } from '../../constants';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
 import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import loadConfig from 'next/dist/server/config';
+import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
 
 export const EmptyStepItem = {
     title: '',
@@ -57,6 +59,8 @@ export interface TxTimelineProps {
     simulatedCollection: BitBadgeCollection,
     onFinish?: (txState: TxTimelineProps) => void,
     metadataSize: number,
+    existingCollection: BitBadgeCollection | undefined,
+    simulatedCollectionWithoutExistingCollection: BitBadgeCollection,
 }
 
 
@@ -85,9 +89,9 @@ export function TxTimeline({
                 ...newCollectionMsg,
                 creator: chain.cosmosAddress,
                 badgeUris: fetchedCollection.badgeUris,
-                collectionUri: '',
+                collectionUri: fetchedCollection.collectionUri,
                 bytes: fetchedCollection.bytes,
-                permissions: 0, //We never change permissions except for NewCollectionTimeline so this is fine
+                permissions: GetPermissionNumberValue(fetchedCollection.permissions),
                 standard: fetchedCollection.standard,
                 badgeSupplys: [],
                 transfers: [],
@@ -116,8 +120,13 @@ export function TxTimeline({
     });
 
     //Metadata for the collection and individual badges
-    const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>({} as BadgeMetadata);
-    const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadataMap>({});
+    const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>(DefaultPlaceholderMetadata);
+    const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadataMap>({
+        '0': {
+            metadata: DefaultPlaceholderMetadata,
+            badgeIds: [{ start: 1, end: GO_MAX_UINT_64 }]
+        }
+    });
 
     //The method used to add metadata to the collection and individual badges
     const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -169,9 +178,13 @@ export function TxTimeline({
 
     //This simulates a BitBadgeCollection object representing what the collection will look like after creation (used for compatibility) 
     const [simulatedCollection, setSimulatedCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod, existingCollection));
+    const [simulatedCollectionWithoutExistingCollection, setSimulatedCollectionWithoutExistingCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod));
+
     useEffect(() => {
         setSimulatedCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod, existingCollection));
+        setSimulatedCollectionWithoutExistingCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, distributionMethod));
     }, [newCollectionMsg, collectionMetadata, individualBadgeMetadata, claimItems, distributionMethod, existingCollection, hackyUpdatedFlag, chain])
+
 
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
@@ -193,11 +206,68 @@ export function TxTimeline({
                 nextBadgeId += badgeSupplyObj.amount;
             }
 
-            metadata[Object.keys(metadata).length + 1] = {
-                metadata: DefaultPlaceholderMetadata,
-                badgeIds: [{ start: origNextBadgeId, end: nextBadgeId - 1 }]
+            let currentMetadata = DefaultPlaceholderMetadata;
+
+            const startBadgeId = origNextBadgeId
+            const endBadgeId = nextBadgeId - 1;
+
+            console.log("STARTING METADATA", JSON.stringify(metadata));
+            for (let id = startBadgeId; id <= endBadgeId; id++) {
+                let keys = Object.keys(metadata);
+                let values = Object.values(metadata);
+                for (let i = 0; i < keys.length; i++) {
+                    const res = SearchIdRangesForId(id, values[i].badgeIds)
+                    const idx = res[0]
+                    const found = res[1]
+                    console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
+                    if (found) {
+                        values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
+                        console.log("new ids", JSON.stringify(values[i].badgeIds));
+                    }
+                }
+
+                let metadataExists = false;
+                for (let i = 0; i < keys.length; i++) {
+                    if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
+                        metadataExists = true;
+                        values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
+                    }
+                }
+
+                let currIdx = 0;
+                metadata = {};
+                for (let i = 0; i < keys.length; i++) {
+                    if (values[i].badgeIds.length === 0) {
+                        continue;
+                    }
+                    metadata[currIdx] = values[i];
+                    currIdx++;
+                }
+
+                if (!metadataExists) {
+                    metadata[Object.keys(metadata).length] = {
+                        metadata: { ...currentMetadata },
+                        badgeIds: [{
+                            start: id,
+                            end: id,
+                        }],
+                    }
+                }
+
+
+                console.log("new metadata after loop", JSON.stringify(metadata));
             }
+
+
+
+
+            // metadata[Object.keys(metadata).length] = {
+            //     metadata: DefaultPlaceholderMetadata,
+            //     badgeIds: [{ start: origNextBadgeId, end: nextBadgeId - 1 }]
+            // }
         }
+
+        console.log("SETTING METADATA", metadata);
 
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
@@ -234,6 +304,8 @@ export function TxTimeline({
         nonFungible,
         onFinish,
         metadataSize: size,
+        existingCollection,
+        simulatedCollectionWithoutExistingCollection
     }
 
 

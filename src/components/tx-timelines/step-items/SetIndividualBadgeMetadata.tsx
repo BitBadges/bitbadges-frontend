@@ -1,13 +1,14 @@
-import { Divider, InputNumber, Typography } from "antd";
+import { InputNumber } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
+import { getMetadataForBadgeId } from "../../../bitbadges-api/badges";
 import { getBlankBalance } from "../../../bitbadges-api/balances";
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, MetadataAddMethod } from "../../../bitbadges-api/types";
-import { DEV_MODE, GO_MAX_UINT_64, PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
+import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from "../../../bitbadges-api/idRanges";
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "../../../bitbadges-api/types";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { MetadataForm } from "../form-items/MetadataForm";
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from "../../../bitbadges-api/idRanges";
-import { getMetadataForBadgeId } from "../../../bitbadges-api/badges";
+import { IdRangesInput } from "../../balances/IdRangesInput";
 
 export function SetIndividualBadgeMetadataStepItem(
     newCollectionMsg: MessageMsgNewCollection,
@@ -17,25 +18,19 @@ export function SetIndividualBadgeMetadataStepItem(
     setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void,
     collectionMetadata: BadgeMetadata,
     addMethod: MetadataAddMethod,
+    existingCollection?: BitBadgeCollection,
+    isAddBadgeTx?: boolean
 ) {
-    const [id, setId] = useState(1);
     const [disabled, setDisabled] = useState(false);
+    const [id, setId] = useState(existingCollection?.nextBadgeId || 1);
+
 
     return {
-        title: 'Set Individual Badge Metadata',
-        description: '',
+        title: 'Set Badge Metadata',
+        description: !collection.permissions.CanUpdateUris && isAddBadgeTx && 'Note that once created, the metadata for these badges will be frozen and cannot be edited.',
         node: <>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                {DEV_MODE && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography.Text style={{ color: PRIMARY_TEXT, fontSize: 22 }} strong>{Buffer.from(JSON.stringify({
-                        collectionMetadata,
-                        individualBadgeMetadata
-                    })).length} Bytes</Typography.Text>
-                    <Divider />
-                </div>}
-
                 <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
-
                     <BadgeAvatarDisplay
                         collection={{
                             ...collection,
@@ -46,7 +41,7 @@ export function SetIndividualBadgeMetadataStepItem(
                         userBalance={getBlankBalance()}
                         badgeIds={[
                             {
-                                start: 1,
+                                start: existingCollection?.nextBadgeId || 1,
                                 end: collection.nextBadgeId - 1,
                             }
                         ]}
@@ -66,45 +61,51 @@ export function SetIndividualBadgeMetadataStepItem(
                     style={{ backgroundColor: 'transparent', color: PRIMARY_TEXT, margin: 20 }}
                     onClick={}>{`Populate All with Badge ID ${id}'s Metadata`}</Button>
             </div> */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: PRIMARY_TEXT }} >
-                <div><b>Setting Metadata for Badge ID:{' '}</b></div>
-                <InputNumber min={1} max={collection.nextBadgeId - 1}
-                    value={id}
-                    onChange={(e) => setId(e)}
-                    style={{
-                        marginLeft: 8,
-                        backgroundColor: PRIMARY_BLUE,
-                        color: PRIMARY_TEXT,
-                    }}
-                />
-            </div>
+
+
             <MetadataForm
                 id={id}
+                setId={setId}
+                collection={{
+                    ...collection,
+                    collectionMetadata: collectionMetadata,
+                    badgeMetadata: individualBadgeMetadata
+                }}
+                startId={existingCollection?.nextBadgeId || 1}
+                endId={collection.nextBadgeId - 1}
+                toBeFrozen={!collection.permissions.CanUpdateUris}
                 metadata={getMetadataForBadgeId(id, individualBadgeMetadata)}
                 setMetadata={(metadata: BadgeMetadata) => {
                     setDisabled(true);
-                    console.time("SET");
 
+                    console.time("SET");
                     let keys = Object.keys(individualBadgeMetadata);
                     let values = Object.values(individualBadgeMetadata);
                     for (let i = 0; i < keys.length; i++) {
                         const res = SearchIdRangesForId(id, values[i].badgeIds)
                         const idx = res[0]
                         const found = res[1]
+                        console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
                         if (found) {
                             values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
+                            console.log("new ids", JSON.stringify(values[i].badgeIds));
                         }
                     }
+
+                    console.log("new metadata after first loop", JSON.stringify(individualBadgeMetadata));
 
                     let metadataExists = false;
                     for (let i = 0; i < keys.length; i++) {
-                        if (JSON.stringify(values[i].metadata) === JSON.stringify(metadata) && values[i].badgeIds.length > 0) {
+                        if (JSON.stringify(values[i].metadata) === JSON.stringify(metadata)) {
                             metadataExists = true;
-                            values[i].badgeIds = InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds);
+                            values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
                         }
                     }
 
+                    console.log("new metadata after metadata exists loop", JSON.stringify(individualBadgeMetadata));
+
                     let currIdx = 0;
+                    individualBadgeMetadata = {};
                     for (let i = 0; i < keys.length; i++) {
                         if (values[i].badgeIds.length === 0) {
                             continue;
@@ -115,7 +116,7 @@ export function SetIndividualBadgeMetadataStepItem(
 
                     if (!metadataExists) {
                         individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
-                            metadata: metadata,
+                            metadata: { ...metadata },
                             badgeIds: [{
                                 start: id,
                                 end: id,
@@ -123,46 +124,79 @@ export function SetIndividualBadgeMetadataStepItem(
                         }
                     }
 
-
                     setIndividualBadgeMetadata(individualBadgeMetadata);
+                    console.log("new metadata", JSON.stringify(individualBadgeMetadata));
                     setDisabled(false);
                     console.timeEnd("SET");
                 }}
-                populateAllWithCollectionMetadata={() => {
-                    let newMetadata: BadgeMetadataMap = {
-                        '1': {
-                            metadata: { ...collectionMetadata },
-                            badgeIds: [{
-                                start: 1,
-                                end: GO_MAX_UINT_64,
-                            }],
-                        },
-                    };
+                populateOtherBadges={(badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => {
+                    for (const badgeIdRange of badgeIds) {
+                        for (let id = badgeIdRange.start; id <= badgeIdRange.end; id++) {
+                            let metadata = getMetadataForBadgeId(id, individualBadgeMetadata);
+                            metadata = { ...metadata, [key]: value };
+                            if (metadataToSet) {
+                                metadata = { ...metadataToSet };
+                            }
 
-                    console.log(newMetadata);
 
-                    setIndividualBadgeMetadata(newMetadata);
+                            let keys = Object.keys(individualBadgeMetadata);
+                            let values = Object.values(individualBadgeMetadata);
+                            for (let i = 0; i < keys.length; i++) {
+                                const res = SearchIdRangesForId(id, values[i].badgeIds)
+                                const idx = res[0]
+                                const found = res[1]
+                                console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
+                                if (found) {
+                                    values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
+                                    console.log("new ids", JSON.stringify(values[i].badgeIds));
+                                }
+                            }
 
-                    return { ...collectionMetadata };
-                }}
-                populateAllWithCurrentMetadata={() => {
-                    let currentMetadata = getMetadataForBadgeId(id, individualBadgeMetadata);
+                            console.log("new metadata after first loop", JSON.stringify(individualBadgeMetadata));
 
-                    let newMetadata: BadgeMetadataMap = {
-                        '1': {
-                            metadata: { ...currentMetadata },
-                            badgeIds: [{
-                                start: 1,
-                                end: GO_MAX_UINT_64,
-                            }],
-                        },
-                    };
+                            let metadataExists = false;
+                            for (let i = 0; i < keys.length; i++) {
+                                if (JSON.stringify(values[i].metadata) === JSON.stringify(metadata)) {
+                                    metadataExists = true;
+                                    values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
+                                }
+                            }
 
-                    setIndividualBadgeMetadata(newMetadata);
+                            console.log("new metadata after metadata exists loop", JSON.stringify(individualBadgeMetadata));
 
-                    console.log(newMetadata);
+                            let currIdx = 0;
+                            individualBadgeMetadata = {};
+                            for (let i = 0; i < keys.length; i++) {
+                                if (values[i].badgeIds.length === 0) {
+                                    continue;
+                                }
+                                individualBadgeMetadata[currIdx] = values[i];
+                                currIdx++;
+                            }
 
-                    return { ...currentMetadata };
+                            if (!metadataExists) {
+                                individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
+                                    metadata: { ...metadata },
+                                    badgeIds: [{
+                                        start: id,
+                                        end: id,
+                                    }],
+                                }
+                            }
+                        }
+                    }
+
+                    // for (const metadataId of metadataIdsToUpdate) {
+                    //     newMetadata[metadataId] = {
+                    //         ...newMetadata[metadataId],
+                    //         metadata: {
+                    //             ...newMetadata[metadataId].metadata,
+                    //             [key]: value,
+                    //         },
+                    //     };
+                    // }
+
+                    setIndividualBadgeMetadata(individualBadgeMetadata);
                 }}
                 addMethod={addMethod}
                 setNewCollectionMsg={setNewCollectionMsg}

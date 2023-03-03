@@ -9,7 +9,8 @@ export function BalanceDisplay({
     message,
     size,
     showingSupplyPreview,
-    hideModalBalance
+    hideModalBalance,
+    startAt,
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
@@ -17,6 +18,7 @@ export function BalanceDisplay({
     size?: number;
     showingSupplyPreview?: boolean;
     hideModalBalance?: boolean;
+    startAt?: number;
 }) {
     const badgeIds = [];
     for (const balanceAmount of balance.balances) {
@@ -50,7 +52,7 @@ export function BalanceDisplay({
                         return <>
                             <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}>
                                 {idx !== 0 && <br />}
-                                {showingSupplyPreview ? <>Supply of </> : <></>}<b>x{balanceAmount.balance}</b> - IDs
+                                ID{balanceAmount.badgeIds.length === 1 && balanceAmount.badgeIds[0].start === balanceAmount.badgeIds[0].end ? ' ' : 's'}{' '}
 
                                 {balanceAmount.badgeIds.map((idRange, idx) => {
                                     return <span key={idx}>
@@ -58,6 +60,8 @@ export function BalanceDisplay({
                                     </span>
                                 })}
 
+                                {' '}-  {showingSupplyPreview ? <>Supply of </> : <></>}<b>x{balanceAmount.balance}</b>
+                                
                             </span>
                         </>
                     })}

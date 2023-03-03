@@ -28,15 +28,15 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
     useEffect(() => {
         for (let i = startIdNum; i <= endIdNum; i++) {
             if (!getMetadataForBadgeId(i, collection.badgeMetadata)) {
+                let idx = 0;
                 for (const badgeUri of collection.badgeUris) {
-                    let idx = 0;
                     for (const badgeIdRange of badgeUri.badgeIds) {
                         if (Number(badgeIdRange.start) <= i && Number(badgeIdRange.end) >= i) {
                             collections.updateCollectionMetadata(collection.collectionId, idx);
                             break;
                         }
-                        idx++;
                     }
+                    idx++;
                 }
                 break;
             }
