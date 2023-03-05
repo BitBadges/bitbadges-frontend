@@ -11,7 +11,7 @@ export function ManagerApprovedTransfersStepItem(
 
     return {
         title: 'Manager\'s Approved Transfers',
-        description: `Should the manager have special permissions to revoke and transfer badges?`,
+        description: ``,
         disabled: !handledManagerApprovedTransfers,
         node: <SwitchForm
             noSelectUntilClick

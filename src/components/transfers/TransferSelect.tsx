@@ -1,8 +1,9 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Divider, InputNumber, Steps, Tooltip, message } from 'antd';
+import { Button, Divider, InputNumber, Steps, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 import { getFullBadgeIdRanges, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
 import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
+import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, Transfers, UserBalance } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
@@ -10,9 +11,8 @@ import { AddressListSelect } from '../address/AddressListSelect';
 import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
 import { BalancesInput } from '../balances/BalancesInput';
 import { IdRangesInput } from '../balances/IdRangesInput';
-import { TransferDisplay } from './TransferDisplay';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
-import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
+import { TransferDisplay } from './TransferDisplay';
 
 const { Step } = Steps;
 
@@ -259,6 +259,7 @@ export function TransferSelect({
             description: <div>
                 <br />
                 <IdRangesInput
+                    idRanges={preTransferBalance?.balances[0]?.badgeIds || []}
                     defaultAllSelected={false}
                     setIdRanges={(badgeIds) => {
                         setBalances([
@@ -291,7 +292,7 @@ export function TransferSelect({
                             isSelected: amountSelectType === AmountSelectType.Linear,
                             disabled: numBadgeIds % numRecipients !== 0,
                         }]}
-                        onSwitchChange={(option, title) => {
+                        onSwitchChange={(_option, title) => {
                             if (title === 'Custom') {
                                 setAmountSelectType(AmountSelectType.Custom);
                             } else {
@@ -308,7 +309,6 @@ export function TransferSelect({
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
-                    transferType={amountSelectType}
                     darkMode
                 />
                 {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>

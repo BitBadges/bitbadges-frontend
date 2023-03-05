@@ -1,66 +1,80 @@
 import MerkleTree from "merkletreejs";
 import { getPostTransferBalance } from "./balances";
-import { BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, UserBalance } from "./types";
+import { BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, Transfers, UserBalance } from "./types";
 import { SHA256 } from "crypto-js";
 import { GO_MAX_UINT_64 } from "../constants";
+import { AccountsContextType } from "../contexts/AccountsContext";
 
-//Claims will have the format "CODE-ADDRESS-AMOUNT-STARTID-ENDID-STARTID-ENDID..."
+//Claims will have the format "CODEROOT-ADDRESSROOT-AMOUNT-INCREMENT-STARTID-ENDID-STARTID-ENDID..."
 
-export function parseClaim(fullClaimString: string): ClaimItem {
+export function parseClaim(fullClaimString: string) {
     const values = fullClaimString.split('-');
     const badgeIds = [];
-    for (let i = 3; i < values.length; i += 2) {
+    for (let i = 4; i < values.length; i += 2) {
         badgeIds.push({
             start: Number(values[i]),
             end: Number(values[i + 1]),
         })
     }
 
-    const currLeaf: ClaimItem = {
-        code: values[0],
-        address: values[1],
+    const currLeaf = {
+        codesRoot: values[0],
+        addressRoot: values[1],
         amount: Number(values[2]),
+        incrementBy: Number(values[3]),
         badgeIds: badgeIds,
         fullCode: fullClaimString,
-        accountNum: -1,
-        userInfo: {
-            address: '',
-            cosmosAddress: '',
-            accountNumber: -1,
-            chain: '',
-        }
     }
 
     return currLeaf;
 }
 
-export function createClaim(code: string, address: string, amount: number, badgeIds: IdRange[], accountNum: number, currUserInfo?: BitBadgesUserInfo): ClaimItem {
-    let fullCode = `${code}-${address}-${amount}`
+export function createClaim(codeRoot: string, addressRoot: string, amount: number, incrementBy: number, badgeIds: IdRange[]) {
+    let fullCode = `${codeRoot}-${addressRoot}-${amount}-${incrementBy}`
     for (const badgeId of badgeIds) {
         fullCode += `-${badgeId.start}-${badgeId.end}`
     }
 
     return {
-        code,
-        address,
+        codesRoot: codeRoot,
+        addressRoot: addressRoot,
         amount,
+        incrementBy,
         badgeIds,
-        fullCode: fullCode,
-        accountNum,
-        userInfo: currUserInfo,
+        fullCode: fullCode
     }
 }
 
-export const getTransfersFromClaimItems = (claimItems: ClaimItem[]) => {
-    return claimItems.map((x) => ({
-        toAddresses: [x.accountNum],
-        balances: [
-            {
-                balance: x.amount,
-                badgeIds: x.badgeIds,
-            }
-        ]
-    }));
+export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: AccountsContextType) => {
+    const transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[] = [];
+    for (const claimItem of claimItems) {
+        const toAddresses: number[] = [];
+        const toAddressesInfo: BitBadgesUserInfo[] = [];
+        for (const addressString of claimItem.addresses) {
+
+            const res = addressString.split('-');
+            const amount = Number(res[0]);
+            const address = res[1];
+
+            const accountNum = accounts.accounts[address].accountNumber ? accounts.accounts[address].accountNumber : -1;
+
+
+            const toPush: number[] = new Array(amount).fill(accountNum)
+            toAddresses.push(...toPush);
+            toAddressesInfo.push(...new Array(amount).fill(accounts.accounts[address]));
+        }
+        transfers.push({
+            toAddresses,
+            balances: [{
+                balance: claimItem.amount,
+                badgeIds: claimItem.badgeIds,
+            }],
+            toAddressInfo: toAddressesInfo,
+        })
+    }
+
+
+    return transfers;
 }
 
 export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[], distributionMethod: DistributionMethod) => {
@@ -77,7 +91,6 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
                 const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, leaf.amount, 1);
                 balance.balances = newBalance.balances;
             }
-
         }
     } else if (distributionMethod === DistributionMethod.Whitelist) {
         for (let i = 0; i < claimItems.length; i++) {
@@ -101,17 +114,14 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
         balance,
         claims: [
             {
-                amountPerClaim: 0,
+
                 balances: claimBalance.balances,
-                type: 0,
                 uri: "",
-                data: root,
+                dataRoot: root,
                 timeRange: {
                     start: 0,
                     end: GO_MAX_UINT_64
                 },
-                incrementIdsBy: 0,
-                badgeIds: [],
             }
         ],
     }

@@ -1,14 +1,14 @@
 import { MessageMsgClaimBadge, createTxMsgClaimBadge } from 'bitbadgesjs-transactions';
 import SHA256 from 'crypto-js/sha256';
 import React from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
-import { TxModal } from './TxModal';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        collection, visible, setVisible, children, claimId, code, refreshUserBalance
+        collection, visible, setVisible, children, claimId, claimItem, refreshUserBalance, code
     }: {
         collection: BitBadgeCollection | undefined,
         refreshUserBalance: () => Promise<void>,
@@ -16,6 +16,7 @@ export function CreateTxMsgClaimBadgeModal(
         setVisible: (visible: boolean) => void,
         children?: React.ReactNode,
         claimId: number
+        claimItem?: ClaimItem,
         code: string
     }
 ) {
@@ -23,22 +24,47 @@ export function CreateTxMsgClaimBadgeModal(
     const collections = useCollectionsContext();
     const claimObject = collection?.claims[claimId];
 
-    if (!claimObject || !collection) return <></>;
+    if (!claimObject || !collection || !claimItem) return <></>;
 
-    const proofObj = claimObject.tree?.getProof(SHA256(code).toString());
+    const proofObj = claimObject.tree?.getProof(SHA256(claimItem.fullCode).toString());
+
+    //TODO: duplicate addresses / codes //.includes may lead to bugs
+    const addressString = claimItem.addresses.find((x) => x.includes(chain.cosmosAddress)) || "";
+    const addressProofObj = claimItem.addressesTree?.getProof(SHA256(addressString).toString());
+
+    const codeString = claimItem.codes.find((x) => x.includes(code)) || "";
+    const codeProofObj = claimItem.codeTree?.getProof(SHA256(codeString).toString());
 
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
         claimId,
-        proof: {
+        claimProof: {
             aunts: proofObj?.map((proof) => {
                 return {
                     aunt: proof.data.toString('hex'),
                     onRight: proof.position === 'right'
                 }
             }),
-            leaf: code,
+            leaf: claimItem.fullCode,
+        },
+        addressProof: {
+            aunts: addressProofObj?.map((proof) => {
+                return {
+                    aunt: proof.data.toString('hex'),
+                    onRight: proof.position === 'right'
+                }
+            }),
+            leaf: addressString,
+        },
+        codeProof: {
+            aunts: codeProofObj?.map((proof) => {
+                return {
+                    aunt: proof.data.toString('hex'),
+                    onRight: proof.position === 'right'
+                }
+            }),
+            leaf: codeString,
         },
     };
 

@@ -1,14 +1,9 @@
 import { Button } from 'antd';
-import React from 'react';
-import { useState } from 'react';
-import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
+import { useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
-import { SHA256 } from 'crypto-js';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
-import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
-import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
+import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
+import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 
 export function SubmitMsgNewCollection({
     newCollectionMsg,
@@ -34,7 +29,7 @@ export function SubmitMsgNewCollection({
     const [visible, setVisible] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const accounts = useAccountsContext();
+    // const accounts = useAccountsContext();
 
     async function updateIPFSUris() {
         let badgeMsg = newCollectionMsg;
@@ -58,70 +53,80 @@ export function SubmitMsgNewCollection({
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
         if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.Whitelist) {
             if (badgeMsg.claims?.length > 0) {
-                //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
-                //For the whitelist, we store the full plaintext codes as leaves on IPFS
-                if (distributionMethod == DistributionMethod.Codes) {
-                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => SHA256(x.fullCode).toString()));
-                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                } else {
-                    let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
-                    badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                }
+                let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode), claimItems.map(x => x.addresses), claimItems.map(x => x.codes));
+                badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+
+                // //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
+                // //For the whitelist, we store the full plaintext codes as leaves on IPFS
+                // if (distributionMethod == DistributionMethod.Codes) {
+
+
+                // } else {
+                //     let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
+                //     badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                // }
             }
         }
 
         setNewCollectionMsg(badgeMsg);
     }
 
-    const unregisteredUsers = manualSend && newCollectionMsg.transfers.length > 0
-        ? claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+    // const unregisteredUsers = manualSend && newCollectionMsg.transfers.length > 0
+    //     ? claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+    const unregisteredUsers: string[] = [];
 
     const onRegister = async () => {
-        setLoading(true);
+        //TODO: delete (just for TS)
+        if (manualSend)
+            setClaimItems(claimItems);
 
-        let newUsersToRegister = claimItems.filter((x) => x.userInfo.accountNumber === -1);
-        const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
 
-        //Update claim items with new account informations
-        const newClaimItems = [];
-        for (const claimItem of claimItems) {
-            if (claimItem.userInfo.accountNumber === -1) {
-                const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
-                if (newAccount) {
-                    newClaimItems.push({
-                        ...claimItem,
-                        userInfo: newAccount,
-                        address: newAccount.cosmosAddress,
-                        accountNum: newAccount.accountNumber,
-                    });
-                }
-            } else {
-                newClaimItems.push(claimItem);
-            }
-        }
 
-        setClaimItems([...newClaimItems]);
+        // setLoading(true);
 
-        //If we are manually sending, we need to update the transfers field. If not, we updae the claims.
-        if (manualSend) {
-            setNewCollectionMsg({
-                ...newCollectionMsg,
-                transfers: getTransfersFromClaimItems(newClaimItems),
-                claims: []
-            });
-        } else if (!manualSend) {
-            const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
-            const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
+        // let newUsersToRegister = claimItems.filter((x) => x.userInfo.accountNumber === -1);
+        // const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
 
-            setNewCollectionMsg({
-                ...newCollectionMsg,
-                transfers: [],
-                claims: claimRes.claims
-            })
-        }
+        // //Update claim items with new account informations
+        // const newClaimItems = [];
+        // for (const claimItem of claimItems) {
+        //     if (claimItem.userInfo.accountNumber === -1) {
+        //         const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
+        //         if (newAccount) {
+        //             newClaimItems.push({
+        //                 ...claimItem,
+        //                 userInfo: newAccount,
+        //                 address: newAccount.cosmosAddress,
+        //                 accountNum: newAccount.accountNumber,
+        //             });
+        //         }
+        //     } else {
+        //         newClaimItems.push(claimItem);
+        //     }
+        // }
 
-        setVisible(true);
-        setLoading(false);
+        // setClaimItems([...newClaimItems]);
+
+        // //If we are manually sending, we need to update the transfers field. If not, we updae the claims.
+        // if (manualSend) {
+        //     setNewCollectionMsg({
+        //         ...newCollectionMsg,
+        //         transfers: getTransfersFromClaimItems(newClaimItems, accounts),
+        //         claims: []
+        //     });
+        // } else if (!manualSend) {
+        //     const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+        //     const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
+
+        //     setNewCollectionMsg({
+        //         ...newCollectionMsg,
+        //         transfers: [],
+        //         claims: claimRes.claims
+        //     })
+        // }
+
+        // setVisible(true);
+        // setLoading(false);
     }
 
 

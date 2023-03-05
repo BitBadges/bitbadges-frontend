@@ -1,15 +1,11 @@
-import React, { useState } from 'react';
 import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transactions';
-import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
+import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../bitbadges-api/claims';
-import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
-import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
-import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
-import { SHA256 } from 'crypto-js';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
@@ -23,7 +19,7 @@ export function CreateTxMsgMintBadgeModal(
 ) {
     const router = useRouter();
     const collections = useCollectionsContext();
-    const accounts = useAccountsContext();
+    // const accounts = useAccountsContext();
 
 
     const [txState, setTxState] = useState<TxTimelineProps>();
@@ -38,8 +34,10 @@ export function CreateTxMsgMintBadgeModal(
         badgeUris: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.badgeUris : []
     }
 
-    const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
-        ? txState.claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+    // const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
+    //     ? txState.claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
+    const unregisteredUsers: string[] = [];
+
 
     async function updateIPFSUris() {
         if (!txState) return;
@@ -67,15 +65,16 @@ export function CreateTxMsgMintBadgeModal(
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
         if (txState?.distributionMethod == DistributionMethod.Codes || txState?.distributionMethod == DistributionMethod.Whitelist) {
             if (claims?.length > 0) {
-                //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
-                //For the whitelist, we store the full plaintext codes as leaves on IPFS
-                if (txState?.distributionMethod == DistributionMethod.Codes) {
-                    let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => SHA256(x.fullCode).toString()));
-                    claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                } else {
-                    let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode));
-                    claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                }
+                let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode), txState?.claimItems.map(x => x.addresses), txState?.claimItems.map(x => x.codes));
+                claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                // //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
+                // //For the whitelist, we store the full plaintext codes as leaves on IPFS
+                // if (txState?.distributionMethod == DistributionMethod.Codes) {
+
+                // } else {
+                //     let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode));
+                //     claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                // }
             }
         }
 
@@ -101,47 +100,47 @@ export function CreateTxMsgMintBadgeModal(
     }
 
     const onRegister = async () => {
-        if (!txState) return;
-        let newUsersToRegister = txState.claimItems.filter((x) => x.userInfo.accountNumber === -1);
+        // if (!txState) return;
+        // let newUsersToRegister = txState.claimItems.filter((x) => x.userInfo.accountNumber === -1);
 
-        const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
-        const newClaimItems = [];
-        for (const claimItem of txState.claimItems) {
-            if (claimItem.userInfo.accountNumber === -1) {
-                const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
-                if (newAccount) {
-                    newClaimItems.push({
-                        ...claimItem,
-                        userInfo: newAccount,
-                        address: newAccount.cosmosAddress,
-                        accountNum: newAccount.accountNumber,
-                    });
-                }
-            } else {
-                newClaimItems.push(claimItem);
-            }
-        }
+        // const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
+        // const newClaimItems = [];
+        // for (const claimItem of txState.claimItems) {
+        //     if (claimItem.userInfo.accountNumber === -1) {
+        //         const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
+        //         if (newAccount) {
+        //             newClaimItems.push({
+        //                 ...claimItem,
+        //                 userInfo: newAccount,
+        //                 address: newAccount.cosmosAddress,
+        //                 accountNum: newAccount.accountNumber,
+        //             });
+        //         }
+        //     } else {
+        //         newClaimItems.push(claimItem);
+        //     }
+        // }
 
-        txState.setClaimItems([...newClaimItems]);
+        // txState.setClaimItems([...newClaimItems]);
 
-        if (txState.manualSend) {
-            txState.setNewCollectionMsg({
-                ...txState?.newCollectionMsg,
-                transfers: getTransfersFromClaimItems(newClaimItems),
-                claims: []
-            });
-        } else if (!txState.manualSend) {
-            const balance = getBadgeSupplysFromMsgNewCollection(txState?.newCollectionMsg);
-            const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, txState.distributionMethod);
+        // if (txState.manualSend) {
+        //     txState.setNewCollectionMsg({
+        //         ...txState?.newCollectionMsg,
+        //         transfers: getTransfersFromClaimItems(newClaimItems, accounts),
+        //         claims: []
+        //     });
+        // } else if (!txState.manualSend) {
+        //     const balance = getBadgeSupplysFromMsgNewCollection(txState?.newCollectionMsg);
+        //     const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, txState.distributionMethod);
 
-            txState.setNewCollectionMsg({
-                ...txState?.newCollectionMsg,
-                transfers: [],
-                claims: claimRes.claims
-            })
-        }
+        //     txState.setNewCollectionMsg({
+        //         ...txState?.newCollectionMsg,
+        //         transfers: [],
+        //         claims: claimRes.claims
+        //     })
+        // }
 
-        setVisible(true);
+        // setVisible(true);
     }
 
     const [disabled, setDisabled] = useState<boolean>(true);

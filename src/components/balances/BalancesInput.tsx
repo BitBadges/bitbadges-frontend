@@ -1,20 +1,15 @@
 import { InputNumber } from 'antd';
 import { Balance } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { AmountSelectType } from '../transfers/TransferSelect';
 
 export function BalancesInput({
     balances,
     setBalances,
-    darkMode,
-    transferType,
-    numRecipients
+    darkMode
 }: {
     balances: Balance[],
     setBalances: (balances: Balance[]) => void,
-    darkMode?: boolean,
-    transferType?: AmountSelectType,
-    numRecipients?: number,
+    darkMode?: boolean
 }) {
     return <div style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div className='flex-between' style={{ flexDirection: 'column' }} >

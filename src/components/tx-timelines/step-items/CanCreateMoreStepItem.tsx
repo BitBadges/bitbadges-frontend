@@ -9,7 +9,7 @@ export function CanCreateMoreStepItem(
 ) {
     return {
         title: 'Can Manager Add Badges?',
-        description: `In the future, can additional badges be added to this collection by the manager?`,
+        description: ``,
         node: <SwitchForm
             noSelectUntilClick
             options={[
@@ -20,7 +20,7 @@ export function CanCreateMoreStepItem(
                 },
                 {
                     title: 'Yes',
-                    message: `New badges can be added to this collection in the future.`,
+                    message: `New badges can be added to this collection in the future by the manager.`,
                     isSelected: handledPermissions.CanCreateMoreBadges && !!GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges,
                 },
             ]}

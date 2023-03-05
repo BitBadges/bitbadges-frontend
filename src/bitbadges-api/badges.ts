@@ -42,7 +42,7 @@ export function createCollectionFromMsgNewCollection(
     let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
     let newMaxSupplys = existingCollection?.maxSupplys ? [...existingCollection.maxSupplys] : [];
     let newUnmintedSupplys = existingCollection?.unmintedSupplys ? [...existingCollection.unmintedSupplys] : [];
-    
+
     for (const supplyObj of msgNewCollection.badgeSupplys) {
         nextBadgeId += supplyObj.amount;
         newMaxSupplys.push({
@@ -84,7 +84,8 @@ export function createCollectionFromMsgNewCollection(
             ...x,
             leaves: claimItems.map((y) => y.fullCode),
             distributionMethod,
-            tree: new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
+            tree: new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256),
+            claimItems: claimItems,
         }
     })];
 
@@ -97,7 +98,7 @@ export function createCollectionFromMsgNewCollection(
         }
     }
 
-    
+
 
     const badgeCollection: BitBadgeCollection = {
         ...msgNewCollection,

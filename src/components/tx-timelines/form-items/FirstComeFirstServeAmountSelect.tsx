@@ -3,7 +3,6 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { GO_MAX_UINT_64, PRIMARY_TEXT } from '../../../constants';
-import { ClaimType } from '../../../bitbadges-api/types';
 
 export function FirstComeFirstServeAmountSelect({
     newCollectionMsg,
@@ -23,16 +22,9 @@ export function FirstComeFirstServeAmountSelect({
             ...newCollectionMsg,
             claims: [
                 {
-                    amountPerClaim: amountToClaim,
                     balances: beforeBalances.balances,
-                    type: ClaimType.Anyone,
-                    badgeIds: [{
-                        start: 1,
-                        end: 1,
-                    }],
-                    incrementIdsBy: fungible ? 0 : 1,
                     uri: "",
-                    data: "",
+                    dataRoot: "",
                     timeRange: {
                         start: 0,
                         end: GO_MAX_UINT_64

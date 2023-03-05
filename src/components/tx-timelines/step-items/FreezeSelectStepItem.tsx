@@ -9,7 +9,7 @@ export function FreezeSelectStepItem(
 ) {
     return {
         title: `Freezable?`,
-        description: `Can the manager freeze and unfreeze a user's ability to transfer?`, //You previously selected badges to be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable' : 'transferable'} by default.
+        description: ``, //You previously selected badges to be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable' : 'transferable'} by default.
         node: <SwitchForm
             noSelectUntilClick
             options={[

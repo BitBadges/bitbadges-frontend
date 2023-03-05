@@ -71,22 +71,31 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     let managerAccountInfo = await getAccountInformationByAccountNumber(managerAccountNumber);
     badgeData.manager = convertToBitBadgesUserInfo(managerAccountInfo);
 
+    console.log("FETCHING CLAIMS");
     //generate MerkleTreeJS objects from fetched leaves
     for (let idx = 0; idx < badgeData.claims.length; idx++) {
         let claim = badgeData.claims[idx];
         const fetchedLeaves: string[] = claim.leaves;
 
-        if (Number(claim.type) === 0 && fetchedLeaves.length > 0) {
+        if (fetchedLeaves.length > 0) {
             if (badgeData.claims[idx].distributionMethod === DistributionMethod.Codes) {
                 const tree = new MerkleTree(fetchedLeaves, SHA256);
                 badgeData.claims[idx].tree = tree;
+
             } else {
                 const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
                 badgeData.claims[idx].tree = tree;
             }
         }
+
+        for (const claimItem of badgeData.claims[idx].claimItems) {
+            claimItem.codeTree = new MerkleTree(claimItem.codes.map((x) => SHA256(x)), SHA256);
+            claimItem.addressesTree = new MerkleTree(claimItem.addresses.map((x) => SHA256(x)), SHA256);
+        }
     }
 
+
+    console.log("END FETCHING CLAIMS");
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
@@ -103,7 +112,7 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
                     }
                 }
                 j++;
-            }   
+            }
         }
 
         ids = [...new Set(ids)];
@@ -252,10 +261,12 @@ export const logout = async () => {
 }
 
 
-export const addMerkleTreeToIpfs = async (leaves: string[]) => {
+export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[][], codes: string[][]) => {
 
     const bodyStr = stringify({
-        leaves
+        leaves,
+        addresses,
+        codes
     }); //hack to preserve uint8 arrays
 
     const addToIpfsRes = await fetch(BACKEND_URL + '/api/addMerkleTreeToIpfs', {

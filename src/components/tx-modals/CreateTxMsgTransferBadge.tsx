@@ -31,7 +31,7 @@ export function CreateTxMsgTransferBadgeModal(
     const accounts = useAccountsContext();
     const collections = useCollectionsContext();
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>([]);
+    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]>([]);
     const [sender, setSender] = useState<BitBadgesUserInfo>({
         cosmosAddress: chain.cosmosAddress,
         accountNumber: chain.accountNumber,
@@ -70,7 +70,7 @@ export function CreateTxMsgTransferBadgeModal(
     const unregisteredUsers: string[] = [];
     for (const transfer of transfers) {
         for (const account of transfer.toAddressInfo) {
-            if (account.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
+            if (account?.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
         }
     }
 
@@ -88,7 +88,7 @@ export function CreateTxMsgTransferBadgeModal(
         for (const transfer of transfers) {
             const newAddresses = [];
             for (const toAddress of transfer.toAddressInfo) {
-                if (toAddress.accountNumber !== -1) {
+                if (toAddress?.accountNumber !== -1) {
                     newAddresses.push(toAddress);
                     continue;
                 }
@@ -98,7 +98,7 @@ export function CreateTxMsgTransferBadgeModal(
 
             newTransfers.push({
                 ...transfer,
-                toAddresses: newAddresses.map((address) => address.accountNumber),
+                toAddresses: newAddresses.map((address) => address?.accountNumber ?? -1),
                 toAddressInfo: newAddresses
             });
         }

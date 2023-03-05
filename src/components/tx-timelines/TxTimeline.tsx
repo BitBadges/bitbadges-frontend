@@ -1,18 +1,17 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
+import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
 import { DefaultPlaceholderMetadata, GO_MAX_UINT_64 } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
 import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import loadConfig from 'next/dist/server/config';
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
 
 export const EmptyStepItem = {
     title: '',
@@ -129,7 +128,7 @@ export function TxTimeline({
     });
 
     //The method used to add metadata to the collection and individual badges
-    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
+    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
 
     //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
     const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);

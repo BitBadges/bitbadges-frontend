@@ -1,14 +1,15 @@
-import { Avatar, Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
+import { getBlankBalance } from "../../bitbadges-api/balances";
+import { SortIdRangesAndMergeIfNecessary } from "../../bitbadges-api/idRanges";
 import { BitBadgeCollection, IdRange } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
-import { SortIdRangesAndMergeIfNecessary } from "../../bitbadges-api/idRanges";
-import { DeleteOutlined } from "@ant-design/icons";
-import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { getBlankBalance } from "../../bitbadges-api/balances";
+import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 
 export function IdRangesInput({
+    idRanges,
     setIdRanges,
     maximum,
     minimum,
@@ -17,6 +18,7 @@ export function IdRangesInput({
     collection,
     defaultAllSelected = true,
 }: {
+    idRanges?: IdRange[],
     setIdRanges: (idRanges: IdRange[]) => void,
     maximum?: number,
     minimum?: number,
@@ -27,11 +29,16 @@ export function IdRangesInput({
 }) {
     const isDefaultAllSelected = maximum === 1 || defaultAllSelected;
 
-    const [numRanges, setNumRanges] = useState(1);
-    const [sliderValues, setSliderValues] = useState<[number, number][]>([[minimum ?? 1, maximum ?? 1]]);
-    const [inputStr, setInputStr] = useState(`${minimum ?? 1}-${maximum ?? 1}`);
+    const [numRanges, setNumRanges] = useState(idRanges ? idRanges.length : 1);
+    const [sliderValues, setSliderValues] = useState<[number, number][]>(
+        idRanges ? idRanges.map(({ start, end }) => [start, end])
+            : [[minimum ?? 1, maximum ?? 1]]);
+    const [inputStr, setInputStr] = useState(
+        idRanges ?
+            idRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
+            : `${minimum ?? 1}-${maximum ?? 1}`);
     const [updateAllIsSelected, setUpdateAllIsSelected] = useState(isDefaultAllSelected);
-
+    const [clicked, setClicked] = useState(false);
 
     if (maximum == 0) {
         return <></>;
@@ -77,10 +84,11 @@ export function IdRangesInput({
                 if (name === 'All Badges') {
                     setIdRanges([{ start: minimum ?? 1, end: maximum ?? 1 }]);
                 }
+                setClicked(true);
             }}
-        // noSelectUntilClick
+            noSelectUntilClick
         />
-        {!updateAllIsSelected && <>
+        {!updateAllIsSelected && clicked && <>
             <br />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
                 <Input

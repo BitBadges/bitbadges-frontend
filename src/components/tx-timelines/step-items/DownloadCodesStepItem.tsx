@@ -1,10 +1,10 @@
 import { Collapse, Divider, Pagination, Typography } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { BadgeMetadata, BitBadgeCollection, ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
+import { useState } from "react";
+import { BadgeMetadata, BitBadgeCollection, ClaimItem } from "../../../bitbadges-api/types";
 import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { downloadJson } from "../../../utils/downloadJson";
 import { TransferDisplay } from "../../transfers/TransferDisplay";
-import { useState } from "react";
 
 const { Text } = Typography;
 

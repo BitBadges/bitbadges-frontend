@@ -22,8 +22,6 @@ const { Option } = Select;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 const DELAY_TIME = 300;
 
-//TODO: Better shortcuts. More customizable (i.e. populate all with current title)
-
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
     metadata,
@@ -114,16 +112,18 @@ export function MetadataForm({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
+    const dummyRequest = ({ onSuccess }: any) => {
+        setTimeout(() => {
+            onSuccess("ok");
+        }, 0);
+    };
+
 
     const props: UploadProps = {
         showUploadList: false,
         name: 'file',
-        // action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
-        headers: {
-            authorization: 'authorization-text',
-        },
+        customRequest: dummyRequest,
         onChange(info) {
-
             if (info.file.status !== 'uploading') {
                 console.log(info.file, info.fileList);
             } else {
@@ -166,7 +166,7 @@ export function MetadataForm({
         })
     }
 
-    function handleEditorChange({ html, text }: any) {
+    function handleEditorChange({ text }: any) {
         updateCurrentMetadata({
             ...currentMetadata,
             description: text

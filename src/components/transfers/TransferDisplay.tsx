@@ -65,7 +65,7 @@ export function TransferDisplay({
             //TODO: Handle balances[] in one
             return transfer.balances.map((balance, index) => {
 
-                const origTo = transfer.toAddressInfo ? transfer.toAddressInfo: [];
+                const origTo = transfer.toAddressInfo ? transfer.toAddressInfo : [];
                 const to: BitBadgesUserInfo[] = [];
                 for (const user of origTo) {
                     if (user) to.push(user);
@@ -101,22 +101,23 @@ export function TransferDisplay({
 
                                 </span>
                             </div>
+
+                            {
+                                collection &&
+                                <BadgeAvatarDisplay
+                                    showBalance={!hideBalances}
+                                    showIds
+                                    collection={collection}
+                                    badgeIds={badgeIds}
+                                    userBalance={{
+                                        balances: [{
+                                            balance: amount,
+                                            badgeIds: badgeIds
+                                        }],
+                                        approvals: []
+                                    }} size={40} />
+                            }
                         </div>}
-                        {
-                            collection &&
-                            <BadgeAvatarDisplay
-                                showBalance={!hideBalances}
-                                showIds
-                                collection={collection}
-                                badgeIds={badgeIds}
-                                userBalance={{
-                                    balances: [{
-                                        balance: amount,
-                                        badgeIds: badgeIds
-                                    }],
-                                    approvals: []
-                                }} size={40} />
-                        }
 
                         {
                             !hideAddresses && <div style={{ color: fontColor }}>

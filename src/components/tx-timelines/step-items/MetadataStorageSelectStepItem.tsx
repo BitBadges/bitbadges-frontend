@@ -2,11 +2,14 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { MetadataAddMethod } from "../../../bitbadges-api/types";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Tooltip } from "antd";
+import { EmptyStepItem } from "../TxTimeline";
 
 export function MetadataStorageSelectStepItem(
     addMethod: MetadataAddMethod,
     setAddMethod: (addMethod: MetadataAddMethod) => void
 ) {
+    return EmptyStepItem;
+
     return {
         title: 'Metadata Storage',
         description: `Choose how to store the metadata for this collection.`,
@@ -41,6 +44,6 @@ export function MetadataStorageSelectStepItem(
                 }
             }}
         />,
-        disabled: addMethod === MetadataAddMethod.None
+        disabled: addMethod === MetadataAddMethod.None //Note I changed default to Manual in TxTimeline, when uncommenting need to change this back
     }
 }

@@ -1,6 +1,6 @@
 import { Empty, Pagination } from 'antd';
 import { useState } from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem } from '../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_TEXT } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
@@ -11,6 +11,7 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
     refreshUserBalance: () => Promise<void>;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
+    const [claimItem, setClaimItem] = useState<ClaimItem>();
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [code, setCode] = useState<string>("");
 
@@ -46,10 +47,11 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
                         collection={collection}
                         claim={collection.claims[activeClaimIds[currPage - 1]]}
                         claimId={activeClaimIds[currPage - 1]}
-                        openModal={(code) => {
+                        openModal={(claimItem, code) => {
                             setClaimId(activeClaimIds[currPage - 1])
                             setModalVisible(true);
                             setCode(code ? code : "");
+                            setClaimItem(claimItem);
                         }}
                     />
                 }
@@ -81,6 +83,7 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
                 visible={modalVisible}
                 setVisible={setModalVisible}
                 code={code}
+                claimItem={claimItem}
             />
         </div >
     );

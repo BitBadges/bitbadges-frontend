@@ -58,7 +58,7 @@ export function CollectionOverview({ collection, metadata, span }: {
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
-            {collection.badgeUri && <TableRow label={"Badge Metadata"} value={
+            {/* {collection.badgeUris && <TableRow label={"Badge Metadata"} value={
                 <div>
                     <Tooltip placement='bottom' title={<>
                         {collection.badgeUri}
@@ -69,7 +69,7 @@ export function CollectionOverview({ collection, metadata, span }: {
                         <a href={collection.badgeUri} target="_blank" rel="noreferrer">{collection.badgeUri.slice(0, 10) + '...' + collection.badgeUri.slice(collection.badgeUri.length - 13)} <LinkOutlined /></a>
                     </Tooltip>
                 </div>
-            } labelSpan={9} valueSpan={15} />}
+            } labelSpan={9} valueSpan={15} />} */}
             {collection.bytes && <TableRow label={"Arbitrary Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />}
             <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
                 {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP

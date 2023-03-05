@@ -43,9 +43,11 @@ export function TxModal(
 
     const [checked, setChecked] = useState(false);
     const [irreversibleChecked, setIrreversibleChecked] = useState(false);
+    const [betaChecked, setBetaChecked] = useState(false);
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
+
 
     const onStepChange = (value: number) => {
         setCurrentStep(value);
@@ -179,7 +181,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked)),
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked)),
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
@@ -263,6 +265,18 @@ export function TxModal(
                                         <Checkbox
                                             checked={checked}
                                             onChange={(e) => setChecked(e.target.checked)}
+                                        />
+                                    </div>
+                                    <br />
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                            By checking the box below, I understand that this is a beta verion of BitBadges, and there may be bugs.
+                                        </Typography.Text>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Checkbox
+                                            checked={betaChecked}
+                                            onChange={(e) => setBetaChecked(e.target.checked)}
                                         />
                                     </div>
                                     <br />

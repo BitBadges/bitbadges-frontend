@@ -45,14 +45,22 @@ export interface Transfers {
     balances: Balance[];
 }
 
+
+
+
 export interface ClaimItem {
-    address: string;
-    accountNum: number;
-    code: string;
+    addressRoot: string;
+    addresses: string[]; //with max uses
+    addressesTree: MerkleTree;
+
+    codesRoot: string;
+    codes: string[]; //with max uses
+    codeTree: MerkleTree;
+
     amount: number;
     badgeIds: IdRange[];
+
     fullCode: string;
-    userInfo?: BitBadgesUserInfo;
 }
 
 export enum DistributionMethod {
@@ -73,16 +81,13 @@ export enum MetadataAddMethod {
 
 export interface Claims {
     balances: Balance[];
-    badgeIds: IdRange[];
-    incrementIdsBy: number;
-    amountPerClaim: number;
-    type: number;
-    data: string;
+    dataRoot: string;
     uri: string;
     timeRange: IdRange;
     leaves: string[];
     tree: MerkleTree;
     distributionMethod: DistributionMethod;
+    claimItems: ClaimItem[];
 }
 
 export interface Proof {

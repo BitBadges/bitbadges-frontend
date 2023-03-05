@@ -3,6 +3,7 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
 import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
+import { useAccountsContext } from "../../../contexts/AccountsContext";
 
 export function ManualSendSelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
@@ -12,6 +13,8 @@ export function ManualSendSelectStepItem(
     claimItems: ClaimItem[],
     distributionMethod: DistributionMethod
 ) {
+    const accounts = useAccountsContext();
+
     return {
         title: `Distribution Method`,
         description: `You have whitelisted ${claimItems.length} address${claimItems.length > 1 ? 'es' : ''}. How would you like to distribute badges to these addresses?`,
@@ -34,7 +37,7 @@ export function ManualSendSelectStepItem(
                 if (idx === 0) {
                     setNewCollectionMsg({
                         ...newCollectionMsg,
-                        transfers: getTransfersFromClaimItems(claimItems),
+                        transfers: getTransfersFromClaimItems(claimItems, accounts),
                         claims: []
                     });
                 } else if (idx === 1) {

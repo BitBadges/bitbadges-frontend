@@ -1,12 +1,12 @@
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { Switch, Tooltip } from 'antd';
 import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
-import { TxModal } from './TxModal';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { TxModal } from './TxModal';
 
 
 export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, }

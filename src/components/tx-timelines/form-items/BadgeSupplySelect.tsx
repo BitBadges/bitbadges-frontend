@@ -1,4 +1,4 @@
-import { InputNumber, Divider } from 'antd';
+import { InputNumber } from 'antd';
 import { useState } from 'react';
 import { BadgeSupplyAndAmount } from '../../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
