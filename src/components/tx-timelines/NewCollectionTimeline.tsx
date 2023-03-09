@@ -1,3 +1,4 @@
+import { GetPermissions } from '../../bitbadges-api/permissions';
 import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
@@ -10,7 +11,6 @@ import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem'
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
-import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
@@ -21,6 +21,8 @@ import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBa
 import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
+import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
+import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 
 //See TxTimeline for explanations and documentation
 
@@ -59,7 +61,7 @@ export function MintCollectionTimeline({
     const ChooseBadgeType = ChooseBadgeTypeStepItem(newCollectionMsg);
     const ConfirmManager = ConfirmManagerStepItem();
     const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection)
-    const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
+    // const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
     const FreezeSelectStep = FreezeSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
@@ -76,6 +78,7 @@ export function MintCollectionTimeline({
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
     const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
+    const TransferabilityStep = TransferabilitySelectStepItem(newCollectionMsg, setNewCollectionMsg);
 
     return (
         <FormTimeline
@@ -84,7 +87,7 @@ export function MintCollectionTimeline({
                 ConfirmManager,
                 BadgeSupplySelectStep,
                 CanCreateMoreStep,
-                TransferableSelectStep,
+                TransferabilityStep,
                 FreezeSelectStep,
                 CanManagerBeTransferredStep,
                 ManagerApprovedSelect,

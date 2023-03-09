@@ -34,13 +34,13 @@ export function CollectionOverview({ collection, metadata, span }: {
             title="Collection Info"
             span={span}
         >
-            <TableRow label={"Collection ID"} value={collection.collectionId} labelSpan={9} valueSpan={15} />
+            <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />
             <TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />
             {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
                     display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
-                }} >
+                }}>
                     <AddressDisplay
                         fontSize={14}
                         fontColor={SECONDARY_TEXT}

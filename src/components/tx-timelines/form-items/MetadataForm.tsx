@@ -122,8 +122,9 @@ export function MetadataForm({
     const props: UploadProps = {
         showUploadList: false,
         name: 'file',
+        multiple: true,
         customRequest: dummyRequest,
-        onChange(info) {
+        async onChange(info) {
             if (info.file.status !== 'uploading') {
                 console.log(info.file, info.fileList);
             } else {
@@ -134,14 +135,12 @@ export function MetadataForm({
             }
 
             if (info.file.status === 'done') {
-                file2Base64(info.file.originFileObj as File).then((base64) => {
-                    setImages([
-                        ...images,
-                        {
-                            value: base64,
-                            label: info.file.url ? info.file.url : info.file.name,
-                        },
-                    ]);
+                await file2Base64(info.file.originFileObj as File).then((base64) => {
+                    images.push({
+                        value: base64,
+                        label: info.file.url ? info.file.url : info.file.name,
+                    })
+                    setImages(images);
                     updateCurrentMetadata({
                         ...currentMetadata,
                         image: base64
@@ -415,7 +414,7 @@ export function MetadataForm({
                                             style={{ padding: '0 8px 4px' }}
                                         >
                                             <Upload {...props}>
-                                                <Button icon={<UploadOutlined />}>Click to Upload New Image</Button>
+                                                <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
                                             </Upload>
                                         </Space>
                                     </>

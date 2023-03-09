@@ -7,14 +7,16 @@ const { Text } = Typography;
 export function InformationDisplayCard({
     title,
     children,
-    span
+    span,
+    noBorder
 }: {
     title: string | React.ReactNode
     children?: React.ReactNode
-    span?: number
+    span?: number,
+    noBorder?: boolean
 }) {
     return (
-        <Col span={span ? span : 24} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
+        <Col span={span ? span : 24} style={{ minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
             <div
                 style={{
                     color: PRIMARY_TEXT,

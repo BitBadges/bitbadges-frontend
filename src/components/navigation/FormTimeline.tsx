@@ -12,7 +12,7 @@ import { FormNavigationHeader } from './FormNavigationHeader';
 interface Item {
     disabled?: boolean;
     node: ReactNode;
-    title: string;
+    title: string | ReactNode;
     description: string | ReactNode;
     doNotDisplay?: boolean;
 }
@@ -56,7 +56,7 @@ export function FormTimeline({
         }
     }, [filteredItems, formStepNum])
 
-    const getTitleElem = (title: string | JSX.Element) => {
+    const getTitleElem = (title: string | ReactNode) => {
         return (
             <div
                 style={{

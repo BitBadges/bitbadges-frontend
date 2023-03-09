@@ -87,12 +87,12 @@ export function OverviewTab({
                                     : <>                                        {
                                         collection.disallowedTransfers.map((transfer) => {
                                             return <>
-                                                The addresses with account IDs {transfer.to.accountNums.map((range, index) => {
+                                                The addresses with account IDs {transfer.from.accountNums.map((range, index) => {
                                                     return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                                })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''} cannot
-                                                transfer to the addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                                })} {transfer.from.options === 1 ? '(including the manager)' : transfer.from.options === 2 ? '(excluding the manager)' : ''} cannot
+                                                transfer to the addresses with account IDs {transfer.to.accountNums.map((range, index) => {
                                                     return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                                })} {transfer.from.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
+                                                })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
                                                 <br />
                                             </>
                                         })

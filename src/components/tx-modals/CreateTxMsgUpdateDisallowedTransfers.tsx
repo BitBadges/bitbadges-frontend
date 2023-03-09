@@ -32,7 +32,7 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
 
     const msgSteps = [
         {
-            title: 'Update Disallowed Transfers',
+            title: 'Edit Transferability',
             description: <TxTimeline txType='UpdateDisallowed' collectionId={collectionId} onFinish={(txState: TxTimelineProps) => {
                 setDisabled(false);
                 setTxState(txState);
@@ -46,7 +46,7 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
             msgSteps={msgSteps}
             visible={visible}
             setVisible={setVisible}
-            txName="Update Disallowed Transfers"
+            txName="Edit Transferability"
             txCosmosMsg={updateDisallowedTransfersMsg}
             createTxFunction={createTxMsgUpdateDisallowedTransfers}
             onSuccessfulTx={async () => {

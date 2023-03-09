@@ -19,7 +19,7 @@ export function ClaimDisplay({
     openModal,
     claimId,
 }: {
-    claim: Claims,
+    claim: ClaimItem,
     collection: BitBadgeCollection,
     openModal: (claimItem: ClaimItem, code?: string) => void,
     claimId: number,
@@ -45,9 +45,10 @@ export function ClaimDisplay({
 
     if (claim.balances.length === 0) return <></>
 
-    return <>{claim.claimItems.map((claimItem, idx) => {
-        return <Card
-            key={idx}
+    const claimItem = claim;
+
+    return <>
+        <Card
             style={{
                 width: 500,
                 margin: 8,
@@ -86,7 +87,7 @@ export function ClaimDisplay({
 
                 <br />
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                    <h3 style={{ color: PRIMARY_TEXT }}>Increment by {parseClaim(claimItem.fullCode).incrementBy}</h3>
+                    <h3 style={{ color: PRIMARY_TEXT }}>Increment by {claimItem.incrementIdsBy}</h3>
                 </Row>
                 <br />
                 {/* <BalanceDisplay
@@ -101,7 +102,7 @@ export function ClaimDisplay({
                 <br /> */}
                 <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
 
-                    {claimItem.codesRoot &&
+                    {claimItem.codeRoot &&
                         <>
                             <hr />
                             <h3 style={{ color: PRIMARY_TEXT }}>Enter Code to Claim</h3>
@@ -149,43 +150,36 @@ export function ClaimDisplay({
                         </>
                     }
 
-                    {claimItem.addressRoot &&
+                    {claimItem.whitelistRoot &&
                         <>
                             <hr />
                             {!chain.connected && <>
-                                {claim.distributionMethod === DistributionMethod.Whitelist && <h3 style={{ color: PRIMARY_TEXT }}>Connect your wallet to see if you are on the whitelist!</h3>}
+                                {<h3 style={{ color: PRIMARY_TEXT }}>Connect your wallet to see if you are on the whitelist!</h3>}
                                 {/* {claim.distributionMethod !== DistributionMethod.Whitelist && <h3>Connect your wallet to claim!</h3>} */}
                                 <BlockinDisplay hideLogo />
                             </>}
-                            {chain.connected && !collection.claims[claimId]?.claimItems?.find((x) => {
-                                if (x.addresses.find(y => y.includes(chain.cosmosAddress))) {
-                                    // if (collection.usedClaims.find((y) => y === SHA256(parseClaim(x).fullCode).toString())) {
-                                    //     return false;
-                                    // }
-                                    return true;
-                                }
-                                return false;
-                            }) ? <div>
-                                <h3 style={{ color: PRIMARY_TEXT }}>No claims found for the connected address</h3>
-                                <div className='flex-between' style={{ justifyContent: 'center' }}>
-                                    <AddressDisplay
-                                        fontColor={PRIMARY_TEXT}
-                                        userInfo={{
-                                            address: chain.address,
-                                            accountNumber: chain.accountNumber,
-                                            cosmosAddress: chain.cosmosAddress,
-                                            chain: chain.chain,
-                                        }} />
-                                </div>
+                            {chain.connected && !claim.addresses.find(y => y.includes(chain.cosmosAddress))
+                                ? <div>
+                                    <h3 style={{ color: PRIMARY_TEXT }}>No claims found for the connected address</h3>
+                                    <div className='flex-between' style={{ justifyContent: 'center' }}>
+                                        <AddressDisplay
+                                            fontColor={PRIMARY_TEXT}
+                                            userInfo={{
+                                                address: chain.address,
+                                                accountNumber: chain.accountNumber,
+                                                cosmosAddress: chain.cosmosAddress,
+                                                chain: chain.chain,
+                                            }} />
+                                    </div>
 
-                            </div> :
+                                </div> :
                                 <div>
                                     {chain.connected && <div>
                                         <h3 style={{ color: PRIMARY_TEXT }}>You have been whitelisted!</h3>
                                     </div>}
                                 </div>}
 
-                            {collection.claims[claimId]?.claimItems?.map((x) => {
+                            {[claim].map((x) => {
                                 // const address = 
                                 if (!x.addresses.find(y => y.includes(chain.cosmosAddress))) return <></>
 
@@ -216,7 +210,7 @@ export function ClaimDisplay({
                                     <Divider />
 
                                     <Tooltip placement="bottom" title={!chain.connected ? 'Please connect a wallet to claim!' : 'Claim!'}>
-                                        <Button disabled={!chain.connected} type='primary' onClick={() => openModal(claimItem, x.fullCode)} style={{ width: '100%' }}>Claim</Button>
+                                        <Button disabled={!chain.connected} type='primary' onClick={() => openModal(claimItem, '')} style={{ width: '100%' }}>Claim</Button>
                                     </Tooltip>
                                 </>
                             })}
@@ -225,6 +219,5 @@ export function ClaimDisplay({
                 </div>
             </div>
         </Card>
-    })
-    }</>
+    </>
 }

@@ -112,7 +112,7 @@ export function ActionsTab({
 
         if (collection.permissions.CanUpdateDisallowed) {
             actions.push({
-                title: getTitleElem("Update Disallowed Transfers"),
+                title: getTitleElem("Edit Transferability"),
                 description: getDescriptionElem(
                     "Freeze or unfreeze if badge owners able to transfer."
                 ),

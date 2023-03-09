@@ -75,27 +75,15 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     //generate MerkleTreeJS objects from fetched leaves
     for (let idx = 0; idx < badgeData.claims.length; idx++) {
         let claim = badgeData.claims[idx];
-        const fetchedLeaves: string[] = claim.leaves;
+        const fetchedCodes: string[] = claim.codes;
+        const fetchedAddresses: string[] = claim.addresses;
 
-        if (fetchedLeaves.length > 0) {
-            if (badgeData.claims[idx].distributionMethod === DistributionMethod.Codes) {
-                const tree = new MerkleTree(fetchedLeaves, SHA256);
-                badgeData.claims[idx].tree = tree;
+        const tree = new MerkleTree(fetchedCodes, SHA256);
+        badgeData.claims[idx].codeTree = tree;
 
-            } else {
-                const tree = new MerkleTree(fetchedLeaves.map((x) => SHA256(x)), SHA256);
-                badgeData.claims[idx].tree = tree;
-            }
-        }
-
-        for (const claimItem of badgeData.claims[idx].claimItems) {
-            claimItem.codeTree = new MerkleTree(claimItem.codes.map((x) => SHA256(x)), SHA256);
-            claimItem.addressesTree = new MerkleTree(claimItem.addresses.map((x) => SHA256(x)), SHA256);
-        }
+        const tree2 = new MerkleTree(fetchedAddresses, SHA256);
+        badgeData.claims[idx].addressesTree = tree2;
     }
-
-
-    console.log("END FETCHING CLAIMS");
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
@@ -261,7 +249,7 @@ export const logout = async () => {
 }
 
 
-export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[][], codes: string[][]) => {
+export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[], codes: string[]) => {
 
     const bodyStr = stringify({
         leaves,

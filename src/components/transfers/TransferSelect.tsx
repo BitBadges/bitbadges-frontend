@@ -33,8 +33,8 @@ export function TransferSelect({
     hideTransferDisplay,
     isWhitelist
 }: {
-    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[],
-    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => void;
+    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[],
+    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => void;
     sender: BitBadgesUserInfo,
     userBalance: UserBalance,
     collection: BitBadgeCollection;
@@ -66,7 +66,7 @@ export function TransferSelect({
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
 
-    const [transfersToAdd, setTransfersToAdd] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[] })[]>([]);
+    const [transfersToAdd, setTransfersToAdd] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number })[]>([]);
 
 
     const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
@@ -91,7 +91,7 @@ export function TransferSelect({
                 }
             }
         }
-        let newTransfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[] })[] = [];
+        let newTransfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number })[] = [];
         console.log("USEEFFECT2");
 
         if ((amountSelectType === AmountSelectType.None && numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
@@ -99,6 +99,7 @@ export function TransferSelect({
                 toAddresses: distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : toAddresses.map((user) => user.accountNumber),
                 balances: balances,
                 toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : toAddresses,
+                numCodes: distributionMethod === DistributionMethod.Codes ? numCodes : undefined,
             }];
         } else if (amountSelectType === AmountSelectType.Linear) {
             let numPerAddress = ids.length / numRecipients;
@@ -118,6 +119,7 @@ export function TransferSelect({
                         badgeIds: badgeIds,
                     }],
                     toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i]],
+                    numCodes: distributionMethod === DistributionMethod.Codes ? numCodes : undefined,
                 });
             }
         }

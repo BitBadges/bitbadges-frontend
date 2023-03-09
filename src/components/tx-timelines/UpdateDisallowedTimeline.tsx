@@ -1,6 +1,6 @@
 import { FormTimeline } from '../navigation/FormTimeline';
 import { TxTimelineProps } from './TxTimeline';
-import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
+import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem'
 
 //See TxTimeline for explanations and documentation
 
@@ -12,7 +12,7 @@ export function UpdateDisallowedTimeline({
     const newCollectionMsg = txTimelineProps.newCollectionMsg;
     const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
 
-    const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
+    const TransferableSelectStep = TransferabilitySelectStepItem(newCollectionMsg, setNewCollectionMsg);
 
     return (
         <FormTimeline

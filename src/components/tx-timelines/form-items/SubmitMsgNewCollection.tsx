@@ -53,8 +53,12 @@ export function SubmitMsgNewCollection({
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
         if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.Whitelist) {
             if (badgeMsg.claims?.length > 0) {
-                let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode), claimItems.map(x => x.addresses), claimItems.map(x => x.codes));
-                badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                for (let i = 0; i < claimItems.length; i++) {
+                    let merkleTreeRes = await addMerkleTreeToIpfs([], claimItems[i].addresses, claimItems[i].codes);
+                    badgeMsg.claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                }
+
+                
 
                 // //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
                 // //For the whitelist, we store the full plaintext codes as leaves on IPFS

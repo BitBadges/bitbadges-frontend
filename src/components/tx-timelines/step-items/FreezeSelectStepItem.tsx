@@ -8,19 +8,19 @@ export function FreezeSelectStepItem(
     updatePermissions: (digit: number, value: boolean) => void,
 ) {
     return {
-        title: `Freezable?`,
+        title: `Edit Transferability?`,
         description: ``, //You previously selected badges to be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable' : 'transferable'} by default.
         node: <SwitchForm
             noSelectUntilClick
             options={[
                 {
                     title: 'No',
-                    message: `The manager cannot freeze or unfreeze a user's ability to transfer. Badges will always be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable.' : 'transferable.'}`,
+                    message: `The manager cannot edit the transferability. The transferability selected in the last step will be permanent.`,
                     isSelected: handledPermissions.CanUpdateDisallowed && !GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                 },
                 {
                     title: 'Yes',
-                    message: `The manager can freeze and unfreeze a user's ability to transfer.`,
+                    message: `The manager can edit the transferability.`,
                     isSelected: handledPermissions.CanUpdateDisallowed && !!GetPermissions(newCollectionMsg.permissions).CanUpdateDisallowed
                 },
             ]}

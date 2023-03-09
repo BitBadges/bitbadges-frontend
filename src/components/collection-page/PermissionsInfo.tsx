@@ -14,6 +14,8 @@ export function PermissionsOverview({
     span?: number
 }) {
     if (!collection?.permissions) return <></>
+    console.log(JSON.stringify(collection.managerApprovedTransfers[0]))
+    console.log(JSON.stringify(AllAddressesTransferMapping))
 
     return <InformationDisplayCard title={'Manager Permissions'} span={span}>
         <>
@@ -45,7 +47,7 @@ export function PermissionsOverview({
                                 : <>
                                     {collection.managerApprovedTransfers.length === 1
                                         && JSON.stringify(collection.managerApprovedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping) ?
-                                        <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>The manager can transfer any badge without the approval of the owner.</Typography.Text>
+                                        <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>The manager can transfer any badge to anyone without the approval of the owner.</Typography.Text>
                                         : <>{collection.managerApprovedTransfers.map((transfer) => {
                                             return <>
                                                 The manager can forcefully transfer badges from account IDs {transfer.to.accountNums.map((range, index) => {

@@ -1,48 +1,25 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
+import { Tooltip } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
-import { getNonTransferableDisallowedTransfers } from "../../../bitbadges-api/badges";
-import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ManagerApprovedTransfersStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
 ) {
-    const [handledManagerApprovedTransfers, setHandledManagerApprovedTransfers] = useState(false);
-
+    const [handled, setHandled] = useState(false);
     return {
-        title: 'Manager\'s Approved Transfers',
-        description: ``,
-        disabled: !handledManagerApprovedTransfers,
-        node: <SwitchForm
-            noSelectUntilClick
-            options={[
-                {
-                    title: 'None',
-                    message: `The manager will have no special approved transfers.`,
-                    isSelected: handledManagerApprovedTransfers && newCollectionMsg.managerApprovedTransfers.length == 0
-                },
-                {
-                    title: 'Complete Control',
-                    message: `The manager will be able to revoke and transfer any badge without its owners' approval.`,
-                    isSelected: handledManagerApprovedTransfers && newCollectionMsg.managerApprovedTransfers.length > 0
-                },
-            ]}
-            onSwitchChange={(idx) => {
-                const none = idx === 0;
-                const revokable = idx === 1;
-                if (none) {
-                    setNewCollectionMsg({
-                        ...newCollectionMsg,
-                        managerApprovedTransfers: [],
-                    })
-                } else if (revokable) {
-                    setNewCollectionMsg({
-                        ...newCollectionMsg,
-                        managerApprovedTransfers: getNonTransferableDisallowedTransfers(),
-                    })
-                }
-                setHandledManagerApprovedTransfers(true);
-            }}
+        title: <>{'Manager\'s Approved Transfers'} <Tooltip title="The manager's approved transfers are those they can execute without needing to be approved by the badge owner. These transfers override the transferability restrictions selected in the previous step." >
+            <InfoCircleOutlined style={{ marginLeft: 4, marginRight: 4 }} />
+        </Tooltip></>,
+        description: `The manager's approved transfers cannot be updated after the collection is created.`,
+        node: <TransfersMappingSelect
+            transfersMapping={newCollectionMsg.managerApprovedTransfers}
+            setTransfersMapping={(managerApprovedTransfers) => setNewCollectionMsg({ ...newCollectionMsg, managerApprovedTransfers })}
+            isManagerApprovedSelect
+            setHandled={() => setHandled(true)}
         />,
+        disabled: !handled
     }
 }

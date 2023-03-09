@@ -210,63 +210,37 @@ export function TxTimeline({
             const startBadgeId = origNextBadgeId
             const endBadgeId = nextBadgeId - 1;
 
-            console.log("STARTING METADATA", JSON.stringify(metadata));
-            for (let id = startBadgeId; id <= endBadgeId; id++) {
-                let keys = Object.keys(metadata);
-                let values = Object.values(metadata);
-                for (let i = 0; i < keys.length; i++) {
-                    const res = SearchIdRangesForId(id, values[i].badgeIds)
-                    const idx = res[0]
-                    const found = res[1]
-                    console.log("found", id, "at", idx, found, "in", JSON.stringify(values[i].badgeIds));
-                    if (found) {
-                        values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-                        console.log("new ids", JSON.stringify(values[i].badgeIds));
-                    }
+            let keys = Object.keys(metadata);
+            let values = Object.values(metadata);
+
+            let metadataExists = false;
+            for (let i = 0; i < keys.length; i++) {
+                if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
+                    metadataExists = true;
+                    values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds) : [{ start: startBadgeId, end: endBadgeId }];
                 }
-
-                let metadataExists = false;
-                for (let i = 0; i < keys.length; i++) {
-                    if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
-                        metadataExists = true;
-                        values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: id, end: id }, values[i].badgeIds) : [{ start: id, end: id }];
-                    }
-                }
-
-                let currIdx = 0;
-                metadata = {};
-                for (let i = 0; i < keys.length; i++) {
-                    if (values[i].badgeIds.length === 0) {
-                        continue;
-                    }
-                    metadata[currIdx] = values[i];
-                    currIdx++;
-                }
-
-                if (!metadataExists) {
-                    metadata[Object.keys(metadata).length] = {
-                        metadata: { ...currentMetadata },
-                        badgeIds: [{
-                            start: id,
-                            end: id,
-                        }],
-                    }
-                }
-
-
-                console.log("new metadata after loop", JSON.stringify(metadata));
             }
 
+            let currIdx = 0;
+            metadata = {};
+            for (let i = 0; i < keys.length; i++) {
+                if (values[i].badgeIds.length === 0) {
+                    continue;
+                }
+                metadata[currIdx] = values[i];
+                currIdx++;
+            }
 
-
-
-            // metadata[Object.keys(metadata).length] = {
-            //     metadata: DefaultPlaceholderMetadata,
-            //     badgeIds: [{ start: origNextBadgeId, end: nextBadgeId - 1 }]
-            // }
+            if (!metadataExists) {
+                metadata[Object.keys(metadata).length] = {
+                    metadata: { ...currentMetadata },
+                    badgeIds: [{
+                        start: startBadgeId,
+                        end: endBadgeId,
+                    }],
+                }
+            }
         }
-
-        console.log("SETTING METADATA", metadata);
 
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);

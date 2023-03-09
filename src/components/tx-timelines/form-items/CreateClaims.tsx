@@ -5,7 +5,7 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useState } from 'react';
 import { createClaim, getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
-import { DEV_MODE, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { DEV_MODE, GO_MAX_UINT_64, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -33,7 +33,7 @@ export function CreateClaims({
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     distributionMethod: DistributionMethod;
     claimItems: ClaimItem[];
-    setClaimItems: (leaves: ClaimItem[]) => void;
+    setClaimItems: (claimItems: ClaimItem[]) => void;
     balancesToDistribute?: Balance[];
 }) {
     const badgeCollection = collection;
@@ -41,7 +41,7 @@ export function CreateClaims({
     const accounts = useAccountsContext();
 
     const [currPage, setCurrPage] = useState(1);
-    const [claimBalances, setClaimBalances] = useState<UserBalance>(
+    const [undistributedBalances, setUndistributedBalances] = useState<UserBalance>(
         balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
@@ -50,11 +50,11 @@ export function CreateClaims({
             approvals: []
         });
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]>(claimItems ?
+    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]>(claimItems ?
         getTransfersFromClaimItems(claimItems, accounts) : []
     );
 
-    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => {
+    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => {
         setTransfers(newTransfers);
         addCode(newTransfers);
     }
@@ -68,64 +68,66 @@ export function CreateClaims({
             approvals: []
         };
 
-        const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, distributionMethod);
+        const claimsRes = getClaimsValueFromClaimItems(balance, newClaimItems);
 
         setNewCollectionMsg({
             ...newCollectionMsg,
-            claims: claimRes.claims,
+            claims: claimsRes.claims,
         })
-        setClaimBalances(claimRes.balance);
+
+        setUndistributedBalances(claimsRes.undistributedBalance);
         setClaimItems(newClaimItems);
     }
 
-    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => {
-        let leafItemsToAdd = [];
+    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => {
+        let newClaimItems: ClaimItem[] = []
+        for (const transfer of newTransfers) {
+            const codes = [];
+            const addresses = [];
 
-        if (distributionMethod === DistributionMethod.Codes) {
-            for (const transfer of newTransfers) {
-                for (let i = 0; i < transfer.toAddresses.length; i++) {
-                    const code = crypto.randomBytes(32).toString('hex')
-                    const codeTree = new MerkleTree(['1-' + code].map(x => SHA256(x)), SHA256);
-                    leafItemsToAdd.push({
-                        ...createClaim(codeTree.getRoot().toString('hex'), '', transfer.balances[0]?.balance, 0, transfer.balances[0]?.badgeIds),
-                        addresses: [],
-                        codes: ['1-' + code],
-                        codeTree: codeTree,
-                        addressesTree: new MerkleTree([]),
-                    });
+            if (transfer.numCodes && transfer.numCodes > 0) {
+                for (let i = 0; i < transfer.numCodes; i++) {
+                    const code = crypto.randomBytes(32).toString('hex');
+                    codes.push(code); //TODO: admin password salt and reusable passwords
                 }
-            }
-        } else {
-            for (const transfer of newTransfers) {
+            } else {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
                     const userInfo = transfer.toAddressInfo[i];
-                    if (userInfo) {
-                        const addressesTree = new MerkleTree(['1-' + userInfo.cosmosAddress].map(x => SHA256(x)), SHA256);
-                        leafItemsToAdd.push({
-                            ...createClaim('', addressesTree.getRoot().toString('hex'), transfer.balances[0]?.balance, 0, transfer.balances[0]?.badgeIds),
-                            addresses: ['1-' + userInfo.cosmosAddress],
-                            codes: [],
-                            codeTree: new MerkleTree([]),
-                            addressesTree: addressesTree
-                        });
+                    if (!userInfo) {
+                        continue;
                     }
+                    addresses.push(userInfo.cosmosAddress);
                 }
             }
-        }
 
-        // For codes, we add twice so that the same code can be both children in a Merkle tree node
-        // This is so that if a user knows a code, they can prove that they know the code without needing to know an alternative code
-        const newClaimItems = [];
-        if (distributionMethod === DistributionMethod.Codes) {
-            for (const leafItem of leafItemsToAdd) {
-                newClaimItems.push(leafItem, leafItem);
-            }
-        } else {
-            for (const leafItem of leafItemsToAdd) {
-                newClaimItems.push(leafItem);
-            }
-        }
+            const codesTree = new MerkleTree(codes.map(x => SHA256(x)), SHA256);
+            const codesRoot = codesTree.getRoot().toString('hex');
 
+            const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256);
+            const addressesRoot = addressesTree.getRoot().toString('hex');
+
+
+            const newClaimItem: ClaimItem = {
+                addresses: addresses,
+                codes: codes,
+                addressesTree: addressesTree,
+                codeTree: codesTree,
+                whitelistRoot: addressesRoot,
+                codeRoot: codesRoot,
+                uri: '',
+                amount: transfer.balances[0]?.balance,
+                badgeIds: transfer.balances[0]?.badgeIds,
+                timeRange: {
+                    start: 0,
+                    end: GO_MAX_UINT_64,
+                },
+                balances: [], //will do in calculateNewBalances()
+                limitPerAccount: 2, //one per account
+                incrementIdsBy: 1,
+            }
+
+            newClaimItems.push(newClaimItem);
+        }
         calculateNewBalances(newClaimItems);
     }
 
@@ -137,11 +139,11 @@ export function CreateClaims({
                     <InformationDisplayCard
                         title='Undistributed Badges'
                     >
-                        {claimBalances.balances.length > 0 && <BalanceDisplay
+                        {undistributedBalances.balances.length > 0 && <BalanceDisplay
                             size={40}
-                            collection={badgeCollection} balance={claimBalances}
+                            collection={badgeCollection} balance={undistributedBalances}
                         />}
-                        {claimBalances.balances.length === 0 && <Empty
+                        {undistributedBalances.balances.length === 0 && <Empty
                             style={{ color: PRIMARY_TEXT }}
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description='No badges to distribute.' />}
@@ -183,29 +185,17 @@ export function CreateClaims({
                                             return <></>
                                         }
 
-
                                         let currIndex = index;
-
-                                        if (distributionMethod === DistributionMethod.Codes) {
-                                            if (index % 2 === 1) {
-                                                return <></>
-                                            }
-
-                                            currIndex = index / 2;
-                                        }
-
                                         return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
 
                                             <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
                                                 {distributionMethod === DistributionMethod.Codes ? <Text strong style={{ color: PRIMARY_TEXT }}>
-                                                    {`Code #${currIndex + 1}`}
+                                                    {leaf.codeRoot}
                                                 </Text> :
                                                     <>
-                                                        {leaf.addresses.map(addr => {
-                                                            const res = addr.split('-');
-                                                            const cosmosAddr = res[1]
-                                                            return <AddressDisplay key={addr} userInfo={accounts.accounts[cosmosAddr]} fontColor={PRIMARY_TEXT} fontSize={14} />
+                                                        {leaf.addresses.map(cosmosAddr => {
+                                                            return <AddressDisplay key={cosmosAddr} userInfo={accounts.accounts[cosmosAddr]} fontColor={PRIMARY_TEXT} fontSize={14} />
                                                         })}
                                                     </>
                                                 }
@@ -231,11 +221,11 @@ export function CreateClaims({
                                             <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
                                                 {distributionMethod === DistributionMethod.Codes ? <>
                                                     <Text strong style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                                        Code
+                                                        Code Root
                                                     </Text>
                                                     <br />
                                                     <Text copyable strong style={{ color: PRIMARY_TEXT, fontSize: 16, }}>
-                                                        {leaf.fullCode}
+                                                        {leaf.codeRoot}
                                                     </Text>
                                                     <Divider />
                                                 </> :
@@ -253,9 +243,8 @@ export function CreateClaims({
                                                     transfers={[
                                                         {
                                                             toAddresses: distributionMethod === DistributionMethod.Whitelist ? leaf.addresses.map(addr => {
-                                                                const res = addr.split('-');
-                                                                const cosmosAddr = res[1]
-                                                                return accounts.accounts[cosmosAddr].accountNumber
+
+                                                                return accounts.accounts[addr].accountNumber
                                                             }) : [],
                                                             balances: [
                                                                 {
@@ -264,17 +253,15 @@ export function CreateClaims({
                                                                 }
                                                             ],
                                                             toAddressInfo: leaf.addresses.map(addr => {
-                                                                const res = addr.split('-');
-                                                                const cosmosAddr = res[1]
-                                                                return accounts.accounts[cosmosAddr]
+
+                                                                return accounts.accounts[addr]
                                                             })
                                                         }
                                                     ]}
-                                                    toCodes={distributionMethod === DistributionMethod.Codes ? [leaf.fullCode] : [
+                                                    toCodes={distributionMethod === DistributionMethod.Codes ? leaf.codes : [
 
                                                     ]}
                                                 />
-
                                                 <Divider />
                                             </div>
                                         </CollapsePanel>

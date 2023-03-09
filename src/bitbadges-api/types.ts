@@ -47,20 +47,12 @@ export interface Transfers {
 
 
 
-
-export interface ClaimItem {
-    addressRoot: string;
+export interface ClaimItem extends Claims {
     addresses: string[]; //with max uses
     addressesTree: MerkleTree;
 
-    codesRoot: string;
     codes: string[]; //with max uses
     codeTree: MerkleTree;
-
-    amount: number;
-    badgeIds: IdRange[];
-
-    fullCode: string;
 }
 
 export enum DistributionMethod {
@@ -81,13 +73,14 @@ export enum MetadataAddMethod {
 
 export interface Claims {
     balances: Balance[];
-    dataRoot: string;
+    codeRoot: string;
+    whitelistRoot: string;
     uri: string;
     timeRange: IdRange;
-    leaves: string[];
-    tree: MerkleTree;
-    distributionMethod: DistributionMethod;
-    claimItems: ClaimItem[];
+    limitPerAccount: number;
+    amount: number;
+    badgeIds: IdRange[];
+    incrementIdsBy: number;
 }
 
 export interface Proof {
@@ -115,13 +108,13 @@ export interface BitBadgeCollection {
     nextBadgeId: number;
     unmintedSupplys: Balance[];
     maxSupplys: Balance[];
-    claims: Claims[];
+    claims: ClaimItem[];
     standard: number;
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadataMap,
     activity: ActivityItem[];
     usedClaims: string[];
-    originalClaims: Claims[];
+    originalClaims: ClaimItem[];
     managerRequests: number[];
     balances: BalancesMap
 }

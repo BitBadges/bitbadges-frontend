@@ -26,11 +26,12 @@ export function CreateTxMsgClaimBadgeModal(
 
     if (!claimObject || !collection || !claimItem) return <></>;
 
-    const proofObj = claimObject.tree?.getProof(SHA256(claimItem.fullCode).toString());
-
     //TODO: duplicate addresses / codes //.includes may lead to bugs
     const addressString = claimItem.addresses.find((x) => x.includes(chain.cosmosAddress)) || "";
+    console.log(addressString, "ADDRESS STRING");
     const addressProofObj = claimItem.addressesTree?.getProof(SHA256(addressString).toString());
+
+    console.log(claimItem.addressesTree.getHexRoot(), "ADDRESS TREE ROOT");
 
     const codeString = claimItem.codes.find((x) => x.includes(code)) || "";
     const codeProofObj = claimItem.codeTree?.getProof(SHA256(codeString).toString());
@@ -39,16 +40,7 @@ export function CreateTxMsgClaimBadgeModal(
         creator: chain.cosmosAddress,
         collectionId: collection.collectionId,
         claimId,
-        claimProof: {
-            aunts: proofObj?.map((proof) => {
-                return {
-                    aunt: proof.data.toString('hex'),
-                    onRight: proof.position === 'right'
-                }
-            }),
-            leaf: claimItem.fullCode,
-        },
-        addressProof: {
+        whitelistProof: {
             aunts: addressProofObj?.map((proof) => {
                 return {
                     aunt: proof.data.toString('hex'),

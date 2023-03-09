@@ -1,6 +1,6 @@
 import MerkleTree from "merkletreejs";
 import { getPostTransferBalance } from "./balances";
-import { BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, Transfers, UserBalance } from "./types";
+import { BitBadgesUserInfo, ClaimItem, Claims, DistributionMethod, IdRange, Transfers, UserBalance } from "./types";
 import { SHA256 } from "crypto-js";
 import { GO_MAX_UINT_64 } from "../constants";
 import { AccountsContextType } from "../contexts/AccountsContext";
@@ -50,14 +50,9 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
     for (const claimItem of claimItems) {
         const toAddresses: number[] = [];
         const toAddressesInfo: BitBadgesUserInfo[] = [];
-        for (const addressString of claimItem.addresses) {
-
-            const res = addressString.split('-');
-            const amount = Number(res[0]);
-            const address = res[1];
-
+        for (const address of claimItem.addresses) {
+            const amount = 1;
             const accountNum = accounts.accounts[address].accountNumber ? accounts.accounts[address].accountNumber : -1;
-
 
             const toPush: number[] = new Array(amount).fill(accountNum)
             toAddresses.push(...toPush);
@@ -73,56 +68,88 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
         })
     }
 
-
     return transfers;
 }
 
-export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[], distributionMethod: DistributionMethod) => {
+export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[]) => {
     balance = JSON.parse(JSON.stringify(balance));
-    const claimBalance = JSON.parse(JSON.stringify(balance));
+    let undistributedBalance = JSON.parse(JSON.stringify(balance));
 
-    const tree = new MerkleTree(claimItems.map((x) => SHA256(x.fullCode)), SHA256)
-    const root = tree.getRoot().toString('hex')
+    const claims: Claims[] = [];
 
-    if (distributionMethod === DistributionMethod.Codes) {
-        for (let i = 0; i < claimItems.length; i += 2) {
-            const leaf = claimItems[i];
-            for (const badgeId of leaf.badgeIds) {
-                const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, leaf.amount, 1);
-                balance.balances = newBalance.balances;
+    for (const claimItem of claimItems) {
+        let claimBalance = JSON.parse(JSON.stringify(undistributedBalance));
+        let maxNumClaims = 0;
+        const codesLength = claimItem.codes.length;
+        const addressesLength = claimItem.addresses.length;
+        if (claimItem.limitPerAccount === 0 || claimItem.limitPerAccount === 2) { //No restrictions (0) or one per address (2)
+            maxNumClaims = codesLength;
+        } else if (claimItem.limitPerAccount === 1) { //By whitelist index
+            if (codesLength > 0 && addressesLength > 0) {
+                maxNumClaims = Math.min(codesLength, addressesLength);
+            } else if (codesLength > 0) {
+                maxNumClaims = codesLength;
+            } else if (addressesLength > 0) {
+                maxNumClaims = addressesLength;
             }
         }
-    } else if (distributionMethod === DistributionMethod.Whitelist) {
-        for (let i = 0; i < claimItems.length; i++) {
-            const leaf = claimItems[i];
-            for (const badgeId of leaf.badgeIds) {
-                const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, leaf.amount, 1);
-                balance.balances = newBalance.balances;
+
+        if (maxNumClaims > 0) { //Else, unlimited claims and we distribute whole supply
+            for (let i = 0; i < maxNumClaims; i++) {
+                for (const badgeId of claimItem.badgeIds) {
+                    const newBalance = getPostTransferBalance(balance, badgeId.start, badgeId.end, claimItem.amount, 1);
+                    balance.balances = newBalance.balances;
+                }
+
+                if (claimItem.incrementIdsBy > 0) {
+                    for (let badgeId of claimItem.badgeIds) {
+                        badgeId = {
+                            start: badgeId.start + claimItem.incrementIdsBy,
+                            end: badgeId.end + claimItem.incrementIdsBy,
+                        }
+                    }
+                }
+            }
+
+            if (balance.balances.length == 0) {
+
+            }
+
+
+
+
+            for (const balanceObj of balance.balances) {
+                for (const badgeId of balanceObj.badgeIds) {
+                    const newBalance = getPostTransferBalance(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
+                    claimBalance.balances = newBalance.balances;
+
+
+                }
+            }
+
+            for (const balanceObj of claimBalance.balances) {
+                if (balanceObj.balance > 0) {
+                    const newBalance = getPostTransferBalance(undistributedBalance, balanceObj.badgeIds[0].start, balanceObj.badgeIds[0].end, balanceObj.balance, 1);
+                    undistributedBalance.balances = newBalance.balances;
+                }
+            }
+        } else {
+            claimBalance = undistributedBalance;
+            undistributedBalance = {
+                balances: [],
+                approvals: [],
             }
         }
+
+        claims.push({
+            ...claimItem,
+            balances: claimBalance.balances,
+        })
     }
 
-    for (const balanceObj of balance.balances) {
-        for (const badgeId of balanceObj.badgeIds) {
-            const newBalance = getPostTransferBalance(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
-            claimBalance.balances = newBalance.balances;
-        }
-    }
 
     return {
-        claimBalance,
-        balance,
-        claims: [
-            {
-
-                balances: claimBalance.balances,
-                uri: "",
-                dataRoot: root,
-                timeRange: {
-                    start: 0,
-                    end: GO_MAX_UINT_64
-                },
-            }
-        ],
+        undistributedBalance,
+        claims
     }
 }

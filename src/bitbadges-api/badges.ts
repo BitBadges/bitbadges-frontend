@@ -136,7 +136,8 @@ export const getNonTransferableDisallowedTransfers = () => {
 }
 
 export const AllAddressesTransferMapping: TransferMapping = {
-    to: {
+
+    from: {
         accountNums: [
             {
                 start: 0,
@@ -145,7 +146,7 @@ export const AllAddressesTransferMapping: TransferMapping = {
         ],
         options: 0,
     },
-    from: {
+    to: {
         accountNums: [
             {
                 start: 0,
