@@ -1,16 +1,17 @@
-import { CloseOutlined } from '@ant-design/icons';
-import { Button, Divider, InputNumber, Steps, Tooltip } from 'antd';
+import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { Avatar, Button, DatePicker, Divider, Input, InputNumber, Steps, Tooltip } from 'antd';
+import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { getFullBadgeIdRanges, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
-import { getBlankBalance, getPostTransferBalance } from '../../bitbadges-api/balances';
-import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, Transfers, UserBalance } from '../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { getBalanceAfterTransfers, getBlankBalance } from '../../bitbadges-api/balances';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, Transfers, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressListSelect } from '../address/AddressListSelect';
 import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
 import { BalancesInput } from '../balances/BalancesInput';
 import { IdRangesInput } from '../balances/IdRangesInput';
+import { NumberInput } from '../display/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferDisplay } from './TransferDisplay';
 
@@ -23,6 +24,12 @@ export enum AmountSelectType {
     Linear,
 }
 
+export enum CodeType {
+    None,
+    Unique,
+    Reusable
+}
+
 export function TransferSelect({
     transfers,
     setTransfers,
@@ -31,26 +38,31 @@ export function TransferSelect({
     userBalance,
     distributionMethod,
     hideTransferDisplay,
-    isWhitelist
+    isWhitelist,
+    showIncrementSelect,
+    manualSend,
+    plusButton,
 }: {
-    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[],
-    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => void;
+    transfers: (TransfersExtended)[],
+    setTransfers: (transfers: (TransfersExtended)[]) => void;
     sender: BitBadgesUserInfo,
     userBalance: UserBalance,
     collection: BitBadgeCollection;
-    distributionMethod: DistributionMethod;
+    distributionMethod?: DistributionMethod;
     hideTransferDisplay?: boolean;
     isWhitelist?: boolean;
+    showIncrementSelect?: boolean;
+    manualSend?: boolean;
+    plusButton?: boolean;
 }) {
     const chain = useChainContext();
 
-    const [amountSelectType, setAmountSelectType] = useState(AmountSelectType.None);
     const [toAddresses, setToAddresses] = useState<BitBadgesUserInfo[]>([]);
+    const [amountSelectType, setAmountSelectType] = useState(AmountSelectType.None);
     const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
-
-
-
+    const [codeType, setCodeType] = useState(CodeType.None);
+    const [currTimeRange, setCurrTimeRange] = useState<IdRange>({ start: 0, end: 0 });
 
     const onStepChange = (value: number) => {
         setCurrentStep(value);
@@ -66,10 +78,14 @@ export function TransferSelect({
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
 
-    const [transfersToAdd, setTransfersToAdd] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number })[]>([]);
+    const [transfersToAdd, setTransfersToAdd] = useState<(Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]>([]);
+    const [increment, setIncrement] = useState<number>(0);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [warningMessage, setWarningMessage] = useState<string>('');
 
+    const [codePassword, setCodePassword] = useState<string>('');
 
-    const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
+    const numRecipients = distributionMethod === DistributionMethod.Whitelist ? toAddresses.length : numCodes;
     let numBadgeIds = 0;
     let ids: number[] = [];
     for (const balance of balances) {
@@ -81,85 +97,129 @@ export function TransferSelect({
         }
     }
 
-    useEffect(() => {
-        const numRecipients = distributionMethod === DistributionMethod.Codes ? numCodes : toAddresses.length;
-        let ids: number[] = [];
-        for (const balance of balances) {
-            for (const badgeIdRange of balance.badgeIds) {
-                for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
-                    ids.push(i);
-                }
-            }
-        }
-        let newTransfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number })[] = [];
-        console.log("USEEFFECT2");
+    // const amountSelectType = increment > 0 ? AmountSelectType.Linear : AmountSelectType.Custom;
 
-        if ((amountSelectType === AmountSelectType.None && numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
+    useEffect(() => {
+        const numRecipients = distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? numCodes : toAddresses.length;
+        if (numRecipients === 0) return;
+
+        let newTransfersToAdd: (Transfers & { toAddressInfo: BitBadgesUserInfo[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[] = [];
+
+        if ((numRecipients <= 1) || amountSelectType === AmountSelectType.Custom) {
             newTransfersToAdd = [{
-                toAddresses: distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : toAddresses.map((user) => user.accountNumber),
+                toAddresses: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? new Array(numCodes) : toAddresses.map((user) => user.accountNumber),
                 balances: balances,
-                toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : toAddresses,
-                numCodes: distributionMethod === DistributionMethod.Codes ? numCodes : undefined,
+                toAddressInfo: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? [] : toAddresses,
+                numCodes: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? numCodes : undefined,
+                numIncrements: 0,
+                incrementBy: 0,
+                password: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? codePassword : '',
+                timeRange: distributionMethod ? currTimeRange : undefined
             }];
         } else if (amountSelectType === AmountSelectType.Linear) {
-            let numPerAddress = ids.length / numRecipients;
+            let numPerAddress = increment;
 
-            let currId = 0;
-            for (let i = 0; i < numRecipients; i++) {
-                let badgeIds: IdRange[] = [{ start: ids[currId], end: ids[currId] }];
-                for (let i = currId + 1; i < currId + numPerAddress; i++) {
-                    badgeIds = InsertRangeToIdRanges({ start: ids[i], end: ids[i] }, badgeIds);
+            let badgeIds: IdRange[] = [];
+            let errorMessage = '';
+            let warningMessage = '';
+            for (const balance of balances) {
+                for (const badgeIdRange of balance.badgeIds) {
+                    badgeIds.push({
+                        start: badgeIdRange.start,
+                        end: badgeIdRange.start + increment - 1,
+                    });
+                    if ((badgeIdRange.start + (increment * numRecipients) - 1) > badgeIdRange.end) {
+                        errorMessage = `You are attempting to distribute badges you didn't previously select (IDs  ${balance.badgeIds.map((range) => {
+                            if ((range.start + (increment * numRecipients) - 1) > range.end) {
+                                return `${range.end + 1}-${range.start + (increment * numRecipients) - 1}`;
+                            } else {
+                                return undefined;
+                            }
+                        }).filter(x => !!x).join(', ')}).`;
+                    } else if ((badgeIdRange.start + (increment * numRecipients) - 1) < badgeIdRange.end) {
+                        warningMessage = `This will not distribute the following badges: IDs ${balance.badgeIds.map((range) => {
+                            if ((range.start + (increment * numRecipients) - 1) < range.end) {
+                                return `${range.start + (increment * numRecipients)}-${range.end}`;
+                            } else {
+                                return undefined;
+                            }
+                        }).filter(x => !!x).join(', ')} `;
+                    }
+
+
                 }
-                currId += numPerAddress;
+            }
+            setWarningMessage(warningMessage);
+            setErrorMessage(errorMessage);
 
+            if (manualSend && !errorMessage) {
+                let currBadgeIds = JSON.parse(JSON.stringify([...badgeIds]));
+
+                for (let i = 0; i < numRecipients; i++) {
+                    newTransfersToAdd.push({
+                        toAddresses: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? [0] : [toAddresses[i].accountNumber],
+                        balances: [{
+                            balance: balances[0]?.balance || 1,
+                            badgeIds: JSON.parse(JSON.stringify([...currBadgeIds])),
+                        }],
+                        toAddressInfo: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? [] : [toAddresses[i]],
+                        numCodes: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? 1 : undefined,
+                        numIncrements: 0,
+                        incrementBy: 0,
+                        password: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? codePassword : '',
+                        timeRange: distributionMethod ? currTimeRange : undefined
+                    });
+
+
+
+                    for (let j = 0; j < currBadgeIds.length; j++) {
+                        currBadgeIds[j].start += increment;
+                        currBadgeIds[j].end += increment;
+                    }
+                }
+
+                console.log("newTransfers", newTransfersToAdd);
+            }
+
+            if (!manualSend) {
                 newTransfersToAdd.push({
-                    toAddresses: distributionMethod === DistributionMethod.Codes ? [0] : [toAddresses[i].accountNumber],
+                    toAddresses: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? [0] : toAddresses.map((user) => user.accountNumber),
                     balances: [{
                         balance: balances[0]?.balance || 1,
                         badgeIds: badgeIds,
                     }],
-                    toAddressInfo: distributionMethod === DistributionMethod.Codes ? [] : [toAddresses[i]],
-                    numCodes: distributionMethod === DistributionMethod.Codes ? numCodes : undefined,
+                    toAddressInfo: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? [] : toAddresses,
+                    numCodes: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? numCodes : undefined,
+                    numIncrements: numRecipients,
+                    incrementBy: numPerAddress,
+                    password: distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? codePassword : '',
+                    timeRange: distributionMethod ? currTimeRange : undefined
                 });
             }
         }
 
         setTransfersToAdd(newTransfersToAdd);
-    }, [amountSelectType, numRecipients, balances, toAddresses, distributionMethod, numCodes]);
+    }, [amountSelectType, numRecipients, balances, toAddresses, distributionMethod, numCodes, increment, showIncrementSelect, manualSend, codePassword, currTimeRange]);
 
     //Whenever something changes, update the pre and post transfer balances
     useEffect(() => {
+        //Calculate from beginning
         let postTransferBalanceObj = { ...userBalance };
         let preTransferBalanceObj = { ...userBalance };
 
         if (!postTransferBalanceObj || postTransferBalanceObj === getBlankBalance()) return;
         if (!preTransferBalanceObj || preTransferBalanceObj === getBlankBalance()) return;
 
+        //Deduct all previous transfers
+        postTransferBalanceObj = getBalanceAfterTransfers(postTransferBalanceObj, [...transfers]);
+        preTransferBalanceObj = getBalanceAfterTransfers(preTransferBalanceObj, [...transfers]);
 
-        console.log("USEEFFECT");
-
-        for (const transfer of [...transfers]) {
-            for (const balance of transfer.balances) {
-                for (const idRange of balance.badgeIds) {
-                    postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
-                    preTransferBalanceObj = getPostTransferBalance(preTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
-                }
-            }
-        }
-
-        for (const transfer of [...transfersToAdd]) {
-            for (const balance of transfer.balances) {
-                for (const idRange of balance.badgeIds) {
-                    postTransferBalanceObj = getPostTransferBalance(postTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
-                    // preTransferBalanceObj = getPostTransferBalance(preTransferBalanceObj, idRange.start, idRange.end, balance.balance, transfer.toAddresses.length);
-                }
-            }
-        }
+        //Deduct transfers to add
+        postTransferBalanceObj = getBalanceAfterTransfers(postTransferBalanceObj, [...transfersToAdd]);
 
         setPostTransferBalance(postTransferBalanceObj);
         setPreTransferBalance(preTransferBalanceObj);
-        //amountSelectType, numRecipients, balances, toAddresses, distributionMethod, numCodes
-    }, [userBalance, chain.accountNumber, sender.accountNumber, transfers, transfersToAdd, distributionMethod, amountSelectType, numCodes])
+    }, [userBalance, chain.accountNumber, sender.accountNumber, transfers, transfersToAdd, distributionMethod, amountSelectType, numCodes, toAddresses, balances]);
 
 
     const forbiddenAddresses = getMatchingAddressesFromTransferMapping(collection.disallowedTransfers, toAddresses, chain, collection.manager.accountNumber);
@@ -202,7 +262,7 @@ export function TransferSelect({
     let canTransfer = Object.values(forbiddenUsersMap).find((message) => message !== '') === undefined;
     if (isWhitelist) canTransfer = true;
 
-    const firstStepDisabled = distributionMethod === DistributionMethod.Codes ? numCodes <= 0 : toAddresses.length === 0;
+    const firstStepDisabled = distributionMethod !== DistributionMethod.Whitelist ? numCodes <= 0 : toAddresses.length === 0;
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
     const idRangesOverlap = balances[0].badgeIds.some(({ start, end }, i) => {
@@ -222,14 +282,84 @@ export function TransferSelect({
 
 
 
-    const TransferSteps = [
+    let TransferSteps = [
         distributionMethod === DistributionMethod.Codes ? {
             title: `Codes (${numCodes})`,
             description: < div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ minWidth: 500 }} >
                     <br />
                     <div className='flex-between' style={{ flexDirection: 'column' }} >
-                        <b>Number of Codes to Generate</b>
+                        {distributionMethod === DistributionMethod.Codes && <div>
+                            <SwitchForm
+                                options={[{
+                                    title: 'Unique (Advanced)',
+                                    message: 'Codes will be uniquely generated and one-time use only.',
+                                    isSelected: codeType === CodeType.Unique,
+                                },
+                                {
+                                    title: 'Reusable (Recommended)',
+                                    message: `You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.`,
+                                    isSelected: codeType === CodeType.Reusable,
+                                }]}
+                                onSwitchChange={(_option, title) => {
+                                    if (_option === 0) {
+                                        setCodeType(CodeType.Unique);
+                                    } else {
+                                        setCodeType(CodeType.Reusable);
+                                    }
+                                    setCodePassword('');
+                                }}
+
+                            />
+                        </div>}
+                        {codeType === CodeType.Reusable && <div style={{ textAlign: 'center' }}>
+                            <br />
+                            <b style={{ textAlign: 'center' }}>Password</b>
+                            <Input
+                                value={codePassword}
+                                onChange={(e) => {
+                                    setCodePassword(e.target.value);
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                        </div>}
+                        <br />
+                        <b>Number of {codeType === CodeType.Unique ? 'Codes' : 'Uses'}</b>
+                        <InputNumber
+                            min={1}
+                            max={100000}
+                            value={numCodes}
+                            onChange={(value) => {
+                                setNumCodes(value);
+                            }}
+                            style={{
+                                backgroundColor: PRIMARY_BLUE,
+                                color: PRIMARY_TEXT,
+                            }}
+                        />
+                        {codeType === CodeType.Reusable && <div style={{ textAlign: 'center', color: SECONDARY_TEXT }}>
+                            <br />
+                            <p>
+                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="Reusable codes are handled in a centralized manner via the BitBadges servers (as opposed to the blockchain). Behind the scenes, we create X unique, decentralized codes and distribute them to whoever submits the correct password.">
+                                    Hover to learn more.
+                                </Tooltip>
+                            </p>
+                        </div>}
+                    </div>
+                </div>
+            </div >,
+            disabled: numCodes <= 0 || (codeType === CodeType.Reusable && codePassword.length === 0),
+        } : distributionMethod === DistributionMethod.FirstComeFirstServe ? {
+            title: `Max Claims (${numCodes})`,
+            description: < div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ minWidth: 500 }} >
+                    <br />
+                    <div className='flex-between' style={{ flexDirection: 'column' }} >
+
+                        <b>Max Claims</b>
                         <InputNumber
                             min={1}
                             value={numCodes}
@@ -244,10 +374,10 @@ export function TransferSelect({
                     </div>
                 </div>
             </div >,
-            disabled: numCodes <= 0
+            disabled: numCodes <= 0 || (codeType === CodeType.Reusable && codePassword.length === 0),
         } :
             {
-                title: `Recipients (${toAddresses.length})`,
+                title: `Recipients(${toAddresses.length})`,
                 description: <AddressListSelect
                     users={toAddresses}
                     setUsers={setToAddresses}
@@ -260,9 +390,10 @@ export function TransferSelect({
             title: 'Badges',
             description: <div>
                 <br />
+
                 <IdRangesInput
-                    idRanges={preTransferBalance?.balances[0]?.badgeIds || []}
-                    defaultAllSelected={false}
+                    idRanges={balances[0]?.badgeIds || []}
+                    // defaultAllSelected={false}
                     setIdRanges={(badgeIds) => {
                         setBalances([
                             {
@@ -271,7 +402,9 @@ export function TransferSelect({
                             }
                         ]);
                     }}
+                    minimum={1}
                     maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
+                    showIncrementSelect={showIncrementSelect && numRecipients > 1}
                     darkMode
                     collection={collection}
                 />
@@ -282,37 +415,108 @@ export function TransferSelect({
             title: 'Amounts',
             description: <div>
                 {numRecipients > 1 && <div>
-                    <SwitchForm
-                        options={[{
-                            title: 'Custom',
-                            message: 'For all selected badges, send X to each recipient.',
-                            isSelected: amountSelectType === AmountSelectType.Custom,
-                        },
-                        {
-                            title: 'Evenly Distributed',
-                            message: `Distribute the ${numBadgeIds} badge IDs evenly across the ${numRecipients} selected recipients in increasing order. ${numBadgeIds % numRecipients !== 0 ? 'This option is currently disabled because the number of badge IDs is not evenly divisible by the number of recipients.' : ''}`,
-                            isSelected: amountSelectType === AmountSelectType.Linear,
-                            disabled: numBadgeIds % numRecipients !== 0,
-                        }]}
-                        onSwitchChange={(_option, title) => {
-                            if (title === 'Custom') {
-                                setAmountSelectType(AmountSelectType.Custom);
-                            } else {
-                                setAmountSelectType(AmountSelectType.Linear);
-                            }
-                        }}
-                        noSelectUntilClick
-                    />
-                </div>}
-                <br />
+                    {balances[0]?.badgeIds && (increment ? increment : 0) >= 0 && setIncrement && <div>
+                        {numRecipients > 1 && <div>
+                            <SwitchForm
+                                options={[{
+                                    title: 'All',
+                                    message: 'All selected badge IDs will be sent to each recipient.',
+                                    isSelected: amountSelectType === AmountSelectType.Custom,
+                                },
+                                {
+                                    title: 'Increment',
+                                    message: `After each transaction, the claimable badge IDs will be incremented by X before the next transaction.`,
+                                    isSelected: amountSelectType === AmountSelectType.Linear,
+                                }]}
+                                onSwitchChange={(_option, title) => {
+                                    if (_option === 0) {
+                                        setAmountSelectType(AmountSelectType.Custom);
+                                        setIncrement(0);
+                                        setErrorMessage('');
+                                        setWarningMessage('');
+                                    } else {
+                                        setAmountSelectType(AmountSelectType.Linear);
+                                        setIncrement(1);
+                                    }
+                                }}
+                            />
+                        </div>}
 
-                <br />
+
+                        {amountSelectType === AmountSelectType.Linear && < div >
+                            <NumberInput
+                                value={increment ? increment : 0}
+                                setValue={setIncrement}
+                                darkMode
+                                min={1}
+                                title="Increment"
+                            />
+
+                            <div style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+                                <div>
+                                    <div style={{ marginLeft: 8 }}>
+                                        {increment === 0 && 'All recipients will receive all of the previously selected badge IDs.'}
+                                        {increment ? `The first recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start}-${start + increment - 1}`).join(', ')}.` : ''}
+                                    </div>
+                                    <div style={{ marginLeft: 8 }}>
+
+                                        {increment ? `The second recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start + increment}-${start + increment + increment - 1}`).join(', ')}.` : ''}
+
+                                    </div>
+
+                                    {numRecipients > 3 && <div style={{ marginLeft: 8 }}>
+                                        <div style={{ marginLeft: 8 }}>
+                                            {increment ? `...` : ''}
+                                        </div>
+                                    </div>}
+                                    {numRecipients > 2 && <div style={{ marginLeft: 8 }}>
+                                        <div style={{ marginLeft: 8 }}>
+                                            {increment ? `The ${numRecipients === 3 ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start + (numRecipients - 1) * increment}-${start + (numRecipients - 1) * increment + increment - 1}`).join(', ')}.` : ''}
+                                        </div>
+                                    </div>}
+                                </div>
+                            </div>
+                            {increment !== 0 && increment !== ids.length / numRecipients && <div style={{ textAlign: 'center' }}>
+                                <br />
+                                {warningMessage &&
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div>
+                                            <WarningOutlined style={{ color: 'orange' }} />
+                                            <span style={{ marginLeft: 8 }}>
+                                                {warningMessage}. The undistributed badges will be deselected.
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                }
+                                {errorMessage &&
+                                    <div style={{ textAlign: 'center' }}>
+                                        <WarningOutlined style={{ color: 'red' }} />
+                                        <span style={{ marginLeft: 8, color: 'red' }}>
+                                            {errorMessage}
+                                        </span>
+                                    </div>
+                                }
+                                <br />
+                            </div>}
+
+                            <hr />
+                        </div>}
+
+                    </div>}
+
+                </div>
+                }
+
+                < br />
 
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}
                     darkMode
                 />
+
                 {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
                     {/* <hr /> */}
                     <TransferDisplay
@@ -321,59 +525,110 @@ export function TransferSelect({
                                 toAddresses: toAddresses.map((user) => user.accountNumber),
                                 balances: balances,
                                 toAddressInfo: toAddresses,
+
                             }
                         ]}
                         collection={collection}
                         fontColor={PRIMARY_TEXT}
                         from={[sender]}
                         setTransfers={setTransfers}
-                        toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
+                        toCodes={distributionMethod !== DistributionMethod.Whitelist ? new Array(numCodes) : []}
                         hideAddresses
                     />
                 </div>}
                 <Divider />
 
-                {postTransferBalance && !(numRecipients > 1 && amountSelectType === AmountSelectType.None) && <div>
-                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
-                    {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
-                </div>}
-            </div>,
-            disabled: idRangesOverlap || idRangesLengthEqualsZero || secondStepDisabled
+                {
+                    postTransferBalance && <div>
+                        <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
+                        {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
+                    </div>
+                }
+            </div >,
+            disabled: idRangesOverlap || idRangesLengthEqualsZero || secondStepDisabled || errorMessage
         },
-        {
+    ]
 
-            title: 'Confirm',
+    if (distributionMethod) {
+        TransferSteps.push({
+            title: 'Time',
             description: <div>
-                <TransferDisplay
-                    setTransfers={setTransfers}
-                    transfers={transfersToAdd}
-                    collection={collection}
-                    fontColor={PRIMARY_TEXT}
-                    toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes ? numCodes / (transfersToAdd.length ? transfersToAdd.length : 1) : 0) : []}
-                    from={[sender]}
+                <b>Start</b>
+                <DatePicker
+                    showMinute
+                    showTime
+                    placeholder='Start Date'
+                    value={currTimeRange.start ? moment(currTimeRange.start * 1000) : null}
+                    style={{
+                        width: '100%',
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                    }}
+                    onChange={(_date, dateString) => {
+                        setCurrTimeRange({
+                            ...currTimeRange,
+                            start: new Date(dateString).valueOf() / 1000,
+                        });
+                    }}
                 />
                 <br />
-                <Button type='primary'
-                    style={{ width: '100%' }}
-                    onClick={async () => {
+                <br />
+                <b>End</b>
+                <DatePicker
+                    showMinute
+                    showTime
+                    placeholder='End Date'
+                    value={currTimeRange.end ? moment(currTimeRange.end * 1000) : null}
+                    style={{
+                        width: '100%',
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                    }}
+                    onChange={(_date, dateString) => {
+                        setCurrTimeRange({
+                            ...currTimeRange,
+                            end: new Date(dateString).valueOf() / 1000,
+                        });
+                    }}
+                />
+            </div>,
+            disabled: !currTimeRange.start || !currTimeRange.end || currTimeRange.start > currTimeRange.end,
+        })
+    }
 
-                        setTransfers([...transfers, ...transfersToAdd]);
-                        setToAddresses([]);
-                        setBalances([
-                            {
-                                balance: 1,
-                                badgeIds: getFullBadgeIdRanges(collection)
-                            },
-                        ]);
 
-                        setAddTransferIsVisible(false);
-                        setCurrentStep(0);
-                    }}>
-                    Add Transfer(s)
-                </Button>
-            </div>
+    TransferSteps.push({
+        title: 'Confirm',
+        description: <div>
+            <TransferDisplay
+                setTransfers={setTransfers}
+                transfers={transfersToAdd}
+                collection={collection}
+                fontColor={PRIMARY_TEXT}
+                toCodes={distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? new Array(numCodes ? numCodes / (transfersToAdd.length ? transfersToAdd.length : 1) : 0) : []}
+                from={[sender]}
+            />
+            <br />
+            <Button type='primary'
+                style={{ width: '100%' }}
+                onClick={async () => {
+                    setTransfers([...transfers, ...transfersToAdd]);
+                    setToAddresses([]);
+                    setBalances([
+                        {
+                            balance: 1,
+                            badgeIds: getFullBadgeIdRanges(collection)
+                        },
+                    ]);
 
-        }]
+                    setAddTransferIsVisible(false);
+                    setCurrentStep(0);
+                }}>
+                Add Transfer(s)
+            </Button>
+        </div>,
+        disabled: false
+    });
 
 
     return <div style={{ width: 800, alignItems: 'center', color: PRIMARY_TEXT }}>
@@ -440,20 +695,33 @@ export function TransferSelect({
                             </div>
                         ))}
                     </div>
-                    : <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <Button
-                            type='primary'
-                            onClick={() => {
-                                setAddTransferIsVisible(true);
-                            }}
-                            style={{ marginTop: 20, width: '100%' }}
-                        >
-                            Add New Transfer
-                        </Button>
-                    </div>}
+                    : <>
+                        {plusButton ? <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <Avatar
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => {
+                                    setAddTransferIsVisible(true);
+                                }}
+                                src={<PlusOutlined />}
+                                className='screen-button'
+                            >
+                            </Avatar>
+                        </div> :
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    type='primary'
+                                    onClick={() => {
+                                        setAddTransferIsVisible(true);
+                                    }}
+                                    style={{ marginTop: 20, width: '100%' }}
+                                >
+                                    Add New Transfer
+                                </Button>
+                            </div>}
+                    </>}
             <br />
         </div>
-    </div>
+    </div >
 
 
 

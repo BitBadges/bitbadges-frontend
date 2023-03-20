@@ -11,6 +11,7 @@ import { AccountDisplay } from '../../components/portfolio-page/AccountDisplay';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { ActivityTab } from '../../components/collection-page/ActivityTab';
 
 const { Content } = Layout;
 
@@ -52,6 +53,9 @@ function CollectionPage() {
                 if (!portfolioInfo) return;
                 await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
 
+                const x = new Array(30).fill(portfolioInfo.collected[0]);
+                portfolioInfo.collected = x;
+
                 setPortfolioInfo(portfolioInfo);
             }
         }
@@ -85,15 +89,14 @@ function CollectionPage() {
 
                     {/* Tab Content */}
                     {tab === 'collected' && (<>
-                        <div style={{ display: 'flex', justifyContent: 'center', }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
                             {portfolioInfo?.collected.map((collection: BitBadgeCollection) => {
-                                return (
-                                    <CollectionDisplay
-                                        key={collection.collectionId}
-                                        collectionId={collection.collectionId}
-                                        cosmosAddress={cosmosAddress}
-                                    />
-                                )
+
+                                return <CollectionDisplay
+                                    key={collection.collectionId}
+                                    collectionId={collection.collectionId}
+                                    cosmosAddress={cosmosAddress}
+                                />
                             })}
                         </div>
                     </>)}
@@ -114,7 +117,12 @@ function CollectionPage() {
 
                     {tab === 'actions' && (<></>)}
 
-                    {tab === 'activity' && (<></>)}
+                    {tab === 'activity' && (
+                        <ActivityTab
+                            activityArr={portfolioInfo?.activity}
+                            collection={{} as BitBadgeCollection}
+                        />
+                    )}
 
                     {tab === 'owners' && (<></>)}
                 </div>

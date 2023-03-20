@@ -71,14 +71,13 @@ export function BalanceDisplay({
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                         description={'None'}
                     />
-                </div> : <div>
-                    <br />
+                </div> : <div style={{ marginTop: 4 }}>
                     <BadgeAvatarDisplay
                         collection={collection}
                         userBalance={balance}
                         badgeIds={badgeIds}
                         showIds
-                        pageSize={30}
+                        // pageSize={30}
                         showBalance
                         size={size ? size : 50}
                         hideModalBalance={hideModalBalance}

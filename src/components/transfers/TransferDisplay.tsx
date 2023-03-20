@@ -3,7 +3,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Col, Empty, Pagination, Row, Tooltip, Typography } from "antd";
 import { useState } from "react";
-import { BitBadgeCollection, BitBadgesUserInfo, Transfers } from "../../bitbadges-api/types";
+import { BitBadgeCollection, BitBadgesUserInfo, IdRange, Transfers, TransfersExtended } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
@@ -20,22 +20,24 @@ export function TransferDisplay({
     hideAddresses,
     hideBalances,
     setTransfers,
+    distributionMethod,
     deletable,
 }: {
     from: BitBadgesUserInfo[]
-    transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[],
+    transfers: TransfersExtended[],
     collection: BitBadgeCollection;
     fontColor?: string;
     toCodes?: string[];
     hideAddresses?: boolean;
     hideBalances?: boolean;
-    setTransfers: (transfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]) => void;
+    setTransfers: (transfers: TransfersExtended[]) => void;
     deletable?: boolean;
+    distributionMethod?: string;
 }) {
     const [transfersPage, setTransfersPage] = useState(0);
     const accounts = useAccountsContext();
 
-    return <div>
+    return <div style={{ marginTop: 4 }}    >
         {transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
             <Empty description='No Transfers Added'
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -72,9 +74,26 @@ export function TransferDisplay({
                 }
                 if (to.length) accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
 
-                const badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
+                let badgeIds = balance.badgeIds.map(({ start, end }) => { return { start: Number(start), end: Number(end) } })
+
                 const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
-                const amount = Number(balance.balance) * toLength;
+                let amount = Number(balance.balance) * toLength;
+                let amountPerRecipient = Number(balance.balance);
+                let allBadgeIds: IdRange[] = JSON.parse(JSON.stringify(badgeIds));
+                let hasPassword = transfer.password ? true : false;
+
+                if (transfer.numIncrements) {
+                    amount = amount / transfer.numIncrements;
+                    amountPerRecipient = amount;
+
+                    if (transfer.incrementBy) {
+                        for (const badgeIdRange of allBadgeIds) {
+                            badgeIdRange.end = badgeIdRange.end + (transfer.incrementBy * (transfer.numIncrements - 1));
+                        }
+                    }
+                }
+
+
 
                 return <div key={index}>
                     <div style={{}}>
@@ -84,7 +103,7 @@ export function TransferDisplay({
 
                                     Transferring <b>x{amount}</b> of IDs
 
-                                    {badgeIds.map((idRange, idx) => {
+                                    {allBadgeIds.map((idRange, idx) => {
                                         return <span key={idx}>
                                             {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
                                         </span>
@@ -96,23 +115,34 @@ export function TransferDisplay({
                             <div style={{ fontSize: 15, textAlign: 'center' }}>
                                 <span style={{ color: amount < 0 ? 'red' : undefined }}>
                                     <div style={{ textAlign: 'center' }}>
-                                        <Typography.Text style={{ fontSize: 15, textAlign: 'center', color: fontColor }}>{toLength > 1 ? `x${amount / toLength} to each of the ${toLength} recipient${toLength > 1 ? 's' : ""}` : ''}</Typography.Text>
+                                        <Typography.Text style={{ fontSize: 15, textAlign: 'center', color: fontColor }}>{toLength > 1 ? `x${amountPerRecipient} to each of the ${toLength} recipient${toLength > 1 ? 's' : ""}` : ''} </Typography.Text>
                                     </div>
 
                                 </span>
                             </div>
+                            <div style={{ fontSize: 15, textAlign: 'center' }}>
+                                <span style={{ color: amount < 0 ? 'red' : undefined }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Typography.Text style={{ fontSize: 15, textAlign: 'center', color: fontColor }}>
+                                            {transfer.incrementBy ? `Starting with x${amountPerRecipient} of IDs ${badgeIds.map((idRange, idx) => {
+                                                return ' ' + idRange.start + '-' + idRange.end
+                                            }).join(', ')} and incrementing IDs by ${transfer.incrementBy} each claim` : ''}
+                                        </Typography.Text>
+                                    </div>
 
+                                </span>
+                            </div>
                             {
                                 collection &&
                                 <BadgeAvatarDisplay
                                     showBalance={!hideBalances}
                                     showIds
                                     collection={collection}
-                                    badgeIds={badgeIds}
+                                    badgeIds={allBadgeIds}
                                     userBalance={{
                                         balances: [{
                                             balance: amount,
-                                            badgeIds: badgeIds
+                                            badgeIds: allBadgeIds
                                         }],
                                         approvals: []
                                     }} size={40} />
@@ -171,13 +201,12 @@ export function TransferDisplay({
                                         {!!toCodes?.length && toCodes?.length > 0 &&
                                             <>
                                                 <Text
-                                                    copyable
                                                     style={{
                                                         color: fontColor ? fontColor : undefined,
                                                     }}
                                                     strong
                                                 >
-                                                    {'First User To Enter Code'}
+                                                    {hasPassword ? "Users to Enter Correct Password" : `First ${toLength} To Claim`}
                                                 </Text>
                                             </>}
                                     </Col>

@@ -13,7 +13,7 @@ export function DistributionMethodStepItem(
     if (!hideFirstComeFirstServe && (fungible || nonFungible)) {
         options.push({
             title: 'Open to Anyone (First Come, First Serve)',
-            message: `First come, first serve. ${fungible ? 'Anyone can claim badges until the supply runs out (one claim per account).' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
+            message: `First come, first serve. Limit one claim per account. ${fungible ? 'Anyone can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
             isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
         });
     }

@@ -1,6 +1,6 @@
-import { GetPermissions } from '../../bitbadges-api/permissions';
 import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { FormTimeline } from '../navigation/FormTimeline';
+import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
 import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
@@ -10,7 +10,7 @@ import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
-import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
+import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
@@ -18,11 +18,8 @@ import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
-import { TransferableSelectStepItem } from './step-items/TransferableSelectStepItem';
-import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
-import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
+import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
 
 //See TxTimeline for explanations and documentation
 
@@ -69,11 +66,10 @@ export function MintCollectionTimeline({
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, simulatedCollection, existingCollection);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
-    const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)
-    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems);
-    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, simulatedCollection, 1);
+    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend);
+    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, simulatedCollection, existingCollection ? existingCollection.claims.length : 0);
     const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, setClaimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend);
-    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
+    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
     const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
@@ -98,13 +94,13 @@ export function MintCollectionTimeline({
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
                 MetadataTooLargeStep,
                 DistributionMethodStep,
-                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible)
-                    ? FirstComeFirstServeSelect : EmptyStepItem,
-                distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
-                    ? CreateClaims : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist
+                distributionMethod === DistributionMethod.Whitelist
                     ? ManualSendSelect : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
+                // distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible)
+                //     ? FirstComeFirstServeSelect : EmptyStepItem,
+                distributionMethod !== DistributionMethod.Unminted
+                    ? CreateClaims : EmptyStepItem,
+                claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)
                     ? DownloadCodesStep : EmptyStepItem,
                 CollectionPreviewStep,
                 CreateCollectionStep

@@ -47,6 +47,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     const [cosmosAddressesByAccountNames, setCosmosAddressesByAccountNames] = useState<{ [name: string]: string }>({});
 
     const setAccounts = async (fetchedAccounts: CosmosAccountInformation[]) => {
+        console.log("SETTING ACCOUNTS COSMSOS", fetchedAccounts);
         let newAccountsMap = { ...accounts };
         let newCosmosAddresses = { ...cosmosAddresses };
         let newCosmosAddressesByAccountNumbers = { ...cosmosAddressesByAccountNumbers };

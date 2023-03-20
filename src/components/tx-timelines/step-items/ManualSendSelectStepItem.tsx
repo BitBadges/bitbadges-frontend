@@ -10,25 +10,24 @@ export function ManualSendSelectStepItem(
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
     manualSend: boolean,
     setManualSend: (manualSend: boolean) => void,
-    claimItems: ClaimItem[],
-    distributionMethod: DistributionMethod
+    claimItems: ClaimItem[]
 ) {
     const accounts = useAccountsContext();
 
     return {
-        title: `Distribution Method`,
-        description: `You have whitelisted ${claimItems.length} address${claimItems.length > 1 ? 'es' : ''}. How would you like to distribute badges to these addresses?`,
+        title: `Whitelist Distribution`,
+        description: `How would you like to distribute badges to the whitelisted addresses?`,
         node: <SwitchForm
             noSelectUntilClick
             options={[
                 {
-                    title: 'Send Manually',
-                    message: `Upon creation of the collection, badges will be transferred directly to these addresses. You will pay all transfer fees.`,
+                    title: 'Direct Transfers',
+                    message: `Upon creation of the collection, badges will be transferred directly to the whitelisted addresses. You will pay all transfer fees.`,
                     isSelected: manualSend,
                 },
                 {
                     title: 'Claimable (Recommended)',
-                    message: 'The badges will be able to be claimed by these addresses.',
+                    message: 'The badges will be able to be claimed by the whitelisted addresses.',
                     isSelected: !manualSend,
                 },
             ]}
@@ -42,7 +41,7 @@ export function ManualSendSelectStepItem(
                     });
                 } else if (idx === 1) {
                     const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
-                    const claimRes = getClaimsValueFromClaimItems(balance, claimItems, distributionMethod);
+                    const claimRes = getClaimsValueFromClaimItems(balance, claimItems);
 
                     setNewCollectionMsg({
                         ...newCollectionMsg,

@@ -1,47 +1,39 @@
-import { InputNumber } from 'antd';
 import { Balance } from '../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { NumberInput } from '../display/NumberInput';
 
 export function BalancesInput({
     balances,
     setBalances,
-    darkMode
+    darkMode,
+    title
 }: {
     balances: Balance[],
     setBalances: (balances: Balance[]) => void,
     darkMode?: boolean
+    title?: string
 }) {
-    return <div style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div className='flex-between' style={{ flexDirection: 'column' }} >
-            <b>Select Amount per Transfer</b>
-            <InputNumber
-                min={1}
-                title='Amount to Transfer'
-                value={balances[0]?.balance} onChange={
-                    (value: number) => {
-                        if (!value || value <= 0) {
-                            setBalances([
-                                {
-                                    badgeIds: balances[0]?.badgeIds || [],
-                                    balance: 0,
-                                }
-                            ]);
-                        }
-                        else {
-                            setBalances([
-                                {
-                                    badgeIds: balances[0]?.badgeIds || [],
-                                    balance: value,
-                                }
-                            ]);
-                        }
+    return <NumberInput
+        min={1}
+        value={balances[0]?.balance}
+        setValue={(value: number) => {
+            if (!value || value <= 0) {
+                setBalances([
+                    {
+                        badgeIds: balances[0]?.badgeIds || [],
+                        balance: 0,
                     }
-                }
-                style={darkMode ? {
-                    backgroundColor: PRIMARY_BLUE,
-                    color: PRIMARY_TEXT,
-                } : undefined}
-            />
-        </div>
-    </div>
+                ]);
+            }
+            else {
+                setBalances([
+                    {
+                        badgeIds: balances[0]?.badgeIds || [],
+                        balance: value,
+                    }
+                ]);
+            }
+        }}
+        darkMode={darkMode}
+        title={"Amount to Transfer"}
+    />
 }

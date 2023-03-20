@@ -1,16 +1,13 @@
 import axiosApi from 'axios';
-import { SHA256 } from 'crypto-js';
-import MerkleTree from 'merkletreejs';
+import { ChallengeParams } from "blockin";
+import Joi from 'joi';
 import { BACKEND_URL, NODE_URL } from '../constants';
+import { stringify } from "../utils/preserveJson";
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
 import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
-import { BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, DistributionMethod } from './types';
-import Joi from 'joi';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, IndexerStatus } from './types';
 import { convertToBitBadgesUserInfo } from './users';
-import { ChallengeParams } from "blockin";
-import { stringify } from "../utils/preserveJson";
-import { BadgeMetadata } from "./types";
 
 const axios = axiosApi.create({
     withCredentials: true,
@@ -28,13 +25,7 @@ export async function getAccountInformation(address: string) {
 
 //Get indexer status
 export async function getStatus() {
-    const status: {
-        status: {
-            block: {
-                height: number;
-            }
-        }
-    } = await axios.get(BACKEND_URL + GetStatusRoute()).then((res) => res.data);
+    const status: IndexerStatus = await axios.get(BACKEND_URL + GetStatusRoute()).then((res) => res.data);
     return status;
 }
 
@@ -66,46 +57,19 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
 
-    // Convert the returned manager (bech32) to a BitBadgesUserInfo object for easier use
+    // Convert the returned manager (bech32Address) to a BitBadgesUserInfo object for easier use
     let managerAccountNumber: any = badgeData.manager;
     let managerAccountInfo = await getAccountInformationByAccountNumber(managerAccountNumber);
     badgeData.manager = convertToBitBadgesUserInfo(managerAccountInfo);
-
-    console.log("FETCHING CLAIMS");
-    //generate MerkleTreeJS objects from fetched leaves
-    for (let idx = 0; idx < badgeData.claims.length; idx++) {
-        let claim = badgeData.claims[idx];
-        const fetchedCodes: string[] = claim.codes;
-        const fetchedAddresses: string[] = claim.addresses;
-
-        const tree = new MerkleTree(fetchedCodes, SHA256);
-        badgeData.claims[idx].codeTree = tree;
-
-        const tree2 = new MerkleTree(fetchedAddresses, SHA256);
-        badgeData.claims[idx].addressesTree = tree2;
-    }
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
     if (fetchAllMetadata) {
         const promises = [];
 
-        let ids: number[] = [];
-        for (let idx = 1; idx < badgeData.nextBadgeId; idx += 100) {
-            let j = 0;
-            for (const badgeUri of badgeData.badgeUris) {
-                for (const badgeIdRange of badgeUri.badgeIds) {
-                    if (Number(badgeIdRange.start) <= idx && Number(badgeIdRange.end) >= idx) {
-                        ids.push(j);
-                    }
-                }
-                j++;
-            }
-        }
-
-        ids = [...new Set(ids)];
-        for (const id of ids) {
-            promises.push(updateMetadata(badgeData, id));
+        //Backend batch limit == 100, so 0 will get batches 0-99
+        for (let j = 0; j < badgeData.badgeUris.length; j += 100) {
+            promises.push(updateMetadata(badgeData, j));
         }
 
         await Promise.all(promises).then((values) => {
@@ -118,22 +82,27 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
             }
         });
     } else {
+        //Backend batch limit == 100, so 0 will get batches 0-99
         badgeData = await updateMetadata(badgeData, 0);
     }
 
     return badgeData;
 }
 
-export async function getCollections(collectionIds: number[], _fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
-    for (const collectionId of collectionIds) {
-        if (collectionId === undefined || collectionId === -1) {
-            return Promise.reject("collectionId is invalid");
-        }
+function validatePositiveNumber(collectionId: number, fieldName?: string) {
+    if (collectionId === undefined || collectionId === -1) {
+        return Promise.reject((fieldName ? fieldName : 'ID') + " is invalid");
+    }
 
-        let error = Joi.number().integer().min(-1).required().validate(collectionId).error
-        if (error) {
-            return Promise.reject(error);
-        }
+    let error = Joi.number().integer().min(-1).required().validate(collectionId).error
+    if (error) {
+        return Promise.reject(error);
+    }
+}
+
+export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
+    for (const collectionId of collectionIds) {
+        await validatePositiveNumber(collectionId);
     }
 
     let collections: BitBadgeCollection[] = [];
@@ -143,7 +112,7 @@ export async function getCollections(collectionIds: number[], _fetchAllMetadata:
 
     for (const collection of badgeDataResponse.collections) {
         let badgeData: BitBadgeCollection = collection;
-        badgeData = await cleanCollection(badgeData, _fetchAllMetadata);
+        badgeData = await cleanCollection(badgeData, fetchAllMetadata);
         collections.push(badgeData);
     }
 
@@ -152,14 +121,7 @@ export async function getCollections(collectionIds: number[], _fetchAllMetadata:
 
 //Get a specific badge collection and all metadata
 export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
-    if (collectionId === undefined || collectionId === -1) {
-        return Promise.reject("collectionId is invalid");
-    }
-
-    let error = Joi.number().integer().min(-1).required().validate(collectionId).error
-    if (error) {
-        return Promise.reject(error);
-    }
+    await validatePositiveNumber(collectionId);
 
     const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
     let badgeData: BitBadgeCollection = badgeDataResponse;
@@ -184,25 +146,8 @@ export async function getBadgeBalance(
     collectionId: number,
     accountNumber: number
 ): Promise<GetBadgeBalanceResponse> {
-    if (collectionId === undefined || collectionId === -1) {
-        return Promise.reject("collectionId is invalid");
-    }
-    if (accountNumber === undefined || accountNumber === -1) {
-        return Promise.reject("accountNumber is invalid");
-    }
-
-    console.log("collectionId: " + collectionId, "accountNumber: " + accountNumber);
-
-    let error = Joi.number().integer().min(1).required().validate(collectionId).error
-    if (error) {
-        return Promise.reject(error);
-    }
-
-    error = Joi.number().integer().min(-1).required().validate(accountNumber).error
-    if (error) {
-        return Promise.reject(error);
-    }
-
+    await validatePositiveNumber(collectionId);
+    await validatePositiveNumber(accountNumber);
 
     const balanceRes: GetBadgeBalanceResponse = await axios.get(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
     return balanceRes;
@@ -217,17 +162,12 @@ export async function getPortfolio(accountNumber: number) {
 //Get search results
 export async function getSearchResults(searchTerm: string) {
     const searchResults = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
-
-
     return searchResults;
 }
 
-
-/**
- * Here, we define the API function logic to call your backend.
- */
+//Blockin API Routes
 export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
-    const data = await axios.post(BACKEND_URL + '/api/getChallengeParams', {
+    const data: { params: ChallengeParams } = await axios.post(BACKEND_URL + '/api/getChallengeParams', {
         address,
         chain
     }).then(res => res.data);
@@ -237,10 +177,7 @@ export const getChallengeParams = async (chain: string, address: string): Promis
 
 export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uint8Array, signatureBytes: Uint8Array) => {
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
-    console.log(bodyStr);
-
     const verificationRes = await axios.post(BACKEND_URL + '/api/verifyChallenge', bodyStr).then(res => res.data);
-
     return verificationRes;
 }
 
@@ -248,21 +185,21 @@ export const logout = async () => {
     await axios.post(BACKEND_URL + '/api/logout').then(res => res.data);
 }
 
+export const getCodeForPassword = async (cid: string, password: string) => {
+    const res: { code: string } = await axios.get(BACKEND_URL + '/api/password/' + cid + '/' + password).then(res => res.data);
+    return res;
+}
 
-export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[], codes: string[]) => {
-
+export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[], codes: string[], hashedCodes: string[], password?: string) => {
     const bodyStr = stringify({
         leaves,
         addresses,
-        codes
+        hashedCodes,
+        codes,
+        password
     }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addMerkleTreeToIpfs', {
-        method: 'post',
-        body: bodyStr,
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
-
+    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/addMerkleTreeToIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }
 
@@ -272,12 +209,7 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
         individualBadgeMetadata
     }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes = await fetch(BACKEND_URL + '/api/addToIpfs', {
-        method: 'post',
-        body: bodyStr,
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json());
-
+    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/addToIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }
 
@@ -288,13 +220,6 @@ export interface GetFromIPFSResponse {
 export const getFromIpfs = async (path: string) => {
     const bodyStr = stringify({ path }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes: GetFromIPFSResponse = await fetch(BACKEND_URL + '/api/getFromIpfs', {
-        method: 'post',
-        body: bodyStr,
-        headers: { 'Content-Type': 'application/json' }
-    }).then(res => {
-        return res.json()
-    });
-
+    const addToIpfsRes: GetFromIPFSResponse = await axios.post(BACKEND_URL + '/api/getFromIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }

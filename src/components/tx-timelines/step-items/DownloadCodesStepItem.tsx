@@ -1,10 +1,7 @@
-import { Collapse, Divider, Pagination, Typography } from "antd";
-import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { useState } from "react";
+import { Divider, Typography } from "antd";
 import { BadgeMetadata, BitBadgeCollection, ClaimItem } from "../../../bitbadges-api/types";
-import { MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
+import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { downloadJson } from "../../../utils/downloadJson";
-import { TransferDisplay } from "../../transfers/TransferDisplay";
 
 const { Text } = Typography;
 
@@ -12,132 +9,82 @@ export function DownloadCodesStepItem(
     claimItems: ClaimItem[],
     collectionMetadata: BadgeMetadata,
     collection: BitBadgeCollection,
-    claimIdNumber: number
+    startClaimId: number,
 ) {
-    const [currPage, setCurrPage] = useState(1);
-
     return {
         title: `Download Codes`,
-        description: `IMPORTANT: You are in charge of storing and distributing the ${claimItems.length / 2} claim code${claimItems.length / 2 > 1 ? 's' : ' you have generated'}. If you lose these codes, they cannot be recovered!`,
+        description: `IMPORTANT: You are responsible for storing and distributing the passwords and codes you have created. If you lose them, they cannot be recovered!`,
         node: <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
             <>
                 <br />
-                <button
-                    style={{
-                        backgroundColor: 'inherit',
-                        color: SECONDARY_TEXT,
-                    }}
-                    onClick={() => {
-                        const today = new Date();
+                {claimItems.find(x => x.codes.length > 0) && <div>
+                    <button
+                        style={{
+                            backgroundColor: 'inherit',
+                            color: PRIMARY_TEXT,
+                        }}
+                        onClick={() => {
+                            const today = new Date();
 
-                        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
-                        downloadJson({
-                            claimNumber: claimIdNumber,
-                            codes: claimItems.map((leaf, idx) => {
-                                if (idx % 2 === 1) {
-                                    return undefined;
-                                }
-                                return {
-                                    code: leaf.fullCode,
-                                    amount: leaf.amount,
-                                    badgeIds: leaf.badgeIds,
-                                    message: `The code ${leaf.fullCode} is redeemable for ${leaf.amount} badge${leaf.amount > 1 ? 's' : ''} (IDs: ${leaf.badgeIds.map((id) => { return id.start + ' to ' + id.end }).join(', ')}) in the ${collectionMetadata.name} collection.`
-                                }
-                            }).filter((code) => { return code !== undefined }),
-                        }, `codes-${collectionMetadata.name}-${dateString}-${timeString}.json`);
-                    }}
-                    className="opacity link-button"
-                >
-                    Click here to download a text file with all the codes.
-                </button>
-                <Divider />
-                {claimItems.length > 0 && <>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }} >
-                        <Pagination
-                            style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, margin: 10 }}
-                            current={currPage}
-                            total={claimItems.length}
-                            pageSize={20}
-                            onChange={(page) => {
-                                setCurrPage(page);
-                            }}
-                            hideOnSinglePage
-                            showSizeChanger={false}
-                            defaultCurrent={1}
-                        />
-                    </div>
-                    <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, margin: 0 }}>
-
-                        {claimItems.map((leaf, index) => {
-                            if (index < (currPage - 1) * (20) || index >= currPage * (20)) {
-                                return <></>
-                            }
-                            let currIndex = index;
-                            if (index % 2 === 1) {
-                                return <></>
-                            }
-
-                            currIndex = index / 2;
-
-                            return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                                    <Text style={{ color: PRIMARY_TEXT }}>
-                                        {`Code #${currIndex + 1}`}
-                                    </Text>
-                                </div>
-                                <div>
-
-                                </div>
-                            </div>}
-                                key={index} style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                                <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                                    <>
-                                        <Text strong style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                            Code
-                                        </Text>
-                                        <br />
-                                        <Text copyable strong style={{ color: PRIMARY_TEXT, fontSize: 16, }}>
-                                            {leaf.fullCode}
-                                        </Text>
-                                        <Divider />
-                                    </>
-                                    <TransferDisplay
-                                        collection={collection}
-                                        fontColor={PRIMARY_TEXT}
-                                        from={[
-                                            MINT_ACCOUNT
-                                        ]}
-                                        transfers={[
-                                            {
-                                                toAddresses: [],
-                                                toAddressInfo: [],
-                                                balances: [
-                                                    {
-                                                        balance: leaf.amount,
-                                                        badgeIds: leaf.badgeIds,
-                                                    }
-                                                ],
-                                            },
-                                        ]}
-                                        toCodes={[leaf.fullCode]}
-                                        setTransfers={() => { }}
-                                    />
-
-                                    <Divider />
-                                </div>
-                            </CollapsePanel>
-                        })}
-                    </Collapse>
+                            downloadJson({
+                                claims: claimItems.map((claimItem, idx) => {
+                                    return {
+                                        claimId: startClaimId + idx,
+                                        codes: claimItem.hasPassword ? undefined : claimItem.codes,
+                                        numCodes: claimItem.hasPassword ? undefined : claimItem.numCodes,
+                                        password: claimItem.hasPassword ? claimItem.password : undefined,
+                                        numPasswordUses: claimItem.hasPassword ? claimItem.numCodes : undefined,
+                                    }
+                                }),
+                            }, `claims-${collectionMetadata.name}-${dateString}-${timeString}.json`);
+                        }}
+                        className="opacity link-button"
+                    >
+                        Click here to download a file with all your codes and passwords. Keep this file safe and secure!
+                    </button>
                     <Divider />
-                </>
-                }
+                </div>}
+
+                {claimItems.find(x => x.hasPassword) && <>
+
+                    <Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>
+                        Passwords
+                    </Text>
+                    <br />
+                    {claimItems.map((x, idx) => {
+                        if (x.hasPassword) {
+                            return <div>
+                                Password for Claim ID #{startClaimId + idx}: {claimItems.find(x => x.hasPassword)?.password}
+                            </div>
+                        }
+                        return null;
+                    })}
+                </>}
+                <br />
+                <br />
+                {claimItems.find(x => x.codes.length > 0) && <>
+                    <Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>
+                        Codes
+                    </Text>
+                    <br />
+                    {claimItems.map((x, idx) => {
+                        if (x.codes.length > 0 && !x.hasPassword) {
+                            return <div>
+                                Codes for Claim ID #{startClaimId + idx} ({x.codes.length}):
+                                <br />
+                                {x.codes.map((code, idx) => {
+                                    return <div key={idx}>
+                                        {idx + 1}. {code}
+                                    </div>
+                                })}
+                            </div>
+                        }
+                        return null;
+                    })}
+                </>}
             </>
         </div >
     }

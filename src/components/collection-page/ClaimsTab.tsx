@@ -5,10 +5,11 @@ import { DEV_MODE, PRIMARY_TEXT } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 
-export function ClaimsTab({ collection, refreshUserBalance }: {
+export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
     collection: BitBadgeCollection | undefined;
 
     refreshUserBalance: () => Promise<void>;
+    isPreview?: boolean;
 }) {
     const [claimId, setClaimId] = useState<number>(0);
     const [claimItem, setClaimItem] = useState<ClaimItem>();
@@ -16,6 +17,14 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
     const [code, setCode] = useState<string>("");
 
     const [currPage, setCurrPage] = useState<number>(1);
+
+    if (isPreview) return <Empty
+        style={{ color: PRIMARY_TEXT }}
+        description={
+            "Claim displays are not supported for previews."
+        }
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+    />
 
     const activeClaimIds: number[] = []
     const activeClaims = collection ? collection?.claims.filter((x, idx) => {
@@ -56,18 +65,7 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
                     />
                 }
             </div>
-            {
-                collection?.claims.map((claim, idx) => {
-                    return <div key={idx}>
 
-
-                        {DEV_MODE &&
-                            <pre>
-                                {JSON.stringify(claim, null, 2)}
-                            </pre>}
-                    </div>
-                })
-            }
             {
                 !collection?.claims.find((x) => x.balances.length > 0) &&
                 <Empty
@@ -75,6 +73,16 @@ export function ClaimsTab({ collection, refreshUserBalance }: {
                     description="At the moment, there are no active claims for this badge."
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
+            }
+            {
+                collection?.claims.map((claim, idx) => {
+                    return <div key={idx}>
+                        {DEV_MODE &&
+                            <pre>
+                                {JSON.stringify(claim, null, 2)}
+                            </pre>}
+                    </div>
+                })
             }
             <CreateTxMsgClaimBadgeModal
                 collection={collection}

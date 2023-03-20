@@ -45,14 +45,29 @@ export interface Transfers {
     balances: Balance[];
 }
 
-
+export interface TransfersExtended extends Transfers {
+    toAddressInfo?: (BitBadgesUserInfo)[],
+    numCodes?: number,
+    numIncrements?: number,
+    incrementBy?: number,
+    password?: string
+    timeRange?: IdRange | undefined;
+    toAddressesLength?: number;
+}
 
 export interface ClaimItem extends Claims {
-    addresses: string[]; //with max uses
+    addresses: string[];
     addressesTree: MerkleTree;
 
-    codes: string[]; //with max uses
+    numCodes?: number;
+    codes: string[];
+    hashedCodes: string[]; //leaves
     codeTree: MerkleTree;
+
+    password: string;
+    hasPassword: boolean;
+
+    numIncrements?: number;
 }
 
 export enum DistributionMethod {
@@ -70,6 +85,13 @@ export enum MetadataAddMethod {
     CSV = 'CSV',
 }
 
+export interface IndexerStatus {
+    status: {
+        block: {
+            height: number;
+        }
+    }
+}
 
 export interface Claims {
     balances: Balance[];
@@ -81,6 +103,7 @@ export interface Claims {
     amount: number;
     badgeIds: IdRange[];
     incrementIdsBy: number;
+    expectedMerkleProofLength: number
 }
 
 export interface Proof {
@@ -113,7 +136,15 @@ export interface BitBadgeCollection {
     collectionMetadata: BadgeMetadata,
     badgeMetadata: BadgeMetadataMap,
     activity: ActivityItem[];
-    usedClaims: string[];
+    usedClaims: {
+        codes: {
+            [code: string]: number;
+        },
+        numUsed: number,
+        addresses: {
+            [cosmosAddress: string]: number;
+        }
+    };
     originalClaims: ClaimItem[];
     managerRequests: number[];
     balances: BalancesMap

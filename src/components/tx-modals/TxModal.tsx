@@ -270,7 +270,7 @@ export function TxModal(
                                     <br />
                                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                            By checking the box below, I understand that this is a beta verion of BitBadges, and there may be bugs.
+                                            By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
                                         </Typography.Text>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -300,11 +300,14 @@ export function TxModal(
                                             because they have not interacted with BitBadges yet.
                                         </Typography.Text>
                                         <Divider />
-                                        <AddressDisplayList
-                                            title={'Unregistered Addresses'}
-                                            users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
-                                            fontColor={PRIMARY_TEXT}
-                                        />
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <AddressDisplayList
+                                                title={'Unregistered Addresses'}
+                                                users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
+                                                fontColor={PRIMARY_TEXT}
+                                                hideAccountNumber
+                                            />
+                                        </div>
                                     </div>
                                 }</div>}
                         </div>

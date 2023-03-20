@@ -2,9 +2,9 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { Collapse, Divider, Empty, Pagination, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClaim, getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, Transfers, UserBalance } from '../../../bitbadges-api/types';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, Transfers, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, GO_MAX_UINT_64, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
@@ -26,7 +26,8 @@ export function CreateClaims({
     distributionMethod,
     claimItems,
     setClaimItems,
-    balancesToDistribute
+    balancesToDistribute,
+    manualSend
 }: {
     collection: BitBadgeCollection;
     newCollectionMsg: MessageMsgNewCollection;
@@ -35,6 +36,7 @@ export function CreateClaims({
     claimItems: ClaimItem[];
     setClaimItems: (claimItems: ClaimItem[]) => void;
     balancesToDistribute?: Balance[];
+    manualSend: boolean;
 }) {
     const badgeCollection = collection;
 
@@ -46,50 +48,78 @@ export function CreateClaims({
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
         } : {
-            balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
+            balances: JSON.parse(JSON.stringify(badgeCollection.maxSupplys)),
             approvals: []
         });
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]>(claimItems ?
+    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]>(claimItems ?
         getTransfersFromClaimItems(claimItems, accounts) : []
     );
 
-    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => {
-        setTransfers(newTransfers);
-        addCode(newTransfers);
+    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]) => {
+        setTransfers([...transfers, ...newTransfers]);
+        addCode([...transfers, ...newTransfers]);
     }
+
+    useEffect(() => {
+        if (claimItems) {
+            calculateNewBalances(claimItems);
+        }
+    }, []);
 
     const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
         const balance = balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
         } : {
-            balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
+            balances: JSON.parse(JSON.stringify(badgeCollection.maxSupplys)),
             approvals: []
         };
 
         const claimsRes = getClaimsValueFromClaimItems(balance, newClaimItems);
+        const transfersRes = getTransfersFromClaimItems(newClaimItems, accounts);
 
-        setNewCollectionMsg({
-            ...newCollectionMsg,
-            claims: claimsRes.claims,
-        })
+        if (manualSend) {
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                claims: [],
+                transfers: transfersRes.map(x => {
+                    return {
+                        balances: x.balances,
+                        toAddresses: x.toAddresses,
+                    }
+                })
+            })
+        } else {
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                claims: claimsRes.claims,
+                transfers: []
+            })
+        }
 
         setUndistributedBalances(claimsRes.undistributedBalance);
         setClaimItems(newClaimItems);
+        setTransfers(transfersRes);
+
     }
 
-    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number })[]) => {
-        let newClaimItems: ClaimItem[] = []
+    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]) => {
+        let newClaimItems: ClaimItem[] = claimItems;
         for (const transfer of newTransfers) {
             const codes = [];
             const addresses = [];
 
+
+            let salt = '';
             if (transfer.numCodes && transfer.numCodes > 0) {
-                for (let i = 0; i < transfer.numCodes; i++) {
-                    const code = crypto.randomBytes(32).toString('hex');
-                    codes.push(code); //TODO: admin password salt and reusable passwords
+                if (distributionMethod === DistributionMethod.Codes) {
+                    for (let i = 0; i < transfer.numCodes; i++) {
+                        const code = crypto.randomBytes(32).toString('hex');
+                        codes.push(code); //TODO: admin password salt and reusable passwords
+                    }
                 }
+
             } else {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
                     const userInfo = transfer.toAddressInfo[i];
@@ -100,7 +130,8 @@ export function CreateClaims({
                 }
             }
 
-            const codesTree = new MerkleTree(codes.map(x => SHA256(x)), SHA256);
+            const hashedCodes = codes.map(x => SHA256(x).toString());
+            const codesTree = new MerkleTree(hashedCodes.map(x => SHA256(x).toString()), SHA256);
             const codesRoot = codesTree.getRoot().toString('hex');
 
             const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256);
@@ -110,6 +141,7 @@ export function CreateClaims({
             const newClaimItem: ClaimItem = {
                 addresses: addresses,
                 codes: codes,
+                hashedCodes: hashedCodes,
                 addressesTree: addressesTree,
                 codeTree: codesTree,
                 whitelistRoot: addressesRoot,
@@ -117,13 +149,18 @@ export function CreateClaims({
                 uri: '',
                 amount: transfer.balances[0]?.balance,
                 badgeIds: transfer.balances[0]?.badgeIds,
-                timeRange: {
+                timeRange: transfer.timeRange ? transfer.timeRange : {
                     start: 0,
                     end: GO_MAX_UINT_64,
                 },
                 balances: [], //will do in calculateNewBalances()
                 limitPerAccount: 2, //one per account
-                incrementIdsBy: 1,
+                incrementIdsBy: transfer.incrementBy ? transfer.incrementBy : 0,
+                numIncrements: transfer.numIncrements ? transfer.numIncrements : 0,
+                password: transfer.password ? transfer.password : '',
+                hasPassword: transfer.password ? true : false,
+                numCodes: transfer.numCodes ? transfer.numCodes : 0,
+                expectedMerkleProofLength: codesTree.getLayerCount() - 1,
             }
 
             newClaimItems.push(newClaimItem);
@@ -151,12 +188,12 @@ export function CreateClaims({
                 </div>
                 <div style={{ width: '48%', display: 'flex' }}>
                     <InformationDisplayCard
-                        title={distributionMethod === DistributionMethod.Codes ? 'Codes' : 'Whitelist'}
+                        title={distributionMethod === DistributionMethod.Codes ? 'Codes' : distributionMethod === DistributionMethod.Whitelist ? 'Whitelist' : 'Claims'}
                     ><>
                             {claimItems.length === 0 && <Empty
                                 style={{ color: PRIMARY_TEXT }}
                                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : 'No users added.'} />}
+                                description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : distributionMethod === DistributionMethod.Whitelist ? 'No users added.' : 'No claims added.'} />}
 
                             {claimItems.length > 0 && <>
                                 <div style={{
@@ -191,12 +228,14 @@ export function CreateClaims({
 
                                             <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
                                                 {distributionMethod === DistributionMethod.Codes ? <Text strong style={{ color: PRIMARY_TEXT }}>
-                                                    {leaf.codeRoot}
-                                                </Text> :
+                                                    {leaf.password ? 'Password: ' + leaf.password : 'Unique Codes: ' + leaf.codes.length}
+
+                                                </Text> : distributionMethod === DistributionMethod.Whitelist ?
                                                     <>
-                                                        {leaf.addresses.map(cosmosAddr => {
-                                                            return <AddressDisplay key={cosmosAddr} userInfo={accounts.accounts[cosmosAddr]} fontColor={PRIMARY_TEXT} fontSize={14} />
-                                                        })}
+
+                                                        {manualSend ? 'Direct Transfers:' : 'Whitelist:'} {'' + leaf.addresses.length + " Users"}
+                                                    </> : <>
+                                                        {'Open Claim #' + (index + 1)}
                                                     </>
                                                 }
                                             </div>
@@ -204,14 +243,8 @@ export function CreateClaims({
                                                 <Tooltip title='Delete'>
                                                     <DeleteOutlined onClick={
                                                         () => {
-                                                            if (distributionMethod === DistributionMethod.Codes) {
-                                                                const newClaimItems = claimItems.filter((_, i) => i !== index && i !== index + 1);
-                                                                calculateNewBalances(newClaimItems);
-
-                                                            } else {
-                                                                const newClaimItems = claimItems.filter((_, i) => i !== index);
-                                                                calculateNewBalances(newClaimItems);
-                                                            }
+                                                            const newClaimItems = claimItems.filter((_, i) => i !== index);
+                                                            calculateNewBalances(newClaimItems);
                                                         }
                                                     } />
                                                 </Tooltip>
@@ -221,47 +254,54 @@ export function CreateClaims({
                                             <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
                                                 {distributionMethod === DistributionMethod.Codes ? <>
                                                     <Text strong style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                                        Code Root
+                                                        {leaf.password ? 'Password: ' + leaf.password : 'Unique Codes: ' + leaf.codes.length}
                                                     </Text>
                                                     <br />
-                                                    <Text copyable strong style={{ color: PRIMARY_TEXT, fontSize: 16, }}>
-                                                        {leaf.codeRoot}
-                                                    </Text>
-                                                    <Divider />
                                                 </> :
                                                     <></>
                                                 }
+
                                                 <TransferDisplay
-                                                    deletable
                                                     collection={badgeCollection}
                                                     fontColor={PRIMARY_TEXT}
-
                                                     from={[
                                                         MINT_ACCOUNT
                                                     ]}
-                                                    setTransfers={setTransfersHandler}
-                                                    transfers={[
-                                                        {
-                                                            toAddresses: distributionMethod === DistributionMethod.Whitelist ? leaf.addresses.map(addr => {
-
-                                                                return accounts.accounts[addr].accountNumber
-                                                            }) : [],
-                                                            balances: [
+                                                    setTransfers={() => { }}
+                                                    transfers={
+                                                        manualSend ?
+                                                            transfers
+                                                            :
+                                                            [
                                                                 {
-                                                                    balance: leaf.amount,
-                                                                    badgeIds: leaf.badgeIds
+                                                                    toAddresses: distributionMethod === DistributionMethod.Whitelist ? leaf.addresses.map(addr => {
+
+                                                                        return accounts.accounts[addr].accountNumber
+                                                                    }) : [],
+                                                                    balances: [
+                                                                        {
+                                                                            balance: leaf.amount,
+                                                                            badgeIds: leaf.badgeIds
+                                                                        }
+                                                                    ],
+                                                                    toAddressInfo: leaf.addresses.map(addr => {
+
+                                                                        return accounts.accounts[addr]
+                                                                    }),
+                                                                    incrementBy: leaf.incrementIdsBy,
+                                                                    password: leaf.password,
+                                                                    numIncrements: leaf.numIncrements,
+                                                                    numCodes: leaf.numCodes,
+
                                                                 }
-                                                            ],
-                                                            toAddressInfo: leaf.addresses.map(addr => {
+                                                            ]}
+                                                    toCodes={distributionMethod === DistributionMethod.Codes ? leaf.codes :
 
-                                                                return accounts.accounts[addr]
-                                                            })
-                                                        }
-                                                    ]}
-                                                    toCodes={distributionMethod === DistributionMethod.Codes ? leaf.codes : [
+                                                        distributionMethod === DistributionMethod.FirstComeFirstServe ? new Array(leaf.numCodes) : [
 
-                                                    ]}
+                                                        ]}
                                                 />
+
                                                 <Divider />
                                             </div>
                                         </CollapsePanel>
@@ -282,18 +322,15 @@ export function CreateClaims({
                 <TransferSelect
                     transfers={transfers}
                     setTransfers={setTransfersHandler}
-                    userBalance={balancesToDistribute ? {
-                        balances: JSON.parse(JSON.stringify(balancesToDistribute)),
-                        approvals: [],
-                    } : {
-                        balances: JSON.parse(JSON.stringify(badgeCollection.unmintedSupplys)),
-                        approvals: []
-                    }}
+                    userBalance={undistributedBalances}
                     distributionMethod={distributionMethod}
                     sender={MINT_ACCOUNT}
                     collection={badgeCollection}
                     hideTransferDisplay={true}
                     isWhitelist
+                    manualSend={manualSend}
+                    plusButton
+                    showIncrementSelect={(distributionMethod === DistributionMethod.Whitelist && !manualSend) || distributionMethod === DistributionMethod.Codes}
                 />
             </div>
         </div>

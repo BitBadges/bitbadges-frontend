@@ -36,20 +36,53 @@ export function GetIdRangesToInsertToStorage(idRanges: IdRange[]) {
     return newIdRanges;
 }
 
+function CreateIdRange(start: number, end: number) {
+    return {
+        start: start,
+        end: end,
+    }
+}
+
 // Removes the ids spanning from rangeToRemove.start to rangeToRemove.end from the rangeObject.
 export function RemoveIdsFromIdRange(rangeToRemove: IdRange, rangeObject: IdRange) {
     rangeToRemove = NormalizeIdRange(rangeToRemove)
     rangeObject = NormalizeIdRange(rangeObject)
 
+    let idxsToRemove = rangeToRemove;
+
     let newIdRanges: IdRange[] = [];
-    //add everything before rangeToRemove.start
-    if (rangeObject.start < rangeToRemove.start) {
-        newIdRanges.push(GetIdRangeToInsert(rangeObject.start, rangeToRemove.start - 1));
+
+
+    if (idxsToRemove.start > rangeObject.start && idxsToRemove.end < rangeObject.end) {
+        // Completely in the middle; Split into two ranges
+        newIdRanges.push(CreateIdRange(rangeObject.start, idxsToRemove.start - 1));
+        newIdRanges.push(CreateIdRange(idxsToRemove.end + 1, rangeObject.end));
+    } else if (idxsToRemove.start <= rangeObject.start && idxsToRemove.end >= rangeObject.end) {
+        // Overlaps both; remove whole thing
+        // Do nothing
+    } else if (idxsToRemove.start <= rangeObject.start && idxsToRemove.end < rangeObject.end && idxsToRemove.end >= rangeObject.start) {
+        // Still have some left at the end
+        newIdRanges.push(CreateIdRange(idxsToRemove.end + 1, rangeObject.end));
+    } else if (idxsToRemove.start > rangeObject.start && idxsToRemove.end >= rangeObject.end && idxsToRemove.start <= rangeObject.end) {
+        // Still have some left at the start
+        newIdRanges.push(CreateIdRange(rangeObject.start, idxsToRemove.start - 1));
+    } else {
+        // Doesn't overlap at all; keep everything
+        newIdRanges.push(CreateIdRange(rangeObject.start, rangeObject.end));
     }
-    //add everything after rangeToRemove.end
-    if (rangeObject.end > rangeToRemove.end) {
-        newIdRanges.push(GetIdRangeToInsert(rangeToRemove.end + 1, rangeObject.end));
-    }
+
+
+    // //add everything before rangeToRemove.start
+    // if (rangeObject.start < rangeToRemove.start) {
+    //     newIdRanges.push(GetIdRangeToInsert(rangeObject.start, rangeToRemove.start - 1));
+    // }
+
+
+
+    // //add everything after rangeToRemove.end
+    // if (rangeObject.end > rangeToRemove.end) {
+    //     newIdRanges.push(GetIdRangeToInsert(rangeToRemove.end + 1, rangeObject.end));
+    // }
 
     return newIdRanges;
 }
@@ -242,14 +275,14 @@ export function InsertRangeToIdRanges(rangeToAdd: IdRange, targetIds: IdRange[])
     let ids = targetIds;
     let newIds = [] as IdRange[];
     let insertIdAtIdx = 0;
-    rangeToAdd = NormalizeIdRange(rangeToAdd);
-    let lastRange = NormalizeIdRange(ids[ids.length - 1]);
+    rangeToAdd = rangeToAdd;
+    let lastRange = ids[ids.length - 1];
 
     //Three cases: Goes at beginning, end, or somewhere in the middle
     if (ids[0].start > rangeToAdd.end) {
         newIds.push(GetIdRangeToInsert(rangeToAdd.start, rangeToAdd.end));
         newIds = newIds.concat(ids);
-    } else if (lastRange.end < rangeToAdd.start) {
+    } else if (lastRange && lastRange.end < rangeToAdd.start) {
         insertIdAtIdx = ids.length;
         newIds = newIds.concat(ids);
         newIds.push(GetIdRangeToInsert(rangeToAdd.start, rangeToAdd.end));
@@ -260,6 +293,7 @@ export function InsertRangeToIdRanges(rangeToAdd: IdRange, targetIds: IdRange[])
         newIds = newIds.concat(ids.slice(insertIdAtIdx));
     }
 
+    console.log(newIds, insertIdAtIdx);
     newIds = MergePrevOrNextIfPossible(newIds, insertIdAtIdx)
 
     return newIds;

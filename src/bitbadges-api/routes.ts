@@ -1,4 +1,4 @@
-import { BalancesMap, BitBadgeCollection, CosmosAccountInformation, UserBalance } from "./types";
+import { ActivityItem, BalancesMap, BitBadgeCollection, CosmosAccountInformation, UserBalance } from "./types";
 
 export const GetAccountRoute = (bech32address: string) => {
     return `/api/user/address/${bech32address}`;
@@ -72,4 +72,5 @@ export interface GetOwnersResponse {
 export interface GetPortfolioResponse {
     collected: BitBadgeCollection[],
     managing: BitBadgeCollection[],
+    activity: (ActivityItem & { collectionId: number })[]
 }

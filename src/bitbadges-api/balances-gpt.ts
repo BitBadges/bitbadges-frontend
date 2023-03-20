@@ -35,6 +35,10 @@ export function UpdateBalancesForIdRanges(ranges: IdRange[], newAmount: number, 
 
 // Gets the balances for specified ID ranges. Returns a new []*types.Balance where only the specified ID ranges and their balances are included. Appends balance == 0 objects so all IDs are accounted for, even if not found.
 export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances: Balance[]) {
+    console.log("BADGE IDS", JSON.stringify(badgeIds));
+    console.log("CURRENT USER BALANCES", JSON.stringify(currentUserBalances));
+
+
     let balanceObjectsForSpecifiedRanges: Balance[] = []
     badgeIds = SortIdRangesAndMergeIfNecessary(badgeIds)
     let idRangesNotFound = badgeIds
@@ -55,7 +59,7 @@ export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances:
 
                 //Set newIdRanges to the ranges where there is overlap
                 let newIdRanges = userBalanceObj.badgeIds.slice(idxSpan.start, idxSpan.end + 1)
-
+                console.log("newIdRanges1: ", JSON.stringify(newIdRanges));
                 //Remove everything before the start of the range. Only need to remove from idx 0 since it is sorted.
                 if (idRange.start > 0 && newIdRanges.length > 0) {
                     let everythingBefore: IdRange = {
@@ -66,6 +70,7 @@ export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances:
                     idRangesWithEverythingBeforeRemoved = idRangesWithEverythingBeforeRemoved.concat(newIdRanges.slice(1))
                     newIdRanges = idRangesWithEverythingBeforeRemoved
                 }
+                console.log("newIdRanges2: ", JSON.stringify(newIdRanges));
 
                 //Remove everything after the end of the range. Only need to remove from last idx since it is sorted.
                 if (idRange.end < Number.MAX_SAFE_INTEGER && newIdRanges.length > 0) {
@@ -77,6 +82,7 @@ export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances:
                     idRangesWithEverythingAfterRemoved = idRangesWithEverythingAfterRemoved.concat(RemoveIdsFromIdRange(everythingAfter, newIdRanges[newIdRanges.length - 1]))
                     newIdRanges = idRangesWithEverythingAfterRemoved
                 }
+                console.log("newIdRanges3: ", JSON.stringify(newIdRanges));
 
                 for (let newIdRange of newIdRanges) {
                     let newNotFoundRanges: IdRange[] = []
@@ -85,14 +91,14 @@ export function GetBalancesForIdRanges(badgeIds: IdRange[], currentUserBalances:
                     }
                     idRangesNotFound = newNotFoundRanges
                 }
+                console.log("newIdRanges: ", JSON.stringify(newIdRanges));
 
                 balanceObjectsForSpecifiedRanges = UpdateBalancesForIdRanges(newIdRanges, userBalanceObj.balance, balanceObjectsForSpecifiedRanges)
-
             }
         }
     }
 
-    console.log("balance: ", balanceObjectsForSpecifiedRanges);
+    console.log("balance: ", JSON.stringify(balanceObjectsForSpecifiedRanges));
 
     //Update balance objects with IDs where balance == 0
     if (idRangesNotFound.length > 0) {
@@ -132,8 +138,10 @@ export function AddBalancesForIdRanges(userBalanceInfo: UserBalance, ranges: IdR
 
 // Subtracts a balance to all ids specified in []ranges
 export function SubtractBalancesForIdRanges(userBalanceInfo: UserBalance, ranges: IdRange[], balanceToRemove: number) {
+
     let currBalances = GetBalancesForIdRanges(ranges, userBalanceInfo.balances);
 
+    console.log("CURR BALANCES SUBTRACT", currBalances);
     for (let currBalanceObj of currBalances) {
         let newBalance = SafeSubtract(currBalanceObj.balance, balanceToRemove);
         userBalanceInfo.balances = UpdateBalancesForIdRanges(currBalanceObj.badgeIds, newBalance, userBalanceInfo.balances);

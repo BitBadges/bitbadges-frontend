@@ -129,6 +129,7 @@ function CollectionPage({
                             <ClaimsTab
                                 collection={collection}
                                 refreshUserBalance={refreshBadgeBalance}
+                                isPreview={isPreview}
                             />
                         )}
 

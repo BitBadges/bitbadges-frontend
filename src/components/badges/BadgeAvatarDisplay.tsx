@@ -32,7 +32,7 @@ export function BadgeAvatarDisplay({
 
 
 
-    const PAGE_SIZE = pageSize ? pageSize : 50;
+    const PAGE_SIZE = pageSize ? pageSize : 10;
     let total = 0;
     let ids: number[] = [];
     for (const range of badgeIds) {

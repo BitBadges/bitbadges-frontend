@@ -192,3 +192,7 @@
 .ant-collapse-expand-icon {
     align-self: center;
 }
+
+.ant-tooltip-disabled-compatible-wrapper {
+    display: flex !important;
+}

@@ -9,10 +9,12 @@ export function CreateClaimsStepItem(
     distributionMethod: DistributionMethod,
     claimItems: ClaimItem[],
     setClaimItems: (claimItems: ClaimItem[]) => void,
+    manualSend: boolean,
     balancesToDistribute?: Balance[],
+
 ) {
     return {
-        title: `${distributionMethod === DistributionMethod.Codes ? 'Generate Codes' : 'Whitelist'}`,
+        title: `${distributionMethod === DistributionMethod.Codes ? 'Generate Codes' : distributionMethod === DistributionMethod.Whitelist ? 'Whitelist' : 'Claims'}`,
         description: '',
         node: <CreateClaims
             collection={collection}
@@ -22,6 +24,7 @@ export function CreateClaimsStepItem(
             claimItems={claimItems}
             setClaimItems={setClaimItems}
             balancesToDistribute={balancesToDistribute}
+            manualSend={manualSend}
         />,
         disabled: claimItems.length == 0
     }

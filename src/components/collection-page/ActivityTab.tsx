@@ -7,26 +7,33 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { TransferDisplay } from '../transfers/TransferDisplay';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
 
 
 
-export function ActivityTab({ collection, badgeId }: {
+export function ActivityTab({ collection, badgeId, activityArr }: {
     collection: BitBadgeCollection;
     badgeId?: number
+    activityArr?: (ActivityItem & { collectionId?: number })[]
 }) {
     const accounts = useAccountsContext();
+    const collections = useCollectionsContext();
     const [currPage, setCurrPage] = useState<number>(1);
 
 
 
-    let activity: ActivityItem[];
-    //If we are showing a badge's activity, filter the activity to only show that badge's activity
-    if (badgeId && collection) {
-        activity = filterBadgeActivityForBadgeId(badgeId, collection?.activity);
-    } else if (collection) {
-        activity = collection.activity;
+    let activity: (ActivityItem & { collectionId?: number })[];
+    if (activityArr) {
+        activity = activityArr;
     } else {
-        activity = [];
+        //If we are showing a badge's activity, filter the activity to only show that badge's activity
+        if (badgeId && collection) {
+            activity = filterBadgeActivityForBadgeId(badgeId, collection?.activity);
+        } else if (collection) {
+            activity = collection.activity;
+        } else {
+            activity = [];
+        }
     }
 
     const PAGE_SIZE = 25;
@@ -101,6 +108,10 @@ export function ActivityTab({ collection, badgeId }: {
                     expandIconPosition='start'
                 >
                     {activity.map((activity, idx) => {
+                        const collectionId = activity.collectionId ? activity.collectionId : collection.collectionId;
+                        const collectionToShow = activity.collectionId ? collections.collections[collectionId] : collection;
+                        if (!collectionToShow) return <></>;
+
                         if (!(idx >= startIdNum && idx <= endIdNum)) return <></>;
                         return <CollapsePanel
                             key={idx}
@@ -136,12 +147,14 @@ export function ActivityTab({ collection, badgeId }: {
 
                                 <div key={idx} style={{ color: PRIMARY_TEXT }}>
                                     {activity.balances.map((balance, idx) => {
+
+
                                         return <div key={idx} style={{ width: 600 }}>
                                             <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
                                             <TransferDisplay
                                                 fontColor={PRIMARY_TEXT}
                                                 key={idx}
-                                                collection={collection}
+                                                collection={collectionToShow}
                                                 from={activity.from.map((from) => {
                                                     console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]])
                                                     return accounts.cosmosAddressesByAccountNumbers[from] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]]

@@ -42,7 +42,7 @@ export function BadgeAvatar({
                     }}
                     className="badge-avatar"
                     src={metadata.image ? metadata.image : <Spin />}
-                    size={size}
+                    size={size ? size : 50}
                     onClick={() => setModalIsVisible(true)}
                     onError={() => {
                         return false;
@@ -84,7 +84,7 @@ export function BadgeAvatar({
                 }}
                 className="badge-avatar"
                 src={<Spin />}
-                size={size}
+                size={size ? size : 50}
                 onClick={() => setModalIsVisible(true)}
                 onError={() => {
                     return false;

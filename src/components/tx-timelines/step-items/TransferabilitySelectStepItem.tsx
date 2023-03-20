@@ -10,7 +10,7 @@ export function TransferabilitySelectStepItem(
 
     return {
         title: `Select Transferability`,
-        description: ``,
+        description: `Transferability only applies to the transferring of minted badges, not the minting process.`,
         node: <TransfersMappingSelect
             transfersMapping={newCollectionMsg.disallowedTransfers}
             setTransfersMapping={(disallowedTransfers) => {

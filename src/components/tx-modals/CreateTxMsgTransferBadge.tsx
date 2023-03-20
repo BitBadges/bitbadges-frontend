@@ -168,7 +168,7 @@ export function CreateTxMsgTransferBadgeModal(
                         userBalance={senderBalance}
                         setTransfers={setTransfers}
                         transfers={transfers}
-                        distributionMethod={DistributionMethod.Whitelist}
+                    // distributionMethod={DistributionMethod.Whitelist}
                     />
                 </div >
             </div >,

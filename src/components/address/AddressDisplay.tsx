@@ -34,14 +34,16 @@ export function AddressDisplayList(
         disallowedUsers,
         fontColor,
         darkMode,
-        title
+        title,
+        hideAccountNumber
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: { [cosmosAddress: string]: string },
         fontColor?: string
         darkMode?: boolean
-        title?: string
+        title?: string,
+        hideAccountNumber?: boolean
     }
 ) {
     return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>
@@ -56,6 +58,7 @@ export function AddressDisplayList(
                 return (
                     <div key={index} style={{ marginRight: 8 }}>
                         <AddressDisplay
+                            
                             icon={
                                 setUsers &&
                                 <Tooltip title={"Remove User"}>
@@ -64,10 +67,11 @@ export function AddressDisplayList(
                                     }} />
                                 </Tooltip>
                             }
-                            showAccountNumber={true}
+                            showAccountNumber={!hideAccountNumber}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
                             fontColor={disallowedMessage ? 'red' : fontColor}
                             hidePortfolioLink
+
                         />
                         {disallowedMessage && disallowedMessage.length > 0 &&
                             <div style={{ color: 'red' }}>

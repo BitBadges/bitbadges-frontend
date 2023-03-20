@@ -156,33 +156,35 @@ export const BlockinDisplay = ({
             }
 
         </div>
-        <div>
-            {!(hideLogo && !address) &&
-                <Avatar
-                    size={200}
-                    src={
-                        address ? <Blockies
-                            seed={address.toLowerCase()}
-                            size={100}
-                        /> :
-                            <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
-                    }
-                    style={{ marginTop: 40 }}
-                />
-            }
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}> {address &&
-            <AddressDisplay
-                userInfo={{
-                    address, accountNumber, cosmosAddress, chain
-                }}
-                fontColor={PRIMARY_TEXT} fontSize={36}
-            />}</div>
-        <div> {address && <Text
-            strong
-            style={{ fontSize: 30, color: PRIMARY_TEXT }}
-        >
-            {loggedIn ? 'Signed In' : 'Not Signed In'}
-        </Text>}</div>
+        {!hideLogo && <>
+            <div>
+                {!(hideLogo && !address) &&
+                    <Avatar
+                        size={200}
+                        src={
+                            address ? <Blockies
+                                seed={address.toLowerCase()}
+                                size={100}
+                            /> :
+                                <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
+                        }
+                        style={{ marginTop: 40 }}
+                    />
+                }
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}> {address &&
+                <AddressDisplay
+                    userInfo={{
+                        address, accountNumber, cosmosAddress, chain
+                    }}
+                    fontColor={PRIMARY_TEXT} fontSize={36}
+                />}</div>
+            <div> {address && <Text
+                strong
+                style={{ fontSize: 30, color: PRIMARY_TEXT }}
+            >
+                {loggedIn ? 'Signed In' : 'Not Signed In'}
+            </Text>}</div>
+        </>}
     </>;
 }

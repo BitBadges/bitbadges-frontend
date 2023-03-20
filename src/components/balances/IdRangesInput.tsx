@@ -1,4 +1,4 @@
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
 import { getBlankBalance } from "../../bitbadges-api/balances";
@@ -17,6 +17,9 @@ export function IdRangesInput({
     verb,
     collection,
     defaultAllSelected = true,
+    showIncrementSelect,
+    increment,
+    setIncrement
 }: {
     idRanges?: IdRange[],
     setIdRanges: (idRanges: IdRange[]) => void,
@@ -26,8 +29,11 @@ export function IdRangesInput({
     verb?: string,
     collection: BitBadgeCollection,
     defaultAllSelected?: boolean,
+    showIncrementSelect?: boolean,
+    increment?: number,
+    setIncrement?: (increment: number) => void,
 }) {
-    const isDefaultAllSelected = maximum === 1 || defaultAllSelected;
+    const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
 
     const [numRanges, setNumRanges] = useState(idRanges ? idRanges.length : 1);
     const [sliderValues, setSliderValues] = useState<[number, number][]>(
@@ -38,7 +44,7 @@ export function IdRangesInput({
             idRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
             : `${minimum ?? 1}-${maximum ?? 1}`);
     const [updateAllIsSelected, setUpdateAllIsSelected] = useState(isDefaultAllSelected);
-    const [clicked, setClicked] = useState(false);
+    // const [clicked, setClicked] = useState(false);
 
     if (maximum == 0) {
         return <></>;
@@ -64,7 +70,7 @@ export function IdRangesInput({
 
     switchOptions.push({
         title: 'All Badges',
-        message: `Select all badges in this collection. ${maximum === 1 ? 'This is automatically selected because there is only one badge in this collection.' : ''}`,
+        message: `Select all badges in this collection. ${maximum === 1 ? 'This is auto-selected because there is only one badge.' : ''}`,
         isSelected: updateAllIsSelected,
     });
 
@@ -76,6 +82,11 @@ export function IdRangesInput({
     //     </div>
     // }
 
+    let numIncrements = 0;
+
+
+
+
     return <>
         <SwitchForm
             options={switchOptions}
@@ -84,11 +95,12 @@ export function IdRangesInput({
                 if (name === 'All Badges') {
                     setIdRanges([{ start: minimum ?? 1, end: maximum ?? 1 }]);
                 }
-                setClicked(true);
+                // setClicked(true);
             }}
-            noSelectUntilClick
+        // noSelectUntilClick
         />
-        {!updateAllIsSelected && clicked && <>
+
+        {!updateAllIsSelected && <>
             <br />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
                 <Input
@@ -205,7 +217,7 @@ export function IdRangesInput({
                 })
             }
 
-            < br />
+            <br />
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <Button type='primary'
                     style={{ marginRight: 12 }}
@@ -239,22 +251,24 @@ export function IdRangesInput({
                     <b>Overlapping ranges are not allowed.</b>
                 </div>
             }
+
             <Divider />
-            <br />
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
-                    <BadgeAvatarDisplay
-                        collection={collection}
-                        hideModalBalance
-                        userBalance={getBlankBalance()}
-                        badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
-                        // selectedId={id}
-                        size={40}
-                        showIds={true}
-                    />
-                </div>
-            </div>
         </>}
+        <br />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
+                <BadgeAvatarDisplay
+                    collection={collection}
+                    hideModalBalance
+                    userBalance={getBlankBalance()}
+                    badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
+                    // selectedId={id}
+                    size={40}
+                    showIds={true}
+                />
+            </div>
+        </div>
+
     </>
 }
 
