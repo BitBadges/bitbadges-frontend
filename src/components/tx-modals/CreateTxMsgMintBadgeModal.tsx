@@ -1,11 +1,15 @@
 import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
-import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from '../../bitbadges-api/types';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
+import { RemoveIdsFromIdRange } from '../../bitbadges-api/idRanges';
+import { useAccountsContext } from '../../contexts/AccountsContext';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../bitbadges-api/claims';
+import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
@@ -19,10 +23,42 @@ export function CreateTxMsgMintBadgeModal(
 ) {
     const router = useRouter();
     const collections = useCollectionsContext();
-    // const accounts = useAccountsContext();
+    const accounts = useAccountsContext();
 
 
     const [txState, setTxState] = useState<TxTimelineProps>();
+    const [unregisteredUsers, setUnregisteredUsers] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!txState) return;
+        let newUnregisteredUsers: string[] = [];
+        for (const claimItem of txState.claimItems) {
+            for (const address of claimItem.addresses) {
+                if (accounts.accounts[address].accountNumber >= 0) continue;
+
+                newUnregisteredUsers.push(address);
+            }
+        }
+        setUnregisteredUsers(newUnregisteredUsers);
+
+        //If we are manually sending, we need to update the transfers field. If not, we update the claims.
+        if (txState.manualSend) {
+            txState.setNewCollectionMsg({
+                ...txState.newCollectionMsg,
+                transfers: getTransfersFromClaimItems(txState.claimItems, accounts),
+                claims: []
+            });
+        } else if (!txState.manualSend) {
+            const balance = getBadgeSupplysFromMsgNewCollection(txState.newCollectionMsg);
+            const claimRes = getClaimsFromClaimItems(balance, txState.claimItems);
+
+            txState.setNewCollectionMsg({
+                ...txState.newCollectionMsg,
+                transfers: [],
+                claims: claimRes.claims
+            })
+        }
+    }, [txState, txState?.claimItems, accounts, txState?.manualSend, txState?.setNewCollectionMsg]);
 
     const newMintMsg: MessageMsgMintBadge = {
         creator: txState ? txState?.newCollectionMsg.creator : '',
@@ -34,113 +70,130 @@ export function CreateTxMsgMintBadgeModal(
         badgeUris: txState && txType === 'AddBadges' ? txState?.newCollectionMsg.badgeUris : []
     }
 
-    // const unregisteredUsers = txState?.manualSend && txState?.newCollectionMsg.transfers.length > 0
-    //     ? txState.claimItems.filter((x) => x.userInfo.accountNumber === -1).map((x) => x.userInfo.cosmosAddress) : [];
-    const unregisteredUsers: string[] = [];
 
 
     async function updateIPFSUris() {
-        if (!txState) return;
+        if (!txState || !txState.existingCollection) return;
 
-        let collectionUri = txState.newCollectionMsg.collectionUri;
-        let badgeUris = txState.newCollectionMsg.badgeUris;
+        let badgeMsg = txState.newCollectionMsg;
+        let collectionUri = txState.existingCollection.collectionUri;
+        let badgeUris = JSON.parse(JSON.stringify(txState.existingCollection.badgeUris));
         let claims = txState.newCollectionMsg.claims;
 
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
-        if (txState?.addMethod == MetadataAddMethod.Manual && txType === 'AddBadges') {
-            let res = await addToIpfs(txState?.collectionMetadata, txState?.individualBadgeMetadata);
+        if (txState.addMethod == MetadataAddMethod.Manual && txType === 'AddBadges') {
+            //Prune the metadata to only include the new badges
+            const prunedMetadata: BadgeMetadataMap = {};
+            let keys = Object.keys(txState.individualBadgeMetadata);
+            let values = Object.values(txState.individualBadgeMetadata);
+            let idx = 0;
 
-            // collectionUri = 'ipfs://' + res.cid + '/collection';
-            const keys = Object.keys(txState.individualBadgeMetadata);
-            const values = Object.values(txState.individualBadgeMetadata);
-            //This is a little hack; we never alter the previous badges in AddBadges timeline, so we can just add the new metadata to the end of the array 
-            for (let i = badgeUris.length; i < keys.length; i++) {
-                badgeUris.push({
-                    uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
-                    badgeIds: values[i].badgeIds
-                });
+            console.log(values);
+            for (let i = 0; i < keys.length; i++) {
+                let prunedBadgeIds: IdRange[] = [];
+                for (let j = 0; j < values[i].badgeIds.length; j++) {
+                    if (txState.existingCollection) {
+                        prunedBadgeIds.push(...RemoveIdsFromIdRange({ start: 1, end: txState.existingCollection.nextBadgeId - 1 }, values[i].badgeIds[j]));
+                    } else {
+                        prunedBadgeIds = values[i].badgeIds;
+                    }
+                }
+
+
+
+                if (prunedBadgeIds.length > 0) {
+                    prunedMetadata[`${idx}`] = {
+                        metadata: values[i].metadata,
+                        badgeIds: prunedBadgeIds
+                    }
+                    idx++;
+                }
             }
+
+
+            let res = await addToIpfs(txState.collectionMetadata, prunedMetadata);
+
+            keys = Object.keys(prunedMetadata);
+            values = Object.values(prunedMetadata);
+            let addedUris: BadgeUri[] = [];
+            for (let i = 0; i < keys.length; i++) {
+                let duplicate = false;
+                for (let j = 0; j < addedUris.length; j++) {
+                    if (addedUris[j].uri === 'ipfs://' + res.cid + '/batch/' + keys[i]
+                        && JSON.stringify(addedUris[j].badgeIds) === JSON.stringify(values[i].badgeIds)) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    badgeUris.push({
+                        uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
+                        badgeIds: values[i].badgeIds
+                    });
+
+                    addedUris.push({
+                        uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
+                        badgeIds: values[i].badgeIds
+                    });
+                }
+            }
+
+
+
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
-        if (txState?.distributionMethod == DistributionMethod.Codes || txState?.distributionMethod == DistributionMethod.Whitelist) {
-            if (claims?.length > 0) {
-                let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode), txState?.claimItems.map(x => x.addresses), txState?.claimItems.map(x => x.codes));
-                claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                // //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
-                // //For the whitelist, we store the full plaintext codes as leaves on IPFS
-                // if (txState?.distributionMethod == DistributionMethod.Codes) {
-
-                // } else {
-                //     let merkleTreeRes = await addMerkleTreeToIpfs(txState?.claimItems.map((x) => x.fullCode));
-                //     claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                // }
+        if (txState.distributionMethod == DistributionMethod.Codes || txState.distributionMethod == DistributionMethod.Whitelist) {
+            if (badgeMsg.claims?.length > 0) {
+                for (let i = 0; i < txState.claimItems.length; i++) {
+                    let merkleTreeRes = await addMerkleTreeToIpfs([], txState.claimItems[i].addresses, txState.claimItems[i].codes, txState.claimItems[i].hashedCodes, txState.claimItems[i].password);
+                    claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
+                }
             }
         }
 
-        setTxState({
-            ...txState,
-            newCollectionMsg: {
-                ...txState.newCollectionMsg,
-                collectionUri,
-                badgeUris,
-                claims
-            }
+        txState.setNewCollectionMsg({
+            ...txState?.newCollectionMsg,
+            collectionUri: collectionUri,
+            badgeUris: badgeUris,
+            claims: claims
         });
 
         return {
             creator: txState ? txState?.newCollectionMsg.creator : '',
             collectionId: collectionId,
-            claims,
+            claims: claims,
             transfers: txState ? txState?.newCollectionMsg.transfers : [],
             badgeSupplys: txState ? txState?.newCollectionMsg.badgeSupplys : [],
-            collectionUri,
-            badgeUris
+            collectionUri: collectionUri,
+            badgeUris: badgeUris,
         }
     }
 
+
+    function updateUnregisteredUsers() {
+        if (!txState) return;
+        //Get new account numbers for unregistered users
+        let newUnregistedUsers: string[] = [];
+        for (const claimItem of txState.claimItems) {
+            for (const address of claimItem.addresses) {
+                if (accounts.accounts[address].accountNumber >= 0) continue;
+
+                newUnregistedUsers.push(address);
+            }
+        }
+        setUnregisteredUsers(newUnregistedUsers);
+    }
+
     const onRegister = async () => {
-        // if (!txState) return;
-        // let newUsersToRegister = txState.claimItems.filter((x) => x.userInfo.accountNumber === -1);
+        if (!txState || !txState.manualSend) return;
 
-        // const newAccounts = await accounts.fetchAccounts(newUsersToRegister.map((x) => x.userInfo.cosmosAddress));
-        // const newClaimItems = [];
-        // for (const claimItem of txState.claimItems) {
-        //     if (claimItem.userInfo.accountNumber === -1) {
-        //         const newAccount = newAccounts.find((x) => x.cosmosAddress === claimItem.userInfo.cosmosAddress);
-        //         if (newAccount) {
-        //             newClaimItems.push({
-        //                 ...claimItem,
-        //                 userInfo: newAccount,
-        //                 address: newAccount.cosmosAddress,
-        //                 accountNum: newAccount.accountNumber,
-        //             });
-        //         }
-        //     } else {
-        //         newClaimItems.push(claimItem);
-        //     }
-        // }
+        const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
+        console.log("FETCHED ACCTS", fetchedAccounts);
 
-        // txState.setClaimItems([...newClaimItems]);
+        updateUnregisteredUsers();
 
-        // if (txState.manualSend) {
-        //     txState.setNewCollectionMsg({
-        //         ...txState?.newCollectionMsg,
-        //         transfers: getTransfersFromClaimItems(newClaimItems, accounts),
-        //         claims: []
-        //     });
-        // } else if (!txState.manualSend) {
-        //     const balance = getBadgeSupplysFromMsgNewCollection(txState?.newCollectionMsg);
-        //     const claimRes = getClaimsFromClaimItems(balance, newClaimItems, txState.distributionMethod);
-
-        //     txState.setNewCollectionMsg({
-        //         ...txState?.newCollectionMsg,
-        //         transfers: [],
-        //         claims: claimRes.claims
-        //     })
-        // }
-
-        // setVisible(true);
+        setVisible(true);
     }
 
     const [disabled, setDisabled] = useState<boolean>(true);

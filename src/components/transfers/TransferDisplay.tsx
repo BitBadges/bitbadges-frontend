@@ -16,7 +16,6 @@ export function TransferDisplay({
     collection,
     from,
     fontColor,
-    toCodes,
     hideAddresses,
     hideBalances,
     setTransfers,
@@ -26,7 +25,6 @@ export function TransferDisplay({
     transfers: TransfersExtended[],
     collection: BitBadgeCollection;
     fontColor?: string;
-    toCodes?: string[];
     hideAddresses?: boolean;
     hideBalances?: boolean;
     setTransfers: (transfers: TransfersExtended[]) => void;
@@ -37,7 +35,7 @@ export function TransferDisplay({
 
     return <div style={{ marginTop: 4 }}    >
         {transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
-            <Empty description='No Transfer Found'
+            <Empty description='None'
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 style={{ marginTop: 20, color: PRIMARY_TEXT }}
             />
@@ -61,8 +59,9 @@ export function TransferDisplay({
             const to = transfer.toAddressInfo ? transfer.toAddressInfo : [];
             if (to.length) accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
 
-            const toLength = to.length > 0 ? to.length : toCodes?.length ? toCodes.length : 0;
+            const toLength = to.length > 0 ? to.length : transfer.numCodes ? transfer.numCodes : 0;
             let hasPassword = transfer.password ? true : false;
+            console.log("TRANSFERRRR", transfer, toLength);
 
             return <div key={index}>
                 <div style={{}}>
@@ -133,7 +132,7 @@ export function TransferDisplay({
                                             />}
                                         </>
                                     })}
-                                    {!!toCodes?.length && toCodes?.length > 0 &&
+                                    {!!transfer.numCodes && transfer.numCodes > 0 &&
                                         <>
                                             <Text
                                                 style={{

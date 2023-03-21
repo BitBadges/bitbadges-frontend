@@ -24,12 +24,8 @@ export function BalanceDisplay({
     numIncrements?: number
     incrementBy?: number
 }) {
-    const badgeIds = [];
-    for (const balanceAmount of balance.balances) {
-        for (const idRange of balanceAmount.badgeIds) {
-            badgeIds.push(idRange);
-        }
-    }
+    const allBadgeIdsArr: IdRange[][] = [];
+
 
     return <>
         <div style={{
@@ -52,10 +48,11 @@ export function BalanceDisplay({
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                 <div style={{ fontSize: 15 }}>
                     {balance.balances?.map((balanceAmount, idx) => {
-                        const amount = Number(balanceAmount.balance) * numRecipients / numIncrements;
-                        const allBadgeIds: IdRange[] = JSON.parse(JSON.stringify(balanceAmount.badgeIds))
-                        if (numIncrements) {
+                        const amount = Number(balanceAmount.balance) * numRecipients;
 
+                        const allBadgeIds: IdRange[] = JSON.parse(JSON.stringify(balanceAmount.badgeIds))
+                        allBadgeIdsArr.push(allBadgeIds);
+                        if (numIncrements) {
                             if (incrementBy) {
                                 for (const badgeIdRange of allBadgeIds) {
                                     badgeIdRange.end = badgeIdRange.end + (incrementBy * (numIncrements - 1));
@@ -82,10 +79,10 @@ export function BalanceDisplay({
                                         return <span key={idx}>
                                             {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
                                         </span>
-                                    })}, then x{Number(balanceAmount.balance)} of IDs
+                                    })} to first recipient, then x{Number(balanceAmount.balance)} of IDs
                                     {' '}{balanceAmount.badgeIds.map((idRange, idx) => {
                                         return <span key={idx}>
-                                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start + incrementBy}` : `${idRange.start + incrementBy}-${idRange.end}`}
+                                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start + incrementBy}` : `${idRange.start + incrementBy}-${idRange.end + incrementBy}`}
                                         </span>
                                     })}, and so on)
                                 </> : numRecipients > 1 ?
@@ -105,18 +102,27 @@ export function BalanceDisplay({
                         description={'None'}
                     />
                 </div> : <div style={{ marginTop: 4 }}>
+
                     <BadgeAvatarDisplay
                         collection={collection}
-                        userBalance={balance}
-                        badgeIds={badgeIds}
+                        userBalance={JSON.parse(JSON.stringify({
+                            balances: balance.balances.map((balance, idx) => {
+                                return {
+                                    balance: Number(balance.balance),
+                                    badgeIds: allBadgeIdsArr[idx],
+                                }
+                            }),
+                            approvals: balance.approvals,
+                        }))}
+                        badgeIds={allBadgeIdsArr.flat()}
                         showIds
-                        // pageSize={30}
                         showBalance
                         size={size ? size : 50}
                         hideModalBalance={hideModalBalance}
                     />
                 </div>
                 }
+
 
 
             </div>

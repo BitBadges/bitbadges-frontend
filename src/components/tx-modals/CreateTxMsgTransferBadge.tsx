@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar } from 'antd';
+import { Avatar, Divider } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
@@ -166,6 +166,7 @@ export function CreateTxMsgTransferBadgeModal(
                         userBalance={senderBalance}
                         setTransfers={setTransfers}
                         transfers={transfers}
+                        plusButton
                     />
                 </div >
             </div >,
@@ -192,6 +193,7 @@ export function CreateTxMsgTransferBadgeModal(
                     from={[sender]}
                     setTransfers={setTransfers}
                 />
+                <Divider />
             </div>}
         >
             {children}

@@ -52,7 +52,7 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
                 hideOnSinglePage
             />
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                {activeClaims && activeClaims.length > 0 && collection &&
+                {activeClaims && activeClaims.length > 0 && collection && collection.claims[activeClaimIds[currPage - 1]] &&
                     <ClaimDisplay
                         collection={collection}
                         claim={collection.claims[activeClaimIds[currPage - 1]]}

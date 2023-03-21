@@ -31,7 +31,8 @@ export function DistributeTimeline({
     return (
         <FormTimeline
             items={[
-                DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, true, true),
+
+                DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, false, false),
                 distributionMethod === DistributionMethod.Whitelist
                     ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems) : EmptyStepItem,
                 distributionMethod !== DistributionMethod.Unminted

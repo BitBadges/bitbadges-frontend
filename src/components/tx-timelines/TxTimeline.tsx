@@ -188,20 +188,17 @@ export function TxTimeline({
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
+        console.log("USE EFFECT TRIGGERED");
+        console.log("existingCollection", existingCollection);
         if (existingCollection) {
             setCollectionMetadata(existingCollection.collectionMetadata);
         }
 
         let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
-        let metadata: BadgeMetadataMap = {
-            ...existingCollection?.badgeMetadata
-        };
+        let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(existingCollection?.badgeMetadata ? existingCollection.badgeMetadata : {}));
         if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
             let origNextBadgeId = nextBadgeId;
             for (const badgeSupplyObj of newCollectionMsg.badgeSupplys) {
-                // for (let i = nextBadgeId; i <= badgeSupplyObj.amount + nextBadgeId - 1; i++) {
-                //     metadata[`${i}`] = DefaultPlaceholderMetadata;
-                // }
                 nextBadgeId += badgeSupplyObj.amount;
             }
 
@@ -242,6 +239,8 @@ export function TxTimeline({
             }
         }
 
+
+        console.log("USE EFFECT TRIGGERED END", metadata);
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
     }, [newCollectionMsg.badgeSupplys, existingCollection])

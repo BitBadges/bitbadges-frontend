@@ -13,6 +13,8 @@ export function CollectionDisplay({ collectionId, cosmosAddress, badgeOnlyView }
     const accounts = useAccountsContext();
     const accountInfo = accounts.accounts[`${cosmosAddress}`];
 
+    if (!collection) return <></>;
+
     return <div style={{ width: 300, margin: 10, display: 'flex' }}>
         <InformationDisplayCard
             title={<>

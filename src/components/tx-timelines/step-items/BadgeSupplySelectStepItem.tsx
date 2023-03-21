@@ -3,7 +3,7 @@ import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
 import { BadgeSupplyAndAmount, BitBadgeCollection } from "../../../bitbadges-api/types";
-import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
+import { DEV_MODE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { BadgeSupply } from "../form-items/BadgeSupplySelect";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -199,6 +199,16 @@ export function BadgeSupplySelectStepItem(
                 </Button>
             } */}
             <Divider />
+            {DEV_MODE && <div style={{backgroundColor: 'black'}}>
+                <pre>
+                    {JSON.stringify(collection.badgeMetadata, null, 2)}
+                </pre>
+            </div>}
+            {DEV_MODE && <div style={{backgroundColor: 'black'}}>
+                <pre>
+                    {JSON.stringify(newCollectionMsg, null, 2)}
+                </pre>
+            </div>}
         </div >,
         disabled: newCollectionMsg.badgeSupplys?.length == 0
     }

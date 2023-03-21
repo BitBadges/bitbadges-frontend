@@ -27,7 +27,7 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
                     toAddressInfo: [toAddressesInfo[i]],
                     numCodes: 0,
                     balances: [{
-                        balance: claimItem.amount,
+                        balance: Number(claimItem.amount),
                         badgeIds: JSON.parse(JSON.stringify(currBadgeIds)),
                     }],
                     numIncrements: 0,
@@ -66,7 +66,7 @@ export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimI
     for (const claimItem of claimItems) {
         let claimBalance = JSON.parse(JSON.stringify(undistributedBalance));
         let maxNumClaims = 0;
-        const codesLength = claimItem.codes.length;
+        const codesLength = claimItem.numCodes ? claimItem.numCodes : claimItem.codes.length;
         const addressesLength = claimItem.addresses.length;
 
         if (claimItem.limitPerAccount === 0) { //No restrictions (0) or one per address (2)

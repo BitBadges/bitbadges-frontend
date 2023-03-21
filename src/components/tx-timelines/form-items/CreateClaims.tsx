@@ -57,7 +57,7 @@ export function CreateClaims({
 
     const setTransfersHandler = (newTransfers: (TransfersExtended)[]) => {
         setTransfers([...transfers, ...newTransfers]);
-        addCode([...transfers, ...newTransfers]);
+        addCode(newTransfers);
     }
 
     useEffect(() => {
@@ -74,6 +74,7 @@ export function CreateClaims({
             balances: JSON.parse(JSON.stringify(badgeCollection.maxSupplys)),
             approvals: []
         };
+
 
         const claimsRes = getClaimsFromClaimItems(balance, newClaimItems);
         const transfersRes = getTransfersFromClaimItems(newClaimItems, accounts);
@@ -96,18 +97,22 @@ export function CreateClaims({
                 transfers: []
             })
         }
-
-        setUndistributedBalances(claimsRes.undistributedBalance);
         setClaimItems(newClaimItems);
-        setTransfers(transfersRes);
+        setUndistributedBalances(claimsRes.undistributedBalance);
+
+        // if (manualSend) {
+        //     setTransfers(transfersRes);
+        // }
     }
 
     const addCode = (newTransfers: (TransfersExtended)[]) => {
         let newClaimItems: ClaimItem[] = claimItems;
+
         for (const transfer of newTransfers) {
             const codes = [];
             const addresses = [];
 
+            console.log("TRANSFER", transfer);
             if (transfer.numCodes && transfer.numCodes > 0) {
                 if (distributionMethod === DistributionMethod.Codes) {
                     for (let i = 0; i < transfer.numCodes; i++) {
@@ -116,6 +121,7 @@ export function CreateClaims({
                     }
                 }
             } else {
+                console.log("TOADDRESSES", transfer.toAddresses);
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
                     const userInfo = transfer.toAddressInfo ? transfer.toAddressInfo[i] : undefined;
                     if (!userInfo) {
@@ -268,7 +274,6 @@ export function CreateClaims({
                                                             [
                                                                 {
                                                                     toAddresses: distributionMethod === DistributionMethod.Whitelist ? leaf.addresses.map(addr => {
-
                                                                         return accounts.accounts[addr].accountNumber
                                                                     }) : [],
                                                                     balances: [
@@ -285,14 +290,8 @@ export function CreateClaims({
                                                                     password: leaf.password,
                                                                     numIncrements: leaf.numIncrements,
                                                                     numCodes: leaf.numCodes,
-
                                                                 }
                                                             ]}
-                                                    toCodes={distributionMethod === DistributionMethod.Codes ? leaf.codes :
-
-                                                        distributionMethod === DistributionMethod.FirstComeFirstServe ? new Array(leaf.numCodes) : [
-
-                                                        ]}
                                                 />
 
                                                 <Divider />

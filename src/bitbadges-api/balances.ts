@@ -20,16 +20,23 @@ export const getBalanceAfterTransfer = (balance: UserBalance, startSubbadgeId: n
 export const getBalanceAfterTransfers = (balance: UserBalance, transfers: TransfersExtended[]) => {
     let postBalance: UserBalance = JSON.parse(JSON.stringify(balance)); //need a deep copy of the balance to not mess up calculations
 
-
     for (const transfer of transfers) {
-        const numRecipients = transfer.toAddresses.length
         for (const balance of transfer.balances) {
+            console.log("TRANSFER", transfer);
+            let numRecipients = transfer.numCodes ? transfer.numCodes : transfer.toAddresses.length;
+            if (transfer.incrementBy && transfer.numIncrements) {
+                numRecipients = 1;
+            }
+            console.log("NUMRECIP", numRecipients);
+
             const incrementedBadgeIds = JSON.parse(JSON.stringify(balance.badgeIds));
             for (const idRange of incrementedBadgeIds) {
                 if (transfer.incrementBy && transfer.numIncrements) {
                     idRange.end += (transfer.incrementBy * (transfer.numIncrements - 1));
                 }
             }
+
+            console.log(incrementedBadgeIds, balance.balance, numRecipients);
             for (const badgeId of incrementedBadgeIds) {
                 postBalance = getBalanceAfterTransfer(postBalance, badgeId.start, badgeId.end, balance.balance, numRecipients);
             }

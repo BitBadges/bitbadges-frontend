@@ -63,7 +63,7 @@ export function BadgeAvatarDisplay({
         updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currPageStart, currPageEnd, collection]);
+    }, [currPageStart, currPageEnd, collection, badgeIds]);
 
     if (!collection) return <></>;
 

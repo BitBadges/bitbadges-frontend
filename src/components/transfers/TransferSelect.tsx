@@ -63,7 +63,7 @@ export function TransferSelect({
     const [currentStep, setCurrentStep] = useState(0);
     const [codeType, setCodeType] = useState(CodeType.None);
     const [currTimeRange, setCurrTimeRange] = useState<IdRange>({ start: 0, end: 0 });
-    const [numCodes, setNumCodes] = useState<number>(1);
+    const [numCodes, setNumCodes] = useState<number>(0);
     const [balances, setBalances] = useState<Balance[]>([
         {
             balance: 1,
@@ -84,7 +84,7 @@ export function TransferSelect({
         setCurrentStep(value);
     };
 
-    const numRecipients = distributionMethod === DistributionMethod.Whitelist ? toAddresses.length : numCodes;
+    const numRecipients = !distributionMethod || distributionMethod === DistributionMethod.Whitelist ? toAddresses.length : numCodes;
 
     let totalNumBadges = 0;
     for (const balance of balances) {
@@ -107,10 +107,12 @@ export function TransferSelect({
 
         // If we are not using increments, then we can just add the transfers as is (normal transfer)
         if (!incrementIsSelected) {
+            console.log("!incrementIsSelected")
+            console.log(toAddresses);
             newTransfersToAdd = [{
                 toAddresses: toAddresses.map((user) => user.accountNumber),
                 balances: balances,
-                toAddressInfo: toAddresses,
+                toAddressInfo: toAddresses.map((user) => user),
                 numCodes: numCodes,
                 numIncrements: 0,
                 incrementBy: 0,
@@ -216,10 +218,6 @@ export function TransferSelect({
         if (!postTransferBalanceObj || postTransferBalanceObj === getBlankBalance()) return;
         if (!preTransferBalanceObj || preTransferBalanceObj === getBlankBalance()) return;
 
-        //Deduct all previous transfers
-        postTransferBalanceObj = getBalanceAfterTransfers(postTransferBalanceObj, [...transfers]);
-        preTransferBalanceObj = getBalanceAfterTransfers(preTransferBalanceObj, [...transfers]);
-
         //Deduct transfers to add
         postTransferBalanceObj = getBalanceAfterTransfers(postTransferBalanceObj, [...transfersToAdd]);
 
@@ -267,7 +265,7 @@ export function TransferSelect({
     let canTransfer = Object.values(forbiddenUsersMap).find((message) => message !== '') === undefined;
     if (isWhitelist) canTransfer = true;
 
-    const firstStepDisabled = distributionMethod !== DistributionMethod.Whitelist ? numCodes <= 0 : toAddresses.length === 0;
+    const firstStepDisabled = distributionMethod && distributionMethod !== DistributionMethod.Whitelist ? numCodes <= 0 : toAddresses.length === 0;
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
     const idRangesOverlap = checkIfIdRangesOverlap(balances[0].badgeIds);
@@ -323,7 +321,7 @@ export function TransferSelect({
                         <br />
                         <b>Number of {codeType === CodeType.Unique ? 'Codes' : 'Uses'}</b>
                         <InputNumber
-                            min={1}
+                            min={0}
                             max={100000}
                             value={numCodes}
                             onChange={(value) => {
@@ -521,19 +519,11 @@ export function TransferSelect({
             {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
                 {/* <hr /> */}
                 <TransferDisplay
-                    transfers={[
-                        {
-                            toAddresses: toAddresses.map((user) => user.accountNumber),
-                            balances: balances,
-                            toAddressInfo: toAddresses,
-
-                        }
-                    ]}
+                    transfers={transfersToAdd}
                     collection={collection}
                     fontColor={PRIMARY_TEXT}
                     from={[sender]}
                     setTransfers={setTransfers}
-                    toCodes={distributionMethod !== DistributionMethod.Whitelist ? new Array(numCodes) : []}
                     hideAddresses
                 />
             </div>}
@@ -550,7 +540,7 @@ export function TransferSelect({
     });
 
     //Add time select step
-    if (distributionMethod) {
+    if (distributionMethod && !manualSend) {
         TransferSteps.push({
             title: 'Time',
             description: <div>
@@ -605,14 +595,13 @@ export function TransferSelect({
                 transfers={transfersToAdd}
                 collection={collection}
                 fontColor={PRIMARY_TEXT}
-                toCodes={distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe ? new Array(numCodes ? numCodes / (transfersToAdd.length ? transfersToAdd.length : 1) : 0) : []}
                 from={[sender]}
             />
             <br />
             <Button type='primary'
                 style={{ width: '100%' }}
                 onClick={async () => {
-                    setTransfers([...transfers, ...transfersToAdd]);
+                    setTransfers([...transfersToAdd]);
                     setToAddresses([]);
                     setBalances([
                         {
@@ -620,6 +609,8 @@ export function TransferSelect({
                             badgeIds: getRangesForAllBadges(collection)
                         },
                     ]);
+                    setAmountSelectType(AmountSelectType.None);
+                    setIncrement(0);
 
                     setAddTransferIsVisible(false);
                     setCurrentStep(0);
@@ -637,7 +628,7 @@ export function TransferSelect({
                 !addTransferIsVisible && !hideTransferDisplay && <div>
                     <div className='flex-between'>
                         <div></div>
-                        <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Added Transfers ({transfers.length})</h2>
+                        <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Transfers Added ({transfers.length})</h2>
                         <div></div>
                     </div>
 
@@ -647,10 +638,12 @@ export function TransferSelect({
                         collection={collection}
                         fontColor={PRIMARY_TEXT}
                         from={[sender]}
-                        toCodes={distributionMethod === DistributionMethod.Codes ? new Array(numCodes) : []}
                         deletable
                     />
                     <Divider />
+                    <hr />
+                    <br />
+
                 </div>
             }
 

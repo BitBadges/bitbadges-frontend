@@ -23,7 +23,7 @@ export function ClaimDisplay({
 }) {
     const chain = useChainContext();
     const [currCode, setCurrCode] = useState("");
-    const [whitelistIndex, setWhitelistIndex] = useState<number>();
+
     const accounts = useAccountsContext();
 
     let endTimestamp = claim.timeRange.end;
@@ -65,21 +65,21 @@ export function ClaimDisplay({
 
     if (claim.balances.length === 0) return <></>
 
-    const claimItem = claim;
+
 
     let errorMessage = '';
     let cantClaim = false;
     let notConnected = false;
-    let whitelistIndexToSet = undefined;
+    let whitelistIndex: number | undefined = undefined;
     if (!chain.connected) {
         cantClaim = true;
         notConnected = true;
         errorMessage = 'Please connect your wallet!';
-    } else if (claimItem.hasPassword && !chain.loggedIn) {
+    } else if (claim.hasPassword && !chain.loggedIn) {
         cantClaim = true;
         notConnected = true;
         errorMessage = 'Please sign in with your wallet!';
-    } else if (claimItem.limitPerAccount === 2 && collection.usedClaims.addresses && collection.usedClaims[`${claimId}`]?.addresses[chain.cosmosAddress] >= 1) {
+    } else if (claim.limitPerAccount === 2 && collection.usedClaims.addresses && collection.usedClaims[`${claimId}`]?.addresses[chain.cosmosAddress] >= 1) {
         cantClaim = true;
         errorMessage = 'You have already claimed!';
     } else if (collection.usedClaims[`${claimId}`]?.codes && collection.usedClaims[`${claimId}`].codes[currCode] > 0) {
@@ -87,7 +87,7 @@ export function ClaimDisplay({
         errorMessage = 'This code has already been used!';
     }
 
-    if (claimItem.limitPerAccount === 1) {
+    if (claim.limitPerAccount === 1) {
         const addresses = claim.addresses;
         //Get count of chain.cosmosAddress in addresses
         const max = addresses.filter(x => x === chain.cosmosAddress).length;
@@ -106,7 +106,7 @@ export function ClaimDisplay({
             for (let i = 0; i < claim.addresses.length; i++) {
                 const address = claim.addresses[i];
                 if (count === targetIndex) {
-                    whitelistIndexToSet = i;
+                    whitelistIndex = i;
                 }
 
                 if (address === chain.cosmosAddress) {
@@ -116,7 +116,6 @@ export function ClaimDisplay({
         }
     }
 
-    setWhitelistIndex(whitelistIndexToSet);
 
 
 
@@ -133,6 +132,9 @@ export function ClaimDisplay({
         >
             <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
+                    <h1 style={{ color: PRIMARY_TEXT }}>{'Claim #' + (claimId + 1)}</h1>
+                </Row>
+                <Row style={{ display: 'flex', justifyContent: 'center' }} >
                     <h3 style={{ color: PRIMARY_TEXT }}><ClockCircleOutlined /> {timeStr}</h3>
                 </Row>
                 <BalanceDisplay
@@ -140,7 +142,7 @@ export function ClaimDisplay({
                     collection={collection}
                     balance={{
                         approvals: [],
-                        balances: claimItem.balances
+                        balances: claim.balances
                     }}
                     size={35}
                 />
@@ -148,23 +150,24 @@ export function ClaimDisplay({
                 <BalanceDisplay
                     message={'Current Claim'}
                     collection={collection}
+
                     balance={{
                         approvals: [],
                         balances: [
                             {
-                                balance: claimItem.amount,
-                                badgeIds: claimItem.badgeIds,
+                                balance: claim.amount,
+                                badgeIds: claim.badgeIds,
                             }
                         ]
                     }}
                     size={35}
                 />
 
-                {claimItem.incrementIdsBy > 0 && <div>
+                {claim.incrementIdsBy > 0 && <div>
                     <br />
                     <Row style={{ display: 'flex', justifyContent: 'center' }} >
                         <p style={{ color: PRIMARY_TEXT }}>
-                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {claimItem.incrementIdsBy}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
+                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {claim.incrementIdsBy}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
                         </p>
                     </Row>
                     <br />
@@ -176,12 +179,12 @@ export function ClaimDisplay({
                         <br />
                         <BlockinDisplay hideLogo />
                     </> : <>
-                        {claimItem.codeRoot &&
+                        {claim.codeRoot &&
                             <>
                                 <hr />
-                                <h3 style={{ color: PRIMARY_TEXT }}>Enter {claimItem.hasPassword ? 'Password' : 'Code'} to Claim</h3>
+                                <h3 style={{ color: PRIMARY_TEXT }}>Enter {claim.hasPassword ? 'Password' : 'Code'} to Claim</h3>
                                 <Input
-                                    placeholder={`Enter ${claimItem.hasPassword ? 'Password' : 'Code'}`}
+                                    placeholder={`Enter ${claim.hasPassword ? 'Password' : 'Code'}`}
                                     value={currCode}
                                     onChange={(e: any) => {
                                         setCurrCode(e.target.value);
@@ -195,11 +198,13 @@ export function ClaimDisplay({
                             </>
                         }
 
-                        {claimItem.whitelistRoot &&
+                        {claim.whitelistRoot &&
                             <>
+                                <hr />
+                                <br />
                                 {!claim.addresses.find(y => y.includes(chain.cosmosAddress))
                                     ? <div>
-                                        <h3 style={{ color: PRIMARY_TEXT }}>No claims found for the connected address</h3>
+                                        <h3 style={{ color: PRIMARY_TEXT }}>You are not on the whitelist.</h3>
                                         <div className='flex-between' style={{ justifyContent: 'center' }}>
                                             <AddressDisplay
                                                 fontColor={PRIMARY_TEXT}
@@ -221,7 +226,7 @@ export function ClaimDisplay({
                                     // const address = 
                                     if (!x.addresses.find(y => y.includes(chain.cosmosAddress))) return <></>
 
-                                    // if (collection.usedClaims.find((x) => x === SHA256(claimItem.fullCode).toString())) return <></>
+                                    // if (collection.usedClaims.find((x) => x === SHA256(claim.fullCode).toString())) return <></>
                                     accounts.fetchAccounts([chain.cosmosAddress]);
                                     return accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]] && <>
 
@@ -236,14 +241,13 @@ export function ClaimDisplay({
                                                 {
                                                     toAddresses: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]?.accountNumber],
                                                     balances: [{
-                                                        balance: claimItem.amount,
-                                                        badgeIds: claimItem.badgeIds,
+                                                        balance: claim.amount,
+                                                        badgeIds: claim.badgeIds,
                                                     }],
                                                     toAddressInfo: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]],
                                                 }
                                             ]}
                                             setTransfers={() => { }}
-                                            toCodes={[]}
                                         />
                                     </>
                                 })}
@@ -255,7 +259,7 @@ export function ClaimDisplay({
                     <br />
 
                     <Tooltip style={{ width: '100%', display: 'flex' }} title={errorMessage}>
-                        <Button disabled={cantClaim} type='primary' onClick={() => openModal(claimItem, currCode, whitelistIndex)} style={{ width: '100%' }}>Claim</Button>
+                        <Button disabled={cantClaim} type='primary' onClick={() => openModal(claim, currCode, whitelistIndex)} style={{ width: '100%' }}>Claim</Button>
                     </Tooltip>
 
                     {claim.limitPerAccount === 2 && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
