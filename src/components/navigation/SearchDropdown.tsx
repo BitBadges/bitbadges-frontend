@@ -1,8 +1,8 @@
 
-import { Avatar, Menu, Typography } from 'antd';
+import { Avatar, Menu, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
-import { isAddressValid } from '../../bitbadges-api/chains';
+import { convertToCosmosAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -22,12 +22,16 @@ export function SearchDropdown({
     const { setAccounts, cosmosAddressesByAccountNames, accounts, cosmosAddresses } = useAccountsContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
     const [collectionsResults, setCollectionsResults] = useState<((BadgeMetadata & { _id: string }))[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (!searchValue) return
 
+            setLoading(true);
+            setAccountsResults([]);
+            setCollectionsResults([]);
             const results = await getSearchResults(searchValue);
             setAccounts(results.accounts);
 
@@ -35,6 +39,7 @@ export function SearchDropdown({
             accountsToSet.push(...results.accounts.map((result: CosmosAccountInformation) => convertToBitBadgesUserInfo(result)));
             setAccountsResults(accountsToSet);
             setCollectionsResults(results.collections);
+            setLoading(false);
         }, 300)
 
         return () => clearTimeout(delayDebounceFn)
@@ -48,6 +53,7 @@ export function SearchDropdown({
             onSearch(searchValue);
         }
     }}>
+
         <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
 
         {/* Current Search Value Address Helper */}
@@ -64,7 +70,7 @@ export function SearchDropdown({
                                 accounts[cosmosAddressesByAccountNames[searchValue]] :
                                 {
                                     address: searchValue,
-                                    cosmosAddress: '',
+                                    cosmosAddress: convertToCosmosAddress(searchValue),
                                     chain: SupportedChain.UNKNOWN,
                                     accountNumber: -1,
                                 }}
@@ -78,6 +84,10 @@ export function SearchDropdown({
                 </div>
             </Menu.Item>
         }
+
+        {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
+            <Spin size={'large'} />
+        </Menu.Item>}
 
         {/* {Account Results} */}
         {accountsResults.map((result: BitBadgesUserInfo, idx) => {

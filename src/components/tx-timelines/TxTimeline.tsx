@@ -1,7 +1,7 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
+import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
 import { DefaultPlaceholderMetadata, GO_MAX_UINT_64 } from '../../constants';

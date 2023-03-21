@@ -2,7 +2,7 @@ import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
 import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
-import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
 import { useAccountsContext } from "../../../contexts/AccountsContext";
 
 export function ManualSendSelectStepItem(
@@ -41,7 +41,7 @@ export function ManualSendSelectStepItem(
                     });
                 } else if (idx === 1) {
                     const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
-                    const claimRes = getClaimsValueFromClaimItems(balance, claimItems);
+                    const claimRes = getClaimsFromClaimItems(balance, claimItems);
 
                     setNewCollectionMsg({
                         ...newCollectionMsg,

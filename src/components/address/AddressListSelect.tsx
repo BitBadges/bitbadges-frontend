@@ -7,6 +7,7 @@ import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
+import { getChainForAddress } from "../../bitbadges-api/chains";
 
 export function AddressListSelect({
     users,
@@ -55,21 +56,10 @@ export function AddressListSelect({
     }, [currUserInfo]);
 
     async function updateUsers() {
-        console.log(batchAddAddressList);
         const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '');
-        console.log(batchUsersList);
-        console.log(batchUsersList.filter(address => {
-            return !users.find((u) => u.address === address || u.name === address);
-        }))
-
         const fetchedAccounts = await accounts.fetchAccounts(batchUsersList.filter(address => {
             return !users.find((u) => u.address === address || u.name === address);
         }));
-
-        console.log(batchUsersList.filter(address => {
-            return !users.find((u) => u.address === address || u.name === address);
-        }))
-        console.log(fetchedAccounts);
 
         let newUserList = [...users];
         for (const address of batchUsersList) {
@@ -86,7 +76,7 @@ export function AddressListSelect({
                     newUserList.push({
                         accountNumber: -1,
                         address: address,
-                        chain: SupportedChain.UNKNOWN,
+                        chain: getChainForAddress(address),
                         cosmosAddress: '',
                     });
                 }
@@ -136,14 +126,6 @@ export function AddressListSelect({
                 darkMode={darkMode}
                 hideAddressDisplay
             />
-            {/* <br />
-            <Button
-                type="primary"
-                style={{ width: "100%" }}
-                disabled={!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress}
-                onClick={}>
-                <UserAddOutlined /> Add New User
-            </Button> */}
         </>
         }
         {enterMethod === EnterMethod.Batch && <>
@@ -169,8 +151,6 @@ export function AddressListSelect({
                 <UserAddOutlined /> Add Users
             </Button>
         </>}
-
-
     </>
 
 }

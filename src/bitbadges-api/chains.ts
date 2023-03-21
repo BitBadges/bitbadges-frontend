@@ -95,3 +95,9 @@ export function isAddressValid(address: string, chain?: string) {
 
     return isValidAddress;
 }
+
+export function doesChainMatchName(chain: SupportedChain, name?: string) {
+    if (chain === SupportedChain.ETH && name?.endsWith('.eth')) {
+        return true;
+    }
+}

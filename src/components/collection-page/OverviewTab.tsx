@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping, getFullBadgeIdRanges } from "../../bitbadges-api/badges";
+import { AllAddressesTransferMapping, getRangesForAllBadges } from "../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
@@ -29,10 +29,9 @@ export function OverviewTab({
 
     const isTransferable = !collection.disallowedTransfers?.length;
     const isNonTransferable = collection.disallowedTransfers?.length === 1
-        && JSON.stringify(collection.disallowedTransfers[0]) === JSON.stringify(AllAddressesTransferMapping);
-
-
-
+        && JSON.stringify(collection.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
+        && JSON.stringify(collection.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
+    
     return <>
         <InformationDisplayCard
             title="Badges in Collection"
@@ -42,7 +41,7 @@ export function OverviewTab({
                 size={55}
                 collection={collection}
                 userBalance={userBalance}
-                badgeIds={getFullBadgeIdRanges(collection)}
+                badgeIds={getRangesForAllBadges(collection)}
                 hideModalBalance={isPreview}
             />
         </InformationDisplayCard>

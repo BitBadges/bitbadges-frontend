@@ -5,7 +5,6 @@ import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepIte
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
-import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
@@ -43,10 +42,9 @@ export function AddBadgesTimeline({
     // const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection, true);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
-    const FirstComeFirstServeSelect = FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible)
-    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems);
+    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, simulatedCollection, 1);
-    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod);
+    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
 
     return (
@@ -58,13 +56,11 @@ export function AddBadgesTimeline({
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
                 DistributionMethodStep,
-                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible)
-                    ? FirstComeFirstServeSelect : EmptyStepItem,
-                distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
-                    ? CreateClaims : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist
+                distributionMethod === DistributionMethod.Whitelist
                     ? ManualSendSelect : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
+                distributionMethod !== DistributionMethod.Unminted
+                    ? CreateClaims : EmptyStepItem,
+                claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)
                     ? DownloadCodesStep : EmptyStepItem,
                 CollectionPreviewStep
             ]}

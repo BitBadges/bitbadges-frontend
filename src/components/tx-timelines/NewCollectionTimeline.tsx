@@ -96,8 +96,6 @@ export function MintCollectionTimeline({
                 DistributionMethodStep,
                 distributionMethod === DistributionMethod.Whitelist
                     ? ManualSendSelect : EmptyStepItem,
-                // distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible)
-                //     ? FirstComeFirstServeSelect : EmptyStepItem,
                 distributionMethod !== DistributionMethod.Unminted
                     ? CreateClaims : EmptyStepItem,
                 claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)

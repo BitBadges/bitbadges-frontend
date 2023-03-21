@@ -3,12 +3,12 @@ import { Avatar } from 'antd';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, Transfers, UserBalance } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { PRIMARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { TransferDisplay } from '../transfers/TransferDisplay';
@@ -31,7 +31,7 @@ export function CreateTxMsgTransferBadgeModal(
     const accounts = useAccountsContext();
     const collections = useCollectionsContext();
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[] })[]>([]);
+    const [transfers, setTransfers] = useState<TransfersExtended[]>([]);
     const [sender, setSender] = useState<BitBadgesUserInfo>({
         cosmosAddress: chain.cosmosAddress,
         accountNumber: chain.accountNumber,
@@ -51,7 +51,6 @@ export function CreateTxMsgTransferBadgeModal(
 
     useEffect(() => {
         async function getSenderBalance() {
-            console.log("Getting sender balance");
             const balanceRes = await getBadgeBalance(collection.collectionId, sender.accountNumber);
             if (!balanceRes?.balance) return;
             setSenderBalance(balanceRes.balance);
@@ -61,7 +60,6 @@ export function CreateTxMsgTransferBadgeModal(
 
     useEffect(() => {
         for (const transfer of transfers) {
-            console.log("Fetching accounts");
             accounts.fetchAccountsByNumber(transfer.toAddresses);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,7 +67,7 @@ export function CreateTxMsgTransferBadgeModal(
 
     const unregisteredUsers: string[] = [];
     for (const transfer of transfers) {
-        for (const account of transfer.toAddressInfo) {
+        for (const account of transfer.toAddressInfo ?? []) {
             if (account?.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
         }
     }
@@ -87,7 +85,7 @@ export function CreateTxMsgTransferBadgeModal(
         const newTransfers = [];
         for (const transfer of transfers) {
             const newAddresses = [];
-            for (const toAddress of transfer.toAddressInfo) {
+            for (const toAddress of transfer.toAddressInfo ?? []) {
                 if (toAddress?.accountNumber !== -1) {
                     newAddresses.push(toAddress);
                     continue;
@@ -168,7 +166,6 @@ export function CreateTxMsgTransferBadgeModal(
                         userBalance={senderBalance}
                         setTransfers={setTransfers}
                         transfers={transfers}
-                    // distributionMethod={DistributionMethod.Whitelist}
                     />
                 </div >
             </div >,

@@ -4,7 +4,8 @@ import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/ty
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
-import { getMetadataForBadgeId } from "../../bitbadges-api/badges";
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsIfAbsent } from "../../bitbadges-api/badges";
+import { getPageDetails } from "../../utils/pagination";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -13,7 +14,7 @@ export function BadgeAvatarDisplay({
     size,
     selectedId,
     showIds,
-    pageSize,
+    pageSize = 10,
     showBalance,
     hideModalBalance
 }: {
@@ -27,48 +28,42 @@ export function BadgeAvatarDisplay({
     showBalance?: boolean;
     hideModalBalance?: boolean;
 }) {
-    const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
 
+    const [currPage, setCurrPage] = useState<number>(1);
+    const [total, setTotal] = useState<number>(pageSize); //Total number of badges in badgeIds[]
 
+    //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
+    const [currPageStart, setCurrPageStart] = useState<number>(0); // Index of first badge to display
+    const [currPageEnd, setCurrPageEnd] = useState<number>(0); // Index of last badge to display
+    const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]); // Badge IDs to display of length pageSize
 
-    const PAGE_SIZE = pageSize ? pageSize : 10;
-    let total = 0;
-    let ids: number[] = [];
-    for (const range of badgeIds) {
-        total += Number(range.end) - Number(range.start) + 1;
-        for (let i = Number(range.start); i <= Number(range.end); i++) {
-            ids.push(i);
+    useEffect(() => {
+        let total = 0;
+        for (const range of badgeIds) {
+            const numBadgesInRange = Number(range.end) - Number(range.start) + 1;
+            total += numBadgesInRange;
         }
-    }
-    ids.sort((a, b) => a - b);
+        setTotal(total);
 
+        const currPageDetails = getPageDetails(currPage, pageSize, 0, total - 1);
+        const currPageStart = currPageDetails.start;
+        const currPageEnd = currPageDetails.end;
 
-    const endIdx = ids.length - 1;
-
-    const startIdNum = (currPage - 1) * PAGE_SIZE;
-    const endIdNum = endIdx < startIdNum + PAGE_SIZE - 1 ? endIdx : startIdNum + PAGE_SIZE - 1;
-
+        setCurrPageStart(currPageStart);
+        setCurrPageEnd(currPageEnd);
+    }, [currPage, pageSize, badgeIds]);
 
     useEffect(() => {
         if (!collection) return;
-        for (let i = startIdNum; i <= endIdNum; i++) {
-            if (!getMetadataForBadgeId(ids[i], collection.badgeMetadata)) {
-                let idx = 0;
-                for (const badgeUri of collection.badgeUris) {
-                    for (const badgeIdRange of badgeUri.badgeIds) {
-                        if (Number(badgeIdRange.start) <= ids[i] && Number(badgeIdRange.end) >= ids[i]) {
-                            collections.updateCollectionMetadata(collection.collectionId, idx);
-                            break;
-                        }
-                    }
-                    idx++;
-                }
-                break;
-            }
-        }
+
+        //Calculate badge IDs to display and update metadata for badge IDs if absent
+        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(badgeIds, currPageStart, currPageEnd, pageSize);
+        setBadgeIdsToDisplay(badgeIdsToDisplay);
+        updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startIdNum, endIdNum]);
+    }, [currPageStart, currPageEnd, collection]);
 
     if (!collection) return <></>;
 
@@ -83,7 +78,7 @@ export function BadgeAvatarDisplay({
                 style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
                 current={currPage}
                 total={total}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onChange={(page) => {
                     setCurrPage(page);
                 }}
@@ -102,11 +97,10 @@ export function BadgeAvatarDisplay({
             <>
                 <br />
                 {
-                    collection
-                    && Number(endIdNum) - Number(startIdNum) + 1 > 0
-                    && Number(endIdNum) >= 0 &&
-                    Number(startIdNum) >= 0
-                    && new Array(Number(endIdNum) - Number(startIdNum) + 1).fill(0).map((_, idx) => {
+                    Number(currPageEnd) - Number(currPageStart) + 1 > 0
+                    && Number(currPageEnd) >= 0 &&
+                    Number(currPageStart) >= 0
+                    && new Array(Number(currPageEnd) - Number(currPageStart) + 1).fill(0).map((_, idx) => {
                         return <div key={idx} style={{
                             display: 'flex',
                             flexDirection: 'row',
@@ -115,12 +109,12 @@ export function BadgeAvatarDisplay({
                             margin: 2
                         }}>
                             <BadgeAvatar
-                                size={size && selectedId === ids[idx + Number(startIdNum)] ? size * 1.5 : size}
+                                size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
                                 collection={collection}
                                 metadata={
-                                    getMetadataForBadgeId(ids[idx + Number(startIdNum)], collection.badgeMetadata)
+                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata)
                                 }
-                                badgeId={ids[idx + Number(startIdNum)]}
+                                badgeId={badgeIdsToDisplay[idx]}
                                 balance={userBalance}
                                 showId={showIds}
                                 showBalance={showBalance}

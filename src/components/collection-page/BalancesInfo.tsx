@@ -42,7 +42,6 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             icon: <GiftOutlined />,
             onClick: () => { setTab('claims') },
             tooltipMessage: `Check if you can claim this badge`,
-            count: collection.claims?.filter(x => x.leaves?.indexOf(chain.cosmosAddress) >= 0).length,
             disabled: isPreview
         },
     ]);

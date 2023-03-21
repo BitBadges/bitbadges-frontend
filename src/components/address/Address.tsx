@@ -1,7 +1,7 @@
 import { Tooltip, Typography } from 'antd';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
 import { useRouter } from 'next/router';
-import { getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
+import { doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from '../../bitbadges-api/chains';
 import { SupportedChain } from '../../bitbadges-api/types';
 import { MINT_ACCOUNT, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -30,10 +30,8 @@ export function Address({
     const accounts = useAccountsContext();
     const chain = getChainForAddress(address);
 
-    const doesChainMatchName = chain === SupportedChain.ETH && addressName?.includes('.eth') ? true : false;
-
-
-    let displayAddress = addressName && doesChainMatchName ? addressName : getAbbreviatedAddress(address);
+    const chainMatchesName = doesChainMatchName(chain, addressName);
+    let displayAddress = addressName && chainMatchesName ? addressName : getAbbreviatedAddress(address);
 
     let isValidAddress = isAddressValid(address);
     const accountNumber = accounts.accounts[accounts.cosmosAddresses[address]]?.accountNumber || -1;

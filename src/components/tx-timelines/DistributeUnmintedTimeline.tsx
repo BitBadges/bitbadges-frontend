@@ -4,7 +4,6 @@ import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
-import { FirstComeFirstServeSelectStepItem } from './step-items/FirstComeFirstServeSelectItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 
 //See TxTimeline for explanations and documentation
@@ -33,11 +32,11 @@ export function DistributeTimeline({
         <FormTimeline
             items={[
                 DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, true, true),
-                distributionMethod === DistributionMethod.FirstComeFirstServe && (fungible) ? FirstComeFirstServeSelectStepItem(newCollectionMsg, setNewCollectionMsg, fungible) : EmptyStepItem,
-                distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist
-                    ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, collection.unmintedSupplys) : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Whitelist ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, distributionMethod) : EmptyStepItem,
-                claimItems.length > 0 && distributionMethod === DistributionMethod.Codes
+                distributionMethod === DistributionMethod.Whitelist
+                    ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems) : EmptyStepItem,
+                distributionMethod !== DistributionMethod.Unminted
+                    ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, collection.unmintedSupplys) : EmptyStepItem,
+                claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)
                     ? DownloadCodesStep : EmptyStepItem,
             ]}
             onFinish={() => {

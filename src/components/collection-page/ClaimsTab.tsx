@@ -15,8 +15,8 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
     const [claimItem, setClaimItem] = useState<ClaimItem>();
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [code, setCode] = useState<string>("");
-
     const [currPage, setCurrPage] = useState<number>(1);
+    const [whitelistIndex, setWhitelistIndex] = useState<number>();
 
     if (isPreview) return <Empty
         style={{ color: PRIMARY_TEXT }}
@@ -34,6 +34,7 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
         }
         return false;
     }) : [];
+
 
     return (
         <div
@@ -56,11 +57,12 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
                         collection={collection}
                         claim={collection.claims[activeClaimIds[currPage - 1]]}
                         claimId={activeClaimIds[currPage - 1]}
-                        openModal={(claimItem, code) => {
+                        openModal={(claimItem, code, whitelistIndex) => {
                             setClaimId(activeClaimIds[currPage - 1])
                             setModalVisible(true);
                             setCode(code ? code : "");
                             setClaimItem(claimItem);
+                            setWhitelistIndex(whitelistIndex);
                         }}
                     />
                 }
@@ -92,6 +94,7 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview }: {
                 setVisible={setModalVisible}
                 code={code}
                 claimItem={claimItem}
+                whitelistIndex={whitelistIndex}
             />
         </div >
     );

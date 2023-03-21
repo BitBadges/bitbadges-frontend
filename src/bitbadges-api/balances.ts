@@ -22,18 +22,16 @@ export const getBalanceAfterTransfers = (balance: UserBalance, transfers: Transf
 
 
     for (const transfer of transfers) {
-        const numRecipients = transfer.numIncrements ? transfer.numIncrements : transfer.toAddresses.length
+        const numRecipients = transfer.toAddresses.length
         for (const balance of transfer.balances) {
             const incrementedBadgeIds = JSON.parse(JSON.stringify(balance.badgeIds));
+            for (const idRange of incrementedBadgeIds) {
+                if (transfer.incrementBy && transfer.numIncrements) {
+                    idRange.end += (transfer.incrementBy * (transfer.numIncrements - 1));
+                }
+            }
             for (const badgeId of incrementedBadgeIds) {
                 postBalance = getBalanceAfterTransfer(postBalance, badgeId.start, badgeId.end, balance.balance, numRecipients);
-            }
-
-            if (transfer.incrementBy) {
-                for (const idRange of incrementedBadgeIds) {
-                    idRange.start += transfer.incrementBy;
-                    idRange.end += transfer.incrementBy;
-                }
             }
         }
     }

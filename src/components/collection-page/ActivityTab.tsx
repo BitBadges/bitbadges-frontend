@@ -8,46 +8,62 @@ import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { getPageDetails } from '../../utils/pagination';
 
+enum ActivityType {
+    Collection,
+    Badge,
+    User,
+}
 
-
-export function ActivityTab({ collection, badgeId, activityArr }: {
+export function ActivityTab({ collection, badgeId, userActivity }: {
     collection: BitBadgeCollection;
     badgeId?: number
-    activityArr?: (ActivityItem & { collectionId?: number })[]
+    userActivity?: (ActivityItem & { collectionId?: number })[]
 }) {
     const accounts = useAccountsContext();
     const collections = useCollectionsContext();
     const [currPage, setCurrPage] = useState<number>(1);
 
-
-
+    //We have three categories of activity that we can display, dependent on the props
+    //1. User activity (spanning multiple collections (will specify collectionId))
+    //2. Activity for a specific badge (one collection and filtered by a specific badgeId)
+    //3. Activity for a collection (all badges in the collection)
+    let activityType = ActivityType.User;
     let activity: (ActivityItem & { collectionId?: number })[];
-    if (activityArr) {
-        activity = activityArr;
+    if (userActivity) {
+        activity = userActivity;
     } else {
         //If we are showing a badge's activity, filter the activity to only show that badge's activity
         if (badgeId && collection) {
+            activityType = ActivityType.Badge;
             activity = filterBadgeActivityForBadgeId(badgeId, collection?.activity);
         } else if (collection) {
+            activityType = ActivityType.Collection;
             activity = collection.activity;
         } else {
             activity = [];
         }
     }
 
+
     const PAGE_SIZE = 25;
-    const startId = 0;
-    const endId = activity.length ? activity.length - 1 : 0;
-    const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
-    const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
+    const minId = 0;
+    const maxId = activity.length ? activity.length - 1 : 0;
+
+    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
+    const currPageStart = currPageDetails.start;
+    const currPageEnd = currPageDetails.end;
 
     useEffect(() => {
         async function getActivity() {
             if (!activity) return;
 
             const accountsToFetch = [];
-            for (const activityItem of activity) {
+            for (let i = currPageStart; i <= currPageEnd; i++) {
+                const activityItem = activity[i];
+                if (!activityItem) continue;
+
                 for (const from of activityItem.from) {
                     if (from === 'Mint') continue;
                     accountsToFetch.push(Number(from));
@@ -62,14 +78,14 @@ export function ActivityTab({ collection, badgeId, activityArr }: {
         }
         getActivity();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activity]);
+    }, [activity, currPage]);
 
     if (!activity) return <></>
 
     if (activity.length === 0) {
         return <Empty
             style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, width: '100%' }}
-            description="No activity yet." image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="No activity." image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
     }
 
@@ -102,36 +118,36 @@ export function ActivityTab({ collection, badgeId, activityArr }: {
                     display: 'flex'
                 }}>
 
-
-
                 <Collapse style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, width: '100%', alignItems: 'center' }}
                     expandIconPosition='start'
                 >
                     {activity.map((activity, idx) => {
-                        const collectionId = activity.collectionId ? activity.collectionId : collection.collectionId;
-                        const collectionToShow = activity.collectionId ? collections.collections[collectionId] : collection;
+                        const collectionId = activityType === ActivityType.User && activity.collectionId ? activity.collectionId : collection.collectionId;
+                        const collectionToShow = activityType === ActivityType.User ? collections.collections[collectionId] : collection;
                         if (!collectionToShow) return <></>;
 
-                        if (!(idx >= startIdNum && idx <= endIdNum)) return <></>;
+                        if (!(idx >= currPageStart && idx <= currPageEnd)) return <></>;
                         return <CollapsePanel
                             key={idx}
-                            header={<div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                        {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
-                                        />)}
+                            header={
+                                <div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                            {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
+                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            />)}
+                                        </div>
+                                        <b style={{ marginRight: 8 }}>to</b>
+                                        <div style={{ flexDirection: 'column' }}>
+                                            {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
+                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                            />)}
+                                        </div>
                                     </div>
-                                    <b style={{ marginRight: 8 }}>to</b>
-                                    <div style={{ flexDirection: 'column' }}>
-                                        {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                            userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
-                                        />)}
-                                    </div>
-                                </div>
 
-                                <div>{activity.method}</div>
-                            </div>}
+                                    <div>{activity.method}</div>
+                                </div>
+                            }
                             style={{
                                 width: '100%',
                             }}
@@ -146,50 +162,44 @@ export function ActivityTab({ collection, badgeId, activityArr }: {
                                 }}>
 
                                 <div key={idx} style={{ color: PRIMARY_TEXT }}>
-                                    {activity.balances.map((balance, idx) => {
 
-
-                                        return <div key={idx} style={{ width: 600 }}>
-                                            <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
-                                            <TransferDisplay
-                                                fontColor={PRIMARY_TEXT}
-                                                key={idx}
-                                                collection={collectionToShow}
-                                                from={activity.from.map((from) => {
-                                                    console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]])
-                                                    return accounts.cosmosAddressesByAccountNumbers[from] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]]
-                                                        ? accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]] : {
-                                                            accountNumber: -1,
-                                                            address: '',
-                                                            cosmosAddress: '',
-                                                            chain: SupportedChain.COSMOS,
-                                                        }
-                                                })}
-                                                transfers={[
-                                                    {
-                                                        toAddresses: activity.to.map((x) => Number(x)),
-                                                        toAddressInfo: activity.to.map((to) => {
-                                                            console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]])
-                                                            return accounts.cosmosAddressesByAccountNumbers[to] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] ?
-                                                                accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] : {
-                                                                    accountNumber: -1,
-                                                                    address: '',
-                                                                    cosmosAddress: '',
-                                                                    chain: SupportedChain.COSMOS,
-                                                                }
-                                                        }),
-                                                        balances: [{
-                                                            balance: balance.balance,
-                                                            badgeIds: balance.badgeIds
-                                                        }]
+                                    <div style={{ width: 600 }}>
+                                        <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
+                                        <TransferDisplay
+                                            fontColor={PRIMARY_TEXT}
+                                            key={idx}
+                                            collection={collectionToShow}
+                                            from={activity.from.map((from) => {
+                                                console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]])
+                                                return accounts.cosmosAddressesByAccountNumbers[from] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]]
+                                                    ? accounts.accounts[accounts.cosmosAddressesByAccountNumbers[from]] : {
+                                                        accountNumber: -1,
+                                                        address: '',
+                                                        cosmosAddress: '',
+                                                        chain: SupportedChain.COSMOS,
                                                     }
+                                            })}
+                                            transfers={[
+                                                {
+                                                    toAddresses: activity.to.map((x) => Number(x)),
+                                                    toAddressInfo: activity.to.map((to) => {
+                                                        console.log(accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]])
+                                                        return accounts.cosmosAddressesByAccountNumbers[to] && accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] ?
+                                                            accounts.accounts[accounts.cosmosAddressesByAccountNumbers[to]] : {
+                                                                accountNumber: -1,
+                                                                address: '',
+                                                                cosmosAddress: '',
+                                                                chain: SupportedChain.COSMOS,
+                                                            }
+                                                    }),
+                                                    balances: activity.balances
+                                                }
 
-                                                ]}
-                                                setTransfers={() => { }}
-                                            />
-                                            <Divider />
-                                        </div>
-                                    })}
+                                            ]}
+                                            setTransfers={() => { }}
+                                        />
+                                        <Divider />
+                                    </div>
                                 </div>
                             </div>
                         </CollapsePanel>

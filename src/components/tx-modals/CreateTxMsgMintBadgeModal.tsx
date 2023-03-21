@@ -131,7 +131,7 @@ export function CreateTxMsgMintBadgeModal(
         //     });
         // } else if (!txState.manualSend) {
         //     const balance = getBadgeSupplysFromMsgNewCollection(txState?.newCollectionMsg);
-        //     const claimRes = getClaimsValueFromClaimItems(balance, newClaimItems, txState.distributionMethod);
+        //     const claimRes = getClaimsFromClaimItems(balance, newClaimItems, txState.distributionMethod);
 
         //     txState.setNewCollectionMsg({
         //         ...txState?.newCollectionMsg,

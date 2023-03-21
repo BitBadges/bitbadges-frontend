@@ -1,5 +1,5 @@
 import { Empty } from "antd";
-import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
@@ -10,6 +10,9 @@ export function BalanceDisplay({
     size,
     showingSupplyPreview,
     hideModalBalance,
+    numRecipients = 1,
+    numIncrements = 0,
+    incrementBy = 0,
 }: {
     collection: BitBadgeCollection;
     balance: UserBalance;
@@ -17,6 +20,9 @@ export function BalanceDisplay({
     size?: number;
     showingSupplyPreview?: boolean;
     hideModalBalance?: boolean;
+    numRecipients?: number,
+    numIncrements?: number
+    incrementBy?: number
 }) {
     const badgeIds = [];
     for (const balanceAmount of balance.balances) {
@@ -46,24 +52,51 @@ export function BalanceDisplay({
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                 <div style={{ fontSize: 15 }}>
                     {balance.balances?.map((balanceAmount, idx) => {
+                        const amount = Number(balanceAmount.balance) * numRecipients / numIncrements;
+                        const allBadgeIds: IdRange[] = JSON.parse(JSON.stringify(balanceAmount.badgeIds))
+                        if (numIncrements) {
+
+                            if (incrementBy) {
+                                for (const badgeIdRange of allBadgeIds) {
+                                    badgeIdRange.end = badgeIdRange.end + (incrementBy * (numIncrements - 1));
+                                }
+                            }
+                        }
 
                         return <>
-                            <span style={{ color: balanceAmount.balance < 0 ? 'red' : undefined }}>
+                            <span style={{ color: amount < 0 ? 'red' : undefined }}>
                                 {idx !== 0 && <br />}
-                                ID{balanceAmount.badgeIds.length === 1 && balanceAmount.badgeIds[0].start === balanceAmount.badgeIds[0].end ? ' ' : 's'}{' '}
+                                ID{allBadgeIds.length === 1 && allBadgeIds[0].start === allBadgeIds[0].end ? ' ' : 's'}{' '}
 
-                                {balanceAmount.badgeIds.map((idRange, idx) => {
+                                {allBadgeIds.map((idRange, idx) => {
                                     return <span key={idx}>
                                         {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
                                     </span>
                                 })}
 
-                                {' '}-  {showingSupplyPreview ? <>Supply of </> : <></>}<b>x{balanceAmount.balance}</b>
+                                {' '}-  {showingSupplyPreview ? <>Supply of </> : <></>}<b>x{amount}</b>
 
+                                {numIncrements > 0 && incrementBy > 0 ? <>
+                                    {' '}(x{Number(balanceAmount.balance)} of IDs
+                                    {' '}{balanceAmount.badgeIds.map((idRange, idx) => {
+                                        return <span key={idx}>
+                                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
+                                        </span>
+                                    })}, then x{Number(balanceAmount.balance)} of IDs
+                                    {' '}{balanceAmount.badgeIds.map((idRange, idx) => {
+                                        return <span key={idx}>
+                                            {idx !== 0 ? ', ' : ' '} {idRange.start == idRange.end ? `${idRange.start + incrementBy}` : `${idRange.start + incrementBy}-${idRange.end}`}
+                                        </span>
+                                    })}, and so on)
+                                </> : numRecipients > 1 ?
+                                    <>
+                                        {' '}(x{Number(balanceAmount.balance)} to each recipient)
+                                    </> : <></>
+                                }
                             </span>
                         </>
                     })}
-                </div>
+                </div >
 
                 {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
                     <Empty
@@ -82,7 +115,8 @@ export function BalanceDisplay({
                         size={size ? size : 50}
                         hideModalBalance={hideModalBalance}
                     />
-                </div>}
+                </div>
+                }
 
 
             </div>

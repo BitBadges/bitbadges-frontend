@@ -14,6 +14,12 @@ import { ActivityTab } from '../collection-page/ActivityTab';
 const { Content } = Layout;
 const { Text } = Typography;
 
+const tabInfo = [
+    { key: 'overview', content: 'Overview' },
+    { key: 'owners', content: 'Owners' },
+    { key: 'activity', content: 'Activity' },
+];
+
 export function BadgeModal({ collection, metadata, visible, setVisible, balance, badgeId, hideBalances }
     : {
         collection: BitBadgeCollection,
@@ -27,11 +33,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
     const chain = useChainContext();
     const [tab, setTab] = useState('overview');
 
-    const tabInfo = [
-        { key: 'overview', content: 'Overview' },
-        { key: 'owners', content: 'Owners' },
-        { key: 'activity', content: 'Activity' },
-    ];
+
 
     return (
         <Drawer

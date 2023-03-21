@@ -1,4 +1,4 @@
-import { DeleteOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
 import { getBlankBalance } from "../../bitbadges-api/balances";
@@ -16,10 +16,7 @@ export function IdRangesInput({
     darkMode,
     verb,
     collection,
-    defaultAllSelected = true,
-    showIncrementSelect,
-    increment,
-    setIncrement
+    defaultAllSelected = true
 }: {
     idRanges?: IdRange[],
     setIdRanges: (idRanges: IdRange[]) => void,
@@ -29,9 +26,6 @@ export function IdRangesInput({
     verb?: string,
     collection: BitBadgeCollection,
     defaultAllSelected?: boolean,
-    showIncrementSelect?: boolean,
-    increment?: number,
-    setIncrement?: (increment: number) => void,
 }) {
     const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
 
@@ -73,18 +67,6 @@ export function IdRangesInput({
         message: `Select all badges in this collection. ${maximum === 1 ? 'This is auto-selected because there is only one badge.' : ''}`,
         isSelected: updateAllIsSelected,
     });
-
-    // if (maximum == 1) {
-    //     return <div style={{ display: "flex", alignItems: 'center', justifyContent: 'center' }}>
-    //         <div className='flex-between' style={{ flexDirection: 'column', minWidth: 500, marginRight: 12 }} >
-    //             There is only one badge in this collection, so we have automatically selected it for you!
-    //         </div>
-    //     </div>
-    // }
-
-    let numIncrements = 0;
-
-
 
 
     return <>

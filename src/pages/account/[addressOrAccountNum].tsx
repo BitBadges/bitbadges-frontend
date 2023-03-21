@@ -52,10 +52,6 @@ function CollectionPage() {
                 const portfolioInfo = await getPortfolio(accountNum);
                 if (!portfolioInfo) return;
                 await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
-
-                const x = new Array(30).fill(portfolioInfo.collected[0]);
-                portfolioInfo.collected = x;
-
                 setPortfolioInfo(portfolioInfo);
             }
         }
@@ -119,7 +115,7 @@ function CollectionPage() {
 
                     {tab === 'activity' && (
                         <ActivityTab
-                            activityArr={portfolioInfo?.activity}
+                            userActivity={portfolioInfo?.activity}
                             collection={{} as BitBadgeCollection}
                         />
                     )}

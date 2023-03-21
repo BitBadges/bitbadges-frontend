@@ -7,10 +7,11 @@ import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';
 import { getCodeForPassword } from '../../bitbadges-api/api';
 import MerkleTree from 'merkletreejs';
+import { WarningOutlined } from '@ant-design/icons';
 
 export function CreateTxMsgClaimBadgeModal(
     {
-        collection, visible, setVisible, children, claimId, claimItem, refreshUserBalance, code
+        collection, visible, setVisible, children, claimId, claimItem, refreshUserBalance, code, whitelistIndex
     }: {
         collection: BitBadgeCollection | undefined,
         refreshUserBalance: () => Promise<void>,
@@ -20,6 +21,7 @@ export function CreateTxMsgClaimBadgeModal(
         claimId: number
         claimItem?: ClaimItem,
         code: string
+        whitelistIndex?: number
     }
 ) {
     const chain = useChainContext();
@@ -28,7 +30,6 @@ export function CreateTxMsgClaimBadgeModal(
 
     const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256) : null);
     const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256) : null);
-
     const [codeToSubmit, setCodeToSubmit] = React.useState<string>("");
 
     useEffect(() => {
@@ -41,7 +42,6 @@ export function CreateTxMsgClaimBadgeModal(
             }
         }
         fetchCode();
-
     }, [claimItem, code])
 
     useEffect(() => {
@@ -56,14 +56,14 @@ export function CreateTxMsgClaimBadgeModal(
 
     if (!claimObject || !collection || !claimItem) return <></>;
 
-    //TODO: duplicate addresses / codes //.includes may lead to bugs
-    const addressString = claimItem.addresses.find((x) => x.includes(chain.cosmosAddress)) || "";
-
-    const addressProofObj = addressesTree?.getProof(SHA256(addressString).toString());
+    const addressString = chain.cosmosAddress;
+    const addressProofObj = addressesTree?.getProof(SHA256(addressString).toString(), whitelistIndex);
 
     const codeString = SHA256(codeToSubmit).toString();
     const leafCode = SHA256(codeString).toString();
     const codeProofObj = codeTree?.getProof(leafCode);
+
+    const isValidCodeProof = codeProofObj && codeTree && codeProofObj.length === codeTree.getLayerCount() - 1;
 
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,
@@ -79,13 +79,13 @@ export function CreateTxMsgClaimBadgeModal(
             leaf: addressString,
         },
         codeProof: {
-            aunts: codeProofObj ? codeProofObj?.map((proof) => {
+            aunts: isValidCodeProof ? codeProofObj?.map((proof) => {
                 return {
                     aunt: proof.data.toString('hex'),
                     onRight: proof.position === 'right'
                 }
             }) : [],
-            leaf: codeString,
+            leaf: isValidCodeProof ? codeString : '',
         },
     };
 
@@ -96,6 +96,12 @@ export function CreateTxMsgClaimBadgeModal(
             txName="Claim Badge"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgClaimBadge}
+            disabled={!isValidCodeProof}
+            displayMsg={isValidCodeProof ? undefined :
+                <div style={{ fontSize: 20 }}>
+                    <div style={{ color: 'red' }}><WarningOutlined style={{ color: 'red' }} /> The provided code is invalid. This transaction will fail.</div>
+                </div>
+            }
             onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
         >
             {children}

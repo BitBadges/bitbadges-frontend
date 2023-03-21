@@ -4,7 +4,7 @@ import {
 } from '@ant-design/icons';
 import { Col, Divider, Row, Typography } from 'antd';
 import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_TEXT } from '../../constants';
+import { DEV_MODE, GO_MAX_UINT_64, PRIMARY_TEXT } from '../../constants';
 import { TableRow } from '../display/TableRow';
 
 const { Text } = Typography;
@@ -16,11 +16,11 @@ export function BadgeOverview({ collection, metadata, badgeId }: {
 }) {
     if (!collection || !metadata) return <></>
 
-    let endTimestamp = MAX_DATE_TIMESTAMP;
-    let validForever = true;
-    if (metadata?.validFrom?.end) {
+    let endTimestamp = GO_MAX_UINT_64;
+    let validForever = false;
+    if (metadata?.validFrom?.end === GO_MAX_UINT_64) {
         endTimestamp = metadata.validFrom.end;
-        validForever = false;
+        validForever = true;
     }
 
     const endDateString = validForever ? `Forever` : new Date(
@@ -46,7 +46,7 @@ export function BadgeOverview({ collection, metadata, badgeId }: {
 
                     {metadata?.description && <TableRow label={"Description"} value={metadata.description} labelSpan={12} valueSpan={12} />}
                     {<TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
-                        {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
+                        {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== GO_MAX_UINT_64
                             ? 'Until ' +
                             endDateString
                             : 'Forever'

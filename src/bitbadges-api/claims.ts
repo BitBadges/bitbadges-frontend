@@ -5,6 +5,8 @@ import { BitBadgesUserInfo, ClaimItem, Claims, TransfersExtended, UserBalance } 
 export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: AccountsContextType) => {
     const transfers: TransfersExtended[] = [];
     for (const claimItem of claimItems) {
+
+        //Fetch account information of recipients
         const toAddresses: number[] = [];
         const toAddressesInfo: BitBadgesUserInfo[] = [];
         for (const address of claimItem.addresses) {
@@ -16,6 +18,7 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
             toAddressesInfo.push(...new Array(amount).fill(accounts.accounts[address]));
         }
 
+        //If badges are incremented, we create N unique transfers. Else, we can create one transfer
         if (claimItem.incrementIdsBy && claimItem.numIncrements) {
             const currBadgeIds = JSON.parse(JSON.stringify(claimItem.badgeIds))
             for (let i = 0; i < toAddresses.length; i++) {
@@ -36,9 +39,7 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
                     currBadgeIds[j].end += claimItem.incrementIdsBy;
                 }
             }
-
         } else {
-
             transfers.push({
                 toAddresses,
                 toAddressInfo: toAddressesInfo,
@@ -57,7 +58,7 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
     return transfers;
 }
 
-export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[]) => {
+export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[]) => {
     let undistributedBalance = JSON.parse(JSON.stringify(balance));
 
     const claims: Claims[] = [];
@@ -83,7 +84,7 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
         if (maxNumClaims > 0) {
             const transfers = [
                 {
-                    toAddresses: [],
+                    toAddresses: [0],
                     balances: [
                         {
                             badgeIds: claimItem.badgeIds,
@@ -105,7 +106,6 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
                     claimBalance.balances = newBalance.balances;
                 }
             }
-
         } else {
             claimBalance = undistributedBalance;
             balance = {
@@ -129,7 +129,7 @@ export const getClaimsValueFromClaimItems = (balance: UserBalance, claimItems: C
     }
 
     return {
-        undistributedBalance: undistributedBalance,
+        undistributedBalance,
         claims
     }
 }

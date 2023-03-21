@@ -33,8 +33,6 @@ export function ButtonDisplay({
                 }}
             >
                 {buttons.map((button, idx) => {
-
-
                     return (
                         <Tooltip
                             key={idx}

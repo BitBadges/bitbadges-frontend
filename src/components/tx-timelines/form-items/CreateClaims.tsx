@@ -2,18 +2,17 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { Collapse, Divider, Empty, Pagination, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { SHA256 } from 'crypto-js';
+import MerkleTree from 'merkletreejs';
 import { useEffect, useState } from 'react';
-import { createClaim, getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, IdRange, Transfers, UserBalance } from '../../../bitbadges-api/types';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
+import { Balance, BitBadgeCollection, ClaimItem, DistributionMethod, TransfersExtended, UserBalance } from '../../../bitbadges-api/types';
 import { DEV_MODE, GO_MAX_UINT_64, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { AddressDisplay } from '../../address/AddressDisplay';
+import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { TransferDisplay } from '../../transfers/TransferDisplay';
 import { TransferSelect } from '../../transfers/TransferSelect';
-import MerkleTree from 'merkletreejs';
-import { SHA256 } from 'crypto-js';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
 
 const crypto = require('crypto');
 
@@ -52,11 +51,11 @@ export function CreateClaims({
             approvals: []
         });
 
-    const [transfers, setTransfers] = useState<(Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]>(claimItems ?
+    const [transfers, setTransfers] = useState<(TransfersExtended)[]>(claimItems ?
         getTransfersFromClaimItems(claimItems, accounts) : []
     );
 
-    const setTransfersHandler = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]) => {
+    const setTransfersHandler = (newTransfers: (TransfersExtended)[]) => {
         setTransfers([...transfers, ...newTransfers]);
         addCode([...transfers, ...newTransfers]);
     }
@@ -76,7 +75,7 @@ export function CreateClaims({
             approvals: []
         };
 
-        const claimsRes = getClaimsValueFromClaimItems(balance, newClaimItems);
+        const claimsRes = getClaimsFromClaimItems(balance, newClaimItems);
         const transfersRes = getTransfersFromClaimItems(newClaimItems, accounts);
 
         if (manualSend) {
@@ -101,28 +100,24 @@ export function CreateClaims({
         setUndistributedBalances(claimsRes.undistributedBalance);
         setClaimItems(newClaimItems);
         setTransfers(transfersRes);
-
     }
 
-    const addCode = (newTransfers: (Transfers & { toAddressInfo: (BitBadgesUserInfo | undefined)[], numCodes?: number, numIncrements?: number, incrementBy?: number, password?: string, salt?: string, timeRange?: IdRange })[]) => {
+    const addCode = (newTransfers: (TransfersExtended)[]) => {
         let newClaimItems: ClaimItem[] = claimItems;
         for (const transfer of newTransfers) {
             const codes = [];
             const addresses = [];
 
-
-            let salt = '';
             if (transfer.numCodes && transfer.numCodes > 0) {
                 if (distributionMethod === DistributionMethod.Codes) {
                     for (let i = 0; i < transfer.numCodes; i++) {
                         const code = crypto.randomBytes(32).toString('hex');
-                        codes.push(code); //TODO: admin password salt and reusable passwords
+                        codes.push(code);
                     }
                 }
-
             } else {
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
-                    const userInfo = transfer.toAddressInfo[i];
+                    const userInfo = transfer.toAddressInfo ? transfer.toAddressInfo[i] : undefined;
                     if (!userInfo) {
                         continue;
                     }
@@ -136,7 +131,6 @@ export function CreateClaims({
 
             const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256);
             const addressesRoot = addressesTree.getRoot().toString('hex');
-
 
             const newClaimItem: ClaimItem = {
                 addresses: addresses,
@@ -222,7 +216,6 @@ export function CreateClaims({
                                             return <></>
                                         }
 
-                                        let currIndex = index;
                                         return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
 

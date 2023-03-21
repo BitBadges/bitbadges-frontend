@@ -9,7 +9,7 @@ import { BadgeModal } from './BadgeModal';
 
 export function BadgeCard({
     metadata,
-    size,
+    size = 100,
     collection,
     hoverable,
     id,
@@ -36,8 +36,6 @@ export function BadgeCard({
             setBadgeId(-1);
         }
     }, [isModalOpen, visible, setBadgeId]);
-
-    if (!size) size = 100;
 
     //Calculate total, undistributed, claimable, and distributed supplys
     let totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);

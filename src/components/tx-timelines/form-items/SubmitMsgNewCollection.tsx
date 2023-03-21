@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
 import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../../bitbadges-api/types';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
-import { getClaimsValueFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 
@@ -55,7 +55,7 @@ export function SubmitMsgNewCollection({
             });
         } else if (!manualSend) {
             const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
-            const claimRes = getClaimsValueFromClaimItems(balance, claimItems);
+            const claimRes = getClaimsFromClaimItems(balance, claimItems);
 
             setNewCollectionMsg({
                 ...newCollectionMsg,

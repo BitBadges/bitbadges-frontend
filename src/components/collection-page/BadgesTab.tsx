@@ -5,7 +5,8 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgeCard } from '../badges/BadgeCard';
-import { getMetadataForBadgeId } from '../../bitbadges-api/badges';
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getRangesForAllBadges, updateMetadataForBadgeIdsIfAbsent } from '../../bitbadges-api/badges';
+import { getPageDetails } from '../../utils/pagination';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
     collection: BitBadgeCollection;
@@ -17,32 +18,23 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
     const [currPage, setCurrPage] = useState<number>(1);
     const collections = useCollectionsContext();
 
-    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e.?id=1)
+    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. URL?id=1)
 
     const PAGE_SIZE = 25;
-    const startId = 1;
-    const endId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
-    const startIdNum = (currPage - 1) * PAGE_SIZE + startId;
-    const endIdNum = endId < startIdNum + PAGE_SIZE - 1 ? endId : startIdNum + PAGE_SIZE - 1;
+    const minId = 1;
+    const maxId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
+
+    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
+    const pageStartId = currPageDetails.start;
+    const pageEndId = currPageDetails.end;
 
     useEffect(() => {
-        for (let i = startIdNum; i <= endIdNum; i++) {
-            if (!getMetadataForBadgeId(i, collection.badgeMetadata)) {
-                let idx = 0;
-                for (const badgeUri of collection.badgeUris) {
-                    for (const badgeIdRange of badgeUri.badgeIds) {
-                        if (Number(badgeIdRange.start) <= i && Number(badgeIdRange.end) >= i) {
-                            collections.updateCollectionMetadata(collection.collectionId, idx);
-                            break;
-                        }
-                    }
-                    idx++;
-                }
-                break;
-            }
-        }
+        //Calculate badge IDs to display and update metadata
+        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getRangesForAllBadges(collection), minId, maxId, PAGE_SIZE);
+        updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startIdNum, endIdNum]);
+    }, [pageStartId, pageEndId]);
 
     return (
         <div
@@ -58,7 +50,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
                 <Pagination
                     style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
                     current={currPage}
-                    total={Number(endId) - Number(startId)}
+                    total={Number(maxId) - Number(minId)}
                     pageSize={PAGE_SIZE}
                     onChange={(page) => {
                         setCurrPage(page);
@@ -76,10 +68,10 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
             >
                 {
                     collection
-                    && Number(endIdNum) - Number(startIdNum) + 1 > 0
-                    && Number(endIdNum) >= 0
-                    && Number(startIdNum) >= 0
-                    && new Array(Number(endIdNum) - Number(startIdNum) + 1).fill(0).map((_, idx) => {
+                    && Number(pageEndId) - Number(pageStartId) + 1 > 0
+                    && Number(pageEndId) >= 0
+                    && Number(pageStartId) >= 0
+                    && new Array(Number(pageEndId) - Number(pageStartId) + 1).fill(0).map((_, idx) => {
                         return <div key={idx}>
                             <BadgeCard
                                 isModalOpen={modalToOpen === idx}
@@ -87,9 +79,9 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
                                 balance={balance}
                                 collection={collection}
                                 metadata={
-                                    getMetadataForBadgeId(idx + Number(startIdNum), collection.badgeMetadata)
+                                    getMetadataForBadgeId(idx + Number(pageStartId), collection.badgeMetadata)
                                 }
-                                id={idx + Number(startIdNum)}
+                                id={idx + Number(pageStartId)}
                                 hideModalBalances={isPreview}
                             />
                         </div>

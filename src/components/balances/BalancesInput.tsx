@@ -34,6 +34,6 @@ export function BalancesInput({
             }
         }}
         darkMode={darkMode}
-        title={"Amount to Transfer"}
+        title={title ? title : "Amount to Transfer"}
     />
 }

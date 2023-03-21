@@ -137,12 +137,14 @@ export interface BitBadgeCollection {
     badgeMetadata: BadgeMetadataMap,
     activity: ActivityItem[];
     usedClaims: {
-        codes: {
-            [code: string]: number;
-        },
-        numUsed: number,
-        addresses: {
-            [cosmosAddress: string]: number;
+        [claimId: string]: {
+            codes: {
+                [code: string]: number;
+            },
+            numUsed: number,
+            addresses: {
+                [cosmosAddress: string]: number;
+            }
         }
     };
     originalClaims: ClaimItem[];

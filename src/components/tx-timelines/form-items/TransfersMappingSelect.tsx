@@ -33,6 +33,7 @@ export function TransfersMappingSelect({
     const [from, setFrom] = useState<BitBadgesUserInfo[]>([]);
 
 
+
     useEffect(() => {
         let _allFromAddresses = allFromAddresses;
         let _allToAddresses = allToAddresses;

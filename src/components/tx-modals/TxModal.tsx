@@ -16,7 +16,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx, disabled
     }: {
         createTxFunction: any,
         txCosmosMsg: object,
@@ -34,6 +34,7 @@ export function TxModal(
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
         width?: number | string
+        disabled?: boolean
     }
 ) {
     if (!msgSteps) msgSteps = [];
@@ -100,8 +101,6 @@ export function TxModal(
                     router.push(`/collections/${collection.collectionId}`);
                 }
             }
-
-
 
             setTransactionStatus(TransactionStatus.None);
 
@@ -181,7 +180,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked)),
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked || disabled)),
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}

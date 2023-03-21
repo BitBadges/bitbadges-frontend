@@ -298,3 +298,18 @@ export function InsertRangeToIdRanges(rangeToAdd: IdRange, targetIds: IdRange[])
 
     return newIds;
 }
+
+export function checkIfIdRangesOverlap(idRanges: IdRange[]) {
+    return idRanges.some(({ start, end }, i) => {
+        const start1 = start;
+        const end1 = end
+        return idRanges.some(({ start, end }, j) => {
+            const start2 = start;
+            const end2 = end;
+            if (i === j) {
+                return false;
+            }
+            return start1 <= end2 && start2 <= end1;
+        });
+    });
+}

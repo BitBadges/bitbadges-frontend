@@ -19,9 +19,6 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
     const chain = useChainContext();
 
     const [txState, setTxState] = useState<TxTimelineProps>();
-
-
-
     const [disabled, setDisabled] = useState<boolean>(true);
 
     const updateDisallowedTransfersMsg: MessageMsgUpdateDisallowedTransfers = {
