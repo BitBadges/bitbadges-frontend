@@ -15,7 +15,7 @@ export function BalanceDisplay({
     incrementBy = 0,
 }: {
     collection: BitBadgeCollection;
-    balance: UserBalance;
+    balance?: UserBalance;
     message?: string;
     size?: number;
     showingSupplyPreview?: boolean;
@@ -25,6 +25,7 @@ export function BalanceDisplay({
     incrementBy?: number
 }) {
     const allBadgeIdsArr: IdRange[][] = [];
+
 
 
     return <>
@@ -47,7 +48,7 @@ export function BalanceDisplay({
         }}>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
                 <div style={{ fontSize: 15 }}>
-                    {balance.balances?.map((balanceAmount, idx) => {
+                    {balance?.balances?.map((balanceAmount, idx) => {
                         const amount = Number(balanceAmount.balance) * numRecipients;
 
                         const allBadgeIds: IdRange[] = JSON.parse(JSON.stringify(balanceAmount.badgeIds))
@@ -99,7 +100,7 @@ export function BalanceDisplay({
                     <Empty
                         style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={'None'}
+                        description={'No owned badges in this collection.'}
                     />
                 </div> : <div style={{ marginTop: 4 }}>
 

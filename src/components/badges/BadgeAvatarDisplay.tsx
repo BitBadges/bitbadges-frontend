@@ -16,7 +16,8 @@ export function BadgeAvatarDisplay({
     showIds,
     pageSize = 10,
     showBalance,
-    hideModalBalance
+    hideModalBalance,
+    maxWidth = 350
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -27,6 +28,7 @@ export function BadgeAvatarDisplay({
     showIds?: boolean;
     showBalance?: boolean;
     hideModalBalance?: boolean;
+    maxWidth?: number | string;
 }) {
     const collections = useCollectionsContext();
 
@@ -67,7 +69,7 @@ export function BadgeAvatarDisplay({
 
     if (!collection) return <></>;
 
-    return <div>
+    return <div style={{ maxWidth: maxWidth }}>
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -75,7 +77,7 @@ export function BadgeAvatarDisplay({
             alignItems: 'center',
         }} >
             <Pagination
-                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, fontSize: 16 }}
                 current={currPage}
                 total={total}
                 pageSize={pageSize}
@@ -84,6 +86,7 @@ export function BadgeAvatarDisplay({
                 }}
                 hideOnSinglePage
                 showSizeChanger={false}
+                size='small'
             />
         </div>
         <div style={{

@@ -44,7 +44,7 @@ export function SetIndividualBadgeMetadataStepItem(
                             }
                         ]}
                         selectedId={id}
-                        size={40}
+                        size={50}
                         showIds={true}
                     />
                 </div>

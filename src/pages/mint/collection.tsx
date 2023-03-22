@@ -10,7 +10,7 @@ const { Content } = Layout;
 function Mint() {
     return (
         <DisconnectedWrapper
-            message='Please connect a wallet and sign in to access the Mint page.'
+            message='Please connect a wallet to access the Mint page.'
             node={
                 <RegisteredWrapper
                     message='Please register to access the Mint page.'

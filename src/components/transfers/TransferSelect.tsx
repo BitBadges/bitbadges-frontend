@@ -544,7 +544,12 @@ export function TransferSelect({
         TransferSteps.push({
             title: 'Time',
             description: <div>
-                <b>Start</b>
+
+                <div style={{ textAlign: 'center', color: PRIMARY_TEXT, marginTop: 4 }}>
+                    <h3 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>When can the recipients claim?</h3>
+                </div>
+
+                <b>Start Time</b>
                 <DatePicker
                     showMinute
                     showTime
@@ -564,7 +569,7 @@ export function TransferSelect({
                 />
                 <br />
                 <br />
-                <b>End</b>
+                <b>End Time</b>
                 <DatePicker
                     showMinute
                     showTime
@@ -654,7 +659,7 @@ export function TransferSelect({
                         < div className='flex-between' >
                             <div></div>
 
-                            <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Add Transfer?</h2>
+                            <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Add {distributionMethod ? 'Claim' : 'Transfer'}?</h2>
                             <div>
                                 <Tooltip title='Cancel' placement='bottom'>
                                     <CloseOutlined

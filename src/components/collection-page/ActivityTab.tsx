@@ -47,13 +47,7 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
     }
 
 
-    const PAGE_SIZE = 25;
-    const minId = 0;
-    const maxId = activity.length ? activity.length - 1 : 0;
-
-    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
-    const currPageStart = currPageDetails.start;
-    const currPageEnd = currPageDetails.end;
+    
 
     useEffect(() => {
         async function getActivity() {
@@ -88,6 +82,14 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
             description="No activity." image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
     }
+
+    const PAGE_SIZE = 25;
+    const minId = 0;
+    const maxId = activity.length ? activity.length - 1 : 0;
+
+    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
+    const currPageStart = currPageDetails.start;
+    const currPageEnd = currPageDetails.end;
 
     return (
         <div>

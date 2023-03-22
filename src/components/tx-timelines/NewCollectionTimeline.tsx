@@ -53,6 +53,10 @@ export function MintCollectionTimeline({
     const simulatedCollection = txTimelineProps.simulatedCollection;
     const metadataSize = txTimelineProps.metadataSize;
     const existingCollection = txTimelineProps.existingCollection;
+    const managerApprovedTransfersWithUnregisteredUsers = txTimelineProps.managerApprovedTransfersWithUnregisteredUsers;
+    const setManagerApprovedTransfersWithUnregisteredUsers = txTimelineProps.setManagerApprovedTransfersWithUnregisteredUsers;
+    const disallowedTransfersWithUnregisteredUsers = txTimelineProps.disallowedTransfersWithUnregisteredUsers;
+    const setDisallowedTransfersWithUnregisteredUsers = txTimelineProps.setDisallowedTransfersWithUnregisteredUsers;
 
     //All mint timeline step items
     const ChooseBadgeType = ChooseBadgeTypeStepItem(newCollectionMsg);
@@ -68,13 +72,13 @@ export function MintCollectionTimeline({
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
     const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend);
     const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, simulatedCollection, existingCollection ? existingCollection.claims.length : 0);
-    const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, setClaimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend);
+    const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, setClaimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
-    const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(newCollectionMsg, setNewCollectionMsg);
+    const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers);
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
     const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
-    const TransferabilityStep = TransferabilitySelectStepItem(newCollectionMsg, setNewCollectionMsg);
+    const TransferabilityStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers);
 
     return (
         <FormTimeline

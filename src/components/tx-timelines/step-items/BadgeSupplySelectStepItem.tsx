@@ -51,7 +51,7 @@ export function BadgeSupplySelectStepItem(
                     balances: collectionToShow.maxSupplys,
                     approvals: []
                 }}
-                size={40}
+                // size={40}
                 message={'Badge Supplys'}
                 showingSupplyPreview
             />
@@ -121,18 +121,19 @@ export function BadgeSupplySelectStepItem(
                             noSelectUntilClick
                             options={[
                                 {
-                                    title: 'Fungible',
-                                    message: 'Add a fungible badge (i.e. 1 badge with X supply).',
-                                    isSelected: fungible,
-                                },
-                                {
                                     title: 'Non-Fungible',
                                     message: 'Add badges with unique characteristics (i.e. X badges each with a supply of 1).',
                                     isSelected: !fungible,
                                 },
+                                {
+                                    title: 'Fungible',
+                                    message: 'Add a fungible badge (i.e. a single badge with X supply).',
+                                    isSelected: fungible,
+                                },
+
                             ]}
                             onSwitchChange={(idx) => {
-                                setFungible(idx === 0);
+                                setFungible(idx === 1);
                                 setHandledFungible(true);
                             }}
                         />
@@ -199,12 +200,12 @@ export function BadgeSupplySelectStepItem(
                 </Button>
             } */}
             <Divider />
-            {DEV_MODE && <div style={{backgroundColor: 'black'}}>
+            {DEV_MODE && <div style={{ backgroundColor: 'black' }}>
                 <pre>
                     {JSON.stringify(collection.badgeMetadata, null, 2)}
                 </pre>
             </div>}
-            {DEV_MODE && <div style={{backgroundColor: 'black'}}>
+            {DEV_MODE && <div style={{ backgroundColor: 'black' }}>
                 <pre>
                     {JSON.stringify(newCollectionMsg, null, 2)}
                 </pre>

@@ -1,21 +1,16 @@
 import { Avatar } from "antd";
 import { useRouter } from "next/router";
+import { BitBadgeCollection, BitBadgesUserInfo } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";
-import { useAccountsContext } from "../../contexts/AccountsContext";
-import { useCollectionsContext } from "../../contexts/CollectionsContext";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
-export function CollectionDisplay({ collectionId, cosmosAddress, badgeOnlyView }: { collectionId: number, cosmosAddress: string, badgeOnlyView?: boolean }) {
-    const collections = useCollectionsContext();
+export function CollectionDisplay({ collection, accountInfo, badgeOnlyView }: { collection: BitBadgeCollection, accountInfo: BitBadgesUserInfo, badgeOnlyView?: boolean }) {
     const router = useRouter();
-    const collection = collections.collections[`${collectionId}`];
-    const accounts = useAccountsContext();
-    const accountInfo = accounts.accounts[`${cosmosAddress}`];
-
+    
     if (!collection) return <></>;
 
-    return <div style={{ width: 300, margin: 10, display: 'flex' }}>
+    return <div style={{ width: 350, margin: 10, display: 'flex' }}>
         <InformationDisplayCard
             title={<>
                 <div className='link-button-nav' onClick={() => {

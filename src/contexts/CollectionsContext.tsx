@@ -39,12 +39,13 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             let fetchedCollections: BitBadgeCollection[] = [];
             if (collectionsToFetch.length > 0) {
                 fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
+
+                // console.log("FETCHED COLLECTIOn", fetchedCollections);
+                const collectionMap = { ...collections };
                 for (const collection of fetchedCollections) {
-                    setCollections({
-                        ...collections,
-                        [`${collection.collectionId}`]: collection
-                    });
+                    collectionMap[`${collection.collectionId}`] = collection;
                 }
+                setCollections(collectionMap);
             }
 
             for (const collectionId of collectionIds) {

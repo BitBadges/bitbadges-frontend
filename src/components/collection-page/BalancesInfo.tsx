@@ -29,22 +29,38 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
 
     const buttons: ButtonDisplayProps[] = [];
 
-    buttons.push(...[
-        {
-            name: <>Transfer</>,
-            icon: <SwapOutlined />,
-            onClick: () => { setTransferIsVisible(true) },
-            tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
-            disabled: isPreview
-        },
-        {
-            name: <>Claim</>,
-            icon: <GiftOutlined />,
-            onClick: () => { setTab('claims') },
-            tooltipMessage: `Check if you can claim this badge`,
-            disabled: isPreview
-        },
-    ]);
+    const activeClaimIds: number[] = []
+    const activeClaims = collection ? collection?.claims.filter((x, idx) => {
+        if (x.balances.length > 0) {
+            activeClaimIds.push(idx);
+            return true;
+        }
+        return false;
+    }) : [];
+
+    if (balance) {
+        buttons.push(
+            {
+                name: <>Transfer</>,
+                icon: <SwapOutlined />,
+                onClick: () => { setTransferIsVisible(true) },
+                tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
+                disabled: isPreview
+            }
+        );
+    }
+
+    if (activeClaims.length > 0) {
+        buttons.push(
+            {
+                name: <>Claim</>,
+                icon: <GiftOutlined />,
+                onClick: () => { setTab('claims') },
+                tooltipMessage: `Check if you can claim this badge`,
+                disabled: isPreview
+            },
+        );
+    }
 
 
 
@@ -56,17 +72,18 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             {
                 chain.connected && buttons.length > 0 && <>
                     <ButtonDisplay buttons={buttons} />
+                    <div>
+                        {<BalanceDisplay
+                            collection={collection}
+                            balance={balance}
+                        />}
+                    </div>
                 </>
             }
             {
                 !chain.connected && <BlockinDisplay hideLogo={true} />
             }
-            <div>
-                {balance && <BalanceDisplay
-                    collection={collection}
-                    balance={balance}
-                />}
-            </div>
+
         </InformationDisplayCard>
 
         {!isPreview &&

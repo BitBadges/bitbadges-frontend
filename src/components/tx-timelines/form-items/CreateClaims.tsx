@@ -177,7 +177,7 @@ export function CreateClaims({
                         title='Undistributed Badges'
                     >
                         {undistributedBalances.balances.length > 0 && <BalanceDisplay
-                            size={40}
+                            // size={40}
                             collection={badgeCollection} balance={undistributedBalances}
                         />}
                         {undistributedBalances.balances.length === 0 && <Empty

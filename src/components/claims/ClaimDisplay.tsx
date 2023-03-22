@@ -144,13 +144,12 @@ export function ClaimDisplay({
                         approvals: [],
                         balances: claim.balances
                     }}
-                    size={35}
+                // size={35}
                 />
                 <hr />
                 <BalanceDisplay
                     message={'Current Claim'}
                     collection={collection}
-
                     balance={{
                         approvals: [],
                         balances: [
@@ -160,7 +159,7 @@ export function ClaimDisplay({
                             }
                         ]
                     }}
-                    size={35}
+                // size={35}
                 />
 
                 {claim.incrementIdsBy > 0 && <div>

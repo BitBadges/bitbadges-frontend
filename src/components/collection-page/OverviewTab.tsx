@@ -31,18 +31,19 @@ export function OverviewTab({
     const isNonTransferable = collection.disallowedTransfers?.length === 1
         && JSON.stringify(collection.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
         && JSON.stringify(collection.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
-    
+
     return <>
         <InformationDisplayCard
             title="Badges in Collection"
         >
             <BadgeAvatarDisplay
                 showIds
-                size={55}
+                // size={55}
                 collection={collection}
                 userBalance={userBalance}
                 badgeIds={getRangesForAllBadges(collection)}
                 hideModalBalance={isPreview}
+                maxWidth={'100%'}
             />
         </InformationDisplayCard>
         <br />
@@ -53,7 +54,7 @@ export function OverviewTab({
                 justifyContent: 'space-between',
             }}
         >
-            <Col span={10}>
+            <Col span={11}>
                 <CollectionOverview
                     collection={collection}
                     metadata={collectionMetadata}
@@ -115,7 +116,7 @@ export function OverviewTab({
                 refreshUserBalance={refreshUserBalance}
                 metadata={collectionMetadata}
                 balance={userBalance}
-                span={13}
+                span={12}
                 setTab={setTab}
                 isPreview={isPreview}
             />

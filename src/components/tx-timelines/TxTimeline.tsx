@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
 import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../bitbadges-api/types';
 import { DefaultPlaceholderMetadata, GO_MAX_UINT_64 } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
@@ -60,6 +60,12 @@ export interface TxTimelineProps {
     metadataSize: number,
     existingCollection: BitBadgeCollection | undefined,
     simulatedCollectionWithoutExistingCollection: BitBadgeCollection,
+    usersToRegister: string[],
+    setUsersToRegister: (users: string[]) => void,
+    managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
+    setManagerApprovedTransfersWithUnregisteredUsers: (mapping: TransferMappingWithUnregisteredUsers[]) => void,
+    disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
+    setDisallowedTransfersWithUnregisteredUsers: (transfers: TransferMappingWithUnregisteredUsers[]) => void,
 }
 
 
@@ -151,6 +157,10 @@ export function TxTimeline({
     //Bad code but it works and triggers a re-render
     const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState(false);
 
+    const [usersToRegister, setUsersToRegister] = useState<string[]>([]);
+
+    const [managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers] = useState<TransferMappingWithUnregisteredUsers[]>([]);
+    const [disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers] = useState<TransferMappingWithUnregisteredUsers[]>([]);
 
     const updatePermissions = (digit: number, value: boolean) => {
         const newPermissions = UpdatePermissions(newCollectionMsg.permissions, digit, value);
@@ -256,6 +266,32 @@ export function TxTimeline({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [distributionMethod]);
 
+    useEffect(() => {
+        setNewCollectionMsg({
+            ...newCollectionMsg,
+            disallowedTransfers: disallowedTransfersWithUnregisteredUsers.map(transferMapping => {
+                return {
+                    to: transferMapping.to,
+                    from: transferMapping.from,
+                }
+            }),
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [disallowedTransfersWithUnregisteredUsers]);
+
+    useEffect(() => {
+        setNewCollectionMsg({
+            ...newCollectionMsg,
+            managerApprovedTransfers: managerApprovedTransfersWithUnregisteredUsers.map(transferMapping => {
+                return {
+                    to: transferMapping.to,
+                    from: transferMapping.from,
+                }
+            }),
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [managerApprovedTransfersWithUnregisteredUsers]);
+
 
     //If all supply amounts are 1, it is fungible
     const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
@@ -288,7 +324,13 @@ export function TxTimeline({
         onFinish,
         metadataSize: size,
         existingCollection,
-        simulatedCollectionWithoutExistingCollection
+        simulatedCollectionWithoutExistingCollection,
+        usersToRegister,
+        setUsersToRegister,
+        disallowedTransfersWithUnregisteredUsers,
+        setDisallowedTransfersWithUnregisteredUsers,
+        managerApprovedTransfersWithUnregisteredUsers,
+        setManagerApprovedTransfersWithUnregisteredUsers,
     }
 
 

@@ -1,21 +1,20 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 import { useState } from "react";
+import { TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 
 export function TransferabilitySelectStepItem(
-    newCollectionMsg: MessageMsgNewCollection,
-    setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void
+    disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
+    setDisallowedTransfersWithUnregisteredUsers: (disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[]) => void,
 ) {
     const [handledTransfers, setHandledTransfers] = useState(false);
 
     return {
         title: `Select Transferability`,
-        description: `Transferability only applies to the transferring of minted badges, not the minting process.`,
+        description: `Transferability only applies to the transferring of distributed badges, not the minting or claiming process.`,
         node: <TransfersMappingSelect
-            transfersMapping={newCollectionMsg.disallowedTransfers}
+            transfersMapping={disallowedTransfersWithUnregisteredUsers}
             setTransfersMapping={(disallowedTransfers) => {
-                setNewCollectionMsg({ ...newCollectionMsg, disallowedTransfers })
-
+                setDisallowedTransfersWithUnregisteredUsers(disallowedTransfers);
             }}
             setHandled={() => setHandledTransfers(true)}
         />,

@@ -9,10 +9,10 @@ export function UpdateDisallowedTimeline({
 }: {
     txTimelineProps: TxTimelineProps
 }) {
-    const newCollectionMsg = txTimelineProps.newCollectionMsg;
-    const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
+    const disallowedTransfersWithUnregisteredUsers = txTimelineProps.disallowedTransfersWithUnregisteredUsers;
+    const setDisallowedTransfersWithUnregisteredUsers = txTimelineProps.setDisallowedTransfersWithUnregisteredUsers;
 
-    const TransferableSelectStep = TransferabilitySelectStepItem(newCollectionMsg, setNewCollectionMsg);
+    const TransferableSelectStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers);
 
     return (
         <FormTimeline

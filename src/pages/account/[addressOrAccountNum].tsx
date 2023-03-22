@@ -50,8 +50,11 @@ function CollectionPage() {
             if (accountNum) {
                 //TODO: address redundancies between GetPortfolio repsonse and fetch collections
                 const portfolioInfo = await getPortfolio(accountNum);
+                console.log("portfolioInfo", portfolioInfo);
                 if (!portfolioInfo) return;
-                await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId)]);
+
+                await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId), ...portfolioInfo.activity.map((collection: any) => collection.collectionId)]);
+
                 setPortfolioInfo(portfolioInfo);
             }
         }
@@ -86,25 +89,29 @@ function CollectionPage() {
                     {/* Tab Content */}
                     {tab === 'collected' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {portfolioInfo?.collected.map((collection: BitBadgeCollection) => {
+                            {portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => {
+                                const collection = collections.collections[portfolioCollection.collectionId];
+                                const accountInfo = accounts.accounts[cosmosAddress];
 
                                 return <CollectionDisplay
-                                    key={collection.collectionId}
-                                    collectionId={collection.collectionId}
-                                    cosmosAddress={cosmosAddress}
+                                    key={portfolioCollection.collectionId}
+                                    collection={collection}
+                                    accountInfo={accountInfo}
                                 />
                             })}
                         </div>
                     </>)}
 
                     {tab === 'managing' && (<>
-                        <div style={{ display: 'flex', justifyContent: 'center', }}>
-                            {portfolioInfo?.managing.map((collection: BitBadgeCollection) => {
+                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {portfolioInfo?.managing.map((portfolioCollection: BitBadgeCollection) => {
+                                const collection = collections.collections[portfolioCollection.collectionId];
+                                const accountInfo = accounts.accounts[cosmosAddress];
                                 return (
                                     <CollectionDisplay
-                                        key={collection.collectionId}
-                                        collectionId={collection.collectionId}
-                                        cosmosAddress={cosmosAddress}
+                                        key={portfolioCollection.collectionId}
+                                        collection={collection}
+                                        accountInfo={accountInfo}
                                     />
                                 )
                             })}

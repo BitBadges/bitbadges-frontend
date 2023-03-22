@@ -27,7 +27,7 @@ export function CanManagerBeTransferredStepItem(
             onSwitchChange={(idx) => {
                 updatePermissions(CanManagerBeTransferredDigit, idx === 1);
             }}
-            helperMessage="Note: If this permission is enabled (set to Yes), the manager can disable it at anytime. However, once disabled (set to No), it can never be re-enabled."
+            helperMessage="*If this permission is enabled (set to Yes), the manager can disable it at anytime. However, once disabled (set to No), it can never be re-enabled."
         />,
         disabled: !handledPermissions.CanManagerBeTransferred
 

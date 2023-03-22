@@ -245,7 +245,7 @@ export function IdRangesInput({
                     userBalance={getBlankBalance()}
                     badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
                     // selectedId={id}
-                    size={40}
+                    // size={40}
                     showIds={true}
                 />
             </div>

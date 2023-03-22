@@ -13,13 +13,13 @@ export function DistributionMethodStepItem(
     if (!hideFirstComeFirstServe && (fungible || nonFungible)) {
         options.push({
             title: 'Open to Anyone (First Come, First Serve)',
-            message: `First come, first serve. Limit one claim per account. ${fungible ? 'Anyone can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
+            message: `First come, first serve. Limit one claim per address. ${fungible ? 'Any address can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
             isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
         });
     }
     options.push(
         {
-            title: 'Secrets',
+            title: 'Codes',
             message: 'Generate secret codes or passwords that can be redeemed for badges.',
             isSelected: distributionMethod == DistributionMethod.Codes,
         },
@@ -49,7 +49,7 @@ export function DistributionMethodStepItem(
             onSwitchChange={(_idx, newTitle) => {
                 if (newTitle == 'Open to Anyone (First Come, First Serve)') {
                     setDistributionMethod(DistributionMethod.FirstComeFirstServe);
-                } else if (newTitle == 'Secrets') {
+                } else if (newTitle == 'Codes') {
                     setDistributionMethod(DistributionMethod.Codes);
                 } else if (newTitle == 'Whitelist') {
                     setDistributionMethod(DistributionMethod.Whitelist);

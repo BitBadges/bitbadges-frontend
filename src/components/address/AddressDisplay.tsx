@@ -58,7 +58,7 @@ export function AddressDisplayList(
                 return (
                     <div key={index} style={{ marginRight: 8 }}>
                         <AddressDisplay
-                            
+
                             icon={
                                 setUsers &&
                                 <Tooltip title={"Remove User"}>

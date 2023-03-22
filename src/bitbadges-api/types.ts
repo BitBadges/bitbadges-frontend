@@ -36,6 +36,14 @@ export interface TransferMapping {
     to: Addresses;
     from: Addresses;
 }
+
+export interface TransferMappingWithUnregisteredUsers extends TransferMapping {
+    toUnregisteredUsers: string[];
+    fromUnregisteredUsers: string[];
+    removeToUsers: boolean;
+    removeFromUsers: boolean;
+}
+
 export interface Addresses {
     accountNums: IdRange[];
     options: number;
