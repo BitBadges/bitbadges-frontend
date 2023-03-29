@@ -41,7 +41,7 @@ export function BadgeAvatar({
                         cursor: 'pointer',
                     }}
                     className="badge-avatar"
-                    src={metadata.image ? metadata.image : <Spin />}
+                    src={metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : <Spin />}
                     size={size ? size : 50}
                     onClick={() => setModalIsVisible(true)}
                     onError={() => {

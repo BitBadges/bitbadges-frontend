@@ -118,6 +118,15 @@ export function SubmitMsgNewCollection({
                     badgeIds: values[i].badgeIds
                 });
             }
+            // badgeMsg.badgeUris = [
+            //     {
+            //         uri: 'ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/{id}',
+            //         badgeIds: [{
+            //             start: 1,
+            //             end: 1000
+            //         }]
+            //     }
+            // ];
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
@@ -141,8 +150,6 @@ export function SubmitMsgNewCollection({
 
         setNewCollectionMsg(badgeMsg);
     }
-
-
 
     function updateUnregisteredUsers() {
         //Get new account numbers for unregistered users

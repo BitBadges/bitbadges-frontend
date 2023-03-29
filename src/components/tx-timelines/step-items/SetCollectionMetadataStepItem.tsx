@@ -14,7 +14,10 @@ export function SetCollectionMetadataStepItem(
     individualBadgeMetadata: BadgeMetadataMap,
     setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void,
     simulatedCollection: BitBadgeCollection,
-    existingCollection?: BitBadgeCollection
+    existingCollection?: BitBadgeCollection,
+    updateMetadataForManualUris?: () => void,
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void,
+    hideCollectionSelect?: boolean
 ) {
     return {
         title: 'Set Collection Metadata',
@@ -42,6 +45,9 @@ export function SetCollectionMetadataStepItem(
                     collectionMetadata: collectionMetadata,
                     badgeMetadata: individualBadgeMetadata
                 }}
+                hideCollectionSelect={hideCollectionSelect}
+                updateMetadataForManualUris={updateMetadataForManualUris}
+                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                 addMethod={addMethod}
                 metadata={collectionMetadata}
                 startId={existingCollection?.nextBadgeId || 1}
@@ -107,6 +113,7 @@ export function SetCollectionMetadataStepItem(
                                 individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
                                     metadata: { ...metadata },
                                     badgeIds: [idRangeToUpdate],
+                                    uri: 'Manual'
                                 }
                             }
                         }
@@ -117,7 +124,7 @@ export function SetCollectionMetadataStepItem(
             />
         </div>,
         disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-            || (addMethod === MetadataAddMethod.UploadUrl && (newCollectionMsg.badgeUris[0]?.uri.indexOf('{id}') == -1))
+            || (addMethod === MetadataAddMethod.UploadUrl && (!(newCollectionMsg.collectionUri) || !(newCollectionMsg.badgeUris.length)))
             || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
     }
 }

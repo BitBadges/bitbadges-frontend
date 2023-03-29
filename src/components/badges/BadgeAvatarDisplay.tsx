@@ -1,6 +1,6 @@
 import { Pagination } from "antd";
 import { useEffect, useState } from "react";
-import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
+import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
@@ -17,7 +17,8 @@ export function BadgeAvatarDisplay({
     pageSize = 10,
     showBalance,
     hideModalBalance,
-    maxWidth = 350
+    maxWidth = 350,
+    updateMetadataForBadgeIds,
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance: UserBalance | undefined;
@@ -29,6 +30,7 @@ export function BadgeAvatarDisplay({
     showBalance?: boolean;
     hideModalBalance?: boolean;
     maxWidth?: number | string;
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 }) {
     const collections = useCollectionsContext();
 
@@ -54,18 +56,21 @@ export function BadgeAvatarDisplay({
 
         setCurrPageStart(currPageStart);
         setCurrPageEnd(currPageEnd);
-    }, [currPage, pageSize, badgeIds]);
 
-    useEffect(() => {
         if (!collection) return;
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
-        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(badgeIds, currPageStart, currPageEnd, pageSize);
+        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(badgeIds, currPageStart, pageSize);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
-        updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
+        if (updateMetadataForBadgeIds) {
+            console.log("CALLING UPDATE METADATA FOR BADGE IDS");
+            updateMetadataForBadgeIds(badgeIdsToDisplay);
+        } else {
+            updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
+        }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currPageStart, currPageEnd, collection, badgeIds]);
+    }, [currPage, pageSize, badgeIds]);
 
     if (!collection) return <></>;
 
@@ -77,14 +82,15 @@ export function BadgeAvatarDisplay({
             alignItems: 'center',
         }} >
             <Pagination
-                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, fontSize: 16 }}
+                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT, fontSize: 14 }}
                 current={currPage}
                 total={total}
                 pageSize={pageSize}
+
                 onChange={(page) => {
                     setCurrPage(page);
                 }}
-                hideOnSinglePage
+                showLessItems
                 showSizeChanger={false}
                 size='small'
             />
@@ -115,7 +121,7 @@ export function BadgeAvatarDisplay({
                                 size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
                                 collection={collection}
                                 metadata={
-                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata)
+                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
                                 }
                                 badgeId={badgeIdsToDisplay[idx]}
                                 balance={userBalance}

@@ -2,7 +2,7 @@ import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from
 import { Avatar, Button, DatePicker, Divider, Input, InputNumber, StepProps, Steps, Tooltip } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { checkIfApproved, getMatchingAddressesFromTransferMapping, getRangesForAllBadges } from '../../bitbadges-api/badges';
+import { checkIfApproved, getMatchingAddressesFromTransferMapping, getIdRangesForAllBadgeIdsInCollection } from '../../bitbadges-api/badges';
 import { getBalanceAfterTransfers, getBlankBalance } from '../../bitbadges-api/balances';
 import { checkIfIdRangesOverlap } from '../../bitbadges-api/idRanges';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
@@ -42,6 +42,7 @@ export function TransferSelect({
     showIncrementSelect,
     manualSend,
     plusButton,
+    updateMetadataForBadgeIds
 }: {
     transfers: (TransfersExtended)[],
     setTransfers: (transfers: (TransfersExtended)[]) => void;
@@ -54,6 +55,7 @@ export function TransferSelect({
     showIncrementSelect?: boolean;
     manualSend?: boolean;
     plusButton?: boolean;
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 }) {
     const chain = useChainContext();
 
@@ -67,7 +69,7 @@ export function TransferSelect({
     const [balances, setBalances] = useState<Balance[]>([
         {
             balance: 1,
-            badgeIds: getRangesForAllBadges(collection)
+            badgeIds: getIdRangesForAllBadgeIdsInCollection(collection)
         },
     ]);
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
@@ -332,14 +334,14 @@ export function TransferSelect({
                                 color: PRIMARY_TEXT,
                             }}
                         />
-                        {codeType === CodeType.Reusable && <div style={{ textAlign: 'center', color: SECONDARY_TEXT }}>
+                        <div style={{ textAlign: 'center', color: SECONDARY_TEXT }}>
                             <br />
                             <p>
-                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="Reusable codes are handled in a centralized manner via the BitBadges servers (as opposed to the blockchain). Behind the scenes, we create X unique, decentralized codes and distribute them to whoever submits the correct password.">
+                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="For a better user experience, codes are stored in a centralized manner via the BitBadges servers (as opposed to the blockchain). This eliminates any storage requirements for collection creators. For a decentralized solution, you can interact directly with the blockchain.">
                                     Hover to learn more.
                                 </Tooltip>
                             </p>
-                        </div>}
+                        </div>
                     </div>
                 </div>
             </div >,
@@ -404,6 +406,7 @@ export function TransferSelect({
                 maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                 darkMode
                 collection={collection}
+                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
             />
         </div>,
         disabled: idRangesOverlap || idRangesLengthEqualsZero || firstStepDisabled || !canTransfer,
@@ -514,6 +517,7 @@ export function TransferSelect({
                 balances={balances}
                 setBalances={setBalances}
                 darkMode
+
             />
 
             {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
@@ -525,13 +529,14 @@ export function TransferSelect({
                     from={[sender]}
                     setTransfers={setTransfers}
                     hideAddresses
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                 />
             </div>}
             <Divider />
 
             {
                 postTransferBalance && <div>
-                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
+                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' updateMetadataForBadgeIds={updateMetadataForBadgeIds} />
                     {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
                 </div>
             }
@@ -601,6 +606,7 @@ export function TransferSelect({
                 collection={collection}
                 fontColor={PRIMARY_TEXT}
                 from={[sender]}
+                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
             />
             <br />
             <Button type='primary'
@@ -611,7 +617,7 @@ export function TransferSelect({
                     setBalances([
                         {
                             balance: 1,
-                            badgeIds: getRangesForAllBadges(collection)
+                            badgeIds: getIdRangesForAllBadgeIdsInCollection(collection)
                         },
                     ]);
                     setAmountSelectType(AmountSelectType.None);
@@ -622,6 +628,10 @@ export function TransferSelect({
                 }}>
                 Add Transfer(s)
             </Button>
+            {distributionMethod === DistributionMethod.Codes && !codePassword &&
+                <div style={{ textAlign: 'center', color: SECONDARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
+                    <h5 style={{ color: PRIMARY_TEXT }}>Once this collection has been created, you (the manager) can fetch the codes via the Claims tab.</h5>
+                </div>}
         </div>,
         disabled: false
     });
@@ -644,6 +654,7 @@ export function TransferSelect({
                         fontColor={PRIMARY_TEXT}
                         from={[sender]}
                         deletable
+                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                     />
                     <Divider />
                     <hr />

@@ -13,6 +13,7 @@ export function BalanceDisplay({
     numRecipients = 1,
     numIncrements = 0,
     incrementBy = 0,
+    updateMetadataForBadgeIds
 }: {
     collection: BitBadgeCollection;
     balance?: UserBalance;
@@ -23,6 +24,7 @@ export function BalanceDisplay({
     numRecipients?: number,
     numIncrements?: number
     incrementBy?: number
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 }) {
     const allBadgeIdsArr: IdRange[][] = [];
 
@@ -120,6 +122,7 @@ export function BalanceDisplay({
                         showBalance
                         size={size ? size : 50}
                         hideModalBalance={hideModalBalance}
+                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                     />
                 </div>
                 }

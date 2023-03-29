@@ -1,10 +1,10 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
-import { createCollectionFromMsgNewCollection } from '../../bitbadges-api/badges';
-import { InsertRangeToIdRanges } from '../../bitbadges-api/idRanges';
+import { createCollectionFromMsgNewCollection, getMetadataForBadgeId, getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
+import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../bitbadges-api/types';
-import { DefaultPlaceholderMetadata, GO_MAX_UINT_64 } from '../../constants';
+import { DefaultPlaceholderMetadata, ErrorMetadata, GO_MAX_UINT_64 } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
@@ -12,6 +12,7 @@ import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
+import { fetchMetadata } from '../../bitbadges-api/api';
 
 export const EmptyStepItem = {
     title: '',
@@ -66,6 +67,8 @@ export interface TxTimelineProps {
     setManagerApprovedTransfersWithUnregisteredUsers: (mapping: TransferMappingWithUnregisteredUsers[]) => void,
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     setDisallowedTransfersWithUnregisteredUsers: (transfers: TransferMappingWithUnregisteredUsers[]) => void,
+    updateMetadataForManualUris: () => void,
+    updateMetadataForBadgeIds: (badgeIds: number[]) => void,
 }
 
 
@@ -93,7 +96,7 @@ export function TxTimeline({
             setNewCollectionMsg({
                 ...newCollectionMsg,
                 creator: chain.cosmosAddress,
-                badgeUris: fetchedCollection.badgeUris,
+                badgeUris: [],
                 collectionUri: fetchedCollection.collectionUri,
                 bytes: fetchedCollection.bytes,
                 permissions: GetPermissionNumberValue(fetchedCollection.permissions),
@@ -129,12 +132,13 @@ export function TxTimeline({
     const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadataMap>({
         '0': {
             metadata: DefaultPlaceholderMetadata,
-            badgeIds: [{ start: 1, end: GO_MAX_UINT_64 }]
+            badgeIds: [{ start: 1, end: GO_MAX_UINT_64 }],
+            uri: 'Placeholder',
         }
     });
 
     //The method used to add metadata to the collection and individual badges
-    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
+    const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
 
     //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
     const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
@@ -245,6 +249,7 @@ export function TxTimeline({
                         start: startBadgeId,
                         end: endBadgeId,
                     }],
+                    uri: 'Placeholder'
                 }
             }
         }
@@ -254,6 +259,156 @@ export function TxTimeline({
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
     }, [newCollectionMsg.badgeSupplys, existingCollection])
+
+
+
+    useEffect(() => {
+        if (addMethod !== MetadataAddMethod.UploadUrl) {
+            setCollectionMetadata(DefaultPlaceholderMetadata);
+            return;
+        };
+        
+        async function updateMetadata() {
+            try {
+                const res = await fetchMetadata(newCollectionMsg.collectionUri);
+                setCollectionMetadata(res.metadata);
+            } catch (e) {
+                setCollectionMetadata(ErrorMetadata)
+            }
+        }
+        updateMetadata();
+
+    }, [newCollectionMsg.collectionUri, addMethod]);
+
+
+    const updateMetadataForBadgeIds = async (badgeIds: number[]) => {
+        if (addMethod !== MetadataAddMethod.UploadUrl) return;
+
+        console.log("EXECUTING");
+
+
+        let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(individualBadgeMetadata));
+        let origKeys = Object.keys(metadata);
+        let origValues = Object.values(metadata)
+        let updated = false;
+        for (let i = 0; i < origKeys.length; i++) {
+            const metadataObj = origValues[i];
+            if (metadataObj.uri === 'Placeholder') {
+                updated = true;
+                metadata[origKeys[i]].metadata.image = ''; //For loading image
+            }
+        }
+        if (updated) setBadgeMetadata(metadata);
+
+
+        for (const badgeId of badgeIds) {
+            const currMetadata = getMetadataMapObjForBadgeId(badgeId, metadata);
+            let currUri = '';
+            if (currMetadata) {
+                currUri = currMetadata.uri;
+            }
+
+
+            for (const badgeUriObj of newCollectionMsg.badgeUris) {
+                //Find 
+                const badgeUri = badgeUriObj.uri;
+                let uri = '';
+                if (badgeUri.includes("{id}")) {
+                    uri = badgeUri.replace("{id}", badgeId.toString());
+                } else {
+                    uri = badgeUri;
+                }
+
+                if (badgeUriObj.badgeIds.find(x => x.start <= badgeId && x.end >= badgeId)) {
+                    if (uri !== currUri) {
+                        let currentMetadata = undefined;
+                        let keys = Object.keys(metadata);
+                        let values = Object.values(metadata);
+
+                        try {
+                            if (badgeUri.includes("{id}")) {
+                                const res = await fetchMetadata(uri);
+                                currentMetadata = res.metadata;
+                            } else {
+                                const matchingMetadata = values.find(x => x.uri === uri);
+                                if (matchingMetadata) {
+                                    currentMetadata = matchingMetadata.metadata;
+                                } else {
+                                    const res = await fetchMetadata(uri);
+                                    currentMetadata = res.metadata;
+                                }
+                            }
+                        } catch (e) {
+                            currentMetadata = ErrorMetadata
+                        }
+
+                        // console.log("DIFF", uri, currUri);
+                        // currentMetadata = { name: 'fake', image: 'fake', description: 'fake' };
+
+
+
+
+                        const startBadgeId = badgeId;
+                        const endBadgeId = badgeId;
+
+                        for (let i = 0; i < keys.length; i++) {
+                            const res = SearchIdRangesForId(startBadgeId, values[i].badgeIds)
+                            const idx = res[0]
+                            const found = res[1]
+
+                            if (found) {
+                                values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
+                            }
+                        }
+
+
+                        let metadataExists = false;
+                        for (let i = 0; i < keys.length; i++) {
+                            if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
+                                metadataExists = true;
+                                values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds) : [{ start: startBadgeId, end: endBadgeId }];
+                            }
+                        }
+
+                        // console.log("METADATA EXISTS", metadataExists);
+
+                        let currIdx = 0;
+                        metadata = {};
+                        for (let i = 0; i < keys.length; i++) {
+                            if (values[i].badgeIds.length === 0) {
+                                continue;
+                            }
+                            metadata[currIdx] = values[i];
+                            currIdx++;
+                        }
+
+                        if (!metadataExists) {
+                            metadata[Object.keys(metadata).length] = {
+                                metadata: { ...currentMetadata },
+                                badgeIds: [{
+                                    start: startBadgeId,
+                                    end: endBadgeId,
+                                }],
+                                uri: uri
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        setBadgeMetadata(metadata);
+    }
+
+
+
+    const updateMetadataForManualUris = async () => {
+        // let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(existingCollection?.badgeMetadata ? existingCollection.badgeMetadata : {}));
+
+
+
+        // setBadgeMetadata(metadata);
+    }
+
 
     useEffect(() => {
         setNewCollectionMsg({
@@ -331,6 +486,8 @@ export function TxTimeline({
         setDisallowedTransfersWithUnregisteredUsers,
         managerApprovedTransfersWithUnregisteredUsers,
         setManagerApprovedTransfersWithUnregisteredUsers,
+        updateMetadataForManualUris,
+        updateMetadataForBadgeIds,
     }
 
 

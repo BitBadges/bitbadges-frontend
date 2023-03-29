@@ -12,22 +12,22 @@ export function UpdatableMetadataSelectStepItem(
     const options = [];
     options.push({
         title: 'No',
-        message: `The metadata of the collection and any created badges is frozen and cannot be updated.`,
+        message: `The metadata ${addMethod === MetadataAddMethod.UploadUrl && 'URIs'} of the collection and any created badges will be frozen and cannot be updated.`,
         isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
     })
 
     let additionalHelperMsg = <></>
     if (addMethod === MetadataAddMethod.Manual && GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges) {
-
+        
     }
 
-    if (addMethod === MetadataAddMethod.UploadUrl) {
-        additionalHelperMsg = <>{` Since you are self-hosting, note this only applies to updating the collection and badge metadata URIs. We can not control the metadata you store at those URLs.`}</>;
-    }
+    // if (addMethod === MetadataAddMethod.UploadUrl) {
+    //     additionalHelperMsg = <>{` Since you are self-hosting, note this only applies to updating the collection and badge metadata URIs. We can not control the metadata you store at those URLs.`}</>;
+    // }
 
     options.push({
         title: 'Yes',
-        message: <div>{`The metadata of the collection and any created badges can be updated.`}{additionalHelperMsg}</div>,
+        message: <div>{`The metadata ${addMethod === MetadataAddMethod.UploadUrl && 'URIs'} of the collection and any created badges can be updated.`}{additionalHelperMsg}</div>,
         isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
     });
 

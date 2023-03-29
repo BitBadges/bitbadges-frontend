@@ -11,7 +11,7 @@ export function CreateClaimsStepItem(
     setClaimItems: (claimItems: ClaimItem[]) => void,
     manualSend: boolean,
     balancesToDistribute?: Balance[],
-
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void
 ) {
     return {
         title: `${distributionMethod === DistributionMethod.Codes ? 'Generate Codes' : distributionMethod === DistributionMethod.Whitelist ? 'Whitelist' : 'Claims'}`,
@@ -25,6 +25,7 @@ export function CreateClaimsStepItem(
             setClaimItems={setClaimItems}
             balancesToDistribute={balancesToDistribute}
             manualSend={manualSend}
+            updateMetadataForBadgeIds={updateMetadataForBadgeIds}
         />,
         disabled: claimItems.length == 0
     }

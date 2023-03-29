@@ -1,6 +1,7 @@
 import { BroadcastMode, generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
 import { DEV_MODE, NODE_URL } from "../constants"
 import { ChainContextType } from "../contexts/ChainContext"
+import axios from 'axios';
 
 
 
@@ -12,13 +13,13 @@ export async function broadcastTransaction(txRaw: any) {
         body: generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
     }
 
-    let broadcastPost = await fetch(
+    if (DEV_MODE) console.log("Broadcasting Tx...")
+    let broadcastPost = await axios.post(
         `${NODE_URL}${generateEndpointBroadcast()}`,
         postOptions,
     )
 
-    if (DEV_MODE) console.log("Broadcasting Tx...")
-    let res = await broadcastPost.json()
+    let res = await broadcastPost.data()
     if (DEV_MODE) console.log("Tx Response:", res)
 
     if (res.tx_response.code !== 0 && res.tx_response.codespace !== 'badges') {
@@ -31,8 +32,8 @@ export async function broadcastTransaction(txRaw: any) {
     return res;
 }
 
-// Gets the sender information in a consistent format. If the public key is not stored in the redux store, 
-// it will be fetched by having the user sign a message.
+// Gets the sender information in a consistent format. 
+//If the public key is not stored in the redux store, it will be fetched by having the user sign a message.
 export async function getSenderInformation(chain: ChainContextType) {
     let publicKey = chain.publicKey;
 

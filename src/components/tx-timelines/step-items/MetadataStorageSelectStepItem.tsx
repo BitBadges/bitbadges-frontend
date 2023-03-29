@@ -2,19 +2,15 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { MetadataAddMethod } from "../../../bitbadges-api/types";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Tooltip } from "antd";
-import { EmptyStepItem } from "../TxTimeline";
 
 export function MetadataStorageSelectStepItem(
     addMethod: MetadataAddMethod,
     setAddMethod: (addMethod: MetadataAddMethod) => void
 ) {
-    return EmptyStepItem;
-
     return {
         title: 'Metadata Storage',
         description: `Choose how to store the metadata for this collection.`,
         node: <SwitchForm
-            noSelectUntilClick
             options={[
                 {
                     title: 'Self-Hosted (Advanced)',
@@ -23,10 +19,10 @@ export function MetadataStorageSelectStepItem(
                 },
                 {
                     title: 'Outsourced (Recommended)',
-                    message: <div>{`We handle the metadata storage for you! This is done in a decentralized manner using IPFS`}
+                    message: <div>{`We handle the metadata storage for you! This is done in a decentralized manner using IPFS.`}
                         <Tooltip
                             placement='bottom'
-                            title={`IPFS, or Interplanetary File System, is a new way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}
+                            title={`IPFS, or Interplanetary File System, is a way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}
                         >
                             <InfoCircleOutlined
                                 style={{ marginLeft: 4, marginRight: 4 }}
@@ -44,6 +40,6 @@ export function MetadataStorageSelectStepItem(
                 }
             }}
         />,
-        disabled: addMethod === MetadataAddMethod.None //Note I changed default to Manual in TxTimeline, when uncommenting need to change this back
+        disabled: addMethod === MetadataAddMethod.None
     }
 }

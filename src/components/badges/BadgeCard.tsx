@@ -85,7 +85,7 @@ export function BadgeCard({
                             }}
                             src={
                                 metadata?.image
-                                    ? metadata.image
+                                    ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
                                     : <Spin size='large' />
                             }
                             size={size}
@@ -161,7 +161,7 @@ export function BadgeCard({
 
             <BadgeModal
                 collection={collection}
-                metadata={collection.collectionMetadata}
+                metadata={metadata}
                 visible={visible}
                 setVisible={setVisible}
                 balance={balance ? balance : getBlankBalance()}

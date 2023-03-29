@@ -2,6 +2,7 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SubtractBalancesForIdRanges } from "./balances-gpt";
 import { Balance, BitBadgeCollection, TransfersExtended, UserBalance } from "./types";
+import { SearchIdRangesForId } from "./idRanges";
 
 export const getBlankBalance = () => {
     const blankBalance: UserBalance = {
@@ -11,23 +12,23 @@ export const getBlankBalance = () => {
     return blankBalance;
 }
 
+//Gets badge balance after a transfer takes place
 export const getBalanceAfterTransfer = (balance: UserBalance, startSubbadgeId: number, endSubbadgeId: number, amountToTransfer: number, numRecipients: number) => {
     let balanceCopy = JSON.parse(JSON.stringify(balance)); //need a deep copy of the balance to not mess up calculations
     let newBalance = SubtractBalancesForIdRanges(balanceCopy, [{ start: startSubbadgeId, end: endSubbadgeId }], amountToTransfer * numRecipients);
     return newBalance;
 }
 
+//Gets badge balance for a Transfers[] object (w/ support for increments, codes, and claims)
 export const getBalanceAfterTransfers = (balance: UserBalance, transfers: TransfersExtended[]) => {
     let postBalance: UserBalance = JSON.parse(JSON.stringify(balance)); //need a deep copy of the balance to not mess up calculations
 
     for (const transfer of transfers) {
         for (const balance of transfer.balances) {
-            console.log("TRANSFER", transfer);
             let numRecipients = transfer.numCodes ? transfer.numCodes : transfer.toAddresses.length;
             if (transfer.incrementBy && transfer.numIncrements) {
                 numRecipients = 1;
             }
-            console.log("NUMRECIP", numRecipients);
 
             const incrementedBadgeIds = JSON.parse(JSON.stringify(balance.badgeIds));
             for (const idRange of incrementedBadgeIds) {
@@ -36,7 +37,6 @@ export const getBalanceAfterTransfers = (balance: UserBalance, transfers: Transf
                 }
             }
 
-            console.log(incrementedBadgeIds, balance.balance, numRecipients);
             for (const badgeId of incrementedBadgeIds) {
                 postBalance = getBalanceAfterTransfer(postBalance, badgeId.start, badgeId.end, balance.balance, numRecipients);
             }
@@ -46,6 +46,7 @@ export const getBalanceAfterTransfers = (balance: UserBalance, transfers: Transf
     return postBalance;
 }
 
+//TODO: redundancies with createCollectionFromMsgNewCollection in badges.ts
 export const getBadgeSupplysFromMsgNewCollection = (msgNewCollection: MessageMsgNewCollection, existingCollection?: BitBadgeCollection) => {
     const balances = [];
     //Handle if badges were already previously minted
@@ -86,14 +87,11 @@ export const getBadgeSupplysFromMsgNewCollection = (msgNewCollection: MessageMsg
 
 //Gets the supply of a specific badgeId
 export const getSupplyByBadgeId = (badgeId: number, balances: Balance[]) => {
-    let supply = balances.find((supply) => {
-        return supply.badgeIds.find((idRange) => {
-            if (idRange.start === undefined || idRange.end === undefined) {
-                return false;
-            }
-            return badgeId >= idRange.start && badgeId <= idRange.end;
-        });
-    });
-
-    return supply?.balance ?? 0;
+    for (const balance of balances) {
+        const [_idx, found] = SearchIdRangesForId(badgeId, balance.badgeIds);
+        if (found) {
+            return balance.balance;
+        }
+    }
+    return 0;
 }

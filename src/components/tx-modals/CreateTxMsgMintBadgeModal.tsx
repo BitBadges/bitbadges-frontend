@@ -88,7 +88,6 @@ export function CreateTxMsgMintBadgeModal(
             let values = Object.values(txState.individualBadgeMetadata);
             let idx = 0;
 
-            console.log(values);
             for (let i = 0; i < keys.length; i++) {
                 let prunedBadgeIds: IdRange[] = [];
                 for (let j = 0; j < values[i].badgeIds.length; j++) {
@@ -99,16 +98,17 @@ export function CreateTxMsgMintBadgeModal(
                     }
                 }
 
-
-
                 if (prunedBadgeIds.length > 0) {
                     prunedMetadata[`${idx}`] = {
                         metadata: values[i].metadata,
-                        badgeIds: prunedBadgeIds
+                        badgeIds: prunedBadgeIds,
+                        uri: values[i].uri
                     }
                     idx++;
                 }
             }
+
+
 
 
             let res = await addToIpfs(txState.collectionMetadata, prunedMetadata);
@@ -137,9 +137,6 @@ export function CreateTxMsgMintBadgeModal(
                     });
                 }
             }
-
-
-
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
@@ -150,6 +147,10 @@ export function CreateTxMsgMintBadgeModal(
                     claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
                 }
             }
+        }
+
+        if (txState.addMethod == MetadataAddMethod.UploadUrl && txType === 'AddBadges') {
+            badgeUris.push(...txState.newCollectionMsg.badgeUris);
         }
 
         txState.setNewCollectionMsg({

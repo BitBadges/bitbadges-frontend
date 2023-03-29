@@ -21,7 +21,7 @@ export function SearchDropdown({
 ) {
     const { setAccounts, cosmosAddressesByAccountNames, accounts, cosmosAddresses } = useAccountsContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
-    const [collectionsResults, setCollectionsResults] = useState<((BadgeMetadata & { _id: string }))[]>([]);
+    const [collectionsResults, setCollectionsResults] = useState<({ _id: string, _rev: string, metadata: BadgeMetadata })[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
 
@@ -122,8 +122,8 @@ export function SearchDropdown({
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar src={result.image} style={{ marginRight: 8 }} />
-                            {result.name}
+                            <Avatar src={result.metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')} style={{ marginRight: 8 }} />
+                            {result.metadata.name}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             ID: {result._id.split(':')[0]}

@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { GO_MAX_UINT_64 } from "../constants";
+import { GO_MAX_UINT_64, METADATA_PAGE_LIMIT } from "../constants";
 import { ChainContextType } from "../contexts/ChainContext";
 import { getBalanceAfterTransfers } from "./balances";
 import { getClaimsFromClaimItems } from "./claims";
@@ -12,18 +12,13 @@ import { GetBalancesForIdRanges } from "./balances-gpt";
 export function filterBadgeActivityForBadgeId(badgeId: number, activity: ActivityItem[]) {
     return activity.filter((x) => {
         for (const balance of x.balances) {
-            for (const badgeIdRange of balance.badgeIds) {
-                if (badgeId >= badgeIdRange.start && badgeId <= badgeIdRange.end) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            const [_idx, found] = SearchIdRangesForId(badgeId, balance.badgeIds);
+            return found;
         }
     }) as ActivityItem[];
 }
 
-export function getRangesForAllBadges(collection: BitBadgeCollection) {
+export function getIdRangesForAllBadgeIdsInCollection(collection: BitBadgeCollection) {
     const range: IdRange = {
         start: 1,
         end: collection.nextBadgeId - 1,
@@ -31,7 +26,7 @@ export function getRangesForAllBadges(collection: BitBadgeCollection) {
     return [range];
 }
 
-//Simulate what the collection will look like after the transaction is processed
+//Simulate what the collection will look like after the new Msg is to be processed
 export function createCollectionFromMsgNewCollection(
     msgNewCollection: MessageMsgNewCollection,
     collectionMetadata: BadgeMetadata,
@@ -42,7 +37,7 @@ export function createCollectionFromMsgNewCollection(
 ) {
     let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
 
-    //Calculate previous max/unminted supplys plus new max/unminted supplys
+    //Calculate the amounts and supplys of badges (existing + new)
     let newMaxSupplys = existingCollection?.maxSupplys ? [...existingCollection.maxSupplys] : [];
     let newUnmintedSupplys = existingCollection?.unmintedSupplys ? [...existingCollection.unmintedSupplys] : [];
     for (const supplyObj of msgNewCollection.badgeSupplys) {
@@ -54,6 +49,7 @@ export function createCollectionFromMsgNewCollection(
                 end: nextBadgeId - 1,
             }]
         })
+
         newUnmintedSupplys.push({
             balance: supplyObj.supply,
             badgeIds: [{
@@ -87,7 +83,6 @@ export function createCollectionFromMsgNewCollection(
         },
         badgeMetadata: individualBadgeMetadata,
         collectionMetadata: collectionMetadata,
-        //The next three are fine because we only show pre
         permissions: GetPermissions(msgNewCollection.permissions),
         disallowedTransfers: msgNewCollection?.disallowedTransfers ? msgNewCollection.disallowedTransfers : existingCollection?.disallowedTransfers ? existingCollection.disallowedTransfers : [],
         managerApprovedTransfers: msgNewCollection?.managerApprovedTransfers ? msgNewCollection.managerApprovedTransfers : existingCollection?.managerApprovedTransfers ? existingCollection.managerApprovedTransfers : [],
@@ -130,7 +125,7 @@ export const AllAddressesTransferMapping: TransferMapping = Object.freeze({
     },
 })
 
-export const checkIfManagerIsApproved = (addresses: Addresses, chain: ChainContextType, managerAccountNumber: number) => {
+export const checkIfApprovedInTransferMapping = (addresses: Addresses, chain: ChainContextType, managerAccountNumber: number) => {
     let isApproved = false;
     if (addresses.options === 2 && chain.accountNumber === managerAccountNumber) {
         //exclude manager and we are the manager
@@ -157,8 +152,8 @@ export const getMatchingAddressesFromTransferMapping = (mapping: TransferMapping
     const matchingAddresses: any[] = [];
     for (const address of toAddresses) {
         for (const transfer of mapping) {
-            let fromIsApproved = checkIfManagerIsApproved(transfer.from, chain, managerAccountNumber);
-            let toIsApproved = checkIfManagerIsApproved(transfer.to, chain, managerAccountNumber);
+            let fromIsApproved = checkIfApprovedInTransferMapping(transfer.from, chain, managerAccountNumber);
+            let toIsApproved = checkIfApprovedInTransferMapping(transfer.to, chain, managerAccountNumber);
 
             if (fromIsApproved && toIsApproved) {
                 matchingAddresses.push(address);
@@ -169,30 +164,42 @@ export const getMatchingAddressesFromTransferMapping = (mapping: TransferMapping
     return matchingAddresses;
 }
 
-export function getMetadataForBadgeId(badgeId: number, metadataMap: BadgeMetadataMap) {
-    let currentMetadata = {} as BadgeMetadata;
+//Returns the { metadata, uri, badgeIds } metadata object for a specific badgeId
+export function getMetadataMapObjForBadgeId(badgeId: number, metadataMap: BadgeMetadataMap) {
+    let currentMetadata = undefined;
     for (const val of Object.values(metadataMap)) {
-        const res = SearchIdRangesForId(badgeId, val.badgeIds)
-        const found = res[1]
+        const [_idx, found] = SearchIdRangesForId(badgeId, val.badgeIds)
         if (found) {
-            currentMetadata = val.metadata;
-            break;
+            return currentMetadata;
         }
     }
 
     return currentMetadata;
 }
 
-export function getBadgeIdsToDisplayForPageNumber(badgeIds: IdRange[], startIdxNum: number, endIdxNum: number, pageSize: number) {
+//Returns just the metadata for a specific badgeId
+export function getMetadataForBadgeId(badgeId: number, metadataMap: BadgeMetadataMap) {
+    let currentMetadata = undefined;
+    for (const val of Object.values(metadataMap)) {
+        const [_idx, found] = SearchIdRangesForId(badgeId, val.badgeIds);
+        if (found) {
+            return val.metadata;
+        }
+    }
 
+    return currentMetadata;
+}
 
+//Returns an array of pageSize length with the badgeIds to display for a speciifc page
+//Will jump over ranges if needed (e.g. [1, 2, 3, 7, 8, 9, 11, ....])
+export function getBadgeIdsToDisplayForPageNumber(badgeIds: IdRange[], startIdxNum: number, pageSize: number) {
     let currIdx = 0;
-    let numPagesLeftToHandle = pageSize;
+    let numEntriesLeftToHandle = pageSize;
     let badgeIdsToDisplay: number[] = [];
     for (const range of badgeIds) {
         const numBadgesInRange = Number(range.end) - Number(range.start) + 1;
 
-        // If we have reached the start of the page yet, handle this range
+        // If we have reached the start of the page, handle this range
         if (currIdx + numBadgesInRange >= startIdxNum) {
             //Find badge ID to start at
             let currBadgeId = Number(range.start);
@@ -200,9 +207,9 @@ export function getBadgeIdsToDisplayForPageNumber(badgeIds: IdRange[], startIdxN
                 currBadgeId = Number(range.start) + (startIdxNum - currIdx);
             }
 
-            while (numPagesLeftToHandle > 0 && currBadgeId <= Number(range.end)) {
+            while (numEntriesLeftToHandle > 0 && currBadgeId <= Number(range.end)) {
                 badgeIdsToDisplay.push(currBadgeId);
-                numPagesLeftToHandle--;
+                numEntriesLeftToHandle--;
                 currBadgeId++;
             }
         }
@@ -213,37 +220,77 @@ export function getBadgeIdsToDisplayForPageNumber(badgeIds: IdRange[], startIdxN
     return badgeIdsToDisplay;
 }
 
-export function updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay: number[], collection: BitBadgeCollection, collections: CollectionsContextType) {
+/* This is the logic we use to determine the metadata batch idx for a collection in our indexer
+    Batch 0 = collectionMetadata
+    Batch 1 = metadata for 1st batch of badges
+    Batch 2 = metadata for 2nd batch of badges
+    And so on
+    This returns the max batch index
+*/
+export function getMaxBatchId(collection: BitBadgeCollection) {
+    let batchIdx = 1;
+    for (const badgeUri of collection.badgeUris) {
+        // If the URI contains {id}, each badge ID will belong to its own private batch
+        if (badgeUri.uri.includes("{id}")) {
+            for (const badgeIdRange of badgeUri.badgeIds) {
+                batchIdx += Number(badgeIdRange.end) - Number(badgeIdRange.start) + 1;
+            }
+        } else {
+            batchIdx++;
+        }
+    }
 
-    // If we don't have metadata for any of the badges to display, update the collection metadata
+    return batchIdx;
+}
+
+//Iterates through the current badge metadata and puts in any new requests for badges that are displayed but have missing metadata 
+export function updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay: number[], collection: BitBadgeCollection, collections: CollectionsContextType) {
+    //Find the batchIdxs that we need to request metadata for
     let metadataBatchIdxs: number[] = [];
-    for (let i = 0; i <= badgeIdsToDisplay.length; i++) {
+
+
+    for (let i = 0; i < badgeIdsToDisplay.length; i++) {
         if (!getMetadataForBadgeId(badgeIdsToDisplay[i], collection.badgeMetadata)) {
-            let idx = 0;
+            let batchIdx = 1;
+
+            //Find respective batchIdx for badgeIdsToDisplay[i]
             for (const badgeUri of collection.badgeUris) {
-                for (const badgeIdRange of badgeUri.badgeIds) {
-                    if (Number(badgeIdRange.start) <= badgeIdsToDisplay[i] && Number(badgeIdRange.end) >= badgeIdsToDisplay[i]) {
-                        if (!metadataBatchIdxs.includes(idx)) {
-                            metadataBatchIdxs.push(idx);
+                if (badgeUri.uri.includes("{id}")) {
+                    const [idx, found] = SearchIdRangesForId(badgeIdsToDisplay[i], badgeUri.badgeIds);
+                    if (found) {
+                        const badgeIdRange = badgeUri.badgeIds[idx];
+                        if (!metadataBatchIdxs.includes(batchIdx + badgeIdsToDisplay[i] - Number(badgeIdRange.start))) {
+                            metadataBatchIdxs.push(batchIdx + badgeIdsToDisplay[i] - Number(badgeIdRange.start));
                         }
-                        break;
                     }
+
+                    for (const badgeIdRange of badgeUri.badgeIds) {
+                        batchIdx += Number(badgeIdRange.end) - Number(badgeIdRange.start) + 1;
+                    }
+                } else {
+                    const [_idx, found] = SearchIdRangesForId(badgeIdsToDisplay[i], badgeUri.badgeIds);
+                    if (found) {
+                        if (!metadataBatchIdxs.includes(batchIdx)) {
+                            metadataBatchIdxs.push(batchIdx);
+                        }
+                    }
+                    batchIdx++;
                 }
-                idx++;
             }
         }
     }
 
-    // By default, we batch update metadata for 100 badges at a time (i.e. idxToUpdate + 100)
-    // So here, remove redundant idxs (i.e. idxToUpdate + 100) that are already in metadataBatchIdxs
+    // By default, we batch update metadata for METADATA_PAGE_LIMIT badges at a time (i.e. idxToUpdate + METADATA_PAGE_LIMIT)
+    // So here, remove redundant idxs (i.e. idxToUpdate + METADATA_PAGE_LIMIT) that are already in metadataBatchIdxs
     let idxsToUpdate: number[] = [];
-    for (let i = 0; i < metadataBatchIdxs[metadataBatchIdxs.length - 1]; i += 100) {
-        if (metadataBatchIdxs.some(idx => idx >= i && idx < i + 100)) {
+    for (let i = 0; i < metadataBatchIdxs[metadataBatchIdxs.length - 1]; i += METADATA_PAGE_LIMIT) {
+        if (metadataBatchIdxs.some(idx => idx >= i && idx < i + METADATA_PAGE_LIMIT)) {
             idxsToUpdate.push(i);
         }
     }
 
-    // Update metadata for each batch
+    //TODO: parallelize this if we have >1 idxToUpdate
+    // Update metadata for each new batch
     for (const idx of idxsToUpdate) {
         collections.updateCollectionMetadata(collection.collectionId, idx);
     }
@@ -260,7 +307,6 @@ export function checkIfApproved(userBalance: UserBalance, accountNumber: number,
 
             if (approvalBalances.length === 0) {
                 isApproved = false;
-
             } else {
                 for (const approvalBalance of approvalBalances) {
                     if (approvalBalance.balance < balance.balance) {

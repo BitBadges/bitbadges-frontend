@@ -1,8 +1,9 @@
-import { Avatar, Col, Divider, Row, Typography } from 'antd';
+import { Avatar, Col, Divider, Row, Spin, Typography } from 'antd';
 import MarkdownIt from 'markdown-it';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BadgeMetadata } from '../../bitbadges-api/types';
 import { PRIMARY_TEXT } from '../../constants';
+import Markdown from "react-markdown"
 
 const { Text } = Typography;
 
@@ -13,11 +14,10 @@ const mdParser = new MarkdownIt(/* Markdown-it options */);
 export function BadgePageHeader({ metadata }: {
     metadata?: BadgeMetadata;
 }) {
+    const [innerHtml, setInnerHtml] = useState<string>('');
+
     useEffect(() => {
-        const description = document.getElementById('description');
-        if (description) {
-            description.innerHTML = mdParser.render(metadata?.description || '');
-        }
+        setInnerHtml(mdParser.render(metadata?.description || ''));
     }, [metadata]);
 
     if (!metadata) return <></>;
@@ -58,7 +58,7 @@ export function BadgePageHeader({ metadata }: {
                                 margin: 4,
                             }}
                             src={
-                                metadata?.image ? metadata?.image : undefined
+                                metadata?.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : <Spin />
                             }
                             size={200}
                             onError={() => {
@@ -75,29 +75,6 @@ export function BadgePageHeader({ metadata }: {
                         </div>}
                     </div>
                 </Col>
-                {metadata?.description &&
-                    <Col span={16}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            {<div>
-                                <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
-                                    {/* {metadata?.description} */}
-                                </div>
-                            </div>}
-                        </div>
-                    </Col>
-                }
             </Row>
             <Divider />
 

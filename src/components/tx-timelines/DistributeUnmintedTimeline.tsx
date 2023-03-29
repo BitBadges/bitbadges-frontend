@@ -3,7 +3,6 @@ import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 
 //See TxTimeline for explanations and documentation
@@ -26,8 +25,6 @@ export function DistributeTimeline({
     const nonFungible = txTimelineProps.nonFungible;
 
 
-    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collection.collectionMetadata, collection, collection.claims.length + 1)
-
     return (
         <FormTimeline
             items={[
@@ -37,8 +34,6 @@ export function DistributeTimeline({
                     ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems) : EmptyStepItem,
                 distributionMethod !== DistributionMethod.Unminted
                     ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, collection.unmintedSupplys) : EmptyStepItem,
-                claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)
-                    ? DownloadCodesStep : EmptyStepItem,
             ]}
             onFinish={() => {
                 if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);

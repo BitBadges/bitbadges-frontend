@@ -4,10 +4,10 @@ import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { DownloadCodesStepItem } from './step-items/DownloadCodesStepItem';
 import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
+import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 
 //See TxTimeline for explanations and documentation
@@ -34,16 +34,17 @@ export function AddBadgesTimeline({
     const nonFungible = txTimelineProps.nonFungible;
     const simulatedCollection = txTimelineProps.simulatedCollection;
     const existingCollection = txTimelineProps.existingCollection;
-
+    const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
+    const updateMetadataForManualUris = txTimelineProps.updateMetadataForManualUris;
+    const updateMetadataForBadgeIds = txTimelineProps.updateMetadataForBadgeIds;
 
     //All mint timeline step items
     const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, existingCollection);
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-    // const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, simulatedCollection, existingCollection, undefined, updateMetadataForBadgeIds, true);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection, true);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
-    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend);
-    const DownloadCodesStep = DownloadCodesStepItem(claimItems, collectionMetadata, simulatedCollection, 1);
+    const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIds);
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
 
@@ -52,7 +53,8 @@ export function AddBadgesTimeline({
             items={[
                 BadgeSupplySelectStep,
                 MetadataStorageSelectStep,
-                // SetCollectionMetadataStep,
+                addMethod === MetadataAddMethod.UploadUrl
+                    ? SetCollectionMetadataStep : EmptyStepItem,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
                 DistributionMethodStep,
@@ -60,9 +62,8 @@ export function AddBadgesTimeline({
                     ? ManualSendSelect : EmptyStepItem,
                 distributionMethod !== DistributionMethod.Unminted
                     ? CreateClaims : EmptyStepItem,
-                claimItems.length > 0 && claimItems.find((claimItem) => claimItem.codes.length > 0 || claimItem.hasPassword)
-                    ? DownloadCodesStep : EmptyStepItem,
-                CollectionPreviewStep
+                addMethod === MetadataAddMethod.Manual
+                    ? CollectionPreviewStep : EmptyStepItem,
             ]}
             onFinish={() => {
                 if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);

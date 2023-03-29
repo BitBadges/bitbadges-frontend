@@ -1,57 +1,94 @@
-import { Form, Typography, Input } from "antd";
+import { Form, Input, Typography } from "antd";
+import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
+import { BitBadgeCollection } from "../../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
-import { useEffect, useState } from "react";
+import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
+import { BadgePageHeader } from "../../collection-page/BadgePageHeader";
 
 const { Text } = Typography;
 
 export function MetadataUriSelect({
-    setUri,
+    collection,
+    newCollectionMsg,
+    setNewCollectionMsg,
+    updateMetadataForBadgeIds,
+    startId,
+    endId,
+    hideCollectionSelect,
 }: {
-    setUri: (collectionUri: string, badgeUri: string) => void;
+    collection: BitBadgeCollection,
+    newCollectionMsg: MessageMsgNewCollection,
+    setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection, updateCollection: boolean, updateBadges: boolean) => void,
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    startId: number;
+    endId: number;
+    hideCollectionSelect?: boolean;
 }) {
-    const [collectionUri, setCollectionUri] = useState<string>("");
-    const [badgeUri, setBadgeUri] = useState<string>("");
 
-    useEffect(() => {
-        setUri(collectionUri, badgeUri);
-    }, [badgeUri, collectionUri, setUri]);
+
+
 
     return <>
+        {!hideCollectionSelect && <>
+            <Form.Item
+                label={
+                    <Text
+                        style={{ color: PRIMARY_TEXT }}
+                        strong
+                    >
+                        Collection Metadata URI
+                    </Text>
+                }
+                required
+            >
+                <Input
+                    value={newCollectionMsg.collectionUri}
+                    onChange={(e: any) => {
+                        setNewCollectionMsg({
+                            ...newCollectionMsg,
+                            collectionUri: e.target.value
+                        }, true, false);
+                    }}
+                    style={{
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                    }}
+                />
+            </Form.Item>
+
+            {
+                newCollectionMsg.collectionUri &&
+                <BadgePageHeader
+                    metadata={collection.collectionMetadata}
+                />
+            }
+        </>
+        }
+
         <Form.Item
             label={
                 <Text
                     style={{ color: PRIMARY_TEXT }}
                     strong
                 >
-                    Collection Metadata
+                    Badge Metadata URI
                 </Text>
             }
             required
         >
             <Input
+                value={newCollectionMsg.badgeUris[0]?.uri}
                 onChange={(e: any) => {
-                    setCollectionUri(e.target.value);
-                }}
-                style={{
-                    backgroundColor: PRIMARY_BLUE,
-                    color: PRIMARY_TEXT,
-                }}
-            />
-        </Form.Item>
-        <Form.Item
-            label={
-                <Text
-                    style={{ color: PRIMARY_TEXT }}
-                    strong
-                >
-                    Badge Metadata
-                </Text>
-            }
-            required
-        >
-            <Input
-                onChange={(e: any) => {
-                    setBadgeUri(e.target.value);
+                    setNewCollectionMsg({
+                        ...newCollectionMsg,
+                        badgeUris: [
+
+                            {
+                                badgeIds: [{ start: startId, end: endId }],
+                                uri: e.target.value
+                            }
+                        ]
+                    }, false, true);
                 }}
                 style={{
                     backgroundColor: PRIMARY_BLUE,
@@ -60,9 +97,23 @@ export function MetadataUriSelect({
             />
             <div style={{ fontSize: 12 }}>
                 <Text style={{ color: 'lightgray' }}>
-                    *Must include {"\"{id}\""}. This is a placeholder for the ID of the badge to be fetched.
+                    {"\"{id}\""} can be used as a placeholder which will be replaced the unique ID of each badge.
                 </Text>
             </div>
         </Form.Item>
+
+
+
+        {newCollectionMsg.badgeUris[0] &&
+            <div className='flex-between' style={{ width: '100%', justifyContent: 'center', display: 'flex', color: PRIMARY_TEXT }}>
+                <BadgeAvatarDisplay
+                    badgeIds={newCollectionMsg.badgeUris[0].badgeIds}
+                    collection={collection}
+                    userBalance={undefined}
+                    showIds
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                />
+            </div>
+        }
     </>
 }

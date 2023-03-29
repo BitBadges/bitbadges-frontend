@@ -1,8 +1,9 @@
 import axiosApi from 'axios';
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
-import { BACKEND_URL, NODE_URL } from '../constants';
+import { BACKEND_URL, METADATA_PAGE_LIMIT, NODE_URL } from '../constants';
 import { stringify } from "../utils/preserveJson";
+import { getMaxBatchId } from './badges';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
 import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
@@ -53,6 +54,7 @@ export async function getBadgeOwners(collectionId: number, badgeId: number) {
 }
 
 async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: boolean = false) {
+    //TODO: parallelize this (get manager info, get metadata, get collection should all be handled together)  
     // Convert the returned permissions (uint) to a Permissions object for easier use
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
@@ -64,17 +66,18 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
+    //Forcefully fetch all metadata
     if (fetchAllMetadata) {
         const promises = [];
 
-        //Backend batch limit == 100, so 0 will get batches 0-99
-        for (let j = 0; j < badgeData.badgeUris.length; j += 100) {
+        //Backend batch limit == METADATA_PAGE_LIMIT, so 0 will get batches 0-99
+        for (let j = 0; j < getMaxBatchId(badgeData); j += METADATA_PAGE_LIMIT) {
             promises.push(updateMetadata(badgeData, j));
         }
 
         await Promise.all(promises).then((values) => {
             for (const res of values) {
-                badgeData.collectionMetadata = res.collectionMetadata;
+                badgeData.collectionMetadata = res.collectionMetadata || badgeData.collectionMetadata;
                 badgeData.badgeMetadata = {
                     ...badgeData.badgeMetadata,
                     ...res.badgeMetadata
@@ -82,7 +85,7 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
             }
         });
     } else {
-        //Backend batch limit == 100, so 0 will get batches 0-99
+        //Backend batch limit == METADATA_PAGE_LIMIT so get batches 0-METADATA_PAGE_LIMIT (0 = collection) initially
         badgeData = await updateMetadata(badgeData, 0);
     }
 
@@ -105,15 +108,19 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
         await validatePositiveNumber(collectionId);
     }
 
-    let collections: BitBadgeCollection[] = [];
+    const collections: BitBadgeCollection[] = [];
     const badgeDataResponse = await axios.post(BACKEND_URL + GetCollectionsRoute(), {
         collections: collectionIds.map((x) => Number(x))
     }).then((res) => res.data);
 
+    const promises = [];
     for (const collection of badgeDataResponse.collections) {
-        let badgeData: BitBadgeCollection = collection;
-        badgeData = await cleanCollection(badgeData, fetchAllMetadata);
-        collections.push(badgeData);
+        promises.push(cleanCollection(collection, fetchAllMetadata));
+    }
+
+    const cleanedCollections = await Promise.all(promises);
+    for (const collection of cleanedCollections) {
+        collections.push(collection);
     }
 
     return collections;
@@ -124,16 +131,17 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
     await validatePositiveNumber(collectionId);
 
     const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
-    let badgeData: BitBadgeCollection = badgeDataResponse;
-    badgeData = await cleanCollection(badgeData);
+    let collection: BitBadgeCollection = await cleanCollection(badgeDataResponse);
     return {
-        collection: badgeData
+        collection: collection
     };
 }
 
+//Gets metadata batches for a collection starting from startBatchId ?? 0 and incrementing METADATA_PAGE_LIMIT times
 export async function updateMetadata(collection: BitBadgeCollection, startBatchId?: number) {
-    let metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBatchId }).then((res) => res.data);
-    collection.collectionMetadata = metadataRes.collectionMetadata;
+    const metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBatchId }).then((res) => res.data);
+    const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
+    collection.collectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.collectionMetadata;
     collection.badgeMetadata = {
         ...collection.badgeMetadata,
         ...metadataRes.badgeMetadata
@@ -190,6 +198,23 @@ export const getCodeForPassword = async (cid: string, password: string) => {
     return res;
 }
 
+export const fetchCodes = async (collectionId: number) => {
+    const res: { codes: string[][], passwords?: string[] } = await axios.get(BACKEND_URL + '/api/collection/codes/' + collectionId).then(res => res.data);
+    return res;
+}
+
+//Fetches metadata directly from a URI (only to be used when creating badges with new self-hosted metadata)
+export const fetchMetadata = async (uri: string) => {
+    const res: { metadata: BadgeMetadata } = await axios.post(BACKEND_URL + '/api/metadata', { uri }).then(res => res.data);
+    return res;
+}
+
+//Refreshes the metadata on the backend by adding it to the queue
+export const refreshMetadataOnBackend = async (collectionId: number, badgeId?: number) => {
+    const res = await axios.post(BACKEND_URL + '/api/collection/refreshMetadata', { collectionId, badgeId }).then(res => res.data);
+    return res;
+}
+
 export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[], codes: string[], hashedCodes: string[], password?: string) => {
     const bodyStr = stringify({
         leaves,
@@ -206,20 +231,9 @@ export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[],
 export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBadgeMetadata: BadgeMetadataMap) => {
     const bodyStr = stringify({
         collectionMetadata,
-        individualBadgeMetadata
+        individualBadgeMetadata: Object.values(individualBadgeMetadata).map(x => x.metadata)
     }); //hack to preserve uint8 arrays
 
     const addToIpfsRes = await axios.post(BACKEND_URL + '/api/addToIpfs', bodyStr).then(res => res.data);
-    return addToIpfsRes;
-}
-
-export interface GetFromIPFSResponse {
-    file: string
-}
-
-export const getFromIpfs = async (path: string) => {
-    const bodyStr = stringify({ path }); //hack to preserve uint8 arrays
-
-    const addToIpfsRes: GetFromIPFSResponse = await axios.post(BACKEND_URL + '/api/getFromIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }

@@ -1,4 +1,4 @@
-import { Card, Empty } from 'antd';
+import { Card, Empty, message } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useState } from 'react';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
@@ -12,6 +12,7 @@ import { CreateTxMsgTransferManagerModal } from '../tx-modals/CreateTxMsgTransfe
 import { CreateTxMsgUpdateDisallowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateDisallowedTransfers';
 import { CreateTxMsgUpdatePermissionsModal } from '../tx-modals/CreateTxMsgUpdatePermissions';
 import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisModal';
+import { refreshMetadataOnBackend } from '../../bitbadges-api/api';
 
 export function ActionsTab({
     collection,
@@ -35,6 +36,7 @@ export function ActionsTab({
     const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
     const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
+    const [fetchCodesIsVisible, setFetchCodesIsVisible] = useState(false);
 
     if (!collection) return <></>;
     const isManager = collection.manager.accountNumber === accountNumber;
@@ -143,6 +145,21 @@ export function ActionsTab({
             ),
             showModal: () => {
                 setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
+            },
+        })
+
+        actions.push({
+            title: getTitleElem("Refresh Metadata"),
+            description: getDescriptionElem(
+                "Perform a forceful refresh for all metadata for this collection."
+            ),
+            showModal: async () => {
+                try {
+                    await refreshMetadataOnBackend(collection.collectionId);
+                    message.success("Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later.");
+                } catch (e) {
+                    message.error("Oops! Something went wrong. Please try again later.");
+                }
             },
         })
     }
@@ -304,6 +321,8 @@ export function ActionsTab({
                 setVisible={setUpdateDisallowedIsVisible}
                 collectionId={collection.collectionId}
             />
+
+
         </div >
     );
 }

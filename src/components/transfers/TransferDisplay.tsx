@@ -20,6 +20,7 @@ export function TransferDisplay({
     hideBalances,
     setTransfers,
     deletable,
+    updateMetadataForBadgeIds
 }: {
     from: BitBadgesUserInfo[]
     transfers: TransfersExtended[],
@@ -29,6 +30,7 @@ export function TransferDisplay({
     hideBalances?: boolean;
     setTransfers: (transfers: TransfersExtended[]) => void;
     deletable?: boolean;
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 }) {
     const [transfersPage, setTransfersPage] = useState(0);
     const accounts = useAccountsContext();
@@ -78,6 +80,7 @@ export function TransferDisplay({
                                     numRecipients={toLength}
                                     numIncrements={transfer.numIncrements}
                                     incrementBy={transfer.incrementBy}
+                                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                                 />
                             </>
                         }

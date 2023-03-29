@@ -8,13 +8,15 @@ export function BalanceBeforeAndAfter({
     hideTitle,
     beforeMessage,
     afterMessage,
-    collection
+    collection,
+    updateMetadataForBadgeIds
 }: {
     balance: UserBalance;
     newBalance: UserBalance;
     partyString: string;
     hideTitle?: boolean;
     collection: BitBadgeCollection;
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 
     beforeMessage?: string;
     afterMessage?: string;
@@ -41,6 +43,7 @@ export function BalanceBeforeAndAfter({
                     collection={collection}
                     balance={balance}
                     message={beforeMessage ? beforeMessage : 'Before'}
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                     // size={35}
                 />
             </div>
@@ -49,6 +52,7 @@ export function BalanceBeforeAndAfter({
                     collection={collection}
                     balance={newBalance}
                     message={afterMessage ? afterMessage : 'After'}
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                     // size={35}
                 />
             </div>

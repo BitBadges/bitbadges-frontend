@@ -16,7 +16,8 @@ export function IdRangesInput({
     darkMode,
     verb,
     collection,
-    defaultAllSelected = true
+    defaultAllSelected = true,
+    updateMetadataForBadgeIds
 }: {
     idRanges?: IdRange[],
     setIdRanges: (idRanges: IdRange[]) => void,
@@ -26,6 +27,7 @@ export function IdRangesInput({
     verb?: string,
     collection: BitBadgeCollection,
     defaultAllSelected?: boolean,
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void
 }) {
     const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
 
@@ -247,6 +249,7 @@ export function IdRangesInput({
                     // selectedId={id}
                     // size={40}
                     showIds={true}
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                 />
             </div>
         </div>

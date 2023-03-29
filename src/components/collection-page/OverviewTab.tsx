@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping, getRangesForAllBadges } from "../../bitbadges-api/badges";
+import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "../../bitbadges-api/badges";
 import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
@@ -10,6 +10,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
 import { CollectionOverview } from "./CollectionInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
+import Markdown from 'react-markdown';
 
 export function OverviewTab({
     collection,
@@ -41,12 +42,27 @@ export function OverviewTab({
                 // size={55}
                 collection={collection}
                 userBalance={userBalance}
-                badgeIds={getRangesForAllBadges(collection)}
+                badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
                 hideModalBalance={isPreview}
                 maxWidth={'100%'}
             />
         </InformationDisplayCard>
         <br />
+        {collection.collectionMetadata.description &&
+
+            <InformationDisplayCard
+                title="Description"
+            >
+                <div style={{ maxHeight: 400, overflow: 'auto' }} >
+                    <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
+                        <Markdown>
+                            {collection.collectionMetadata.description}
+                        </Markdown>
+                    </div>
+                </div>
+            </InformationDisplayCard>
+
+        }
         <br />
         <Row
             style={{
@@ -58,6 +74,7 @@ export function OverviewTab({
                 <CollectionOverview
                     collection={collection}
                     metadata={collectionMetadata}
+                    isCollectionInfo
                     span={24}
                 />
                 <br />

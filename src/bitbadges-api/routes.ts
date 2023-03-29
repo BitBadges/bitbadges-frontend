@@ -12,7 +12,6 @@ export const GetAccountsRoute = () => {
     return `/api/user/batch`;
 }
 
-
 export const GetBalanceRoute = (bech32address: string) => {
     return `/cosmos/bank/balances/${bech32address}`;
 }

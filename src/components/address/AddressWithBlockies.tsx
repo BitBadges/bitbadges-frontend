@@ -38,7 +38,8 @@ export function AddressWithBlockies({
             />
         </Tooltip>
         <Blockies scale={blockiesScale} seed={address ? address.toLowerCase() : ''} />
-        <Address fontSize={fontSize}
+        <Address 
+            fontSize={fontSize}
             address={address}
             addressName={addressName}
             fontColor={fontColor}

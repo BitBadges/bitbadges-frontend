@@ -1,4 +1,4 @@
-import { Divider, Layout } from 'antd';
+import { Divider, Empty, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getPortfolio } from '../../bitbadges-api/api';
@@ -97,8 +97,21 @@ function CollectionPage() {
                                     key={portfolioCollection.collectionId}
                                     collection={collection}
                                     accountInfo={accountInfo}
+                                    showBadges
                                 />
                             })}
+
+                            {portfolioInfo?.collected.length === 0 && (
+                                <Empty
+                                    style={{ color: PRIMARY_TEXT }}
+                                    description={
+                                        <span>
+                                            This account has not collected any badges yet.
+                                        </span>
+                                    }
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                />
+                            )}
                         </div>
                     </>)}
 
@@ -112,9 +125,22 @@ function CollectionPage() {
                                         key={portfolioCollection.collectionId}
                                         collection={collection}
                                         accountInfo={accountInfo}
+                                        showBadges={false}
                                     />
                                 )
                             })}
+
+                            {portfolioInfo?.managing.length === 0 && (
+                                <Empty
+                                    style={{ color: PRIMARY_TEXT }}
+                                    description={
+                                        <span>
+                                            This account has not collected any badges yet.
+                                        </span>
+                                    }
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                />
+                            )}
                         </div>
                     </>)}
 

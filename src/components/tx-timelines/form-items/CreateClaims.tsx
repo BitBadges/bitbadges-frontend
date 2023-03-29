@@ -26,7 +26,9 @@ export function CreateClaims({
     claimItems,
     setClaimItems,
     balancesToDistribute,
-    manualSend
+    manualSend,
+    updateMetadataForBadgeIds
+
 }: {
     collection: BitBadgeCollection;
     newCollectionMsg: MessageMsgNewCollection;
@@ -36,6 +38,7 @@ export function CreateClaims({
     setClaimItems: (claimItems: ClaimItem[]) => void;
     balancesToDistribute?: Balance[];
     manualSend: boolean;
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
 }) {
     const badgeCollection = collection;
 
@@ -169,6 +172,8 @@ export function CreateClaims({
     }
 
     return <div style={{ justifyContent: 'center', width: '100%' }}>
+
+
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
 
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
@@ -177,8 +182,8 @@ export function CreateClaims({
                         title='Undistributed Badges'
                     >
                         {undistributedBalances.balances.length > 0 && <BalanceDisplay
-                            // size={40}
                             collection={badgeCollection} balance={undistributedBalances}
+                            updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                         />}
                         {undistributedBalances.balances.length === 0 && <Empty
                             style={{ color: PRIMARY_TEXT }}
@@ -292,6 +297,7 @@ export function CreateClaims({
                                                                     numCodes: leaf.numCodes,
                                                                 }
                                                             ]}
+                                                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                                                 />
 
                                                 <Divider />
@@ -323,6 +329,7 @@ export function CreateClaims({
                     manualSend={manualSend}
                     plusButton
                     showIncrementSelect={(distributionMethod === DistributionMethod.Whitelist && !manualSend) || distributionMethod === DistributionMethod.Codes}
+                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
                 />
             </div>
         </div>

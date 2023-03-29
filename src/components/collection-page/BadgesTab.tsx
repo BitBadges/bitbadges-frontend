@@ -1,11 +1,11 @@
 import { Pagination } from 'antd';
 import { useEffect, useState } from 'react';
-import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgeCard } from '../badges/BadgeCard';
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getRangesForAllBadges, updateMetadataForBadgeIdsIfAbsent } from '../../bitbadges-api/badges';
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getIdRangesForAllBadgeIdsInCollection, updateMetadataForBadgeIdsIfAbsent } from '../../bitbadges-api/badges';
 import { getPageDetails } from '../../utils/pagination';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
@@ -16,6 +16,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
     isPreview: boolean;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
+    const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]);
     const collections = useCollectionsContext();
 
     const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. URL?id=1)
@@ -28,19 +29,27 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
     const pageStartId = currPageDetails.start;
     const pageEndId = currPageDetails.end;
 
+
     useEffect(() => {
         //Calculate badge IDs to display and update metadata
-        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getRangesForAllBadges(collection), minId, maxId, PAGE_SIZE);
+        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getIdRangesForAllBadgeIdsInCollection(collection), pageStartId - 1, PAGE_SIZE);
+        setBadgeIdsToDisplay(badgeIdsToDisplay);
         updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageStartId, pageEndId]);
+    }, [pageStartId, pageEndId, collection, currPage]);
 
     return (
         <div
             style={{
                 color: PRIMARY_TEXT,
             }}>
+
+            {/* 
+            <hr />
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px', marginBottom: '10px' }}>
+                <h2 style={{ color: PRIMARY_TEXT }}>Badges</h2>
+            </div> */}
             <div style={{
                 display: 'flex',
                 flexDirection: 'row',
@@ -79,7 +88,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
                                 balance={balance}
                                 collection={collection}
                                 metadata={
-                                    getMetadataForBadgeId(idx + Number(pageStartId), collection.badgeMetadata)
+                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
                                 }
                                 id={idx + Number(pageStartId)}
                                 hideModalBalances={isPreview}

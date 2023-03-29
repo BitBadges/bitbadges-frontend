@@ -23,11 +23,13 @@ export function UpdateMetadataTimeline({
     const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
     const individualBadgeMetadata = txTimelineProps.individualBadgeMetadata;
     const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
+    const updateMetadataForManualUris = txTimelineProps.updateMetadataForManualUris;
+    const updateMetadataForBadgeIds = txTimelineProps.updateMetadataForBadgeIds;
 
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
 
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection, undefined, undefined, updateMetadataForBadgeIds);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const CollectionPreviewStep = PreviewCollectionStepItem(collection);
 
@@ -38,7 +40,9 @@ export function UpdateMetadataTimeline({
                 SetCollectionMetadataStep,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
-                CollectionPreviewStep
+                addMethod === MetadataAddMethod.Manual
+                    ? CollectionPreviewStep : EmptyStepItem,
+
             ]}
             onFinish={() => {
                 if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);

@@ -26,15 +26,18 @@ const tabInfo = [
 
 function CollectionPage({
     collectionPreview, //Only used for previews on TxTimeline
+    updateMetadataForBadgeIds
 }
     : {
         collectionPreview: BitBadgeCollection
+        updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
     }
 ) {
     const router = useRouter()
     const chain = useChainContext();
     const collections = useCollectionsContext();
-    const { collectionId, badgeId } = router.query;
+    const { collectionId, badgeId, password, code } = router.query;
+
     const accountNumber = chain.accountNumber;
     const isPreview = collectionPreview ? true : false;
 
@@ -45,7 +48,7 @@ function CollectionPage({
 
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
     const [userBalance, setUserBalance] = useState<UserBalance>();
-    const [tab, setTab] = useState(badgeIdNumber ? 'badges' : 'overview');
+    const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code) ? 'claims' : 'overview');
 
     async function refreshBadgeBalance() {
         if (isPreview) return;
@@ -56,7 +59,9 @@ function CollectionPage({
     //Get collection information
     useEffect(() => {
         if (isPreview) return;
-        collections.fetchCollections([collectionIdNumber]);
+        if (collectionIdNumber > 0) {
+            collections.fetchCollections([collectionIdNumber]);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectionIdNumber]);
 
@@ -69,14 +74,20 @@ function CollectionPage({
         }
     }, [badgeId])
 
+    //Set tab to badges if badgeId is in query
+    useEffect(() => {
+        if (code || password) setTab('claims');
+    }, [code, password])
+
 
     // Get user's badge balance
     useEffect(() => {
         if (isPreview) return;
         async function getBadgeBalanceFromApi() {
-            console.log("GETTING BADGE BALANCE");
-            const res = await getBadgeBalance(collectionIdNumber, accountNumber);
-            setUserBalance(res.balance);
+            if (collectionIdNumber > 0 && accountNumber > 0) {
+                const res = await getBadgeBalance(collectionIdNumber, accountNumber);
+                setUserBalance(res.balance);
+            }
         }
         getBadgeBalanceFromApi();
     }, [collectionIdNumber, accountNumber, isPreview])
@@ -141,7 +152,7 @@ function CollectionPage({
                             />
                         )}
 
-                        {tab === 'activity' && collection  && (
+                        {tab === 'activity' && collection && (
                             <ActivityTab
                                 collection={collection}
                             />

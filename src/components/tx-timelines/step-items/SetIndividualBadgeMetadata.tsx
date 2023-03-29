@@ -72,7 +72,7 @@ export function SetIndividualBadgeMetadataStepItem(
                 startId={existingCollection?.nextBadgeId || 1}
                 endId={collection.nextBadgeId - 1}
                 toBeFrozen={!collection.permissions.CanUpdateUris}
-                metadata={getMetadataForBadgeId(id, individualBadgeMetadata)}
+                metadata={getMetadataForBadgeId(id, individualBadgeMetadata) || {} as BadgeMetadata}
                 setMetadata={(metadata: BadgeMetadata) => {
                     setDisabled(true);
 
@@ -86,7 +86,6 @@ export function SetIndividualBadgeMetadataStepItem(
 
                         if (found) {
                             values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: id, end: id }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-
                         }
                     }
 
@@ -116,6 +115,7 @@ export function SetIndividualBadgeMetadataStepItem(
                                 start: id,
                                 end: id,
                             }],
+                            uri: 'Manual'
                         }
                     }
 
@@ -180,6 +180,7 @@ export function SetIndividualBadgeMetadataStepItem(
                                 individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
                                     metadata: { ...metadata },
                                     badgeIds: [idRangeToUpdate],
+                                    uri: 'Manual'
                                 }
                             }
                         }
@@ -192,6 +193,6 @@ export function SetIndividualBadgeMetadataStepItem(
                 newCollectionMsg={newCollectionMsg}
             />
         </>,
-        disabled: !(getMetadataForBadgeId(id, individualBadgeMetadata).name) || disabled
+        disabled: !(getMetadataForBadgeId(id, individualBadgeMetadata)?.name) || disabled
     }
 }

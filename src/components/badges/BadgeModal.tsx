@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { useChainContext } from '../../contexts/ChainContext';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
-import { BadgeOverview } from '../collection-page/BadgeInfo';
 import { Tabs } from '../navigation/Tabs';
 import { BadgePageHeader } from '../collection-page/BadgePageHeader';
 import { OwnersTab } from '../collection-page/OwnersTab';
 import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
 import { ActivityTab } from '../collection-page/ActivityTab';
+import { CollectionOverview } from '../collection-page/CollectionInfo';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import Markdown from 'react-markdown'
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -93,7 +95,8 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                 metadata={metadata}
                             />
                             {chain.connected && !hideBalances && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
-                            <Divider />
+                            <br />
+
                             <Row
                                 style={{
                                     display: 'flex',
@@ -105,7 +108,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                 <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
 
                                     <Text style={{ color: SECONDARY_TEXT }}>
-                                        <BadgeOverview
+                                        <CollectionOverview
                                             collection={collection}
                                             metadata={metadata}
                                             badgeId={badgeId}
@@ -113,6 +116,37 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                     </Text>
                                 </Col>
                             </Row>
+                            <br />
+                            {metadata.description &&
+
+                                <Row
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+
+                                    }}
+                                >
+
+                                    <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
+
+
+
+                                        <InformationDisplayCard
+                                            title="Description"
+                                        >
+                                            <div style={{ maxHeight: 400, overflow: 'auto' }} >
+                                                <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
+                                                    <Markdown>
+                                                        {metadata.description}
+                                                    </Markdown>
+                                                </div>
+                                            </div>
+                                        </InformationDisplayCard>
+
+
+                                    </Col>
+                                </Row>
+                            }
 
                         </>
                         )}

@@ -2,23 +2,23 @@ import { AccountsContextType } from "../contexts/AccountsContext";
 import { getBalanceAfterTransfer, getBalanceAfterTransfers } from "./balances";
 import { BitBadgesUserInfo, ClaimItem, Claims, TransfersExtended, UserBalance } from "./types";
 
+//From the claimItems created in the TxTimeline, we convert all these claimItems into a TransfersExtended[]
+//Only used if we are sending directly and not utilizing the claims field
 export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: AccountsContextType) => {
     const transfers: TransfersExtended[] = [];
     for (const claimItem of claimItems) {
-
         //Fetch account information of recipients
         const toAddresses: number[] = [];
         const toAddressesInfo: BitBadgesUserInfo[] = [];
         for (const address of claimItem.addresses) {
-            const amount = 1;
             const accountNum = accounts.accounts[address].accountNumber ? accounts.accounts[address].accountNumber : -1;
 
-            const toPush: number[] = new Array(amount).fill(accountNum)
-            toAddresses.push(...toPush);
-            toAddressesInfo.push(...new Array(amount).fill(accounts.accounts[address]));
+            toAddresses.push(accountNum);
+            toAddressesInfo.push(accounts.accounts[address]);
         }
 
-        //If badges are incremented, we create N unique transfers. Else, we can create one transfer
+        //If badges are incremented, we create N unique transfers (one to each address). 
+        //Else, we can create one transfer with N addresses
         if (claimItem.incrementIdsBy && claimItem.numIncrements) {
             const currBadgeIds = JSON.parse(JSON.stringify(claimItem.badgeIds))
             for (let i = 0; i < toAddresses.length; i++) {
@@ -58,7 +58,14 @@ export const getTransfersFromClaimItems = (claimItems: ClaimItem[], accounts: Ac
     return transfers;
 }
 
+
+//From the claimItems created in the TxTimeline, we convert all these claimItems into a Claims[]
+//Only used if we are sending via claims and not sending directly
 export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimItem[]) => {
+    //We maintain two balances: 
+    //claimBalance is the max lbalance for each claim (max amount of badges that can be claimed based on parameters)
+    //undistributedBalance is the total undistributed balance (balance minus the sum of all claimBalances)
+
     let undistributedBalance = JSON.parse(JSON.stringify(balance));
 
     const claims: Claims[] = [];
@@ -69,9 +76,12 @@ export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimI
         const codesLength = claimItem.numCodes ? claimItem.numCodes : claimItem.codes.length;
         const addressesLength = claimItem.addresses.length;
 
-        if (claimItem.limitPerAccount === 0) { //No restrictions (0) or one per address (2)
-            maxNumClaims = codesLength;
-        } else if (claimItem.limitPerAccount === 1 || claimItem.limitPerAccount === 2) { //By whitelist index
+        //Calculate maxNumClaims based on the limitPerAccount parameter
+        if (claimItem.limitPerAccount === 0) {
+            maxNumClaims = codesLength; //No restrictions per address, so max is number of codes
+        } else if (claimItem.limitPerAccount === 1 || claimItem.limitPerAccount === 2) {
+            //1 = each whitelist index can only be used once
+            //2 = each address can only claim once
             if (codesLength > 0 && addressesLength > 0) {
                 maxNumClaims = Math.min(codesLength, addressesLength);
             } else if (codesLength > 0) {
@@ -81,8 +91,12 @@ export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimI
             }
         }
 
+        //If maxNumClaims is still 0, then it is unlimited claims
+        //Else, we calculate the claim details
         if (maxNumClaims > 0) {
-            const transfers = [
+
+            //Create a transfers array for compatibility with getBalanceAfterTransfers
+            const transfers: TransfersExtended[] = [
                 {
                     toAddresses: [0],
                     balances: [
@@ -93,13 +107,14 @@ export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimI
                     ],
                     numIncrements: maxNumClaims,
                     incrementBy: claimItem.incrementIdsBy,
+                    numCodes: claimItem.numCodes,
                 }
             ];
 
-            //For all possible transfers, remove from undistributedBalance 
+            //For all possible claims, deduct from undistributedBalance 
             undistributedBalance.balances = getBalanceAfterTransfers(undistributedBalance, transfers).balances;
 
-            //Set claim balance to what was just removed in the line above
+            //Set claimBalance to what was just deducted in the line above
             for (const balanceObj of undistributedBalance.balances) {
                 for (const badgeId of balanceObj.badgeIds) {
                     const newBalance = getBalanceAfterTransfer(claimBalance, badgeId.start, badgeId.end, balanceObj.balance, 1);
@@ -107,8 +122,9 @@ export const getClaimsFromClaimItems = (balance: UserBalance, claimItems: ClaimI
                 }
             }
         } else {
+            //If maxNumClaims is 0, then it is unlimited claims, so we set it to the entire undistributedBalance
             claimBalance = undistributedBalance;
-            balance = {
+            undistributedBalance = {
                 balances: [],
                 approvals: [],
             }

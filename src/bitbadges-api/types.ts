@@ -76,6 +76,8 @@ export interface ClaimItem extends Claims {
     hasPassword: boolean;
 
     numIncrements?: number;
+
+    failedToFetch?: boolean;
 }
 
 export enum DistributionMethod {
@@ -163,7 +165,8 @@ export interface BitBadgeCollection {
 export interface BadgeMetadataMap {
     [batchId: string]: {
         badgeIds: IdRange[],
-        metadata: BadgeMetadata
+        metadata: BadgeMetadata,
+        uri: string
     }
 }
 

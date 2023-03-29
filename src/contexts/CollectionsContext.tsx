@@ -83,6 +83,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             if (!collections[`${collectionId}`]) return;
             const collection = collections[`${collectionId}`];
             const newCollection = await updateMetadata(collection, startBatchId < 0 ? 0 : startBatchId);
+
+            
             setCollections({
                 ...collections,
                 [`${collectionId}`]: newCollection

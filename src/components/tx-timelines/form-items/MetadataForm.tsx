@@ -6,7 +6,7 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod } from '../../../bitbadges-api/types';
-import { GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
+import { DefaultPlaceholderMetadata, GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +15,7 @@ import moment from 'moment';
 import 'react-markdown-editor-lite/lib/index.css';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
 import { IdRangesInput } from '../../balances/IdRangesInput';
+import { getIdRangesForAllBadgeIdsInCollection } from '../../../bitbadges-api/badges';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -27,6 +28,7 @@ export function MetadataForm({
     metadata,
     setMetadata,
     addMethod,
+    hideCollectionSelect,
 
     id,
     setId,
@@ -36,7 +38,9 @@ export function MetadataForm({
     startId,
     endId,
     toBeFrozen,
-    collection
+    collection,
+    updateMetadataForManualUris,
+    updateMetadataForBadgeIds
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -46,10 +50,13 @@ export function MetadataForm({
     setId?: (id: number) => void;
     addMethod: MetadataAddMethod;
     populateOtherBadges: (badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => void;
-    startId?: number;
-    endId?: number;
+    startId: number;
+    endId: number;
     toBeFrozen?: boolean;
     collection: BitBadgeCollection;
+    updateMetadataForManualUris?: () => void,
+    updateMetadataForBadgeIds?: (badgeIds: number[]) => void
+    hideCollectionSelect?: boolean;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
@@ -103,6 +110,7 @@ export function MetadataForm({
     const [updateParentMetadataFlag, setUpdateParentMetadataFlag] = useState(false);
 
     const updateCurrentMetadata = (metadata: BadgeMetadata) => {
+        console.log("SETTING CURR METADATA", metadata);
         setCurrentMetadata(metadata);
         setUpdateParentMetadataFlag(!updateParentMetadataFlag);
     };
@@ -188,24 +196,21 @@ export function MetadataForm({
         <>
             <div>
                 {addMethod === MetadataAddMethod.UploadUrl && <>
-                    <MetadataUriSelect setUri={(collectionUri: string, badgeUri: string) => {
-                        setNewCollectionMsg({
-                            ...newCollectionMsg,
-                            collectionUri,
-                            badgeUris: [
-                                ...newCollectionMsg.badgeUris,
-                                {
-                                    uri: badgeUri,
-                                    badgeIds: [
-                                        {
-                                            start: startId ? startId : 1,
-                                            end: endId ? endId : GO_MAX_UINT_64 //TODO: weird
-                                        }
-                                    ]
-                                },
-                            ],
-                        });
-                    }} />
+                    <MetadataUriSelect
+                        collection={collection}
+                        newCollectionMsg={newCollectionMsg}
+                        setNewCollectionMsg={(newCollectionMsg: MessageMsgNewCollection, updateCollection: boolean, updateBadges: boolean) => {
+                            setNewCollectionMsg(newCollectionMsg);
+                            if (updateCollection) setMetadata(JSON.parse(JSON.stringify({ ...DefaultPlaceholderMetadata, image: '' })));
+                            if (updateBadges) populateOtherBadges(getIdRangesForAllBadgeIdsInCollection(collection), 'all', '', { ...DefaultPlaceholderMetadata, image: '' });
+
+                            if (updateMetadataForManualUris) updateMetadataForManualUris();
+                        }}
+                        startId={startId}
+                        endId={endId}
+                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                        hideCollectionSelect={hideCollectionSelect}
+                    />
                 </>}
 
                 {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">

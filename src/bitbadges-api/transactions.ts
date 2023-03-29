@@ -1,6 +1,7 @@
 import { CHAIN_DETAILS, DEV_MODE } from "../constants";
 import { getSenderInformation } from "./broadcast";
 
+//TODO: Dynamically fetch gas and fee from chain
 async function fetchDefaultTxDetails(chain: any) {
     const sender = await getSenderInformation(chain);
     const fee = {
