@@ -11,6 +11,7 @@ import { BalanceDisplay } from "../balances/BalanceDisplay";
 
 const { Text } = Typography
 
+//TransferDisplay handles normal Transfers[] as well as TransfersExtended[] for the mint proces
 export function TransferDisplay({
     transfers,
     collection,
@@ -20,7 +21,7 @@ export function TransferDisplay({
     hideBalances,
     setTransfers,
     deletable,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     from: BitBadgesUserInfo[]
     transfers: TransfersExtended[],
@@ -30,40 +31,41 @@ export function TransferDisplay({
     hideBalances?: boolean;
     setTransfers: (transfers: TransfersExtended[]) => void;
     deletable?: boolean;
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
-    const [transfersPage, setTransfersPage] = useState(0);
     const accounts = useAccountsContext();
+    const [page, setPage] = useState(0);
+
 
     return <div style={{ marginTop: 4 }}    >
-        {transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
-            <Empty description='None'
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ marginTop: 20, color: PRIMARY_TEXT }}
-            />
-        </div> :
-            <div style={{ textAlign: 'center' }}>
+        {
+            transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
+                <Empty description='None'
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    style={{ marginTop: 20, color: PRIMARY_TEXT }}
+                />
+            </div> : <div style={{ textAlign: 'center' }}>
                 <Pagination defaultCurrent={1}
                     total={transfers.length}
                     onChange={(page) => {
-                        setTransfersPage(page - 1);
+                        setPage(page - 1);
                     }}
                     pageSize={1}
                     hideOnSinglePage
                     showSizeChanger={false}
                 />
-            </div>}
+            </div>
+        }
         <br />
 
         {transfers.map((transfer, index) => {
-            if (index !== transfersPage) return <></>;
+            if (index !== page) return <></>;
 
             const to = transfer.toAddressInfo ? transfer.toAddressInfo : [];
             if (to.length) accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
 
             const toLength = to.length > 0 ? to.length : transfer.numCodes ? transfer.numCodes : 0;
-            let hasPassword = transfer.password ? true : false;
-            console.log("TRANSFERRRR", transfer, toLength);
+            const hasPassword = transfer.password ? true : false;
 
             return <div key={index}>
                 <div style={{}}>
@@ -80,7 +82,7 @@ export function TransferDisplay({
                                     numRecipients={toLength}
                                     numIncrements={transfer.numIncrements}
                                     incrementBy={transfer.incrementBy}
-                                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                                 />
                             </>
                         }
@@ -157,7 +159,7 @@ export function TransferDisplay({
                         className='screen-button'
                         style={{ cursor: 'pointer', fontSize: 14 }}
                         onClick={() => {
-                            setTransfers(transfers.filter((_, index) => index !== transfersPage));
+                            setTransfers(transfers.filter((_, index) => index !== page));
                         }}>
                         <Tooltip title='Delete Transfer'>
                             <DeleteOutlined />

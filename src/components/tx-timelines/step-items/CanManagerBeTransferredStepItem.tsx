@@ -11,7 +11,7 @@ export function CanManagerBeTransferredStepItem(
         title: 'Transferable Manager Role?',
         description: ``,
         node: <SwitchForm
-            noSelectUntilClick
+
             options={[
                 {
                     title: 'No',

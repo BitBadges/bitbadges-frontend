@@ -36,7 +36,7 @@ export function ActionsTab({
     const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
     const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
-    const [fetchCodesIsVisible, setFetchCodesIsVisible] = useState(false);
+
 
     if (!collection) return <></>;
     const isManager = collection.manager.accountNumber === accountNumber;
@@ -321,8 +321,7 @@ export function ActionsTab({
                 setVisible={setUpdateDisallowedIsVisible}
                 collectionId={collection.collectionId}
             />
-
-
+            
         </div >
     );
 }

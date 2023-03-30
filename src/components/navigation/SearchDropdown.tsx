@@ -3,7 +3,7 @@ import { Avatar, Menu, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { convertToCosmosAddress, isAddressValid } from '../../bitbadges-api/chains';
-import { BadgeMetadata, BitBadgesUserInfo, CosmosAccountInformation, SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgesUserInfo, CosmosAccountInformation, MetadataDocument, SupportedChain } from '../../bitbadges-api/types';
 import { convertToBitBadgesUserInfo } from '../../bitbadges-api/users';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -12,19 +12,20 @@ export function SearchDropdown({
     searchValue,
     onSearch,
     onlyAddresses
-}:
-    {
-        searchValue: string,
-        onSearch: (value: string) => void
-        onlyAddresses?: boolean
-    }
-) {
+}: {
+    searchValue: string,
+    onSearch: (value: string) => void
+    onlyAddresses?: boolean
+}) {
     const { setAccounts, cosmosAddressesByAccountNames, accounts, cosmosAddresses } = useAccountsContext();
     const [accountsResults, setAccountsResults] = useState<BitBadgesUserInfo[]>([]);
-    const [collectionsResults, setCollectionsResults] = useState<({ _id: string, _rev: string, metadata: BadgeMetadata })[]>([]);
+    const [collectionsResults, setCollectionsResults] = useState<(MetadataDocument & {
+        _id: string;
+        _rev: string;
+    })[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-
+    const DELAY_MS = 500;
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (!searchValue) return
@@ -40,13 +41,17 @@ export function SearchDropdown({
             setAccountsResults(accountsToSet);
             setCollectionsResults(results.collections);
             setLoading(false);
-        }, 300)
+        }, DELAY_MS)
 
         return () => clearTimeout(delayDebounceFn)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue])
 
 
+    //We have three sections of the dropdown:
+    //1. Attempt to map the current text to an address or name (hide if duplicate in accounts results)
+    //2. Search results for accounts
+    //3. Search results for collections
 
     return <Menu className='dropdown' onKeyDown={(e) => {
         if (e.key === '') {

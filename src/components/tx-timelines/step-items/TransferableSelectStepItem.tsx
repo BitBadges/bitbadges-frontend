@@ -14,7 +14,7 @@ export function TransferableSelectStepItem(
         description: ``,
         disabled: !handledDisallowedTransfers,
         node: <SwitchForm
-            noSelectUntilClick
+
             options={[
                 {
                     title: 'Non-Transferable',

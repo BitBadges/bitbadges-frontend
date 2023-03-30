@@ -12,22 +12,13 @@ export function UpdatableMetadataSelectStepItem(
     const options = [];
     options.push({
         title: 'No',
-        message: `The metadata ${addMethod === MetadataAddMethod.UploadUrl && 'URIs'} of the collection and any created badges will be frozen and cannot be updated.`,
+        message: `${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the collection and badge metadata (i.e. the self-hosted ones provided by you)' : 'The metadata of the collection and any created badges'} will be frozen and cannot be updated.`,
         isSelected: handledPermissions.CanUpdateUris && !GetPermissions(newCollectionMsg.permissions).CanUpdateUris
     })
 
-    let additionalHelperMsg = <></>
-    if (addMethod === MetadataAddMethod.Manual && GetPermissions(newCollectionMsg.permissions).CanCreateMoreBadges) {
-        
-    }
-
-    // if (addMethod === MetadataAddMethod.UploadUrl) {
-    //     additionalHelperMsg = <>{` Since you are self-hosting, note this only applies to updating the collection and badge metadata URIs. We can not control the metadata you store at those URLs.`}</>;
-    // }
-
     options.push({
         title: 'Yes',
-        message: <div>{`The metadata ${addMethod === MetadataAddMethod.UploadUrl && 'URIs'} of the collection and any created badges can be updated.`}{additionalHelperMsg}</div>,
+        message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the collection and badge metadata (i.e. the self-hosted URIs provided by you)' : 'The metadata of the collection and any created badges'} can be updated.`}</div>,
         isSelected: handledPermissions.CanUpdateUris && !!GetPermissions(newCollectionMsg.permissions).CanUpdateUris,
     });
 
@@ -37,7 +28,7 @@ export function UpdatableMetadataSelectStepItem(
         title: 'Updatable Metadata?',
         description: description,
         node: <SwitchForm
-            noSelectUntilClick
+
             options={options}
             onSwitchChange={(_idx, name) => {
                 updatePermissions(CanUpdateUrisDigit, name === 'Yes');

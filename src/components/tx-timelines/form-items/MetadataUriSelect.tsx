@@ -3,7 +3,8 @@ import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { BitBadgeCollection } from "../../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
-import { BadgePageHeader } from "../../collection-page/BadgePageHeader";
+import { CollectionHeader } from "../../badges/CollectionHeader";
+import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 
@@ -11,7 +12,7 @@ export function MetadataUriSelect({
     collection,
     newCollectionMsg,
     setNewCollectionMsg,
-    updateMetadataForBadgeIds,
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
     startId,
     endId,
     hideCollectionSelect,
@@ -19,13 +20,48 @@ export function MetadataUriSelect({
     collection: BitBadgeCollection,
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection, updateCollection: boolean, updateBadges: boolean) => void,
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     startId: number;
     endId: number;
     hideCollectionSelect?: boolean;
 }) {
+    const [collectionUri, setCollectionUri] = useState(newCollectionMsg.collectionUri);
+    const [badgeUri, setBadgeUri] = useState(newCollectionMsg.badgeUris[0]?.uri);
 
+    const DELAY_MS = 1000;
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (!collectionUri) return
 
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                collectionUri: collectionUri
+            }, true, false);
+
+        }, DELAY_MS)
+
+        return () => clearTimeout(delayDebounceFn)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectionUri])
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (!collectionUri) return
+            setNewCollectionMsg({
+                ...newCollectionMsg,
+                badgeUris: [
+
+                    {
+                        badgeIds: [{ start: startId, end: endId }],
+                        uri: badgeUri
+                    }
+                ]
+            }, false, true);
+        }, DELAY_MS)
+
+        return () => clearTimeout(delayDebounceFn)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [badgeUri])
 
 
     return <>
@@ -42,12 +78,9 @@ export function MetadataUriSelect({
                 required
             >
                 <Input
-                    value={newCollectionMsg.collectionUri}
+                    value={collectionUri}
                     onChange={(e: any) => {
-                        setNewCollectionMsg({
-                            ...newCollectionMsg,
-                            collectionUri: e.target.value
-                        }, true, false);
+                        setCollectionUri(e.target.value);
                     }}
                     style={{
                         backgroundColor: PRIMARY_BLUE,
@@ -58,7 +91,7 @@ export function MetadataUriSelect({
 
             {
                 newCollectionMsg.collectionUri &&
-                <BadgePageHeader
+                <CollectionHeader
                     metadata={collection.collectionMetadata}
                 />
             }
@@ -77,18 +110,9 @@ export function MetadataUriSelect({
             required
         >
             <Input
-                value={newCollectionMsg.badgeUris[0]?.uri}
+                value={badgeUri}
                 onChange={(e: any) => {
-                    setNewCollectionMsg({
-                        ...newCollectionMsg,
-                        badgeUris: [
-
-                            {
-                                badgeIds: [{ start: startId, end: endId }],
-                                uri: e.target.value
-                            }
-                        ]
-                    }, false, true);
+                    setBadgeUri(e.target.value);
                 }}
                 style={{
                     backgroundColor: PRIMARY_BLUE,
@@ -111,7 +135,7 @@ export function MetadataUriSelect({
                     collection={collection}
                     userBalance={undefined}
                     showIds
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>
         }

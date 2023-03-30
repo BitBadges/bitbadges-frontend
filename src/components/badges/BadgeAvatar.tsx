@@ -28,10 +28,9 @@ export function BadgeAvatar({
     return metadata ? <div>
         <Tooltip
             placement="bottom"
-            title={`${metadata.name} (ID: ${badgeId})`}
+            title={`${metadata.name ? metadata.name : ''} (ID: ${badgeId})`}
             open={modalIsVisible ? false : undefined}
         >
-
             <div style={{ textAlign: 'center' }}>
                 <Avatar
                     style={{
@@ -63,7 +62,6 @@ export function BadgeAvatar({
         <div style={{ textAlign: 'center' }}>
             {showId && <b><span>{badgeId}</span></b>}
             {balance && showBalance && <> <br />
-
                 <b>
                     x<span style={{
                         color: getSupplyByBadgeId(badgeId, balance.balances) < 0 ? 'red' : undefined
@@ -73,33 +71,31 @@ export function BadgeAvatar({
                 </b>
             </>}
         </div>
-    </div >
-        : <div style={{ textAlign: 'center' }}>
-
-            <Avatar
-                style={{
-                    verticalAlign: 'middle',
-                    margin: 4,
-                    cursor: 'pointer',
-                }}
-                className="badge-avatar"
-                src={<Spin />}
-                size={size ? size : 50}
-                onClick={() => setModalIsVisible(true)}
-                onError={() => {
-                    return false;
-                }}
-            />
-            <br />
-            {showId && <b><span>{badgeId}</span></b>}
-            {balance && showBalance && <> <br />
-                <b>
-                    <span style={{
-                        color: getSupplyByBadgeId(badgeId, balance.balances) < 0 ? 'red' : undefined
-                    }}>
-                        x{getSupplyByBadgeId(badgeId, balance.balances)}
-                    </span>
-                </b>
-            </>}
-        </div>
+    </div> : <div style={{ textAlign: 'center' }}>
+        <Avatar
+            style={{
+                verticalAlign: 'middle',
+                margin: 4,
+                cursor: 'pointer',
+            }}
+            className="badge-avatar"
+            src={<Spin />}
+            size={size ? size : 50}
+            onClick={() => setModalIsVisible(true)}
+            onError={() => {
+                return false;
+            }}
+        />
+        <br />
+        {showId && <b><span>{badgeId}</span></b>}
+        {balance && showBalance && <> <br />
+            <b>
+                <span style={{
+                    color: getSupplyByBadgeId(badgeId, balance.balances) < 0 ? 'red' : undefined
+                }}>
+                    x{getSupplyByBadgeId(badgeId, balance.balances)}
+                </span>
+            </b>
+        </>}
+    </div>
 }

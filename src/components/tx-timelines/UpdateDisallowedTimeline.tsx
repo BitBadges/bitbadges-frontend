@@ -11,8 +11,16 @@ export function UpdateDisallowedTimeline({
 }) {
     const disallowedTransfersWithUnregisteredUsers = txTimelineProps.disallowedTransfersWithUnregisteredUsers;
     const setDisallowedTransfersWithUnregisteredUsers = txTimelineProps.setDisallowedTransfersWithUnregisteredUsers;
+    const transferabilityToSelectType = txTimelineProps.transferabilityToSelectType;
+    const setTransferabilityToSelectType = txTimelineProps.setTransferabilityToSelectType;
+    const transferabilityFromSelectType = txTimelineProps.transferabilityFromSelectType;
+    const setTransferabilityFromSelectType = txTimelineProps.setTransferabilityFromSelectType;
+    const transferabilityTo = txTimelineProps.transferabilityTo;
+    const setTransferabilityTo = txTimelineProps.setTransferabilityTo;
+    const transferabilityFrom = txTimelineProps.transferabilityFrom;
+    const setTransferabilityFrom = txTimelineProps.setTransferabilityFrom;
 
-    const TransferableSelectStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers);
+    const TransferableSelectStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers, transferabilityToSelectType, setTransferabilityToSelectType, transferabilityFromSelectType, setTransferabilityFromSelectType, transferabilityTo, setTransferabilityTo, transferabilityFrom, setTransferabilityFrom);
 
     return (
         <FormTimeline

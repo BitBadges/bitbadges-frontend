@@ -30,9 +30,10 @@ export function CreateTxMsgClaimBadgeModal(
 
     const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256) : null);
     const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256) : null);
-    const [codeToSubmit, setCodeToSubmit] = React.useState<string>("");
+    const [codeToSubmit, setCodeToSubmit] = useState<string>("");
 
     useEffect(() => {
+        // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
         async function fetchCode() {
             if (claimItem && claimItem.hasPassword) {
                 const res = await getCodeForPassword(claimItem.uri.replace('ipfs://', ''), code);

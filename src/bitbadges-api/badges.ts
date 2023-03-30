@@ -170,7 +170,7 @@ export function getMetadataMapObjForBadgeId(badgeId: number, metadataMap: BadgeM
     for (const val of Object.values(metadataMap)) {
         const [_idx, found] = SearchIdRangesForId(badgeId, val.badgeIds)
         if (found) {
-            return currentMetadata;
+            return val;
         }
     }
 
@@ -244,7 +244,7 @@ export function getMaxBatchId(collection: BitBadgeCollection) {
 }
 
 //Iterates through the current badge metadata and puts in any new requests for badges that are displayed but have missing metadata 
-export function updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay: number[], collection: BitBadgeCollection, collections: CollectionsContextType) {
+export function updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay: number[], collection: BitBadgeCollection, collections: CollectionsContextType) {
     //Find the batchIdxs that we need to request metadata for
     let metadataBatchIdxs: number[] = [];
 
@@ -289,11 +289,7 @@ export function updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay: number[], c
         }
     }
 
-    //TODO: parallelize this if we have >1 idxToUpdate
-    // Update metadata for each new batch
-    for (const idx of idxsToUpdate) {
-        collections.updateCollectionMetadata(collection.collectionId, idx);
-    }
+    collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
 }
 
 export function checkIfApproved(userBalance: UserBalance, accountNumber: number, balancesToCheck: Balance[]) {

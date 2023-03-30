@@ -11,7 +11,7 @@ export function CanCreateMoreStepItem(
         title: 'Can Add Badges?',
         description: ``,
         node: <SwitchForm
-            // noSelectUntilClick
+            // 
             options={[
                 {
                     title: 'No',

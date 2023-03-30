@@ -47,7 +47,7 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
     }
 
 
-    
+
 
     useEffect(() => {
         async function getActivity() {

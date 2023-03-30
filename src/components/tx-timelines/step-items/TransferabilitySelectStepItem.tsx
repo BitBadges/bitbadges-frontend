@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
-import { TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { TransferMappingSelectType, TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 
 export function TransferabilitySelectStepItem(
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     setDisallowedTransfersWithUnregisteredUsers: (disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[]) => void,
+    transferabilityToSelectType: TransferMappingSelectType,
+    setTransferabilityToSelectType: (transferabilityToSelectType: TransferMappingSelectType) => void,
+    transferabilityFromSelectType: TransferMappingSelectType,
+    setTransferabiityFromSelectType: (transferabilityFromSelectType: TransferMappingSelectType) => void,
+    transferabilityTo: BitBadgesUserInfo[],
+    setTransferabilityTo: (transferabilityTo: BitBadgesUserInfo[]) => void,
+    transferabilityFrom: BitBadgesUserInfo[],
+    setTransferabilityFrom: (transferabilityFrom: BitBadgesUserInfo[]) => void,
 ) {
     const [handledTransfers, setHandledTransfers] = useState(false);
 
@@ -17,6 +25,14 @@ export function TransferabilitySelectStepItem(
                 setDisallowedTransfersWithUnregisteredUsers(disallowedTransfers);
             }}
             setHandled={() => setHandledTransfers(true)}
+            toSelectType={transferabilityToSelectType}
+            setToSelectType={(toSelectType) => setTransferabilityToSelectType(toSelectType)}
+            fromSelectType={transferabilityFromSelectType}
+            setFromSelectType={(fromSelectType) => setTransferabiityFromSelectType(fromSelectType)}
+            to={transferabilityTo}
+            setTo={(to) => setTransferabilityTo(to)}
+            from={transferabilityFrom}
+            setFrom={(from) => setTransferabilityFrom(from)}
         />,
         disabled: !handledTransfers
     }

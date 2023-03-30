@@ -78,9 +78,12 @@ export function OwnersTab({ collection, badgeId }: {
                                     style={{ color: PRIMARY_TEXT }}
                                 />}
                             </div>
-                            : <div><br /><Spin size={'large'} /><br /></div>
+                            : <div>
+                                <br />
+                                <Spin size={'large'} />
+                                <br />
+                            </div>
                         }
-
                     </InformationDisplayCard>
                 </div>
             </div>

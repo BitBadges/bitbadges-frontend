@@ -32,6 +32,7 @@ export function AddressListSelect({
     } as BitBadgesUserInfo);
     const [batchAddAddressList, setBatchAddAddressList] = useState<string>('');
 
+    //For EnterMethod.Single, set the user lift when the currUserInfo changes.
     useEffect(() => {
         if (!currUserInfo?.address || !currUserInfo?.chain || !currUserInfo?.cosmosAddress) {
             return;
@@ -55,8 +56,9 @@ export function AddressListSelect({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currUserInfo]);
 
-    async function updateUsers() {
-        const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '');
+    //For EnterMethod.Batch, set the user list when the batch add is clicked.
+    async function updateBatchUsers() {
+        const batchUsersList = batchAddAddressList.split('\n').filter((a) => a !== '').map(x => x.trim());
         const fetchedAccounts = await accounts.fetchAccounts(batchUsersList.filter(address => {
             return !users.find((u) => u.address === address || u.name === address);
         }));
@@ -67,12 +69,14 @@ export function AddressListSelect({
             const existingUser = users.find((u) => u.address === address || u.cosmosAddress === address || u.name === address);
 
             //Check if already in user list. If so, we duplicate it.
+            //If not, search for it in the fetched accounts.
             if (existingUser) {
                 newUserList.push(existingUser);
             } else {
                 const userInfo = fetchedAccounts.find((u) => u.address === address || u.cosmosAddress === address || u.name === address);
-                if (userInfo) newUserList.push(userInfo);
-                else {
+                if (userInfo) {
+                    newUserList.push(userInfo);
+                } else {
                     newUserList.push({
                         accountNumber: -1,
                         address: address,
@@ -118,7 +122,7 @@ export function AddressListSelect({
             </Tooltip>
             }
         />
-        {enterMethod === EnterMethod.Single && <>
+        {enterMethod === EnterMethod.Single &&
             <AddressSelect
                 currUserInfo={currUserInfo}
                 setCurrUserInfo={setCurrUserInfo}
@@ -126,31 +130,32 @@ export function AddressListSelect({
                 darkMode={darkMode}
                 hideAddressDisplay
             />
-        </>
         }
-        {enterMethod === EnterMethod.Batch && <>
-            <br />
-            <TextArea
-                style={{ minHeight: 200, backgroundColor: darkMode ? PRIMARY_BLUE : undefined, color: darkMode ? PRIMARY_TEXT : undefined }}
-                value={batchAddAddressList}
-                onChange={(e) => setBatchAddAddressList(e.target.value)}
-            />
-            <p style={{ textAlign: 'left' }}>Enter one address per line</p>
-            <br />
-            <Button
-                type="primary"
-                style={{ width: "100%" }}
-                disabled={batchAddAddressList.length === 0}
-                loading={loading}
-                onClick={async () => {
-                    setLoading(true);
-                    await updateUsers();
-                    setBatchAddAddressList('');
-                    setLoading(false);
-                }}>
-                <UserAddOutlined /> Add Users
-            </Button>
-        </>}
+        {enterMethod === EnterMethod.Batch &&
+            <>
+                <br />
+                <TextArea
+                    style={{ minHeight: 200, backgroundColor: darkMode ? PRIMARY_BLUE : undefined, color: darkMode ? PRIMARY_TEXT : undefined }}
+                    value={batchAddAddressList}
+                    onChange={(e) => setBatchAddAddressList(e.target.value)}
+                />
+                <p style={{ textAlign: 'left' }}>Enter one address per line</p>
+                <br />
+                <Button
+                    type="primary"
+                    style={{ width: "100%" }}
+                    disabled={batchAddAddressList.length === 0}
+                    loading={loading}
+                    onClick={async () => {
+                        setLoading(true);
+                        await updateBatchUsers();
+                        setBatchAddAddressList('');
+                        setLoading(false);
+                    }}>
+                    <UserAddOutlined /> Add Users
+                </Button>
+            </>
+        }
     </>
 
 }

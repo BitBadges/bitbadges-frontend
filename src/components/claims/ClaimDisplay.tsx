@@ -1,18 +1,18 @@
-import { ClockCircleOutlined, InfoCircleOutlined, InfoOutlined, WarningOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
+import { SHA256 } from "crypto-js";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { QRCode } from 'react-qrcode-logo';
 import { BitBadgeCollection, ClaimItem } from "../../bitbadges-api/types";
 import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from "../../constants";
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { useChainContext } from "../../contexts/ChainContext";
+import { downloadJson } from "../../utils/downloadJson";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { TransferDisplay } from "../transfers/TransferDisplay";
-import { QRCode } from 'react-qrcode-logo';
-import { useRouter } from "next/router";
-import { downloadJson } from "../../utils/downloadJson";
-import { SHA256 } from "crypto-js";
 
 
 export function ClaimDisplay({
@@ -34,23 +34,23 @@ export function ClaimDisplay({
 }) {
     const chain = useChainContext();
     const router = useRouter();
-    const { code, password } = router.query;
-
-
-
-    const [currCode, setCurrCode] = useState(code ? code as string : password ? password as string : '');
-    const [codePage, setCodePage] = useState(1);
-    const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
-
     const accounts = useAccountsContext();
 
+    const query = router.query;
+    const codeQuery = query.code as string;
+    const passwordQuery = query.password as string;
+
+    const [codePage, setCodePage] = useState(1);
+    const [currCode, setCurrCode] = useState(codeQuery ? codeQuery as string : passwordQuery ? passwordQuery as string : '');
+    const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
+
     useEffect(() => {
-        if (code) {
-            setCurrCode(code as string);
-        } else if (password) {
-            setCurrCode(password as string);
+        if (codeQuery) {
+            setCurrCode(codeQuery as string);
+        } else if (passwordQuery) {
+            setCurrCode(passwordQuery as string);
         }
-    }, [code, password]);
+    }, [codeQuery, passwordQuery]);
 
     let endTimestamp = claim.timeRange.end;
     let validForever = claim.timeRange.end >= MAX_DATE_TIMESTAMP;
@@ -93,10 +93,19 @@ export function ClaimDisplay({
 
 
 
+    //There are many different cases that can happen here as to why a user can not claim
+    //1. Not connected to wallet
+    //2. Not logged in to wallet and password claim (requires login)
+    //3. Only one claim per address and user has already claimed
+    //4. Only one claim per code and code has been used
+    //5. Could not fetch claim data when it was created (most likely due to not being created through BitBadges website and being incompatible)
+    //6. Only one claim per whitelist index and user has already used all their claims in the index
+
     let errorMessage = '';
     let cantClaim = false;
     let notConnected = false;
     let whitelistIndex: number | undefined = undefined;
+    //Cases 1-5
     if (!chain.connected) {
         cantClaim = true;
         notConnected = true;
@@ -116,10 +125,9 @@ export function ClaimDisplay({
         errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
     }
 
-
+    //Case 6
     if (claim.limitPerAccount === 1) {
         const addresses = claim.addresses;
-        //Get count of chain.cosmosAddress in addresses
         const max = addresses.filter(x => x === chain.cosmosAddress).length;
         let currUsed = 0;
         if (collection.usedClaims.addresses) {
@@ -175,146 +183,143 @@ export function ClaimDisplay({
                     </div>
                 </Row>}
 
-                {showClaimDisplay ? <div>
-
-
-                    <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                        <h3 style={{ color: PRIMARY_TEXT }}><ClockCircleOutlined /> {timeStr}</h3>
-                    </Row>
-                    <BalanceDisplay
-                        message={'Unclaimed Badges Left'}
-                        collection={collection}
-                        balance={{
-                            approvals: [],
-                            balances: claim.balances
-                        }}
-                    // size={35}
-                    />
-                    <hr />
+                {showClaimDisplay ?
                     <div>
+                        <Row style={{ display: 'flex', justifyContent: 'center' }} >
+                            <h3 style={{ color: PRIMARY_TEXT }}><ClockCircleOutlined /> {timeStr}</h3>
+                        </Row>
                         <BalanceDisplay
-                            message={'Current Claim'}
+                            message={'Unclaimed Badges Left'}
                             collection={collection}
                             balance={{
                                 approvals: [],
-                                balances: [
-                                    {
-                                        balance: claim.amount,
-                                        badgeIds: claim.badgeIds,
-                                    }
-                                ]
+                                balances: claim.balances
                             }}
-                        // size={35}
                         />
+                        <hr />
+                        <div>
+                            <BalanceDisplay
+                                message={'Current Claim'}
+                                collection={collection}
+                                balance={{
+                                    approvals: [],
+                                    balances: [
+                                        {
+                                            balance: claim.amount,
+                                            badgeIds: claim.badgeIds,
+                                        }
+                                    ]
+                                }}
+                            />
 
-                        {claim.incrementIdsBy > 0 && <div>
-                            <br />
-                            <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                                <p style={{ color: PRIMARY_TEXT }}>
-                                    <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {claim.incrementIdsBy}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
-                                </p>
-                            </Row>
-                            <br />
-                        </div>}
-
-                        <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
-                            {notConnected ? <>
-                                <hr />
+                            {claim.incrementIdsBy > 0 && <div>
                                 <br />
-                                <div>
-                                    <BlockinDisplay hideLogo />
-                                </div>
-                            </> : <>
-                                {claim.codeRoot &&
-                                    <>
-                                        <hr />
-                                        <h3 style={{ color: PRIMARY_TEXT }}>Enter {claim.hasPassword ? 'Password' : 'Code'} to Claim</h3>
-                                        <Input
-                                            placeholder={`Enter ${claim.hasPassword ? 'Password' : 'Code'}`}
-                                            value={currCode}
-                                            onChange={(e: any) => {
-                                                setCurrCode(e.target.value);
-                                            }}
-                                            style={{
-                                                backgroundColor: PRIMARY_BLUE,
-                                                color: PRIMARY_TEXT,
-                                                textAlign: 'center'
-                                            }}
-                                        />
-                                    </>
-                                }
-
-                                {claim.whitelistRoot &&
-                                    <>
-                                        <hr />
-                                        <br />
-                                        {!claim.addresses.find(y => y.includes(chain.cosmosAddress))
-                                            ? <div>
-                                                <h3 style={{ color: PRIMARY_TEXT }}>You are not on the whitelist.</h3>
-                                                <div className='flex-between' style={{ justifyContent: 'center' }}>
-                                                    <AddressDisplay
-                                                        fontColor={PRIMARY_TEXT}
-                                                        userInfo={{
-                                                            address: chain.address,
-                                                            accountNumber: chain.accountNumber,
-                                                            cosmosAddress: chain.cosmosAddress,
-                                                            chain: chain.chain,
-                                                        }} />
-                                                </div>
-                                            </div> :
-                                            <div>
-                                                {chain.connected && <div>
-                                                    <h3 style={{ color: PRIMARY_TEXT }}>You have been whitelisted!</h3>
-                                                </div>}
-                                            </div>}
-
-                                        {[claim].map((x) => {
-                                            // const address = 
-                                            if (!x.addresses.find(y => y.includes(chain.cosmosAddress))) return <></>
-
-                                            // if (collection.usedClaims.find((x) => x === SHA256(claim.fullCode).toString())) return <></>
-                                            accounts.fetchAccounts([chain.cosmosAddress]);
-                                            return accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]] && <>
-
-                                                <TransferDisplay
-                                                    hideBalances
-                                                    collection={collection}
-                                                    fontColor={PRIMARY_TEXT}
-                                                    from={[
-                                                        MINT_ACCOUNT
-                                                    ]}
-                                                    transfers={[
-                                                        {
-                                                            toAddresses: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]?.accountNumber],
-                                                            balances: [{
-                                                                balance: claim.amount,
-                                                                badgeIds: claim.badgeIds,
-                                                            }],
-                                                            toAddressInfo: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]],
-                                                        }
-                                                    ]}
-                                                    setTransfers={() => { }}
-                                                />
-                                            </>
-                                        })}
-                                    </>
-                                }
-                            </>}
-
-                            <br />
-                            <br />
-
-                            <Tooltip style={{ width: '100%', display: 'flex' }} title={errorMessage}>
-                                <Button disabled={cantClaim} type='primary' onClick={() => openModal(claim, currCode, whitelistIndex)} style={{ width: '100%' }}>Claim</Button>
-                            </Tooltip>
-
-                            {claim.limitPerAccount === 2 && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
-                                <p>*Only one claim allowed per account</p>
+                                <Row style={{ display: 'flex', justifyContent: 'center' }} >
+                                    <p style={{ color: PRIMARY_TEXT }}>
+                                        <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {claim.incrementIdsBy}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
+                                    </p>
+                                </Row>
+                                <br />
                             </div>}
+
+                            <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
+                                {notConnected ? <>
+                                    <hr />
+                                    <br />
+                                    <div>
+                                        <BlockinDisplay hideLogo />
+                                    </div>
+                                </> : <>
+                                    {claim.codeRoot &&
+                                        <>
+                                            <hr />
+                                            <h3 style={{ color: PRIMARY_TEXT }}>Enter {claim.hasPassword ? 'Password' : 'Code'} to Claim</h3>
+                                            <Input
+                                                placeholder={`Enter ${claim.hasPassword ? 'Password' : 'Code'}`}
+                                                value={currCode}
+                                                onChange={(e: any) => {
+                                                    setCurrCode(e.target.value);
+                                                }}
+                                                style={{
+                                                    backgroundColor: PRIMARY_BLUE,
+                                                    color: PRIMARY_TEXT,
+                                                    textAlign: 'center'
+                                                }}
+                                            />
+                                        </>
+                                    }
+
+                                    {claim.whitelistRoot &&
+                                        <>
+                                            <hr />
+                                            <br />
+                                            {!claim.addresses.find(y => y.includes(chain.cosmosAddress))
+                                                ? <div>
+                                                    <h3 style={{ color: PRIMARY_TEXT }}>You are not on the whitelist.</h3>
+                                                    <div className='flex-between' style={{ justifyContent: 'center' }}>
+                                                        <AddressDisplay
+                                                            fontColor={PRIMARY_TEXT}
+                                                            userInfo={{
+                                                                address: chain.address,
+                                                                accountNumber: chain.accountNumber,
+                                                                cosmosAddress: chain.cosmosAddress,
+                                                                chain: chain.chain,
+                                                            }} />
+                                                    </div>
+                                                </div> :
+                                                <div>
+                                                    {chain.connected && <div>
+                                                        <h3 style={{ color: PRIMARY_TEXT }}>You have been whitelisted!</h3>
+                                                    </div>}
+                                                </div>}
+
+                                            {[claim].map((x) => {
+                                                if (!x.addresses.find(y => y.includes(chain.cosmosAddress))) return <></>
+
+                                                accounts.fetchAccounts([chain.cosmosAddress]);
+                                                return accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]] && <>
+                                                    <TransferDisplay
+                                                        hideBalances
+                                                        collection={collection}
+                                                        fontColor={PRIMARY_TEXT}
+                                                        from={[
+                                                            MINT_ACCOUNT
+                                                        ]}
+                                                        transfers={[
+                                                            {
+                                                                toAddresses: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]?.accountNumber],
+                                                                balances: [{
+                                                                    balance: claim.amount,
+                                                                    badgeIds: claim.badgeIds,
+                                                                }],
+                                                                toAddressInfo: [accounts.accounts[accounts.cosmosAddresses[chain.cosmosAddress]]],
+                                                            }
+                                                        ]}
+                                                        setTransfers={() => { }}
+                                                    />
+                                                </>
+                                            })}
+                                        </>
+                                    }
+                                </>}
+
+                                <br />
+                                <br />
+
+                                <Tooltip style={{ width: '100%', display: 'flex' }} title={errorMessage}>
+                                    <Button disabled={cantClaim} type='primary' onClick={() => openModal(claim, currCode, whitelistIndex)} style={{ width: '100%' }}>Claim</Button>
+                                </Tooltip>
+
+                                {claim.limitPerAccount === 2 && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+                                    <p>*Only one claim allowed per account</p>
+                                </div>}
+                            </div>
                         </div>
                     </div>
-                </div>
-                    : <div>
+                    :
+                    // Show authenticated manager information (passwords, codes, distribution methods, etc...)
+                    //TODO: abstract this into one for codes and passwords
+                    <div>
                         <Row style={{ display: 'flex', justifyContent: 'center' }} >
                             <h3 style={{ color: PRIMARY_TEXT }}>{claimPassword ? 'Password' : 'Codes'}</h3>
                         </Row>

@@ -13,15 +13,17 @@ import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 import 'react-markdown-editor-lite/lib/index.css';
+import { getIdRangesForAllBadgeIdsInCollection } from '../../../bitbadges-api/badges';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
 import { IdRangesInput } from '../../balances/IdRangesInput';
-import { getIdRangesForAllBadgeIdsInCollection } from '../../../bitbadges-api/badges';
 
 const { Text } = Typography;
 const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 const DELAY_TIME = 300;
+
+//TODO: abstract and clean this
 
 //Do not pass an id if this is for the collection metadata
 export function MetadataForm({
@@ -39,8 +41,7 @@ export function MetadataForm({
     endId,
     toBeFrozen,
     collection,
-    updateMetadataForManualUris,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -54,8 +55,7 @@ export function MetadataForm({
     endId: number;
     toBeFrozen?: boolean;
     collection: BitBadgeCollection;
-    updateMetadataForManualUris?: () => void,
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void
     hideCollectionSelect?: boolean;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
@@ -203,12 +203,10 @@ export function MetadataForm({
                             setNewCollectionMsg(newCollectionMsg);
                             if (updateCollection) setMetadata(JSON.parse(JSON.stringify({ ...DefaultPlaceholderMetadata, image: '' })));
                             if (updateBadges) populateOtherBadges(getIdRangesForAllBadgeIdsInCollection(collection), 'all', '', { ...DefaultPlaceholderMetadata, image: '' });
-
-                            if (updateMetadataForManualUris) updateMetadataForManualUris();
                         }}
                         startId={startId}
                         endId={endId}
-                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                         hideCollectionSelect={hideCollectionSelect}
                     />
                 </>}
@@ -217,17 +215,6 @@ export function MetadataForm({
 
                     {id && <div>
                         <div style={{ color: PRIMARY_TEXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
-                            {/* <IdRangesInput setIdRanges={
-                    (ranges: IdRange[]) => {
-                        setIdRanges(ranges);
-                    }
-                }
-                    maximum={collection.nextBadgeId - 1}
-                    minimum={existingCollection?.nextBadgeId || 1}
-                    darkMode
-                    verb='Edit'
-                /> */}
-
 
                             <div><b>Setting Metadata for Badge ID:{' '}</b></div>
                             <InputNumber min={startId ? startId : 1} max={endId ? endId : GO_MAX_UINT_64}

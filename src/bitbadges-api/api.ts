@@ -7,7 +7,7 @@ import { getMaxBatchId } from './badges';
 import { convertToCosmosAddress } from './chains';
 import { GetPermissions } from './permissions';
 import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, IndexerStatus } from './types';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, IndexerStatus, MetadataDocument } from './types';
 import { convertToBitBadgesUserInfo } from './users';
 
 const axios = axiosApi.create({
@@ -68,25 +68,17 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
 
     //Forcefully fetch all metadata
     if (fetchAllMetadata) {
-        const promises = [];
+        const idxs = [];
 
         //Backend batch limit == METADATA_PAGE_LIMIT, so 0 will get batches 0-99
         for (let j = 0; j < getMaxBatchId(badgeData); j += METADATA_PAGE_LIMIT) {
-            promises.push(updateMetadata(badgeData, j));
+            idxs.push(j);
         }
 
-        await Promise.all(promises).then((values) => {
-            for (const res of values) {
-                badgeData.collectionMetadata = res.collectionMetadata || badgeData.collectionMetadata;
-                badgeData.badgeMetadata = {
-                    ...badgeData.badgeMetadata,
-                    ...res.badgeMetadata
-                };
-            }
-        });
+        badgeData = await updateMetadata(badgeData, idxs);
     } else {
         //Backend batch limit == METADATA_PAGE_LIMIT so get batches 0-METADATA_PAGE_LIMIT (0 = collection) initially
-        badgeData = await updateMetadata(badgeData, 0);
+        badgeData = await updateMetadata(badgeData, [0]);
     }
 
     return badgeData;
@@ -138,14 +130,27 @@ export async function getBadgeCollection(collectionId: number): Promise<GetColle
 }
 
 //Gets metadata batches for a collection starting from startBatchId ?? 0 and incrementing METADATA_PAGE_LIMIT times
-export async function updateMetadata(collection: BitBadgeCollection, startBatchId?: number) {
-    const metadataRes = await axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBatchId }).then((res) => res.data);
-    const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
-    collection.collectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.collectionMetadata;
-    collection.badgeMetadata = {
-        ...collection.badgeMetadata,
-        ...metadataRes.badgeMetadata
-    };
+export async function updateMetadata(collection: BitBadgeCollection, startBatchIds?: number[]) {
+    const promises = [];
+    if (!startBatchIds) {
+        startBatchIds = [0];
+    }
+    for (let startBatchId of startBatchIds) {
+        startBatchId = startBatchId < 0 ? 0 : startBatchId
+
+        promises.push(axios.post(BACKEND_URL + GetMetadataRoute(collection.collectionId), { startBatchId }).then((res) => res.data));
+    }
+
+    const metadataResponses = await Promise.all(promises);
+
+    for (const metadataRes of metadataResponses) {
+        const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
+        collection.collectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.collectionMetadata;
+        collection.badgeMetadata = {
+            ...collection.badgeMetadata,
+            ...metadataRes.badgeMetadata
+        };
+    }
 
     return collection;
 }
@@ -169,7 +174,13 @@ export async function getPortfolio(accountNumber: number) {
 
 //Get search results
 export async function getSearchResults(searchTerm: string) {
-    const searchResults = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
+    const searchResults: {
+        accounts: CosmosAccountInformation[],
+        collections: (MetadataDocument & {
+            _id: string;
+            _rev: string;
+        })[]
+    } = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
     return searchResults;
 }
 
@@ -205,6 +216,12 @@ export const fetchCodes = async (collectionId: number) => {
 
 //Fetches metadata directly from a URI (only to be used when creating badges with new self-hosted metadata)
 export const fetchMetadata = async (uri: string) => {
+    //Check if valid uri regex
+    const error = Joi.string().uri().required().validate(uri).error;
+    if (error) {
+        return Promise.reject(error);
+    }
+
     const res: { metadata: BadgeMetadata } = await axios.post(BACKEND_URL + '/api/metadata', { uri }).then(res => res.data);
     return res;
 }

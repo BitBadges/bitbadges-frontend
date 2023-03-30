@@ -187,18 +187,6 @@ export function BadgeSupplySelectStepItem(
                 </div>}
             </div>
             }
-            {/* {
-                newCollectionMsg.badgeSupplys.length > 0 && <Button
-                    className='screen-button'
-                    onClick={() => setNewCollectionMsg({
-                        ...newCollectionMsg,
-                        badgeSupplys: []
-                    })}
-                    style={{ width: '100%' }}
-                >
-                    Reset All
-                </Button>
-            } */}
             <Divider />
             {DEV_MODE && <div style={{ backgroundColor: 'black' }}>
                 <pre>

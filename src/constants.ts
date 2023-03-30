@@ -7,7 +7,7 @@ export const FAUCET_URL = 'http://localhost:4500';
 
 export const WEBSITE_HOSTNAME = 'http://localhost:3000'
 
-export const DEV_MODE = false;
+export const DEV_MODE = true;
 
 export const METADATA_PAGE_LIMIT = 100;
 
@@ -30,7 +30,7 @@ export const LINK_COLOR = '#0000EE';
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
 
-export const GO_MAX_UINT_64 = 1000000000000000; //TODO:
+export const GO_MAX_UINT_64 = 1000000000000000; //TODO: match with go value
 
 export const CHAIN_DETAILS = {
     chainId: 1,

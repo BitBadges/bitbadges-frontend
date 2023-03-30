@@ -10,7 +10,6 @@ import { useRouter } from 'next/router';
 
 export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, passwords, isModal }: {
     collection: BitBadgeCollection | undefined;
-
     refreshUserBalance: () => Promise<void>;
     isPreview?: boolean;
     codes?: string[][];
@@ -26,7 +25,6 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
     const [code, setCode] = useState<string>("");
     const [currPage, setCurrPage] = useState<number>(1);
     const [whitelistIndex, setWhitelistIndex] = useState<number>();
-
     const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
 
     const query = router.query;
@@ -43,13 +41,12 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
 
     useEffect(() => {
         if (query.claimId) {
-            console.log("QUERY", query.claimId);
             const idx = activeClaimIds.indexOf(Number(query.claimId));
-            console.log("Idx", idx);
             if (idx >= 0) {
                 setCurrPage(idx + 1);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [query.claimId, collection]);
 
 
@@ -72,7 +69,7 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
                 justifyContent: 'center',
             }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                {!isModal && collection?.manager.accountNumber === chain.accountNumber && collection?.claims.find(claim => !claim.hasPassword && claim.codeRoot) && <div>
+                {!isModal && collection?.manager.accountNumber === chain.accountNumber && collection?.claims.find(claim => claim.hasPassword || claim.codeRoot) && <div>
                     {"To view the codes and/or passwords for this collection's claims, click the button below. This is a manager-only privilege."}
                     <br />
                     <Button
@@ -124,16 +121,6 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
                             codes={codes ? codes[activeClaimIds[currPage - 1]] : []}
                             claimPassword={passwords ? passwords[activeClaimIds[currPage - 1]] : ''}
                         />
-                        <>
-                            {/* {codes && codes[activeClaimIds[currPage - 1]] &&
-                                <>
-                                    {
-                                        codes[activeClaimIds[currPage - 1]].map((code, idx) => {
-                                            return <>{code}</>
-                                        })
-                                    }
-                                </>} */}
-                        </>
                     </>
                 }
 

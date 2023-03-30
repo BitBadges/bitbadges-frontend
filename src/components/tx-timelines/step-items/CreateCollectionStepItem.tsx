@@ -7,7 +7,6 @@ export function CreateCollectionStepItem(
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod,
     claimItems: ClaimItem[],
-    setClaimItems: (claimItems: ClaimItem[]) => void,
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: BadgeMetadataMap,
     distributionMethod: DistributionMethod,
@@ -26,7 +25,6 @@ export function CreateCollectionStepItem(
             collectionMetadata={collectionMetadata}
             individualBadgeMetadata={individualBadgeMetadata}
             distributionMethod={distributionMethod}
-            setClaimItems={setClaimItems}
             managerApprovedTransfersWithUnregisteredUsers={managerApprovedTransfersWithUnregisteredUsers}
             disallowedTransfersWithUnregisteredUsers={disallowedTransfersWithUnregisteredUsers}
             manualSend={manualSend}

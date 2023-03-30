@@ -4,7 +4,7 @@ import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance } from "../../b
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsIfAbsent } from "../../bitbadges-api/badges";
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "../../bitbadges-api/badges";
 import { getPageDetails } from "../../utils/pagination";
 
 export function BadgeAvatarDisplay({
@@ -18,10 +18,10 @@ export function BadgeAvatarDisplay({
     showBalance,
     hideModalBalance,
     maxWidth = 350,
-    updateMetadataForBadgeIds,
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
 }: {
     collection: BitBadgeCollection | undefined;
-    userBalance: UserBalance | undefined;
+    userBalance?: UserBalance;
     badgeIds: IdRange[],
     size?: number;
     pageSize?: number;
@@ -30,7 +30,7 @@ export function BadgeAvatarDisplay({
     showBalance?: boolean;
     hideModalBalance?: boolean;
     maxWidth?: number | string;
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
     const collections = useCollectionsContext();
 
@@ -57,16 +57,19 @@ export function BadgeAvatarDisplay({
         setCurrPageStart(currPageStart);
         setCurrPageEnd(currPageEnd);
 
-        if (!collection) return;
+
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
         const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(badgeIds, currPageStart, pageSize);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
-        if (updateMetadataForBadgeIds) {
-            console.log("CALLING UPDATE METADATA FOR BADGE IDS");
-            updateMetadataForBadgeIds(badgeIdsToDisplay);
+
+        //If updateMetadataForBadgeIdsDirectlyFromUriIfAbsent is true, then update metadata by directly fetching from URI (only used when providing self-hosted metadata URIs in TxTimeline)
+        //Else, we simply query our indexer
+        if (updateMetadataForBadgeIdsDirectlyFromUriIfAbsent) {
+            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent(badgeIdsToDisplay);
         } else {
-            updateMetadataForBadgeIdsIfAbsent(badgeIdsToDisplay, collection, collections);
+            if (!collection) return;
+            updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection, collections);
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps

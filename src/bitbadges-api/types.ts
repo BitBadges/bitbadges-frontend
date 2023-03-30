@@ -9,6 +9,14 @@ export enum SupportedChain {
     UNKNOWN = 'Unknown',
 }
 
+export interface MetadataDocument {
+    metadata: BadgeMetadata
+    badgeIds: IdRange[]
+    isCollection: boolean
+    id: number | 'collection'
+    uri: string
+}
+
 export enum TransactionStatus {
     None = 0,
     AwaitingSignatureOrBroadcast = 1,

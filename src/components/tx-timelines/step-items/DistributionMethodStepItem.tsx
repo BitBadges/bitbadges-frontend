@@ -44,7 +44,7 @@ export function DistributionMethodStepItem(
         title: `How Would You Like To Distribute These Badges?`,
         description: '',
         node: <SwitchForm
-            noSelectUntilClick
+
             options={options}
             onSwitchChange={(_idx, newTitle) => {
                 if (newTitle == 'Open to Anyone (First Come, First Serve)') {

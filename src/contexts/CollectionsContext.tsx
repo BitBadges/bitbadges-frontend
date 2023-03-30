@@ -8,7 +8,7 @@ export type CollectionsContextType = {
     collections: CollectionMap,
     fetchCollections: (collectionIds: number[], fetchAllMetadata?: boolean) => Promise<BitBadgeCollection[]>,
     refreshCollection: (collectionId: number, fetchAllMetadata?: boolean) => Promise<void>,
-    updateCollectionMetadata: (collectionId: number, startBadgeId: number) => Promise<void>,
+    updateCollectionMetadata: (collectionId: number, startBatchIds: number[]) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
@@ -78,13 +78,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
-    async function updateCollectionMetadata(collectionId: number, startBatchId: number) {
+    async function updateCollectionMetadata(collectionId: number, startBatchIds: number[]) {
         try {
             if (!collections[`${collectionId}`]) return;
             const collection = collections[`${collectionId}`];
-            const newCollection = await updateMetadata(collection, startBatchId < 0 ? 0 : startBatchId);
+            const newCollection = await updateMetadata(collection, startBatchIds);
 
-            
             setCollections({
                 ...collections,
                 [`${collectionId}`]: newCollection

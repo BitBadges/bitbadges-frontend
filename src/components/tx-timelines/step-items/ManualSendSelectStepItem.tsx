@@ -1,6 +1,6 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { ClaimItem, DistributionMethod } from "../../../bitbadges-api/types";
+import { ClaimItem } from "../../../bitbadges-api/types";
 import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
 import { getClaimsFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
 import { useAccountsContext } from "../../../contexts/AccountsContext";
@@ -18,7 +18,7 @@ export function ManualSendSelectStepItem(
         title: `Whitelist Distribution`,
         description: `How would you like to distribute badges to the whitelisted addresses?`,
         node: <SwitchForm
-            noSelectUntilClick
+
             options={[
                 {
                     title: 'Direct Transfers',

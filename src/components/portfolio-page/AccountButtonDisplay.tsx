@@ -13,7 +13,7 @@ import { AddressDisplay } from '../address/AddressDisplay';
 
 const { Content } = Layout;
 
-export function AccountDisplay({
+export function AccountButtonDisplay({
     accountInfo,
     bio,
     profilePic,

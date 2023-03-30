@@ -4,15 +4,14 @@ import {
     WarningFilled,
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
+import { getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
 import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
 import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
-import { getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
 
-export function CollectionOverview({ collection, metadata, span, isCollectionInfo, badgeId }: {
+export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, badgeId }: {
     collection: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
     span?: number;

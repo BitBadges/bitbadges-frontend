@@ -40,23 +40,25 @@ export function AddressSelect({
             <Dropdown
                 open={input && input.address !== '' && inputHasChanged}
                 placement="bottom"
-                overlay={<SearchDropdown onlyAddresses
-                    searchValue={input.address}
-                    onSearch={(searchValue: string) => {
-                        setCurrUserInfo(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
+                overlay={
+                    <SearchDropdown
+                        onlyAddresses
+                        searchValue={input.address}
+                        onSearch={(searchValue: string) => {
+                            setCurrUserInfo(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
 
-                        if (isListSelect) {
-                            setInput({
-                                chain: SupportedChain.UNKNOWN,
-                                address: '',
-                                cosmosAddress: '',
-                                accountNumber: -1
-                            });
-                        } else {
-                            setInputHasChanged(false);
-                            setInput(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
-                        }
-                    }} />
+                            if (isListSelect) {
+                                setInput({
+                                    chain: SupportedChain.UNKNOWN,
+                                    address: '',
+                                    cosmosAddress: '',
+                                    accountNumber: -1
+                                });
+                            } else {
+                                setInputHasChanged(false);
+                                setInput(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
+                            }
+                        }} />
                 }
                 trigger={['hover', 'click']}
             >
@@ -69,9 +71,11 @@ export function AddressSelect({
                     onChange={async (e) => {
                         e.preventDefault();
                         setInputHasChanged(true);
+
                         const bech32Address = convertToCosmosAddress(e.target.value)
                         const chain = getChainForAddress(e.target.value);
 
+                        //Initial update w/o account number and name
                         setInput({
                             chain: chain,
                             address: e.target.value,
@@ -80,7 +84,7 @@ export function AddressSelect({
                             name: ''
                         });
 
-                        //Try and get account number; if still -1, we assume accont is unregistered still
+                        //Try and get account number and name; if acctNum still -1, we assume accont is unregistered still
                         let accountNum = -1;
                         let name = '';
                         try {
@@ -88,24 +92,16 @@ export function AddressSelect({
                             const acctInformation = await accounts.fetchAccounts([bech32Address]);
                             accountNum = acctInformation[0].accountNumber;
                             name = acctInformation[0].name ? acctInformation[0].name : '';
+                            setInput({
+                                chain: chain,
+                                address: e.target.value,
+                                cosmosAddress: bech32Address,
+                                accountNumber: accountNum,
+                                name
+                            });
                         } catch (err) {
 
                         }
-
-                        console.log({
-                            chain: chain,
-                            address: e.target.value,
-                            cosmosAddress: bech32Address,
-                            accountNumber: accountNum,
-                            name
-                        });
-                        setInput({
-                            chain: chain,
-                            address: e.target.value,
-                            cosmosAddress: bech32Address,
-                            accountNumber: accountNum,
-                            name
-                        });
                     }}
                 />
             </Dropdown>

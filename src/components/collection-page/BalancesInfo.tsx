@@ -38,17 +38,16 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
         return false;
     }) : [];
 
-    if (balance) {
-        buttons.push(
-            {
-                name: <>Transfer</>,
-                icon: <SwapOutlined />,
-                onClick: () => { setTransferIsVisible(true) },
-                tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
-                disabled: isPreview
-            }
-        );
-    }
+
+    buttons.push(
+        {
+            name: <>Transfer</>,
+            icon: <SwapOutlined />,
+            onClick: () => { setTransferIsVisible(true) },
+            tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
+            disabled: isPreview
+        }
+    );
 
     if (activeClaims.length > 0) {
         buttons.push(
@@ -70,8 +69,8 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             span={span}
         >
             {
-                chain.connected && buttons.length > 0 && <>
-                    <ButtonDisplay buttons={buttons} />
+                chain.connected && <>
+                    {buttons.length > 0 && <ButtonDisplay buttons={buttons} />}
                     <div>
                         {<BalanceDisplay
                             collection={collection}
@@ -83,7 +82,6 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             {
                 !chain.connected && <BlockinDisplay hideLogo={true} />
             }
-
         </InformationDisplayCard>
 
         {!isPreview &&

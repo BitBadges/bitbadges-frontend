@@ -59,6 +59,8 @@ export function TxModal(
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
         try {
+            //Currently used for updating IPFS metadata URIs right before tx
+            //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
             if (beforeTx) {
                 let newMsg = await beforeTx();
                 if (newMsg) cosmosMsg = newMsg;
@@ -72,6 +74,8 @@ export function TxModal(
             if (DEV_MODE) console.log(msgResponse);
 
             //If transaction goes through, increment sequence number (includes errors within badges module)
+            //Note if there is an error within ValidateBasic on the chain, the sequence number will be mismatched
+            //However, this is a rare case and the user can just refresh the page to fix it. We should also strive to never allow this to happen on the frontend.
             chain.incrementSequence();
 
             //If transaction fails with badges module error, throw error. Other errors are caught before this.
@@ -81,19 +85,21 @@ export function TxModal(
                 }
             }
 
+            console.log("TX:", msgResponse.tx_response);
 
-            console.log(msgResponse.tx_response);
 
-            let currHeight = 0;
-            while (currHeight < Number(msgResponse.tx_response.height)) {
-                if (currHeight != 0) await new Promise(resolve => setTimeout(resolve, 1000));
+            //Wait for transaction to be included in block and indexer to process that block
+            let currIndexerHeight = 0;
+            while (currIndexerHeight < Number(msgResponse.tx_response.height)) {
+                if (currIndexerHeight != 0) await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const response = await getStatus();
-                currHeight = response.status.block.height;
+                currIndexerHeight = response.status.block.height;
             }
 
 
             //If it is a new collection, redirect to collection page
+            //TODO: This is a hacky way to do this. We should have a better way to handle this. Eventually, we will not even return the collection in an event. Look to use the Msg
             if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
                 const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
                 if (collectionStr) {
@@ -109,10 +115,11 @@ export function TxModal(
                 description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
             });
 
+
             if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateUris") {
                 notification.info({
                     message: 'Refreshing Metadata',
-                    description: 'We have added your new metadata to the refresh queue. It may take awhile for it to be processed and reflected on the site.'
+                    description: 'We have added your new metadata to the refresh queue. Note that it may take awhile for it to be processed and reflected on the website. Please check back later.'
                 });
             }
         } catch (err: any) {
@@ -146,7 +153,9 @@ export function TxModal(
                 await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
 
                 onRegister();
-            } catch (err: any) { }
+            } catch (err: any) {
+
+            }
         }
     };
 
@@ -228,10 +237,6 @@ export function TxModal(
                                     <br />
 
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-
-
-
-
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
                                             This transaction is to be signed by the following address:
                                         </Typography.Text>

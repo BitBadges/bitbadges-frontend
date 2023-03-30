@@ -11,7 +11,7 @@ export function FreezeSelectStepItem(
         title: `Edit Transferability?`,
         description: ``, //You previously selected badges to be ${newCollectionMsg.disallowedTransfers.length > 0 ? 'non-transferable' : 'transferable'} by default.
         node: <SwitchForm
-            noSelectUntilClick
+
             options={[
                 {
                     title: 'No',

@@ -1,13 +1,12 @@
 import { MessageMsgUpdateDisallowedTransfers, createTxMsgUpdateDisallowedTransfers } from 'bitbadgesjs-transactions';
-import React, { useEffect, useState } from 'react';
-import { TxModal } from './TxModal';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { useChainContext } from '../../contexts/ChainContext';
-import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
+import React, { useEffect, useState } from 'react';
+import { updateTransferMappingAccountNums } from '../../bitbadges-api/transferMappings';
 import { useAccountsContext } from '../../contexts/AccountsContext';
-import { IdRange } from '../../bitbadges-api/types';
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange } from '../../bitbadges-api/idRanges';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
+import { TxModal } from './TxModal';
 
 
 export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible, children, collectionId }
@@ -24,27 +23,13 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
 
     const [txState, setTxState] = useState<TxTimelineProps>();
     const [disabled, setDisabled] = useState<boolean>(true);
+    const [unregisteredUsers, setUnregisteredUsers] = useState<string[]>([]);
 
-    const [updateDisallowedTransfersMsg, setUpdateDisallowedTransfersMsg] = useState<MessageMsgUpdateDisallowedTransfers>({
+    const updateDisallowedTransfersMsg: MessageMsgUpdateDisallowedTransfers = {
         creator: chain.cosmosAddress,
         collectionId: collectionId,
         disallowedTransfers: txState ? txState.newCollectionMsg.disallowedTransfers : []
-    });
-
-    useEffect(() => {
-        setUpdateDisallowedTransfersMsg({
-            creator: chain.cosmosAddress,
-            collectionId: collectionId,
-            disallowedTransfers: txState ? txState.newCollectionMsg.disallowedTransfers : []
-        });
-    }, [txState, chain, collectionId]);
-
-
-
-
-    const [unregisteredUsers, setUnregisteredUsers] = useState<string[]>([]);
-
-
+    };
 
     useEffect(() => {
         if (!txState) return;
@@ -68,83 +53,27 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
     }, [accounts, txState]);
 
 
-
-    function updateUnregisteredUsers() {
-        if (!txState) return;
-        //Get new account numbers for unregistered users
-        let newUnregisteredUsers: string[] = [];
-
-        for (const transfer of txState.disallowedTransfersWithUnregisteredUsers) {
-            for (const address of transfer.toUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-
-            for (const address of transfer.fromUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-        }
-        setUnregisteredUsers(newUnregisteredUsers);
-        console.log("UNREGISTED", newUnregisteredUsers);
-    }
-
-
-
     const onRegister = async () => {
         if (!txState) return;
-        const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
-        console.log("FETCHED ACCTS", fetchedAccounts);
+        const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true); //Upon update, this will trigger the useEffect() which updates unregisteredUsers to []
 
-        updateUnregisteredUsers();
 
         const finalCollectionMsg = { ...txState.newCollectionMsg };
 
+
         for (const transferMapping of txState.disallowedTransfersWithUnregisteredUsers) {
+            //Update the transferMappings with the updated account numbers for both the toUnregisteredUsers and fromUnregisteredUsers
+
             for (const address of transferMapping.toUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeToUsers) {
-                    for (const idRange of transferMapping.to.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.to.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.to.accountNums.length == 0) {
-                        transferMapping.to.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                    } else {
-                        //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                        transferMapping.to.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.to.accountNums);
-                    }
-                }
+                transferMapping.to = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeToUsers, transferMapping.to);
             }
 
             for (const address of transferMapping.fromUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeFromUsers) {
-                    for (const idRange of transferMapping.from.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.from.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.from.accountNums.length == 0) {
-                        transferMapping.from.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                    } else {
-                        //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                        transferMapping.from.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.from.accountNums);
-                    }
-                }
+                transferMapping.from = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeFromUsers, transferMapping.from);
             }
 
             finalCollectionMsg.disallowedTransfers = txState.disallowedTransfersWithUnregisteredUsers.map((x) => {
@@ -155,27 +84,23 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
             });
         }
 
-        console.log("finalCollectionMsg", finalCollectionMsg);
+
         txState.setNewCollectionMsg(finalCollectionMsg);
 
         setVisible(true);
-
-        setUpdateDisallowedTransfersMsg({
-            creator: chain.cosmosAddress,
-            collectionId: collectionId,
-            disallowedTransfers: finalCollectionMsg.disallowedTransfers,
-        });
-
-        return finalCollectionMsg;
     }
 
     const msgSteps = [
         {
             title: 'Edit Transferability',
-            description: <TxTimeline txType='UpdateDisallowed' collectionId={collectionId} onFinish={(txState: TxTimelineProps) => {
-                setDisabled(false);
-                setTxState(txState);
-            }} />,
+            description: <TxTimeline
+                txType='UpdateDisallowed'
+                collectionId={collectionId}
+                onFinish={(txState: TxTimelineProps) => {
+                    setDisabled(false);
+                    setTxState(txState);
+                }}
+            />,
             disabled: disabled,
         }
     ];

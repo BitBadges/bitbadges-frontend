@@ -1,32 +1,19 @@
 import { Avatar, Col, Divider, Row, Spin, Typography } from 'antd';
-import MarkdownIt from 'markdown-it';
-import { useEffect, useState } from 'react';
 import { BadgeMetadata } from '../../bitbadges-api/types';
 import { PRIMARY_TEXT } from '../../constants';
-import Markdown from "react-markdown"
 
 const { Text } = Typography;
 
-// Initialize a markdown parser
-const mdParser = new MarkdownIt(/* Markdown-it options */);
 
-
-export function BadgePageHeader({ metadata }: {
+export function CollectionHeader({ metadata }: {
     metadata?: BadgeMetadata;
 }) {
-    const [innerHtml, setInnerHtml] = useState<string>('');
-
-    useEffect(() => {
-        setInnerHtml(mdParser.render(metadata?.description || ''));
-    }, [metadata]);
-
     if (!metadata) return <></>;
 
-    return (<>
-        <div
-            style={{
-                color: PRIMARY_TEXT,
-            }}>
+    return <>
+        <div style={{
+            color: PRIMARY_TEXT,
+        }}>
             <Row
                 style={{
                     display: 'flex',
@@ -71,15 +58,11 @@ export function BadgePageHeader({ metadata }: {
                             <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
                                 {metadata?.name}
                             </Text>
-
                         </div>}
                     </div>
                 </Col>
             </Row>
             <Divider />
-
-            <br />
         </div>
-    </>
-    );
+    </>;
 }

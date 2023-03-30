@@ -7,11 +7,11 @@ import { GetPortfolioResponse } from '../../bitbadges-api/routes';
 import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { CollectionDisplay } from '../../components/collections/CollectionDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
-import { AccountDisplay } from '../../components/portfolio-page/AccountDisplay';
+import { AccountButtonDisplay } from '../../components/portfolio-page/AccountButtonDisplay';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { ActivityTab } from '../../components/collection-page/ActivityTab';
+import { ActivityTab } from '../../components/activity/ActivityDisplay';
 
 const { Content } = Layout;
 
@@ -21,7 +21,9 @@ const tabInfo = [
     { key: 'activity', content: 'Activity', disabled: false }
 ];
 
-function CollectionPage() {
+//TODO: paginations and parallelizations
+
+function PortfolioPage() {
     const router = useRouter();
     const collections = useCollectionsContext();
     const accounts = useAccountsContext();
@@ -82,7 +84,7 @@ function CollectionPage() {
                     }}
                 >
                     {/* Overview and Tabs */}
-                    {accountInfo && <AccountDisplay accountInfo={accountInfo} />}
+                    {accountInfo && <AccountButtonDisplay accountInfo={accountInfo} />}
                     <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
                     <br />
 
@@ -168,4 +170,4 @@ function CollectionPage() {
     );
 }
 
-export default CollectionPage;
+export default PortfolioPage;

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
-import { ActivityTab } from '../../components/collection-page/ActivityTab';
-import { BadgePageHeader } from '../../components/collection-page/BadgePageHeader';
+import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
@@ -26,11 +26,11 @@ const tabInfo = [
 
 function CollectionPage({
     collectionPreview, //Only used for previews on TxTimeline
-    updateMetadataForBadgeIds
+    // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }
     : {
         collectionPreview: BitBadgeCollection
-        updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+        // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     }
 ) {
     const router = useRouter()
@@ -113,7 +113,7 @@ function CollectionPage({
                 >
                     {collection && <>
                         {/* Overview and Tabs */}
-                        <BadgePageHeader metadata={collectionMetadata} />
+                        <CollectionHeader metadata={collectionMetadata} />
                         <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
                         <br />
 

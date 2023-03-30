@@ -1,17 +1,17 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Col, Divider, Drawer, Layout, Row, Typography } from 'antd';
-import React, { useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { useChainContext } from '../../contexts/ChainContext';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
-import { Tabs } from '../navigation/Tabs';
-import { BadgePageHeader } from '../collection-page/BadgePageHeader';
-import { OwnersTab } from '../collection-page/OwnersTab';
+import { Col, Drawer, Layout, Row, Typography } from 'antd';
+import { useState } from 'react';
+import Markdown from 'react-markdown';
 import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
-import { ActivityTab } from '../collection-page/ActivityTab';
-import { CollectionOverview } from '../collection-page/CollectionInfo';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
+import { useChainContext } from '../../contexts/ChainContext';
+import { ActivityTab } from '../activity/ActivityDisplay';
+import { CollectionHeader } from './CollectionHeader';
+import { MetadataDisplay } from './MetadataInfoDisplay';
+import { OwnersTab } from '../collection-page/OwnersTab';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import Markdown from 'react-markdown'
+import { Tabs } from '../navigation/Tabs';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -91,7 +91,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
 
 
                         {tab === 'overview' && (<>
-                            <BadgePageHeader
+                            <CollectionHeader
                                 metadata={metadata}
                             />
                             {chain.connected && !hideBalances && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
@@ -108,7 +108,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                 <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
 
                                     <Text style={{ color: SECONDARY_TEXT }}>
-                                        <CollectionOverview
+                                        <MetadataDisplay
                                             collection={collection}
                                             metadata={metadata}
                                             badgeId={badgeId}
@@ -118,7 +118,6 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                             </Row>
                             <br />
                             {metadata.description &&
-
                                 <Row
                                     style={{
                                         display: 'flex',
@@ -126,11 +125,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
 
                                     }}
                                 >
-
                                     <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
-
-
-
                                         <InformationDisplayCard
                                             title="Description"
                                         >
@@ -142,8 +137,6 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                                 </div>
                                             </div>
                                         </InformationDisplayCard>
-
-
                                     </Col>
                                 </Row>
                             }

@@ -25,6 +25,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
 
     async function updateIPFSUris() {
         if (!txState) return;
+
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (txState.addMethod == MetadataAddMethod.Manual) {
             let res = await addToIpfs(txState.collectionMetadata, txState.individualBadgeMetadata);
@@ -53,6 +54,8 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
                 badgeUris: badgeUris
             }
         }
+
+        //If metadata is self-hosted from a URL, we currently assume that they are updating all metadata, and txState.newCollectionMsg is already set
     }
 
     const updateUrisMsg: MessageMsgUpdateUris = {
@@ -82,8 +85,8 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
     return (
         <TxModal
             beforeTx={async () => {
-                const newMsg = await updateIPFSUris();
-                return newMsg;
+                const newUpdateUrisMsg = await updateIPFSUris();
+                return newUpdateUrisMsg;
             }}
             msgSteps={msgSteps}
             visible={visible}

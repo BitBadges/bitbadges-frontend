@@ -1,215 +1,109 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Divider } from "antd";
 import { useEffect, useState } from "react";
-import { RemoveIdsFromIdRange } from "../../../bitbadges-api/idRanges";
-import { BitBadgesUserInfo, TransferMapping, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
-import { DEV_MODE, GO_MAX_UINT_64, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
+import { getTransferMappingForSelectOptions, isTransferMappingFull } from "../../../bitbadges-api/transferMappings";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { DEV_MODE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { AddressListSelect } from "../../address/AddressListSelect";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { SwitchForm } from "./SwitchForm";
+
+export enum TransferMappingSelectType {
+    ALL,
+    NONE,
+    EVERYONE_EXCEPT,
+    SPECIFIC,
+    UNSELECTED
+}
+
+//TODO: In the future, this will need a whole rewrite.
+//Couple notes: For UX, we did it this way (i.e. who can send? and who can receive?) because it is more intuitive for the user
+//However, couple downsides: this doesn't support any TransfersMapping[] (e.g. transfer mapping of length 3 is not supported here but is on blockchain).
+//As a result, we cannot automatically populate this component by default
+//Also, this is not dynamic and will not support more fine-grained control in the future
+
+//It has currently forced me to save state all the way in TxTimeline in order to populate defaults (i.e. when users click forward and back on steps, we need to be able to load their previous inputs)
 
 export function TransfersMappingSelect({
     transfersMapping,
     setTransfersMapping,
     isManagerApprovedSelect,
     setHandled,
+    toSelectType,
+    setToSelectType,
+    fromSelectType,
+    setFromSelectType,
+    to,
+    setTo,
+    from,
+    setFrom
 }: {
     transfersMapping: TransferMappingWithUnregisteredUsers[],
     setTransfersMapping: (transfersMapping: TransferMappingWithUnregisteredUsers[]) => void,
     isManagerApprovedSelect?: boolean,
     setHandled?: (handled: boolean) => void,
+    toSelectType: TransferMappingSelectType,
+    setToSelectType: (toSelectType: TransferMappingSelectType) => void,
+    fromSelectType: TransferMappingSelectType,
+    setFromSelectType: (fromSelectType: TransferMappingSelectType) => void,
+    to: BitBadgesUserInfo[],
+    setTo: (to: BitBadgesUserInfo[]) => void,
+    from: BitBadgesUserInfo[],
+    setFrom: (from: BitBadgesUserInfo[]) => void
 }) {
-    const [showCustomSelect, setShowCustomSelect] = useState<boolean>(false);
+    const [showCustomSelect, setShowCustomSelect] = useState<boolean>(transfersMapping.length > 0 && !isTransferMappingFull(transfersMapping));
 
-    //TODO: deafults and we need to fetch accountsToShow from accountsContext
-    const [allToAddresses, setAllToAddresses] = useState<boolean>(true);
-    const [noToAddresses, setNoToAddresses] = useState<boolean>(false);
-    const [noFromAddresses, setNoFromAddresses] = useState<boolean>(false);
-    const [allFromAddresses, setAllFromAddresses] = useState<boolean>(true);
-    const [everyoneExceptFrom, setEveryoneExceptFrom] = useState<boolean>(false);
-    const [everyoneExceptTo, setEveryoneExceptTo] = useState<boolean>(false);
-    const [to, setTo] = useState<BitBadgesUserInfo[]>([]);
-    const [from, setFrom] = useState<BitBadgesUserInfo[]>([]);
+    //This is now stored in TxTimeline (see above)
+    // const [toSelectType, setToSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.ALL);
+    // const [fromSelectType, setFromSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.ALL);
 
+    // const [to, setTo] = useState<BitBadgesUserInfo[]>([]);
+    // const [from, setFrom] = useState<BitBadgesUserInfo[]>([]);
 
+    const unselected = toSelectType == TransferMappingSelectType.UNSELECTED || fromSelectType == TransferMappingSelectType.UNSELECTED;
 
     useEffect(() => {
-        let _allFromAddresses = allFromAddresses;
-        let _allToAddresses = allToAddresses;
-        let _noFromAddresses = noFromAddresses;
-        let _noToAddresses = noToAddresses;
-        let _everyoneExceptFrom = everyoneExceptFrom;
-        let _everyoneExceptTo = everyoneExceptTo;
-        if (isManagerApprovedSelect) {
-            _allFromAddresses = noFromAddresses;
-            _allToAddresses = noToAddresses;
-            _noFromAddresses = allFromAddresses;
-            _noToAddresses = allToAddresses;
-            _everyoneExceptFrom = !everyoneExceptFrom;
-            _everyoneExceptTo = !everyoneExceptTo;
-        }
+        if (toSelectType == TransferMappingSelectType.UNSELECTED || fromSelectType == TransferMappingSelectType.UNSELECTED) return;
+
+        //This is a little confusing, but we have two different UX perspectives for transferability vs manager approved
+        //Transferability is in the perspective of which users can transfer (the positive) and we have to map it to the negative for disallowed transfers (i.e. user clicks all addresses -> disallowedTransfers = [])
+        //For manager approved, it is the opposite. It is what the users click (i.e. user clicks all addresses -> managerApprovedTransfers = [{to: {start: 0, end : infinity}, from: {...}}]
+        //Thus, we put everything in the perspective of the transferMapping here
+        //After this, noFromAddresses will always mean empty [], noToAddresses will always mean empty [], regardless of the UX perspective
+        let allFromAddresses = isManagerApprovedSelect ? fromSelectType == TransferMappingSelectType.ALL : fromSelectType == TransferMappingSelectType.NONE;
+        let allToAddresses = isManagerApprovedSelect ? toSelectType == TransferMappingSelectType.ALL : toSelectType == TransferMappingSelectType.NONE;
+        let noFromAddresses = isManagerApprovedSelect ? fromSelectType == TransferMappingSelectType.NONE : fromSelectType == TransferMappingSelectType.ALL;
+        let noToAddresses = isManagerApprovedSelect ? toSelectType == TransferMappingSelectType.NONE : toSelectType == TransferMappingSelectType.ALL;
+        let everyoneExceptFrom = isManagerApprovedSelect ? fromSelectType == TransferMappingSelectType.EVERYONE_EXCEPT : fromSelectType == TransferMappingSelectType.SPECIFIC;
+        let everyoneExceptTo = isManagerApprovedSelect ? toSelectType == TransferMappingSelectType.EVERYONE_EXCEPT : toSelectType == TransferMappingSelectType.SPECIFIC;
+        let specificFrom = isManagerApprovedSelect ? fromSelectType == TransferMappingSelectType.SPECIFIC : fromSelectType == TransferMappingSelectType.EVERYONE_EXCEPT;
+        let specificTo = isManagerApprovedSelect ? toSelectType == TransferMappingSelectType.SPECIFIC : toSelectType == TransferMappingSelectType.EVERYONE_EXCEPT;
 
         let toUnregistered: string[] = [];
         let fromUnregistered: string[] = [];
-        let removeTo = false;
-        let removeFrom = false;
 
+        let allFrom = allFromAddresses || (everyoneExceptFrom && from.length === 0);
+        let allTo = allToAddresses || (everyoneExceptTo && to.length === 0);
+        let noFrom = noFromAddresses || (specificFrom && from.length === 0);
+        let noTo = noToAddresses || (specificTo && to.length === 0);
 
-
-        let allFrom = _allFromAddresses || (!_allFromAddresses && !_noFromAddresses && _everyoneExceptFrom && from.length === 0);
-        let allTo = _allToAddresses || (!_allToAddresses && !_noToAddresses && _everyoneExceptTo && to.length === 0);
-
-        const fromTransferMapping: TransferMapping | undefined = allFrom ? undefined : {
-            from: {
-                accountNums: _noFromAddresses ? [{
-                    start: 0,
-                    end: GO_MAX_UINT_64
-                }] : from.filter((user) => {
-                    if (user.accountNumber === -1) {
-                        fromUnregistered.push(user.cosmosAddress);
-                        return false;
-                    }
-
-                    return true;
-                }).map((user) => {
-                    return {
-                        start: user.accountNumber,
-                        end: user.accountNumber
-                    }
-                }),
-                options: 0,
-            },
-            to: {
-                accountNums: [{
-                    start: 0,
-                    end: GO_MAX_UINT_64
-                }],
-                options: 0,
-            }
-        };
-
-        let shouldCalculateEveryoneExceptFrom = !allFromAddresses && !_everyoneExceptFrom && fromTransferMapping && !_noFromAddresses;
-
-        if (shouldCalculateEveryoneExceptFrom) {
-            if (!fromTransferMapping) return;
-
-            removeFrom = true;
-
-            let everyoneExceptRanges = [{
-                start: 0,
-                end: GO_MAX_UINT_64
-            }];
-
-            for (const accountNums of fromTransferMapping?.from.accountNums) {
-                for (let i = 0; i < everyoneExceptRanges.length; i++) {
-                    everyoneExceptRanges = [...everyoneExceptRanges.slice(0, i), ...RemoveIdsFromIdRange(accountNums, everyoneExceptRanges[i]), ...everyoneExceptRanges.slice(i + 1)];
-                }
-            }
-
-            fromTransferMapping.from.accountNums = everyoneExceptRanges;
-        }
-
-        const toTransferMapping: TransferMapping | undefined = allTo ? undefined : {
-            from: {
-                accountNums: [{
-                    start: 0,
-                    end: GO_MAX_UINT_64
-                }],
-                options: 0,
-            },
-            to: {
-                accountNums: _noToAddresses ? [{
-                    start: 0,
-                    end: GO_MAX_UINT_64
-                }] : to.filter((user) => {
-                    if (user.accountNumber === -1) {
-                        toUnregistered.push(user.cosmosAddress);
-                        return false;
-                    }
-
-                    return true;
-                }).map((user) => {
-                    return {
-                        start: user.accountNumber,
-                        end: user.accountNumber
-                    }
-                }),
-                options: 0,
-            }
-        };
-
-        let shouldCalculateEveryoneExceptTo = !allToAddresses && !_everyoneExceptTo && toTransferMapping && !_noToAddresses;
-
-        if (shouldCalculateEveryoneExceptTo) {
-            if (!toTransferMapping) return;
-
-            removeTo = true;
-            let everyoneExceptRanges = [{
-                start: 0,
-                end: GO_MAX_UINT_64
-            }];
-
-            for (const accountNums of toTransferMapping?.to.accountNums) {
-                for (let i = 0; i < everyoneExceptRanges.length; i++) {
-                    everyoneExceptRanges = [...everyoneExceptRanges.slice(0, i), ...RemoveIdsFromIdRange(accountNums, everyoneExceptRanges[i]), ...everyoneExceptRanges.slice(i + 1)];
-                }
-            }
-
-            toTransferMapping.to.accountNums = everyoneExceptRanges;
-        }
-
-
+        const fromTransferMapping: TransferMappingWithUnregisteredUsers | undefined = getTransferMappingForSelectOptions(true, fromUnregistered, from, allFrom, noFrom, everyoneExceptFrom);
+        const toTransferMapping: TransferMappingWithUnregisteredUsers | undefined = getTransferMappingForSelectOptions(false, toUnregistered, to, allTo, noTo, everyoneExceptTo);
 
         const transferMappings: TransferMappingWithUnregisteredUsers[] = [];
-        if (fromTransferMapping) transferMappings.push({
-            ...fromTransferMapping,
-            fromUnregisteredUsers: fromUnregistered,
-            toUnregisteredUsers: [],
-            removeFromUsers: removeFrom,
-            removeToUsers: false
-        });
-        if (toTransferMapping) transferMappings.push({
-            ...toTransferMapping,
-            fromUnregisteredUsers: [],
-            toUnregisteredUsers: toUnregistered,
-            removeFromUsers: false,
-            removeToUsers: removeTo
-        });
 
-        if (_noFromAddresses && _noToAddresses) {
-            setTransfersMapping([{
-                from: {
-                    accountNums: [{
-                        start: 0,
-                        end: GO_MAX_UINT_64
-                    }],
-                    options: 0,
-                },
-                to: {
-                    accountNums: [{
-                        start: 0,
-                        end: GO_MAX_UINT_64
-                    }],
-                    options: 0,
-                },
-                fromUnregisteredUsers: [],
-                toUnregisteredUsers: [],
-                removeFromUsers: false,
-                removeToUsers: false
-            }]);
+        //TODO: look into if there is an optimal way to condense this programatically
+        if (fromTransferMapping) transferMappings.push(fromTransferMapping);
+
+        if (toTransferMapping) {
+            if (fromTransferMapping && JSON.stringify(fromTransferMapping) == JSON.stringify(toTransferMapping)) {
+
+            } else {
+                transferMappings.push(toTransferMapping);
+            }
         }
-        else if (fromTransferMapping && toTransferMapping) {
-            setTransfersMapping([{
-                from: fromTransferMapping.from,
-                to: toTransferMapping.to,
-                fromUnregisteredUsers: fromUnregistered,
-                toUnregisteredUsers: toUnregistered,
-                removeFromUsers: removeFrom,
-                removeToUsers: removeTo
-            }]);
-        }
-        else setTransfersMapping(transferMappings);
-    }, [isManagerApprovedSelect, allFromAddresses, allToAddresses, everyoneExceptFrom, everyoneExceptTo, from, noFromAddresses, noToAddresses, to, showCustomSelect, setTransfersMapping]);
+        setTransfersMapping(transferMappings);
+    }, [isManagerApprovedSelect, fromSelectType, toSelectType, from, to, showCustomSelect, setTransfersMapping]);
 
     let options = [];
     if (isManagerApprovedSelect) {
@@ -217,17 +111,12 @@ export function TransfersMappingSelect({
             {
                 title: isManagerApprovedSelect ? 'None' : 'Transferable',
                 message: isManagerApprovedSelect ? `The manager will have no special approved transfers.` : 'Badge owners can transfer their badges to other addresses.',
-                isSelected: !showCustomSelect && transfersMapping.length === 0
+                isSelected: !showCustomSelect && transfersMapping.length === 0 && !unselected
             },
             {
                 title: isManagerApprovedSelect ? 'Complete Control' : 'Non-Transferable',
                 message: isManagerApprovedSelect ? `The manager will be able to revoke and transfer any badge without its owners' approval.` : 'Badge owners cannot transfer their badges to other addresses.',
-                isSelected: !showCustomSelect && transfersMapping.length === 1 && transfersMapping[0].to.accountNums.length === 1 &&
-                    transfersMapping[0].to.accountNums[0].start == 0 &&
-                    transfersMapping[0].to.accountNums[0].end == GO_MAX_UINT_64 &&
-                    transfersMapping[0].from.accountNums.length === 1 &&
-                    transfersMapping[0].from.accountNums[0].start == 0 &&
-                    transfersMapping[0].from.accountNums[0].end == GO_MAX_UINT_64
+                isSelected: !showCustomSelect && isTransferMappingFull(transfersMapping) && !unselected
             }
         );
     } else {
@@ -235,17 +124,12 @@ export function TransfersMappingSelect({
             {
                 title: isManagerApprovedSelect ? 'Complete Control' : 'Non-Transferable',
                 message: isManagerApprovedSelect ? `The manager will be able to revoke and transfer any badge without its owners' approval.` : 'Badge owners cannot transfer their badges to other addresses.',
-                isSelected: !showCustomSelect && transfersMapping.length === 1 && transfersMapping[0].to.accountNums.length === 1 &&
-                    transfersMapping[0].to.accountNums[0].start == 0 &&
-                    transfersMapping[0].to.accountNums[0].end == GO_MAX_UINT_64 &&
-                    transfersMapping[0].from.accountNums.length === 1 &&
-                    transfersMapping[0].from.accountNums[0].start == 0 &&
-                    transfersMapping[0].from.accountNums[0].end == GO_MAX_UINT_64
+                isSelected: !showCustomSelect && isTransferMappingFull(transfersMapping) && !unselected
             },
             {
                 title: isManagerApprovedSelect ? 'None' : 'Transferable',
                 message: isManagerApprovedSelect ? `The manager will have no special approved transfers.` : 'Badge owners can transfer their badges to other addresses.',
-                isSelected: !showCustomSelect && transfersMapping.length === 0
+                isSelected: !showCustomSelect && transfersMapping.length === 0 && !unselected
             },
         );
     }
@@ -258,7 +142,6 @@ export function TransfersMappingSelect({
 
     return <div style={{ textAlign: 'center' }}>
         <SwitchForm
-            noSelectUntilClick
             options={options}
             onSwitchChange={(index) => {
                 //Reverse the order because we want non-transferable and none on left and transferable and complete control on right
@@ -268,55 +151,27 @@ export function TransfersMappingSelect({
                     else if (index === 1) index = 0;
                 }
 
-
                 if (setHandled) setHandled(true);
                 setShowCustomSelect(index === 2);
                 if (index === 0 || index == 1) {
-                    if (!isManagerApprovedSelect) {
-                        if (index == 0) {
-                            setAllFromAddresses(true);
-                            setAllToAddresses(true);
-                            setNoFromAddresses(false);
-                            setNoToAddresses(false);
-                        } else {
-                            setNoFromAddresses(true);
-                            setNoToAddresses(true);
-                            setAllFromAddresses(false);
-                            setAllToAddresses(false);
-                        }
+                    const setToAll = (index === 0 && !isManagerApprovedSelect) || (index === 1 && isManagerApprovedSelect);
+                    if (setToAll) {
+                        setToSelectType(TransferMappingSelectType.ALL);
+                        setFromSelectType(TransferMappingSelectType.ALL);
                     } else {
-                        if (index == 0) {
-                            setAllFromAddresses(false);
-                            setAllToAddresses(false);
-                            setNoFromAddresses(true);
-                            setNoToAddresses(true);
-                        } else {
-                            setNoFromAddresses(false);
-                            setNoToAddresses(false);
-                            setAllFromAddresses(true);
-                            setAllToAddresses(true);
-                        }
+                        setToSelectType(TransferMappingSelectType.NONE);
+                        setFromSelectType(TransferMappingSelectType.NONE);
                     }
                 }
-
-
             }}
         />
         {showCustomSelect && <div>
             <hr />
-
-
-
             <div>
                 {<div>
                     <h2 style={{ color: PRIMARY_TEXT }}>Custom {isManagerApprovedSelect ? 'Approved Transfers' : 'Transferability'}</h2>
 
-                    {transfersMapping.length === 1 && transfersMapping[0].to.accountNums.length === 1 &&
-                        transfersMapping[0].to.accountNums[0].start == 0 &&
-                        transfersMapping[0].to.accountNums[0].end == GO_MAX_UINT_64 &&
-                        transfersMapping[0].from.accountNums.length === 1 &&
-                        transfersMapping[0].from.accountNums[0].start == 0 &&
-                        transfersMapping[0].from.accountNums[0].end == GO_MAX_UINT_64 &&
+                    {transfersMapping.length === 1 && isTransferMappingFull(transfersMapping) &&
                         transfersMapping[0].fromUnregisteredUsers.length == 0 &&
                         transfersMapping[0].toUnregisteredUsers.length == 0 &&
                         <p style={{ color: SECONDARY_TEXT }}>
@@ -338,52 +193,53 @@ export function TransfersMappingSelect({
                                     title={isManagerApprovedSelect ? "Who is the manager approved to send from?" : "Who can send badges?"}
                                 >
                                     <SwitchForm
-                                        // noSelectUntilClick
+                                        // 
                                         options={[
                                             {
                                                 title: 'All Addresses',
                                                 message: 'Select all addresses.',
-                                                isSelected: !noFromAddresses && allFromAddresses
+                                                isSelected: fromSelectType == TransferMappingSelectType.ALL
                                             },
                                             {
                                                 title: 'Everyone Except',
                                                 message: 'Select all addresses, except the ones you specify below.',
-                                                isSelected: !noFromAddresses && !allFromAddresses && everyoneExceptFrom
+                                                isSelected: fromSelectType == TransferMappingSelectType.EVERYONE_EXCEPT
                                             },
                                             {
                                                 title: 'Specific Addresses',
                                                 message: 'Select only the addresses you specify below.',
-                                                isSelected: !noFromAddresses && !allFromAddresses && !everyoneExceptFrom
+                                                isSelected: fromSelectType == TransferMappingSelectType.SPECIFIC
                                             },
                                             {
                                                 title: 'No Addresses',
                                                 message: 'No addresses selected.',
-                                                isSelected: noFromAddresses
+                                                isSelected: fromSelectType == TransferMappingSelectType.NONE
                                             }
                                         ]}
                                         onSwitchChange={(index) => {
-                                            setAllFromAddresses(index === 0);
-                                            setNoFromAddresses(index === 3);
-
-                                            if (index === 1) {
-                                                setEveryoneExceptFrom(true);
-                                            }
-                                            if (index === 2) {
-                                                setEveryoneExceptFrom(false);
+                                            if (index === 0) {
+                                                setFromSelectType(TransferMappingSelectType.ALL);
+                                            } else if (index === 1) {
+                                                setFromSelectType(TransferMappingSelectType.EVERYONE_EXCEPT);
+                                            } else if (index === 2) {
+                                                setFromSelectType(TransferMappingSelectType.SPECIFIC);
+                                            } else if (index === 3) {
+                                                setFromSelectType(TransferMappingSelectType.NONE);
                                             }
                                         }}
                                     />
-                                    {!allFromAddresses && !noFromAddresses && <div>
-                                        <Divider />
-                                        <div style={{ padding: 25 }}>
-                                            <AddressListSelect
-                                                users={from}
-                                                setUsers={setFrom}
-                                                darkMode
-                                            />
-                                        </div>
+                                    {(fromSelectType == TransferMappingSelectType.SPECIFIC || fromSelectType == TransferMappingSelectType.EVERYONE_EXCEPT)
+                                        && <div>
+                                            <Divider />
+                                            <div style={{ padding: 25 }}>
+                                                <AddressListSelect
+                                                    users={from}
+                                                    setUsers={setFrom}
+                                                    darkMode
+                                                />
+                                            </div>
 
-                                    </div>}
+                                        </div>}
                                 </InformationDisplayCard>
 
 
@@ -394,42 +250,42 @@ export function TransfersMappingSelect({
                                     title={isManagerApprovedSelect ? "Who is the manager approved to send to?" : "Who can receive badges?"}
                                 >
                                     <SwitchForm
-                                        // noSelectUntilClick
+                                        // 
                                         options={[
                                             {
                                                 title: 'All Addresses',
                                                 message: 'Select all addresses.',
-                                                isSelected: !noToAddresses && allToAddresses
+                                                isSelected: toSelectType == TransferMappingSelectType.ALL
                                             },
                                             {
                                                 title: 'Everyone Except',
                                                 message: 'Select all addresses, except the ones you specify below.',
-                                                isSelected: !noToAddresses && !allToAddresses && everyoneExceptTo
+                                                isSelected: toSelectType == TransferMappingSelectType.EVERYONE_EXCEPT
                                             },
                                             {
                                                 title: 'Specific Addresses',
                                                 message: 'Select only the addresses you specify below.',
-                                                isSelected: !noToAddresses && !allToAddresses && !everyoneExceptTo
+                                                isSelected: toSelectType == TransferMappingSelectType.SPECIFIC
                                             },
                                             {
                                                 title: 'No Addresses',
                                                 message: 'No addresses selected.',
-                                                isSelected: noToAddresses
+                                                isSelected: toSelectType == TransferMappingSelectType.NONE
                                             }
                                         ]}
                                         onSwitchChange={(index) => {
-                                            setAllToAddresses(index === 0);
-                                            setNoToAddresses(index === 3);
-
-                                            if (index === 1) {
-                                                setEveryoneExceptTo(true);
-                                            }
-                                            if (index === 2) {
-                                                setEveryoneExceptTo(false);
+                                            if (index === 0) {
+                                                setToSelectType(TransferMappingSelectType.ALL);
+                                            } else if (index === 1) {
+                                                setToSelectType(TransferMappingSelectType.EVERYONE_EXCEPT);
+                                            } else if (index === 2) {
+                                                setToSelectType(TransferMappingSelectType.SPECIFIC);
+                                            } else if (index === 3) {
+                                                setToSelectType(TransferMappingSelectType.NONE);
                                             }
                                         }}
                                     />
-                                    {!allToAddresses && !noToAddresses && <div>
+                                    {(toSelectType == TransferMappingSelectType.SPECIFIC || toSelectType == TransferMappingSelectType.EVERYONE_EXCEPT) && <div>
                                         <Divider />
                                         <div style={{ padding: 25 }}>
                                             <AddressListSelect
@@ -438,15 +294,11 @@ export function TransfersMappingSelect({
                                                 darkMode
                                             />
                                         </div>
-
                                     </div>}
                                 </InformationDisplayCard>
-
                             </div>
-
                         </div>
                         <Divider />
-
                     </div>
                     }
                 </div>}

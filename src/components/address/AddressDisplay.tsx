@@ -111,8 +111,6 @@ export function AddressDisplay(
         darkMode?: boolean
     }
 ) {
-
-    console.log("ADDRESS DISPLAY", userInfo);
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
@@ -152,4 +150,3 @@ export function AddressDisplay(
         </div>
     </>
 }
-

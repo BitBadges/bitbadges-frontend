@@ -30,7 +30,7 @@ export function BadgeCard({
 }) {
     const [visible, setVisible] = useState<boolean>(isModalOpen ? isModalOpen : false);
 
-    //Handle open exact badgeId modal w/in URL params
+    //Handle open exact badgeId modal if specified in URL params
     useEffect(() => {
         if (isModalOpen && !visible && setBadgeId) {
             setBadgeId(-1);
@@ -38,13 +38,13 @@ export function BadgeCard({
     }, [isModalOpen, visible, setBadgeId]);
 
     //Calculate total, undistributed, claimable, and distributed supplys
-    let totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
-    let undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
+    const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
+    const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
     let claimableSupply = 0;
     for (const claim of collection.claims) {
         claimableSupply += getSupplyByBadgeId(id, claim.balances);
     }
-    let distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+    const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
 
     if (!metadata) return <></>
 

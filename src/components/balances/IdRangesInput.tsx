@@ -1,7 +1,6 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
-import { getBlankBalance } from "../../bitbadges-api/balances";
 import { SortIdRangesAndMergeIfNecessary } from "../../bitbadges-api/idRanges";
 import { BitBadgeCollection, IdRange } from "../../bitbadges-api/types";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
@@ -17,7 +16,7 @@ export function IdRangesInput({
     verb,
     collection,
     defaultAllSelected = true,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     idRanges?: IdRange[],
     setIdRanges: (idRanges: IdRange[]) => void,
@@ -27,7 +26,7 @@ export function IdRangesInput({
     verb?: string,
     collection: BitBadgeCollection,
     defaultAllSelected?: boolean,
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void
 }) {
     const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
 
@@ -81,7 +80,7 @@ export function IdRangesInput({
                 }
                 // setClicked(true);
             }}
-        // noSelectUntilClick
+        // 
         />
 
         {!updateAllIsSelected && <>
@@ -244,12 +243,9 @@ export function IdRangesInput({
                 <BadgeAvatarDisplay
                     collection={collection}
                     hideModalBalance
-                    userBalance={getBlankBalance()}
                     badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
-                    // selectedId={id}
-                    // size={40}
                     showIds={true}
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>
         </div>

@@ -9,14 +9,14 @@ export function BalanceBeforeAndAfter({
     beforeMessage,
     afterMessage,
     collection,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     balance: UserBalance;
     newBalance: UserBalance;
     partyString: string;
     hideTitle?: boolean;
     collection: BitBadgeCollection;
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 
     beforeMessage?: string;
     afterMessage?: string;
@@ -43,8 +43,7 @@ export function BalanceBeforeAndAfter({
                     collection={collection}
                     balance={balance}
                     message={beforeMessage ? beforeMessage : 'Before'}
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
-                    // size={35}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>
             <div style={{ margin: 20, width: '50%' }}>
@@ -52,8 +51,7 @@ export function BalanceBeforeAndAfter({
                     collection={collection}
                     balance={newBalance}
                     message={afterMessage ? afterMessage : 'After'}
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
-                    // size={35}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>
         </div>

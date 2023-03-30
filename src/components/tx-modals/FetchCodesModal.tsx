@@ -1,14 +1,12 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
-import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, TransactionStatus } from '../../bitbadges-api/types';
+import { fetchCodes } from '../../bitbadges-api/api';
+import { BitBadgeCollection } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { ClaimsTab } from '../collection-page/ClaimsTab';
-import { fetchCodes } from '../../bitbadges-api/api';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { ClaimsTab } from '../collection-page/ClaimsTab';
 
 
 
@@ -19,8 +17,6 @@ export function FetchCodesModal({ visible, setVisible, children, collection
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
 }) {
-    const router = useRouter();
-    const collections = useCollectionsContext();
     const chain = useChainContext();
 
     const [codes, setCodes] = useState<string[][]>([]);
@@ -30,9 +26,7 @@ export function FetchCodesModal({ visible, setVisible, children, collection
         if (collection && chain.connected && chain.loggedIn) {
             const getCodes = async () => {
                 const codesRes = await fetchCodes(collection.collectionId);
-                console.log("CODES RES");
                 if (codesRes.codes) {
-
                     setCodes(codesRes.codes);
                 }
 
@@ -71,13 +65,7 @@ export function FetchCodesModal({ visible, setVisible, children, collection
                 backgroundColor: PRIMARY_BLUE,
                 color: PRIMARY_TEXT
             }}
-
-            // onOk={() => {
-
-            // }}
             onCancel={() => setVisible(false)}
-            // okText={"Fetch Codes"}
-            // cancelText={"Cancel"}
             destroyOnClose={true}
         >
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -93,6 +81,7 @@ export function FetchCodesModal({ visible, setVisible, children, collection
                         isModal
                     />}
             </div>
+            {children}
         </Modal>
     );
 }

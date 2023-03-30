@@ -13,7 +13,7 @@ export function BalanceDisplay({
     numRecipients = 1,
     numIncrements = 0,
     incrementBy = 0,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     collection: BitBadgeCollection;
     balance?: UserBalance;
@@ -24,11 +24,9 @@ export function BalanceDisplay({
     numRecipients?: number,
     numIncrements?: number
     incrementBy?: number
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
     const allBadgeIdsArr: IdRange[][] = [];
-
-
 
     return <>
         <div style={{
@@ -37,7 +35,6 @@ export function BalanceDisplay({
             justifyContent: 'space-evenly',
             alignItems: 'center',
         }}>
-
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', fontSize: 15 }}>
                 <b>{message ? message : 'Balances'}</b>
             </div>
@@ -108,21 +105,13 @@ export function BalanceDisplay({
 
                     <BadgeAvatarDisplay
                         collection={collection}
-                        userBalance={JSON.parse(JSON.stringify({
-                            balances: balance.balances.map((balance, idx) => {
-                                return {
-                                    balance: Number(balance.balance),
-                                    badgeIds: allBadgeIdsArr[idx],
-                                }
-                            }),
-                            approvals: balance.approvals,
-                        }))}
+                        userBalance={balance}
                         badgeIds={allBadgeIdsArr.flat()}
                         showIds
                         showBalance
                         size={size ? size : 50}
                         hideModalBalance={hideModalBalance}
-                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                     />
                 </div>
                 }

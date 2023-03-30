@@ -27,7 +27,7 @@ export function CreateClaims({
     setClaimItems,
     balancesToDistribute,
     manualSend,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 
 }: {
     collection: BitBadgeCollection;
@@ -38,10 +38,8 @@ export function CreateClaims({
     setClaimItems: (claimItems: ClaimItem[]) => void;
     balancesToDistribute?: Balance[];
     manualSend: boolean;
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
-    const badgeCollection = collection;
-
     const accounts = useAccountsContext();
 
     const [currPage, setCurrPage] = useState(1);
@@ -50,7 +48,7 @@ export function CreateClaims({
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
         } : {
-            balances: JSON.parse(JSON.stringify(badgeCollection.maxSupplys)),
+            balances: JSON.parse(JSON.stringify(collection.maxSupplys)),
             approvals: []
         });
 
@@ -74,7 +72,7 @@ export function CreateClaims({
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
         } : {
-            balances: JSON.parse(JSON.stringify(badgeCollection.maxSupplys)),
+            balances: JSON.parse(JSON.stringify(collection.maxSupplys)),
             approvals: []
         };
 
@@ -102,10 +100,6 @@ export function CreateClaims({
         }
         setClaimItems(newClaimItems);
         setUndistributedBalances(claimsRes.undistributedBalance);
-
-        // if (manualSend) {
-        //     setTransfers(transfersRes);
-        // }
     }
 
     const addCode = (newTransfers: (TransfersExtended)[]) => {
@@ -115,7 +109,6 @@ export function CreateClaims({
             const codes = [];
             const addresses = [];
 
-            console.log("TRANSFER", transfer);
             if (transfer.numCodes && transfer.numCodes > 0) {
                 if (distributionMethod === DistributionMethod.Codes) {
                     for (let i = 0; i < transfer.numCodes; i++) {
@@ -124,7 +117,6 @@ export function CreateClaims({
                     }
                 }
             } else {
-                console.log("TOADDRESSES", transfer.toAddresses);
                 for (let i = 0; i < transfer.toAddresses.length; i++) {
                     const userInfo = transfer.toAddressInfo ? transfer.toAddressInfo[i] : undefined;
                     if (!userInfo) {
@@ -172,18 +164,15 @@ export function CreateClaims({
     }
 
     return <div style={{ justifyContent: 'center', width: '100%' }}>
-
-
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
-
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
                 <div style={{ width: '48%', display: 'flex' }}>
                     <InformationDisplayCard
                         title='Undistributed Badges'
                     >
                         {undistributedBalances.balances.length > 0 && <BalanceDisplay
-                            collection={badgeCollection} balance={undistributedBalances}
-                            updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                            collection={collection} balance={undistributedBalances}
+                            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                         />}
                         {undistributedBalances.balances.length === 0 && <Empty
                             style={{ color: PRIMARY_TEXT }}
@@ -221,85 +210,76 @@ export function CreateClaims({
                                     />
                                 </div>
                                 <Collapse accordion style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, margin: 0 }}>
-
-                                    {claimItems.map((leaf, index) => {
+                                    {claimItems.map((claimItem, index) => {
                                         if (index < (currPage - 1) * (distributionMethod === DistributionMethod.Codes ? 20 : 10) || index >= currPage * (distributionMethod === DistributionMethod.Codes ? 20 : 10)) {
                                             return <></>
                                         }
 
-                                        return <CollapsePanel header={<div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-
-                                            <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                                                {distributionMethod === DistributionMethod.Codes ? <Text strong style={{ color: PRIMARY_TEXT }}>
-                                                    {leaf.password ? 'Password: ' + leaf.password : 'Unique Codes: ' + leaf.codes.length}
-
-                                                </Text> : distributionMethod === DistributionMethod.Whitelist ?
-                                                    <>
-
-                                                        {manualSend ? 'Direct Transfers:' : 'Whitelist:'} {'' + leaf.addresses.length + " Users"}
-                                                    </> : <>
-                                                        {'Open Claim #' + (index + 1)}
-                                                    </>
-                                                }
-                                            </div>
-                                            <div>
-                                                <Tooltip title='Delete'>
-                                                    <DeleteOutlined onClick={
-                                                        () => {
-                                                            const newClaimItems = claimItems.filter((_, i) => i !== index);
-                                                            calculateNewBalances(newClaimItems);
+                                        return <CollapsePanel
+                                            header={
+                                                <div style={{ margin: 0, color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
+                                                        {distributionMethod === DistributionMethod.Codes ? <Text strong style={{ color: PRIMARY_TEXT }}>
+                                                            {claimItem.password ? 'Password: ' + claimItem.password : 'Unique Codes: ' + claimItem.codes.length}
+                                                        </Text> : distributionMethod === DistributionMethod.Whitelist ?
+                                                            <>
+                                                                {manualSend ? 'Direct Transfers:' : 'Whitelist:'} {'' + claimItem.addresses.length + " Users"}
+                                                            </> : <>
+                                                                {'Open Claim #' + (index + 1)}
+                                                            </>
                                                         }
-                                                    } />
-                                                </Tooltip>
-                                            </div>
-                                        </div>}
-                                            key={index} style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
+                                                    </div>
+                                                    <div>
+                                                        <Tooltip title='Delete'>
+                                                            <DeleteOutlined onClick={
+                                                                () => {
+                                                                    const newClaimItems = claimItems.filter((_, i) => i !== index);
+                                                                    calculateNewBalances(newClaimItems);
+                                                                }
+                                                            } />
+                                                        </Tooltip>
+                                                    </div>
+                                                </div>
+                                            }
+                                            key={index}
+                                            style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
+                                        >
                                             <div style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                                                {distributionMethod === DistributionMethod.Codes ? <>
+                                                {distributionMethod === DistributionMethod.Codes && <>
                                                     <Text strong style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                                        {leaf.password ? 'Password: ' + leaf.password : 'Unique Codes: ' + leaf.codes.length}
+                                                        {claimItem.password ? 'Password: ' + claimItem.password : 'Unique Codes: ' + claimItem.codes.length}
                                                     </Text>
                                                     <br />
-                                                </> :
-                                                    <></>
-                                                }
+                                                </>}
 
                                                 <TransferDisplay
-                                                    collection={badgeCollection}
+                                                    collection={collection}
                                                     fontColor={PRIMARY_TEXT}
                                                     from={[
                                                         MINT_ACCOUNT
                                                     ]}
                                                     setTransfers={() => { }}
-                                                    transfers={
-                                                        manualSend ?
-                                                            transfers
-                                                            :
-                                                            [
+                                                    transfers={manualSend ?
+                                                        transfers : [{
+                                                            toAddresses: distributionMethod === DistributionMethod.Whitelist ? claimItem.addresses.map(addr => {
+                                                                return accounts.accounts[addr].accountNumber
+                                                            }) : [],
+                                                            balances: [
                                                                 {
-                                                                    toAddresses: distributionMethod === DistributionMethod.Whitelist ? leaf.addresses.map(addr => {
-                                                                        return accounts.accounts[addr].accountNumber
-                                                                    }) : [],
-                                                                    balances: [
-                                                                        {
-                                                                            balance: leaf.amount,
-                                                                            badgeIds: leaf.badgeIds
-                                                                        }
-                                                                    ],
-                                                                    toAddressInfo: leaf.addresses.map(addr => {
-
-                                                                        return accounts.accounts[addr]
-                                                                    }),
-                                                                    incrementBy: leaf.incrementIdsBy,
-                                                                    password: leaf.password,
-                                                                    numIncrements: leaf.numIncrements,
-                                                                    numCodes: leaf.numCodes,
+                                                                    balance: claimItem.amount,
+                                                                    badgeIds: claimItem.badgeIds
                                                                 }
-                                                            ]}
-                                                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                                                            ],
+                                                            toAddressInfo: claimItem.addresses.map(addr => {
+                                                                return accounts.accounts[addr]
+                                                            }),
+                                                            incrementBy: claimItem.incrementIdsBy,
+                                                            password: claimItem.password,
+                                                            numIncrements: claimItem.numIncrements,
+                                                            numCodes: claimItem.numCodes,
+                                                        }]}
+                                                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                                                 />
-
                                                 <Divider />
                                             </div>
                                         </CollapsePanel>
@@ -323,13 +303,13 @@ export function CreateClaims({
                     userBalance={undistributedBalances}
                     distributionMethod={distributionMethod}
                     sender={MINT_ACCOUNT}
-                    collection={badgeCollection}
+                    collection={collection}
                     hideTransferDisplay={true}
                     isWhitelist
                     manualSend={manualSend}
                     plusButton
                     showIncrementSelect={(distributionMethod === DistributionMethod.Whitelist && !manualSend) || distributionMethod === DistributionMethod.Codes}
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>
         </div>

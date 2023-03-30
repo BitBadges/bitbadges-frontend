@@ -8,7 +8,7 @@ import { PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
-import { CollectionOverview } from "./CollectionInfo";
+import { MetadataDisplay } from "../badges/MetadataInfoDisplay";
 import { PermissionsOverview } from "./PermissionsInfo";
 import Markdown from 'react-markdown';
 
@@ -48,6 +48,7 @@ export function OverviewTab({
             />
         </InformationDisplayCard>
         <br />
+        
         {collection.collectionMetadata.description &&
 
             <InformationDisplayCard
@@ -61,8 +62,8 @@ export function OverviewTab({
                     </div>
                 </div>
             </InformationDisplayCard>
-
         }
+
         <br />
         <Row
             style={{
@@ -71,7 +72,7 @@ export function OverviewTab({
             }}
         >
             <Col span={11}>
-                <CollectionOverview
+                <MetadataDisplay
                     collection={collection}
                     metadata={collectionMetadata}
                     isCollectionInfo

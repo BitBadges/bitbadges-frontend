@@ -1,5 +1,4 @@
 import { InputNumber } from 'antd';
-import { Balance } from '../../bitbadges-api/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 export function NumberInput({

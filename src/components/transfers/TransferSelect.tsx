@@ -2,7 +2,7 @@ import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from
 import { Avatar, Button, DatePicker, Divider, Input, InputNumber, StepProps, Steps, Tooltip } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { checkIfApproved, getMatchingAddressesFromTransferMapping, getIdRangesForAllBadgeIdsInCollection } from '../../bitbadges-api/badges';
+import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
 import { getBalanceAfterTransfers, getBlankBalance } from '../../bitbadges-api/balances';
 import { checkIfIdRangesOverlap } from '../../bitbadges-api/idRanges';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
@@ -42,7 +42,7 @@ export function TransferSelect({
     showIncrementSelect,
     manualSend,
     plusButton,
-    updateMetadataForBadgeIds
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
     transfers: (TransfersExtended)[],
     setTransfers: (transfers: (TransfersExtended)[]) => void;
@@ -55,7 +55,7 @@ export function TransferSelect({
     showIncrementSelect?: boolean;
     manualSend?: boolean;
     plusButton?: boolean;
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void;
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
     const chain = useChainContext();
 
@@ -74,19 +74,18 @@ export function TransferSelect({
     ]);
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
-
     const [transfersToAdd, setTransfersToAdd] = useState<TransfersExtended[]>([]);
     const [increment, setIncrement] = useState<number>(0);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [warningMessage, setWarningMessage] = useState<string>('');
-
     const [codePassword, setCodePassword] = useState<string>('');
 
     const onStepChange = (value: number) => {
         setCurrentStep(value);
     };
 
-    const numRecipients = !distributionMethod || distributionMethod === DistributionMethod.Whitelist ? toAddresses.length : numCodes;
+    const isNormalTransfer = !distributionMethod;
+    const numRecipients = isNormalTransfer || distributionMethod === DistributionMethod.Whitelist ? toAddresses.length : numCodes;
 
     let totalNumBadges = 0;
     for (const balance of balances) {
@@ -109,8 +108,6 @@ export function TransferSelect({
 
         // If we are not using increments, then we can just add the transfers as is (normal transfer)
         if (!incrementIsSelected) {
-            console.log("!incrementIsSelected")
-            console.log(toAddresses);
             newTransfersToAdd = [{
                 toAddresses: toAddresses.map((user) => user.accountNumber),
                 balances: balances,
@@ -136,7 +133,7 @@ export function TransferSelect({
                 }
             }
 
-            //If we are using increments and directly transferring, then we need to add N unique transfers with each increment manually added
+            //If we are using increments and directly transferring (manualSend = true), then we need to add N unique transfers with each increment manually added
             if (manualSend) {
                 let currBadgeIds = JSON.parse(JSON.stringify([...startingBadgeIds]));
                 //Add N transfers, each with a different increment
@@ -227,6 +224,9 @@ export function TransferSelect({
         setPreTransferBalance(preTransferBalanceObj);
     }, [userBalance, chain.accountNumber, sender.accountNumber, transfers, transfersToAdd, distributionMethod, amountSelectType, numCodes, toAddresses, balances]);
 
+
+    //Check if the toAddresses are allowed
+    //Three things we have to check: 1) disallowedTransfer, 2) managerApprovedTransfers, 3) current approvals for sender address (if sending on behalf of another user)
     const forbiddenAddresses = getMatchingAddressesFromTransferMapping(collection.disallowedTransfers, toAddresses, chain, collection.manager.accountNumber);
     const managerApprovedAddresses = getMatchingAddressesFromTransferMapping(collection.managerApprovedTransfers, toAddresses, chain, collection.manager.accountNumber);
 
@@ -242,7 +242,7 @@ export function TransferSelect({
         }
     }
 
-    let forbiddenUsersMap: { [cosmosAddress: string]: string } = {};
+    let forbiddenUsersMap: { [cosmosAddress: string]: string } = {}; //Map of cosmosAddress to an error message
     for (const address of toAddresses) {
         //If forbidden or unapproved, add to map
         if (forbiddenAddresses.includes(address)) {
@@ -264,6 +264,7 @@ export function TransferSelect({
         }
     }
 
+
     let canTransfer = Object.values(forbiddenUsersMap).find((message) => message !== '') === undefined;
     if (isWhitelist) canTransfer = true;
 
@@ -273,6 +274,12 @@ export function TransferSelect({
     const idRangesOverlap = checkIfIdRangesOverlap(balances[0].badgeIds);
     const idRangesLengthEqualsZero = balances[0].badgeIds.length === 0;
 
+    //We have five potential steps
+    //1. Select recipients, number of codes, max number of claims depending on distribution method
+    //2. Select badges to distribute
+    //3. Select amount to distribute
+    //4. Select time range (if claim)
+    //5. Review and confirm
     const TransferSteps: StepProps[] = [];
 
     //Add first step
@@ -295,8 +302,8 @@ export function TransferSelect({
                                     message: `You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.`,
                                     isSelected: codeType === CodeType.Reusable,
                                 }]}
-                                onSwitchChange={(_option, title) => {
-                                    if (_option === 0) {
+                                onSwitchChange={(option, _title) => {
+                                    if (option === 0) {
                                         setCodeType(CodeType.Unique);
                                     } else {
                                         setCodeType(CodeType.Reusable);
@@ -337,7 +344,7 @@ export function TransferSelect({
                         <div style={{ textAlign: 'center', color: SECONDARY_TEXT }}>
                             <br />
                             <p>
-                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="For a better user experience, codes are stored in a centralized manner via the BitBadges servers (as opposed to the blockchain). This eliminates any storage requirements for collection creators. For a decentralized solution, you can interact directly with the blockchain.">
+                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers (as opposed to the blockchain). This eliminates storage requirements for you (the collection creator). For a decentralized solution, you can interact directly with the blockchain.">
                                     Hover to learn more.
                                 </Tooltip>
                             </p>
@@ -406,7 +413,7 @@ export function TransferSelect({
                 maximum={collection?.nextBadgeId ? collection?.nextBadgeId - 1 : undefined}
                 darkMode
                 collection={collection}
-                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
             />
         </div>,
         disabled: idRangesOverlap || idRangesLengthEqualsZero || firstStepDisabled || !canTransfer,
@@ -430,8 +437,8 @@ export function TransferSelect({
                                 message: `After each transaction, the claimable badge IDs will be incremented by X before the next transaction.`,
                                 isSelected: amountSelectType === AmountSelectType.Increment,
                             }]}
-                            onSwitchChange={(_option, title) => {
-                                if (_option === 0) {
+                            onSwitchChange={(option, _title) => {
+                                if (option === 0) {
                                     setAmountSelectType(AmountSelectType.Custom);
                                     setIncrement(0);
                                     setErrorMessage('');
@@ -459,11 +466,11 @@ export function TransferSelect({
                             <div>
                                 <div style={{ marginLeft: 8 }}>
                                     {increment === 0 && 'All recipients will receive all of the previously selected badge IDs.'}
-                                    {increment ? `The first recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start}-${start + increment - 1}`).join(', ')}.` : ''}
+                                    {increment ? `The first recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start}-${start + increment - 1}`).join(', ')}.` : ''}
                                 </div>
                                 <div style={{ marginLeft: 8 }}>
 
-                                    {increment ? `The second recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start + increment}-${start + increment + increment - 1}`).join(', ')}.` : ''}
+                                    {increment ? `The second recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start + increment}-${start + increment + increment - 1}`).join(', ')}.` : ''}
 
                                 </div>
 
@@ -474,7 +481,7 @@ export function TransferSelect({
                                 </div>}
                                 {numRecipients > 2 && <div style={{ marginLeft: 8 }}>
                                     <div style={{ marginLeft: 8 }}>
-                                        {increment ? `The ${numRecipients === 3 ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start, end }) => `${start + (numRecipients - 1) * increment}-${start + (numRecipients - 1) * increment + increment - 1}`).join(', ')}.` : ''}
+                                        {increment ? `The ${numRecipients === 3 ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start + (numRecipients - 1) * increment}-${start + (numRecipients - 1) * increment + increment - 1}`).join(', ')}.` : ''}
                                     </div>
                                 </div>}
                             </div>
@@ -529,14 +536,14 @@ export function TransferSelect({
                     from={[sender]}
                     setTransfers={setTransfers}
                     hideAddresses
-                    updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
             </div>}
             <Divider />
 
             {
                 postTransferBalance && <div>
-                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' updateMetadataForBadgeIds={updateMetadataForBadgeIds} />
+                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent} />
                     {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
                 </div>
             }
@@ -606,7 +613,7 @@ export function TransferSelect({
                 collection={collection}
                 fontColor={PRIMARY_TEXT}
                 from={[sender]}
-                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
             />
             <br />
             <Button type='primary'
@@ -654,12 +661,11 @@ export function TransferSelect({
                         fontColor={PRIMARY_TEXT}
                         from={[sender]}
                         deletable
-                        updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                     />
                     <Divider />
                     <hr />
                     <br />
-
                 </div>
             }
 

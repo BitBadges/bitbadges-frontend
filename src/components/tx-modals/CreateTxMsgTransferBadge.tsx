@@ -56,7 +56,7 @@ export function CreateTxMsgTransferBadgeModal(
             setSenderBalance(balanceRes.balance);
         }
         getSenderBalance();
-    }, [sender.accountNumber, collection]);
+    }, [sender.accountNumber, collection.collectionId]);
 
     useEffect(() => {
         for (const transfer of transfers) {
@@ -142,7 +142,7 @@ export function CreateTxMsgTransferBadgeModal(
 
                     {sender.address != chain.address && <div style={{}}>
                         <br />
-                        <InfoCircleOutlined /> If you select an address other than yours, you must be approved to transfer on their behalf.
+                        <InfoCircleOutlined /> If you select an address other than yours, note that you must be approved to transfer on their behalf.
                     </div>}
 
                     <AddressSelect

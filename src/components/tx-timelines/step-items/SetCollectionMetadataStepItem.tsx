@@ -1,8 +1,8 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from "../../../bitbadges-api/idRanges";
+import { populateFieldsOfOtherBadges } from "../../../bitbadges-api/metadata";
 import { GetPermissions } from "../../../bitbadges-api/permissions";
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "../../../bitbadges-api/types";
-import { BadgePageHeader } from "../../collection-page/BadgePageHeader";
+import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 
 export function SetCollectionMetadataStepItem(
@@ -15,8 +15,7 @@ export function SetCollectionMetadataStepItem(
     setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void,
     simulatedCollection: BitBadgeCollection,
     existingCollection?: BitBadgeCollection,
-    updateMetadataForManualUris?: () => void,
-    updateMetadataForBadgeIds?: (badgeIds: number[]) => void,
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void,
     hideCollectionSelect?: boolean
 ) {
     return {
@@ -26,18 +25,13 @@ export function SetCollectionMetadataStepItem(
 
             {addMethod === MetadataAddMethod.Manual &&
                 <div>
-
-                    {<div>
+                    <div>
                         <br />
-
                         <br />
-                        <BadgePageHeader metadata={collectionMetadata} />
-                        {/* <OverviewTab /> */}
-                    </div>}
+                        <CollectionHeader metadata={collectionMetadata} />
+                    </div>
                 </div>
             }
-
-
 
             <MetadataForm
                 collection={{
@@ -46,8 +40,7 @@ export function SetCollectionMetadataStepItem(
                     badgeMetadata: individualBadgeMetadata
                 }}
                 hideCollectionSelect={hideCollectionSelect}
-                updateMetadataForManualUris={updateMetadataForManualUris}
-                updateMetadataForBadgeIds={updateMetadataForBadgeIds}
+                updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 addMethod={addMethod}
                 metadata={collectionMetadata}
                 startId={existingCollection?.nextBadgeId || 1}
@@ -57,68 +50,7 @@ export function SetCollectionMetadataStepItem(
                 newCollectionMsg={newCollectionMsg}
                 toBeFrozen={!GetPermissions(newCollectionMsg.permissions).CanUpdateUris}
                 populateOtherBadges={(badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => {
-                    for (const badgeIdRange of badgeIds) {
-                        for (let id = badgeIdRange.start; id <= badgeIdRange.end; id++) {
-                            let newMetadata = {} as BadgeMetadata;
-                            let keys = Object.keys(individualBadgeMetadata);
-                            let values = Object.values(individualBadgeMetadata);
-                            const idRangeToUpdate = { start: id, end: id };
-                            for (let i = 0; i < values.length; i++) {
-                                const res = SearchIdRangesForId(id, values[i].badgeIds)
-                                const idx = res[0]
-                                const found = res[1]
-                                if (found) {
-                                    for (let j = id + 1; j <= badgeIdRange.end; j++) {
-                                        const res = SearchIdRangesForId(j, values[i].badgeIds)
-                                        const found = res[1]
-                                        if (found) {
-                                            idRangeToUpdate.end = j;
-                                            id = j;
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                    values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange(idRangeToUpdate, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-
-                                    newMetadata = { ...values[i].metadata, [key]: value };
-                                    if (metadataToSet) {
-                                        newMetadata = { ...metadataToSet };
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            let metadata = newMetadata;
-
-                            let metadataExists = false;
-                            for (let i = 0; i < keys.length; i++) {
-                                if (JSON.stringify(values[i].metadata) === JSON.stringify(metadata)) {
-                                    metadataExists = true;
-                                    values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges(idRangeToUpdate, values[i].badgeIds) : [idRangeToUpdate];
-                                }
-                            }
-
-                            let currIdx = 0;
-                            individualBadgeMetadata = {};
-                            for (let i = 0; i < keys.length; i++) {
-                                if (values[i].badgeIds.length === 0) {
-                                    continue;
-                                }
-                                individualBadgeMetadata[currIdx] = values[i];
-                                currIdx++;
-                            }
-
-                            if (!metadataExists) {
-                                individualBadgeMetadata[Object.keys(individualBadgeMetadata).length] = {
-                                    metadata: { ...metadata },
-                                    badgeIds: [idRangeToUpdate],
-                                    uri: 'Manual'
-                                }
-                            }
-                        }
-                    }
-
+                    individualBadgeMetadata = populateFieldsOfOtherBadges(individualBadgeMetadata, badgeIds, key, value, metadataToSet);
                     setIndividualBadgeMetadata(individualBadgeMetadata);
                 }}
             />

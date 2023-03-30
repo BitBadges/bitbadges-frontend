@@ -1,9 +1,10 @@
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
-import { createCollectionFromMsgNewCollection, getMetadataForBadgeId, getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange, SearchIdRangesForId } from '../../bitbadges-api/idRanges';
+import { fetchMetadata } from '../../bitbadges-api/api';
+import { createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
+import { updateMetadataMap } from '../../bitbadges-api/metadata';
 import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../bitbadges-api/types';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../bitbadges-api/types';
 import { DefaultPlaceholderMetadata, ErrorMetadata, GO_MAX_UINT_64 } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
@@ -12,7 +13,7 @@ import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
-import { fetchMetadata } from '../../bitbadges-api/api';
+import { TransferMappingSelectType } from './form-items/TransfersMappingSelect';
 
 export const EmptyStepItem = {
     title: '',
@@ -33,6 +34,8 @@ export const EmptyStepItem = {
 //UpdateDisallowed: Updates the disallowed transfers of a badge collection
 //DistributeBadges: Distributes the unminted badges of a badge collection
 //AddBadges: Adds new badges to a badge collection
+
+
 
 export interface TxTimelineProps {
     txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges'
@@ -67,10 +70,25 @@ export interface TxTimelineProps {
     setManagerApprovedTransfersWithUnregisteredUsers: (mapping: TransferMappingWithUnregisteredUsers[]) => void,
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     setDisallowedTransfersWithUnregisteredUsers: (transfers: TransferMappingWithUnregisteredUsers[]) => void,
-    updateMetadataForManualUris: () => void,
-    updateMetadataForBadgeIds: (badgeIds: number[]) => void,
-}
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent: (badgeIds: number[]) => void,
+    transferabilityToSelectType: TransferMappingSelectType,
+    setTransferabilityToSelectType: (type: TransferMappingSelectType) => void,
+    transferabilityFromSelectType: TransferMappingSelectType,
+    setTransferabilityFromSelectType: (type: TransferMappingSelectType) => void,
+    transferabilityTo: BitBadgesUserInfo[],
+    setTransferabilityTo: (users: BitBadgesUserInfo[]) => void,
+    transferabilityFrom: BitBadgesUserInfo[],
+    setTransferabilityFrom: (users: BitBadgesUserInfo[]) => void,
+    managerToSelectType: TransferMappingSelectType,
+    setManagerToSelectType: (type: TransferMappingSelectType) => void,
+    managerFromSelectType: TransferMappingSelectType,
+    setManagerFromSelectType: (type: TransferMappingSelectType) => void,
+    managerTo: BitBadgesUserInfo[],
+    setManagerTo: (users: BitBadgesUserInfo[]) => void,
+    managerFrom: BitBadgesUserInfo[],
+    setManagerFrom: (users: BitBadgesUserInfo[]) => void,
 
+}
 
 export function TxTimeline({
     txType,
@@ -202,8 +220,6 @@ export function TxTimeline({
 
     //Upon the badge supply changing, we update the individual badge metadata with placeholders
     useEffect(() => {
-        console.log("USE EFFECT TRIGGERED");
-        console.log("existingCollection", existingCollection);
         if (existingCollection) {
             setCollectionMetadata(existingCollection.collectionMetadata);
         }
@@ -216,46 +232,9 @@ export function TxTimeline({
                 nextBadgeId += badgeSupplyObj.amount;
             }
 
-            let currentMetadata = DefaultPlaceholderMetadata;
-
-            const startBadgeId = origNextBadgeId
-            const endBadgeId = nextBadgeId - 1;
-
-            let keys = Object.keys(metadata);
-            let values = Object.values(metadata);
-
-            let metadataExists = false;
-            for (let i = 0; i < keys.length; i++) {
-                if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
-                    metadataExists = true;
-                    values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds) : [{ start: startBadgeId, end: endBadgeId }];
-                }
-            }
-
-            let currIdx = 0;
-            metadata = {};
-            for (let i = 0; i < keys.length; i++) {
-                if (values[i].badgeIds.length === 0) {
-                    continue;
-                }
-                metadata[currIdx] = values[i];
-                currIdx++;
-            }
-
-            if (!metadataExists) {
-                metadata[Object.keys(metadata).length] = {
-                    metadata: { ...currentMetadata },
-                    badgeIds: [{
-                        start: startBadgeId,
-                        end: endBadgeId,
-                    }],
-                    uri: 'Placeholder'
-                }
-            }
+            metadata = updateMetadataMap(metadata, DefaultPlaceholderMetadata, { start: origNextBadgeId, end: nextBadgeId - 1 }, 'Placeholder');
         }
 
-
-        console.log("USE EFFECT TRIGGERED END", metadata);
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
     }, [newCollectionMsg.badgeSupplys, existingCollection])
@@ -267,7 +246,7 @@ export function TxTimeline({
             setCollectionMetadata(DefaultPlaceholderMetadata);
             return;
         };
-        
+
         async function updateMetadata() {
             try {
                 const res = await fetchMetadata(newCollectionMsg.collectionUri);
@@ -280,14 +259,12 @@ export function TxTimeline({
 
     }, [newCollectionMsg.collectionUri, addMethod]);
 
-
-    const updateMetadataForBadgeIds = async (badgeIds: number[]) => {
+    const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = async (badgeIds: number[]) => {
         if (addMethod !== MetadataAddMethod.UploadUrl) return;
 
-        console.log("EXECUTING");
-
-
         let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(individualBadgeMetadata));
+
+        //Update all the placeholders to iamge = '' to display as loading spinner
         let origKeys = Object.keys(metadata);
         let origValues = Object.values(metadata)
         let updated = false;
@@ -300,7 +277,7 @@ export function TxTimeline({
         }
         if (updated) setBadgeMetadata(metadata);
 
-
+        //For each badgeId to display
         for (const badgeId of badgeIds) {
             const currMetadata = getMetadataMapObjForBadgeId(badgeId, metadata);
             let currUri = '';
@@ -308,28 +285,22 @@ export function TxTimeline({
                 currUri = currMetadata.uri;
             }
 
-
+            //Find the respective URI and update, if it's not already updated
             for (const badgeUriObj of newCollectionMsg.badgeUris) {
-                //Find 
                 const badgeUri = badgeUriObj.uri;
-                let uri = '';
-                if (badgeUri.includes("{id}")) {
-                    uri = badgeUri.replace("{id}", badgeId.toString());
-                } else {
-                    uri = badgeUri;
-                }
+                let uri = badgeUri.replace("{id}", badgeId.toString());
 
                 if (badgeUriObj.badgeIds.find(x => x.start <= badgeId && x.end >= badgeId)) {
+                    //If uris are the same, we have already fetched the metadata
                     if (uri !== currUri) {
                         let currentMetadata = undefined;
-                        let keys = Object.keys(metadata);
-                        let values = Object.values(metadata);
-
                         try {
                             if (badgeUri.includes("{id}")) {
                                 const res = await fetchMetadata(uri);
                                 currentMetadata = res.metadata;
                             } else {
+                                //Check if URI is the same as another badge ID
+                                let values = Object.values(metadata);
                                 const matchingMetadata = values.find(x => x.uri === uri);
                                 if (matchingMetadata) {
                                     currentMetadata = matchingMetadata.metadata;
@@ -342,73 +313,13 @@ export function TxTimeline({
                             currentMetadata = ErrorMetadata
                         }
 
-                        // console.log("DIFF", uri, currUri);
-                        // currentMetadata = { name: 'fake', image: 'fake', description: 'fake' };
-
-
-
-
-                        const startBadgeId = badgeId;
-                        const endBadgeId = badgeId;
-
-                        for (let i = 0; i < keys.length; i++) {
-                            const res = SearchIdRangesForId(startBadgeId, values[i].badgeIds)
-                            const idx = res[0]
-                            const found = res[1]
-
-                            if (found) {
-                                values[i].badgeIds = [...values[i].badgeIds.slice(0, idx), ...RemoveIdsFromIdRange({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds[idx]), ...values[i].badgeIds.slice(idx + 1)]
-                            }
-                        }
-
-
-                        let metadataExists = false;
-                        for (let i = 0; i < keys.length; i++) {
-                            if (JSON.stringify(values[i].metadata) === JSON.stringify(currentMetadata)) {
-                                metadataExists = true;
-                                values[i].badgeIds = values[i].badgeIds.length > 0 ? InsertRangeToIdRanges({ start: startBadgeId, end: endBadgeId }, values[i].badgeIds) : [{ start: startBadgeId, end: endBadgeId }];
-                            }
-                        }
-
-                        // console.log("METADATA EXISTS", metadataExists);
-
-                        let currIdx = 0;
-                        metadata = {};
-                        for (let i = 0; i < keys.length; i++) {
-                            if (values[i].badgeIds.length === 0) {
-                                continue;
-                            }
-                            metadata[currIdx] = values[i];
-                            currIdx++;
-                        }
-
-                        if (!metadataExists) {
-                            metadata[Object.keys(metadata).length] = {
-                                metadata: { ...currentMetadata },
-                                badgeIds: [{
-                                    start: startBadgeId,
-                                    end: endBadgeId,
-                                }],
-                                uri: uri
-                            }
-                        }
+                        metadata = updateMetadataMap(metadata, currentMetadata, { start: badgeId, end: badgeId }, uri);
                     }
                 }
             }
         }
         setBadgeMetadata(metadata);
     }
-
-
-
-    const updateMetadataForManualUris = async () => {
-        // let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(existingCollection?.badgeMetadata ? existingCollection.badgeMetadata : {}));
-
-
-
-        // setBadgeMetadata(metadata);
-    }
-
 
     useEffect(() => {
         setNewCollectionMsg({
@@ -447,6 +358,18 @@ export function TxTimeline({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [managerApprovedTransfersWithUnregisteredUsers]);
 
+    //Really bad code but see top of TransferMappingSelect file for explanation
+    const [transferabilityToSelectType, setTransferabilityToSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
+    const [transferabilityFromSelectType, setTransferabilityFromSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
+
+    const [transferabilityTo, setTransferabilityTo] = useState<BitBadgesUserInfo[]>([]);
+    const [transferabilityFrom, setTransferabilityFrom] = useState<BitBadgesUserInfo[]>([]);
+
+    const [managerToSelectType, setManagerToSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
+    const [managerFromSelectType, setManagerFromSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
+
+    const [managerTo, setManagerTo] = useState<BitBadgesUserInfo[]>([]);
+    const [managerFrom, setManagerFrom] = useState<BitBadgesUserInfo[]>([]);
 
     //If all supply amounts are 1, it is fungible
     const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
@@ -486,8 +409,23 @@ export function TxTimeline({
         setDisallowedTransfersWithUnregisteredUsers,
         managerApprovedTransfersWithUnregisteredUsers,
         setManagerApprovedTransfersWithUnregisteredUsers,
-        updateMetadataForManualUris,
-        updateMetadataForBadgeIds,
+        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
+        transferabilityToSelectType,
+        setTransferabilityToSelectType,
+        transferabilityFromSelectType,
+        setTransferabilityFromSelectType,
+        transferabilityTo,
+        setTransferabilityTo,
+        transferabilityFrom,
+        setTransferabilityFrom,
+        managerToSelectType,
+        setManagerToSelectType,
+        managerFromSelectType,
+        setManagerFromSelectType,
+        managerTo,
+        setManagerTo,
+        managerFrom,
+        setManagerFrom,
     }
 
 

@@ -2,12 +2,12 @@ import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
-import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, IdRange, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../../bitbadges-api/types';
-import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
 import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
+import { updateTransferMappingAccountNums } from '../../../bitbadges-api/transferMappings';
+import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../../bitbadges-api/types';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
-import { InsertRangeToIdRanges, RemoveIdsFromIdRange } from '../../../bitbadges-api/idRanges';
+import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 
 export function SubmitMsgNewCollection({
     newCollectionMsg,
@@ -17,7 +17,6 @@ export function SubmitMsgNewCollection({
     addMethod,
     claimItems,
     distributionMethod,
-    setClaimItems,
     manualSend,
     managerApprovedTransfersWithUnregisteredUsers,
     disallowedTransfersWithUnregisteredUsers,
@@ -29,7 +28,6 @@ export function SubmitMsgNewCollection({
     collectionMetadata: BadgeMetadata;
     individualBadgeMetadata: BadgeMetadataMap;
     distributionMethod: DistributionMethod;
-    setClaimItems: (claimItems: ClaimItem[]) => void;
     manualSend: boolean;
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
@@ -42,22 +40,18 @@ export function SubmitMsgNewCollection({
 
     useEffect(() => {
         let newUnregisteredUsers: string[] = [];
-        for (const claimItem of claimItems) {
-            for (const address of claimItem.addresses) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
+        if (manualSend) {
+            for (const claimItem of claimItems) {
+                for (const address of claimItem.addresses) {
+                    if (accounts.accounts[address].accountNumber >= 0) continue;
 
-                newUnregisteredUsers.push(address);
+                    newUnregisteredUsers.push(address);
+                }
             }
         }
 
         for (const transfer of managerApprovedTransfersWithUnregisteredUsers) {
-            for (const address of transfer.toUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-
-            for (const address of transfer.fromUnregisteredUsers) {
+            for (const address of [...transfer.toUnregisteredUsers, ...transfer.fromUnregisteredUsers]) {
                 if (accounts.accounts[address].accountNumber >= 0) continue;
 
                 newUnregisteredUsers.push(address);
@@ -65,18 +59,13 @@ export function SubmitMsgNewCollection({
         }
 
         for (const transfer of disallowedTransfersWithUnregisteredUsers) {
-            for (const address of transfer.toUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-
-            for (const address of transfer.fromUnregisteredUsers) {
+            for (const address of [...transfer.toUnregisteredUsers, ...transfer.fromUnregisteredUsers]) {
                 if (accounts.accounts[address].accountNumber >= 0) continue;
 
                 newUnregisteredUsers.push(address);
             }
         }
+
         newUnregisteredUsers = [...new Set(newUnregisteredUsers)];
         setUnregisteredUsers(newUnregisteredUsers);
 
@@ -95,10 +84,8 @@ export function SubmitMsgNewCollection({
                 claims: claimRes.claims,
                 transfers: []
             });
-
         }
-
-    }, [claimItems, accounts, manualSend, setNewCollectionMsg]);
+    }, [claimItems, accounts, manualSend, setNewCollectionMsg, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers]);
 
     async function updateIPFSUris() {
         let badgeMsg = newCollectionMsg;
@@ -118,15 +105,8 @@ export function SubmitMsgNewCollection({
                     badgeIds: values[i].badgeIds
                 });
             }
-            // badgeMsg.badgeUris = [
-            //     {
-            //         uri: 'ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/{id}',
-            //         badgeIds: [{
-            //             start: 1,
-            //             end: 1000
-            //         }]
-            //     }
-            // ];
+
+            //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing collection
         }
 
         //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
@@ -136,73 +116,16 @@ export function SubmitMsgNewCollection({
                     let merkleTreeRes = await addMerkleTreeToIpfs([], claimItems[i].addresses, claimItems[i].codes, claimItems[i].hashedCodes, claimItems[i].password);
                     badgeMsg.claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
                 }
-
-                // //For the codes, we store the hashed codes as leaves on IPFS because we don't want to store the codes themselves
-                // //For the whitelist, we store the full plaintext codes as leaves on IPFS
-                // if (distributionMethod == DistributionMethod.Codes) {
-
-                // } else {
-                //     let merkleTreeRes = await addMerkleTreeToIpfs(claimItems.map((x) => x.fullCode));
-                //     badgeMsg.claims[0].uri = 'ipfs://' + merkleTreeRes.cid + '';
-                // }
             }
         }
 
         setNewCollectionMsg(badgeMsg);
     }
 
-    function updateUnregisteredUsers() {
-        //Get new account numbers for unregistered users
-        let newUnregisteredUsers: string[] = [];
-        for (const claimItem of claimItems) {
-            for (const address of claimItem.addresses) {
-                console.log("ACCOUNT", accounts.accounts[address]);
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-        }
-
-        for (const transfer of managerApprovedTransfersWithUnregisteredUsers) {
-            for (const address of transfer.toUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-
-            for (const address of transfer.fromUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-        }
-
-        for (const transfer of disallowedTransfersWithUnregisteredUsers) {
-            for (const address of transfer.toUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-
-            for (const address of transfer.fromUnregisteredUsers) {
-                if (accounts.accounts[address].accountNumber >= 0) continue;
-
-                newUnregisteredUsers.push(address);
-            }
-        }
-        setUnregisteredUsers(newUnregisteredUsers);
-        console.log("UNREGISTED", newUnregisteredUsers);
-    }
-
-
-
     const onRegister = async () => {
         setLoading(true);
 
-        const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
-        console.log("FETCHED ACCTS", fetchedAccounts);
-
-        updateUnregisteredUsers();
+        const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true); // This will update the useEffect() above and set unregisterUsers to []
 
         const finalCollectionMsg = { ...newCollectionMsg };
 
@@ -210,7 +133,6 @@ export function SubmitMsgNewCollection({
         if (manualSend) {
             finalCollectionMsg.transfers = getTransfersFromClaimItems(claimItems, accounts);
             finalCollectionMsg.claims = [];
-
         } else if (!manualSend) {
             const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
             const claimRes = getClaimsFromClaimItems(balance, claimItems);
@@ -219,54 +141,18 @@ export function SubmitMsgNewCollection({
             finalCollectionMsg.transfers = [];
         }
 
+        //Update the manager approved transfers with the newly registered users
         for (const transferMapping of managerApprovedTransfersWithUnregisteredUsers) {
             for (const address of transferMapping.toUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeToUsers) {
-                    for (const idRange of transferMapping.to.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.to.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.to.accountNums.length == 0) {
-                        transferMapping.to.accountNums = [{ start: fetchedAcctNumber, end: fetchedAcctNumber }];
-                    } else {
-                        if (transferMapping.to.accountNums.length == 0) {
-                            transferMapping.to.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                        } else {
-                            //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                            transferMapping.to.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.to.accountNums);
-                        }
-                    }
-                }
-
+                transferMapping.to = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeToUsers, transferMapping.to);
             }
 
             for (const address of transferMapping.fromUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeFromUsers) {
-                    for (const idRange of transferMapping.from.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.from.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.from.accountNums.length == 0) {
-                        transferMapping.from.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                    } else {
-                        //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                        transferMapping.from.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.from.accountNums);
-                    }
-                }
+                transferMapping.from = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeFromUsers, transferMapping.from);
             }
 
             finalCollectionMsg.managerApprovedTransfers = managerApprovedTransfersWithUnregisteredUsers.map((x) => {
@@ -277,49 +163,18 @@ export function SubmitMsgNewCollection({
             });
         }
 
+        //Update the disallowed transfers with newly registered users
         for (const transferMapping of disallowedTransfersWithUnregisteredUsers) {
             for (const address of transferMapping.toUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeToUsers) {
-                    for (const idRange of transferMapping.to.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.to.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.to.accountNums.length == 0) {
-                        transferMapping.to.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                    } else {
-                        //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                        transferMapping.to.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.to.accountNums);
-                    }
-                }
+                transferMapping.to = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeToUsers, transferMapping.to);
             }
 
             for (const address of transferMapping.fromUnregisteredUsers) {
                 const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
                 if (fetchedAcctNumber == undefined) continue;
-
-
-                let newAccountNums: IdRange[] = []
-                if (transferMapping.removeFromUsers) {
-                    for (const idRange of transferMapping.from.accountNums) {
-                        newAccountNums.push(...RemoveIdsFromIdRange({ start: fetchedAcctNumber, end: fetchedAcctNumber }, idRange));
-                    }
-
-                    transferMapping.from.accountNums = newAccountNums;
-                } else {
-                    if (transferMapping.from.accountNums.length == 0) {
-                        transferMapping.from.accountNums.push({ start: fetchedAcctNumber, end: fetchedAcctNumber });
-                    } else {
-                        //Since they were previously unregistered, we assume there is no way it can already be in accountNums
-                        transferMapping.from.accountNums = InsertRangeToIdRanges({ start: fetchedAcctNumber, end: fetchedAcctNumber }, transferMapping.from.accountNums);
-                    }
-                }
+                transferMapping.from = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeFromUsers, transferMapping.from);
             }
 
             finalCollectionMsg.disallowedTransfers = disallowedTransfersWithUnregisteredUsers.map((x) => {
@@ -346,7 +201,6 @@ export function SubmitMsgNewCollection({
             marginTop: 20,
         }}
     >
-        {/* TODO: Preview and Review */}
         <Button
             type="primary"
             style={{ width: '90%' }}

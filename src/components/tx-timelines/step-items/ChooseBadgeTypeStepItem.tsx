@@ -6,7 +6,7 @@ export function ChooseBadgeTypeStepItem(newCollectionMsg: MessageMsgNewCollectio
         title: 'Choose Badge Type',
         description: 'What type of badge would you like to create?',
         node: <SwitchForm
-            noSelectUntilClick
+
             options={[
                 {
                     title: 'BitBadge',

@@ -1,13 +1,20 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
-import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
 import { useState } from "react";
-import { TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { TransferMappingSelectType, TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 
 export function ManagerApprovedTransfersStepItem(
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     setManagerApprovedTransfersWithUnregisteredUsers: (managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[]) => void,
+    toSelectType: TransferMappingSelectType,
+    setToSelectType: (toSelectType: TransferMappingSelectType) => void,
+    fromSelectType: TransferMappingSelectType,
+    setTransferabiityFromSelectType: (fromSelectType: TransferMappingSelectType) => void,
+    to: BitBadgesUserInfo[],
+    setTo: (to: BitBadgesUserInfo[]) => void,
+    from: BitBadgesUserInfo[],
+    setFrom: (from: BitBadgesUserInfo[]) => void,
 ) {
     const [handled, setHandled] = useState(false);
     return {
@@ -20,6 +27,14 @@ export function ManagerApprovedTransfersStepItem(
             setTransfersMapping={(managerApprovedTransfers) => setManagerApprovedTransfersWithUnregisteredUsers(managerApprovedTransfers)}
             isManagerApprovedSelect
             setHandled={() => setHandled(true)}
+            toSelectType={toSelectType}
+            setToSelectType={(toSelectType) => setToSelectType(toSelectType)}
+            fromSelectType={fromSelectType}
+            setFromSelectType={(fromSelectType) => setTransferabiityFromSelectType(fromSelectType)}
+            to={to}
+            setTo={(to) => setTo(to)}
+            from={from}
+            setFrom={(from) => setFrom(from)}
         />,
         disabled: !handled
     }
