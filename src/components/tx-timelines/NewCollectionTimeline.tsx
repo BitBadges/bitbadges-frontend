@@ -1,4 +1,4 @@
-import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { DistributionMethod, MetadataAddMethod } from 'bitbadges-sdk';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
@@ -43,8 +43,6 @@ export function MintCollectionTimeline({
     const setClaimItems = txTimelineProps.setClaimItems;
     const manualSend = txTimelineProps.manualSend;
     const setManualSend = txTimelineProps.setManualSend;
-    const fungible = txTimelineProps.fungible;
-    const nonFungible = txTimelineProps.nonFungible;
     const simulatedCollection = txTimelineProps.simulatedCollection;
     const metadataSize = txTimelineProps.metadataSize;
     const existingCollection = txTimelineProps.existingCollection;
@@ -82,10 +80,10 @@ export function MintCollectionTimeline({
     const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
     const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, simulatedCollection, existingCollection, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection);
-    const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
+    const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod);
     const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
-    const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers);
-    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
+    const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers, simulatedCollection);
+    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection);
     const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers, managerToSelectType, setManagerToSelectType, managerFromSelectType, setManagerFromSelectType, managerTo, setManagerTo, managerFrom, setManagerFrom);
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);

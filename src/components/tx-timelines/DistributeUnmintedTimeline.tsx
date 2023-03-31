@@ -1,4 +1,4 @@
-import { DistributionMethod } from '../../bitbadges-api/types';
+import { DistributionMethod } from 'bitbadges-sdk';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
@@ -23,6 +23,7 @@ export function DistributeTimeline({
     const setManualSend = txTimelineProps.setManualSend;
     const fungible = txTimelineProps.fungible;
     const nonFungible = txTimelineProps.nonFungible;
+    const simulatedCollection = txTimelineProps.simulatedCollection;
 
 
     return (
@@ -31,7 +32,7 @@ export function DistributeTimeline({
 
                 DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, false, false),
                 distributionMethod === DistributionMethod.Whitelist
-                    ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems) : EmptyStepItem,
+                    ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection) : EmptyStepItem,
                 distributionMethod !== DistributionMethod.Unminted
                     ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, collection.unmintedSupplys) : EmptyStepItem,
             ]}

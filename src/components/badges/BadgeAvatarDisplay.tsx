@@ -1,11 +1,11 @@
 import { Pagination } from "antd";
 import { useEffect, useState } from "react";
-import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "../../bitbadges-api/badges";
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
 import { getPageDetails } from "../../utils/pagination";
+import { BitBadgeCollection, UserBalance, IdRange, BadgeMetadata } from "bitbadges-sdk";
+import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -43,6 +43,7 @@ export function BadgeAvatarDisplay({
     const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]); // Badge IDs to display of length pageSize
 
     useEffect(() => {
+        console.log("TEST");
         let total = 0;
         for (const range of badgeIds) {
             const numBadgesInRange = Number(range.end) - Number(range.start) + 1;
@@ -69,11 +70,12 @@ export function BadgeAvatarDisplay({
             updateMetadataForBadgeIdsDirectlyFromUriIfAbsent(badgeIdsToDisplay);
         } else {
             if (!collection) return;
-            updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection, collections);
+            const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
+            collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currPage, pageSize, badgeIds]);
+    }, [currPage, pageSize]);
 
     if (!collection) return <></>;
 

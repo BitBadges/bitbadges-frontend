@@ -2,10 +2,9 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Card, Spin, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { useEffect, useState } from 'react';
-import { getBlankBalance, getSupplyByBadgeId } from '../../bitbadges-api/balances';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { BadgeModal } from './BadgeModal';
+import { BadgeMetadata, BitBadgeCollection, UserBalance, getSupplyByBadgeId, getBlankBalance } from 'bitbadges-sdk';
+import { PRIMARY_TEXT, PRIMARY_BLUE, SECONDARY_TEXT } from "../../constants";
 
 export function BadgeCard({
     metadata,

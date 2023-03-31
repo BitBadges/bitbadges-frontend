@@ -3,8 +3,8 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Col, Empty, Pagination, Row, Tooltip, Typography } from "antd";
 import { useState } from "react";
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended } from "../../bitbadges-api/types";
-import { PRIMARY_TEXT } from "../../constants";
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended } from "bitbadges-sdk";
+import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { AddressWithBlockies } from "../address/AddressWithBlockies";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
@@ -79,6 +79,7 @@ export function TransferDisplay({
                                         balances: transfer.balances,
                                         approvals: []
                                     }}
+
                                     numRecipients={toLength}
                                     numIncrements={transfer.numIncrements}
                                     incrementBy={transfer.incrementBy}
@@ -145,7 +146,7 @@ export function TransferDisplay({
                                                 }}
                                                 strong
                                             >
-                                                {hasPassword ? "Users to Enter Correct Password" : `First ${toLength} To Claim`}
+                                                {hasPassword ? `First ${toLength} Users to Enter Correct Password` : `First ${toLength} To Claim`}
                                             </Text>
                                         </>}
                                 </Col>

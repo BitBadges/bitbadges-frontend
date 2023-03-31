@@ -1,14 +1,9 @@
 import axiosApi from 'axios';
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
-import { BACKEND_URL, METADATA_PAGE_LIMIT, NODE_URL } from '../constants';
 import { stringify } from "../utils/preserveJson";
-import { getMaxBatchId } from './badges';
-import { convertToCosmosAddress } from './chains';
-import { GetPermissions } from './permissions';
-import { GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute } from './routes';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, CosmosAccountInformation, IndexerStatus, MetadataDocument } from './types';
-import { convertToBitBadgesUserInfo } from './users';
+import { AccountResponse, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId } from "bitbadges-sdk"
+import { BACKEND_URL, NODE_URL } from '../constants';
 
 const axios = axiosApi.create({
     withCredentials: true,
@@ -20,7 +15,7 @@ const axios = axiosApi.create({
 //Get account by address
 export async function getAccountInformation(address: string) {
     const bech32Address = convertToCosmosAddress(address);
-    const accountObject: CosmosAccountInformation = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
+    const accountObject: AccountResponse = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
     return accountObject;
 }
 
@@ -32,12 +27,12 @@ export async function getStatus() {
 
 //Get account by account number
 export async function getAccountInformationByAccountNumber(id: number) {
-    const accountObject: CosmosAccountInformation = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
+    const accountObject: AccountResponse = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
     return accountObject;
 }
 
 export async function getAccounts(accountNums: number[], addresses: string[]) {
-    const accountObjects: { accounts: CosmosAccountInformation[] } = await axios.post(BACKEND_URL + GetAccountsRoute(), { accountNums, addresses }).then((res) => res.data);
+    const accountObjects: { accounts: AccountResponse[] } = await axios.post(BACKEND_URL + GetAccountsRoute(), { accountNums, addresses }).then((res) => res.data);
     return accountObjects.accounts;
 }
 
@@ -54,15 +49,9 @@ export async function getBadgeOwners(collectionId: number, badgeId: number) {
 }
 
 async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: boolean = false) {
-    //TODO: parallelize this (get manager info, get metadata, get collection should all be handled together)  
     // Convert the returned permissions (uint) to a Permissions object for easier use
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
-
-    // Convert the returned manager (bech32Address) to a BitBadgesUserInfo object for easier use
-    let managerAccountNumber: any = badgeData.manager;
-    let managerAccountInfo = await getAccountInformationByAccountNumber(managerAccountNumber);
-    badgeData.manager = convertToBitBadgesUserInfo(managerAccountInfo);
 
     badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
 
@@ -76,9 +65,6 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
         }
 
         badgeData = await updateMetadata(badgeData, idxs);
-    } else {
-        //Backend batch limit == METADATA_PAGE_LIMIT so get batches 0-METADATA_PAGE_LIMIT (0 = collection) initially
-        badgeData = await updateMetadata(badgeData, [0]);
     }
 
     return badgeData;
@@ -102,7 +88,8 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
 
     const collections: BitBadgeCollection[] = [];
     const badgeDataResponse = await axios.post(BACKEND_URL + GetCollectionsRoute(), {
-        collections: collectionIds.map((x) => Number(x))
+        collections: collectionIds.map((x) => Number(x)),
+        startBatchIds: collectionIds.map(() => 0)
     }).then((res) => res.data);
 
     const promises = [];
@@ -174,13 +161,7 @@ export async function getPortfolio(accountNumber: number) {
 
 //Get search results
 export async function getSearchResults(searchTerm: string) {
-    const searchResults: {
-        accounts: CosmosAccountInformation[],
-        collections: (MetadataDocument & {
-            _id: string;
-            _rev: string;
-        })[]
-    } = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
+    const searchResults: SearchResponse = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
     return searchResults;
 }
 

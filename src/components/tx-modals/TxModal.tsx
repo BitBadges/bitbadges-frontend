@@ -4,9 +4,9 @@ import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitba
 import { useRouter } from 'next/router';
 import React, { ReactNode, useState } from 'react';
 import { getStatus } from '../../bitbadges-api/api';
-import { broadcastTransaction } from '../../bitbadges-api/broadcast';
-import { formatAndCreateGenericTx } from '../../bitbadges-api/transactions';
-import { TransactionStatus } from '../../bitbadges-api/types';
+import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
+import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
+import { TransactionStatus } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
@@ -99,7 +99,7 @@ export function TxModal(
 
 
             //If it is a new collection, redirect to collection page
-            //TODO: This is a hacky way to do this. We should have a better way to handle this. Eventually, we will not even return the collection in an event. Look to use the Msg
+            //HACK: This is a hacky way to do this. We should have a better way to handle this. Eventually, we will not even return the collection in an event. Look to use the Msg
             if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
                 const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
                 if (collectionStr) {

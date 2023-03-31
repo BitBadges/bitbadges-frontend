@@ -1,6 +1,6 @@
 import { InputNumber } from 'antd';
 import { useState } from 'react';
-import { BadgeSupplyAndAmount } from '../../../bitbadges-api/types';
+import { BadgeSupplyAndAmount } from 'bitbadges-sdk';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 
 export function BadgeSupply({

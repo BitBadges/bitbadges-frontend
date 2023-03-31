@@ -1,4 +1,4 @@
-import { DistributionMethod, MetadataAddMethod } from '../../bitbadges-api/types';
+import { DistributionMethod, MetadataAddMethod } from 'bitbadges-sdk';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
@@ -44,7 +44,7 @@ export function AddBadgesTimeline({
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection, true);
     const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible);
     const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
-    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems);
+    const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
 
     return (

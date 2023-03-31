@@ -1,4 +1,5 @@
-import { CHAIN_DETAILS, DEV_MODE } from "../constants";
+import { CHAIN_DETAILS } from "bitbadges-sdk";
+import { DEV_MODE } from "../constants";
 import { getSenderInformation } from "./broadcast";
 
 //TODO: Dynamically fetch gas and fee from chain

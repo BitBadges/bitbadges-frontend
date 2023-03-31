@@ -1,14 +1,14 @@
 import { Collapse, Divider, Empty, Pagination } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
-import { filterBadgeActivityForBadgeId } from '../../bitbadges-api/badges';
-import { ActivityItem, BitBadgeCollection, SupportedChain } from '../../bitbadges-api/types';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { getPageDetails } from '../../utils/pagination';
+import { BitBadgeCollection, ActivityItem, filterBadgeActivityForBadgeId, SupportedChain } from 'bitbadges-sdk';
+import { PRIMARY_TEXT, PRIMARY_BLUE, DEV_MODE } from '../../constants';
+
 
 enum ActivityType {
     Collection,

@@ -2,9 +2,9 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "../../bitbadges-api/badges";
-import { BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
-import { PRIMARY_TEXT } from "../../constants";
+import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
+import { BitBadgeCollection, UserBalance } from "bitbadges-sdk";
+import { PRIMARY_TEXT } from '../../constants';
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
@@ -48,7 +48,7 @@ export function OverviewTab({
             />
         </InformationDisplayCard>
         <br />
-        
+
         {collection.collectionMetadata.description &&
 
             <InformationDisplayCard

@@ -1,6 +1,6 @@
 import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
 import React from 'react';
-import { BitBadgeCollection } from '../../bitbadges-api/types';
+import { BitBadgeCollection } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';
@@ -48,7 +48,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txName="Request Transfer Manager"
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
-            onSuccessfulTx={async () => { await  collections.refreshCollection(collection.collectionId); }}
+            onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); }}
         >
             {children}
         </TxModal>

@@ -14,7 +14,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Blockies from 'react-blockies';
 import { logout } from '../../bitbadges-api/api';
-import { isAddressValid } from '../../bitbadges-api/chains';
+import { isAddressValid } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Tabs } from '../navigation/Tabs';

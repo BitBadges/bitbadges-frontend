@@ -2,14 +2,13 @@ import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transacti
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
-import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from '../../bitbadges-api/types';
+import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from 'bitbadges-sdk';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
-import { RemoveIdsFromIdRange } from '../../bitbadges-api/idRanges';
+import { RemoveIdsFromIdRange } from 'bitbadges-sdk';
 import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../bitbadges-api/claims';
-import { getBadgeSupplysFromMsgNewCollection } from '../../bitbadges-api/balances';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
@@ -58,11 +57,14 @@ export function CreateTxMsgMintBadgeModal(
 
             txState.setNewCollectionMsg({
                 ...txState.newCollectionMsg,
-                transfers: getTransfersFromClaimItems(txState.claimItems, accounts),
+                transfers: getTransfersFromClaimItems(txState.claimItems, accounts.accounts),
                 claims: []
             });
         } else {
-            const balance = getBadgeSupplysFromMsgNewCollection(txState.newCollectionMsg);
+            const balance = {
+                balances: txState.simulatedCollection.maxSupplys,
+                approvals: [],
+            }
             const claimRes = getClaimsFromClaimItems(balance, txState.claimItems);
 
             txState.setNewCollectionMsg({
@@ -112,7 +114,7 @@ export function CreateTxMsgMintBadgeModal(
             keys = Object.keys(prunedMetadata);
             values = Object.values(prunedMetadata);
             let addedUris: BadgeUri[] = [];
-            //TODO: look into removing this
+            //HACK: look into removing this
             for (let i = 0; i < keys.length; i++) {
                 let duplicate = false;
                 for (let j = 0; j < addedUris.length; j++) {

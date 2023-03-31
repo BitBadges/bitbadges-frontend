@@ -1,12 +1,11 @@
 import { Dropdown, Input } from 'antd';
 import { COSMOS } from 'bitbadgesjs-address-converter';
 import { useState } from 'react';
-import { convertToCosmosAddress, getChainForAddress } from '../../bitbadges-api/chains';
-import { BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { SearchDropdown } from '../navigation/SearchDropdown';
 import { AddressDisplay } from './AddressDisplay';
+import { BitBadgesUserInfo, SupportedChain, convertToCosmosAddress, getChainForAddress } from 'bitbadges-sdk';
+import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
 
 export enum EnterMethod {
     Single = 'Single',

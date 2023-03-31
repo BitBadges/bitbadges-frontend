@@ -5,9 +5,9 @@ import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useState } from 'react';
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
-import { Balance, BitBadgeCollection, ClaimItem, DistributionMethod, TransfersExtended, UserBalance } from '../../../bitbadges-api/types';
-import { DEV_MODE, GO_MAX_UINT_64, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
+import { Balance, BitBadgeCollection, DistributionMethod, TransfersExtended, UserBalance, GO_MAX_UINT_64, MINT_ACCOUNT } from 'bitbadges-sdk';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -34,8 +34,8 @@ export function CreateClaims({
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     distributionMethod: DistributionMethod;
-    claimItems: ClaimItem[];
-    setClaimItems: (claimItems: ClaimItem[]) => void;
+    claimItems: ClaimItemWithTrees[];
+    setClaimItems: (claimItems: ClaimItemWithTrees[]) => void;
     balancesToDistribute?: Balance[];
     manualSend: boolean;
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
@@ -53,7 +53,7 @@ export function CreateClaims({
         });
 
     const [transfers, setTransfers] = useState<(TransfersExtended)[]>(claimItems ?
-        getTransfersFromClaimItems(claimItems, accounts) : []
+        getTransfersFromClaimItems(claimItems, accounts.accounts) : []
     );
 
     const setTransfersHandler = (newTransfers: (TransfersExtended)[]) => {
@@ -67,7 +67,7 @@ export function CreateClaims({
         }
     }, []);
 
-    const calculateNewBalances = (newClaimItems: ClaimItem[]) => {
+    const calculateNewBalances = (newClaimItems: ClaimItemWithTrees[]) => {
         const balance = balancesToDistribute ? {
             balances: JSON.parse(JSON.stringify(balancesToDistribute)),
             approvals: [],
@@ -78,7 +78,7 @@ export function CreateClaims({
 
 
         const claimsRes = getClaimsFromClaimItems(balance, newClaimItems);
-        const transfersRes = getTransfersFromClaimItems(newClaimItems, accounts);
+        const transfersRes = getTransfersFromClaimItems(newClaimItems, accounts.accounts);
 
         if (manualSend) {
             setNewCollectionMsg({
@@ -103,7 +103,7 @@ export function CreateClaims({
     }
 
     const addCode = (newTransfers: (TransfersExtended)[]) => {
-        let newClaimItems: ClaimItem[] = claimItems;
+        let newClaimItems: ClaimItemWithTrees[] = claimItems;
 
         for (const transfer of newTransfers) {
             const codes = [];
@@ -127,13 +127,13 @@ export function CreateClaims({
             }
 
             const hashedCodes = codes.map(x => SHA256(x).toString());
-            const codesTree = new MerkleTree(hashedCodes.map(x => SHA256(x).toString()), SHA256);
+            const codesTree = new MerkleTree(hashedCodes.map(x => SHA256(x).toString()), SHA256, { isBitcoinTree: true });
             const codesRoot = codesTree.getRoot().toString('hex');
 
-            const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256);
+            const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
             const addressesRoot = addressesTree.getRoot().toString('hex');
 
-            const newClaimItem: ClaimItem = {
+            const newClaimItem: ClaimItemWithTrees = {
                 addresses: addresses,
                 codes: codes,
                 hashedCodes: hashedCodes,

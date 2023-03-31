@@ -2,10 +2,10 @@ import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from
 import { Avatar, Button, DatePicker, Divider, Input, InputNumber, StepProps, Steps, Tooltip } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from '../../bitbadges-api/badges';
-import { getBalanceAfterTransfers, getBlankBalance } from '../../bitbadges-api/balances';
-import { checkIfIdRangesOverlap } from '../../bitbadges-api/idRanges';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
+import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from 'bitbadges-sdk';
+import { getBalanceAfterTransfers, getBlankBalance } from 'bitbadges-sdk';
+import { checkIfIdRangesOverlap } from 'bitbadges-sdk';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from 'bitbadges-sdk';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressListSelect } from '../address/AddressListSelect';
@@ -293,12 +293,12 @@ export function TransferSelect({
                         {distributionMethod === DistributionMethod.Codes && <div>
                             <SwitchForm
                                 options={[{
-                                    title: 'Unique (Advanced)',
-                                    message: 'Codes will be uniquely generated and one-time use only.',
+                                    title: 'Unique Codes',
+                                    message: 'Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like.',
                                     isSelected: codeType === CodeType.Unique,
                                 },
                                 {
-                                    title: 'Reusable (Recommended)',
+                                    title: 'Password',
                                     message: `You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.`,
                                     isSelected: codeType === CodeType.Reusable,
                                 }]}
@@ -328,23 +328,26 @@ export function TransferSelect({
                             />
                         </div>}
                         <br />
-                        <b>Number of {codeType === CodeType.Unique ? 'Codes' : 'Uses'}</b>
-                        <InputNumber
-                            min={0}
-                            max={100000}
-                            value={numCodes}
-                            onChange={(value) => {
-                                setNumCodes(value);
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                        />
+                        {codeType !== CodeType.None && <div style={{ textAlign: 'center' }}>
+                            <b>Number of {codeType === CodeType.Unique ? 'Codes' : 'Uses'}</b>
+                            <br />
+                            <InputNumber
+                                min={0}
+                                max={100000}
+                                value={numCodes}
+                                onChange={(value) => {
+                                    setNumCodes(value);
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                }}
+                            />
+                        </div>}
                         <div style={{ textAlign: 'center', color: SECONDARY_TEXT }}>
                             <br />
                             <p>
-                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers (as opposed to the blockchain). This eliminates storage requirements for you (the collection creator). For a decentralized solution, you can interact directly with the blockchain.">
+                                <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you may interact directly with the blockchain.">
                                     Hover to learn more.
                                 </Tooltip>
                             </p>
@@ -428,13 +431,13 @@ export function TransferSelect({
                     {numRecipients > 1 && <div>
                         <SwitchForm
                             options={[{
-                                title: 'All',
-                                message: 'All selected badge IDs will be sent to each recipient.',
+                                title: 'Standard',
+                                message: 'An equal amount of all badge IDs will be sent to each recipient (often used for fungible collections).',
                                 isSelected: amountSelectType === AmountSelectType.Custom,
                             },
                             {
-                                title: 'Increment',
-                                message: `After each transaction, the claimable badge IDs will be incremented by X before the next transaction.`,
+                                title: 'Incremented',
+                                message: `After each claim, the badge IDs will be incremented by X before the next claim (often used with non-fungible collections).`,
                                 isSelected: amountSelectType === AmountSelectType.Increment,
                             }]}
                             onSwitchChange={(option, _title) => {
@@ -466,11 +469,11 @@ export function TransferSelect({
                             <div>
                                 <div style={{ marginLeft: 8 }}>
                                     {increment === 0 && 'All recipients will receive all of the previously selected badge IDs.'}
-                                    {increment ? `The first recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start}-${start + increment - 1}`).join(', ')}.` : ''}
+                                    {increment ? `The first recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start}${increment > 1 ? `-${start + increment - 1}` : ''}`).join(', ')}.` : ''}
                                 </div>
                                 <div style={{ marginLeft: 8 }}>
 
-                                    {increment ? `The second recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start + increment}-${start + increment + increment - 1}`).join(', ')}.` : ''}
+                                    {increment ? `The second recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start + increment}${increment > 1 ? `-${start + increment + increment - 1}` : ''}`).join(', ')}.` : ''}
 
                                 </div>
 
@@ -481,7 +484,7 @@ export function TransferSelect({
                                 </div>}
                                 {numRecipients > 2 && <div style={{ marginLeft: 8 }}>
                                     <div style={{ marginLeft: 8 }}>
-                                        {increment ? `The ${numRecipients === 3 ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge IDs ${balances[0]?.badgeIds.map(({ start }) => `${start + (numRecipients - 1) * increment}-${start + (numRecipients - 1) * increment + increment - 1}`).join(', ')}.` : ''}
+                                        {increment ? `The ${numRecipients === 3 ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start + (numRecipients - 1) * increment}${increment > 1 ? `-${start + (numRecipients - 1) * increment + increment - 1}` : ''}`).join(', ')}.` : ''}
                                     </div>
                                 </div>}
                             </div>
@@ -519,34 +522,35 @@ export function TransferSelect({
             }
 
             < br />
+            {amountSelectType !== AmountSelectType.None && <div>
+                <BalancesInput
+                    balances={balances}
+                    setBalances={setBalances}
+                    darkMode
 
-            <BalancesInput
-                balances={balances}
-                setBalances={setBalances}
-                darkMode
-
-            />
-
-            {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
-                {/* <hr /> */}
-                <TransferDisplay
-                    transfers={transfersToAdd}
-                    collection={collection}
-                    fontColor={PRIMARY_TEXT}
-                    from={[sender]}
-                    setTransfers={setTransfers}
-                    hideAddresses
-                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 />
-            </div>}
-            <Divider />
 
-            {
-                postTransferBalance && <div>
-                    <BalanceBeforeAndAfter collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent} />
-                    {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
-                </div>
-            }
+                {(numRecipients <= 1 || amountSelectType === AmountSelectType.Custom) && <div>
+                    {/* <hr /> */}
+                    <TransferDisplay
+                        transfers={transfersToAdd}
+                        collection={collection}
+                        fontColor={PRIMARY_TEXT}
+                        from={[sender]}
+                        setTransfers={setTransfers}
+                        hideAddresses
+                        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                    />
+                </div>}
+                <Divider />
+
+                {
+                    postTransferBalance && <div>
+                        <BalanceBeforeAndAfter hideBalances collection={collection} balance={preTransferBalance ? preTransferBalance : userBalance} newBalance={postTransferBalance} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent} />
+                        {/* {transfers.length >= 1 && <p style={{ textAlign: 'center', color: SECONDARY_TEXT }}>*These balances assum.</p>} */}
+                    </div>
+                }
+            </div>}
         </div >,
         disabled: idRangesOverlap || idRangesLengthEqualsZero || secondStepDisabled || errorMessage ? true : false,
     });

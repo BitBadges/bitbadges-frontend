@@ -1,8 +1,7 @@
 import { Avatar, Spin, Tooltip } from "antd";
 import { useState } from "react";
-import { getBlankBalance, getSupplyByBadgeId } from '../../bitbadges-api/balances';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from "../../bitbadges-api/types";
 import { BadgeModal } from "./BadgeModal";
+import { BitBadgeCollection, BadgeMetadata, UserBalance, getBlankBalance, getSupplyByBadgeId } from "bitbadges-sdk";
 
 export function BadgeAvatar({
     collection,

@@ -2,7 +2,7 @@ import { Divider, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';

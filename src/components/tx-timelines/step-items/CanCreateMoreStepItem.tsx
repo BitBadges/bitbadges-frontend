@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { CanCreateMoreBadgesDigit, GetPermissions, Permissions } from "../../../bitbadges-api/permissions";
+import { CanCreateMoreBadgesDigit, GetPermissions, Permissions } from "bitbadges-sdk";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanCreateMoreStepItem(

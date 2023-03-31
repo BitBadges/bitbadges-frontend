@@ -1,18 +1,19 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SubmitMsgNewCollection } from "../form-items/SubmitMsgNewCollection";
-import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
 
 export function CreateCollectionStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void,
     addMethod: MetadataAddMethod,
-    claimItems: ClaimItem[],
+    claimItems: ClaimItemWithTrees[],
     collectionMetadata: BadgeMetadata,
     individualBadgeMetadata: BadgeMetadataMap,
     distributionMethod: DistributionMethod,
     manualSend: boolean,
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
+    simulatedCollection: BitBadgeCollection
 ) {
     return {
         title: 'Submit Transaction',
@@ -28,6 +29,7 @@ export function CreateCollectionStepItem(
             managerApprovedTransfersWithUnregisteredUsers={managerApprovedTransfersWithUnregisteredUsers}
             disallowedTransfersWithUnregisteredUsers={disallowedTransfersWithUnregisteredUsers}
             manualSend={manualSend}
+            simulatedCollection={simulatedCollection}
         />
     }
 }

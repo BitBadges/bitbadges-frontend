@@ -1,7 +1,7 @@
 import { MessageMsgUpdateDisallowedTransfers, createTxMsgUpdateDisallowedTransfers } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { updateTransferMappingAccountNums } from '../../bitbadges-api/transferMappings';
+import { updateTransferMappingAccountNums } from 'bitbadges-sdk';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';

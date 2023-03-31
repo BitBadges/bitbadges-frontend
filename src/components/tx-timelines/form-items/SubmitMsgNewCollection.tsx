@@ -2,10 +2,9 @@ import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
-import { getBadgeSupplysFromMsgNewCollection } from '../../../bitbadges-api/balances';
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from '../../../bitbadges-api/claims';
-import { updateTransferMappingAccountNums } from '../../../bitbadges-api/transferMappings';
-import { BadgeMetadata, BadgeMetadataMap, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../../bitbadges-api/types';
+import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
+import { updateTransferMappingAccountNums } from 'bitbadges-sdk';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from 'bitbadges-sdk';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 
@@ -20,17 +19,19 @@ export function SubmitMsgNewCollection({
     manualSend,
     managerApprovedTransfersWithUnregisteredUsers,
     disallowedTransfersWithUnregisteredUsers,
+    simulatedCollection
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
     addMethod: MetadataAddMethod;
-    claimItems: ClaimItem[];
+    claimItems: ClaimItemWithTrees[];
     collectionMetadata: BadgeMetadata;
     individualBadgeMetadata: BadgeMetadataMap;
     distributionMethod: DistributionMethod;
     manualSend: boolean;
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
+    simulatedCollection: BitBadgeCollection
 }) {
     const [visible, setVisible] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -73,11 +74,14 @@ export function SubmitMsgNewCollection({
         if (manualSend) {
             setNewCollectionMsg({
                 ...newCollectionMsg,
-                transfers: getTransfersFromClaimItems(claimItems, accounts),
+                transfers: getTransfersFromClaimItems(claimItems, accounts.accounts),
                 claims: []
             });
         } else if (!manualSend) {
-            const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+            const balance = {
+                balances: simulatedCollection.maxSupplys,
+                approvals: [],
+            }
             const claimRes = getClaimsFromClaimItems(balance, claimItems);
             setNewCollectionMsg({
                 ...newCollectionMsg,
@@ -131,10 +135,13 @@ export function SubmitMsgNewCollection({
 
         //If we are manually sending, we need to update the transfers field. If not, we update the claims.
         if (manualSend) {
-            finalCollectionMsg.transfers = getTransfersFromClaimItems(claimItems, accounts);
+            finalCollectionMsg.transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);
             finalCollectionMsg.claims = [];
         } else if (!manualSend) {
-            const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+            const balance = {
+                balances: simulatedCollection.maxSupplys,
+                approvals: [],
+            }
             const claimRes = getClaimsFromClaimItems(balance, claimItems);
 
             finalCollectionMsg.claims = claimRes.claims;

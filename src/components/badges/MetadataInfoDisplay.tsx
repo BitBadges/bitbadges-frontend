@@ -4,19 +4,20 @@ import {
     WarningFilled,
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
-import { BadgeMetadata, BitBadgeCollection } from '../../bitbadges-api/types';
-import { DEV_MODE, MAX_DATE_TIMESTAMP, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { getMetadataMapObjForBadgeId } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection, MAX_DATE_TIMESTAMP } from 'bitbadges-sdk';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 
-export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, badgeId }: {
+export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, badgeId, showCollectionLink }: {
     collection: BitBadgeCollection | undefined;
     metadata: BadgeMetadata | undefined;
     span?: number;
     isCollectionInfo?: boolean
     badgeId?: number
+    showCollectionLink?: boolean
 }) {
     if (!collection || !metadata) return <></>
 
@@ -37,7 +38,12 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
 
     return (
         <InformationDisplayCard
-            title={isCollectionInfo ? "Collection Info" : "Badge Info"}
+            title={isCollectionInfo ? <>Collection Info
+
+                <br />
+                <div style={{ fontSize: 14 }}>
+                    {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collection.collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
+                </div></> : "Badge Info"}
             span={span}
         >
             {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}

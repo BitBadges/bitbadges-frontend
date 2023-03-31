@@ -1,8 +1,8 @@
 import { UserDeleteOutlined } from '@ant-design/icons';
 import { Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
-import { BitBadgesUserInfo } from '../../bitbadges-api/types';
 import { AddressWithBlockies } from './AddressWithBlockies';
+import { BitBadgesUserInfo } from 'bitbadges-sdk';
 
 export function AddressDisplayTitle(
     {
@@ -21,7 +21,7 @@ export function AddressDisplayTitle(
         justifyContent: 'space-between',
         fontSize: 20
     }}>
-        <b>{title ? title : 'Add Recipients'}</b>
+        <b>{title ? title : 'Add Addresses'}</b>
 
         <div>{icon}</div>
     </div>
@@ -47,7 +47,7 @@ export function AddressDisplayList(
     }
 ) {
     return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>
-        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Recipients'} ({users.length})</h3>
+        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Addresses'} ({users.length})</h3>
         {
             users.map((user, index) => {
                 let disallowedMessage = '';

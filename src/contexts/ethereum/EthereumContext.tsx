@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
 import Web3Modal from "web3modal";
 import { getAccountInformation } from '../../bitbadges-api/api';
-import { CHAIN_DETAILS } from '../../constants';
+import { CHAIN_DETAILS } from 'bitbadges-sdk';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
 import { ChainSpecificContextType } from '../ChainContext';

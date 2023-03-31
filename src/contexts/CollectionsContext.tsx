@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
-import { getCollections, updateMetadata } from '../bitbadges-api/api';
-import { BitBadgeCollection, CollectionMap } from '../bitbadges-api/types';
 import { notification } from 'antd';
+import { CollectionMap, BitBadgeCollection } from 'bitbadges-sdk';
+import { getCollections, updateMetadata } from '../bitbadges-api/api';
 
 export type CollectionsContextType = {
     collections: CollectionMap,

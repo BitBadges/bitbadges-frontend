@@ -1,16 +1,16 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { ClaimItem } from "../../../bitbadges-api/types";
-import { getBadgeSupplysFromMsgNewCollection } from "../../../bitbadges-api/balances";
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from "../../../bitbadges-api/claims";
+import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from "bitbadges-sdk";
+import { BitBadgeCollection } from "bitbadges-sdk";
 import { useAccountsContext } from "../../../contexts/AccountsContext";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ManualSendSelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,
     setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
     manualSend: boolean,
     setManualSend: (manualSend: boolean) => void,
-    claimItems: ClaimItem[]
+    claimItems: ClaimItemWithTrees[],
+    simulatedCollection: BitBadgeCollection
 ) {
     const accounts = useAccountsContext();
 
@@ -36,11 +36,14 @@ export function ManualSendSelectStepItem(
                 if (idx === 0) {
                     setNewCollectionMsg({
                         ...newCollectionMsg,
-                        transfers: getTransfersFromClaimItems(claimItems, accounts),
+                        transfers: getTransfersFromClaimItems(claimItems, accounts.accounts),
                         claims: []
                     });
                 } else if (idx === 1) {
-                    const balance = getBadgeSupplysFromMsgNewCollection(newCollectionMsg);
+                    const balance = {
+                        balances: simulatedCollection.maxSupplys,
+                        approvals: [],
+                    }
                     const claimRes = getClaimsFromClaimItems(balance, claimItems);
 
                     setNewCollectionMsg({

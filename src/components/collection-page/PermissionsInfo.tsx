@@ -1,8 +1,8 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Divider, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping } from "../../bitbadges-api/badges";
-import { BitBadgeCollection } from "../../bitbadges-api/types";
-import { PRIMARY_TEXT } from "../../constants";
+import { AllAddressesTransferMapping } from "bitbadges-sdk";
+import { BitBadgeCollection } from "bitbadges-sdk";
+import { PRIMARY_TEXT } from '../../constants';
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 

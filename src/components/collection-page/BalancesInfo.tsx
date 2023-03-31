@@ -3,8 +3,8 @@ import {
     SwapOutlined,
 } from '@ant-design/icons';
 import { useState } from 'react';
-import { getBlankBalance } from '../../bitbadges-api/balances';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { getBlankBalance } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { BalanceDisplay } from '../balances/BalanceDisplay';

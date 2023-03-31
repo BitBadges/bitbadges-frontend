@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { MetadataAddMethod } from "../../../bitbadges-api/types";
+import { MetadataAddMethod } from "bitbadges-sdk";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Tooltip } from "antd";
 
@@ -28,7 +28,7 @@ export function MetadataStorageSelectStepItem(
                                 style={{ marginLeft: 4, marginRight: 4 }}
                             />
                         </Tooltip>
-                        .</div>,
+                    </div>,
                     isSelected: addMethod === MetadataAddMethod.Manual,
                 },
             ]}

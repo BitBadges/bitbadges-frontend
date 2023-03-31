@@ -1,25 +1,25 @@
 import { BroadcastMode, generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
-import { DEV_MODE, NODE_URL } from "../constants"
 import { ChainContextType } from "../contexts/ChainContext"
 import axios from 'axios';
+import { DEV_MODE, NODE_URL } from "../constants";
 
 
 
 // Broadcasts a transaction to the blockchain. Uses NODE_URL from constants.ts.
 export async function broadcastTransaction(txRaw: any) {
-    const postOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
-    }
+    // const postOptions = {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: ,
+    // }
 
     if (DEV_MODE) console.log("Broadcasting Tx...")
     let broadcastPost = await axios.post(
         `${NODE_URL}${generateEndpointBroadcast()}`,
-        postOptions,
-    )
+        generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
+    );
 
-    let res = await broadcastPost.data()
+    let res = broadcastPost.data;
     if (DEV_MODE) console.log("Tx Response:", res)
 
     if (res.tx_response.code !== 0 && res.tx_response.codespace !== 'badges') {

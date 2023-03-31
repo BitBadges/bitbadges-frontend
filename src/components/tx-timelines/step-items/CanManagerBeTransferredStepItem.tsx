@@ -1,6 +1,6 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { CanManagerBeTransferredDigit, GetPermissions, Permissions } from "../../../bitbadges-api/permissions";
+import { CanManagerBeTransferredDigit, GetPermissions, Permissions } from "bitbadges-sdk";
 
 export function CanManagerBeTransferredStepItem(
     newCollectionMsg: MessageMsgNewCollection,

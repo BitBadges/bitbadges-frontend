@@ -1,16 +1,16 @@
-import { DistributionMethod } from "../../../bitbadges-api/types";
+import { DistributionMethod } from "bitbadges-sdk";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function DistributionMethodStepItem(
     distributionMethod: DistributionMethod,
     setDistributionMethod: (newDistributionMethod: DistributionMethod) => void,
-    fungible: boolean,
-    nonFungible: boolean,
+    fungible?: boolean,
+    nonFungible?: boolean,
     hideUnminted: boolean = false,
     hideFirstComeFirstServe: boolean = false,
 ) {
     const options = [];
-    if (!hideFirstComeFirstServe && (fungible || nonFungible)) {
+    if (!hideFirstComeFirstServe) {
         options.push({
             title: 'Open to Anyone (First Come, First Serve)',
             message: `First come, first serve. Limit one claim per address. ${fungible ? 'Any address can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
@@ -20,7 +20,7 @@ export function DistributionMethodStepItem(
     options.push(
         {
             title: 'Codes',
-            message: 'Generate secret codes or passwords that can be redeemed for badges.',
+            message: 'Generate secret codes or passwords that can be entered by users to claim badges.',
             isSelected: distributionMethod == DistributionMethod.Codes,
         },
         {

@@ -4,8 +4,8 @@ import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
-import { BitBadgeCollection, ClaimItem } from "../../bitbadges-api/types";
-import { MAX_DATE_TIMESTAMP, MINT_ACCOUNT, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from "../../constants";
+import { BitBadgeCollection, ClaimItem, MAX_DATE_TIMESTAMP, MINT_ACCOUNT } from "bitbadges-sdk";
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from "../../constants";
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { useChainContext } from "../../contexts/ChainContext";
 import { downloadJson } from "../../utils/downloadJson";
@@ -155,7 +155,8 @@ export function ClaimDisplay({
     }
 
 
-
+    const printStr = claim.hasPassword ? 'password' : 'code';
+    const urlSuffix = claim.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
 
     return <>
         <Card
@@ -176,7 +177,7 @@ export function ClaimDisplay({
                     <div style={{
                         width: '100%'
                     }}>
-                        <Button className='screen-button' onClick={() => setShowClaimDisplay(!showClaimDisplay)} style={{ backgroundColor: PRIMARY_BLUE }} >{showClaimDisplay ? 'Show Codes/claimPasswords' : 'Show Claim Details'}</Button>
+                        <Button className='screen-button' onClick={() => setShowClaimDisplay(!showClaimDisplay)} style={{ backgroundColor: PRIMARY_BLUE }} >{showClaimDisplay ? 'Show Codes/Passwords' : 'Show Claim Details'}</Button>
                         <br />
                         <hr />
                         <br />
@@ -318,141 +319,106 @@ export function ClaimDisplay({
                     </div>
                     :
                     // Show authenticated manager information (passwords, codes, distribution methods, etc...)
-                    //TODO: abstract this into one for codes and passwords
                     <div>
                         <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                            <h3 style={{ color: PRIMARY_TEXT }}>{claimPassword ? 'Password' : 'Codes'}</h3>
+                            <h3 style={{ color: PRIMARY_TEXT }}>{claim.hasPassword ? 'Password' : 'Codes'}</h3>
                         </Row>
-                        <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                            {claimPassword && <div>
-                                <h3 style={{ color: PRIMARY_TEXT }}>Password: {claimPassword}</h3>
+                        <Row style={{ display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
+                            <div>
+                                {!claim.hasPassword && codes && codes.length > 0 && <>
+                                    <div>
+                                        <button
+                                            style={{
+                                                backgroundColor: 'inherit',
+                                                color: PRIMARY_TEXT,
+                                            }}
+                                            onClick={() => {
+                                                const today = new Date();
+
+                                                const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                                                const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                                                downloadJson({
+                                                    prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collection.collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
+                                                    codes
+                                                }, `codes-${collection.collectionMetadata.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
+                                            }}
+                                            className="opacity link-button"
+                                        >
+                                            Click here to download a file with all these codes. Keep this file safe and secure!
+                                        </button>
+                                        <Divider />
+                                    </div>
+                                    <Pagination
+                                        style={{ color: PRIMARY_TEXT }}
+                                        current={codePage}
+                                        total={codes.length}
+                                        pageSize={1}
+                                        onChange={(page) => {
+                                            setCodePage(page);
+                                        }}
+                                        size='small'
+                                        showSizeChanger={false}
+                                    />
+                                    <br />
+                                </>
+                                }
+                                {claimPassword && <div>
+                                    <h3 style={{ color: PRIMARY_TEXT }}>Password: {claimPassword}</h3>
+                                </div>}
+                                <br />
+                                <br />
                                 <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                    There are three ways you can distribute this password: manually, by URL, or by QR code.
+                                    There are three ways you can distribute this {printStr}: manually, by URL, or by QR code.
                                 </Typography.Text>
                                 <Divider />
+
+                                {!claim.hasPassword && codes && <Typography.Text strong style={{ color: SECONDARY_TEXT }}>
+                                    <InfoCircleOutlined /> Note that this code can only be used once.
+                                    <br />
+                                    Current Status: {
+                                        collection.usedClaims[`${claimId}`]?.codes && collection.usedClaims[`${claimId}`].codes[SHA256(codes[codePage - 1]).toString()] > 0 ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
+                                    }
+                                </Typography.Text>}
 
                                 <Divider />
                                 <h3 style={{ color: PRIMARY_TEXT }}>Manual</h3>
                                 <Typography.Text strong copyable style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                    {claimPassword}
+                                    {claim.hasPassword ? claimPassword : codes ? codes[codePage - 1] : ''}
                                 </Typography.Text>
                                 <br />
                                 <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                    The password can be manually distributed, and the users will enter it on the claim page.
+                                    The {printStr} can be manually distributed, and the users will enter it on the claim page.
                                 </Typography.Text>
                                 <Divider />
                                 <h3 style={{ color: PRIMARY_TEXT }}>URL</h3>
                                 <Typography.Link strong copyable style={{ fontSize: 14 }}>
-                                    {`${WEBSITE_HOSTNAME}/collections/${collection.collectionId}?claimId=${claimId}&password=${claimPassword}`}
+                                    {`${WEBSITE_HOSTNAME}/collections/${collection.collectionId}?claimId=${claimId}&${urlSuffix}`}
                                 </Typography.Link>
                                 <br />
 
                                 <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                    When a user navigates to the above URL, the password will be automatically inputted.
+                                    When a user navigates to the above URL, the {printStr} will be automatically inputted.
                                 </Typography.Text>
                                 <Divider />
                                 <h3 style={{ color: PRIMARY_TEXT }}>QR Code</h3>
-                                <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collection.collectionId}?claimId=${claimId}&code=${claimPassword}`} />
+                                <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collection.collectionId}?claimId=${claimId}&${urlSuffix}`} />
                                 <br />
 
                                 <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                    When a user scans this QR code, it will take them to the claim page with the password automatically inputted.
+                                    When a user scans this QR code, it will take them to the claim page with the {printStr} automatically inputted.
                                 </Typography.Text>
-                            </div>}
-
-
-                            {!claimPassword && codes && codes.length > 0 && <>
-                                <div>
-                                    <button
-                                        style={{
-                                            backgroundColor: 'inherit',
-                                            color: PRIMARY_TEXT,
-                                        }}
-                                        onClick={() => {
-                                            const today = new Date();
-
-                                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                                            downloadJson({
-                                                prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collection.collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
-                                                codes
-                                            }, `codes-${collection.collectionMetadata.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
-                                        }}
-                                        className="opacity link-button"
-                                    >
-                                        Click here to download a file with all these codes. Keep this file safe and secure!
-                                    </button>
-                                    <Divider />
-                                </div>
-                                <Pagination
-                                    style={{ color: PRIMARY_TEXT }}
-                                    current={codePage}
-                                    total={codes.length}
-                                    pageSize={1}
-                                    onChange={(page) => {
-                                        setCodePage(page);
-                                    }}
-                                    size='small'
-                                    showSizeChanger={false}
-                                />
-                                <br />
-                                <br />
-                                <div>
-                                    <h3 style={{ color: PRIMARY_TEXT }}>Code #{codePage}</h3>
-                                    <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                        There are three ways you can distribute this code: manually, by URL, or by QR code.
-                                    </Typography.Text>
-                                    <Divider />
-
-                                    <Typography.Text strong style={{ color: SECONDARY_TEXT }}>
-                                        <InfoCircleOutlined /> Note that this code can only be used once.
-                                        <br />
-                                        Current Status: {
-                                            collection.usedClaims[`${claimId}`]?.codes && collection.usedClaims[`${claimId}`].codes[SHA256(codes[codePage - 1]).toString()] > 0 ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
-                                        }
-                                    </Typography.Text>
-
-                                    <Divider />
-                                    <h3 style={{ color: PRIMARY_TEXT }}>Manual</h3>
-                                    <Typography.Text strong copyable style={{ color: PRIMARY_TEXT, fontSize: 16 }}>
-                                        {codes[codePage - 1]}
-                                    </Typography.Text>
-                                    <br />
-                                    <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                        The code can be manually distributed, and the users will enter it on the claim page.
-                                    </Typography.Text>
-                                    <Divider />
-                                    <h3 style={{ color: PRIMARY_TEXT }}>URL</h3>
-                                    <Typography.Link strong copyable style={{ fontSize: 14 }}>
-                                        {WEBSITE_HOSTNAME}/collections/{collection.collectionId}?code={codes[codePage - 1]}
-                                    </Typography.Link>
-                                    <br />
-
-                                    <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                        When a user navigates to the above URL, the code will be automatically inputted.
-                                    </Typography.Text>
-                                    <Divider />
-                                    <h3 style={{ color: PRIMARY_TEXT }}>QR Code</h3>
-                                    <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collection.collectionId}?code=${codes[codePage - 1]}`} />
-                                    <br />
-
-                                    <Typography.Text style={{ color: SECONDARY_TEXT }}>
-                                        When a user scans this QR code, it will take them to the claim page with the code automatically inputted.
-                                    </Typography.Text>
-                                </div>
-
-                            </>}
-
-                            {!claimPassword && (!codes || codes.length === 0) &&
-                                <Empty
-                                    description={<span style={{ color: PRIMARY_TEXT }}>There are no codes or passwords for this claim.</span>}
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                    style={{ color: PRIMARY_TEXT }}
-                                />}
+                            </div>
                         </Row>
-
+                        {!claim.hasPassword && (!codes || codes.length === 0) &&
+                            <Empty
+                                description={<span style={{ color: PRIMARY_TEXT }}>There are no {printStr}s for this claim.</span>}
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                style={{ color: PRIMARY_TEXT }}
+                            />}
                     </div>}
+
+
             </div>
         </Card >
     </>

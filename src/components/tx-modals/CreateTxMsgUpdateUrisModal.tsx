@@ -2,7 +2,7 @@ import { MessageMsgUpdateUris, createTxMsgUpdateUris } from 'bitbadgesjs-transac
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { addToIpfs } from '../../bitbadges-api/api';
-import { MetadataAddMethod } from '../../bitbadges-api/types';
+import { MetadataAddMethod } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';

@@ -1,7 +1,7 @@
 import { MessageMsgClaimBadge, createTxMsgClaimBadge } from 'bitbadgesjs-transactions';
 import SHA256 from 'crypto-js/sha256';
 import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem } from '../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';
@@ -28,8 +28,8 @@ export function CreateTxMsgClaimBadgeModal(
     const collections = useCollectionsContext();
     const claimObject = collection?.claims[claimId];
 
-    const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256) : null);
-    const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256) : null);
+    const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256, { isBitcoinTree: true }) : null);
+    const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true }) : null);
     const [codeToSubmit, setCodeToSubmit] = useState<string>("");
 
     useEffect(() => {
@@ -47,10 +47,11 @@ export function CreateTxMsgClaimBadgeModal(
 
     useEffect(() => {
         if (claimItem) {
-            const tree = new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256);
+            console.log("Updating code tree");
+            const tree = new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
             setCodeTree(tree);
 
-            const tree2 = new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256);
+            const tree2 = new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
             setAddressesTree(tree2);
         }
     }, [claimItem]);
@@ -64,7 +65,9 @@ export function CreateTxMsgClaimBadgeModal(
     const leafCode = SHA256(codeString).toString();
     const codeProofObj = codeTree?.getProof(leafCode);
 
+
     const isValidCodeProof = codeProofObj && codeTree && codeProofObj.length === codeTree.getLayerCount() - 1;
+
 
     const txCosmosMsg: MessageMsgClaimBadge = {
         creator: chain.cosmosAddress,

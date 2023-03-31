@@ -2,7 +2,7 @@ import { DeleteOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined } from 
 import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
-import { BadgeSupplyAndAmount, BitBadgeCollection } from "../../../bitbadges-api/types";
+import { BadgeSupplyAndAmount, BitBadgeCollection } from "bitbadges-sdk";
 import { DEV_MODE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { BadgeSupply } from "../form-items/BadgeSupplySelect";

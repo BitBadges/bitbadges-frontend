@@ -1,5 +1,5 @@
 import { Empty } from "antd";
-import { BitBadgeCollection, IdRange, UserBalance } from "../../bitbadges-api/types";
+import { BitBadgeCollection, IdRange, UserBalance } from "bitbadges-sdk";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
@@ -27,6 +27,7 @@ export function BalanceDisplay({
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
 }) {
     const allBadgeIdsArr: IdRange[][] = [];
+    const incrementedBalance = balance ? JSON.parse(JSON.stringify(balance)) : balance;
 
     return <>
         <div style={{
@@ -59,6 +60,9 @@ export function BalanceDisplay({
                                 }
                             }
                         }
+                        incrementedBalance.balances[idx].badgeIds = allBadgeIds;
+
+
 
                         return <>
                             <span style={{ color: amount < 0 ? 'red' : undefined }}>
@@ -105,8 +109,8 @@ export function BalanceDisplay({
 
                     <BadgeAvatarDisplay
                         collection={collection}
-                        userBalance={balance}
-                        badgeIds={allBadgeIdsArr.flat()}
+                        userBalance={incrementedBalance}
+                        badgeIds={allBadgeIdsArr.flat().sort((a, b) => a.start - b.start)}
                         showIds
                         showBalance
                         size={size ? size : 50}

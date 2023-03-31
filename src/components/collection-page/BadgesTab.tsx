@@ -1,11 +1,11 @@
 import { Pagination } from 'antd';
 import { useEffect, useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { BadgeCard } from '../badges/BadgeCard';
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getIdRangesForAllBadgeIdsInCollection, updateMetadataForBadgeIdsFromIndexerIfAbsent } from '../../bitbadges-api/badges';
+import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getIdRangesForAllBadgeIdsInCollection, updateMetadataForBadgeIdsFromIndexerIfAbsent } from 'bitbadges-sdk';
 import { getPageDetails } from '../../utils/pagination';
 
 export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
@@ -34,8 +34,8 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
         //Calculate badge IDs to display and update metadata
         const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getIdRangesForAllBadgeIdsInCollection(collection), pageStartId - 1, PAGE_SIZE);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
-        updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection, collections);
-
+        const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
+        collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pageStartId, pageEndId, collection, currPage]);
 

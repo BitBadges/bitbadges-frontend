@@ -1,6 +1,6 @@
 import { Button, Divider, Empty, Pagination } from 'antd';
 import { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem } from '../../bitbadges-api/types';
+import { BitBadgeCollection, ClaimItem } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
@@ -57,8 +57,6 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
         }
         image={Empty.PRESENTED_IMAGE_SIMPLE}
     />
-
-
 
 
 

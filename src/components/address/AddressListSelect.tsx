@@ -3,11 +3,10 @@ import { Button, Divider, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../contexts/AccountsContext";
-import { BitBadgesUserInfo, SupportedChain } from "../../bitbadges-api/types";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
-import { getChainForAddress } from "../../bitbadges-api/chains";
+import { BitBadgesUserInfo, SupportedChain, getChainForAddress } from "bitbadges-sdk";
+import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
 
 export function AddressListSelect({
     users,
@@ -111,7 +110,7 @@ export function AddressListSelect({
         </div>}
 
         <AddressDisplayTitle
-            title={"Add Recipients"}
+            title={"Add Addresses"}
             icon={<Tooltip title={<>
                 {enterMethod === EnterMethod.Single && <>Batch Add</>}
                 {enterMethod === EnterMethod.Batch && <>Manual Add</>}

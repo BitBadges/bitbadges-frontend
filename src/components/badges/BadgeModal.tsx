@@ -2,8 +2,8 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Col, Drawer, Layout, Row, Typography } from 'antd';
 import { useState } from 'react';
 import Markdown from 'react-markdown';
-import { getSupplyByBadgeId } from '../../bitbadges-api/balances';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from '../../bitbadges-api/types';
+import { getSupplyByBadgeId } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { ActivityTab } from '../activity/ActivityDisplay';
@@ -94,6 +94,7 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                             <CollectionHeader
                                 metadata={metadata}
                             />
+
                             {chain.connected && !hideBalances && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
                             <br />
 
@@ -112,11 +113,36 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                             collection={collection}
                                             metadata={metadata}
                                             badgeId={badgeId}
+
                                         />
                                     </Text>
                                 </Col>
                             </Row>
                             <br />
+                            <Row
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+
+                                }}
+                            >
+
+                                <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
+                                    <Text style={{ color: SECONDARY_TEXT }}>
+                                        <MetadataDisplay
+                                            collection={collection}
+                                            metadata={collection.collectionMetadata}
+                                            isCollectionInfo
+                                            showCollectionLink
+                                        />
+                                    </Text>
+                                </Col>
+                            </Row>
+                            <br />
+                            <OwnersTab
+                                collection={collection}
+                                badgeId={badgeId}
+                            />
                             {metadata.description &&
                                 <Row
                                     style={{

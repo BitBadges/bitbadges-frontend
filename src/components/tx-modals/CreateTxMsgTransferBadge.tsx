@@ -4,8 +4,9 @@ import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-t
 import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadges-sdk';
 import { PRIMARY_TEXT } from '../../constants';
+
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';

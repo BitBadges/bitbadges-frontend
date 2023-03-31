@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
 import { TransferMappingSelectType, TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 
 export function TransferabilitySelectStepItem(
@@ -18,7 +18,7 @@ export function TransferabilitySelectStepItem(
 
     return {
         title: `Select Transferability`,
-        description: `Transferability only applies to the transferring of distributed badges, not the minting or claiming process.`,
+        description: `Note that transferability only applies to the transferring of distributed badges, not the minting or claiming process.`,
         node: <TransfersMappingSelect
             transfersMapping={disallowedTransfersWithUnregisteredUsers}
             setTransfersMapping={(disallowedTransfers) => {

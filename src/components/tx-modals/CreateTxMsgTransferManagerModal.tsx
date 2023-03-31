@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from '../../bitbadges-api/types';
+import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddressSelect } from '../address/AddressSelect';

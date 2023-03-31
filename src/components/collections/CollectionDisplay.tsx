@@ -1,7 +1,7 @@
 import { Avatar, Typography } from "antd";
 import { useRouter } from "next/router";
-import { BitBadgeCollection, BitBadgesUserInfo } from "../../bitbadges-api/types";
-import { PRIMARY_TEXT } from "../../constants";
+import { BitBadgeCollection, BitBadgesUserInfo } from "bitbadges-sdk";
+import { PRIMARY_TEXT } from '../../constants';
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 

@@ -1,11 +1,7 @@
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItemWithTrees, DefaultPlaceholderMetadata, DistributionMethod, ErrorMetadata, GO_MAX_UINT_64, GetPermissionNumberValue, GetPermissions, MetadataAddMethod, Permissions, TransferMappingWithUnregisteredUsers, UpdatePermissions, createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId, updateMetadataMap } from 'bitbadges-sdk';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { fetchMetadata } from '../../bitbadges-api/api';
-import { createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId } from '../../bitbadges-api/badges';
-import { updateMetadataMap } from '../../bitbadges-api/metadata';
-import { GetPermissionNumberValue, GetPermissions, Permissions, UpdatePermissions } from '../../bitbadges-api/permissions';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItem, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from '../../bitbadges-api/types';
-import { DefaultPlaceholderMetadata, ErrorMetadata, GO_MAX_UINT_64 } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
@@ -49,8 +45,8 @@ export interface TxTimelineProps {
     setAddMethod: (method: MetadataAddMethod) => void
     distributionMethod: DistributionMethod
     setDistributionMethod: (method: DistributionMethod) => void
-    claimItems: ClaimItem[]
-    setClaimItems: (items: ClaimItem[]) => void
+    claimItems: ClaimItemWithTrees[]
+    setClaimItems: (items: ClaimItemWithTrees[]) => void
     manualSend: boolean
     setManualSend: (manualSend: boolean) => void
     handledPermissions: Permissions
@@ -162,7 +158,7 @@ export function TxTimeline({
     const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
     //The claim items that will be used to distribute the badges (used for claim vis codes/whitelist)
-    const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
+    const [claimItems, setClaimItems] = useState<ClaimItemWithTrees[]>([]);
 
     //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
     const [handledPermissions, setHandledPermissions] = useState<Permissions>({

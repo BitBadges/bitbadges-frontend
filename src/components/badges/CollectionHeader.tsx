@@ -1,5 +1,5 @@
 import { Avatar, Col, Divider, Row, Spin, Typography } from 'antd';
-import { BadgeMetadata } from '../../bitbadges-api/types';
+import { BadgeMetadata } from 'bitbadges-sdk';
 import { PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;

@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useState } from 'react';
 import { getAccounts } from '../bitbadges-api/api';
-import { AccountMap, BitBadgesUserInfo, CosmosAccountInformation } from '../bitbadges-api/types';
-import { convertToBitBadgesUserInfo } from '../bitbadges-api/users';
-import { MINT_ACCOUNT } from '../constants';
 import { notification } from 'antd';
+import { AccountMap, BitBadgesUserInfo, AccountResponse, MINT_ACCOUNT, convertToBitBadgesUserInfo } from 'bitbadges-sdk';
 
 export type AccountsContextType = {
     accounts: AccountMap,
@@ -19,7 +17,7 @@ export type AccountsContextType = {
     },
     fetchAccounts: (accountsToFetch: string[], forceful?: boolean) => Promise<BitBadgesUserInfo[]>,
     fetchAccountsByNumber: (accountNumsToFetch: number[], forceful?: boolean) => Promise<BitBadgesUserInfo[]>,
-    setAccounts: (accounts: CosmosAccountInformation[]) => void,
+    setAccounts: (accounts: AccountResponse[]) => void,
 }
 
 const AccountsContext = createContext<AccountsContextType>({
@@ -46,8 +44,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     });
     const [cosmosAddressesByAccountNames, setCosmosAddressesByAccountNames] = useState<{ [name: string]: string }>({});
 
-    const setAccounts = async (fetchedAccounts: CosmosAccountInformation[]) => {
-        console.log("SETTING ACCOUNTS COSMSOS", fetchedAccounts);
+    const setAccounts = async (fetchedAccounts: AccountResponse[]) => {
         let newAccountsMap = { ...accounts };
         let newCosmosAddresses = { ...cosmosAddresses };
         let newCosmosAddressesByAccountNumbers = { ...cosmosAddressesByAccountNumbers };
@@ -103,9 +100,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
                 }
             }
 
-            console.log(accountsToFetchFromDB);
-
-            let fetchedAccounts: CosmosAccountInformation[] = [];
+            let fetchedAccounts: AccountResponse[] = [];
             if (accountsToFetchFromDB.length > 0) {
                 fetchedAccounts = await getAccounts([], accountsToFetchFromDB);
                 setAccounts(fetchedAccounts);
@@ -150,7 +145,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
             console.log(accountNums);
 
-            let fetchedAccounts: CosmosAccountInformation[] = [];
+            let fetchedAccounts: AccountResponse[] = [];
             if (accountsToFetch.length > 0) {
                 fetchedAccounts = await getAccounts(accountsToFetch, []);
                 console.log(fetchedAccounts);

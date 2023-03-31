@@ -1,4 +1,4 @@
-import { MetadataAddMethod } from '../../bitbadges-api/types';
+import { MetadataAddMethod } from 'bitbadges-sdk';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';

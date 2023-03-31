@@ -1,8 +1,8 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Divider } from "antd";
 import { useEffect, useState } from "react";
-import { getTransferMappingForSelectOptions, isTransferMappingFull } from "../../../bitbadges-api/transferMappings";
-import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "../../../bitbadges-api/types";
+import { getTransferMappingForSelectOptions, isTransferMappingFull } from "bitbadges-sdk";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
 import { DEV_MODE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { AddressListSelect } from "../../address/AddressListSelect";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
@@ -22,7 +22,7 @@ export enum TransferMappingSelectType {
 //As a result, we cannot automatically populate this component by default
 //Also, this is not dynamic and will not support more fine-grained control in the future
 
-//It has currently forced me to save state all the way in TxTimeline in order to populate defaults (i.e. when users click forward and back on steps, we need to be able to load their previous inputs)
+//HACK: It has currently forced me to save state all the way in TxTimeline in order to populate defaults (i.e. when users click forward and back on steps, we need to be able to load their previous inputs)
 
 export function TransfersMappingSelect({
     transfersMapping,
@@ -92,7 +92,6 @@ export function TransfersMappingSelect({
 
         const transferMappings: TransferMappingWithUnregisteredUsers[] = [];
 
-        //TODO: look into if there is an optimal way to condense this programatically
         if (fromTransferMapping) transferMappings.push(fromTransferMapping);
 
         if (toTransferMapping) {

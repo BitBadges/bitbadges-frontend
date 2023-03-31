@@ -1,6 +1,6 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { getNonTransferableDisallowedTransfers } from "../../../bitbadges-api/badges";
+import { getNonTransferableDisallowedTransfers } from "bitbadges-sdk";
 import { useState } from "react";
 
 export function TransferableSelectStepItem(

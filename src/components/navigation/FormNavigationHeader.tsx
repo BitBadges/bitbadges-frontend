@@ -3,6 +3,7 @@ import { Typography } from 'antd';
 import React from 'react';
 import { PRIMARY_TEXT } from '../../constants';
 
+
 export function FormNavigationHeader({
     decrementStep,
     incrementStep,
