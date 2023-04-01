@@ -1,9 +1,9 @@
 import { Avatar, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import Blockies from 'react-blockies';
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { useChainContext } from '../../../contexts/ChainContext';
 import { AddressDisplay } from '../../address/AddressDisplay';
+import { BlockiesAvatar } from '../../address/Blockies';
 
 
 export function ConfirmManager() {
@@ -26,9 +26,10 @@ export function ConfirmManager() {
                 <Avatar
                     size={150}
                     src={
-                        <Blockies
-                            seed={address.toLowerCase()}
-                            size={40}
+                        <BlockiesAvatar
+                            address={address}
+                            avatar={chain.avatar}
+                            blockiesScale={40}
                         />
                     }
                 />

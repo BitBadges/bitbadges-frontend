@@ -1,13 +1,14 @@
 import { Avatar, Tooltip } from "antd";
-import Blockies from 'react-blockies';
 import { getChainForAddress } from "bitbadges-sdk";
 import { Address } from "./Address";
 import { getChainLogo } from "../../constants";
+import { BlockiesAvatar } from "./Blockies";
 
 export function AddressWithBlockies({
     address,
     fontSize,
     addressName,
+    addressAvatar,
     fontColor,
     blockiesScale,
     hideTooltip,
@@ -15,6 +16,7 @@ export function AddressWithBlockies({
 }: {
     address: string;
     addressName?: string,
+    addressAvatar?: string,
     fontSize?: number,
     fontColor?: string,
     blockiesScale?: number,
@@ -38,7 +40,7 @@ export function AddressWithBlockies({
                 style={{ marginRight: 8 }}
             />
         </Tooltip>
-        <Blockies scale={blockiesScale} seed={address ? address.toLowerCase() : ''} />
+        <BlockiesAvatar blockiesScale={blockiesScale} address={address} avatar={addressAvatar} />
         <Address
             fontSize={fontSize}
             address={address}

@@ -35,7 +35,9 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
         const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getIdRangesForAllBadgeIdsInCollection(collection), pageStartId - 1, PAGE_SIZE);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
         const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
-        collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
+        if (idxsToUpdate.length > 0) {
+            collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pageStartId, pageEndId, collection, currPage]);
 

@@ -120,7 +120,7 @@ export function ClaimDisplay({
     } else if (collection.usedClaims[`${claimId}`]?.codes && collection.usedClaims[`${claimId}`].codes[SHA256(currCode).toString()] > 0) {
         cantClaim = true;
         errorMessage = 'This code has already been used!';
-    } else if (claim.failedToFetch || (claim.codeRoot && claim.codes.length === 0) || (claim.addresses.length === 0 && claim.whitelistRoot)) {
+    } else if (claim.failedToFetch || (claim.codeRoot && claim.hashedCodes.length === 0) || (claim.addresses.length === 0 && claim.whitelistRoot)) {
         cantClaim = true;
         errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
     }

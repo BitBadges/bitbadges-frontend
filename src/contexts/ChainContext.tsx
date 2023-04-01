@@ -32,6 +32,12 @@ export type ChainSpecificContextType = {
     cosmosAddress: string,
     setCosmosAddress: Dispatch<SetStateAction<string>>,
 
+    name: string,
+    setName: Dispatch<SetStateAction<string>>,
+
+    avatar: string,
+    setAvatar: Dispatch<SetStateAction<string>>,
+
     sequence: number,
     incrementSequence: () => void,
     setSequence: Dispatch<SetStateAction<number>>,
@@ -86,6 +92,10 @@ const ChainContext = createContext<ChainContextType>({
     setAccountNumber: () => { },
     isRegistered: false,
     setIsRegistered: () => { },
+    name: '',
+    setName: () => { },
+    avatar: '',
+    setAvatar: () => { },
 });
 
 type Props = {

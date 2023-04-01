@@ -127,10 +127,10 @@ export function CreateClaims({
             }
 
             const hashedCodes = codes.map(x => SHA256(x).toString());
-            const codesTree = new MerkleTree(hashedCodes.map(x => SHA256(x).toString()), SHA256, { isBitcoinTree: true });
+            const codesTree = new MerkleTree(hashedCodes, SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
             const codesRoot = codesTree.getRoot().toString('hex');
 
-            const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
+            const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
             const addressesRoot = addressesTree.getRoot().toString('hex');
 
             const newClaimItem: ClaimItemWithTrees = {

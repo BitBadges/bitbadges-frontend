@@ -48,6 +48,10 @@ export const EthereumContext = createContext<EthereumContextType>({
     setAccountNumber: () => { },
     isRegistered: false,
     setIsRegistered: () => { },
+    name: '',
+    setName: () => { },
+    avatar: '',
+    setAvatar: () => { },
 })
 
 
@@ -66,6 +70,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [publicKey, setPublicKey] = useState<string>('');
     const [accountNumber, setAccountNumber] = useState<number>(-1);
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
+    const [name, setName] = useState<string>('');
+    const [avatar, setAvatar] = useState<string>('');
 
     const selectedChainInfo = {};
     const displayedResources: PresetResource[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
@@ -103,6 +109,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setPublicKey(accountInformation.pub_key);
         setAccountNumber(Number(accountInformation.account_number));
         setIsRegistered(Number(accountInformation.account_number) >= 0);
+        setName(accountInformation.name || '');
+        setAvatar(accountInformation.avatar || '');
 
         setSigner(signer);
         setConnected(true);
@@ -243,7 +251,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setAccountNumber,
         isRegistered,
         setIsRegistered,
-        incrementSequence
+        incrementSequence,
+        name,
+        setName,
+        avatar,
+        setAvatar
     };
 
 

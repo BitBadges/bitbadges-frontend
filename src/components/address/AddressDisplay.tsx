@@ -122,6 +122,7 @@ export function AddressDisplay(
             <AddressWithBlockies
                 address={userInfo.address}
                 addressName={userInfo.name}
+                addressAvatar={userInfo.avatar}
                 fontSize={fontSize}
                 fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}

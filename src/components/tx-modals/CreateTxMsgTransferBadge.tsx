@@ -15,6 +15,7 @@ import { AddressSelect } from '../address/AddressSelect';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferSelect';
 import { TxModal } from './TxModal';
+import { BlockiesAvatar } from '../address/Blockies';
 
 export function CreateTxMsgTransferBadgeModal(
     {
@@ -120,9 +121,11 @@ export function CreateTxMsgTransferBadgeModal(
                     <Avatar
                         size={150}
                         src={
-                            <Blockies
-                                seed={sender.address.toLowerCase()}
-                                size={40}
+
+                            <BlockiesAvatar
+                                avatar={sender.avatar}
+                                address={sender.address.toLowerCase()}
+                                blockiesScale={40}
                             />
                         }
                     />

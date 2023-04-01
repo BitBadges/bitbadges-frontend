@@ -32,6 +32,7 @@ export function SearchDropdown({
             setAccountsResults([]);
             setCollectionsResults([]);
             const results = await getSearchResults(searchValue);
+            console.log(results);
             setAccounts(results.accounts);
 
             const accountsToSet = [];

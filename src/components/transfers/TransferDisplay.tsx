@@ -113,6 +113,7 @@ export function TransferDisplay({
                                             <AddressWithBlockies
                                                 fontColor={fontColor}
                                                 address={user.address}
+                                                addressAvatar={user.avatar}
                                                 addressName={user.name}
                                                 fontSize={14}
                                                 blockiesScale={3}
@@ -132,6 +133,7 @@ export function TransferDisplay({
                                             {user && <AddressWithBlockies
                                                 fontColor={fontColor}
                                                 address={user.address}
+                                                addressAvatar={user.avatar}
                                                 addressName={user.name}
                                                 fontSize={14}
                                                 blockiesScale={3}

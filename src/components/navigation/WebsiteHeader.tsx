@@ -19,6 +19,7 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Tabs } from '../navigation/Tabs';
 import { SearchDropdown } from './SearchDropdown';
+import { BlockiesAvatar } from '../address/Blockies';
 
 const { Header } = Layout;
 
@@ -29,6 +30,7 @@ export function WalletHeader() {
     const [searchValue, setSearchValue] = useState<string>('');
 
     const address = chain.address;
+    const avatar = chain.avatar;
 
     const onSearch = async (value: string) => {
         if (!value) return;
@@ -96,8 +98,9 @@ export function WalletHeader() {
                     <Avatar src={<UserOutlined />} />
                 ) : (
                     <Avatar src={
-                        <Blockies
-                            seed={address.toLowerCase()}
+                        <BlockiesAvatar
+                            avatar={avatar}
+                            address={address.toLowerCase()}
                         />
                     }
                     />

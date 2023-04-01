@@ -10,6 +10,7 @@ import Blockies from 'react-blockies';
 import { BitBadgesUserInfo } from 'bitbadges-sdk';
 import { PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { BlockiesAvatar } from '../address/Blockies';
 
 const { Content } = Layout;
 
@@ -30,10 +31,11 @@ export function AccountButtonDisplay({
 }) {
     const address = accountInfo.address;
     const chain = accountInfo.chain;
+    const avatar = accountInfo.avatar;
     const profilePicSrc = profilePic ? (
         profilePic
     ) : (
-        <Blockies seed={address.toLowerCase()} size={40} />
+        <BlockiesAvatar avatar={avatar} address={address.toLowerCase()} blockiesScale={40} />
     );
 
     const blockScanLink = 'https://chat.blockscan.com/index?a=' + address;

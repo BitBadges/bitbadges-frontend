@@ -4,11 +4,11 @@ import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
-import Blockies from 'react-blockies';
 import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api";
 import { PRIMARY_TEXT } from "../../constants";
 import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
+import { BlockiesAvatar } from "../address/Blockies";
 
 const { Text } = Typography;
 
@@ -18,6 +18,7 @@ export const BlockinDisplay = ({
     hideLogo?: boolean;
 }) => {
     const {
+        avatar,
         chain,
         setChain,
         loggedIn,
@@ -162,9 +163,10 @@ export const BlockinDisplay = ({
                     <Avatar
                         size={200}
                         src={
-                            address ? <Blockies
-                                seed={address.toLowerCase()}
-                                size={100}
+                            address ? <BlockiesAvatar
+                                avatar={avatar}
+                                address={address.toLowerCase()}
+                                blockiesScale={100}
                             /> :
                                 <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
                         }

@@ -71,11 +71,13 @@ export function BadgeAvatarDisplay({
         } else {
             if (!collection) return;
             const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
-            collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
+            if (idxsToUpdate.length > 0) {
+                collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
+            }
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currPage, pageSize]);
+    }, [currPage, pageSize, badgeIds]);
 
     if (!collection) return <></>;
 

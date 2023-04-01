@@ -28,8 +28,8 @@ export function CreateTxMsgClaimBadgeModal(
     const collections = useCollectionsContext();
     const claimObject = collection?.claims[claimId];
 
-    const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256, { isBitcoinTree: true }) : null);
-    const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true }) : null);
+    const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.hashedCodes, SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }) : null);
+    const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }) : null);
     const [codeToSubmit, setCodeToSubmit] = useState<string>("");
 
     useEffect(() => {
@@ -47,14 +47,14 @@ export function CreateTxMsgClaimBadgeModal(
 
     useEffect(() => {
         if (claimItem) {
-            console.log("Updating code tree");
-            const tree = new MerkleTree(claimItem?.codes.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
+            const tree = new MerkleTree(claimItem?.hashedCodes, SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
             setCodeTree(tree);
 
-            const tree2 = new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { isBitcoinTree: true });
+            const tree2 = new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
             setAddressesTree(tree2);
         }
     }, [claimItem]);
+
 
     if (!claimObject || !collection || !claimItem) return <></>;
 
@@ -62,9 +62,7 @@ export function CreateTxMsgClaimBadgeModal(
     const addressProofObj = addressesTree?.getProof(SHA256(addressString).toString(), whitelistIndex);
 
     const codeString = SHA256(codeToSubmit).toString();
-    const leafCode = SHA256(codeString).toString();
-    const codeProofObj = codeTree?.getProof(leafCode);
-
+    const codeProofObj = codeTree?.getProof(codeString);
 
     const isValidCodeProof = codeProofObj && codeTree && codeProofObj.length === codeTree.getLayerCount() - 1;
 
@@ -80,7 +78,8 @@ export function CreateTxMsgClaimBadgeModal(
                     onRight: proof.position === 'right'
                 }
             }) : [],
-            leaf: addressString,
+            // leaf: addressString,
+            leaf: '',
         },
         codeProof: {
             aunts: isValidCodeProof ? codeProofObj?.map((proof) => {
@@ -89,8 +88,9 @@ export function CreateTxMsgClaimBadgeModal(
                     onRight: proof.position === 'right'
                 }
             }) : [],
-            leaf: isValidCodeProof ? codeString : '',
-        },
+            leaf: isValidCodeProof ? codeToSubmit : '',
+            // leaf: SHA256('6df58fb2641e20144f9a301b9cbd7a9c28ef0cc91bbf5fa0c177f2d586ab13a7').toString()
+        }
     };
 
     return (
