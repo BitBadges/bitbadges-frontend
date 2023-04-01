@@ -26,7 +26,7 @@ export function CreateTxMsgClaimBadgeModal(
 ) {
     const chain = useChainContext();
     const collections = useCollectionsContext();
-    const claimObject = collection?.claims[claimId];
+    const claimObject = collection?.claims[claimId - 1];
 
     const [codeTree, setCodeTree] = useState(claimItem ? new MerkleTree(claimItem?.hashedCodes, SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }) : null);
     const [addressesTree, setAddressesTree] = useState(claimItem ? new MerkleTree(claimItem?.addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }) : null);
@@ -35,15 +35,15 @@ export function CreateTxMsgClaimBadgeModal(
     useEffect(() => {
         // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
         async function fetchCode() {
-            if (claimItem && claimItem.hasPassword) {
-                const res = await getCodeForPassword(claimItem.uri.replace('ipfs://', ''), code);
+            if (claimItem && claimItem.hasPassword && collection) {
+                const res = await getCodeForPassword(collection.collectionId, claimId, code);
                 setCodeToSubmit(res.code);
             } else {
                 setCodeToSubmit(code);
             }
         }
         fetchCode();
-    }, [claimItem, code])
+    }, [claimItem, code, collection, claimId])
 
     useEffect(() => {
         if (claimItem) {

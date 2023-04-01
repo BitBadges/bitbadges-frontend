@@ -32,7 +32,7 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
     const activeClaimIds: number[] = []
     const activeClaims = collection ? collection?.claims.filter((x, idx) => {
         if (x.balances.length > 0) {
-            activeClaimIds.push(idx);
+            activeClaimIds.push(idx + 1);
             return true;
         }
         return false;
@@ -102,11 +102,11 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
 
 
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                {activeClaims && activeClaims.length > 0 && collection && collection.claims[activeClaimIds[currPage - 1]] &&
+                {activeClaims && activeClaims.length > 0 && collection && collection.claims[activeClaimIds[currPage - 1] - 1] &&
                     <>
                         <ClaimDisplay
                             collection={collection}
-                            claim={collection.claims[activeClaimIds[currPage - 1]]}
+                            claim={collection.claims[activeClaimIds[currPage - 1] - 1]}
                             claimId={activeClaimIds[currPage - 1]}
                             openModal={(claimItem, code, whitelistIndex) => {
                                 setClaimId(activeClaimIds[currPage - 1])
@@ -116,8 +116,8 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
                                 setWhitelistIndex(whitelistIndex);
                             }}
                             isCodeDisplay={codes ? true : false}
-                            codes={codes ? codes[activeClaimIds[currPage - 1]] : []}
-                            claimPassword={passwords ? passwords[activeClaimIds[currPage - 1]] : ''}
+                            codes={codes ? codes[activeClaimIds[currPage - 1] - 1] : []}
+                            claimPassword={passwords ? passwords[activeClaimIds[currPage - 1] - 1] : ''}
                         />
                     </>
                 }

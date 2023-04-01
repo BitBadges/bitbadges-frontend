@@ -185,8 +185,8 @@ export const logout = async () => {
     await axios.post(BACKEND_URL + '/api/logout').then(res => res.data);
 }
 
-export const getCodeForPassword = async (cid: string, password: string) => {
-    const res: { code: string } = await axios.get(BACKEND_URL + '/api/password/' + cid + '/' + password).then(res => res.data);
+export const getCodeForPassword = async (collectionId: number, claimId: number, password: string) => {
+    const res: { code: string } = await axios.get(BACKEND_URL + '/api/password/' + collectionId + '/' + claimId + '/' + password).then(res => res.data);
     return res;
 }
 

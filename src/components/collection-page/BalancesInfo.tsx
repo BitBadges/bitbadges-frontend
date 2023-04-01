@@ -32,7 +32,7 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
     const activeClaimIds: number[] = []
     const activeClaims = collection ? collection?.claims.filter((x, idx) => {
         if (x.balances.length > 0) {
-            activeClaimIds.push(idx);
+            activeClaimIds.push(idx + 1);
             return true;
         }
         return false;

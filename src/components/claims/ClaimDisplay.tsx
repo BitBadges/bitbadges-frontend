@@ -171,7 +171,7 @@ export function ClaimDisplay({
         >
             <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
                 <Row style={{ display: 'flex', justifyContent: 'center' }} >
-                    <h1 style={{ color: PRIMARY_TEXT }}>{'Claim #' + (claimId + 1)}</h1>
+                    <h1 style={{ color: PRIMARY_TEXT }}>{'Claim #' + (claimId)}</h1>
                 </Row>
                 {isCodeDisplay && <Row>
                     <div style={{

@@ -115,8 +115,7 @@ export function TransferDisplay({
                                                 address={user.address}
                                                 addressAvatar={user.avatar}
                                                 addressName={user.name}
-                                                fontSize={14}
-                                                blockiesScale={3}
+                                                fontSize={18}
                                             />
                                         </>
                                     })}
@@ -135,8 +134,7 @@ export function TransferDisplay({
                                                 address={user.address}
                                                 addressAvatar={user.avatar}
                                                 addressName={user.name}
-                                                fontSize={14}
-                                                blockiesScale={3}
+                                                fontSize={18}
                                             />}
                                         </>
                                     })}
