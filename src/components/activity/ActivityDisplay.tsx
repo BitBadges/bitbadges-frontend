@@ -1,4 +1,4 @@
-import { Collapse, Divider, Empty, Pagination } from 'antd';
+import { Collapse, Divider, Empty, Pagination, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -46,8 +46,13 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
         }
     }
 
+    const PAGE_SIZE = 25;
+    const minId = 0;
+    const maxId = activity.length ? activity.length - 1 : 0;
 
-
+    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
+    const currPageStart = currPageDetails.start;
+    const currPageEnd = currPageDetails.end;
 
     useEffect(() => {
         async function getActivity() {
@@ -68,6 +73,7 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
                 }
             }
 
+            console.log("TESTING FOR INFINITE FETCH", accountsToFetch);
             await accounts.fetchAccountsByNumber(accountsToFetch);
         }
         getActivity();
@@ -83,13 +89,7 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
         />
     }
 
-    const PAGE_SIZE = 25;
-    const minId = 0;
-    const maxId = activity.length ? activity.length - 1 : 0;
 
-    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
-    const currPageStart = currPageDetails.start;
-    const currPageEnd = currPageDetails.end;
 
     return (
         <div>
@@ -135,15 +135,25 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
                                 <div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                            {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
-                                            />)}
+                                            {activity.from.length > 1 ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
+                                                <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 20 }}>{activity.from.length} Addresses</Typography.Text>
+                                            </div>
+                                                : <>
+                                                    {activity.from.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
+                                                        userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                                    />)}
+                                                </>}
                                         </div>
                                         <b style={{ marginRight: 8 }}>to</b>
                                         <div style={{ flexDirection: 'column' }}>
-                                            {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
-                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
-                                            />)}
+                                            {activity.to.length > 1 ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
+                                                <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 20 }}>{activity.to.length} Addresses</Typography.Text>
+                                            </div>
+                                                : <>
+                                                    {activity.to.map((x, i) => <AddressDisplay key={i} fontColor={PRIMARY_TEXT}
+                                                        userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[x]] || { accountNumber: -1, address: '', cosmosAddress: '', chain: SupportedChain.COSMOS }}
+                                                    />)}
+                                                </>}
                                         </div>
                                     </div>
 
@@ -159,13 +169,12 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
                                 style={{
                                     color: PRIMARY_TEXT,
                                     justifyContent: 'center',
-                                    alignItems: 'center',
                                     display: 'flex'
                                 }}>
 
                                 <div key={idx} style={{ color: PRIMARY_TEXT }}>
 
-                                    <div style={{ width: 600 }}>
+                                    <div style={{ width: 700 }}>
                                         <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
                                         <TransferDisplay
                                             fontColor={PRIMARY_TEXT}
