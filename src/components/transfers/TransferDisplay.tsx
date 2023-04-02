@@ -1,12 +1,10 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Col, Empty, Pagination, Row, Tooltip, Typography } from "antd";
-import { useState } from "react";
 import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended } from "bitbadges-sdk";
+import { useState } from "react";
 import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from "../../contexts/AccountsContext";
-import { AddressWithBlockies } from "../address/AddressWithBlockies";
+import { AddressDisplayList } from "../address/AddressDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 
 const { Text } = Typography
@@ -92,52 +90,33 @@ export function TransferDisplay({
                     {
                         !hideAddresses && <div style={{ color: fontColor }}>
                             <br />
-                            <Row>
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
-                                    <b>From</b>
-                                </Col>
-                                <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
-                                </Col>
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
-                                    {/* <b>{to.length ? 'To' : ''}</b> */}
-                                    <b>To</b>
-                                    {/* <b>{toCodes?.length ? 'Claim Code(s)' : ''}</b> */}
-                                </Col>
-                            </Row>
                             <Row>
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                    {from.map((user, index) => {
-                                        return <>
-                                            {index !== 0 && <br color='white' />}
-                                            <AddressWithBlockies
-                                                fontColor={fontColor}
-                                                address={user.address}
-                                                addressAvatar={user.avatar}
-                                                addressName={user.name}
-                                                fontSize={18}
-                                            />
-                                        </>
-                                    })}
+                                <Col span={11} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <AddressDisplayList
+                                        users={from}
+                                        hideAccountNumber
+                                        darkMode
+                                        title={'From'}
+                                        fontSize={18}
+                                        fontColor={fontColor}
+                                        center
+                                    />
                                 </Col>
-                                <Col span={2} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <FontAwesomeIcon icon={faArrowRight} />
+                                <Col span={2} style={{ textAlign: 'center', justifyContent: 'center' }}>
+                                    {/* <FontAwesomeIcon icon={faArrowRight} /> */}
                                 </Col>
 
-                                <Col span={11} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                    {to.map((user, index) => {
-                                        console.log(user);
-                                        return <>
-                                            {index !== 0 && <br color='white' />}
-                                            {user && <AddressWithBlockies
-                                                fontColor={fontColor}
-                                                address={user.address}
-                                                addressAvatar={user.avatar}
-                                                addressName={user.name}
-                                                fontSize={18}
-                                            />}
-                                        </>
-                                    })}
+                                <Col span={11} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <AddressDisplayList
+                                        users={to}
+                                        hideAccountNumber
+                                        darkMode
+                                        title={'To'}
+                                        fontSize={18}
+                                        fontColor={fontColor}
+                                        center
+                                    />
                                     {!!transfer.numCodes && transfer.numCodes > 0 &&
                                         <>
                                             <Text

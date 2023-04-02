@@ -2,7 +2,7 @@ import axiosApi from 'axios';
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { stringify } from "../utils/preserveJson";
-import { AccountResponse, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId } from "bitbadges-sdk"
+import { AccountResponse, BadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId } from "bitbadges-sdk"
 import { BACKEND_URL, NODE_URL } from '../constants';
 
 const axios = axiosApi.create({
@@ -192,6 +192,11 @@ export const getCodeForPassword = async (collectionId: number, claimId: number, 
 
 export const fetchCodes = async (collectionId: number) => {
     const res: { codes: string[][], passwords?: string[] } = await axios.get(BACKEND_URL + '/api/collection/codes/' + collectionId).then(res => res.data);
+    return res;
+}
+
+export const getBrowseInfo = async () => {
+    const res: { collections: BadgeCollection[] } = await axios.get(BACKEND_URL + '/api/browse').then(res => res.data);
     return res;
 }
 

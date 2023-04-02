@@ -1,10 +1,9 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider } from 'antd';
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadges-sdk';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
-import Blockies from 'react-blockies';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadges-sdk';
 import { PRIMARY_TEXT } from '../../constants';
 
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -12,10 +11,10 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
+import { BlockiesAvatar } from '../address/Blockies';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferSelect';
 import { TxModal } from './TxModal';
-import { BlockiesAvatar } from '../address/Blockies';
 
 export function CreateTxMsgTransferBadgeModal(
     {

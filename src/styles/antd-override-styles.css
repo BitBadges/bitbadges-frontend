@@ -196,3 +196,7 @@
 .ant-tooltip-disabled-compatible-wrapper {
     display: flex !important;
 }
+
+#WEB3_CONNECT_MODAL_ID {
+    z-index: 2000;
+}

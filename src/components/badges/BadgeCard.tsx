@@ -1,10 +1,9 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Card, Spin, Tooltip } from 'antd';
+import { Avatar, Card, Spin } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import { BadgeMetadata, BitBadgeCollection, UserBalance, getBlankBalance, getSupplyByBadgeId } from 'bitbadges-sdk';
 import { useEffect, useState } from 'react';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
 import { BadgeModal } from './BadgeModal';
-import { BadgeMetadata, BitBadgeCollection, UserBalance, getSupplyByBadgeId, getBlankBalance } from 'bitbadges-sdk';
-import { PRIMARY_TEXT, PRIMARY_BLUE, SECONDARY_TEXT } from "../../constants";
 
 export function BadgeCard({
     metadata,
@@ -37,13 +36,13 @@ export function BadgeCard({
     }, [isModalOpen, visible, setBadgeId]);
 
     //Calculate total, undistributed, claimable, and distributed supplys
-    const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
-    const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
-    let claimableSupply = 0;
-    for (const claim of collection.claims) {
-        claimableSupply += getSupplyByBadgeId(id, claim.balances);
-    }
-    const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+    // const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
+    // const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
+    // let claimableSupply = 0;
+    // for (const claim of collection.claims) {
+    //     claimableSupply += getSupplyByBadgeId(id, claim.balances);
+    // }
+    // const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
 
     if (!metadata) return <></>
 
@@ -104,7 +103,7 @@ export function BadgeCard({
                     }}
                 >
                     <Meta
-                        title={
+                        title={<div>
                             <div
                                 style={{
                                     fontSize: 20,
@@ -115,6 +114,17 @@ export function BadgeCard({
                             >
                                 {metadata?.name}
                             </div>
+                            <div
+                                style={{
+                                    fontSize: 14,
+                                    color: PRIMARY_TEXT,
+                                    fontWeight: 'bolder',
+                                    whiteSpace: 'normal'
+                                }}
+                            >
+                                {collection.collectionMetadata.name}
+                            </div>
+                        </div>
                         }
                         description={
                             <div
@@ -127,30 +137,17 @@ export function BadgeCard({
                                     justifyContent: 'center',
                                 }}
                             >
-                                ID: {id}
-                                {collection && collection.maxSupplys && <><br />
+                                ID #{id} / {collection.nextBadgeId - 1}
+                                {collection && balance && <><br />
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
+                                        fontWeight: 'bolder',
+                                        fontSize: 20
                                     }}>
-                                        <div>Total Supply: {totalSupply} <Tooltip
-                                            title={<>
-                                                <>Unminted: {undistributedSupply}</>
-                                                <br />
-                                                <>Claimable: {claimableSupply}</>
-                                                <br />
-                                                <>Minted: {distributedSupply}</>
-                                            </>}
-                                            placement='bottom'>
-                                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                                        </Tooltip></div>
-
+                                        x{balance && getSupplyByBadgeId(id, balance.balances)} Owned
                                     </div>
-                                </>
-                                }
-                                {balance && <><br />
-                                    You own x{getSupplyByBadgeId(id, balance.balances)}
                                 </>}
                             </div>
                         }

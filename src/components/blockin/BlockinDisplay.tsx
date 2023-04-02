@@ -120,7 +120,7 @@ export const BlockinDisplay = ({
                             console.error("ERROR", e);
                             notification.error({
                                 message: e.message,
-                                description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This usually happens when you are not signed in to your wallet before attempting to connect.' : ''}`
+                                description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This often occurs when you are not signed in to your wallet before attempting to connect.' : ''}`
                             })
                         }
                     }}

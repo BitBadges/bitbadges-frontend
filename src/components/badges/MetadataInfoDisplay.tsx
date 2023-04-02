@@ -4,7 +4,7 @@ import {
     WarningFilled,
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { getMetadataMapObjForBadgeId } from 'bitbadges-sdk';
+import { getMetadataMapObjForBadgeId, getSupplyByBadgeId } from 'bitbadges-sdk';
 import { BadgeMetadata, BitBadgeCollection, MAX_DATE_TIMESTAMP } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -35,6 +35,17 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
 
     const badgeUri = getMetadataMapObjForBadgeId(badgeId ? badgeId : -1, collection.badgeMetadata)?.uri;
 
+    let totalSupply, undistributedSupply, distributedSupply, claimableSupply = 0;
+    if (badgeId) {
+        //Calculate total, undistributed, claimable, and distributed supplys
+        totalSupply = getSupplyByBadgeId(badgeId, collection.maxSupplys);
+        undistributedSupply = getSupplyByBadgeId(badgeId, collection.unmintedSupplys);
+
+        for (const claim of collection.claims) {
+            claimableSupply += getSupplyByBadgeId(badgeId, claim.balances);
+        }
+        distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+    }
 
     return (
         <InformationDisplayCard
@@ -47,6 +58,14 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             span={span}
         >
             {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}
+            {!isCollectionInfo && <TableRow label={"Supply"} value={
+                <div>
+                    <div>Total: {totalSupply}</div>
+                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
+                    <div>Claimable: {claimableSupply} / {totalSupply}</div>
+                    <div>Minted: {distributedSupply} / {totalSupply}</div>
+                </div>
+            } labelSpan={12} valueSpan={12} />}
             {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
             {isCollectionInfo && <TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
             {isCollectionInfo && collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>

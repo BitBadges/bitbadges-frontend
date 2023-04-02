@@ -6,7 +6,7 @@ export const FAUCET_URL = 'http://localhost:4500';
 
 export const WEBSITE_HOSTNAME = 'http://localhost:3000'
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;
 
 export const PRIMARY_BLUE = '#001529';
 export const SECONDARY_BLUE = '#3e83f8';

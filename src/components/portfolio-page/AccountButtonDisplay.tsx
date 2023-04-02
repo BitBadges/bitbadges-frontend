@@ -6,7 +6,6 @@ import {
     TwitterOutlined,
 } from '@ant-design/icons';
 import { Avatar, Layout, Tooltip, message } from 'antd';
-import Blockies from 'react-blockies';
 import { BitBadgesUserInfo } from 'bitbadges-sdk';
 import { PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';

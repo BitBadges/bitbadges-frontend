@@ -441,6 +441,7 @@ export function TransferSelect({
                                 isSelected: amountSelectType === AmountSelectType.Increment,
                             }]}
                             onSwitchChange={(option, _title) => {
+
                                 if (option === 0) {
                                     setAmountSelectType(AmountSelectType.Custom);
                                     setIncrement(0);
@@ -521,8 +522,8 @@ export function TransferSelect({
             </div>
             }
 
-            < br />
-            {amountSelectType !== AmountSelectType.None && <div>
+            <br />
+            {<div>
                 <BalancesInput
                     balances={balances}
                     setBalances={setBalances}

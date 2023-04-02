@@ -17,13 +17,15 @@ export function OverviewTab({
     refreshUserBalance,
     userBalance,
     setTab,
-    isPreview
+    isPreview,
+    isBadgeModal
 }: {
     collection: BitBadgeCollection | undefined;
     refreshUserBalance: () => Promise<void>;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
     isPreview?: boolean;
+    isBadgeModal?: boolean
 }) {
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
@@ -137,6 +139,7 @@ export function OverviewTab({
                 span={12}
                 setTab={setTab}
                 isPreview={isPreview}
+                isBadgeModal={isBadgeModal}
             />
         </Row>
     </>

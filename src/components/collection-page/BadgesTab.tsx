@@ -8,12 +8,13 @@ import { BadgeCard } from '../badges/BadgeCard';
 import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getIdRangesForAllBadgeIdsInCollection, updateMetadataForBadgeIdsFromIndexerIfAbsent } from 'bitbadges-sdk';
 import { getPageDetails } from '../../utils/pagination';
 
-export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview }: {
+export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview, pageSize = 25 }: {
     collection: BitBadgeCollection;
     balance: UserBalance | undefined;
     badgeId: number;
     setBadgeId: (badgeId: number) => void;
     isPreview: boolean;
+    pageSize?: number;
 }) {
     const [currPage, setCurrPage] = useState<number>(1);
     const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]);
@@ -21,7 +22,7 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
 
     const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. URL?id=1)
 
-    const PAGE_SIZE = 25;
+    const PAGE_SIZE = pageSize;
     const minId = 1;
     const maxId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
 
@@ -31,9 +32,21 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview 
 
 
     useEffect(() => {
-        //Calculate badge IDs to display and update metadata
-        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(getIdRangesForAllBadgeIdsInCollection(collection), pageStartId - 1, PAGE_SIZE);
+
+        //Calculate badge IDs to display and update metadata for badge IDs if absent
+        const badgeIdsToDisplayResponse = getBadgeIdsToDisplayForPageNumber([
+            {
+                badgeIds: getIdRangesForAllBadgeIdsInCollection(collection),
+                collection: collection
+            }
+        ], pageStartId - 1, pageSize);
+
+        const badgeIdsToDisplay: number[] = [];
+        for (const badgeIdObj of badgeIdsToDisplayResponse) {
+            badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
+        }
         setBadgeIdsToDisplay(badgeIdsToDisplay);
+
         const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
         if (idxsToUpdate.length > 0) {
             collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);

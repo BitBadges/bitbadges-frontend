@@ -2,6 +2,8 @@ import { Empty } from "antd";
 import { BitBadgeCollection, IdRange, UserBalance } from "bitbadges-sdk";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { MultiCollectionBadgeDisplay } from "../badges/MultiCollectionBadgeDisplay";
+import { useChainContext } from "../../contexts/ChainContext";
 
 export function BalanceDisplay({
     collection,
@@ -13,7 +15,8 @@ export function BalanceDisplay({
     numRecipients = 1,
     numIncrements = 0,
     incrementBy = 0,
-    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
+    cardView
 }: {
     collection: BitBadgeCollection;
     balance?: UserBalance;
@@ -25,7 +28,10 @@ export function BalanceDisplay({
     numIncrements?: number
     incrementBy?: number
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+    cardView?: boolean;
 }) {
+    const chain = useChainContext();
+
     const allBadgeIdsArr: IdRange[][] = [];
     const incrementedBalance = balance ? JSON.parse(JSON.stringify(balance)) : balance;
 
@@ -106,22 +112,31 @@ export function BalanceDisplay({
                         description={'No owned badges in this collection.'}
                     />
                 </div> : <div style={{ marginTop: 4 }}>
+                    {!cardView ?
+                        <BadgeAvatarDisplay
+                            collection={collection}
+                            userBalance={incrementedBalance}
+                            badgeIds={allBadgeIdsArr.flat().sort((a, b) => a.start - b.start)}
+                            showIds
+                            showBalance
+                            size={size ? size : 50}
+                            hideModalBalance={hideModalBalance}
+                            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                        /> :
 
-                    <BadgeAvatarDisplay
-                        collection={collection}
-                        userBalance={incrementedBalance}
-                        badgeIds={allBadgeIdsArr.flat().sort((a, b) => a.start - b.start)}
-                        showIds
-                        showBalance
-                        size={size ? size : 50}
-                        hideModalBalance={hideModalBalance}
-                        updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
-                    />
-                </div>
-                }
-
-
-
+                        <MultiCollectionBadgeDisplay
+                            collections={[collection]}
+                            accountInfo={{
+                                accountNumber: chain.accountNumber,
+                                address: chain.address,
+                                cosmosAddress: chain.cosmosAddress,
+                                chain: chain.chain,
+                            }}
+                            cardView
+                            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                            pageSize={1}
+                        />}
+                </div>}
             </div>
         </div>
     </>

@@ -5,7 +5,7 @@ import { PRIMARY_TEXT } from '../../constants';
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
-export function CollectionDisplay({ collection, accountInfo, showBadges }: { collection: BitBadgeCollection, accountInfo: BitBadgesUserInfo, showBadges?: boolean }) {
+export function CollectionDisplay({ collection, accountInfo, showBadges }: { collection: BitBadgeCollection, accountInfo?: BitBadgesUserInfo, showBadges?: boolean }) {
     const router = useRouter();
 
     if (!collection) return <></>;

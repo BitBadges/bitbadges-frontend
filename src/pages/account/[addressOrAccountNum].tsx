@@ -12,12 +12,13 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../cons
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 
 const { Content } = Layout;
 
 const tabInfo = [
     { key: 'collected', content: 'Collected', disabled: false },
-    { key: 'managing', content: 'Managing', disabled: false },
+    // { key: 'managing', content: 'Managing', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false }
 ];
 
@@ -91,17 +92,11 @@ function PortfolioPage() {
                     {/* Tab Content */}
                     {tab === 'collected' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => {
-                                const collection = collections.collections[portfolioCollection.collectionId];
-                                const accountInfo = accounts.accounts[cosmosAddress];
-
-                                return <CollectionDisplay
-                                    key={portfolioCollection.collectionId}
-                                    collection={collection}
-                                    accountInfo={accountInfo}
-                                    showBadges
-                                />
-                            })}
+                            <MultiCollectionBadgeDisplay
+                                collections={portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => collections.collections[portfolioCollection.collectionId]) || []}
+                                accountInfo={accounts.accounts[cosmosAddress]}
+                                cardView={true}
+                            />
 
                             {portfolioInfo?.collected.length === 0 && (
                                 <Empty

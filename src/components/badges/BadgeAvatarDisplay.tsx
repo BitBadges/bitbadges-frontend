@@ -43,6 +43,8 @@ export function BadgeAvatarDisplay({
     const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]); // Badge IDs to display of length pageSize
 
     useEffect(() => {
+        if (!collection) return;
+        
         console.log("TEST");
         let total = 0;
         for (const range of badgeIds) {
@@ -61,7 +63,19 @@ export function BadgeAvatarDisplay({
 
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
-        const badgeIdsToDisplay: number[] = getBadgeIdsToDisplayForPageNumber(badgeIds, currPageStart, pageSize);
+        const badgeIdsToDisplayResponse = getBadgeIdsToDisplayForPageNumber([
+            {
+                badgeIds: badgeIds,
+                collection: collection
+            }
+        ], currPageStart, pageSize);
+        
+        const badgeIdsToDisplay: number[] = [];
+        for (const badgeIdObj of badgeIdsToDisplayResponse) {
+            badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
+        }
+
+
         setBadgeIdsToDisplay(badgeIdsToDisplay);
 
         //If updateMetadataForBadgeIdsDirectlyFromUriIfAbsent is true, then update metadata by directly fetching from URI (only used when providing self-hosted metadata URIs in TxTimeline)

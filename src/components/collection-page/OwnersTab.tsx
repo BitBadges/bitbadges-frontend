@@ -1,23 +1,44 @@
-import { Empty, Spin } from 'antd';
+import { Empty, Pagination, Spin } from 'antd';
+import { BitBadgeCollection, getSupplyByBadgeId } from 'bitbadges-sdk';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getBadgeOwners } from '../../bitbadges-api/api';
-import { getSupplyByBadgeId } from 'bitbadges-sdk';
-import { BitBadgeCollection } from 'bitbadges-sdk';
-import { DEV_MODE, PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { getPageDetails } from '../../utils/pagination';
 
 export function OwnersTab({ collection, badgeId }: {
     collection: BitBadgeCollection | undefined;
     badgeId: number
 }) {
+    //TODO: paginate
     const accounts = useAccountsContext();
     const isPreview = collection?.collectionId === 0;
 
     const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
     const [balances, setBalances] = useState<any>({});
     const [loaded, setLoaded] = useState(false);
+
+    const [currPage, setCurrPage] = useState<number>(1);
+    const PAGE_SIZE = 5;
+    const minId = 1;
+    const maxId = badgeOwners.length;
+
+    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
+    const pageStartId = currPageDetails.start;
+    const pageEndId = currPageDetails.end;
+
+
+    useEffect(() => {
+        const accountsToFetch: number[] = [];
+        for (let i = pageStartId - 1; i < pageEndId; i++) {
+            accountsToFetch.push(badgeOwners[i]);
+        }
+
+        accounts.fetchAccountsByNumber(accountsToFetch);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageStartId, pageEndId, currPage]);
 
     useEffect(() => {
         async function getOwners() {
@@ -29,8 +50,6 @@ export function OwnersTab({ collection, badgeId }: {
                 const ownersRes = await getBadgeOwners(collection?.collectionId, badgeId)
                 const badgeOwners = ownersRes.owners;
 
-                await accounts.fetchAccountsByNumber(badgeOwners);
-
                 setBadgeOwners(badgeOwners);
                 setBalances(ownersRes.balances);
                 setLoaded(true);
@@ -41,60 +60,70 @@ export function OwnersTab({ collection, badgeId }: {
     }, []);
 
     return (
-        <div >
-            <div style={{
-                color: PRIMARY_TEXT,
-                justifyContent: 'center',
-                alignItems: 'center',
-                display: 'flex',
-            }}>
-                <div style={{ width: 600 }}>
-                    <InformationDisplayCard
-                        title="Owners"
-                    >
-                        {loaded ?
-                            <div
-                                style={{
-                                    color: PRIMARY_TEXT,
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    display: 'flex'
-                                }}>
-                                {badgeOwners?.map((owner, idx) => {
-                                    return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', margin: 10 }}>
-                                        <div>
-                                            <AddressDisplay
-                                                userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]]}
-                                                fontColor={PRIMARY_TEXT} />
-                                        </div>
-                                        <div>
-                                            x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
-                                        </div>
-                                    </div>
-                                })}
-                                {badgeOwners.length === 0 && <Empty
-                                    description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                    style={{ color: PRIMARY_TEXT }}
-                                />}
-                            </div>
-                            : <div>
-                                <br />
-                                <Spin size={'large'} />
-                                <br />
+
+        <InformationDisplayCard
+            title="Owners"
+        >
+            {loaded ?
+                <div
+                    style={{
+                        color: PRIMARY_TEXT,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: 4
+                    }} >
+                        <Pagination
+                            style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                            current={currPage}
+                            total={Number(maxId) - Number(minId)}
+                            pageSize={PAGE_SIZE}
+                            onChange={(page) => {
+                                setCurrPage(page);
+                            }}
+                            hideOnSinglePage
+                            showSizeChanger={false}
+                        />
+                    </div>
+
+                    {badgeOwners?.map((owner, idx) => {
+                        if (idx < pageStartId - 1 || idx > pageEndId - 1) {
+                            return <></>
+                        } else {
+                            return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', padding: 10 }}>
+                                <div>
+                                    {!accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]] ?
+                                        <Spin size={'small'} />
+                                        :
+                                        <AddressDisplay
+                                            userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]]}
+                                            fontColor={PRIMARY_TEXT} />}
+                                </div>
+                                <div style={{ fontSize: 20 }}>
+                                    x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
+                                </div>
                             </div>
                         }
-                    </InformationDisplayCard>
+                    })}
+                    {badgeOwners.length === 0 && <Empty
+                        description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        style={{ color: PRIMARY_TEXT }}
+                    />}
                 </div>
-            </div>
-
-
-            {
-                DEV_MODE &&
-                <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(badgeOwners, null, 2)}
-                </pre>
+                : <div>
+                    <br />
+                    <Spin size={'large'} />
+                    <br />
+                </div>
             }
-        </div >
+        </InformationDisplayCard>
     );
 }

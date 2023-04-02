@@ -13,7 +13,7 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
 
 
-export function BalanceOverview({ collection, metadata, balance, span, setTab, refreshUserBalance, isPreview }: {
+export function BalanceOverview({ collection, metadata, balance, span, setTab, refreshUserBalance, isPreview, isBadgeModal, onlyButtons }: {
     collection: BitBadgeCollection | undefined;
     refreshUserBalance: () => Promise<void>;
     metadata: BadgeMetadata | undefined;
@@ -21,6 +21,8 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
     span?: number;
     setTab: (tab: string) => void;
     isPreview?: boolean;
+    isBadgeModal?: boolean;
+    onlyButtons?: boolean;
 }) {
     const chain = useChainContext();
     const [transferIsVisible, setTransferIsVisible] = useState<boolean>(false);
@@ -44,12 +46,12 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             name: <>Transfer</>,
             icon: <SwapOutlined />,
             onClick: () => { setTransferIsVisible(true) },
-            tooltipMessage: !balance ? 'Note that you do not own any badges in this collection.' : `Transfer badges!`,
+            tooltipMessage: `Transfer badge(s) to another address.`,
             disabled: isPreview
         }
     );
 
-    if (activeClaims.length > 0) {
+    if (activeClaims.length > 0 && !isBadgeModal) {
         buttons.push(
             {
                 name: <>Claim</>,
@@ -59,6 +61,26 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
                 disabled: isPreview
             },
         );
+    }
+
+    if (onlyButtons) {
+        return <>
+            {
+                chain.connected && <>{buttons.length > 0 && <ButtonDisplay buttons={buttons} />}</>
+            }
+            {
+                !chain.connected && <BlockinDisplay hideLogo={true} />
+            }
+            {!isPreview &&
+                <CreateTxMsgTransferBadgeModal
+                    collection={collection}
+                    visible={transferIsVisible}
+                    setVisible={setTransferIsVisible}
+                    userBalance={balance ? balance : getBlankBalance()}
+                    refreshUserBalance={refreshUserBalance}
+                />
+            }
+        </>
     }
 
 
@@ -71,12 +93,12 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
             {
                 chain.connected && <>
                     {buttons.length > 0 && <ButtonDisplay buttons={buttons} />}
-                    <div>
+                    {!onlyButtons && <div>
                         {<BalanceDisplay
                             collection={collection}
                             balance={balance}
                         />}
-                    </div>
+                    </div>}
                 </>
             }
             {
@@ -91,7 +113,8 @@ export function BalanceOverview({ collection, metadata, balance, span, setTab, r
                 setVisible={setTransferIsVisible}
                 userBalance={balance ? balance : getBlankBalance()}
                 refreshUserBalance={refreshUserBalance}
-            />}
+            />
+        }
     </>
     );
 }

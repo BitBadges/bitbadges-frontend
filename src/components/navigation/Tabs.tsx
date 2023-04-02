@@ -20,6 +20,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
                     width: widthPerTab,
                     textAlign: 'center',
                     float: 'left',
+                    fontSize: 18
                 }}
                 key={`${tab.key}`}
                 onClick={

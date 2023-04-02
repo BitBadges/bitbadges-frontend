@@ -1,24 +1,25 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Col, Drawer, Layout, Row, Typography } from 'antd';
+import { Col, Divider, Drawer, Layout, Row } from 'antd';
+import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { useState } from 'react';
 import Markdown from 'react-markdown';
-import { getSupplyByBadgeId } from 'bitbadges-sdk';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { ActivityTab } from '../activity/ActivityDisplay';
-import { CollectionHeader } from './CollectionHeader';
-import { MetadataDisplay } from './MetadataInfoDisplay';
+import { BalanceOverview } from '../collection-page/BalancesInfo';
+import { OverviewTab } from '../collection-page/OverviewTab';
 import { OwnersTab } from '../collection-page/OwnersTab';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { Tabs } from '../navigation/Tabs';
+import { CollectionHeader } from './CollectionHeader';
+import { MetadataDisplay } from './MetadataInfoDisplay';
 
 const { Content } = Layout;
-const { Text } = Typography;
 
 const tabInfo = [
-    { key: 'overview', content: 'Overview' },
-    { key: 'owners', content: 'Owners' },
+    { key: 'overview', content: 'Badge Overview' },
+    { key: 'collection', content: 'Collection' },
+    // { key: 'owners', content: 'Owners' },
     { key: 'activity', content: 'Activity' },
 ];
 
@@ -65,7 +66,6 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
             closeIcon={<CloseOutlined style={{ color: PRIMARY_TEXT }} />}
             bodyStyle={{
                 paddingTop: 8,
-                fontSize: 20,
                 backgroundColor: '#001529',
                 color: PRIMARY_TEXT,
             }}
@@ -88,61 +88,43 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                             background: PRIMARY_BLUE,
                         }}
                     >
-
+                        {tab === 'collection' && <>
+                            <CollectionHeader metadata={collection.collectionMetadata} />
+                            <Divider />
+                            <OverviewTab
+                                collection={collection}
+                                setTab={setTab}
+                                userBalance={balance}
+                                refreshUserBalance={async () => { }}
+                                isBadgeModal
+                            /></>}
 
                         {tab === 'overview' && (<>
                             <CollectionHeader
                                 metadata={metadata}
                             />
 
-                            {chain.connected && !hideBalances && <>You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge.</>}
+                            {chain.connected && !hideBalances && <div style={{ fontSize: 20 }}>
+                                {/* You have x{getSupplyByBadgeId(badgeId, balance.balances)} of this badge. */}
+                                {<div>
+                                    <BalanceOverview
+                                        refreshUserBalance={
+                                            async () => { } //TODO:
+                                        }
+                                        isBadgeModal
+                                        setTab={() => { }}
+                                        onlyButtons
+
+                                        balance={balance}
+                                        collection={collection}
+                                        metadata={collection.collectionMetadata}
+                                    />
+                                </div>}
+
+                            </div>}
+                            <br />
                             <br />
 
-                            <Row
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-
-                                }}
-                            >
-
-                                <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
-
-                                    <Text style={{ color: SECONDARY_TEXT }}>
-                                        <MetadataDisplay
-                                            collection={collection}
-                                            metadata={metadata}
-                                            badgeId={badgeId}
-
-                                        />
-                                    </Text>
-                                </Col>
-                            </Row>
-                            <br />
-                            <Row
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-
-                                }}
-                            >
-
-                                <Col span={16} style={{ minHeight: 100, border: '1px solid white', borderRadius: 10 }}>
-                                    <Text style={{ color: SECONDARY_TEXT }}>
-                                        <MetadataDisplay
-                                            collection={collection}
-                                            metadata={collection.collectionMetadata}
-                                            isCollectionInfo
-                                            showCollectionLink
-                                        />
-                                    </Text>
-                                </Col>
-                            </Row>
-                            <br />
-                            <OwnersTab
-                                collection={collection}
-                                badgeId={badgeId}
-                            />
                             {metadata.description &&
                                 <Row
                                     style={{
@@ -166,6 +148,31 @@ export function BadgeModal({ collection, metadata, visible, setVisible, balance,
                                     </Col>
                                 </Row>
                             }
+
+                            <Row
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                }}
+                            >
+
+                                <Col span={11} style={{ minHeight: 100, marginRight: 20, display: 'flex' }}>
+                                    <MetadataDisplay
+                                        collection={collection}
+                                        metadata={metadata}
+                                        badgeId={badgeId}
+                                    />
+                                </Col>
+                                <Col span={11} style={{ minHeight: 100, display: 'flex' }}>
+                                    <OwnersTab
+                                        collection={collection}
+                                        badgeId={badgeId}
+                                    />
+                                </Col>
+                            </Row>
+
+
+
 
                         </>
                         )}

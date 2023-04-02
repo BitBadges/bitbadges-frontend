@@ -33,21 +33,27 @@ export function AddressDisplayList(
         setUsers,
         disallowedUsers,
         fontColor,
+        fontSize,
         darkMode,
         title,
-        hideAccountNumber
+        hideAccountNumber,
+        hideTitle,
+        center
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
         disallowedUsers?: { [cosmosAddress: string]: string },
         fontColor?: string
+        fontSize?: number,
         darkMode?: boolean
         title?: string,
         hideAccountNumber?: boolean
+        hideTitle?: boolean
+        center?: boolean
     }
 ) {
-    return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>
-        <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Addresses'} ({users.length})</h3>
+    return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined, fontSize: fontSize }}>
+        {!hideTitle && <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Addresses'} ({users.length})</h3>}
         {
             users.map((user, index) => {
                 let disallowedMessage = '';
@@ -56,9 +62,8 @@ export function AddressDisplayList(
                 }
 
                 return (
-                    <div key={index} style={{ marginRight: 8 }}>
+                    <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
                         <AddressDisplay
-
                             icon={
                                 setUsers &&
                                 <Tooltip title={"Remove User"}>
@@ -70,8 +75,7 @@ export function AddressDisplayList(
                             showAccountNumber={!hideAccountNumber}
                             userInfo={user ? user : {} as BitBadgesUserInfo}
                             fontColor={disallowedMessage ? 'red' : fontColor}
-                            hidePortfolioLink
-
+                            fontSize={fontSize}
                         />
                         {disallowedMessage && disallowedMessage.length > 0 &&
                             <div style={{ color: 'red' }}>
