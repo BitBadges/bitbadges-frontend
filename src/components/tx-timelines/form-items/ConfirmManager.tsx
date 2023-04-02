@@ -1,4 +1,4 @@
-import { Avatar, Typography } from 'antd';
+import { Avatar, Typography, Modal } from 'antd';
 import { useRouter } from 'next/router';
 import { PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { useChainContext } from '../../../contexts/ChainContext';
@@ -56,6 +56,7 @@ export function ConfirmManager() {
                     }}
                     onClick={() => {
                         router.push('/connect');
+                        Modal.destroyAll()
                     }}
                     className="opacity link-button"
                 >

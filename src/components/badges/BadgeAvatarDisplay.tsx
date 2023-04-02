@@ -6,6 +6,7 @@ import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadat
 import { getPageDetails } from "../../utils/pagination";
 import { BitBadgeCollection, UserBalance, IdRange, BadgeMetadata } from "bitbadges-sdk";
 import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
+import { BadgeCard } from "./BadgeCard";
 
 export function BadgeAvatarDisplay({
     collection,
@@ -19,6 +20,7 @@ export function BadgeAvatarDisplay({
     hideModalBalance,
     maxWidth = 350,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
+    cardView
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance?: UserBalance;
@@ -31,6 +33,7 @@ export function BadgeAvatarDisplay({
     hideModalBalance?: boolean;
     maxWidth?: number | string;
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+    cardView?: boolean;
 }) {
     const collections = useCollectionsContext();
 
@@ -44,7 +47,7 @@ export function BadgeAvatarDisplay({
 
     useEffect(() => {
         if (!collection) return;
-        
+
         console.log("TEST");
         let total = 0;
         for (const range of badgeIds) {
@@ -69,7 +72,7 @@ export function BadgeAvatarDisplay({
                 collection: collection
             }
         ], currPageStart, pageSize);
-        
+
         const badgeIdsToDisplay: number[] = [];
         for (const badgeIdObj of badgeIdsToDisplayResponse) {
             badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
@@ -138,18 +141,30 @@ export function BadgeAvatarDisplay({
                             alignItems: 'center',
                             margin: 2
                         }}>
-                            <BadgeAvatar
-                                size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
-                                collection={collection}
-                                metadata={
-                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
-                                }
-                                badgeId={badgeIdsToDisplay[idx]}
-                                balance={userBalance}
-                                showId={showIds}
-                                showBalance={showBalance}
-                                hideModalBalance={hideModalBalance}
-                            />
+                            {!cardView ?
+                                <BadgeAvatar
+                                    size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
+                                    collection={collection}
+                                    metadata={
+                                        getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
+                                    }
+                                    badgeId={badgeIdsToDisplay[idx]}
+                                    balance={userBalance}
+                                    showId={showIds}
+                                    showBalance={showBalance}
+                                    hideModalBalance={hideModalBalance}
+                                /> :
+                                <BadgeCard
+                                    size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
+                                    collection={collection}
+                                    metadata={
+                                        getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
+                                    }
+                                    id={badgeIdsToDisplay[idx]}
+                                    balance={userBalance}
+                                    hideModalBalances={hideModalBalance}
+                                />
+                            }
                         </div>
                     })
                 }</>

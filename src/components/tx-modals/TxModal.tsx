@@ -104,6 +104,7 @@ export function TxModal(
                 const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
                 if (collectionStr) {
                     const collection = JSON.parse(collectionStr)
+                    Modal.destroyAll()
                     router.push(`/collections/${collection.collectionId}`);
                 }
             }

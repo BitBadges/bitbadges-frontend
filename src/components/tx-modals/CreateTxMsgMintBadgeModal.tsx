@@ -9,6 +9,7 @@ import { TxModal } from './TxModal';
 import { RemoveIdsFromIdRange } from 'bitbadges-sdk';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
+import { Modal } from 'antd';
 
 export function CreateTxMsgMintBadgeModal(
     { visible, setVisible, children, txType, collectionId }
@@ -216,6 +217,7 @@ export function CreateTxMsgMintBadgeModal(
             onSuccessfulTx={async () => {
                 await collections.refreshCollection(collectionId);
                 router.push(`/collections/${collectionId}`)
+                Modal.destroyAll()
             }}
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}

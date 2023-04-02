@@ -1,4 +1,4 @@
-import { Tooltip, Typography } from 'antd';
+import { Drawer, Modal, Tooltip, Typography } from 'antd';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -109,6 +109,7 @@ export function Address({
                         strong
                         onClick={hidePortfolioLink ? undefined : () => {
                             router.push(`/account/${address}`);
+                            Modal.destroyAll()
                         }}
                     >
                         {innerContent}
@@ -119,6 +120,7 @@ export function Address({
                         strong
                         onClick={hidePortfolioLink ? undefined : () => {
                             router.push(`/account/${address}`);
+                            Modal.destroyAll()
                         }}
                         copyable={true}
                         style={{

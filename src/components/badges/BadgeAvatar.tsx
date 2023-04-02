@@ -9,6 +9,7 @@ export function BadgeAvatar({
     size,
     badgeId,
     balance,
+    userBalance,
     showId,
     showBalance,
     hideModalBalance,
@@ -18,6 +19,7 @@ export function BadgeAvatar({
     size?: number,
     badgeId: number,
     balance?: UserBalance,
+    userBalance?: UserBalance,
     showId?: boolean,
     showBalance?: boolean,
     hideModalBalance?: boolean,
@@ -53,7 +55,7 @@ export function BadgeAvatar({
                 metadata={metadata}
                 visible={modalIsVisible}
                 setVisible={setModalIsVisible}
-                balance={balance ? balance : getBlankBalance()}
+                balance={userBalance ? userBalance : getBlankBalance()}
                 badgeId={badgeId}
                 hideBalances={hideModalBalance}
             />

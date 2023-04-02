@@ -1,18 +1,16 @@
-import { Divider, Empty, Layout } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import { Divider, Empty, Layout, Select } from 'antd';
+import { BitBadgeCollection, GetPortfolioResponse, isAddressValid } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getPortfolio } from '../../bitbadges-api/api';
-import { isAddressValid } from 'bitbadges-sdk';
-import { GetPortfolioResponse } from 'bitbadges-sdk';
-import { BitBadgeCollection } from 'bitbadges-sdk';
-import { CollectionDisplay } from '../../components/collections/CollectionDisplay';
+import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
 import { AccountButtonDisplay } from '../../components/portfolio-page/AccountButtonDisplay';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { ActivityTab } from '../../components/activity/ActivityDisplay';
-import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 
 const { Content } = Layout;
 
@@ -33,6 +31,8 @@ function PortfolioPage() {
     const [cosmosAddress, setCosmosAddress] = useState<string>('');
     const [portfolioInfo, setPortfolioInfo] = useState<GetPortfolioResponse>();
     const [tab, setTab] = useState('collected');
+    const [cardView, setCardView] = useState(true);
+    const [groupByCollection, setGroupByCollection] = useState(false);
 
     const accountInfo = accounts.accounts[cosmosAddress];
 
@@ -87,15 +87,90 @@ function PortfolioPage() {
                     {/* Overview and Tabs */}
                     {accountInfo && <AccountButtonDisplay accountInfo={accountInfo} />}
                     <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
-                    <br />
+                    {tab === 'collected' && (<>
+                        <br />
+                        <div style={{
+                            backgroundColor: PRIMARY_BLUE,
+                            color: PRIMARY_TEXT,
+                            float: 'right',
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginRight: 16
+                        }}>
+                            Group By:
+
+                            <Select
+                                className="selector"
+                                value={groupByCollection ? 'collection' : 'none'}
+                                placeholder="Default: None"
+                                onChange={(e: any) => {
+                                    setGroupByCollection(e === 'collection');
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                    float: 'right',
+                                    marginLeft: 8,
+                                    minWidth: 100
+                                }}
+                                suffixIcon={
+                                    <DownOutlined
+                                        style={{ color: PRIMARY_TEXT }}
+                                    />
+                                }
+                            >
+                                <Select.Option value="none">None</Select.Option>
+                                <Select.Option value="collection">Collection</Select.Option>
+                            </Select>
+                        </div>
+
+                        <div style={{
+                            backgroundColor: PRIMARY_BLUE,
+                            color: PRIMARY_TEXT,
+                            float: 'right',
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: 16,
+                            marginRight: 16
+                        }}>
+                            View:
+
+                            <Select
+                                className="selector"
+                                value={cardView ? 'card' : 'image'}
+                                placeholder="Default: None"
+                                onChange={(e: any) => {
+                                    setCardView(e === 'card');
+                                }}
+                                style={{
+                                    backgroundColor: PRIMARY_BLUE,
+                                    color: PRIMARY_TEXT,
+                                    float: 'right',
+                                    marginLeft: 8
+                                }}
+                                suffixIcon={
+                                    <DownOutlined
+                                        style={{ color: PRIMARY_TEXT }}
+                                    />
+                                }
+                            >
+                                <Select.Option value="card">Card</Select.Option>
+                                <Select.Option value="image">Image</Select.Option>
+                            </Select>
+                        </div>
+                        <Divider />
+                    </>)}
 
                     {/* Tab Content */}
                     {tab === 'collected' && (<>
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+
                             <MultiCollectionBadgeDisplay
                                 collections={portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => collections.collections[portfolioCollection.collectionId]) || []}
                                 accountInfo={accounts.accounts[cosmosAddress]}
-                                cardView={true}
+                                cardView={cardView}
+                                groupByCollection={groupByCollection}
+                                pageSize={cardView ? 25 : 1000}
                             />
 
                             {portfolioInfo?.collected.length === 0 && (
@@ -112,45 +187,12 @@ function PortfolioPage() {
                         </div>
                     </>)}
 
-                    {tab === 'managing' && (<>
-                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {portfolioInfo?.managing.map((portfolioCollection: BitBadgeCollection) => {
-                                const collection = collections.collections[portfolioCollection.collectionId];
-                                const accountInfo = accounts.accounts[cosmosAddress];
-                                return (
-                                    <CollectionDisplay
-                                        key={portfolioCollection.collectionId}
-                                        collection={collection}
-                                        accountInfo={accountInfo}
-                                        showBadges={false}
-                                    />
-                                )
-                            })}
-
-                            {portfolioInfo?.managing.length === 0 && (
-                                <Empty
-                                    style={{ color: PRIMARY_TEXT }}
-                                    description={
-                                        <span>
-                                            This account has not collected any badges yet.
-                                        </span>
-                                    }
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                />
-                            )}
-                        </div>
-                    </>)}
-
-                    {tab === 'actions' && (<></>)}
-
                     {tab === 'activity' && (
                         <ActivityTab
                             userActivity={portfolioInfo?.activity}
                             collection={{} as BitBadgeCollection}
                         />
                     )}
-
-                    {tab === 'owners' && (<></>)}
                 </div>
                 {
                     DEV_MODE && (

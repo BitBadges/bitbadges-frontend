@@ -82,22 +82,21 @@ function BrowsePage() {
                         fullWidth
 
                     />
-                    {tab === 'latest' && <div>
-                        <h2 style={{ color: PRIMARY_TEXT }}>Featured</h2>
-
-
+                    <div>
+                        <br />
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
                             {browseInfo?.collections.map((portfolioCollection: BadgeCollection) => {
                                 const collection = collections.collections[portfolioCollection.collectionId];
 
-                                return <CollectionDisplay
-                                    key={portfolioCollection.collectionId}
-                                    collection={collection}
-                                    showBadges={false}
-                                />
+                                return <>
+                                    <CollectionDisplay
+                                        key={portfolioCollection.collectionId}
+                                        collection={collection}
+                                    />
+                                </>
                             })}
                         </div>
-                    </div>}
+                    </div>
                 </div>
 
                 <Divider />

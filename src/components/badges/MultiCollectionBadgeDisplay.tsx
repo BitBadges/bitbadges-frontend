@@ -1,4 +1,4 @@
-import { Pagination } from "antd";
+import { Avatar, Modal, Pagination, Tooltip } from "antd";
 import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
 import { useEffect, useState } from "react";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
@@ -6,18 +6,27 @@ import { useCollectionsContext } from "../../contexts/CollectionsContext";
 import { getPageDetails } from "../../utils/pagination";
 import { BadgeCard } from "./BadgeCard";
 import { BadgeAvatar } from "./BadgeAvatar";
+import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { useRouter } from "next/router";
+import { useChainContext } from "../../contexts/ChainContext";
 
 export function MultiCollectionBadgeDisplay({
     collections,
     accountInfo,
+
     cardView,
     pageSize = 25,
-    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
+    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
+    groupByCollection
 }: {
     collections: BitBadgeCollection[], accountInfo?: BitBadgesUserInfo, cardView?: boolean, pageSize?: number,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+    groupByCollection?: boolean;
 }) {
     const collectionsContext = useCollectionsContext();
+    const router = useRouter();
+    const chain = useChainContext();
     const [currPage, setCurrPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(pageSize); //Total number of badges in badgeIds[]
 
@@ -29,6 +38,10 @@ export function MultiCollectionBadgeDisplay({
 
 
     useEffect(() => {
+        if (groupByCollection) {
+            return;
+        }
+
         //Calculate badge IDs for each collection
         const allBadgeIds: {
             collection: BitBadgeCollection,
@@ -36,7 +49,7 @@ export function MultiCollectionBadgeDisplay({
         }[] = [];
         for (const collection of collections) {
             allBadgeIds.push({
-                badgeIds: collection.balances[accountInfo?.accountNumber || 0].balances.map(balance => balance.badgeIds).flat(),
+                badgeIds: collection.balances[accountInfo?.accountNumber || 0]?.balances.map(balance => balance.badgeIds).flat() || [],
                 collection
             });
         }
@@ -62,8 +75,6 @@ export function MultiCollectionBadgeDisplay({
         }[] = getBadgeIdsToDisplayForPageNumber(allBadgeIds, currPageStart, pageSize);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
 
-
-
         for (const badgeIdObj of badgeIdsToDisplay) {
             //If updateMetadataForBadgeIdsDirectlyFromUriIfAbsent is true, then update metadata by directly fetching from URI (only used when providing self-hosted metadata URIs in TxTimeline)
             //Else, we simply query our indexer
@@ -82,68 +93,143 @@ export function MultiCollectionBadgeDisplay({
 
     if (!collections) return <></>;
 
-    return <>
-        <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-        }} >
-            <Pagination
-                style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
-                current={currPage}
-                total={total}
-                pageSize={pageSize}
-                onChange={(page) => {
-                    setCurrPage(page);
-                }}
-                hideOnSinglePage
-                showSizeChanger={false}
-            />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
-            {
-                badgeIdsToDisplay.map((badgeIdObj) => {
-                    return <>
-                        {badgeIdObj.badgeIds.map((badgeId, idx) => {
-                            return <div key={idx} style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                margin: 2
-                            }}>
-                                {cardView ?
-                                    <BadgeCard
-                                        collection={badgeIdObj.collection}
-                                        metadata={
-                                            getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
-                                        }
-                                        id={badgeId}
-                                        balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
-                                    // showId={showIds}
-                                    // showBalance={showBalance}
-                                    // hideModalBalances={hideModalBalance}
-                                    // showCollectionName={showCollectionName}
-                                    /> :
-                                    <BadgeAvatar
-                                        // size={}
-                                        collection={badgeIdObj.collection}
-                                        metadata={
-                                            getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
-                                        }
-                                        badgeId={badgeId}
-                                        balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
-                                    // showId={showIds}
-                                    // showBalance={showBalance}
-                                    // hideModalBalance={hideModalBalance}
-                                    />
-                                }
-                            </div>
-                        })}
-                    </>
-                })
-            }
-        </div>
-    </>
+    if (groupByCollection) {
+        return <>
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }} >
+                <Pagination
+                    style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                    current={currPage}
+                    total={collections.length}
+                    pageSize={pageSize}
+                    onChange={(page) => {
+                        setCurrPage(page);
+                    }}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                />
+            </div>
+
+
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap' }}>
+                {
+                    collections.map((collection, idx) => {
+                        return <div key={idx} style={{ width: 350, margin: 10, display: 'flex' }}>
+                            <InformationDisplayCard
+                                noBorder
+                                title={<>
+                                    <Tooltip color='black' title={"Collection ID: " + collection.collectionId} placement="bottom">
+                                        <div className='link-button-nav' onClick={() => {
+                                            router.push('/collections/' + collection.collectionId)
+                                            Modal.destroyAll()
+                                        }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Avatar
+                                                src={collection.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                                size={40}
+                                                style={{
+                                                    verticalAlign: 'middle',
+                                                    border: '1px solid',
+                                                    borderColor: collection.collectionMetadata?.color
+                                                        ? collection.collectionMetadata?.color
+                                                        : 'black',
+                                                    margin: 4,
+                                                }}
+                                            /> {collection.collectionMetadata?.name}
+
+                                        </div>
+                                    </Tooltip>
+                                </>}
+                            >
+                                <BadgeAvatarDisplay
+                                    collection={collection}
+                                    pageSize={cardView ? 1 : 10}
+                                    cardView={cardView}
+                                    userBalance={collection.balances[chain.accountNumber || 0]}
+                                    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                                    badgeIds={collection.balances[accountInfo?.accountNumber || 0].balances.map(balance => balance.badgeIds).flat()}
+                                />
+                            </InformationDisplayCard>
+                        </div>
+
+
+
+
+                    })
+                }
+            </div>
+        </>
+
+    } else {
+
+        return <>
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }} >
+                <Pagination
+                    style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+                    current={currPage}
+                    total={total}
+                    pageSize={pageSize}
+                    onChange={(page) => {
+                        setCurrPage(page);
+                    }}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                {
+                    badgeIdsToDisplay.map((badgeIdObj) => {
+                        return <>
+                            {badgeIdObj.badgeIds.map((badgeId, idx) => {
+                                return <div key={idx} style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    margin: 2
+                                }}>
+                                    {cardView ?
+                                        <BadgeCard
+                                            collection={badgeIdObj.collection}
+                                            metadata={
+                                                getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
+                                            }
+                                            id={badgeId}
+                                            balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
+                                            userBalance={badgeIdObj.collection.balances[chain.accountNumber || 0]}
+                                            // showId={showIds}
+                                            // showBalance={showBalance}
+                                            hideModalBalances={true}
+                                        // showCollectionName={showCollectionName}
+                                        /> :
+                                        <BadgeAvatar
+                                            // size={}
+                                            collection={badgeIdObj.collection}
+                                            metadata={
+                                                getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
+                                            }
+                                            badgeId={badgeId}
+                                            balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
+                                            userBalance={badgeIdObj.collection.balances[chain.accountNumber || 0]}
+                                        // showId={showIds}
+                                        // showBalance={showBalance}
+                                        // hideModalBalance={hideModalBalance}
+                                        />
+                                    }
+                                </div>
+                            })}
+                        </>
+                    })
+                }
+            </div>
+        </>
+    }
 }

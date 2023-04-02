@@ -1,22 +1,24 @@
-import { Avatar, Typography } from "antd";
+import { Avatar, Modal, Tooltip } from "antd";
+import { BitBadgeCollection, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
 import { useRouter } from "next/router";
-import { BitBadgeCollection, BitBadgesUserInfo } from "bitbadges-sdk";
 import { PRIMARY_TEXT } from '../../constants';
-import { BalanceDisplay } from "../balances/BalanceDisplay";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
-export function CollectionDisplay({ collection, accountInfo, showBadges }: { collection: BitBadgeCollection, accountInfo?: BitBadgesUserInfo, showBadges?: boolean }) {
+export function CollectionDisplay({ collection }: { collection: BitBadgeCollection }) {
     const router = useRouter();
 
     if (!collection) return <></>;
 
     return <div style={{ width: 350, margin: 10, display: 'flex' }}>
-        {showBadges ?
-            <InformationDisplayCard
-                title={<>
+        <InformationDisplayCard
+            title={<>
+                <Tooltip color='black' title={"Collection ID: " + collection.collectionId} placement="bottom">
                     <div className='link-button-nav' onClick={() => {
                         router.push('/collections/' + collection.collectionId)
+                        Modal.destroyAll()
                     }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
                         <Avatar
                             src={collection.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
                             size={40}
@@ -29,46 +31,21 @@ export function CollectionDisplay({ collection, accountInfo, showBadges }: { col
                                 margin: 4,
                             }}
                         /> {collection.collectionMetadata?.name}
-                    </div>
-                </>}
-            >
-                <div key={collection.collectionId} style={{ color: PRIMARY_TEXT }}>
-                    <BalanceDisplay
-                        message='Collected Badges'
-                        collection={collection}
-                        balance={collection.balances[accountInfo?.accountNumber || 0]}
-                    />
-                </div>
-            </InformationDisplayCard>
-            :
-            <InformationDisplayCard
-                title={<>
-                    <div className='link-button-nav' onClick={() => {
-                        router.push('/collections/' + collection.collectionId)
-                    }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {collection.collectionMetadata?.name}
-                    </div>
-                </>}
-            >
-                <Avatar
-                    src={collection.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                    size={80}
-                    style={{
-                        verticalAlign: 'middle',
-                        border: '1px solid',
-                        borderColor: collection.collectionMetadata?.color
-                            ? collection.collectionMetadata?.color
-                            : 'black',
-                        margin: 4,
-                    }}
-                />
-                <br />
-                <Typography.Text style={{ color: PRIMARY_TEXT, fontSize: 16 }} strong>
-                    ID: {collection.collectionId}
-                </Typography.Text>
-                <br />
 
-            </InformationDisplayCard>
-        }
+                    </div>
+                </Tooltip>
+            </>}
+        >
+            <div key={collection.collectionId} style={{ color: PRIMARY_TEXT }}>
+                <BadgeAvatarDisplay
+                    collection={collection}
+                    userBalance={{
+                        balances: collection.maxSupplys,
+                        approvals: []
+                    }}
+                    badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
+                />
+            </div>
+        </InformationDisplayCard>
     </div>
 }

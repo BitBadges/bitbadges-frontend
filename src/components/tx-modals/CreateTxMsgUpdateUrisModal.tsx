@@ -7,6 +7,7 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
+import { Modal } from 'antd';
 
 
 export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, collectionId
@@ -97,6 +98,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
             onSuccessfulTx={async () => {
                 await collections.refreshCollection(updateUrisMsg.collectionId);
                 router.push(`/collections/${updateUrisMsg.collectionId}`)
+                Modal.destroyAll()
             }}
         >
             {children}

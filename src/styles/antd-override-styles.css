@@ -197,6 +197,4 @@
     display: flex !important;
 }
 
-#WEB3_CONNECT_MODAL_ID {
-    z-index: 2000;
-}
+.web3modal-modal-lightbox { z-index: 2000 !important; }

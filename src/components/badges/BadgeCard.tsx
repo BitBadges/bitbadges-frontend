@@ -12,7 +12,9 @@ export function BadgeCard({
     hoverable,
     id,
     balance,
+    userBalance,
     isModalOpen,
+
     setBadgeId,
     hideModalBalances
 }: {
@@ -22,6 +24,7 @@ export function BadgeCard({
     size?: number;
     hoverable?: boolean;
     balance?: UserBalance;
+    userBalance?: UserBalance;
     isModalOpen?: boolean;
     setBadgeId?: (id: number) => void;
     hideModalBalances?: boolean;
@@ -160,7 +163,7 @@ export function BadgeCard({
                 metadata={metadata}
                 visible={visible}
                 setVisible={setVisible}
-                balance={balance ? balance : getBlankBalance()}
+                balance={userBalance ? userBalance : getBlankBalance()}
                 badgeId={id}
                 hideBalances={hideModalBalances}
             />

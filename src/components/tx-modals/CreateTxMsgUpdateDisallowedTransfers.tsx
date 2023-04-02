@@ -7,6 +7,7 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
+import { Modal } from 'antd';
 
 
 export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible, children, collectionId }
@@ -118,6 +119,7 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
             onSuccessfulTx={async () => {
                 await collections.refreshCollection(collectionId);
                 router.push(`/collections/${collectionId}`)
+                Modal.destroyAll()
             }}
         >
             {children}
