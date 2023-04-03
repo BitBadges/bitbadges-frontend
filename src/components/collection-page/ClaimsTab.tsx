@@ -1,6 +1,6 @@
 import { Button, Divider, Empty, Pagination } from 'antd';
 import { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem } from 'bitbadges-sdk';
+import { BitBadgeCollection, ClaimItem, getSupplyByBadgeId } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
@@ -8,13 +8,14 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { useRouter } from 'next/router';
 
-export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, passwords, isModal }: {
+export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, passwords, isModal, badgeId }: {
     collection: BitBadgeCollection | undefined;
     refreshUserBalance: () => Promise<void>;
     isPreview?: boolean;
     codes?: string[][];
     passwords?: string[];
     isModal?: boolean
+    badgeId?: number;
 }) {
     const chain = useChainContext();
     const router = useRouter();
@@ -32,8 +33,16 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
     const activeClaimIds: number[] = []
     const activeClaims = collection ? collection?.claims.filter((x, idx) => {
         if (x.balances.length > 0) {
-            activeClaimIds.push(idx + 1);
-            return true;
+            if (badgeId) {
+                const supply = getSupplyByBadgeId(badgeId, x.balances);
+                if (supply > 0) {
+                    activeClaimIds.push(idx + 1);
+                    return true;
+                }
+            } else {
+                activeClaimIds.push(idx + 1);
+                return true;
+            }
         }
         return false;
     }) : [];
@@ -125,10 +134,10 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
             </div>
 
             {
-                !collection?.claims.find((x) => x.balances.length > 0) &&
+                !activeClaimIds.length &&
                 <Empty
                     style={{ color: PRIMARY_TEXT }}
-                    description="At the moment, there are no active claims for this badge."
+                    description={`No active claims found${badgeId ? ' for this badge' : ''}.`}
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
             }

@@ -1,82 +1,58 @@
-import { Pagination } from 'antd';
-import { useEffect, useState } from 'react';
-import { BadgeMetadata, BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
+import { Divider, Select } from 'antd';
+import { BitBadgeCollection } from 'bitbadges-sdk';
+import { useState } from 'react';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { BadgeCard } from '../badges/BadgeCard';
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, getIdRangesForAllBadgeIdsInCollection, updateMetadataForBadgeIdsFromIndexerIfAbsent } from 'bitbadges-sdk';
-import { getPageDetails } from '../../utils/pagination';
+import { DownOutlined } from '@ant-design/icons';
+import { MultiCollectionBadgeDisplay } from '../badges/MultiCollectionBadgeDisplay';
 
-export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview, pageSize = 25 }: {
-    collection: BitBadgeCollection;
-    balance: UserBalance | undefined;
-    badgeId: number;
-    setBadgeId: (badgeId: number) => void;
-    isPreview: boolean;
-    pageSize?: number;
+export function BadgesTab({ collection, }: {
+    collection: BitBadgeCollection
 }) {
-    const [currPage, setCurrPage] = useState<number>(1);
-    const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<number[]>([]);
-    const collections = useCollectionsContext();
-
-    const modalToOpen = !isNaN(badgeId) ? badgeId : -1; //Handle if they try and link to exact badge (i.e. URL?id=1)
-
-    const PAGE_SIZE = pageSize;
-    const minId = 1;
-    const maxId = collection?.nextBadgeId ? collection?.nextBadgeId - 1 : 1;
-
-    const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
-    const pageStartId = currPageDetails.start;
-    const pageEndId = currPageDetails.end;
-
-
-    useEffect(() => {
-
-        //Calculate badge IDs to display and update metadata for badge IDs if absent
-        const badgeIdsToDisplayResponse = getBadgeIdsToDisplayForPageNumber([
-            {
-                badgeIds: getIdRangesForAllBadgeIdsInCollection(collection),
-                collection: collection
-            }
-        ], pageStartId - 1, pageSize);
-
-        const badgeIdsToDisplay: number[] = [];
-        for (const badgeIdObj of badgeIdsToDisplayResponse) {
-            badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
-        }
-        setBadgeIdsToDisplay(badgeIdsToDisplay);
-
-        const idxsToUpdate = updateMetadataForBadgeIdsFromIndexerIfAbsent(badgeIdsToDisplay, collection);
-        if (idxsToUpdate.length > 0) {
-            collections.updateCollectionMetadata(collection.collectionId, idxsToUpdate);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageStartId, pageEndId, collection, currPage]);
+    const [cardView, setCardView] = useState(true);
 
     return (
         <div
             style={{
                 color: PRIMARY_TEXT,
             }}>
+            <br />
+
             <div style={{
+                backgroundColor: PRIMARY_BLUE,
+                color: PRIMARY_TEXT,
+                float: 'right',
                 display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
                 alignItems: 'center',
-            }} >
-                <Pagination
-                    style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
-                    current={currPage}
-                    total={Number(maxId) - Number(minId)}
-                    pageSize={PAGE_SIZE}
-                    onChange={(page) => {
-                        setCurrPage(page);
+                marginLeft: 16,
+                marginRight: 16
+            }}>
+                View:
+
+                <Select
+                    className="selector"
+                    value={cardView ? 'card' : 'image'}
+                    placeholder="Default: None"
+                    onChange={(e: any) => {
+                        setCardView(e === 'card');
                     }}
-                    hideOnSinglePage
-                    showSizeChanger={false}
-                />
+                    style={{
+                        backgroundColor: PRIMARY_BLUE,
+                        color: PRIMARY_TEXT,
+                        float: 'right',
+                        marginLeft: 8
+                    }}
+                    suffixIcon={
+                        <DownOutlined
+                            style={{ color: PRIMARY_TEXT }}
+                        />
+                    }
+                >
+                    <Select.Option value="card">Card</Select.Option>
+                    <Select.Option value="image">Image</Select.Option>
+                </Select>
             </div>
+            <Divider />
             <div
                 style={{
                     display: 'flex',
@@ -84,26 +60,14 @@ export function BadgesTab({ collection, balance, badgeId, setBadgeId, isPreview,
                     flexWrap: 'wrap',
                 }}
             >
-                {
-                    collection
-                    && Number(pageEndId) - Number(pageStartId) + 1 > 0
-                    && Number(pageEndId) >= 0
-                    && Number(pageStartId) >= 0
-                    && new Array(Number(pageEndId) - Number(pageStartId) + 1).fill(0).map((_, idx) => {
-                        return <div key={idx}>
-                            <BadgeCard
-                                isModalOpen={modalToOpen === idx}
-                                setBadgeId={setBadgeId}
-                                balance={balance}
-                                collection={collection}
-                                metadata={
-                                    getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
-                                }
-                                id={idx + Number(pageStartId)}
-                                hideModalBalances={isPreview}
-                            />
-                        </div>
-                    })}
+                <MultiCollectionBadgeDisplay
+                    collections={[collection]}
+                    // accountInfo={accounts.accounts[cosmosAddress]}
+                    cardView={cardView}
+                    groupByCollection={false}
+                    pageSize={cardView ? 25 : 1000}
+                    hideCollectionLink={true}
+                />
             </div>
 
             {DEV_MODE &&

@@ -1,9 +1,9 @@
-import { Avatar, Card, Spin } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Avatar, Card, Spin, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { BadgeMetadata, BitBadgeCollection, UserBalance, getBlankBalance, getSupplyByBadgeId } from 'bitbadges-sdk';
-import { useEffect, useState } from 'react';
+import { BadgeMetadata, BitBadgeCollection, getSupplyByBadgeId } from 'bitbadges-sdk';
+import { useRouter } from 'next/router';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
-import { BadgeModal } from './BadgeModal';
 
 export function BadgeCard({
     metadata,
@@ -11,41 +11,25 @@ export function BadgeCard({
     collection,
     hoverable,
     id,
-    balance,
-    userBalance,
-    isModalOpen,
-
-    setBadgeId,
-    hideModalBalances
+    hideCollectionLink,
 }: {
     id: number;
     metadata?: BadgeMetadata;
     collection: BitBadgeCollection;
     size?: number;
     hoverable?: boolean;
-    balance?: UserBalance;
-    userBalance?: UserBalance;
-    isModalOpen?: boolean;
-    setBadgeId?: (id: number) => void;
-    hideModalBalances?: boolean;
+    hideCollectionLink?: boolean;
 }) {
-    const [visible, setVisible] = useState<boolean>(isModalOpen ? isModalOpen : false);
-
-    //Handle open exact badgeId modal if specified in URL params
-    useEffect(() => {
-        if (isModalOpen && !visible && setBadgeId) {
-            setBadgeId(-1);
-        }
-    }, [isModalOpen, visible, setBadgeId]);
+    const router = useRouter();
 
     //Calculate total, undistributed, claimable, and distributed supplys
-    // const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
-    // const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
-    // let claimableSupply = 0;
-    // for (const claim of collection.claims) {
-    //     claimableSupply += getSupplyByBadgeId(id, claim.balances);
-    // }
-    // const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+    const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
+    const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
+    let claimableSupply = 0;
+    for (const claim of collection.claims) {
+        claimableSupply += getSupplyByBadgeId(id, claim.balances);
+    }
+    const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
 
     if (!metadata) return <></>
 
@@ -62,7 +46,7 @@ export function BadgeCard({
                 }}
                 hoverable={hoverable ? hoverable : true}
                 onClick={() => {
-                    setVisible(true);
+                    router.push(`/collections/${collection.collectionId}/${id}`);
                 }}
                 cover={
                     <div
@@ -117,16 +101,23 @@ export function BadgeCard({
                             >
                                 {metadata?.name}
                             </div>
-                            <div
-                                style={{
-                                    fontSize: 14,
-                                    color: PRIMARY_TEXT,
-                                    fontWeight: 'bolder',
-                                    whiteSpace: 'normal'
-                                }}
-                            >
-                                {collection.collectionMetadata.name}
-                            </div>
+                            {!hideCollectionLink &&
+                                <div
+                                    style={{
+                                        fontSize: 14,
+                                        color: PRIMARY_TEXT,
+                                        fontWeight: 'bolder',
+                                        whiteSpace: 'normal'
+                                    }}
+                                    onClick={(e) => {
+                                        router.push(`/collections/${collection.collectionId}`);
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    <a>
+                                        {collection.collectionMetadata.name}
+                                    </a>
+                                </div>}
                         </div>
                         }
                         description={
@@ -141,15 +132,24 @@ export function BadgeCard({
                                 }}
                             >
                                 ID #{id} / {collection.nextBadgeId - 1}
-                                {collection && balance && <><br />
+                                {collection && collection.maxSupplys && <><br />
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontWeight: 'bolder',
-                                        fontSize: 20
                                     }}>
-                                        x{balance && getSupplyByBadgeId(id, balance.balances)} Owned
+                                        <div>Supply: {totalSupply} <Tooltip
+                                            title={<>
+                                                <>Unminted: {undistributedSupply}</>
+                                                <br />
+                                                <>Claimable: {claimableSupply}</>
+                                                <br />
+                                                <>Minted: {distributedSupply}</>
+                                            </>}
+                                            placement='bottom'>
+                                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                                        </Tooltip></div>
+
                                     </div>
                                 </>}
                             </div>
@@ -157,16 +157,6 @@ export function BadgeCard({
                     />
                 </div>
             </Card>
-
-            <BadgeModal
-                collection={collection}
-                metadata={metadata}
-                visible={visible}
-                setVisible={setVisible}
-                balance={userBalance ? userBalance : getBlankBalance()}
-                badgeId={id}
-                hideBalances={hideModalBalances}
-            />
         </>
 
     );

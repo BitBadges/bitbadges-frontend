@@ -45,7 +45,6 @@ export function BadgeSupplySelectStepItem(
         description: ``,
         node: <div style={{ color: PRIMARY_TEXT }}>
             <BalanceDisplay
-                hideModalBalance={true}
                 collection={collectionToShow}
                 balance={{
                     balances: collectionToShow.maxSupplys,

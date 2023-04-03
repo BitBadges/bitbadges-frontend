@@ -11,24 +11,26 @@ export function BalanceDisplay({
     message,
     size,
     showingSupplyPreview,
-    hideModalBalance,
     numRecipients = 1,
     numIncrements = 0,
     incrementBy = 0,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
-    cardView
+    cardView,
+    hideMessage,
+    hideBadges
 }: {
     collection: BitBadgeCollection;
     balance?: UserBalance;
     message?: string;
     size?: number;
     showingSupplyPreview?: boolean;
-    hideModalBalance?: boolean;
     numRecipients?: number,
     numIncrements?: number
     incrementBy?: number
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     cardView?: boolean;
+    hideMessage?: boolean;
+    hideBadges?: boolean;
 }) {
     const chain = useChainContext();
 
@@ -36,7 +38,7 @@ export function BalanceDisplay({
     const incrementedBalance = balance ? JSON.parse(JSON.stringify(balance)) : balance;
 
     return <>
-        <div style={{
+        {!hideMessage && <div style={{
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-evenly',
@@ -45,7 +47,7 @@ export function BalanceDisplay({
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', fontSize: 15 }}>
                 <b>{message ? message : 'Balances'}</b>
             </div>
-        </div>
+        </div>}
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -103,39 +105,40 @@ export function BalanceDisplay({
                             </span>
                         </>
                     })}
+                    {(!balance || balance.balances?.length === 0) && <span>None</span>}
                 </div >
+                {!hideBadges && <div>
+                    {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
+                        <Empty
+                            style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description={'No owned badges in this collection.'}
+                        />
+                    </div> : <div style={{ marginTop: 4 }}>
+                        {!cardView ?
+                            <BadgeAvatarDisplay
+                                collection={collection}
+                                userBalance={incrementedBalance}
+                                badgeIds={allBadgeIdsArr.flat().sort((a, b) => a.start - b.start)}
+                                showIds
+                                showBalance
+                                size={size ? size : 50}
+                                updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                            /> :
 
-                {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
-                    <Empty
-                        style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={'No owned badges in this collection.'}
-                    />
-                </div> : <div style={{ marginTop: 4 }}>
-                    {!cardView ?
-                        <BadgeAvatarDisplay
-                            collection={collection}
-                            userBalance={incrementedBalance}
-                            badgeIds={allBadgeIdsArr.flat().sort((a, b) => a.start - b.start)}
-                            showIds
-                            showBalance
-                            size={size ? size : 50}
-                            hideModalBalance={hideModalBalance}
-                            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
-                        /> :
-
-                        <MultiCollectionBadgeDisplay
-                            collections={[collection]}
-                            accountInfo={{
-                                accountNumber: chain.accountNumber,
-                                address: chain.address,
-                                cosmosAddress: chain.cosmosAddress,
-                                chain: chain.chain,
-                            }}
-                            cardView
-                            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
-                            pageSize={1}
-                        />}
+                            <MultiCollectionBadgeDisplay
+                                collections={[collection]}
+                                accountInfo={{
+                                    accountNumber: chain.accountNumber,
+                                    address: chain.address,
+                                    cosmosAddress: chain.cosmosAddress,
+                                    chain: chain.chain,
+                                }}
+                                cardView
+                                updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+                                pageSize={1}
+                            />}
+                    </div>}
                 </div>}
             </div>
         </div>

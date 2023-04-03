@@ -30,7 +30,7 @@ export function ButtonDisplay({
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginTop: 8,
-                    marginBottom: 30,
+                    // marginBottom: 30,
                 }}
             >
                 {buttons.map((button, idx) => {

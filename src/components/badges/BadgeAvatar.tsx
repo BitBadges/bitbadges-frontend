@@ -1,7 +1,6 @@
 import { Avatar, Spin, Tooltip } from "antd";
-import { useState } from "react";
-import { BadgeModal } from "./BadgeModal";
-import { BitBadgeCollection, BadgeMetadata, UserBalance, getBlankBalance, getSupplyByBadgeId } from "bitbadges-sdk";
+import { BadgeMetadata, BitBadgeCollection, UserBalance, getSupplyByBadgeId } from "bitbadges-sdk";
+import { useRouter } from "next/router";
 
 export function BadgeAvatar({
     collection,
@@ -9,28 +8,24 @@ export function BadgeAvatar({
     size,
     badgeId,
     balance,
-    userBalance,
     showId,
     showBalance,
-    hideModalBalance,
 }: {
     collection: BitBadgeCollection,
     metadata: BadgeMetadata,
     size?: number,
     badgeId: number,
     balance?: UserBalance,
-    userBalance?: UserBalance,
     showId?: boolean,
     showBalance?: boolean,
-    hideModalBalance?: boolean,
 }) {
-    const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
+    const router = useRouter();
 
     return metadata ? <div>
         <Tooltip
             placement="bottom"
             title={`${metadata.name ? metadata.name : ''} (ID: ${badgeId})`}
-            open={modalIsVisible ? false : undefined}
+        // open={modalIsVisible ? false : undefined}
         >
             <div style={{ textAlign: 'center' }}>
                 <Avatar
@@ -43,22 +38,15 @@ export function BadgeAvatar({
                     className="badge-avatar"
                     src={metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : <Spin />}
                     size={size ? size : 50}
-                    onClick={() => setModalIsVisible(true)}
+                    onClick={() => {
+                        router.push(`/collections/${collection.collectionId}/${badgeId}`)
+                    }}
                     onError={() => {
                         return false;
                     }}
                 />
 
             </div>
-            <BadgeModal
-                collection={collection}
-                metadata={metadata}
-                visible={modalIsVisible}
-                setVisible={setModalIsVisible}
-                balance={userBalance ? userBalance : getBlankBalance()}
-                badgeId={badgeId}
-                hideBalances={hideModalBalance}
-            />
         </Tooltip>
         <div style={{ textAlign: 'center' }}>
             {showId && <b><span>{badgeId}</span></b>}
@@ -82,7 +70,7 @@ export function BadgeAvatar({
             className="badge-avatar"
             src={<Spin />}
             size={size ? size : 50}
-            onClick={() => setModalIsVisible(true)}
+            onClick={() => router.push(`/collections/${collection.collectionId}/${badgeId}`)}
             onError={() => {
                 return false;
             }}

@@ -186,6 +186,9 @@ export function ClaimDisplay({
 
                 {showClaimDisplay ?
                     <div>
+                        {/* <Row style={{ display: 'flex', justifyContent: 'center' }} >
+                            <h3 style={{ color: PRIMARY_TEXT }}>STATUS: {expired}</h3>
+                        </Row> */}
                         <Row style={{ display: 'flex', justifyContent: 'center' }} >
                             <h3 style={{ color: PRIMARY_TEXT }}><ClockCircleOutlined /> {timeStr}</h3>
                         </Row>

@@ -10,7 +10,7 @@ export function CollectionDisplay({ collection }: { collection: BitBadgeCollecti
 
     if (!collection) return <></>;
 
-    return <div style={{ width: 350, margin: 10, display: 'flex' }}>
+    return <div style={{ width: 325, margin: 10, display: 'flex' }}>
         <InformationDisplayCard
             title={<>
                 <Tooltip color='black' title={"Collection ID: " + collection.collectionId} placement="bottom">

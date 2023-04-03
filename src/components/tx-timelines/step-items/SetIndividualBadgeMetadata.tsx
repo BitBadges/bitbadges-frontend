@@ -35,7 +35,6 @@ export function SetIndividualBadgeMetadataStepItem(
                             collectionMetadata: collectionMetadata,
                             badgeMetadata: individualBadgeMetadata
                         }}
-                        hideModalBalance
                         userBalance={getBlankBalance()}
                         badgeIds={[
                             {

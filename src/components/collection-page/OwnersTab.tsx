@@ -7,6 +7,8 @@ import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { getPageDetails } from '../../utils/pagination';
+import { useChainContext } from '../../contexts/ChainContext';
+import { BlockinDisplay } from '../blockin/BlockinDisplay';
 
 export function OwnersTab({ collection, badgeId }: {
     collection: BitBadgeCollection | undefined;
@@ -14,6 +16,7 @@ export function OwnersTab({ collection, badgeId }: {
 }) {
     //TODO: paginate
     const accounts = useAccountsContext();
+    const chain = useChainContext();
     const isPreview = collection?.collectionId === 0;
 
     const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
@@ -21,7 +24,7 @@ export function OwnersTab({ collection, badgeId }: {
     const [loaded, setLoaded] = useState(false);
 
     const [currPage, setCurrPage] = useState<number>(1);
-    const PAGE_SIZE = 5;
+    const PAGE_SIZE = 10;
     const minId = 1;
     const maxId = badgeOwners.length;
 
@@ -62,7 +65,7 @@ export function OwnersTab({ collection, badgeId }: {
     return (
 
         <InformationDisplayCard
-            title="Owners"
+            title="Balances"
         >
             {loaded ?
                 <div
@@ -73,12 +76,38 @@ export function OwnersTab({ collection, badgeId }: {
                         display: 'flex',
                         flexDirection: 'column'
                     }}>
+                    <div style={{ width: '100%' }}>
+                        <h2 style={{ color: PRIMARY_TEXT }}>You</h2>
+                        {chain.connected && chain.accountNumber ?
+                            <div className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', padding: 10 }}>
+                                <div>
+                                    <AddressDisplay
+                                        userInfo={{
+                                            name: chain.name,
+                                            avatar: chain.avatar,
+                                            address: chain.address,
+                                            cosmosAddress: chain.cosmosAddress,
+                                            chain: chain.chain,
+                                            accountNumber: chain.accountNumber
+                                        }}
+                                        fontColor={PRIMARY_TEXT} />
+                                </div>
+                                <div style={{ fontSize: 20 }}>
+                                    x{getSupplyByBadgeId(badgeId, balances[chain.accountNumber]?.balances || [])}
+                                </div>
+                            </div> : <BlockinDisplay hideLogo />
+                        }
+                        <hr />
+                    </div>
+
+                    <h2 style={{ color: PRIMARY_TEXT }}>All Owners</h2>
                     <div style={{
                         display: 'flex',
                         flexDirection: 'row',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        marginTop: 4
+                        marginTop: 4,
+
                     }} >
                         <Pagination
                             style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
@@ -92,6 +121,7 @@ export function OwnersTab({ collection, badgeId }: {
                             showSizeChanger={false}
                         />
                     </div>
+
 
                     {badgeOwners?.map((owner, idx) => {
                         if (idx < pageStartId - 1 || idx > pageEndId - 1) {

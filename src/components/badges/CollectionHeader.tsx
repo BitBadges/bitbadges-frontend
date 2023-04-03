@@ -1,13 +1,17 @@
-import { Avatar, Col, Divider, Row, Spin, Typography } from 'antd';
-import { BadgeMetadata } from 'bitbadges-sdk';
+import { Avatar, Col, Row, Spin, Typography } from 'antd';
+import { BadgeMetadata, BitBadgeCollection } from 'bitbadges-sdk';
+import { useRouter } from 'next/router';
 import { PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;
 
 
-export function CollectionHeader({ metadata }: {
+export function CollectionHeader({ metadata, collection, setVisible }: {
     metadata?: BadgeMetadata;
+    collection?: BitBadgeCollection;
+    setVisible?: (visible: boolean) => void;
 }) {
+    const router = useRouter();
     if (!metadata) return <></>;
 
     return <>
@@ -21,7 +25,7 @@ export function CollectionHeader({ metadata }: {
                     alignItems: 'center',
                 }}
             >
-                <Col span={8}
+                <Col span={12}
                     style={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -58,11 +62,22 @@ export function CollectionHeader({ metadata }: {
                             <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
                                 {metadata?.name}
                             </Text>
+                            {collection && <>
+                                <br />
+                                <Text strong style={{ fontSize: 16, color: PRIMARY_TEXT }}>
+                                    <a onClick={() => {
+                                        router.push(`/collections/${collection.collectionId}`)
+                                        if (setVisible) setVisible(false);
+                                    }}>{collection.collectionMetadata?.name}</a>
+                                </Text>
+                            </>}
                         </div>}
+
+
                     </div>
                 </Col>
             </Row>
-            <Divider />
+            <br />
         </div>
     </>;
 }

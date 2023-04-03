@@ -1,10 +1,10 @@
-import { Drawer, Modal, Tooltip, Typography } from 'antd';
+import { Modal, Tooltip, Typography } from 'antd';
+import { MINT_ACCOUNT, SupportedChain, doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadges-sdk';
 import { ethToCosmos } from 'bitbadgesjs-address-converter';
 import { useRouter } from 'next/router';
+import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { AddressDisplay } from './AddressDisplay';
-import { getChainForAddress, getAbbreviatedAddress, isAddressValid, MINT_ACCOUNT, SupportedChain, doesChainMatchName } from 'bitbadges-sdk';
-import { PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;
 

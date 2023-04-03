@@ -1,11 +1,11 @@
 import { Divider, Layout } from 'antd';
+import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
-import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
-import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
+import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
@@ -36,7 +36,7 @@ function CollectionPage({
     const router = useRouter()
     const chain = useChainContext();
     const collections = useCollectionsContext();
-    const { collectionId, badgeId, password, code } = router.query;
+    const { collectionId, badgeId, password, code, claimsTab } = router.query;
 
     const accountNumber = chain.accountNumber;
     const isPreview = collectionPreview ? true : false;
@@ -48,7 +48,8 @@ function CollectionPage({
 
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
     const [userBalance, setUserBalance] = useState<UserBalance>();
-    const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code) ? 'claims' : 'overview');
+    const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
+
 
     async function refreshBadgeBalance() {
         if (isPreview) return;
@@ -76,8 +77,8 @@ function CollectionPage({
 
     //Set tab to badges if badgeId is in query
     useEffect(() => {
-        if (code || password) setTab('claims');
-    }, [code, password])
+        if (code || password || claimsTab) setTab('claims');
+    }, [code, password, claimsTab])
 
 
     // Get user's badge balance
@@ -103,10 +104,10 @@ function CollectionPage({
             >
                 <div
                     style={{
-                        marginLeft: !isPreview ? '10vw' : undefined,
-                        marginRight: !isPreview ? '10vw' : undefined,
-                        paddingLeft: !isPreview ? '2vw' : undefined,
-                        paddingRight: !isPreview ? '2vw' : undefined,
+                        marginLeft: !isPreview ? '7vw' : undefined,
+                        marginRight: !isPreview ? '7vw' : undefined,
+                        paddingLeft: !isPreview ? '1vw' : undefined,
+                        paddingRight: !isPreview ? '1vw' : undefined,
                         paddingTop: '20px',
                         background: PRIMARY_BLUE,
                     }}
@@ -119,7 +120,8 @@ function CollectionPage({
 
                         {/* Tab Content */}
                         {tab === 'overview' && (
-                            <OverviewTab setTab={setTab}
+                            <OverviewTab
+                                setTab={setTab}
                                 collection={collection}
                                 refreshUserBalance={refreshBadgeBalance}
                                 userBalance={userBalance}
@@ -129,10 +131,6 @@ function CollectionPage({
                         {tab === 'badges' && (
                             <BadgesTab
                                 collection={collection}
-                                balance={userBalance}
-                                badgeId={badgeIdNumber}
-                                setBadgeId={setBadgeIdNumber}
-                                isPreview={isPreview}
                             />
                         )}
 

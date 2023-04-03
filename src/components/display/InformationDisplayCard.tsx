@@ -1,4 +1,4 @@
-import { Col, Divider, Row, Typography } from "antd";
+import { Col, Row, Typography } from "antd";
 import { PRIMARY_TEXT } from '../../constants';
 
 const { Text } = Typography;
@@ -16,7 +16,7 @@ export function InformationDisplayCard({
     noBorder?: boolean
 }) {
     return (
-        <Col span={span ? span : 24} style={{ minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
+        <Col span={span ? span : 24} style={{ padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
             <div
                 style={{
                     color: PRIMARY_TEXT,
@@ -29,7 +29,7 @@ export function InformationDisplayCard({
                                 {title}
                             </Text>
                         </Row>
-                        <Divider style={{ margin: "0px 0px", color: 'gray', background: 'gray' }}></Divider>
+                        {/* <Divider style={{ margin: "0px 0px", color: 'gray', background: 'gray' }}></Divider> */}
                         {children}
                     </Col>
                 </Row>

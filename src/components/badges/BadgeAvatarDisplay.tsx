@@ -1,11 +1,10 @@
 import { Pagination } from "antd";
+import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance, getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
 import { useEffect, useState } from "react";
-import { BadgeAvatar } from "./BadgeAvatar";
+import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
-import { getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
 import { getPageDetails } from "../../utils/pagination";
-import { BitBadgeCollection, UserBalance, IdRange, BadgeMetadata } from "bitbadges-sdk";
-import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
+import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
 
 export function BadgeAvatarDisplay({
@@ -17,10 +16,10 @@ export function BadgeAvatarDisplay({
     showIds,
     pageSize = 10,
     showBalance,
-    hideModalBalance,
     maxWidth = 350,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
-    cardView
+    cardView,
+    hideCollectionLink
 }: {
     collection: BitBadgeCollection | undefined;
     userBalance?: UserBalance;
@@ -30,10 +29,10 @@ export function BadgeAvatarDisplay({
     selectedId?: number;
     showIds?: boolean;
     showBalance?: boolean;
-    hideModalBalance?: boolean;
     maxWidth?: number | string;
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     cardView?: boolean;
+    hideCollectionLink?: boolean;
 }) {
     const collections = useCollectionsContext();
 
@@ -152,7 +151,6 @@ export function BadgeAvatarDisplay({
                                     balance={userBalance}
                                     showId={showIds}
                                     showBalance={showBalance}
-                                    hideModalBalance={hideModalBalance}
                                 /> :
                                 <BadgeCard
                                     size={size && selectedId === badgeIdsToDisplay[idx] ? size * 1.5 : size}
@@ -161,8 +159,8 @@ export function BadgeAvatarDisplay({
                                         getMetadataForBadgeId(badgeIdsToDisplay[idx], collection.badgeMetadata) || {} as BadgeMetadata
                                     }
                                     id={badgeIdsToDisplay[idx]}
-                                    balance={userBalance}
-                                    hideModalBalances={hideModalBalance}
+
+                                    hideCollectionLink={hideCollectionLink}
                                 />
                             }
                         </div>

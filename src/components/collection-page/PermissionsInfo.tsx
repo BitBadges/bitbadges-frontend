@@ -8,10 +8,12 @@ import { TableRow } from "../display/TableRow";
 
 export function PermissionsOverview({
     collection,
-    span
+    span,
+    isBadgeView
 }: {
     collection: BitBadgeCollection
     span?: number
+    isBadgeView?: boolean
 }) {
     if (!collection?.permissions) return <></>
 
@@ -19,8 +21,8 @@ export function PermissionsOverview({
         <>
 
             <>
-                {<TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-                {<TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {!isBadgeView && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
 

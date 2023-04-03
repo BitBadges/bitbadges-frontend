@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { getBrowseInfo } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';
 import { Tabs } from '../components/navigation/Tabs';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
+import { PRIMARY_BLUE, SECONDARY_BLUE } from '../constants';
 import { useCollectionsContext } from '../contexts/CollectionsContext';
 
 const { Content } = Layout;
@@ -15,7 +15,7 @@ const { Content } = Layout;
 function BrowsePage() {
     const collections = useCollectionsContext();
 
-    const [browseInfo, setBrowseInfo] = useState<{ collections: BadgeCollection[] }>();
+    const [browseInfo, setBrowseInfo] = useState<{ [category: string]: BadgeCollection[] }>();
     const [tab, setTab] = useState('featured');
 
 
@@ -25,7 +25,14 @@ function BrowsePage() {
             const browseInfo = await getBrowseInfo();
             if (!browseInfo) return;
 
-            await collections.fetchCollections([...browseInfo.collections.map((collection) => collection.collectionId)]);
+            const collectionsToFetch = [];
+            for (const category of Object.keys(browseInfo)) {
+                for (const collection of browseInfo[category]) {
+                    collectionsToFetch.push(collection.collectionId);
+                }
+            }
+
+            await collections.fetchCollections(collectionsToFetch);
 
             setBrowseInfo(browseInfo);
         }
@@ -55,37 +62,22 @@ function BrowsePage() {
                     <Tabs
                         tab={tab}
                         setTab={setTab}
-                        tabInfo={[
-                            {
-                                key: 'featured',
-                                onClick: () => setTab('featured'),
-                                content: 'Featured',
-                            },
-                            {
-                                key: 'trending',
-                                onClick: () => setTab('trending'),
-                                content: 'Trending',
-                            },
-                            {
-                                key: 'claimable',
-                                onClick: () => setTab('claimable'),
-                                content: 'Claimable',
-                            },
-                            {
-                                key: 'newest',
-                                onClick: () => setTab('newest'),
-                                content: 'Newest',
-                            },
-
-                        ]}
+                        tabInfo={browseInfo ? Object.keys(browseInfo).map(category => {
+                            return {
+                                key: category,
+                                onClick: () => setTab(category),
+                                //uppercase first letter
+                                content: category.charAt(0).toUpperCase() + category.slice(1),
+                            }
+                        }) : []}
                         theme='dark'
                         fullWidth
-
                     />
+
                     <div>
                         <br />
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {browseInfo?.collections.map((portfolioCollection: BadgeCollection) => {
+                            {browseInfo && browseInfo[tab]?.map((portfolioCollection: BadgeCollection) => {
                                 const collection = collections.collections[portfolioCollection.collectionId];
 
                                 return <>

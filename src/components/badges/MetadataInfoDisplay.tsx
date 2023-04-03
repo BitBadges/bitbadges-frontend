@@ -58,17 +58,10 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             span={span}
         >
             {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}
-            {!isCollectionInfo && <TableRow label={"Supply"} value={
-                <div>
-                    <div>Total: {totalSupply}</div>
-                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
-                    <div>Claimable: {claimableSupply} / {totalSupply}</div>
-                    <div>Minted: {distributedSupply} / {totalSupply}</div>
-                </div>
-            } labelSpan={12} valueSpan={12} />}
+
             {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
-            {isCollectionInfo && <TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
-            {isCollectionInfo && collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
+            {<TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
+            {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
                     display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
@@ -82,6 +75,14 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
                 </div>
             </div>} labelSpan={9} valueSpan={15} />}
             {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
+            {!isCollectionInfo && <TableRow label={"Supply"} value={
+                <div>
+                    <div>Total: {totalSupply}</div>
+                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
+                    <div>Claimable: {claimableSupply} / {totalSupply}</div>
+                    <div>Minted: {distributedSupply} / {totalSupply}</div>
+                </div>
+            } labelSpan={12} valueSpan={12} />}
             {isCollectionInfo && collection.collectionUri && <TableRow label={"Metadata URL"} value={
                 <div>
                     <Tooltip placement='bottom' title={collection.collectionUri}>

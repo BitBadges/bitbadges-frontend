@@ -1,31 +1,32 @@
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { GiftOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
-import { BitBadgeCollection, UserBalance } from "bitbadges-sdk";
+import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
+import Markdown from 'react-markdown';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { InformationDisplayCard } from "../display/InformationDisplayCard";
-import { BalanceOverview } from "./BalancesInfo";
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay";
+import { BalanceDisplay } from "../balances/BalanceDisplay";
+import { ButtonDisplay } from "../display/ButtonDisplay";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { TableRow } from "../display/TableRow";
+import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
-import Markdown from 'react-markdown';
+
 
 export function OverviewTab({
     collection,
     refreshUserBalance,
     userBalance,
     setTab,
-    isPreview,
-    isBadgeModal
+    isPreview
 }: {
     collection: BitBadgeCollection | undefined;
     refreshUserBalance: () => Promise<void>;
     userBalance: UserBalance | undefined;
     setTab: (tab: string) => void;
     isPreview?: boolean;
-    isBadgeModal?: boolean
 }) {
     if (!collection) return <></>;
     const collectionMetadata = collection?.collectionMetadata;
@@ -35,36 +36,39 @@ export function OverviewTab({
         && JSON.stringify(collection.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
         && JSON.stringify(collection.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
 
+    let claimableBalances: UserBalance = {
+        balances: [],
+        approvals: []
+    };
+
+    for (const claim of collection.claims) {
+        for (const balance of claim.balances) {
+            claimableBalances = AddBalancesForIdRanges(claimableBalances, balance.badgeIds, balance.balance);
+        }
+    }
+
+    const activeClaims = collection ? collection?.claims.filter((x, _idx) => {
+        if (x.balances.length > 0) {
+            return true;
+        }
+        return false;
+    }) : [];
+
+
     return <>
         <InformationDisplayCard
             title="Badges in Collection"
         >
             <BadgeAvatarDisplay
                 showIds
-                // size={55}
+                size={75}
                 collection={collection}
                 userBalance={userBalance}
                 badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
-                hideModalBalance={isPreview}
                 maxWidth={'100%'}
             />
         </InformationDisplayCard>
         <br />
-
-        {collection.collectionMetadata.description &&
-
-            <InformationDisplayCard
-                title="Description"
-            >
-                <div style={{ maxHeight: 400, overflow: 'auto' }} >
-                    <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
-                        <Markdown>
-                            {collection.collectionMetadata.description}
-                        </Markdown>
-                    </div>
-                </div>
-            </InformationDisplayCard>
-        }
 
         <br />
         <Row
@@ -73,7 +77,7 @@ export function OverviewTab({
                 justifyContent: 'space-between',
             }}
         >
-            <Col span={11}>
+            <Col span={12} style={{ paddingRight: 10 }}>
                 <MetadataDisplay
                     collection={collection}
                     metadata={collectionMetadata}
@@ -130,17 +134,92 @@ export function OverviewTab({
                 />
             </Col>
 
+            <Col span={12}>
+                {collectionMetadata?.description && <>
+                    <InformationDisplayCard
+                        title={<>About</>}
+                        span={24}
+                    >
+                        <div style={{ maxHeight: 200, overflow: 'auto' }} >
+                            <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
+                                <Markdown>
+                                    {collectionMetadata?.description}
+                                </Markdown>
+                            </div>
+                        </div>
+                    </InformationDisplayCard>
+                    <br />
+                </>}
+                <InformationDisplayCard
+                    title={<>Distribution</>}
+                    span={24}
+                >
+                    <TableRow label={"Number of Badges"} value={collection.nextBadgeId - 1} labelSpan={12} valueSpan={12} />
+                    {collection && <TableRow label={"Badge Supplys"} value={
+                        <div style={{ float: 'right' }}>
+                            <BalanceDisplay
+                                hideBadges
+                                collection={collection}
+                                hideMessage
+                                balance={{
+                                    balances: collection.maxSupplys, approvals: []
+                                }} />
+                        </div>
+                    } labelSpan={12} valueSpan={12} />
+                    }
+                    {collection && <TableRow label={"Unminted"} value={
+                        <div style={{ float: 'right' }}>
+                            <BalanceDisplay
+                                hideBadges
+                                collection={collection}
+                                hideMessage
+                                balance={{
+                                    balances: collection.unmintedSupplys, approvals: []
+                                }} />
+                        </div>
+                    } labelSpan={12} valueSpan={12} />}
+                    {collection && <TableRow label={"Claimable"} value={
+                        <div style={{ float: 'right' }}>
+                            <BalanceDisplay
+                                hideBadges
+                                collection={collection}
+                                hideMessage
+                                balance={claimableBalances} />
 
-            <BalanceOverview
-                collection={collection}
-                refreshUserBalance={refreshUserBalance}
-                metadata={collectionMetadata}
-                balance={userBalance}
-                span={12}
-                setTab={setTab}
-                isPreview={isPreview}
-                isBadgeModal={isBadgeModal}
-            />
-        </Row>
+                        </div>
+                    } labelSpan={12} valueSpan={12} />}
+
+                    {activeClaims.length > 0 && <div>
+                        <ButtonDisplay buttons={[{
+                            name: <>Claim ({`${activeClaims.length}`})</>,
+                            icon: <GiftOutlined />,
+                            onClick: () => {
+                                setTab('claims')
+                            },
+                            // count: hasViewedClaimTab ? undefined : activeClaimIds.length,
+                            tooltipMessage: `Claim this badge!`,
+                            disabled: isPreview
+                        }]} />
+                    </div>}
+                </InformationDisplayCard>
+                <br />
+                <InformationDisplayCard
+                    title={<>Balance Checker</>}
+                    span={24}
+                >
+                    <div style={{ display: 'flex' }}>
+                        <BalanceOverview
+                            collection={collection}
+                            refreshUserBalance={refreshUserBalance}
+                            metadata={collectionMetadata}
+                            balance={userBalance}
+                            setTab={setTab}
+                            isPreview={isPreview}
+                        />
+                    </div>
+                </InformationDisplayCard>
+
+            </Col>
+        </Row >
     </>
 }

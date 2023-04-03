@@ -1,5 +1,5 @@
 import { Avatar, Modal, Pagination, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
+import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, getBadgeIdsToDisplayForPageNumber, getIdRangesForAllBadgeIdsInCollection, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
 import { useEffect, useState } from "react";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
@@ -18,12 +18,15 @@ export function MultiCollectionBadgeDisplay({
     cardView,
     pageSize = 25,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
-    groupByCollection
+    groupByCollection,
+    hideCollectionLink
 }: {
     collections: BitBadgeCollection[], accountInfo?: BitBadgesUserInfo, cardView?: boolean, pageSize?: number,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     groupByCollection?: boolean;
+    hideCollectionLink?: boolean;
 }) {
+
     const collectionsContext = useCollectionsContext();
     const router = useRouter();
     const chain = useChainContext();
@@ -48,10 +51,18 @@ export function MultiCollectionBadgeDisplay({
             badgeIds: IdRange[]
         }[] = [];
         for (const collection of collections) {
-            allBadgeIds.push({
-                badgeIds: collection.balances[accountInfo?.accountNumber || 0]?.balances.map(balance => balance.badgeIds).flat() || [],
-                collection
-            });
+            if (accountInfo) {
+
+                allBadgeIds.push({
+                    badgeIds: collection.balances[accountInfo?.accountNumber || 0]?.balances.map(balance => balance.badgeIds).flat() || [],
+                    collection
+                });
+            } else {
+                allBadgeIds.push({
+                    badgeIds: getIdRangesForAllBadgeIdsInCollection(collection),
+                    collection
+                });
+            }
         }
 
 
@@ -150,7 +161,8 @@ export function MultiCollectionBadgeDisplay({
                                     cardView={cardView}
                                     userBalance={collection.balances[chain.accountNumber || 0]}
                                     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
-                                    badgeIds={collection.balances[accountInfo?.accountNumber || 0].balances.map(balance => balance.badgeIds).flat()}
+                                    badgeIds={collection.balances[accountInfo?.accountNumber || 0]?.balances.map(balance => balance.badgeIds).flat() || []}
+                                    hideCollectionLink={hideCollectionLink}
                                 />
                             </InformationDisplayCard>
                         </div>
@@ -194,7 +206,6 @@ export function MultiCollectionBadgeDisplay({
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    margin: 2
                                 }}>
                                     {cardView ?
                                         <BadgeCard
@@ -203,25 +214,16 @@ export function MultiCollectionBadgeDisplay({
                                                 getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
                                             }
                                             id={badgeId}
-                                            balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
-                                            userBalance={badgeIdObj.collection.balances[chain.accountNumber || 0]}
-                                            // showId={showIds}
-                                            // showBalance={showBalance}
-                                            hideModalBalances={true}
-                                        // showCollectionName={showCollectionName}
+                                            hideCollectionLink={hideCollectionLink}
                                         /> :
                                         <BadgeAvatar
-                                            // size={}
+                                            size={70}
                                             collection={badgeIdObj.collection}
                                             metadata={
                                                 getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
                                             }
                                             badgeId={badgeId}
                                             balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
-                                            userBalance={badgeIdObj.collection.balances[chain.accountNumber || 0]}
-                                        // showId={showIds}
-                                        // showBalance={showBalance}
-                                        // hideModalBalance={hideModalBalance}
                                         />
                                     }
                                 </div>

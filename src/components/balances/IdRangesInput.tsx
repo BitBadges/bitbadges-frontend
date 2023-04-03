@@ -242,7 +242,6 @@ export function IdRangesInput({
             <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
                 <BadgeAvatarDisplay
                     collection={collection}
-                    hideModalBalance
                     badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
                     showIds={true}
                     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}

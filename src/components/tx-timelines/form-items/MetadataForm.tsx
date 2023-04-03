@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
-import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod, DefaultPlaceholderMetadata, GO_MAX_UINT_64, MAX_DATE_TIMESTAMP,  } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod, DefaultPlaceholderMetadata, GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, } from 'bitbadges-sdk';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
@@ -251,7 +251,6 @@ export function MetadataForm({
                                 metadata={currentMetadata}
                                 collection={collection}
                                 size={75}
-                                hideModalBalance
                                 showId
                             />
                         </div>

@@ -29,7 +29,6 @@ export function AccountButtonDisplay({
     website?: string,
 }) {
     const address = accountInfo.address;
-    const chain = accountInfo.chain;
     const avatar = accountInfo.avatar;
     const profilePicSrc = profilePic ? (
         profilePic
@@ -97,7 +96,7 @@ export function AccountButtonDisplay({
                         size="large"
                         onClick={() => {
                             navigator.clipboard.writeText(
-                                `https://${WEBSITE_HOSTNAME}/user/${chain}:${address}`
+                                `https://${WEBSITE_HOSTNAME}/account/${address}`
                             );
                             message.success('Copied to clipboard!');
                         }}

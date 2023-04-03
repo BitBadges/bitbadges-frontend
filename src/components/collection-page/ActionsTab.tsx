@@ -18,11 +18,13 @@ export function ActionsTab({
     collection,
 
     userBalance,
-    refreshUserBalance
+    refreshUserBalance,
+    badgeView
 }: {
     collection?: BitBadgeCollection;
     userBalance?: UserBalance;
     refreshUserBalance: () => Promise<void>;
+    badgeView?: boolean;
 }) {
     const chain = useChainContext();
     const accountNumber = chain.accountNumber;
@@ -67,7 +69,7 @@ export function ActionsTab({
     actions.push({
         title: getTitleElem("Transfer"),
         description: getDescriptionElem(
-            "Transfer badge(s) in this collection."
+            "Transfer badge(s) in this collection, if allowed."
         ),
         showModal: () => {
             setTransferIsVisible(!transferIsVisible);
@@ -75,7 +77,7 @@ export function ActionsTab({
     });
 
 
-    if (isManager) {
+    if (isManager && !badgeView) {
         if (collection.permissions.CanCreateMoreBadges) {
             actions.push({
                 title: getTitleElem("Add Badges"),
@@ -164,7 +166,7 @@ export function ActionsTab({
         })
     }
 
-    if (!isManager) {
+    if (!isManager && !badgeView) {
         if (collection.permissions.CanManagerBeTransferred) {
             actions.push({
                 title: getTitleElem("Request Manager Transfer"),

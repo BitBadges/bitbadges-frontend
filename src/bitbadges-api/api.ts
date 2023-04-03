@@ -196,7 +196,9 @@ export const fetchCodes = async (collectionId: number) => {
 }
 
 export const getBrowseInfo = async () => {
-    const res: { collections: BadgeCollection[] } = await axios.get(BACKEND_URL + '/api/browse').then(res => res.data);
+    const res: {
+        [categoryName: string]: BadgeCollection[]
+    } = await axios.get(BACKEND_URL + '/api/browse').then(res => res.data);
     return res;
 }
 

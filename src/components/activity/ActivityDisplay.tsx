@@ -8,6 +8,7 @@ import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { getPageDetails } from '../../utils/pagination';
 import { BitBadgeCollection, ActivityItem, filterBadgeActivityForBadgeId, SupportedChain } from 'bitbadges-sdk';
 import { PRIMARY_TEXT, PRIMARY_BLUE, DEV_MODE } from '../../constants';
+import { useRouter } from 'next/router';
 
 
 enum ActivityType {
@@ -22,6 +23,7 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
     userActivity?: (ActivityItem & { collectionId?: number })[]
 }) {
     const accounts = useAccountsContext();
+    const router = useRouter();
     const collections = useCollectionsContext();
     const [currPage, setCurrPage] = useState<number>(1);
 
@@ -176,6 +178,23 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
 
                                     <div style={{ width: 700 }}>
                                         <h2 style={{ color: PRIMARY_TEXT }}>Transaction Type: {activity.method}</h2>
+                                        {activity.collectionId && collection && <div
+                                            style={{
+                                                fontSize: 14,
+                                                color: PRIMARY_TEXT,
+                                                fontWeight: 'bolder',
+                                                whiteSpace: 'normal'
+                                            }}
+                                            onClick={(e) => {
+                                                router.push(`/collections/${collection.collectionId}`);
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <a>
+                                                {collections.collections[`${activity.collectionId}`]?.collectionMetadata.name}
+                                            </a>
+                                        </div>}
+
                                         <TransferDisplay
                                             fontColor={PRIMARY_TEXT}
                                             key={idx}
@@ -225,6 +244,6 @@ export function ActivityTab({ collection, badgeId, userActivity }: {
                     {JSON.stringify(collection, null, 2)}
                 </pre>
             }
-        </div >
+        </div>
     );
 }
