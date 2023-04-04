@@ -8,7 +8,7 @@ async function fetchDefaultTxDetails(chain: any) {
     const fee = {
         amount: '1',
         denom: 'token',
-        gas: '200000',
+        gas: '500000',
     }
     const memo = '';
 

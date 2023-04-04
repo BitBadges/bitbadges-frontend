@@ -88,7 +88,11 @@ export function OwnersTab({ collection, badgeId }: {
                                             address: chain.address,
                                             cosmosAddress: chain.cosmosAddress,
                                             chain: chain.chain,
-                                            accountNumber: chain.accountNumber
+                                            accountNumber: chain.accountNumber,
+                                            github: chain.github,
+                                            discord: chain.discord,
+                                            twitter: chain.twitter,
+                                            telegram: chain.telegram,
                                         }}
                                         fontColor={PRIMARY_TEXT} />
                                 </div>

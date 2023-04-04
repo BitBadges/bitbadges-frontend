@@ -50,6 +50,7 @@ export function SetCollectionMetadataStepItem(
                 newCollectionMsg={newCollectionMsg}
                 toBeFrozen={!GetPermissions(newCollectionMsg.permissions).CanUpdateUris}
                 populateOtherBadges={(badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => {
+                    console.log("SETTING IN COLLECTION");
                     individualBadgeMetadata = populateFieldsOfOtherBadges(individualBadgeMetadata, badgeIds, key, value, metadataToSet);
                     setIndividualBadgeMetadata(individualBadgeMetadata);
                 }}

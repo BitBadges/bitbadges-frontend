@@ -17,6 +17,7 @@ import { InformationDisplayCard } from '../../../components/display/InformationD
 import { Tabs } from '../../../components/navigation/Tabs';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../../constants';
 import { useCollectionsContext } from '../../../contexts/CollectionsContext';
+import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
 
 const { Content } = Layout;
 
@@ -83,6 +84,7 @@ export function BadgePage({ collectionPreview }
                         background: PRIMARY_BLUE,
                     }}
                 >
+                    <BadgeButtonDisplay website={metadata?.externalUrl} />
 
                     <CollectionHeader
                         metadata={metadata}
@@ -147,10 +149,10 @@ export function BadgePage({ collectionPreview }
                                                         : <>                                        {
                                                             collection?.disallowedTransfers.map((transfer) => {
                                                                 return <>
-                                                                    The addresses with account IDs {transfer.from.accountNums.map((range, index) => {
+                                                                    The addresses with account IDs {transfer.from.accountIds.map((range, index) => {
                                                                         return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
                                                                     })} {transfer.from.options === 1 ? '(including the manager)' : transfer.from.options === 2 ? '(excluding the manager)' : ''} cannot
-                                                                    transfer to the addresses with account IDs {transfer.to.accountNums.map((range, index) => {
+                                                                    transfer to the addresses with account IDs {transfer.to.accountIds.map((range, index) => {
                                                                         return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
                                                                     })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
                                                                     <br />
@@ -172,7 +174,7 @@ export function BadgePage({ collectionPreview }
                                         />}
 
                                 </Col>
-                                <Col span={12} style={{ minHeight: 100,  paddingLeft: 10, flexDirection: 'column' }}>
+                                <Col span={12} style={{ minHeight: 100, paddingLeft: 10, flexDirection: 'column' }}>
                                     {metadata?.description && <>
                                         <InformationDisplayCard
                                             title="About"

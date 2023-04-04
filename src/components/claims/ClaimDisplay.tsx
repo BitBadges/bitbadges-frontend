@@ -114,7 +114,7 @@ export function ClaimDisplay({
         cantClaim = true;
         notConnected = true;
         errorMessage = 'Please sign in with your wallet!';
-    } else if (claim.limitPerAccount === 2 && collection.usedClaims.addresses && collection.usedClaims[`${claimId}`]?.addresses[chain.cosmosAddress] >= 1) {
+    } else if (claim.restrictOptions === 2 && collection.usedClaims.addresses && collection.usedClaims[`${claimId}`]?.addresses[chain.cosmosAddress] >= 1) {
         cantClaim = true;
         errorMessage = 'You have already claimed!';
     } else if (collection.usedClaims[`${claimId}`]?.codes && collection.usedClaims[`${claimId}`].codes[SHA256(currCode).toString()] > 0) {
@@ -126,7 +126,7 @@ export function ClaimDisplay({
     }
 
     //Case 6
-    if (claim.limitPerAccount === 1) {
+    if (claim.restrictOptions === 1) {
         const addresses = claim.addresses;
         const max = addresses.filter(x => x === chain.cosmosAddress).length;
         let currUsed = 0;
@@ -314,7 +314,7 @@ export function ClaimDisplay({
                                     <Button disabled={cantClaim} type='primary' onClick={() => openModal(claim, currCode, whitelistIndex)} style={{ width: '100%' }}>Claim</Button>
                                 </Tooltip>
 
-                                {claim.limitPerAccount === 2 && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+                                {claim.restrictOptions === 2 && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
                                     <p>*Only one claim allowed per account</p>
                                 </div>}
                             </div>

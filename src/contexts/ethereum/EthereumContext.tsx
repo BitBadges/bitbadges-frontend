@@ -52,6 +52,14 @@ export const EthereumContext = createContext<EthereumContextType>({
     setName: () => { },
     avatar: '',
     setAvatar: () => { },
+    github: '',
+    setGithub: () => { },
+    discord: '',
+    setDiscord: () => { },
+    telegram: '',
+    setTelegram: () => { },
+    twitter: '',
+    setTwitter: () => { }
 })
 
 
@@ -72,6 +80,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
     const [name, setName] = useState<string>('');
     const [avatar, setAvatar] = useState<string>('');
+    const [twitter, setTwitter] = useState<string>('');
+    const [discord, setDiscord] = useState<string>('');
+    const [github, setGithub] = useState<string>('');
+    const [telegram, setTelegram] = useState<string>('');
+
 
     const selectedChainInfo = {};
     const displayedResources: PresetResource[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
@@ -111,6 +124,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setIsRegistered(Number(accountInformation.account_number) >= 0);
         setName(accountInformation.name || '');
         setAvatar(accountInformation.avatar || '');
+        setTelegram(accountInformation.telegram || '');
+        setDiscord(accountInformation.discord || '');
+        setGithub(accountInformation.github || '');
+        setTwitter(accountInformation.twitter || '');
 
         setSigner(signer);
         setConnected(true);
@@ -128,6 +145,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
                 setPublicKey(accountInformation.pub_key);
                 setAccountNumber(Number(accountInformation.account_number));
                 setIsRegistered(Number(accountInformation.account_number) >= 0);
+                setName(accountInformation.name || '');
+                setAvatar(accountInformation.avatar || '');
+                setTelegram(accountInformation.telegram || '');
+                setDiscord(accountInformation.discord || '');
+                setGithub(accountInformation.github || '');
+                setTwitter(accountInformation.twitter || '');
 
                 setSigner(signer);
                 setConnected(true);
@@ -255,7 +278,15 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         name,
         setName,
         avatar,
-        setAvatar
+        setAvatar,
+        telegram,
+        setTelegram,
+        discord,
+        setDiscord,
+        github,
+        setGithub,
+        twitter,
+        setTwitter
     };
 
 

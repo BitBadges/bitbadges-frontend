@@ -39,11 +39,7 @@ export function AddressListSelect({
         setUsers([
             ...users,
             {
-                cosmosAddress: currUserInfo?.cosmosAddress,
-                accountNumber: currUserInfo?.accountNumber,
-                chain: currUserInfo?.chain,
-                address: currUserInfo?.address,
-                name: currUserInfo?.name
+                ...currUserInfo
             }
         ]);
         setCurrUserInfo({

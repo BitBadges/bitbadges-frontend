@@ -7,7 +7,7 @@ import { getPortfolio } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
-import { AccountButtonDisplay } from '../../components/portfolio-page/AccountButtonDisplay';
+import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';

@@ -96,7 +96,12 @@ export function AddressSelect({
                                 address: e.target.value,
                                 cosmosAddress: bech32Address,
                                 accountNumber: accountNum,
-                                name
+                                name,
+                                avatar: acctInformation[0].avatar,
+                                github: acctInformation[0].github,
+                                twitter: acctInformation[0].twitter,
+                                discord: acctInformation[0].discord,
+                                telegram: acctInformation[0].telegram,
                             });
                         } catch (err) {
 

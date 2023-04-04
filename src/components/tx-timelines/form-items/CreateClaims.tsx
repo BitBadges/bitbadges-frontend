@@ -149,7 +149,7 @@ export function CreateClaims({
                     end: GO_MAX_UINT_64,
                 },
                 balances: [], //will do in calculateNewBalances()
-                limitPerAccount: 2, //one per account
+                restrictOptions: transfer.numCodes && !transfer.password ? 0 : 2,
                 incrementIdsBy: transfer.incrementBy ? transfer.incrementBy : 0,
                 numIncrements: transfer.numIncrements ? transfer.numIncrements : 0,
                 password: transfer.password ? transfer.password : '',

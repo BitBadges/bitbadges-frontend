@@ -101,7 +101,7 @@ export function Address({
             >
                 {address ? (
                     <Text
-                        copyable={{ text: address }}
+                        copyable={{ text: address, tooltips: ['Copy Address', 'Copied!'] }}
                         style={{
                             color: !isValidAddress ? 'red' : fontColor
                         }}

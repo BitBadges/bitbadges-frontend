@@ -1,4 +1,4 @@
-import { Divider, Layout } from 'antd';
+import { Divider, Empty, Layout } from 'antd';
 import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 
 const { Content } = Layout;
 
@@ -113,6 +114,7 @@ function CollectionPage({
                     }}
                 >
                     {collection && <>
+                        <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />
                         {/* Overview and Tabs */}
                         <CollectionHeader metadata={collectionMetadata} />
                         <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
@@ -134,7 +136,15 @@ function CollectionPage({
                             />
                         )}
 
-                        {tab === 'claims' && (
+                        {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity') && <Empty
+                            style={{ color: PRIMARY_TEXT }}
+                            description={
+                                "This tab is not supported for previews."
+                            }
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        />}
+
+                        {tab === 'claims' && !isPreview && (
                             <ClaimsTab
                                 collection={collection}
                                 refreshUserBalance={refreshBadgeBalance}
@@ -150,7 +160,7 @@ function CollectionPage({
                             />
                         )}
 
-                        {tab === 'activity' && collection && (
+                        {tab === 'activity' && !isPreview && collection && (
                             <ActivityTab
                                 collection={collection}
                             />

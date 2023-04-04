@@ -223,7 +223,7 @@ export function MultiCollectionBadgeDisplay({
                                                 getMetadataForBadgeId(badgeId, badgeIdObj.collection.badgeMetadata) || {} as BadgeMetadata
                                             }
                                             badgeId={badgeId}
-                                            balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0]}
+                                            balance={badgeIdObj.collection.balances[accountInfo?.accountNumber || 0] ?? []}
                                         />
                                     }
                                 </div>

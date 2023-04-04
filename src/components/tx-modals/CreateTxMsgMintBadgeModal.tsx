@@ -90,6 +90,7 @@ export function CreateTxMsgMintBadgeModal(
         if (txState.addMethod == MetadataAddMethod.Manual && txType === 'AddBadges') {
             //Prune the metadata to only include the new metadata (i.e. no metadata from existingCollection)
             const prunedMetadata: BadgeMetadataMap = {};
+            console.log(txState.individualBadgeMetadata);
             let keys = Object.keys(txState.individualBadgeMetadata);
             let values = Object.values(txState.individualBadgeMetadata);
             let idx = 0;
@@ -115,6 +116,7 @@ export function CreateTxMsgMintBadgeModal(
             keys = Object.keys(prunedMetadata);
             values = Object.values(prunedMetadata);
             let addedUris: BadgeUri[] = [];
+            console.log("PRUNED METADATA: ", prunedMetadata);
             //HACK: look into removing this
             for (let i = 0; i < keys.length; i++) {
                 let duplicate = false;
@@ -161,12 +163,12 @@ export function CreateTxMsgMintBadgeModal(
         }
 
 
-        txState.setNewCollectionMsg({
-            ...txState?.newCollectionMsg,
-            collectionUri: collectionUri,
-            badgeUris: badgeUris,
-            claims: claims
-        });
+        // txState.setNewCollectionMsg({
+        //     ...txState?.newCollectionMsg,
+        //     collectionUri: collectionUri,
+        //     badgeUris: badgeUris,
+        //     claims: claims
+        // });
 
         return {
             creator: txState ? txState?.newCollectionMsg.creator : '',
@@ -218,7 +220,7 @@ export function CreateTxMsgMintBadgeModal(
                 await collections.refreshCollection(collectionId);
                 router.push(`/collections/${collectionId}`)
                 Modal.destroyAll()
-            }}
+            }}  
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}
         >

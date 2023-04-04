@@ -17,7 +17,8 @@ export function BalanceDisplay({
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
     cardView,
     hideMessage,
-    hideBadges
+    hideBadges,
+    floatToRight,
 }: {
     collection: BitBadgeCollection;
     balance?: UserBalance;
@@ -31,11 +32,14 @@ export function BalanceDisplay({
     cardView?: boolean;
     hideMessage?: boolean;
     hideBadges?: boolean;
+    floatToRight?: boolean
 }) {
     const chain = useChainContext();
 
     const allBadgeIdsArr: IdRange[][] = [];
     const incrementedBalance = balance ? JSON.parse(JSON.stringify(balance)) : balance;
+
+    console.log(balance);
 
     return <>
         {!hideMessage && <div style={{
@@ -54,7 +58,7 @@ export function BalanceDisplay({
             justifyContent: 'space-evenly',
             alignItems: 'center',
         }}>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: floatToRight ? 'right' : 'center', flexDirection: 'column', }}>
                 <div style={{ fontSize: 15 }}>
                     {balance?.balances?.map((balanceAmount, idx) => {
                         const amount = Number(balanceAmount.balance) * numRecipients;

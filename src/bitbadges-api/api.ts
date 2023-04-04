@@ -2,7 +2,7 @@ import axiosApi from 'axios';
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { stringify } from "../utils/preserveJson";
-import { AccountResponse, BadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId } from "bitbadges-sdk"
+import { AccountResponse, BadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadges-sdk"
 import { BACKEND_URL, NODE_URL } from '../constants';
 
 const axios = axiosApi.create({
@@ -133,10 +133,13 @@ export async function updateMetadata(collection: BitBadgeCollection, startBatchI
     for (const metadataRes of metadataResponses) {
         const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
         collection.collectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.collectionMetadata;
-        collection.badgeMetadata = {
-            ...collection.badgeMetadata,
-            ...metadataRes.badgeMetadata
-        };
+
+        const badgeResValues = Object.values(metadataRes.badgeMetadata as BadgeMetadataMap);
+        for (const val of badgeResValues) {
+            for (const badgeId of val.badgeIds) {
+                collection.badgeMetadata = updateMetadataMap(collection.badgeMetadata, val.metadata, badgeId, val.uri);
+            }
+        }
     }
 
     return collection;

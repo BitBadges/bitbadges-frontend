@@ -65,8 +65,11 @@ export function SetIndividualBadgeMetadataStepItem(
                 metadata={getMetadataForBadgeId(id, individualBadgeMetadata) || {} as BadgeMetadata}
                 setMetadata={(metadata: BadgeMetadata) => {
                     setDisabled(true);
+                    console.log("SETTING IN INDIVIDUAL BADGE METADATA STEP ITEM");
+                    console.log(metadata);
                     console.time("SET");
                     individualBadgeMetadata = updateMetadataMap(individualBadgeMetadata, metadata, { start: id, end: id }, 'Manual');
+                    console.log(individualBadgeMetadata);
                     setIndividualBadgeMetadata(individualBadgeMetadata);
                     setDisabled(false);
                     console.timeEnd("SET");

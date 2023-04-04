@@ -2,7 +2,8 @@ import {
     GiftOutlined,
     SwapOutlined,
 } from '@ant-design/icons';
-import { AllAddressesTransferMapping, BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, SupportedChain, UserBalance, getBlankBalance, getSupplyByBadgeId, isAddressValid } from 'bitbadges-sdk';
+import { Empty } from 'antd';
+import { AllAddressesTransferMapping, BitBadgeCollection, BitBadgesUserInfo, SupportedChain, UserBalance, getBlankBalance, getSupplyByBadgeId, isAddressValid } from 'bitbadges-sdk';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { PRIMARY_TEXT } from '../../constants';
@@ -15,10 +16,9 @@ import { ButtonDisplay, ButtonDisplayProps } from '../display/ButtonDisplay';
 import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
 
 
-export function BalanceOverview({ collection, metadata, balance, setTab, refreshUserBalance, isPreview, badgeId, onlyButtons }: {
+export function BalanceOverview({ collection, balance, setTab, refreshUserBalance, isPreview, badgeId, onlyButtons }: {
     collection: BitBadgeCollection | undefined;
     refreshUserBalance: () => Promise<void>;
-    metadata: BadgeMetadata | undefined;
     balance: UserBalance | undefined;
     setTab: (tab: string) => void;
     isPreview?: boolean;
@@ -34,7 +34,11 @@ export function BalanceOverview({ collection, metadata, balance, setTab, refresh
         chain: chain.chain,
         address: chain.address,
         cosmosAddress: chain.cosmosAddress,
-        accountNumber: chain.accountNumber
+        accountNumber: chain.accountNumber,
+        github: chain.github,
+        discord: chain.discord,
+        twitter: chain.twitter,
+        telegram: chain.telegram,
     } : {
         name: '',
         avatar: '',
@@ -52,7 +56,11 @@ export function BalanceOverview({ collection, metadata, balance, setTab, refresh
                 chain: chain.chain,
                 address: chain.address,
                 cosmosAddress: chain.cosmosAddress,
-                accountNumber: chain.accountNumber
+                accountNumber: chain.accountNumber,
+                github: chain.github,
+                discord: chain.discord,
+                twitter: chain.twitter,
+                telegram: chain.telegram,
             });
         }
     }, [chain]);
@@ -81,7 +89,7 @@ export function BalanceOverview({ collection, metadata, balance, setTab, refresh
         refreshBalance();
     }, [currUserInfo, collection])
 
-    if (!collection || !metadata) return <></>;
+    if (!collection) return <></>;
 
     const buttons: ButtonDisplayProps[] = [];
 
@@ -181,14 +189,20 @@ export function BalanceOverview({ collection, metadata, balance, setTab, refresh
         <div
             style={{ color: PRIMARY_TEXT, display: 'flex', justifyContent: 'center', width: '100%', marginTop: 16 }}
         >
+            {isPreview && <>
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    style={{ color: PRIMARY_TEXT }}
+                    description={<span style={{ color: PRIMARY_TEXT }}>Not supported for previews.</span>}
+                ></Empty>
+            </>}
             {
-                currBalance && <>
+                currBalance && !isPreview && <>
                     {/* {buttons.length > 0 && <ButtonDisplay buttons={buttons} />} */}
-                    {!onlyButtons && <div>
+                    {<div>
                         {<BalanceDisplay
                             collection={collection}
                             balance={currBalance}
-
                         />}
                     </div>}
                 </>

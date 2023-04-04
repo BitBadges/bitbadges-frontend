@@ -137,6 +137,10 @@ export function CreateTxMsgTransferBadgeModal(
                                 address: sender.address,
                                 chain: sender.chain,
                                 name: sender.name,
+                                github: sender.github,
+                                discord: sender.discord,
+                                twitter: sender.twitter,
+                                telegram: sender.telegram,
                             }}
                             hidePortfolioLink
                             darkMode

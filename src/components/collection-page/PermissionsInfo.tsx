@@ -43,9 +43,9 @@ export function PermissionsOverview({
                                     <Typography.Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>{"The manager can transfer any badge to and from any address without the approval of the badge's owner."}</Typography.Text>
                                     : <>{collection.managerApprovedTransfers.map((transfer) => {
                                         return <>
-                                            The manager can forcefully transfer badges from account IDs {transfer.from.accountNums.map((range, index) => {
+                                            The manager can forcefully transfer badges from account IDs {transfer.from.accountIds.map((range, index) => {
                                                 return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                            })} to account IDs {transfer.to.accountNums.map((range, index) => {
+                                            })} to account IDs {transfer.to.accountIds.map((range, index) => {
                                                 return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
                                             })}.
                                             <br />

@@ -50,7 +50,7 @@ export function BadgeAvatar({
         </Tooltip>
         <div style={{ textAlign: 'center' }}>
             {showId && <b><span>{badgeId}</span></b>}
-            {balance && showBalance && <> <br />
+            {balance && balance.balances && showBalance && <> <br />
                 <b>
                     x<span style={{
                         color: getSupplyByBadgeId(badgeId, balance.balances) < 0 ? 'red' : undefined

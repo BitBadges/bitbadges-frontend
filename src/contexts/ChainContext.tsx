@@ -38,6 +38,18 @@ export type ChainSpecificContextType = {
     avatar: string,
     setAvatar: Dispatch<SetStateAction<string>>,
 
+    github: string,
+    setGithub: Dispatch<SetStateAction<string>>,
+
+    discord: string,
+    setDiscord: Dispatch<SetStateAction<string>>,
+
+    telegram: string,
+    setTelegram: Dispatch<SetStateAction<string>>,
+
+    twitter: string,
+    setTwitter: Dispatch<SetStateAction<string>>,
+
     sequence: number,
     incrementSequence: () => void,
     setSequence: Dispatch<SetStateAction<number>>,
@@ -96,6 +108,14 @@ const ChainContext = createContext<ChainContextType>({
     setName: () => { },
     avatar: '',
     setAvatar: () => { },
+    github: '',
+    setGithub: () => { },
+    discord: '',
+    setDiscord: () => { },
+    telegram: '',
+    setTelegram: () => { },
+    twitter: '',
+    setTwitter: () => { },
 });
 
 type Props = {

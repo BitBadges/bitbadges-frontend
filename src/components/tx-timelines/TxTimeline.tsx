@@ -197,6 +197,7 @@ export function TxTimeline({
     }
 
     const setIndividualBadgeMetadata = (metadata: BadgeMetadataMap) => {
+        console.log(metadata);
         setBadgeMetadata(metadata);
         setHackyUpdatedFlag(!hackyUpdatedFlag);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata })).length);
@@ -230,6 +231,8 @@ export function TxTimeline({
 
             metadata = updateMetadataMap(metadata, DefaultPlaceholderMetadata, { start: origNextBadgeId, end: nextBadgeId - 1 }, 'Placeholder');
         }
+        console.log("SETTING BADGE METADATA");
+        console.log(metadata);
 
         setBadgeMetadata(metadata);
         setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);

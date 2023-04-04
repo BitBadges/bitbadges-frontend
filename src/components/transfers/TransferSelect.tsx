@@ -294,7 +294,7 @@ export function TransferSelect({
                             <SwitchForm
                                 options={[{
                                     title: 'Unique Codes',
-                                    message: 'Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like.',
+                                    message: 'Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like. No limit per address.',
                                     isSelected: codeType === CodeType.Unique,
                                 },
                                 {
