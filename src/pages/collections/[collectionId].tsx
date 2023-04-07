@@ -186,7 +186,7 @@ function CollectionPage({
                             <>
                                 <AnnouncementsTab announcements={collection.announcements} collection={collection}
                                     fetchMore={async () => {
-                                        await collections.fetchNextActivity(collection.collectionId);
+                                        await collections.fetchNextAnnouncements(collection.collectionId);
                                     }}
                                     hasMore={collections.collections[`${collection.collectionId}`]?.pagination.announcements.hasMore || false}
                                 />

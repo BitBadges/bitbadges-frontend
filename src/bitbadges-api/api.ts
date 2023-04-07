@@ -109,7 +109,28 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
     };
 }
 
-export async function updateCollectionActivity(collectionId: number, bookmark?: string) {
+export async function updateCollectionAnnouncements(collectionId: number, announcementsBookmark: string) {
+    await validatePositiveNumber(collectionId);
+
+    const badgeDataResponse: {
+        collection: BitBadgeCollection,
+        pagination: {
+            announcements: {
+                bookmark: string,
+                hasMore: boolean
+            }
+        }
+    } = await axios.post(BACKEND_URL + GetCollectionRoute(collectionId), {
+        announcementsBookmark
+    }).then((res) => res.data);
+
+    return {
+        announcements: badgeDataResponse.collection.announcements,
+        pagination: badgeDataResponse.pagination
+    };
+}
+
+export async function updateCollectionActivity(collectionId: number, activityBookmark: string) {
     await validatePositiveNumber(collectionId);
 
     const badgeDataResponse: {
@@ -118,18 +139,13 @@ export async function updateCollectionActivity(collectionId: number, bookmark?: 
             activity: {
                 bookmark: string,
                 hasMore: boolean
-            },
-            announcements: {
-                bookmark: string,
-                hasMore: boolean
             }
         }
     } = await axios.post(BACKEND_URL + GetCollectionRoute(collectionId), {
-        bookmark
+        activityBookmark
     }).then((res) => res.data);
 
     return {
-        announcements: badgeDataResponse.collection.announcements,
         activity: badgeDataResponse.collection.activity,
         pagination: badgeDataResponse.pagination
     };

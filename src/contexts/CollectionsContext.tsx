@@ -2,7 +2,7 @@
 import { notification } from 'antd';
 import { BitBadgeCollection, CollectionMap } from 'bitbadges-sdk';
 import { createContext, useContext, useState } from 'react';
-import { getCollections, updateCollectionActivity, updateMetadata } from '../bitbadges-api/api';
+import { getCollections, updateCollectionActivity, updateCollectionAnnouncements, updateMetadata } from '../bitbadges-api/api';
 
 export type CollectionsContextType = {
     collections: CollectionMap,
@@ -10,6 +10,7 @@ export type CollectionsContextType = {
     refreshCollection: (collectionId: number, fetchAllMetadata?: boolean) => Promise<void>,
     updateCollectionMetadata: (collectionId: number, startBatchIds: number[]) => Promise<void>,
     fetchNextActivity: (collectionId: number) => Promise<void>,
+    fetchNextAnnouncements: (collectionId: number) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
@@ -18,6 +19,7 @@ const CollectionsContext = createContext<CollectionsContextType>({
     refreshCollection: async () => { },
     updateCollectionMetadata: async () => { },
     fetchNextActivity: async () => { },
+    fetchNextAnnouncements: async () => { },
 });
 
 type Props = {
@@ -41,7 +43,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             let fetchedCollections: BitBadgeCollection[] = [];
             if (collectionsToFetch.length > 0) {
                 const res = await getCollections(collectionsToFetch, fetchAllMetadata);
-                
+
 
                 const collectionMap = { ...collections };
                 for (let i = 0; i < res.collections.length; i++) {
@@ -110,6 +112,38 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
+    async function fetchNextAnnouncements(collectionId: number) {
+        try {
+            if (!collections[`${collectionId}`]) return;
+            const collection = collections[`${collectionId}`];
+            if (!collection) return;
+
+            const res = await updateCollectionAnnouncements(collection.collection.collectionId, collection.pagination.announcements.bookmark);
+            const newCollection = {
+                ...collection.collection,
+                announcements: [...collection.collection.announcements, ...res.announcements]
+            };
+
+            const newPagination = res.pagination;
+            setCollections({
+                ...collections,
+                [`${collectionId}`]: {
+                    collection: newCollection,
+                    pagination: {
+                        ...collection.pagination,
+                        announcements: newPagination.announcements
+                    }
+                }
+            });
+
+        } catch (e: any) {
+            notification.error({
+                message: 'Oops! We ran into an error fetching the collection activity.',
+                description: e.message
+            });
+        }
+    }
+
     async function fetchNextActivity(collectionId: number) {
         try {
             if (!collections[`${collectionId}`]) return;
@@ -119,8 +153,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             const res = await updateCollectionActivity(collection.collection.collectionId, collection.pagination.activity.bookmark);
             const newCollection = {
                 ...collection.collection,
-                activity: [...collection.collection.activity, ...res.activity],
-                announcements: [...collection.collection.announcements, ...res.announcements]
+                activity: [...collection.collection.activity, ...res.activity]
             };
 
             const newPagination = res.pagination;
@@ -128,7 +161,10 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
                 ...collections,
                 [`${collectionId}`]: {
                     collection: newCollection,
-                    pagination: newPagination
+                    pagination: {
+                        ...collection.pagination,
+                        activity: newPagination.activity
+                    }
                 }
             });
 
@@ -145,7 +181,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         fetchCollections,
         refreshCollection,
         updateCollectionMetadata,
-        fetchNextActivity
+        fetchNextActivity,
+        fetchNextAnnouncements
     };
 
     return <CollectionsContext.Provider value={collectionsContext}>
