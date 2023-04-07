@@ -1,14 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { createContext, useContext, useState } from 'react';
 import { notification } from 'antd';
-import { CollectionMap, BitBadgeCollection } from 'bitbadges-sdk';
-import { getCollections, updateMetadata } from '../bitbadges-api/api';
+import { BitBadgeCollection, CollectionMap } from 'bitbadges-sdk';
+import { createContext, useContext, useState } from 'react';
+import { getCollections, updateCollectionActivity, updateMetadata } from '../bitbadges-api/api';
 
 export type CollectionsContextType = {
     collections: CollectionMap,
     fetchCollections: (collectionIds: number[], fetchAllMetadata?: boolean) => Promise<BitBadgeCollection[]>,
     refreshCollection: (collectionId: number, fetchAllMetadata?: boolean) => Promise<void>,
     updateCollectionMetadata: (collectionId: number, startBatchIds: number[]) => Promise<void>,
+    fetchNextActivity: (collectionId: number) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
@@ -16,6 +17,7 @@ const CollectionsContext = createContext<CollectionsContextType>({
     fetchCollections: async () => { return [] },
     refreshCollection: async () => { },
     updateCollectionMetadata: async () => { },
+    fetchNextActivity: async () => { },
 });
 
 type Props = {
@@ -38,19 +40,25 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
             let fetchedCollections: BitBadgeCollection[] = [];
             if (collectionsToFetch.length > 0) {
-                fetchedCollections = await getCollections(collectionsToFetch, fetchAllMetadata);
+                const res = await getCollections(collectionsToFetch, fetchAllMetadata);
+                
 
-                // console.log("FETCHED COLLECTIOn", fetchedCollections);
                 const collectionMap = { ...collections };
-                for (const collection of fetchedCollections) {
-                    collectionMap[`${collection.collectionId}`] = collection;
+                for (let i = 0; i < res.collections.length; i++) {
+                    const collection = res.collections[i];
+                    const pagination = res.paginations[i];
+                    collectionMap[`${collection.collectionId}`] = {
+                        collection,
+                        pagination
+                    };
                 }
                 setCollections(collectionMap);
             }
 
             for (const collectionId of collectionIds) {
-                if (collections[`${collectionId}`]) {
-                    collectionsToReturn.push(collections[`${collectionId}`]);
+                const collection = collections[`${collectionId}`];
+                if (collection && collection?.collection) {
+                    collectionsToReturn.push(collection.collection);
                 } else {
                     const fetchedCollection = fetchedCollections.find(c => c.collectionId === collectionId);
                     if (fetchedCollection) collectionsToReturn.push(fetchedCollection);
@@ -64,16 +72,17 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             });
             return [];
         }
-
-
     }
 
     async function refreshCollection(collectionIdNumber: number, fetchAllMetadata?: boolean) {
         const res = await getCollections([collectionIdNumber], fetchAllMetadata);
-        if (res && res[0]) {
+        if (res) {
             setCollections({
                 ...collections,
-                [`${collectionIdNumber}`]: res[0]
+                [`${collectionIdNumber}`]: {
+                    collection: res.collections[0],
+                    pagination: res.paginations[0]
+                }
             });
         }
     }
@@ -82,16 +91,50 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         try {
             if (!collections[`${collectionId}`]) return;
             const collection = collections[`${collectionId}`];
+            if (!collection) return;
 
-            const newCollection = await updateMetadata(collection, startBatchIds);
+            const newCollection = await updateMetadata(collection.collection, startBatchIds);
 
             setCollections({
                 ...collections,
-                [`${collectionId}`]: newCollection
+                [`${collectionId}`]: {
+                    collection: newCollection,
+                    pagination: collection.pagination
+                }
             });
         } catch (e: any) {
             notification.error({
                 message: 'Oops! We ran into an error fetching the collection metadata.',
+                description: e.message
+            });
+        }
+    }
+
+    async function fetchNextActivity(collectionId: number) {
+        try {
+            if (!collections[`${collectionId}`]) return;
+            const collection = collections[`${collectionId}`];
+            if (!collection) return;
+
+            const res = await updateCollectionActivity(collection.collection.collectionId, collection.pagination.activity.bookmark);
+            const newCollection = {
+                ...collection.collection,
+                activity: [...collection.collection.activity, ...res.activity],
+                announcements: [...collection.collection.announcements, ...res.announcements]
+            };
+
+            const newPagination = res.pagination;
+            setCollections({
+                ...collections,
+                [`${collectionId}`]: {
+                    collection: newCollection,
+                    pagination: newPagination
+                }
+            });
+
+        } catch (e: any) {
+            notification.error({
+                message: 'Oops! We ran into an error fetching the collection activity.',
                 description: e.message
             });
         }
@@ -102,6 +145,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         fetchCollections,
         refreshCollection,
         updateCollectionMetadata,
+        fetchNextActivity
     };
 
     return <CollectionsContext.Provider value={collectionsContext}>

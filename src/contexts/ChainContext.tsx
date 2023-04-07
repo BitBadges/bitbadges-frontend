@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadges-sdk';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
-import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useEthereumContext } from './ethereum/EthereumContext';
 
 export type SignChallengeResponse = {
@@ -13,12 +14,13 @@ export type ChainContextType = ChainSpecificContextType & {
     //Global
     chain: string, //Should be consistent with the ChainSelect Props for the UI button
     setChain: Dispatch<SetStateAction<string>>,
-
-    loggedIn: boolean,
-    setLoggedIn: Dispatch<SetStateAction<boolean>>,
 }
 
 export type ChainSpecificContextType = {
+
+    loggedIn: boolean,
+    setLoggedIn: Dispatch<SetStateAction<boolean>>,
+
     //Chain Specific
     connected: boolean,
     setConnected: Dispatch<SetStateAction<boolean>>,
@@ -62,6 +64,27 @@ export type ChainSpecificContextType = {
 
     isRegistered: boolean,
     setIsRegistered: Dispatch<SetStateAction<boolean>>,
+
+    activity: TransferActivityItem[],
+    setActivity: Dispatch<SetStateAction<TransferActivityItem[]>>,
+
+    announcements: AnnouncementActivityItem[],
+    setAnnouncements: Dispatch<SetStateAction<AnnouncementActivityItem[]>>,
+
+    announcementsBookmark: string,
+    setAnnouncementsBookmark: Dispatch<SetStateAction<string>>,
+
+    activityBookmark: string,
+    setActivityBookmark: Dispatch<SetStateAction<string>>,
+
+    announcementsHasMore: boolean,
+    setAnnouncementsHasMore: Dispatch<SetStateAction<boolean>>,
+
+    activityHasMore: boolean,
+    setActivityHasMore: Dispatch<SetStateAction<boolean>>,
+
+    seenActivity: number,
+    setSeenActivity: Dispatch<SetStateAction<number>>,
 
     //These are assumed to remain constant, but included because they are chain-specific
     disconnect: () => Promise<any>,
@@ -116,6 +139,20 @@ const ChainContext = createContext<ChainContextType>({
     setTelegram: () => { },
     twitter: '',
     setTwitter: () => { },
+    activity: [],
+    setActivity: () => { },
+    announcements: [],
+    setAnnouncements: () => { },
+    announcementsBookmark: '',
+    setAnnouncementsBookmark: () => { },
+    activityBookmark: '',
+    setActivityBookmark: () => { },
+    announcementsHasMore: false,
+    setAnnouncementsHasMore: () => { },
+    activityHasMore: false,
+    setActivityHasMore: () => { },
+    seenActivity: 0,
+    setSeenActivity: () => { },
 });
 
 type Props = {
@@ -124,8 +161,12 @@ type Props = {
 
 export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     const [chain, setChain] = useState<string>('Ethereum');
-    const [loggedIn, setLoggedIn] = useState<boolean>(false);
+
+
     const ethereumContext = useEthereumContext();
+
+
+    //TODO: better handle cookies (with address changes, expirations, etc)
 
     useEffect(() => {
         if (chain === 'Ethereum') {
@@ -155,8 +196,7 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     const chainContext: ChainContextType = {
         chain,
         setChain,
-        loggedIn,
-        setLoggedIn,
+
         ...currentChainContext
     };
 

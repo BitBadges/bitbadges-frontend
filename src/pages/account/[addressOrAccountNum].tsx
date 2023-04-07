@@ -3,11 +3,11 @@ import { Divider, Empty, Layout, Select } from 'antd';
 import { BitBadgeCollection, GetPortfolioResponse, isAddressValid } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { getPortfolio } from '../../bitbadges-api/api';
+import { getPortfolio, updateUserActivity } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
-import { Tabs } from '../../components/navigation/Tabs';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
+import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
@@ -29,10 +29,15 @@ function PortfolioPage() {
     const { addressOrAccountNum } = router.query;
 
     const [cosmosAddress, setCosmosAddress] = useState<string>('');
+    const [acctNumber, setAcctNumber] = useState<number>(-1);
     const [portfolioInfo, setPortfolioInfo] = useState<GetPortfolioResponse>();
     const [tab, setTab] = useState('collected');
     const [cardView, setCardView] = useState(true);
     const [groupByCollection, setGroupByCollection] = useState(false);
+    const [userActivityBookmark, setUserActivityBookmark] = useState<string>('');
+    // const [collectedBookmark, setCollectedBookmark] = useState<string>('');
+    const [userActivityHasMore, setUserActivityHasMore] = useState<boolean>(true);
+    // const [collectedHasMore, setCollectedHasMore] = useState<boolean>(true);
 
     const accountInfo = accounts.accounts[cosmosAddress];
 
@@ -47,14 +52,23 @@ function PortfolioPage() {
             } else {
                 fetchedInfo = await accounts.fetchAccountsByNumber([parseInt(addressOrAccountNum as string)]);
             }
+
+            if (!fetchedInfo || !fetchedInfo[0]) return;
+
             let accountNum = fetchedInfo[0].accountNumber
             setCosmosAddress(fetchedInfo[0].cosmosAddress);
+            setAcctNumber(fetchedInfo[0].accountNumber);
 
             if (accountNum) {
                 //TODO: address redundancies between GetPortfolio repsonse and fetch collections
                 const portfolioInfo = await getPortfolio(accountNum);
                 console.log("portfolioInfo", portfolioInfo);
                 if (!portfolioInfo) return;
+
+                setUserActivityBookmark(portfolioInfo.pagination.userActivity.bookmark);
+                // setCollectedBookmark(portfolioInfo.pagination.collected.bookmark);
+                setUserActivityHasMore(portfolioInfo.pagination.userActivity.hasMore);
+                // setCollectedHasMore(portfolioInfo.pagination.collected.hasMore);
 
                 await collections.fetchCollections([...portfolioInfo.collected.map((collection: any) => collection.collectionId), ...portfolioInfo.managing.map((collection: any) => collection.collectionId), ...portfolioInfo.activity.map((collection: any) => collection.collectionId)]);
 
@@ -64,6 +78,17 @@ function PortfolioPage() {
         getPortfolioInfo();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addressOrAccountNum]);
+
+    if (!portfolioInfo) {
+        return <></>
+    }
+
+    //Typescript is being a pain
+    const collectionsArr = portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => {
+        const collection = collections.collections[portfolioCollection.collectionId];
+        return collection ? collection.collection : null
+    }).filter(x => !!x) as BitBadgeCollection[];
+
 
     return (
         <Layout>
@@ -166,7 +191,7 @@ function PortfolioPage() {
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
 
                             <MultiCollectionBadgeDisplay
-                                collections={portfolioInfo?.collected.map((portfolioCollection: BitBadgeCollection) => collections.collections[portfolioCollection.collectionId]) || []}
+                                collections={collectionsArr}
                                 accountInfo={accounts.accounts[cosmosAddress]}
                                 cardView={cardView}
                                 groupByCollection={groupByCollection}
@@ -187,11 +212,27 @@ function PortfolioPage() {
                         </div>
                     </>)}
 
-                    {tab === 'activity' && (
+                    {tab === 'activity' && (<>
+                        <br />
                         <ActivityTab
                             userActivity={portfolioInfo?.activity}
                             collection={{} as BitBadgeCollection}
+                            fetchMore={async () => {
+                                if (!portfolioInfo) return;
+
+                                const newRes = await updateUserActivity(acctNumber, userActivityBookmark);
+                                setUserActivityBookmark(newRes.pagination.userActivity.bookmark);
+                                setUserActivityHasMore(newRes.pagination.userActivity.hasMore);
+
+
+                                setPortfolioInfo({
+                                    ...portfolioInfo,
+                                    activity: [...portfolioInfo.activity, ...newRes.activity]
+                                });
+                            }}
+                            hasMore={userActivityHasMore}
                         />
+                    </>
                     )}
                 </div>
                 {

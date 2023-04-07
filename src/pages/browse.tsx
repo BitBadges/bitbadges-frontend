@@ -1,5 +1,5 @@
 import { Divider, Layout } from 'antd';
-import { BadgeCollection } from 'bitbadges-sdk';
+import { StoredBadgeCollection } from 'bitbadges-sdk';
 import { useEffect, useState } from 'react';
 import { getBrowseInfo } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';
@@ -15,7 +15,7 @@ const { Content } = Layout;
 function BrowsePage() {
     const collections = useCollectionsContext();
 
-    const [browseInfo, setBrowseInfo] = useState<{ [category: string]: BadgeCollection[] }>();
+    const [browseInfo, setBrowseInfo] = useState<{ [category: string]: StoredBadgeCollection[] }>();
     const [tab, setTab] = useState('featured');
 
 
@@ -77,9 +77,10 @@ function BrowsePage() {
                     <div>
                         <br />
                         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {browseInfo && browseInfo[tab]?.map((portfolioCollection: BadgeCollection) => {
-                                const collection = collections.collections[portfolioCollection.collectionId];
-
+                            {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
+                                const collection = collections.collections[portfolioCollection.collectionId]?.collection;
+                                if (!collection) return null;
+                                
                                 return <>
                                     <CollectionDisplay
                                         key={portfolioCollection.collectionId}

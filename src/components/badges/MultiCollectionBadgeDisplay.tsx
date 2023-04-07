@@ -21,7 +21,8 @@ export function MultiCollectionBadgeDisplay({
     groupByCollection,
     hideCollectionLink
 }: {
-    collections: BitBadgeCollection[], accountInfo?: BitBadgesUserInfo, cardView?: boolean, pageSize?: number,
+    collections: BitBadgeCollection[],
+    accountInfo?: BitBadgesUserInfo, cardView?: boolean, pageSize?: number,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     groupByCollection?: boolean;
     hideCollectionLink?: boolean;
@@ -35,7 +36,7 @@ export function MultiCollectionBadgeDisplay({
 
     //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
     const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<{
-        collection: BitBadgeCollection,
+        collection: BitBadgeCollection
         badgeIds: number[]
     }[]>([]); // Badge IDs to display of length pageSize
 
@@ -47,12 +48,15 @@ export function MultiCollectionBadgeDisplay({
 
         //Calculate badge IDs for each collection
         const allBadgeIds: {
-            collection: BitBadgeCollection,
+            collection: BitBadgeCollection
             badgeIds: IdRange[]
         }[] = [];
         for (const collection of collections) {
-            if (accountInfo) {
+            if (!collection) {
+                continue;
+            }
 
+            if (accountInfo) {
                 allBadgeIds.push({
                     badgeIds: collection.balances[accountInfo?.accountNumber || 0]?.balances.map(balance => balance.badgeIds).flat() || [],
                     collection
@@ -81,7 +85,7 @@ export function MultiCollectionBadgeDisplay({
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
         const badgeIdsToDisplay: {
-            collection: BitBadgeCollection,
+            collection: BitBadgeCollection
             badgeIds: number[]
         }[] = getBadgeIdsToDisplayForPageNumber(allBadgeIds, currPageStart, pageSize);
         setBadgeIdsToDisplay(badgeIdsToDisplay);

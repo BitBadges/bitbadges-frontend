@@ -9,6 +9,7 @@ import { PRIMARY_TEXT } from "../../constants";
 import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
+import { useCookies } from 'react-cookie';
 
 const { Text } = Typography;
 
@@ -33,6 +34,8 @@ export const BlockinDisplay = ({
         accountNumber,
         cosmosAddress,
     } = useChainContext();
+
+    const [_cookies, setCookie] = useCookies(['blockincookie']);
 
     const [challengeParams, setChallengeParams] = useState({
         domain: 'https://blockin.com',
@@ -73,6 +76,7 @@ export const BlockinDisplay = ({
              * anything else that needs to be updated.
              */
             setLoggedIn(true);
+            setCookie('blockincookie', cosmosAddress, { path: '/', expires: new Date(Date.now() + 1000 * 60 * 60 * 24) });
             return {
                 success: true, message: `${verificationResponse.message}`
             }

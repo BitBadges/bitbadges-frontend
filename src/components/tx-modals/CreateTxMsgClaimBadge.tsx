@@ -13,7 +13,7 @@ export function CreateTxMsgClaimBadgeModal(
     {
         collection, visible, setVisible, children, claimId, claimItem, refreshUserBalance, code, whitelistIndex
     }: {
-        collection: BitBadgeCollection | undefined,
+        collection: BitBadgeCollection,
         refreshUserBalance: () => Promise<void>,
         visible: boolean,
         setVisible: (visible: boolean) => void,

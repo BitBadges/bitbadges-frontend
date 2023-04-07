@@ -1,13 +1,14 @@
 import Search from 'antd/lib/input/Search';
 
 import {
+    BellOutlined,
     GlobalOutlined,
     HomeOutlined,
     PlusOutlined,
     SearchOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Dropdown, Layout, Menu, Modal, Typography } from 'antd';
+import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography } from 'antd';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -19,6 +20,8 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { Tabs } from '../navigation/Tabs';
 import { SearchDropdown } from './SearchDropdown';
 import { BlockiesAvatar } from '../address/Blockies';
+import { PRIMARY_TEXT } from '../../constants';
+import { useCookies } from 'react-cookie';
 
 const { Header } = Layout;
 
@@ -27,6 +30,7 @@ export function WalletHeader() {
     const chain = useChainContext();
 
     const [searchValue, setSearchValue] = useState<string>('');
+    const [_cookies, _setCookie, removeCookie] = useCookies(['blockincookie']);
 
     const address = chain.address;
     const avatar = chain.avatar;
@@ -54,9 +58,29 @@ export function WalletHeader() {
     const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
 
     const MintTabMenu = <></>
-    const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined />} />), subMenuOverlay: MintTabMenu };
+    const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />), subMenuOverlay: MintTabMenu };
     const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
+    let unseenNotificationCount = 0;
+    let overflowCount = 10;
+    for (const activityItem of [...chain.activity, ...chain.announcements]) {
+        if (chain.seenActivity < activityItem.timestamp) {
+            unseenNotificationCount++;
+
+            if (unseenNotificationCount > overflowCount) {
+                break;
+            }
+        }
+    }
+
+    const NotificationsTabMenu = <></>
+    const NotificationsTabWithIcon = {
+        key: 'account/notifications', content: (
+            <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
+                <Avatar src={<BellOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />
+            </Badge>
+        ), subMenuOverlay: NotificationsTabMenu
+    };
 
     let signedIn = chain.loggedIn;
     const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
@@ -78,6 +102,10 @@ export function WalletHeader() {
             <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
             {/* <Menu.Item className='dropdown-item'>Settings</Menu.Item> */}
         </>}
+        {address && <>
+            <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
+            {/* <Menu.Item className='dropdown-item'>Settings</Menu.Item> */}
+        </>}
 
         {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
         {address && signedIn && <>
@@ -86,6 +114,7 @@ export function WalletHeader() {
                 chain.disconnect();
                 logout();
                 chain.setLoggedIn(false);
+                removeCookie('blockincookie');
             }}>Disconnect and Sign Out</Menu.Item>
         </>}
     </Menu>
@@ -95,7 +124,7 @@ export function WalletHeader() {
         content: (
             <>
                 {!address ? (
-                    <Avatar src={<UserOutlined />} />
+                    <Avatar src={<UserOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />
                 ) : (
                     <Avatar src={
                         <BlockiesAvatar
@@ -199,7 +228,8 @@ export function WalletHeader() {
                         HomeTabWithText,
                         BrowseTabWithText,
                         MintTabWithText,
-                        UserTab,
+                        NotificationsTabWithIcon,
+                        UserTab
                     ]}
                 />
             </div>
@@ -215,7 +245,9 @@ export function WalletHeader() {
                         CollapsedSearchIconTab,
                         BrowseTabWithIcon,
                         MintTabWithIcon,
+                        NotificationsTabWithIcon,
                         UserTab,
+
                     ]}
                 />
             </div>

@@ -2,13 +2,15 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { faSnowflake, faUserPen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Col, Divider, Layout, Tooltip, Typography } from 'antd';
-import { AllAddressesTransferMapping, BitBadgeCollection, getMetadataForBadgeId } from 'bitbadges-sdk';
+import { AllAddressesTransferMapping, BitBadgeCollection, TransferActivityItem, getMetadataForBadgeId } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
+import { getBadgeActivity } from '../../../bitbadges-api/api';
 import { ActivityTab } from '../../../components/activity/ActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
+import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../../components/collection-page/ActionsTab';
 import { ClaimsTab } from '../../../components/collection-page/ClaimsTab';
 import { OwnersTab } from '../../../components/collection-page/OwnersTab';
@@ -17,7 +19,6 @@ import { InformationDisplayCard } from '../../../components/display/InformationD
 import { Tabs } from '../../../components/navigation/Tabs';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../../constants';
 import { useCollectionsContext } from '../../../contexts/CollectionsContext';
-import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
 
 const { Content } = Layout;
 
@@ -37,8 +38,9 @@ export function BadgePage({ collectionPreview }
     const collections = useCollectionsContext();
 
     const [tab, setTab] = useState('overview');
-
-
+    const [activity, setActivity] = useState<TransferActivityItem[]>([]);
+    const [hasMore, setHasMore] = useState(true);
+    const [bookmark, setBookmark] = useState<string>('');
 
     const { collectionId, badgeId } = router.query;
 
@@ -47,7 +49,7 @@ export function BadgePage({ collectionPreview }
     const collectionIdNumber = collectionId && !isPreview ? Number(collectionId) : -1;
     const badgeIdNumber = badgeId && !isPreview ? Number(badgeId) : -1;
 
-    const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
+    const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection;
     const metadata = collection ? getMetadataForBadgeId(Number(badgeId), collection.badgeMetadata) : undefined;
 
     //Get collection information
@@ -99,7 +101,7 @@ export function BadgePage({ collectionPreview }
                         fullWidth
                     />
 
-                    {tab === 'claims' && <>
+                    {tab === 'claims' && collection && <>
                         <br />
                         <ClaimsTab
                             collection={collection}
@@ -200,11 +202,25 @@ export function BadgePage({ collectionPreview }
                     </>
                     )}
 
-                    {tab === 'activity' && collection && (
+                    {tab === 'activity' && collection && (<>
+                        <br />
                         <ActivityTab
-                            collection={collection}
+                            collection={{
+                                ...collection,
+                                activity: activity as TransferActivityItem[],
+                            }}
                             badgeId={badgeIdNumber}
+                            fetchMore={async () => {
+                                const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, bookmark);
+                                if (activityRes) {
+                                    setActivity([...activity, ...activityRes.activity]);
+                                    setHasMore(activityRes.pagination.activity.hasMore);
+                                    setBookmark(activityRes.pagination.activity.bookmark);
+                                }
+                            }}
+                            hasMore={hasMore}
                         />
+                    </>
                     )}
 
                     {tab === 'actions' && collection && (<>

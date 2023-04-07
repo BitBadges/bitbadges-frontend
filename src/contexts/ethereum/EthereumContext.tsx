@@ -1,14 +1,15 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
+import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem } from 'bitbadges-sdk';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { PresetResource } from 'blockin';
 import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
 import Web3Modal from "web3modal";
-import { getAccountInformation } from '../../bitbadges-api/api';
-import { CHAIN_DETAILS } from 'bitbadges-sdk';
+import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
+import { useCookies } from 'react-cookie';
 import { ChainSpecificContextType } from '../ChainContext';
 
 export type EthereumContextType = ChainSpecificContextType & {
@@ -59,7 +60,25 @@ export const EthereumContext = createContext<EthereumContextType>({
     telegram: '',
     setTelegram: () => { },
     twitter: '',
-    setTwitter: () => { }
+    setTwitter: () => { },
+    activity: [],
+    setActivity: () => { },
+    announcements: [],
+    setAnnouncements: () => { },
+    seenActivity: 0,
+    setSeenActivity: () => { },
+    loggedIn: false,
+    setLoggedIn: () => { },
+    announcementsBookmark: '',
+    setAnnouncementsBookmark: () => { },
+    activityBookmark: '',
+    setActivityBookmark: () => { },
+    announcementsHasMore: false,
+    setAnnouncementsHasMore: () => { },
+    activityHasMore: false,
+    setActivityHasMore: () => { },
+
+
 })
 
 
@@ -84,6 +103,15 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [discord, setDiscord] = useState<string>('');
     const [github, setGithub] = useState<string>('');
     const [telegram, setTelegram] = useState<string>('');
+    const [activity, setActivity] = useState<TransferActivityItem[]>([]);
+    const [announcements, setAnnouncements] = useState<AnnouncementActivityItem[]>([]);
+    const [seenActivity, setSeenActivity] = useState(0);
+    const [cookies] = useCookies(['blockincookie']);
+    const [loggedIn, setLoggedIn] = useState<boolean>(false);
+    const [announcementsBookmark, setAnnouncementsBookmark] = useState<string>('');
+    const [activityBookmark, setActivityBookmark] = useState<string>('');
+    const [announcementsHasMore, setAnnouncementsHasMore] = useState<boolean>(true);
+    const [activityHasMore, setActivityHasMore] = useState<boolean>(true);
 
 
     const selectedChainInfo = {};
@@ -128,6 +156,28 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setDiscord(accountInformation.discord || '');
         setGithub(accountInformation.github || '');
         setTwitter(accountInformation.twitter || '');
+        setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
+
+        console.log(cookies.blockincookie);
+        if (cookies.blockincookie === accountInformation.cosmosAddress) {
+            console.log("setting logged in");
+            setLoggedIn(true);
+        }
+
+        if (Number(accountInformation.account_number) >= 0) {
+            const activityRes = await getAccountActivity(Number(accountInformation.account_number));
+            setActivity(activityRes.activity);
+            setAnnouncements(activityRes.announcements)
+
+
+
+            setActivityBookmark(activityRes.pagination.activity.bookmark);
+            setAnnouncementsBookmark(activityRes.pagination.announcements.bookmark);
+
+            setActivityHasMore(activityRes.pagination.activity.hasMore);
+            setAnnouncementsHasMore(activityRes.pagination.announcements.hasMore);
+        }
+
 
         setSigner(signer);
         setConnected(true);
@@ -151,6 +201,17 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
                 setDiscord(accountInformation.discord || '');
                 setGithub(accountInformation.github || '');
                 setTwitter(accountInformation.twitter || '');
+                setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
+
+                if (cookies.blockincookie === accountInformation.cosmosAddress) {
+                    setLoggedIn(true);
+                }
+
+                if (Number(accountInformation.account_number) >= 0) {
+                    const activityRes = await getAccountActivity(Number(accountInformation.account_number));
+                    setActivity(activityRes.activity);
+                    setAnnouncements(activityRes.announcements)
+                }
 
                 setSigner(signer);
                 setConnected(true);
@@ -286,7 +347,24 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         github,
         setGithub,
         twitter,
-        setTwitter
+        setTwitter,
+        activity,
+        setActivity,
+        announcements,
+        setAnnouncements,
+        seenActivity,
+        setSeenActivity,
+        loggedIn,
+        setLoggedIn,
+        announcementsBookmark,
+        setAnnouncementsBookmark,
+        activityBookmark,
+        setActivityBookmark,
+        announcementsHasMore,
+        setAnnouncementsHasMore,
+        activityHasMore,
+        setActivityHasMore,
+
     };
 
 

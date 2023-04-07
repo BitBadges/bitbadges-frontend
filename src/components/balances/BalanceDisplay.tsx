@@ -111,7 +111,7 @@ export function BalanceDisplay({
                     })}
                     {(!balance || balance.balances?.length === 0) && <span>None</span>}
                 </div >
-                {!hideBadges && <div>
+                {!hideBadges && collection && <div>
                     {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
                         <Empty
                             style={{ color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE }}

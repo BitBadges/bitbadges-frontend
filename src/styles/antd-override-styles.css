@@ -198,3 +198,7 @@
 }
 
 .web3modal-modal-lightbox { z-index: 2000 !important; }
+
+.infinite-scroll-component__outerdiv {
+    width: 100%
+}

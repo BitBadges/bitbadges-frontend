@@ -21,7 +21,7 @@ export function BadgeAvatarDisplay({
     cardView,
     hideCollectionLink
 }: {
-    collection: BitBadgeCollection | undefined;
+    collection: BitBadgeCollection;
     userBalance?: UserBalance;
     badgeIds: IdRange[],
     size?: number;

@@ -97,7 +97,7 @@ export function TxTimeline({
 }) {
     const chain = useChainContext();
     const collections = useCollectionsContext();
-    const existingCollection = collectionId ? collections.collections[collectionId] : undefined;
+    const existingCollection = collectionId ? collections.collections[collectionId]?.collection : undefined;
 
     const [size, setSize] = useState(0);
 

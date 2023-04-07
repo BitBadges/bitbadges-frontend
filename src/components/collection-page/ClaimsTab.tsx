@@ -9,7 +9,7 @@ import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { useRouter } from 'next/router';
 
 export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, passwords, isModal, badgeId }: {
-    collection: BitBadgeCollection | undefined;
+    collection: BitBadgeCollection;
     refreshUserBalance: () => Promise<void>;
     isPreview?: boolean;
     codes?: string[][];

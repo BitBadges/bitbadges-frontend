@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
+import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
+import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
@@ -13,12 +15,12 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 
 const { Content } = Layout;
 
 const tabInfo = [
     { key: 'overview', content: 'Overview', disabled: false },
+    { key: 'announcements', content: 'Announcements', disabled: false },
     { key: 'badges', content: 'Badges', disabled: false },
     { key: 'claims', content: 'Claims', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
@@ -44,12 +46,15 @@ function CollectionPage({
 
     const collectionIdNumber = collectionId && !isPreview ? Number(collectionId) : -1;
 
-    const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
-    const collectionMetadata = collection?.collectionMetadata;
 
+
+    const [collection, setCollection] = useState<BitBadgeCollection | undefined>(isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection);
     const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
     const [userBalance, setUserBalance] = useState<UserBalance>();
     const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
+
+    const collectionMetadata = collection?.collectionMetadata;
+
 
 
     async function refreshBadgeBalance() {
@@ -58,12 +63,19 @@ function CollectionPage({
         setUserBalance(res.balance);
     }
 
+    useEffect(() => {
+        setCollection(isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection);
+    }, [isPreview, collectionPreview, collections, collectionIdNumber]);
+
     //Get collection information
     useEffect(() => {
-        if (isPreview) return;
-        if (collectionIdNumber > 0) {
-            collections.fetchCollections([collectionIdNumber]);
+        async function fetchCollections() {
+            if (collectionIdNumber > 0) {
+                await collections.fetchCollections([collectionIdNumber]);
+            }
         }
+        if (isPreview) return;
+        fetchCollections();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectionIdNumber]);
 
@@ -136,7 +148,7 @@ function CollectionPage({
                             />
                         )}
 
-                        {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity') && <Empty
+                        {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements') && <Empty
                             style={{ color: PRIMARY_TEXT }}
                             description={
                                 "This tab is not supported for previews."
@@ -163,7 +175,22 @@ function CollectionPage({
                         {tab === 'activity' && !isPreview && collection && (
                             <ActivityTab
                                 collection={collection}
+                                fetchMore={async () => {
+                                    await collections.fetchNextActivity(collection.collectionId);
+                                }}
+                                hasMore={collections.collections[`${collection.collectionId}`]?.pagination.activity.hasMore || false}
                             />
+                        )}
+
+                        {tab === 'announcements' && !isPreview && collection && (
+                            <>
+                                <AnnouncementsTab announcements={collection.announcements} collection={collection}
+                                    fetchMore={async () => {
+                                        await collections.fetchNextActivity(collection.collectionId);
+                                    }}
+                                    hasMore={collections.collections[`${collection.collectionId}`]?.pagination.announcements.hasMore || false}
+                                />
+                            </>
                         )}
                     </>
                     }

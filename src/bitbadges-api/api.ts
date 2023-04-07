@@ -2,7 +2,7 @@ import axiosApi from 'axios';
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { stringify } from "../utils/preserveJson";
-import { AccountResponse, BadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadges-sdk"
+import { AccountResponse, StoredBadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId, updateMetadataMap, TransferActivityItem, AnnouncementActivityItem, PaginationInfo } from "bitbadges-sdk"
 import { BACKEND_URL, NODE_URL } from '../constants';
 
 const axios = axiosApi.create({
@@ -53,8 +53,6 @@ async function cleanCollection(badgeData: BitBadgeCollection, fetchAllMetadata: 
     let permissionsNumber: any = badgeData.permissions;
     badgeData.permissions = GetPermissions(permissionsNumber);
 
-    badgeData.activity.reverse(); //get the most recent activity first; this should probably be done on the backend
-
     //Forcefully fetch all metadata
     if (fetchAllMetadata) {
         const idxs = [];
@@ -81,7 +79,10 @@ function validatePositiveNumber(collectionId: number, fieldName?: string) {
     }
 }
 
-export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<BitBadgeCollection[]> {
+export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<{
+    collections: BitBadgeCollection[],
+    paginations: { activity: PaginationInfo, announcements: PaginationInfo }[],
+}> {
     for (const collectionId of collectionIds) {
         await validatePositiveNumber(collectionId);
     }
@@ -102,17 +103,60 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
         collections.push(collection);
     }
 
-    return collections;
+    return {
+        collections,
+        paginations: badgeDataResponse.paginations
+    };
+}
+
+export async function updateCollectionActivity(collectionId: number, bookmark?: string) {
+    await validatePositiveNumber(collectionId);
+
+    const badgeDataResponse: {
+        collection: BitBadgeCollection,
+        pagination: {
+            activity: {
+                bookmark: string,
+                hasMore: boolean
+            },
+            announcements: {
+                bookmark: string,
+                hasMore: boolean
+            }
+        }
+    } = await axios.post(BACKEND_URL + GetCollectionRoute(collectionId), {
+        bookmark
+    }).then((res) => res.data);
+
+    return {
+        announcements: badgeDataResponse.collection.announcements,
+        activity: badgeDataResponse.collection.activity,
+        pagination: badgeDataResponse.pagination
+    };
 }
 
 //Get a specific badge collection and all metadata
 export async function getBadgeCollection(collectionId: number): Promise<GetCollectionResponse> {
     await validatePositiveNumber(collectionId);
 
-    const badgeDataResponse = await axios.get(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
-    let collection: BitBadgeCollection = await cleanCollection(badgeDataResponse);
+    const badgeDataResponse: {
+        collection: BitBadgeCollection,
+        pagination: {
+            activity: {
+                bookmark: string,
+                hasMore: boolean
+            },
+            announcements: {
+                bookmark: string,
+                hasMore: boolean
+            }
+        }
+    } = await axios.post(BACKEND_URL + GetCollectionRoute(collectionId)).then((res) => res.data);
+
+    const collectionRes = await cleanCollection(badgeDataResponse.collection);
     return {
-        collection: collection
+        collection: collectionRes,
+        pagination: badgeDataResponse.pagination
     };
 }
 
@@ -156,10 +200,30 @@ export async function getBadgeBalance(
     return balanceRes;
 }
 
+export async function updatePortfolioCollections(accountNumber: number, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { collectedBookmark: bookmark }).then((res) => res.data);
+    return portfolio;
+}
+
+export async function updateUserAnnouncements(accountNumber: number, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { announcementsBookmark: bookmark }).then((res) => res.data);
+    return portfolio;
+}
+
+export async function updateUserActivity(accountNumber: number, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { userActivityBookmark: bookmark }).then((res) => res.data);
+    return portfolio;
+}
+
 //Get portfolio infromation for a specific account
 export async function getPortfolio(accountNumber: number) {
-    const portfolio: GetPortfolioResponse = await axios.get(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
     return portfolio;
+}
+
+export async function addAnnouncement(announcement: string, collectionId: number) {
+    const res = await axios.post(BACKEND_URL + `/api/collection/${collectionId}/addAnnouncement`, { announcement }).then((res) => res.data);
+    return res;
 }
 
 //Get search results
@@ -200,8 +264,36 @@ export const fetchCodes = async (collectionId: number) => {
 
 export const getBrowseInfo = async () => {
     const res: {
-        [categoryName: string]: BadgeCollection[]
+        [categoryName: string]: StoredBadgeCollection[]
     } = await axios.get(BACKEND_URL + '/api/browse').then(res => res.data);
+    return res;
+}
+
+export const updateAccountSettings = async (settingsToUpdate: {
+    twitter?: string,
+    discord?: string,
+    telegram?: string,
+    github?: string,
+}) => {
+    const res: { success: string } = await axios.post(BACKEND_URL + '/api/user/updateAccount', settingsToUpdate).then(res => res.data);
+    return res;
+}
+
+export const updateLastSeenActivity = async () => {
+    const res: { success: string } = await axios.post(BACKEND_URL + '/api/user/updateAccount', {
+        seenActivity: Date.now()
+    }).then(res => res.data);
+    return res;
+}
+
+export const getAccountActivity = async (accountNum: number) => {
+    const res: {
+        activity: TransferActivityItem[], announcements: AnnouncementActivityItem[], pagination: {
+            announcements: PaginationInfo,
+            activity: PaginationInfo
+        }
+    } = await axios.get(BACKEND_URL + '/api/user/activity/' + accountNum).then(res => res.data);
+
     return res;
 }
 
@@ -214,6 +306,15 @@ export const fetchMetadata = async (uri: string) => {
     }
 
     const res: { metadata: BadgeMetadata } = await axios.post(BACKEND_URL + '/api/metadata', { uri }).then(res => res.data);
+    return res;
+}
+
+export const getBadgeActivity = async (collectionId: number, badgeId: number, bookmark?: string) => {
+    const res: {
+        activity: TransferActivityItem[], pagination: {
+            activity: PaginationInfo
+        }
+    } = await axios.post(BACKEND_URL + '/api/collection/activity/' + collectionId + '/' + badgeId, { bookmark }).then(res => res.data);
     return res;
 }
 
