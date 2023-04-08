@@ -47,7 +47,7 @@ export function BadgeAvatarDisplay({
     useEffect(() => {
         if (!collection) return;
 
-        console.log("TEST");
+        console.log("INFINITE FETCH BADDGE AVATAR DISPLAY");
         let total = 0;
         for (const range of badgeIds) {
             const numBadgesInRange = Number(range.end) - Number(range.start) + 1;

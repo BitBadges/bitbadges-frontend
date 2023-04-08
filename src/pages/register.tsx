@@ -1,6 +1,8 @@
-import React from 'react';
 import { Button, Layout, Typography } from 'antd';
-import { FAUCET_URL, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
+import { useState } from 'react';
+import { getTokensFromFaucet } from '../bitbadges-api/api';
+import { DisconnectedWrapper } from '../components/wrappers/DisconnectedWrapper';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../constants';
 import { useChainContext } from '../contexts/ChainContext';
 
 const { Content } = Layout;
@@ -8,7 +10,7 @@ const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
     const chain = useChainContext();
-    const address = chain.cosmosAddress;
+    const [loading, setLoading] = useState(false);
 
     return (
         <Layout>
@@ -23,35 +25,37 @@ function RegisterScreen({ message }: { message?: string }) {
                     <Content>
                         <Text
                             strong
-                            style={{ fontSize: 28, color: PRIMARY_TEXT }}
+                            style={{ fontSize: 20, color: PRIMARY_TEXT }}
                         >
-                            {message ? message : 'It appears you are not registered. Please register this address to continue.'}
+                            {message ? message
+                                : 'To continue, you must register your address with BitBadges.'}
                         </Text>
                     </Content>
-                    <Content style={{ paddingTop: '15px' }}>
-                        <Button
-                            type="primary"
-                            onClick={async () => {
-                                await navigator.clipboard.writeText(address);
-                                window.open(FAUCET_URL, "_blank");
-                            }}
-                            style={{ margin: 5 }}
-                        >
-                            Click here to go to the faucet and register your address (one-time)!
-                        </Button>
-                        <Button
-                            type="primary"
-                            onClick={async () => {
-                                await chain.connect();
-                            }}
-                            style={{ margin: 5 }}
-                        >
-                            Refresh
-                        </Button>
-                    </Content>
+                    <DisconnectedWrapper
+                        message='Please connect a wallet and sign in to continue.'
+                        requireLogin
+                        node={
+                            <Content style={{ paddingTop: '15px' }}>
+                                <Button
+                                    loading={loading}
+                                    type="primary"
+                                    onClick={async () => {
+                                        setLoading(true)
+                                        await getTokensFromFaucet();
+                                        await chain.connect();
+
+                                        setLoading(false);
+                                    }}
+                                    style={{ margin: 5 }}
+                                >
+                                    Receive 10 $BADGE Tokens from Faucet
+                                </Button>
+                            </Content>
+                        }
+                    />
                 </div>
-            </Content>
-        </Layout>
+            </Content >
+        </Layout >
     );
 }
 

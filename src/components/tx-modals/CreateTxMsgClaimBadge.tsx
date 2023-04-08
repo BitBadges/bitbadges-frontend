@@ -106,6 +106,7 @@ export function CreateTxMsgClaimBadgeModal(
                     <div style={{ color: 'red' }}><WarningOutlined style={{ color: 'red' }} /> The provided code is invalid. This transaction will fail.</div>
                 </div>
             }
+            requireRegistration
             onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
         >
             {children}

@@ -2,21 +2,23 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Checkbox, Divider, Modal, StepProps, Steps, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus } from '../../bitbadges-api/api';
 import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
-import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
+import { fetchDefaultTxDetails, formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { TransactionStatus } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay, AddressDisplayList } from '../address/AddressDisplay';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx, disabled
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx, disabled,
+        requireRegistration
     }: {
         createTxFunction: any,
         txCosmosMsg: object,
@@ -34,7 +36,8 @@ export function TxModal(
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
         width?: number | string
-        disabled?: boolean
+        disabled?: boolean,
+        requireRegistration?: boolean
     }
 ) {
     if (!msgSteps) msgSteps = [];
@@ -48,6 +51,25 @@ export function TxModal(
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
     const [error, setError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
+    const [txDetails, setTxDetails] = useState<any>(null);
+    const [exceedsBalance, setExceedsBalance] = useState(false);
+
+    useEffect(() => {
+        async function fetchDetails() {
+            const txDetails = await fetchDefaultTxDetails(chain, chain.balance);
+            setTxDetails(txDetails);
+        }
+        fetchDetails();
+    }, [chain]);
+
+    useEffect(() => {
+        if (!txDetails || !txDetails.fee) return;
+        if (Number(txDetails.fee.amount) > Number(chain.balance)) {
+            setExceedsBalance(true);
+        } else {
+            setExceedsBalance(false);
+        }
+    }, [txDetails, chain.balance]);
 
 
     const onStepChange = (value: number) => {
@@ -59,6 +81,7 @@ export function TxModal(
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
         try {
+
             //Currently used for updating IPFS metadata URIs right before tx
             //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
             if (beforeTx) {
@@ -66,8 +89,10 @@ export function TxModal(
                 if (newMsg) cosmosMsg = newMsg;
             }
 
+
+
             //Sign and broadcast transaction
-            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, chain, cosmosMsg);
+            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
             const rawTx = await chain.signTxn(unsignedTx);
             const msgResponse = await broadcastTransaction(rawTx);
 
@@ -99,13 +124,12 @@ export function TxModal(
 
 
             //If it is a new collection, redirect to collection page
-            //HACK: This is a hacky way to do this. We should have a better way to handle this. Eventually, we will not even return the collection in an event. Look to use the Msg
             if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
-                const collectionStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collection")?.value;
-                if (collectionStr) {
-                    const collection = JSON.parse(collectionStr)
+                const collectionIdStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collectionId")?.value;
+                if (collectionIdStr) {
+                    const collectionId = Number(collectionIdStr)
                     Modal.destroyAll()
-                    router.push(`/collections/${collection.collectionId}`);
+                    router.push(`/collections/${collectionId}`);
                 }
             }
 
@@ -136,6 +160,7 @@ export function TxModal(
             await submitTx(createTxFunction, txCosmosMsg);
             setVisible(false);
 
+            await chain.updatePortfolioInfo(chain.address);
             if (onSuccessfulTx) onSuccessfulTx();
         } catch (err: any) {
 
@@ -159,6 +184,178 @@ export function TxModal(
             }
         }
     };
+
+    const innerContent = <>
+        {children}
+
+        <Steps
+            current={currentStep}
+            onChange={onStepChange}
+            direction="vertical"
+        >
+            {msgSteps && msgSteps.map((item, index) => (
+                <Step
+                    key={index}
+                    title={<b>{item.title}</b>} description={
+                        <div style={{ color: PRIMARY_TEXT }}>
+                            {currentStep === index && <div>
+                                {item.description}
+                            </div>}
+                        </div>
+                    }
+                    disabled={msgSteps && msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
+                />
+            ))}
+            <Step
+                key={msgSteps.length}
+                title={unregisteredUsers && unregisteredUsers.length > 0 ? <b>Register Users</b> : <b>Sign and Submit Transaction</b>}
+                description={
+                    <div>
+                        {currentStep === msgSteps.length && <div>
+                            {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
+                                {displayMsg &&
+                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                        <br />
+                                        {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
+                                        {displayMsg}
+                                        {/* </Typography.Text> */}
+                                        <hr />
+                                    </div>
+                                }
+
+                                <br />
+
+                                <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                        This transaction is to be signed by the following address:
+                                    </Typography.Text>
+
+
+                                </div>
+                                <br />
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <AddressDisplay
+                                        userInfo={{
+                                            chain: chain.chain,
+                                            address: chain.address,
+                                            cosmosAddress: chain.cosmosAddress,
+                                            accountNumber: chain.accountNumber,
+                                        }}
+                                        // title={"Your Connected Wallet"}
+                                        // showAccountNumber
+                                        hidePortfolioLink
+                                        darkMode
+                                    />
+                                </div>
+                                <Divider />
+                                {txDetails?.fee && <>
+                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                            Gas Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()}
+                                        </Typography.Text>
+                                    </div>
+                                    {exceedsBalance &&
+                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                                                The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
+                                            </Typography.Text>
+                                        </div>}
+
+                                    <Divider />
+                                </>}
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                        By checking the box below, I confirm that I have verified all transaction details are correct.
+                                    </Typography.Text>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Checkbox
+                                        checked={checked}
+                                        onChange={(e) => setChecked(e.target.checked)}
+                                    />
+                                </div>
+                                <br />
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                        By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
+                                    </Typography.Text>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Checkbox
+                                        checked={betaChecked}
+                                        onChange={(e) => setBetaChecked(e.target.checked)}
+                                    />
+                                </div>
+                                <br />
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                                        By checking the box below, I understand that this transaction is irreversible.
+                                    </Typography.Text>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Checkbox
+                                        checked={irreversibleChecked}
+                                        onChange={(e) => setIrreversibleChecked(e.target.checked)}
+                                    />
+                                </div>
+                            </>}
+                            {
+                                unregisteredUsers && unregisteredUsers.length > 0 &&
+                                <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                        Before proceeding with this transaction, we need to register the following addresses via a blockchain transaction.
+                                    </Typography.Text>
+                                    {txDetails?.fee && <>
+                                        <Divider />
+                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                                Gas Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()}
+                                            </Typography.Text>
+                                        </div>
+                                        {exceedsBalance &&
+                                            <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                                                    The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
+                                                </Typography.Text>
+                                            </div>}
+                                    </>}
+                                    <Divider />
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <AddressDisplayList
+                                            title={'Unregistered Addresses'}
+                                            users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
+                                            fontColor={PRIMARY_TEXT}
+                                            hideAccountNumber
+                                        />
+                                    </div>
+                                </div>
+                            }</div>}
+                    </div>
+                }
+                disabled={msgSteps.find((step) => step.disabled) ? true : false}
+            />
+        </Steps>
+
+        {
+            error && <div>
+                <hr />
+                <div style={{ color: 'red' }}>
+                    Oops! {error}
+                </div>
+            </div>
+        }
+
+
+        {
+            DEV_MODE && <>
+                <hr />
+                <pre>
+                    {JSON.stringify(txCosmosMsg, null, 2)}
+                </pre>
+            </>
+        }
+    </>
 
     return (
         <Modal
@@ -190,7 +387,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked || disabled)),
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || exceedsBalance || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked || disabled)),
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
@@ -198,147 +395,12 @@ export function TxModal(
             cancelText={"Cancel"}
             destroyOnClose={true}
         >
-            {children}
-
-            <Steps
-                current={currentStep}
-                onChange={onStepChange}
-                direction="vertical"
-            >
-                {msgSteps && msgSteps.map((item, index) => (
-                    <Step
-                        key={index}
-                        title={<b>{item.title}</b>} description={
-                            <div style={{ color: PRIMARY_TEXT }}>
-                                {currentStep === index && <div>
-                                    {item.description}
-                                </div>}
-                            </div>
-                        }
-                        disabled={msgSteps && msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
-                    />
-                ))}
-                <Step
-                    key={msgSteps.length}
-                    title={unregisteredUsers && unregisteredUsers.length > 0 ? <b>Register Users</b> : <b>Sign and Submit Transaction</b>}
-                    description={
-                        <div>
-                            {currentStep === msgSteps.length && <div>
-                                {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
-                                    {displayMsg &&
-                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                            <br />
-                                            {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
-                                            {displayMsg}
-                                            {/* </Typography.Text> */}
-                                            <hr />
-                                        </div>
-                                    }
-
-                                    <br />
-
-                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            This transaction is to be signed by the following address:
-                                        </Typography.Text>
-
-
-                                    </div>
-                                    <br />
-                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                        <AddressDisplay
-                                            userInfo={{
-                                                chain: chain.chain,
-                                                address: chain.address,
-                                                cosmosAddress: chain.cosmosAddress,
-                                                accountNumber: chain.accountNumber,
-                                            }}
-                                            // title={"Your Connected Wallet"}
-                                            // showAccountNumber
-                                            hidePortfolioLink
-                                            darkMode
-                                        />
-                                    </div>
-                                    <Divider />
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                            By checking the box below, I confirm that I have verified all transaction details are correct.
-                                        </Typography.Text>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Checkbox
-                                            checked={checked}
-                                            onChange={(e) => setChecked(e.target.checked)}
-                                        />
-                                    </div>
-                                    <br />
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                            By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
-                                        </Typography.Text>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Checkbox
-                                            checked={betaChecked}
-                                            onChange={(e) => setBetaChecked(e.target.checked)}
-                                        />
-                                    </div>
-                                    <br />
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                            By checking the box below, I understand that this transaction is irreversible.
-                                        </Typography.Text>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Checkbox
-                                            checked={irreversibleChecked}
-                                            onChange={(e) => setIrreversibleChecked(e.target.checked)}
-                                        />
-                                    </div>
-                                </>}
-                                {
-                                    unregisteredUsers && unregisteredUsers.length > 0 &&
-                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            Before proceeding with this transaction, we need to register the following addresses
-                                            because they have not interacted with BitBadges yet.
-                                        </Typography.Text>
-                                        <Divider />
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <AddressDisplayList
-                                                title={'Unregistered Addresses'}
-                                                users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
-                                                fontColor={PRIMARY_TEXT}
-                                                hideAccountNumber
-                                            />
-                                        </div>
-                                    </div>
-                                }</div>}
-                        </div>
+            {requireRegistration ?
+                <RegisteredWrapper
+                    node={
+                        innerContent
                     }
-                    disabled={msgSteps.find((step) => step.disabled) ? true : false}
-                />
-            </Steps>
-
-            {
-                error && <div>
-                    <hr />
-                    <div style={{ color: 'red' }}>
-                        Oops! {error}
-                    </div>
-                </div>
-            }
-
-
-            {
-                DEV_MODE && <>
-                    <hr />
-                    <pre>
-                        {JSON.stringify(txCosmosMsg, null, 2)}
-                    </pre>
-                </>
-            }
+                /> : innerContent}
         </Modal >
     );
 }

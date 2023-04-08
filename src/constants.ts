@@ -21,7 +21,6 @@ export const LINK_COLOR = '#0000EE';
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
 
-
 export function getChainLogo(chain: string) {
     let chainLogo = '';
 

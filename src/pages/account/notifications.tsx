@@ -21,7 +21,7 @@ export function Notifications() {
     useEffect(() => {
         updateLastSeenActivity();
         chain.setSeenActivity(Date.now());
-    }, []);
+    }, [chain]);
 
     return (
         <DisconnectedWrapper

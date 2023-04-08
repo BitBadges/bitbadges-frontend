@@ -26,10 +26,10 @@ function Mint() {
                                 <div className="primary-text">Mint</div>
                                 <div
                                     style={{
-                                        marginLeft: '10vw',
-                                        marginRight: '10vw',
-                                        paddingLeft: '2vw',
-                                        paddingRight: '2vw',
+                                        marginLeft: '7vw',
+                                        marginRight: '7vw',
+                                        paddingLeft: '1vw',
+                                        paddingRight: '1vw',
                                         paddingTop: '20px',
                                         background: PRIMARY_BLUE,
                                     }}

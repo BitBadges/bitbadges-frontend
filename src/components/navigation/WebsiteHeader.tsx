@@ -85,14 +85,22 @@ export function WalletHeader() {
     let signedIn = chain.loggedIn;
     const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
-            <p><b>{address ? <AddressDisplay userInfo={{
-                address: chain.address,
-                cosmosAddress: chain.cosmosAddress,
-                accountNumber: chain.accountNumber,
-                chain: chain.chain,
-            }}
-                hidePortfolioLink
-            /> : `Not Connected`}</b></p>
+            <p>
+                <b>{address ? <div><AddressDisplay userInfo={{
+                    address: chain.address,
+                    cosmosAddress: chain.cosmosAddress,
+                    accountNumber: chain.accountNumber,
+                    chain: chain.chain,
+                }}
+                    hidePortfolioLink
+                />
+                    <br />
+                    {chain.balance} $BADGE
+                </div>
+                    : `Not Connected`}
+                </b>
+
+            </p>
         </div>
         <hr />
         {!address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}

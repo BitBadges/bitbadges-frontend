@@ -25,6 +25,7 @@ export function PermissionsOverview({
                 {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {<TableRow label={"Can delete collection?"} value={collection.permissions.CanDelete ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
 
                 <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
                 <h3 style={{ color: PRIMARY_TEXT }}>{"Manager's Approved Transfers"}

@@ -13,6 +13,8 @@ import { CreateTxMsgUpdateDisallowedTransfersModal } from '../tx-modals/CreateTx
 import { CreateTxMsgUpdatePermissionsModal } from '../tx-modals/CreateTxMsgUpdatePermissions';
 import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisModal';
 import { refreshMetadataOnBackend } from '../../bitbadges-api/api';
+import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 export function ActionsTab({
     collection,
@@ -38,6 +40,7 @@ export function ActionsTab({
     const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
     const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
+    const [deleteIsVisible, setDeleteIsVisible] = useState(false);
 
 
     if (!collection) return <></>;
@@ -89,6 +92,8 @@ export function ActionsTab({
                 },
             });
         }
+
+
 
         if (collection.unmintedSupplys.length > 0) {
             actions.push({
@@ -164,6 +169,18 @@ export function ActionsTab({
                 }
             },
         })
+
+        if (collection.permissions.CanDelete) {
+            actions.push({
+                title: getTitleElem("Delete Collection"),
+                description: getDescriptionElem(
+                    "Delete this collection."
+                ),
+                showModal: () => {
+                    setDeleteIsVisible(!deleteIsVisible);
+                },
+            });
+        }
     }
 
     if (!isManager && !badgeView) {
@@ -188,142 +205,152 @@ export function ActionsTab({
     }
 
     return (
-        <div
-            style={{
-                width: '100%',
-                fontSize: 20,
-            }}
-        >
-            <div
-                style={{
-                    padding: '0',
-                    textAlign: 'center',
-                    color: PRIMARY_TEXT,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 20,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                }}
-            >
+        <RegisteredWrapper
+            node={
+                <div
+                    style={{
+                        width: '100%',
+                        fontSize: 20,
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: '0',
+                            textAlign: 'center',
+                            color: PRIMARY_TEXT,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginTop: 20,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                        }}
+                    >
 
-                {
-                    actions.map((action, idx) => {
-                        return <Card
-                            key={idx}
-                            style={{
-                                width: '300px',
-                                minHeight: '150px',
-                                margin: 8,
-                                textAlign: 'center',
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                cursor: action.disabled ? 'not-allowed' : undefined,
-                            }}
-                            hoverable={!action.disabled}
-                            onClick={async () => {
-                                if (action.disabled) return;
-                                action.showModal();
-                            }}
+                        {
+                            actions.map((action, idx) => {
+                                return <Card
+                                    key={idx}
+                                    style={{
+                                        width: '300px',
+                                        minHeight: '150px',
+                                        margin: 8,
+                                        textAlign: 'center',
+                                        backgroundColor: PRIMARY_BLUE,
+                                        color: PRIMARY_TEXT,
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        cursor: action.disabled ? 'not-allowed' : undefined,
+                                    }}
+                                    hoverable={!action.disabled}
+                                    onClick={async () => {
+                                        if (action.disabled) return;
+                                        action.showModal();
+                                    }}
 
-                        >
-                            <Meta
-                                title={
-                                    <div
-                                        style={{
-                                            fontSize: 20,
-                                            color: PRIMARY_TEXT,
-                                            fontWeight: 'bolder',
-                                        }}
-                                    >
-                                        {action.title}
-                                    </div>
-                                }
-                                description={
-                                    <div
-                                        style={{
-                                            color: SECONDARY_TEXT,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            width: '100%',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        {action.description}
-                                    </div>
-                                }
+                                >
+                                    <Meta
+                                        title={
+                                            <div
+                                                style={{
+                                                    fontSize: 20,
+                                                    color: PRIMARY_TEXT,
+                                                    fontWeight: 'bolder',
+                                                }}
+                                            >
+                                                {action.title}
+                                            </div>
+                                        }
+                                        description={
+                                            <div
+                                                style={{
+                                                    color: SECONDARY_TEXT,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    width: '100%',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                {action.description}
+                                            </div>
+                                        }
+                                    />
+                                </Card>
+
+                            })
+                        }
+                    </div>
+                    {actions.length == 0 && (
+                        <>
+                            <Empty
+                                style={{ color: PRIMARY_TEXT }}
+                                description="No actions can be taken."
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
                             />
-                        </Card>
+                        </>
+                    )}
 
-                    })
-                }
-            </div>
-            {actions.length == 0 && (
-                <>
-                    <Empty
-                        style={{ color: PRIMARY_TEXT }}
-                        description="No actions can be taken."
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    <CreateTxMsgMintBadgeModal
+                        visible={addBadgesIsVisible}
+                        setVisible={setAddBadgesIsVisible}
+                        txType='AddBadges'
+                        collectionId={collection.collectionId}
                     />
-                </>
-            )}
 
-            <CreateTxMsgMintBadgeModal
-                visible={addBadgesIsVisible}
-                setVisible={setAddBadgesIsVisible}
-                txType='AddBadges'
-                collectionId={collection.collectionId}
-            />
-
-            <CreateTxMsgMintBadgeModal
-                visible={distributeIsVisible}
-                setVisible={setDistributeIsVisible}
-                txType='DistributeBadges'
-                collectionId={collection.collectionId}
-            />
+                    <CreateTxMsgMintBadgeModal
+                        visible={distributeIsVisible}
+                        setVisible={setDistributeIsVisible}
+                        txType='DistributeBadges'
+                        collectionId={collection.collectionId}
+                    />
 
 
-            <CreateTxMsgUpdateUrisModal
-                visible={updateMetadataIsVisible}
-                setVisible={setUpdateMetadataIsVisible}
-                collectionId={collection.collectionId}
-            />
+                    <CreateTxMsgUpdateUrisModal
+                        visible={updateMetadataIsVisible}
+                        setVisible={setUpdateMetadataIsVisible}
+                        collectionId={collection.collectionId}
+                    />
 
-            <CreateTxMsgTransferBadgeModal
-                visible={transferIsVisible}
-                setVisible={setTransferIsVisible}
-                collection={collection}
-                userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
-                refreshUserBalance={refreshUserBalance}
-            />
+                    <CreateTxMsgTransferBadgeModal
+                        visible={transferIsVisible}
+                        setVisible={setTransferIsVisible}
+                        collection={collection}
+                        userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
+                        refreshUserBalance={refreshUserBalance}
+                    />
 
-            <CreateTxMsgTransferManagerModal
-                visible={transferManagerIsVisible}
-                setVisible={setTransferManagerIsVisible}
-                collection={collection}
-            />
+                    <CreateTxMsgTransferManagerModal
+                        visible={transferManagerIsVisible}
+                        setVisible={setTransferManagerIsVisible}
+                        collection={collection}
+                    />
 
-            <CreateTxMsgRequestTransferManagerModal
-                visible={requestTransferManagerIsVisible}
-                setVisible={setRequestTransferManagerIsVisible}
-                collection={collection}
-            />
+                    <CreateTxMsgRequestTransferManagerModal
+                        visible={requestTransferManagerIsVisible}
+                        setVisible={setRequestTransferManagerIsVisible}
+                        collection={collection}
+                    />
 
-            <CreateTxMsgUpdatePermissionsModal
-                visible={updatePermissionsIsVisible}
-                setVisible={setUpdatePermissionsIsVisible}
-                collection={collection}
-            />
+                    <CreateTxMsgUpdatePermissionsModal
+                        visible={updatePermissionsIsVisible}
+                        setVisible={setUpdatePermissionsIsVisible}
+                        collection={collection}
+                    />
 
-            <CreateTxMsgUpdateDisallowedTransfersModal
-                visible={updateDisallowedIsVisible}
-                setVisible={setUpdateDisallowedIsVisible}
-                collectionId={collection.collectionId}
-            />
+                    <CreateTxMsgUpdateDisallowedTransfersModal
+                        visible={updateDisallowedIsVisible}
+                        setVisible={setUpdateDisallowedIsVisible}
+                        collectionId={collection.collectionId}
+                    />
 
-        </div >
+                    <CreateTxMsgDeleteCollectionModal
+                        visible={deleteIsVisible}
+                        setVisible={setDeleteIsVisible}
+                        collection={collection}
+                    />
+
+                </div >
+            }
+        />
     );
 }

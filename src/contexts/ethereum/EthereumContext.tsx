@@ -77,8 +77,9 @@ export const EthereumContext = createContext<EthereumContextType>({
     setAnnouncementsHasMore: () => { },
     activityHasMore: false,
     setActivityHasMore: () => { },
-
-
+    balance: 0,
+    setBalance: () => { },
+    updatePortfolioInfo: async (address: string) => { },
 })
 
 
@@ -112,6 +113,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [activityBookmark, setActivityBookmark] = useState<string>('');
     const [announcementsHasMore, setAnnouncementsHasMore] = useState<boolean>(true);
     const [activityHasMore, setActivityHasMore] = useState<boolean>(true);
+    const [balance, setBalance] = useState<number>(0);
 
 
     const selectedChainInfo = {};
@@ -119,6 +121,44 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
     //If you would like to support this, you can call this with a useEffect every time connected or address is updated
     const ownedAssetIds: string[] = [];
+
+    const updatePortfolioInfo = async (signerAddress: string) => {
+        const accountInformation = await getAccountInformation(ethToCosmos(signerAddress));
+        setCosmosAddress(accountInformation.cosmosAddress);
+        setSequence(Number(accountInformation.sequence));
+        setPublicKey(accountInformation.pub_key);
+        setAccountNumber(Number(accountInformation.account_number));
+        setIsRegistered(Number(accountInformation.account_number) >= 0);
+        setName(accountInformation.name || '');
+        setAvatar(accountInformation.avatar || '');
+        setTelegram(accountInformation.telegram || '');
+        setDiscord(accountInformation.discord || '');
+        setGithub(accountInformation.github || '');
+        setTwitter(accountInformation.twitter || '');
+        setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
+        setBalance(accountInformation.balance.amount ? Number(accountInformation.balance.amount) : 0);
+
+        console.log(cookies.blockincookie);
+        if (cookies.blockincookie === accountInformation.cosmosAddress) {
+            console.log("setting logged in");
+            setLoggedIn(true);
+        }
+
+        if (Number(accountInformation.account_number) >= 0) {
+            const activityRes = await getAccountActivity(Number(accountInformation.account_number));
+            setActivity(activityRes.activity);
+            setAnnouncements(activityRes.announcements)
+
+
+
+            setActivityBookmark(activityRes.pagination.activity.bookmark);
+            setAnnouncementsBookmark(activityRes.pagination.announcements.bookmark);
+
+            setActivityHasMore(activityRes.pagination.activity.hasMore);
+            setAnnouncementsHasMore(activityRes.pagination.announcements.hasMore);
+
+        }
+    }
 
     const connect = async () => {
         const providerOptions = {
@@ -144,39 +184,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         const signer = provider.getSigner();
         const signerAddress = await signer.getAddress();
 
-        const accountInformation = await getAccountInformation(ethToCosmos(signerAddress));
-        setCosmosAddress(accountInformation.cosmosAddress);
-        setSequence(Number(accountInformation.sequence));
-        setPublicKey(accountInformation.pub_key);
-        setAccountNumber(Number(accountInformation.account_number));
-        setIsRegistered(Number(accountInformation.account_number) >= 0);
-        setName(accountInformation.name || '');
-        setAvatar(accountInformation.avatar || '');
-        setTelegram(accountInformation.telegram || '');
-        setDiscord(accountInformation.discord || '');
-        setGithub(accountInformation.github || '');
-        setTwitter(accountInformation.twitter || '');
-        setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
-
-        console.log(cookies.blockincookie);
-        if (cookies.blockincookie === accountInformation.cosmosAddress) {
-            console.log("setting logged in");
-            setLoggedIn(true);
-        }
-
-        if (Number(accountInformation.account_number) >= 0) {
-            const activityRes = await getAccountActivity(Number(accountInformation.account_number));
-            setActivity(activityRes.activity);
-            setAnnouncements(activityRes.announcements)
-
-
-
-            setActivityBookmark(activityRes.pagination.activity.bookmark);
-            setAnnouncementsBookmark(activityRes.pagination.announcements.bookmark);
-
-            setActivityHasMore(activityRes.pagination.activity.hasMore);
-            setAnnouncementsHasMore(activityRes.pagination.announcements.hasMore);
-        }
+        await updatePortfolioInfo(signerAddress);
 
 
         setSigner(signer);
@@ -189,29 +197,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             const signer = provider.getSigner();
             const newAddress = await signer.getAddress();
             if (address !== newAddress) {
-                const accountInformation = await getAccountInformation(ethToCosmos(newAddress));
-                setCosmosAddress(accountInformation.cosmosAddress);
-                setSequence(Number(accountInformation.sequence));
-                setPublicKey(accountInformation.pub_key);
-                setAccountNumber(Number(accountInformation.account_number));
-                setIsRegistered(Number(accountInformation.account_number) >= 0);
-                setName(accountInformation.name || '');
-                setAvatar(accountInformation.avatar || '');
-                setTelegram(accountInformation.telegram || '');
-                setDiscord(accountInformation.discord || '');
-                setGithub(accountInformation.github || '');
-                setTwitter(accountInformation.twitter || '');
-                setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
-
-                if (cookies.blockincookie === accountInformation.cosmosAddress) {
-                    setLoggedIn(true);
-                }
-
-                if (Number(accountInformation.account_number) >= 0) {
-                    const activityRes = await getAccountActivity(Number(accountInformation.account_number));
-                    setActivity(activityRes.activity);
-                    setAnnouncements(activityRes.announcements)
-                }
+                await updatePortfolioInfo(newAddress);
 
                 setSigner(signer);
                 setConnected(true);
@@ -307,6 +293,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const ethereumContext: EthereumContextType = {
+        balance,
+        setBalance,
         connected,
         setConnected,
         chainId,
@@ -364,7 +352,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setAnnouncementsHasMore,
         activityHasMore,
         setActivityHasMore,
-
+        updatePortfolioInfo,
     };
 
 

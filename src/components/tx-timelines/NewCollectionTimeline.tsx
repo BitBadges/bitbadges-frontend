@@ -3,6 +3,7 @@ import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
+import { CanDeleteStepItem } from './step-items/CanDeleteStepItem';
 import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
 import { ChooseBadgeTypeStepItem } from './step-items/ChooseBadgeTypeStepItem';
 import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
@@ -86,6 +87,7 @@ export function MintCollectionTimeline({
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection);
     const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers, managerToSelectType, setManagerToSelectType, managerFromSelectType, setManagerFromSelectType, managerTo, setManagerTo, managerFrom, setManagerFrom);
     const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
+    const CanDeleteStep = CanDeleteStepItem(newCollectionMsg, handledPermissions, updatePermissions);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
     const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
     const TransferabilityStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers, transferabilityToSelectType, setTransferabilityToSelectType, transferabilityFromSelectType, setTransferabilityFromSelectType, transferabilityTo, setTransferabilityTo, transferabilityFrom, setTransferabilityFrom);
@@ -100,6 +102,7 @@ export function MintCollectionTimeline({
                 TransferabilityStep,
                 FreezeSelectStep,
                 CanManagerBeTransferredStep,
+                CanDeleteStep,
                 ManagerApprovedSelect,
                 MetadataStorageSelectStep,
                 UpdatableMetadataSelectStep,

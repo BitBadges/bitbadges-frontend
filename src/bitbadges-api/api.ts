@@ -3,7 +3,7 @@ import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { stringify } from "../utils/preserveJson";
 import { AccountResponse, StoredBadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId, updateMetadataMap, TransferActivityItem, AnnouncementActivityItem, PaginationInfo } from "bitbadges-sdk"
-import { BACKEND_URL, NODE_URL } from '../constants';
+import { BACKEND_URL } from '../constants';
 
 const axios = axiosApi.create({
     withCredentials: true,
@@ -34,12 +34,6 @@ export async function getAccountInformationByAccountNumber(id: number) {
 export async function getAccounts(accountNums: number[], addresses: string[]) {
     const accountObjects: { accounts: AccountResponse[] } = await axios.post(BACKEND_URL + GetAccountsRoute(), { accountNums, addresses }).then((res) => res.data);
     return accountObjects.accounts;
-}
-
-//Get L1 token balance
-export async function getBalance(bech32Address: string) {
-    const balance = await axios.get(NODE_URL + GetBalanceRoute(bech32Address)).then((res) => res.data);
-    return balance;
 }
 
 //Query owners for a specific badge
@@ -275,6 +269,11 @@ export const getCodeForPassword = async (collectionId: number, claimId: number, 
 
 export const fetchCodes = async (collectionId: number) => {
     const res: { codes: string[][], passwords?: string[] } = await axios.get(BACKEND_URL + '/api/collection/codes/' + collectionId).then(res => res.data);
+    return res;
+}
+
+export const getTokensFromFaucet = async () => {
+    const res: { result: any } = await axios.post(BACKEND_URL + '/api/faucet').then(res => res.data);
     return res;
 }
 

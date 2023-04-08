@@ -167,6 +167,7 @@ export function TxTimeline({
         CanUpdateDisallowed: false,
         CanUpdateUris: false,
         CanUpdateBytes: false,
+        CanDelete: false,
     });
 
     //Whether the whitelisted addresses are sent the badges manually by the manager or via a claiming process
@@ -205,13 +206,13 @@ export function TxTimeline({
 
 
     //This simulates a BitBadgeCollection object representing what the collection will look like after creation (used for compatibility) 
-    const [simulatedCollection, setSimulatedCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, existingCollection));
-    const [simulatedCollectionWithoutExistingCollection, setSimulatedCollectionWithoutExistingCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems));
+    const [simulatedCollection, setSimulatedCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : [], existingCollection));
+    const [simulatedCollectionWithoutExistingCollection, setSimulatedCollectionWithoutExistingCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : []));
 
     useEffect(() => {
-        setSimulatedCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems, existingCollection));
-        setSimulatedCollectionWithoutExistingCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, claimItems));
-    }, [newCollectionMsg, collectionMetadata, individualBadgeMetadata, claimItems, distributionMethod, existingCollection, hackyUpdatedFlag, chain])
+        setSimulatedCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : [], existingCollection));
+        setSimulatedCollectionWithoutExistingCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : []));
+    }, [newCollectionMsg, collectionMetadata, individualBadgeMetadata, claimItems, distributionMethod, existingCollection, hackyUpdatedFlag, chain, manualSend])
 
 
 

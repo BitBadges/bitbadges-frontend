@@ -100,6 +100,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
                 router.push(`/collections/${updateUrisMsg.collectionId}`)
                 Modal.destroyAll()
             }}
+            requireRegistration
         >
             {children}
         </TxModal >

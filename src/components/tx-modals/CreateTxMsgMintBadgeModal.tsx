@@ -223,6 +223,7 @@ export function CreateTxMsgMintBadgeModal(
             }}  
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}
+            requireRegistration
         >
             {children}
         </TxModal>

@@ -28,7 +28,7 @@ function ConnectScreen({ message }: { message?: string }) {
                     <Content>
                         <Text
                             strong
-                            style={{ fontSize: 28, color: PRIMARY_TEXT }}
+                            style={{ fontSize: 20, color: PRIMARY_TEXT }}
                         >
                             {message ? message : 'Welcome!'}
                         </Text>

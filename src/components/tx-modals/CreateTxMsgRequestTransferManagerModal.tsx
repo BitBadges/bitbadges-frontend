@@ -49,6 +49,7 @@ export function CreateTxMsgRequestTransferManagerModal({ collection, visible, se
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgRequestTransferManager}
             onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); }}
+            requireRegistration
         >
             {children}
         </TxModal>

@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Switch, Tooltip } from 'antd';
 import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
-import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions } from 'bitbadges-sdk';
+import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions, CanDeleteDigit } from 'bitbadges-sdk';
 import { BitBadgeCollection } from 'bitbadges-sdk';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
@@ -76,6 +76,14 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
+                        }} />
+                    </Tooltip>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
+                    Delete Collection
+                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanDelete} defaultChecked={GetPermissions(currPermissions).CanDelete} onChange={() => {
+                            setCurrPermissions(UpdatePermissions(currPermissions, CanDeleteDigit, !GetPermissions(currPermissions).CanDelete))
                         }} />
                     </Tooltip>
                 </div>

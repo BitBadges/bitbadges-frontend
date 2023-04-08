@@ -121,6 +121,7 @@ export function CreateTxMsgUpdateDisallowedTransfersModal({ visible, setVisible,
                 router.push(`/collections/${collectionId}`)
                 Modal.destroyAll()
             }}
+            requireRegistration
         >
             {children}
         </TxModal>

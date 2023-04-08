@@ -17,6 +17,8 @@ export type ChainContextType = ChainSpecificContextType & {
 }
 
 export type ChainSpecificContextType = {
+    balance: number,
+    setBalance: Dispatch<SetStateAction<number>>,
 
     loggedIn: boolean,
     setLoggedIn: Dispatch<SetStateAction<boolean>>,
@@ -86,6 +88,8 @@ export type ChainSpecificContextType = {
     seenActivity: number,
     setSeenActivity: Dispatch<SetStateAction<number>>,
 
+    updatePortfolioInfo: (address: string) => Promise<void>,
+
     //These are assumed to remain constant, but included because they are chain-specific
     disconnect: () => Promise<any>,
     connect: () => Promise<any>,
@@ -95,6 +99,8 @@ export type ChainSpecificContextType = {
     displayedResources: PresetResource[],
     selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
     ownedAssetIds: string[],
+
+
 }
 
 const ChainContext = createContext<ChainContextType>({
@@ -153,6 +159,9 @@ const ChainContext = createContext<ChainContextType>({
     setActivityHasMore: () => { },
     seenActivity: 0,
     setSeenActivity: () => { },
+    balance: 0,
+    setBalance: () => { },
+    updatePortfolioInfo: async (address: string) => { },
 });
 
 type Props = {

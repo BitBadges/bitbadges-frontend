@@ -100,9 +100,15 @@ export function IdRangesInput({
                             if (sliderValue.split('-').length !== 2) {
                                 continue;
                             } else {
+
                                 if (sliderValue.split('-')[0] === '' || sliderValue.split('-')[1] === '') {
                                     continue;
                                 }
+                                //start can't be greater than end
+                                if (parseInt(sliderValue.split('-')[0]) > parseInt(sliderValue.split('-')[1])) {
+                                    continue;
+                                }
+
                                 sliderValues.push([parseInt(sliderValue.split('-')[0]), parseInt(sliderValue.split('-')[1])]);
                             }
                         }

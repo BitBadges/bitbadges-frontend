@@ -192,6 +192,7 @@ export function CreateTxMsgTransferBadgeModal(
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgTransferBadge}
             onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
+            requireRegistration
             displayMsg={<div style={{ color: PRIMARY_TEXT }}>
                 <TransferDisplay
                     transfers={transfers}

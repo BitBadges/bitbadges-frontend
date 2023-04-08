@@ -25,9 +25,10 @@ export function CreateTxMsgNewCollectionModal(
             unregisteredUsers={unregisteredUsers}
             onSuccessfulTx={async () => {
                 //navigating to the new collection page is handled in TxModal
-                
+
                 message.success('Collection created successfully! Note it may take time for the metadata to update.');
             }}
+            requireRegistration
         >
             {children}
         </TxModal>

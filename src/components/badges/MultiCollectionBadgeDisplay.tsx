@@ -19,13 +19,15 @@ export function MultiCollectionBadgeDisplay({
     pageSize = 25,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
     groupByCollection,
-    hideCollectionLink
+    hideCollectionLink,
+    hidePagination
 }: {
     collections: BitBadgeCollection[],
     accountInfo?: BitBadgesUserInfo, cardView?: boolean, pageSize?: number,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
     groupByCollection?: boolean;
     hideCollectionLink?: boolean;
+    hidePagination?: boolean;
 }) {
 
     const collectionsContext = useCollectionsContext();
@@ -110,7 +112,7 @@ export function MultiCollectionBadgeDisplay({
 
     if (groupByCollection) {
         return <>
-            <div style={{
+            {!hidePagination && <div style={{
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
@@ -127,7 +129,7 @@ export function MultiCollectionBadgeDisplay({
                     hideOnSinglePage
                     showSizeChanger={false}
                 />
-            </div>
+            </div>}
 
 
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -170,10 +172,6 @@ export function MultiCollectionBadgeDisplay({
                                 />
                             </InformationDisplayCard>
                         </div>
-
-
-
-
                     })
                 }
             </div>
@@ -182,7 +180,7 @@ export function MultiCollectionBadgeDisplay({
     } else {
 
         return <>
-            <div style={{
+            {!hidePagination && <div style={{
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
@@ -200,6 +198,7 @@ export function MultiCollectionBadgeDisplay({
                     showSizeChanger={false}
                 />
             </div>
+            }
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
                 {
                     badgeIdsToDisplay.map((badgeIdObj) => {
