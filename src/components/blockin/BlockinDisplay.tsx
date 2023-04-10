@@ -10,6 +10,7 @@ import { SignChallengeResponse, useChainContext } from "../../contexts/ChainCont
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { useCookies } from 'react-cookie';
+import { SupportedChain } from "bitbadges-sdk";
 
 const { Text } = Typography;
 
@@ -104,7 +105,7 @@ export const BlockinDisplay = ({
     */
     const handleUpdateChain = async (newChainMetadata: SupportedChainMetadata) => {
         if (newChainMetadata?.name) {
-            setChain(newChainMetadata.name);
+            setChain(newChainMetadata.name as SupportedChain);
         }
     }
 
@@ -141,9 +142,8 @@ export const BlockinDisplay = ({
                         // { name: 'Algorand Mainnet', },
                         // { name: 'Polygon' },
                         // { name: 'Avalanche' },
-                        // { name: 'BSC' },
+                        { name: 'Cosmos' },
                     ]}
-
                     address={address}
                     selectedChainInfo={selectedChainInfo}
                     onChainUpdate={handleUpdateChain}

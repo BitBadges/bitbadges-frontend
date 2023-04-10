@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadges-sdk';
+import { AnnouncementActivityItem, SupportedChain, TransferActivityItem } from 'bitbadges-sdk';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
-import { useEthereumContext } from './ethereum/EthereumContext';
+import { useEthereumContext } from './chains/EthereumContext';
+import { useCosmosContext } from './chains/CosmosContext';
 
 export type SignChallengeResponse = {
     originalBytes?: Uint8Array;
@@ -12,8 +13,8 @@ export type SignChallengeResponse = {
 
 export type ChainContextType = ChainSpecificContextType & {
     //Global
-    chain: string, //Should be consistent with the ChainSelect Props for the UI button
-    setChain: Dispatch<SetStateAction<string>>,
+    chain: SupportedChain, //Should be consistent with the ChainSelect Props for the UI button
+    setChain: Dispatch<SetStateAction<SupportedChain>>,
 }
 
 export type ChainSpecificContextType = {
@@ -117,7 +118,7 @@ const ChainContext = createContext<ChainContextType>({
     signChallenge: async () => { return {} },
     signTxn: async () => { },
     getPublicKey: async () => { return '' },
-    chain: 'Default',
+    chain: SupportedChain.UNKNOWN,
     setChain: () => { },
     ownedAssetIds: [],
     displayedResources: [],
@@ -169,24 +170,26 @@ type Props = {
 };
 
 export const ChainContextProvider: React.FC<Props> = ({ children }) => {
-    const [chain, setChain] = useState<string>('Ethereum');
+    const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
 
 
     const ethereumContext = useEthereumContext();
+    const cosmosContext = useCosmosContext();
 
 
-    //TODO: better handle cookies (with address changes, expirations, etc)
+    //TODO: better handle login and chain cookies (with address changes, expirations, etc)
 
     useEffect(() => {
         if (chain === 'Ethereum') {
             ethereumContext.setChainId('eth');
-        } else if (chain === 'Polygon') {
-            ethereumContext.setChainId('polygon');
-        } else if (chain === 'Avalanche') {
-            ethereumContext.setChainId('avalanche');
-        } else if (chain === 'BSC') {
-            ethereumContext.setChainId('bsc');
         }
+        // else if (chain === 'Polygon') {
+        //     ethereumContext.setChainId('polygon');
+        // } else if (chain === 'Avalanche') {
+        //     ethereumContext.setChainId('avalanche');
+        // } else if (chain === 'BSC') {
+        //     ethereumContext.setChainId('bsc');
+        // }
         // else if (chain === 'Algorand Mainnet') {
         //     algorandContext.setChainId('Mainnet');
         // } else if (chain === 'Algorand Testnet') {
@@ -195,12 +198,11 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     }, [chain, setChain, ethereumContext]);
 
     let currentChainContext: ChainSpecificContextType;
-    // if (chain?.startsWith('Algorand')) {
-    //     currentChainContext = algorandContext;
-    // } else {
-    //     currentChainContext = ethereumContext;
-    // }
-    currentChainContext = ethereumContext;
+    if (chain?.startsWith('Cosmos')) {
+        currentChainContext = cosmosContext;
+    } else {
+        currentChainContext = ethereumContext;
+    }
 
     const chainContext: ChainContextType = {
         chain,

@@ -1,14 +1,12 @@
 import { CHAIN_DETAILS } from "bitbadges-sdk";
 import { DEV_MODE } from "../constants";
-import { getSenderInformation } from "./broadcast";
-import { getStatus } from "../bitbadges-api/api";
 import { ChainContextType } from "../contexts/ChainContext";
+import { getSenderInformation } from "./broadcast";
 
 
-export async function fetchDefaultTxDetails(chain: ChainContextType, userGasTokenBalance: number) {
+export async function fetchDefaultTxDetails(chain: ChainContextType, gasPrice: number) {
     const sender = await getSenderInformation(chain);
-    const statusRes = await getStatus();
-    const gasPrice = statusRes.status.gasPrice;
+
     const gasLimit = 200000; //TODO: simulate this
     const amount = Math.ceil(gasLimit * gasPrice);
 
@@ -32,7 +30,6 @@ export async function formatAndCreateGenericTx(createTxFunction: any, txDetails:
         txDetails.chain,
         txDetails.sender,
         txDetails.fee,
-
         txDetails.memo,
         msg
     )

@@ -1,4 +1,4 @@
-import { Divider, Empty, Layout } from 'antd';
+import { Divider, Empty, Layout, notification } from 'antd';
 import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { useStatusContext } from '../../contexts/StatusContext';
 
 const { Content } = Layout;
 
@@ -39,6 +40,7 @@ function CollectionPage({
     const router = useRouter()
     const chain = useChainContext();
     const collections = useCollectionsContext();
+    const statusContext = useStatusContext();
     const { collectionId, badgeId, password, code, claimsTab } = router.query;
 
     const accountNumber = chain.accountNumber;
@@ -72,7 +74,17 @@ function CollectionPage({
         async function fetchCollections() {
             if (collectionIdNumber > 0) {
                 await collections.fetchCollections([collectionIdNumber]);
+
+                const status = statusContext.status;
+                if (status.queue.find(x => x.collectionId === collectionIdNumber)) {
+                    notification.warn({
+                        message: 'Metadata for this collection is currently being fetched.',
+                        description: 'Certain metadata may not be up to date until the fetch is complete.',
+                    });
+                }
             }
+
+
         }
         if (isPreview) return;
         fetchCollections();

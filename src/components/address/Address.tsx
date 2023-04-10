@@ -1,6 +1,6 @@
 import { Modal, Tooltip, Typography } from 'antd';
 import { MINT_ACCOUNT, SupportedChain, doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadges-sdk';
-import { ethToCosmos } from 'bitbadgesjs-address-converter';
+import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { useRouter } from 'next/router';
 import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -69,6 +69,20 @@ export function Address({
                                     address: ethToCosmos(address),
                                     cosmosAddress: ethToCosmos(address),
                                     chain: SupportedChain.COSMOS,
+                                    accountNumber: -1,
+                                }}
+                                hidePortfolioLink
+                                hideTooltip
+                            />
+                            <br />
+                        </div>}
+                        {chain === SupportedChain.COSMOS && isAddressValid(address) && <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <AddressDisplay
+                                darkMode
+                                userInfo={{
+                                    address: cosmosToEth(address),
+                                    cosmosAddress: address,
+                                    chain: SupportedChain.ETH,
                                     accountNumber: -1,
                                 }}
                                 hidePortfolioLink

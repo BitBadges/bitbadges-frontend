@@ -1,9 +1,9 @@
 import axiosApi from 'axios';
+import { AccountResponse, AnnouncementActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IdRange, IndexerStatus, METADATA_PAGE_LIMIT, PaginationInfo, SearchResponse, StoredBadgeCollection, TransferActivityItem, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadges-sdk";
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
-import { stringify } from "../utils/preserveJson";
-import { AccountResponse, StoredBadgeCollection, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IndexerStatus, METADATA_PAGE_LIMIT, SearchResponse, convertToCosmosAddress, getMaxBatchId, updateMetadataMap, TransferActivityItem, AnnouncementActivityItem, PaginationInfo } from "bitbadges-sdk"
 import { BACKEND_URL } from '../constants';
+import { stringify } from "../utils/preserveJson";
 
 const axios = axiosApi.create({
     withCredentials: true,
@@ -188,7 +188,11 @@ export async function updateMetadata(collection: BitBadgeCollection, startBatchI
         const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
         collection.collectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.collectionMetadata;
 
-        const badgeResValues = Object.values(metadataRes.badgeMetadata as BadgeMetadataMap);
+        const badgeResValues: {
+            badgeIds: IdRange[];
+            metadata: BadgeMetadata;
+            uri: string;
+        }[] = Object.values(metadataRes.badgeMetadata as BadgeMetadataMap);
         for (const val of badgeResValues) {
             for (const badgeId of val.badgeIds) {
                 collection.badgeMetadata = updateMetadataMap(collection.badgeMetadata, val.metadata, badgeId, val.uri);

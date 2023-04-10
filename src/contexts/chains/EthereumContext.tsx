@@ -79,7 +79,7 @@ export const EthereumContext = createContext<EthereumContextType>({
     setActivityHasMore: () => { },
     balance: 0,
     setBalance: () => { },
-    updatePortfolioInfo: async (address: string) => { },
+    updatePortfolioInfo: async (_address: string) => { },
 })
 
 
@@ -136,11 +136,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setGithub(accountInformation.github || '');
         setTwitter(accountInformation.twitter || '');
         setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
-        setBalance(accountInformation.balance.amount ? Number(accountInformation.balance.amount) : 0);
+        setBalance(accountInformation.balance?.amount ? Number(accountInformation.balance.amount) : 0);
 
-        console.log(cookies.blockincookie);
         if (cookies.blockincookie === accountInformation.cosmosAddress) {
-            console.log("setting logged in");
             setLoggedIn(true);
         }
 
@@ -148,8 +146,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             const activityRes = await getAccountActivity(Number(accountInformation.account_number));
             setActivity(activityRes.activity);
             setAnnouncements(activityRes.announcements)
-
-
 
             setActivityBookmark(activityRes.pagination.activity.bookmark);
             setAnnouncementsBookmark(activityRes.pagination.announcements.bookmark);
@@ -185,7 +181,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         const signerAddress = await signer.getAddress();
 
         await updatePortfolioInfo(signerAddress);
-
 
         setSigner(signer);
         setConnected(true);
@@ -253,10 +248,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             accountNumber: accountNumber,
             pubkey: publicKey
         };
-        console.log(txn.eipToSign);
 
         let sig = await window.ethereum.request({
-
             method: 'eth_signTypedData_v4',
             params: [cosmosToEth(sender.accountAddress), JSON.stringify(txn.eipToSign)],
         })

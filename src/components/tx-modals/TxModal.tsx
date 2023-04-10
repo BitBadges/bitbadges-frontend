@@ -1,5 +1,5 @@
-import { CloseOutlined } from '@ant-design/icons';
-import { Checkbox, Divider, Modal, StepProps, Steps, Typography, notification } from 'antd';
+import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Checkbox, Divider, Modal, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay, AddressDisplayList } from '../address/AddressDisplay';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { useStatusContext } from '../../contexts/StatusContext';
 
 const { Step } = Steps;
 
@@ -44,6 +45,7 @@ export function TxModal(
     const chain = useChainContext();
     const accounts = useAccountsContext();
     const router = useRouter();
+    const statusContext = useStatusContext();
 
     const [checked, setChecked] = useState(false);
     const [irreversibleChecked, setIrreversibleChecked] = useState(false);
@@ -56,11 +58,25 @@ export function TxModal(
 
     useEffect(() => {
         async function fetchDetails() {
-            const txDetails = await fetchDefaultTxDetails(chain, chain.balance);
+            const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
             setTxDetails(txDetails);
         }
         fetchDetails();
-    }, [chain]);
+    }, []);
+
+    useEffect(() => {
+        async function fetchDetails() {
+            const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
+            setTxDetails(txDetails);
+        }
+        fetchDetails();
+    }, [chain, statusContext.status.gasPrice]);
+
+    useEffect(() => {
+        if (visible) {
+            statusContext.updateStatus();
+        }
+    }, [visible]);
 
     useEffect(() => {
         if (!txDetails || !txDetails.fee) return;
@@ -251,9 +267,21 @@ export function TxModal(
                                 {txDetails?.fee && <>
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            Gas Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()}
+                                            Your Balance: {chain.balance} ${txDetails.fee.denom.toUpperCase()}
                                         </Typography.Text>
                                     </div>
+                                    <br />
+                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                            Transaction Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()} <Tooltip
+                                                color='black'
+                                                title="The gas fee is the amount of cryptocurrency that is paid to the network for processing the transaction. This fee was calculated based on the current market price of gas and the type of transaction."
+                                            >
+                                                <InfoCircleOutlined />
+                                            </Tooltip>
+                                        </Typography.Text>
+                                    </div>
+
                                     {exceedsBalance &&
                                         <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
