@@ -70,7 +70,7 @@ export function TxModal(
             setTxDetails(txDetails);
         }
         fetchDetails();
-    }, [chain, statusContext.status.gasPrice]);
+    }, [chain.address, chain.cosmosAddress, chain.sequence, statusContext.status.gasPrice]);
 
     useEffect(() => {
         if (visible) {

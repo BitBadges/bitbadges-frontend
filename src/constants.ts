@@ -1,8 +1,8 @@
 import { SupportedChain } from "bitbadges-sdk";
 
-export const NODE_URL = 'http://localhost:1317';
-export const BACKEND_URL = 'http://localhost:3001';
-export const FAUCET_URL = 'http://localhost:4500';
+export const NODE_URL = 'http://10.0.0.66:1317';
+export const BACKEND_URL = 'https://10.0.0.66:3001';
+export const FAUCET_URL = 'http://10.0.0.66:4500';
 
 export const WEBSITE_HOSTNAME = 'http://localhost:3000'
 

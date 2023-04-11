@@ -1,69 +1,47 @@
 import { Button, Form, Input, Layout } from 'antd';
 import Text from 'antd/lib/typography/Text';
-import { SupportedChain, isAddressValid } from 'bitbadges-sdk';
+import { SupportedChain } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { updateAccountSettings } from '../../../bitbadges-api/api';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
+import { useChainContext } from '../../../contexts/ChainContext';
 
 const { Content } = Layout;
 
 export function AccountSettings() {
     const router = useRouter();
-    const accounts = useAccountsContext();
+    const chain = useChainContext();
     const { addressOrAccountNum } = router.query;
-
-    const [cosmosAddress, setCosmosAddress] = useState<string>('');
-
-    const accountInfo = accounts.accounts[cosmosAddress];
-
-    useEffect(() => {
-        async function getPortfolioInfo() {
-            //Check if addressOrAccountNum is an address or account number and fetch portfolio accordingly
-            if (!addressOrAccountNum) return;
-
-            let fetchedInfo;
-            if (isAddressValid(addressOrAccountNum as string)) {
-                fetchedInfo = await accounts.fetchAccounts([addressOrAccountNum as string]);
-            } else {
-                fetchedInfo = await accounts.fetchAccountsByNumber([parseInt(addressOrAccountNum as string)]);
-            }
-
-            setCosmosAddress(fetchedInfo[0].cosmosAddress);
-        }
-        getPortfolioInfo();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [addressOrAccountNum]);
 
     const [loading, setLoading] = useState<boolean>(false);
 
     const [twitter, setTwitter] = useState(
-        accountInfo?.twitter ? accountInfo.twitter : ''
+        chain?.twitter ? chain.twitter : ''
     );
 
     const [discord, setDiscord] = useState(
-        accountInfo?.discord ? accountInfo.discord : ''
+        chain?.discord ? chain.discord : ''
     );
 
     const [github, setGithub] = useState(
-        accountInfo?.github ? accountInfo.github : ''
+        chain?.github ? chain.github : ''
     );
 
     const [telegram, setTelegram] = useState(
-        accountInfo?.telegram ? accountInfo.telegram : ''
+        chain?.telegram ? chain.telegram : ''
     );
 
 
     useEffect(() => {
-        if (!accountInfo) return;
-        setTwitter(accountInfo.twitter ? accountInfo.twitter : '');
-        setDiscord(accountInfo.discord ? accountInfo.discord : '');
-        setGithub(accountInfo.github ? accountInfo.github : '');
-        setTelegram(accountInfo.telegram ? accountInfo.telegram : '');
-    }, [accountInfo]);
+        if (!chain) return;
+        setTwitter(chain.twitter ? chain.twitter : '');
+        setDiscord(chain.discord ? chain.discord : '');
+        setGithub(chain.github ? chain.github : '');
+        setTelegram(chain.telegram ? chain.telegram : '');
+    }, [chain]);
 
 
     return (
@@ -96,16 +74,21 @@ export function AccountSettings() {
                                             </Text>
                                         </>}
                                     >
-                                        {accountInfo &&
+                                        {chain &&
                                             <div style={{ color: PRIMARY_TEXT }}>
-                                                {`For ${accountInfo.chain} names, this site uses ${accountInfo.chain === SupportedChain.ETH ? 'Ethereum Name Service (ENS)' : ''}. Please setup your name on `}
-                                                {accountInfo.chain === SupportedChain.ETH ?
-                                                    <a href='https://ens.domains/'>
+                                                {chain.chain === SupportedChain.ETH && <>
+                                                    {`For ${chain.chain} names, this site uses ${chain.chain === SupportedChain.ETH ? 'Ethereum Name Service (ENS)' : ''}. Please setup your name on `}
+                                                    {chain.chain === SupportedChain.ETH ?
+                                                        <a href='https://ens.domains/'>
 
-                                                        the ENS website.
+                                                            the ENS website.
 
-                                                    </a>
-                                                    : <></>}
+                                                        </a>
+                                                        : <></>}
+                                                </>}
+                                                {chain.chain === SupportedChain.COSMOS && <>
+                                                    This site does not support Cosmos names. We are looking into adding support for Cosmos names in the future.
+                                                </>}
                                             </div>}
                                     </Form.Item>
 

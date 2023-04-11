@@ -5,10 +5,11 @@ import RegisterScreen from '../../pages/register';
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
     const chain = useChainContext();
     const isRegistered = chain.isRegistered;
+    const airdropped = chain.airdropped;
 
     return (
         <>
-            {isRegistered ? node : <RegisterScreen message={message} />}
+            {isRegistered && airdropped ? node : <RegisterScreen message={message} />}
         </>
     );
 }

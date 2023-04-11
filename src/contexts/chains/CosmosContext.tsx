@@ -6,6 +6,7 @@ import {
     SigningStargateClient
 } from "@cosmjs/stargate";
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
+import { verifyADR36Amino } from '@keplr-wallet/cosmos'
 import { createTxRaw } from 'bitbadgesjs-proto';
 import Long from 'long';
 import { useCookies } from 'react-cookie';
@@ -20,8 +21,8 @@ declare global {
 const BitBadgesKeplrSuggestChainInfo = {
     chainId: "bitbadges_1-1",
     chainName: "bitbadges",
-    rpc: "http://localhost:26657",
-    rest: "http://localhost:1317",
+    rpc: "http://10.0.0.66:26657",
+    rest: "http://10.0.0.66:1317",
     bip44: {
         coinType: 60,
     },
@@ -35,15 +36,15 @@ const BitBadgesKeplrSuggestChainInfo = {
     },
     currencies: [
         {
-            coinDenom: "badge",
-            coinMinimalDenom: "ubadge",
+            coinDenom: "BADGE",
+            coinMinimalDenom: "badge",
             coinDecimals: 0,
             coinGeckoId: "cosmos",
         },
     ],
     feeCurrencies: [
         {
-            coinDenom: "badge",
+            coinDenom: "BADGE",
             coinMinimalDenom: "badge",
             coinDecimals: 0,
             coinGeckoId: "cosmos",
@@ -55,13 +56,13 @@ const BitBadgesKeplrSuggestChainInfo = {
         },
     ],
     stakeCurrency: {
-        coinDenom: "badge",
-        coinMinimalDenom: "ubadge",
+        coinDenom: "BADGE",
+        coinMinimalDenom: "badge",
         coinDecimals: 0,
         coinGeckoId: "cosmos",
     },
     coinType: 60,
-    features: ["stargate", "ibc-transfer", "no-legacy-stdTx", "eth-address-gen", "eth-key-sign"],
+    features: ["stargate", "eth-address-gen", "eth-key-sign"],
 }
 
 export type CosmosContextType = ChainSpecificContextType & {
@@ -86,6 +87,8 @@ export const CosmosContext = createContext<CosmosContextType>({
     selectedChainInfo: {},
     connected: false,
     setConnected: () => { },
+    airdropped: false,
+    setAirdropped: () => { },
 
     cosmosAddress: '',
     setCosmosAddress: () => { },
@@ -162,6 +165,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     const [announcementsHasMore, setAnnouncementsHasMore] = useState<boolean>(true);
     const [activityHasMore, setActivityHasMore] = useState<boolean>(true);
     const [balance, setBalance] = useState<number>(0);
+    const [airdropped, setAirdropped] = useState<boolean>(false);
 
     const selectedChainInfo: SupportedChainMetadata = {
         name: 'Cosmos',
@@ -188,10 +192,8 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setTwitter(accountInformation.twitter || '');
         setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
         setBalance(accountInformation.balance?.amount ? Number(accountInformation.balance.amount) : 0);
-
-        if (cookies.blockincookie === accountInformation.cosmosAddress) {
-            setLoggedIn(true);
-        }
+        setAirdropped(accountInformation.airdropped);
+        setLoggedIn(cookies.blockincookie === accountInformation.cosmosAddress);
 
         if (Number(accountInformation.account_number) >= 0) {
             const activityRes = await getAccountActivity(Number(accountInformation.account_number));
@@ -216,9 +218,10 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
 
         const offlineSigner = window.getOfflineSigner(chainId);
+
         console.log(offlineSigner);
         const signingClient = await SigningStargateClient.connectWithSigner(
-            'http://localhost:26657',
+            'http://10.0.0.66:26657',
             offlineSigner,
         )
 
@@ -238,7 +241,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     const disconnect = async () => {
         setAddress('');
         setConnected(false);
-
     };
 
     const signChallenge = async (message: string) => {
@@ -251,8 +253,10 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         const pubKeyValueBuffer = Buffer.from(sig.pub_key.value, 'base64'); // Decode the base64 encoded value
         const pubKeyUint8Array = new Uint8Array(pubKeyValueBuffer); // Convert the buffer to an Uint8Array
 
-        // const isRecovered = verifyADR36Amino('cosmos', cosmosAddress, message, pubKeyUint8Array, uint8Signature);
-
+        const isRecovered = verifyADR36Amino('cosmos', cosmosAddress, message, pubKeyUint8Array, uint8Signature, 'ethsecp256k1');
+        if (!isRecovered) {
+            throw new Error('Signature verification failed');
+        }
         const concat = Buffer.concat([pubKeyUint8Array, uint8Signature]);
 
         return { originalBytes: new Uint8Array(Buffer.from(`0x${Buffer.from(message, 'utf8').toString('hex')}`, 'utf8')), signatureBytes: new Uint8Array(concat), message: 'Success' }
@@ -371,6 +375,8 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         activityHasMore,
         setActivityHasMore,
         updatePortfolioInfo,
+        airdropped,
+        setAirdropped
     };
 
 

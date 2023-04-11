@@ -10,6 +10,7 @@ const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
     const chain = useChainContext();
+    const airdropped = chain.airdropped;
     const [loading, setLoading] = useState(false);
 
     return (
@@ -28,11 +29,11 @@ function RegisterScreen({ message }: { message?: string }) {
                             style={{ fontSize: 20, color: PRIMARY_TEXT }}
                         >
                             {message ? message
-                                : 'To continue, you must register your address with BitBadges.'}
+                                : 'It looks like you have not claimed your airdrop yet!'}
                         </Text>
                     </Content>
                     <DisconnectedWrapper
-                        message='Please connect a wallet and sign in to continue.'
+                        message='Please connect a wallet and sign in to claim your airdrop.'
                         requireLogin
                         node={
                             <Content style={{ paddingTop: '15px' }}>
