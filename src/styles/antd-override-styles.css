@@ -202,3 +202,8 @@
 .infinite-scroll-component__outerdiv {
     width: 100%
 }
+
+.blockin-chain-select-logo-right {
+    padding-right: 0px !important;
+    margin-right: 4px !important;
+}

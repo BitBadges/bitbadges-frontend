@@ -165,7 +165,7 @@ const ChainContext = createContext<ChainContextType>({
     setSeenActivity: () => { },
     balance: 0,
     setBalance: () => { },
-    updatePortfolioInfo: async (address: string) => { },
+    updatePortfolioInfo: async (_address: string) => { },
     airdropped: false,
     setAirdropped: () => { },
 });

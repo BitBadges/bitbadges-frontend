@@ -10,7 +10,6 @@ const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
     const chain = useChainContext();
-    const airdropped = chain.airdropped;
     const [loading, setLoading] = useState(false);
 
     return (

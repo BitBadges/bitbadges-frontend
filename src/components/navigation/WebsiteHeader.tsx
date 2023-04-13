@@ -9,19 +9,18 @@ import {
     UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography } from 'antd';
+import { isAddressValid } from 'bitbadges-sdk';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { useCookies } from 'react-cookie';
 import { logout } from '../../bitbadges-api/api';
-import { isAddressValid } from 'bitbadges-sdk';
+import { PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { SearchDropdown } from './SearchDropdown';
-import { BlockiesAvatar } from '../address/Blockies';
-import { PRIMARY_TEXT } from '../../constants';
-import { useCookies } from 'react-cookie';
 
 const { Header } = Layout;
 
@@ -193,7 +192,7 @@ export function WalletHeader() {
 
     return (
         <Header className="App-header">
-            <Link href="" passHref>
+            <div onClick={() => router.push('/')}>
                 <div className="navbar-super-collapsed">
                     <Image
                         src={'/images/bitbadgeslogo.png'}
@@ -206,7 +205,7 @@ export function WalletHeader() {
                         BitBadges
                     </Typography>
                 </div>
-            </Link>
+            </div>
 
             <div className="navbar-expanded"
                 style={{

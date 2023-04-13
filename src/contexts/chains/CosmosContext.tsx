@@ -192,7 +192,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setTwitter(accountInformation.twitter || '');
         setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
         setBalance(accountInformation.balance?.amount ? Number(accountInformation.balance.amount) : 0);
-        setAirdropped(accountInformation.airdropped);
+        setAirdropped(accountInformation.airdropped || false);
         setLoggedIn(cookies.blockincookie === accountInformation.cosmosAddress);
 
         if (Number(accountInformation.account_number) >= 0) {
