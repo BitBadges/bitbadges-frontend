@@ -1,14 +1,14 @@
-import { Avatar, Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
+import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
 import { AnnouncementActivityItem, BitBadgeCollection, SupportedChain } from 'bitbadges-sdk';
-import { useEffect, useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { addAnnouncement } from '../../bitbadges-api/api';
-import { useChainContext } from '../../contexts/ChainContext';
-import { AddressDisplay } from '../address/AddressDisplay';
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { addAnnouncement } from '../../bitbadges-api/api';
+import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { useAccountsContext } from '../../contexts/AccountsContext';
+import { useChainContext } from '../../contexts/ChainContext';
+import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { AddressDisplay } from '../address/AddressDisplay';
 
 export function AnnouncementsTab({ announcements, collection, hideCollection, fetchMore, hasMore }: {
     announcements: AnnouncementActivityItem[];

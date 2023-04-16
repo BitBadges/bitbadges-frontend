@@ -1,8 +1,9 @@
 import { DownOutlined } from '@ant-design/icons';
-import { Col, Divider, Empty, Layout, Select, Spin } from 'antd';
+import { Divider, Empty, Layout, Select, Spin } from 'antd';
 import { BitBadgeCollection, GetPortfolioResponse, IdRange, isAddressValid } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { getPortfolio, updatePortfolioCollections, updateUserActivity } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
@@ -11,7 +12,6 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import InfiniteScroll from 'react-infinite-scroll-component';
 
 const { Content } = Layout;
 
