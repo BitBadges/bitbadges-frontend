@@ -43,7 +43,7 @@ export function Address({
                 address === MINT_ACCOUNT.address ? <div style={{
                     textAlign: 'center',
                     color: PRIMARY_TEXT,
-                    minWidth: 400
+                    minWidth: 360
                 }}>
                     This is a special address used when badges are minted.
                 </div>
@@ -51,7 +51,7 @@ export function Address({
                     <div style={{
                         textAlign: 'center',
                         color: PRIMARY_TEXT,
-                        minWidth: 400
+                        minWidth: 360
                     }}>
                         {`${getChainForAddress(address)} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
                         <br />
@@ -94,7 +94,7 @@ export function Address({
                     </div>
             }
             overlayStyle={{
-                minWidth: 400
+                minWidth: 360
             }}
         >
             {displayAddress}

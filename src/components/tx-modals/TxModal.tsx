@@ -1,5 +1,5 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, Divider, Modal, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
+import { Checkbox, Col, Divider, Modal, Row, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
@@ -394,7 +394,7 @@ export function TxModal(
             open={visible}
 
             style={{
-                paddingLeft: '12px',
+                paddingLeft: '0px',
                 paddingRight: '0px',
                 paddingTop: '0px',
                 paddingBottom: '0px',
@@ -423,12 +423,21 @@ export function TxModal(
             cancelText={"Cancel"}
             destroyOnClose={true}
         >
-            {requireRegistration ?
-                <RegisteredWrapper
-                    node={
-                        innerContent
-                    }
-                /> : innerContent}
+            <Row>
+                <Col md={24} xs={0} sm={0}>
+                    {requireRegistration ?
+                        <RegisteredWrapper
+                            node={
+                                innerContent
+                            }
+                        /> : innerContent}
+                </Col>
+                <Col md={0} xs={24} sm={24}>
+                    <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
+                        Mobile support for submitting transactions is not currently supported, but it is coming soon!
+                    </Typography.Text>
+                </Col>
+            </Row>
         </Modal >
     );
 }

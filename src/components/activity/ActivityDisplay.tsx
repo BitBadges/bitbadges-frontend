@@ -1,4 +1,4 @@
-import { Collapse, Divider, Empty, Spin, Typography } from 'antd';
+import { Col, Collapse, Divider, Empty, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { BitBadgeCollection, SupportedChain, TransferActivityItem, filterBadgeActivityForBadgeId } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
@@ -128,8 +128,9 @@ export function ActivityTab({ collection, badgeId, userActivity, fetchMore, hasM
                             return <CollapsePanel
                                 key={idx}
                                 header={
-                                    <div style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Row style={{ color: PRIMARY_TEXT, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+                                        <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                                 {activity.from.length > 1 ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontSize: 20 }}>
                                                     <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 20 }}>{activity.from.length} Addresses</Typography.Text>
@@ -151,10 +152,10 @@ export function ActivityTab({ collection, badgeId, userActivity, fetchMore, hasM
                                                         />)}
                                                     </>}
                                             </div>
-                                        </div>
+                                        </Col>
 
                                         <div>{activity.method} ({new Date(activity.timestamp).toLocaleDateString()} {new Date(activity.timestamp).toLocaleTimeString()})</div>
-                                    </div>
+                                    </Row>
                                 }
                                 style={{
                                     width: '100%',

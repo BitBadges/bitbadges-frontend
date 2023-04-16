@@ -12,7 +12,7 @@ export function DistributionMethodStepItem(
     const options = [];
     if (!hideFirstComeFirstServe) {
         options.push({
-            title: 'Open to Anyone (First Come, First Serve)',
+            title: 'Open to Anyone',
             message: `First come, first serve. Limit one claim per address. ${fungible ? 'Any address can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
             isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
         });
@@ -41,13 +41,13 @@ export function DistributionMethodStepItem(
 
 
     return {
-        title: `How Would You Like To Distribute These Badges?`,
+        title: `Distribution Method`,
         description: '',
         node: <SwitchForm
 
             options={options}
             onSwitchChange={(_idx, newTitle) => {
-                if (newTitle == 'Open to Anyone (First Come, First Serve)') {
+                if (newTitle == 'Open to Anyone') {
                     setDistributionMethod(DistributionMethod.FirstComeFirstServe);
                 } else if (newTitle == 'Codes') {
                     setDistributionMethod(DistributionMethod.Codes);

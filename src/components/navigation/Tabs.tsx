@@ -18,8 +18,10 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
                 disabled={tab.disabled}
                 style={{
                     width: widthPerTab,
+                    minWidth: 'fit-content',
                     textAlign: 'center',
-                    float: 'left'
+                    float: 'left',
+
                 }}
                 key={`${tab.key}`}
                 onClick={
@@ -56,7 +58,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
 
     return (
         <Menu
-            style={{ display: 'flex' }}
+            style={{ display: 'flex', overflow: 'auto' }}
             theme={theme ? theme : 'dark'}
             mode="horizontal"
             selectedKeys={noSelectedKeys ? [] : [tab]}

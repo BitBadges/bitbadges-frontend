@@ -29,7 +29,9 @@ export function AddressWithBlockies({
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
         alignItems: 'center',
+        // justifyContent: 'center'
     }}>
         <Tooltip
             title={getChainForAddress(address)}

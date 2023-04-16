@@ -54,7 +54,7 @@ export function AccountSettings() {
                     node={
                         <Content
                             className="full-area"
-                            style={{ backgroundColor: PRIMARY_BLUE, minHeight: '100vh' }}
+                            style={{ backgroundColor: PRIMARY_BLUE, minHeight: '100vh', padding: 8 }}
                         >
                             <br />
                             <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>

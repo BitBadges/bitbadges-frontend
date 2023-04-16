@@ -1,5 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Collapse, Divider, Empty, Pagination, Tooltip, Typography } from 'antd';
+import { Col, Collapse, Divider, Empty, Pagination, Row, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { SHA256 } from 'crypto-js';
@@ -165,8 +165,8 @@ export function CreateClaims({
 
     return <div style={{ justifyContent: 'center', width: '100%' }}>
         <div style={{ textAlign: 'center', color: PRIMARY_TEXT, justifyContent: 'center', display: 'flex', width: '100%' }}>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
-                <div style={{ width: '48%', display: 'flex' }}>
+            <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
+                <Col md={11} sm={24} xs={24} style={{ display: 'flex' }}>
                     <InformationDisplayCard
                         title='Undistributed Badges'
                     >
@@ -179,8 +179,9 @@ export function CreateClaims({
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description='No badges to distribute.' />}
                     </InformationDisplayCard>
-                </div>
-                <div style={{ width: '48%', display: 'flex' }}>
+                </Col>
+
+                <Col md={11} sm={24} xs={24} style={{ display: 'flex' }}>
                     <InformationDisplayCard
                         title={distributionMethod === DistributionMethod.Codes ? 'Codes' : distributionMethod === DistributionMethod.Whitelist ? 'Whitelist' : 'Claims'}
                     ><>
@@ -289,9 +290,8 @@ export function CreateClaims({
                             </>}
                         </>
                     </InformationDisplayCard>
-                </div>
-
-            </div>
+                </Col>
+            </Row>
 
         </div >
         <br />

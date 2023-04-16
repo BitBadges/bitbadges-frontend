@@ -80,11 +80,12 @@ export function SearchDropdown({
                                 }}
                             hidePortfolioLink
                             hideTooltip
+
                         />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {/* <div style={{ display: 'flex', alignItems: 'center' }}>
                         {isAddressValid(searchValue) ? 'Unregistered' : ''}
-                    </div>
+                    </div> */}
                 </div>
             </Menu.Item>
         }
@@ -109,9 +110,9 @@ export function SearchDropdown({
                             hideTooltip
                         />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {/* <div style={{ display: 'flex', alignItems: 'center' }}>
                         {result.accountNumber && result.accountNumber >= 0 ? 'ID: ' + result.accountNumber : 'Unregistered'}
-                    </div>
+                    </div> */}
                 </div>
             </Menu.Item>
         })}

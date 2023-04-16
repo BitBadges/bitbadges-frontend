@@ -2,7 +2,7 @@ import {
     LinkOutlined,
     ShareAltOutlined
 } from '@ant-design/icons';
-import { Avatar, Layout, Tooltip, message } from 'antd';
+import { Avatar, Layout, Tooltip, message, Col } from 'antd';
 import { BitBadgesUserInfo, SupportedChain } from 'bitbadges-sdk';
 import { PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -161,6 +161,7 @@ export function AccountButtonDisplay({
                     </Avatar>
                 </Tooltip>
             </div>
+            <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
             <Content
                 style={{
                     padding: '0',
@@ -187,7 +188,7 @@ export function AccountButtonDisplay({
                         <div style={{ marginTop: 4, justifyContent: 'center', display: 'flex' }}>
                             <AddressDisplay
                                 userInfo={accountInfo}
-                                fontSize={30}
+                                fontSize={20}
                                 fontColor={PRIMARY_TEXT}
                                 hidePortfolioLink
                             // showTooltip

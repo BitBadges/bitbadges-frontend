@@ -161,12 +161,13 @@ export function ClaimDisplay({
     return <>
         <Card
             style={{
-                width: 650,
-                margin: 8,
+                // width: 650,
+                // margin: 8,
                 textAlign: 'center',
                 backgroundColor: PRIMARY_BLUE,
                 color: PRIMARY_TEXT,
                 border: `1px solid white`,
+                borderRadius: 10,
             }}
         >
             <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >

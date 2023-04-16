@@ -1,5 +1,5 @@
 import { DownOutlined } from '@ant-design/icons';
-import { Divider, Empty, Layout, Select, Spin } from 'antd';
+import { Col, Divider, Empty, Layout, Select, Spin } from 'antd';
 import { BitBadgeCollection, GetPortfolioResponse, IdRange, isAddressValid } from 'bitbadges-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -163,6 +163,7 @@ function PortfolioPage() {
                 >
                     {/* Overview and Tabs */}
                     {accountInfo && <AccountButtonDisplay accountInfo={accountInfo} />}
+
                     <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
                     {tab === 'collected' && (<>
                         <br />
@@ -172,7 +173,7 @@ function PortfolioPage() {
                             float: 'right',
                             display: 'flex',
                             alignItems: 'center',
-                            marginRight: 16
+                            marginRight: 16,
                         }}>
                             Group By:
 
@@ -208,7 +209,7 @@ function PortfolioPage() {
                             display: 'flex',
                             alignItems: 'center',
                             marginLeft: 16,
-                            marginRight: 16
+                            marginRight: 16,
                         }}>
                             View:
 
@@ -272,7 +273,7 @@ function PortfolioPage() {
                                         }
                                     }
                                 }}
-                                hasMore={collectedHasMore}
+                                hasMore={collectedHasMore || numBadgesDisplayed < numTotalBadges}
                                 loader={<div>
                                     <br />
                                     <Spin size={'large'} />

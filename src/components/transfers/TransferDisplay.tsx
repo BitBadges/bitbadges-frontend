@@ -92,7 +92,7 @@ export function TransferDisplay({
                             <br />
 
                             <Row>
-                                <Col span={11} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                     <AddressDisplayList
                                         users={from}
                                         hideAccountNumber
@@ -103,11 +103,11 @@ export function TransferDisplay({
                                         center
                                     />
                                 </Col>
-                                <Col span={2} style={{ textAlign: 'center', justifyContent: 'center' }}>
+                                <Col md={2} xs={1} sm={1} style={{ textAlign: 'center', justifyContent: 'center', minHeight: 20 }}>
                                     {/* <FontAwesomeIcon icon={faArrowRight} /> */}
                                 </Col>
 
-                                <Col span={11} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                     <AddressDisplayList
                                         users={to}
                                         hideAccountNumber

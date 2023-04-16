@@ -1,4 +1,4 @@
-import { Avatar, Button, Divider, Empty, Input, Modal, Spin, Tooltip, Typography } from 'antd';
+import { Avatar, Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
 import { AnnouncementActivityItem, BitBadgeCollection, SupportedChain } from 'bitbadges-sdk';
 import { useEffect, useState } from 'react';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
@@ -100,38 +100,13 @@ export function AnnouncementsTab({ announcements, collection, hideCollection, fe
 
                     const collectionToDisplay = collections.collections[announcement.collectionId]?.collection;
                     return (
-                        <div key={index} style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', flexDirection: 'column' }}>
-                            <div style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-                                <div style={{ color: PRIMARY_TEXT, alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                                    {!hideCollection && collectionToDisplay &&
-                                        <div style={{ display: 'flex', alignItems: 'center' }} >
-                                            <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24, textAlign: 'left', marginRight: 8 }}>Collection:</Typography.Text>
+                        <div key={index} style={{ color: PRIMARY_TEXT, width: '100%', }}>
 
-                                            <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
-                                                <div className='link-button-nav' onClick={() => {
-                                                    router.push('/collections/' + collectionToDisplay.collectionId)
-                                                    Modal.destroyAll()
-                                                }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                            <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
+                                <Col md={12} sm={24} xs={24} style={{ color: PRIMARY_TEXT, alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
 
-                                                    <Avatar
-                                                        src={collectionToDisplay.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                                                        size={40}
-                                                        style={{
-                                                            verticalAlign: 'middle',
-                                                            border: '1px solid',
-                                                            borderColor: collectionToDisplay.collectionMetadata?.color
-                                                                ? collectionToDisplay.collectionMetadata?.color
-                                                                : 'black',
-                                                            margin: 4,
-                                                        }}
-                                                    /> {collectionToDisplay.collectionMetadata?.name}
-
-                                                </div>
-                                            </Tooltip>
-                                        </div>}
 
                                     <div style={{ display: 'flex', alignItems: 'center' }} >
-                                        <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24, textAlign: 'left', marginRight: 8 }}>Manager:</Typography.Text>
 
                                         <AddressDisplay userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[announcement.from]] || {
                                             address: '',
@@ -142,29 +117,45 @@ export function AnnouncementsTab({ announcements, collection, hideCollection, fe
                                             darkMode
                                         />
                                     </div>
-                                </div>
-                                <div>
+                                    {!hideCollection && collectionToDisplay &&
+                                        <div style={{ display: 'flex', alignItems: 'center' }} >
+
+                                            <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
+                                                <div className='link-button-nav' onClick={() => {
+                                                    router.push('/collections/' + collectionToDisplay.collectionId)
+                                                    Modal.destroyAll()
+                                                }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                                    <a>
+                                                        {collectionToDisplay.collectionMetadata?.name}
+                                                    </a>
+
+                                                </div>
+                                            </Tooltip>
+                                        </div>}
+
+
                                     <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 18, textAlign: 'left', marginRight: 8 }}>
                                         {new Date(announcement.timestamp).toLocaleDateString() + ' '}
                                         {new Date(announcement.timestamp).toLocaleTimeString()}
                                     </Typography.Text>
+                                </Col>
+                            </Row>
+                            <Divider />
 
-                                </div>
-                            </div>
-                            <br />
                             <div style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-                                <Typography.Text style={{ color: PRIMARY_TEXT, fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                                    {announcement.announcement}
-                                </Typography.Text>
+
+                                <div style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                                    <Typography.Text style={{ color: PRIMARY_TEXT, fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                                        {announcement.announcement}
+                                    </Typography.Text>
+                                </div>
+
+
                             </div>
-
-                            <br />
-                            <hr style={{ width: '100%', color: PRIMARY_TEXT }} />
                         </div>
-
                     )
                 })}
-            </InfiniteScroll>
+            </InfiniteScroll >
         </>
     )
 }

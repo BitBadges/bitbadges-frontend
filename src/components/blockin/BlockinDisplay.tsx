@@ -183,11 +183,11 @@ export const BlockinDisplay = ({
                     userInfo={{
                         address, accountNumber, cosmosAddress, chain
                     }}
-                    fontColor={PRIMARY_TEXT} fontSize={36}
+                    fontColor={PRIMARY_TEXT} fontSize={24}
                 />}</div>
             <div> {address && <Text
                 strong
-                style={{ fontSize: 30, color: PRIMARY_TEXT }}
+                style={{ fontSize: 20, color: PRIMARY_TEXT }}
             >
                 {loggedIn ? 'Signed In' : 'Not Signed In'}
             </Text>}</div>

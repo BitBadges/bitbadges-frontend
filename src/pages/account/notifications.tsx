@@ -84,7 +84,7 @@ export function Notifications() {
                                             />
                                         </>}
 
-                                        {tab === 'announcements' && <AnnouncementsTab
+                                        {tab === 'announcements' && <><br /><AnnouncementsTab
                                             announcements={chain.announcements}
                                             fetchMore={async () => {
                                                 if (!chain.announcements) return;
@@ -96,7 +96,7 @@ export function Notifications() {
                                                 chain.setAnnouncements([...chain.announcements, ...newRes.announcements]);
                                             }}
                                             hasMore={chain.announcementsHasMore}
-                                        />}
+                                        /></>}
                                     </div>
                                 </div>
                             </Content>

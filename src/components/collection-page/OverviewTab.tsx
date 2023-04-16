@@ -56,18 +56,20 @@ export function OverviewTab({
 
 
     return <>
-        <InformationDisplayCard
-            title="Badges in Collection"
-        >
-            <BadgeAvatarDisplay
-                showIds
-                size={75}
-                collection={collection}
-                userBalance={userBalance}
-                badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
-                maxWidth={'100%'}
-            />
-        </InformationDisplayCard>
+        <div style={{ paddingRight: 4, paddingLeft: 4 }}>
+            <InformationDisplayCard
+                title="Badges in Collection"
+            >
+                <BadgeAvatarDisplay
+                    showIds
+                    size={75}
+                    collection={collection}
+                    userBalance={userBalance}
+                    badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
+                    maxWidth={'100%'}
+                />
+            </InformationDisplayCard>
+        </div>
         <br />
 
         <br />
@@ -77,7 +79,7 @@ export function OverviewTab({
                 justifyContent: 'space-between',
             }}
         >
-            <Col span={12} style={{ paddingRight: 10 }}>
+            <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
                 <MetadataDisplay
                     collection={collection}
                     metadata={collectionMetadata}
@@ -100,9 +102,7 @@ export function OverviewTab({
 
                             </Tooltip>
                         }
-
-                    </>
-                    }
+                    </>}
                 >
                     <div style={{ margin: 8 }}>
                         {
@@ -134,7 +134,7 @@ export function OverviewTab({
                 />
             </Col>
 
-            <Col span={12}>
+            <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
                 {collectionMetadata?.description && <>
                     <InformationDisplayCard
                         title={<>About</>}
@@ -150,6 +150,7 @@ export function OverviewTab({
                     </InformationDisplayCard>
                     <br />
                 </>}
+                <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                 <InformationDisplayCard
                     title={<>Distribution</>}
                     span={24}

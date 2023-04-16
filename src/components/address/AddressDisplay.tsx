@@ -118,10 +118,11 @@ export function AddressDisplay(
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
-            display: 'flex',
+            // display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
+            paddingRight: 0
         }}>
             <AddressWithBlockies
                 address={userInfo.address}
@@ -134,6 +135,7 @@ export function AddressDisplay(
                 hideTooltip={hideTooltip}
             />
             <div style={{ display: 'flex', alignItems: 'center', color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >
+
                 {showAccountNumber && userInfo.accountNumber !== -1 &&
                     <div>
                         <Typography.Text strong style={{ marginLeft: 8, color: fontColor ? fontColor : darkMode ? 'white' : undefined }}>ID #{userInfo.accountNumber}</Typography.Text>

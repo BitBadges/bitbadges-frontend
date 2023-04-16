@@ -128,9 +128,10 @@ export function MultiCollectionBadgeDisplay({
                     }}
                     hideOnSinglePage
                     showSizeChanger={false}
+                    size='small'
                 />
             </div>}
-
+            <br />
 
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap' }}>
                 {
@@ -196,9 +197,11 @@ export function MultiCollectionBadgeDisplay({
                     }}
                     hideOnSinglePage
                     showSizeChanger={false}
+                    size='small'
                 />
             </div>
             }
+            
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
                 {
                     badgeIdsToDisplay.map((badgeIdObj) => {

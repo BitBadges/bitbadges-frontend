@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { Divider } from "antd";
+import { Col, Divider, Row } from "antd";
 import { useEffect, useState } from "react";
 import { getTransferMappingForSelectOptions, isTransferMappingFull } from "bitbadges-sdk";
 import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
@@ -185,8 +185,8 @@ export function TransfersMappingSelect({
                     }
                     <br />
                     {<div>
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <div style={{ width: '48%', display: 'flex' }}>
+                        <Row style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Col md={12} sm={24} xs={24} style={{ display: 'flex', marginTop: 50 }}>
                                 <InformationDisplayCard
                                     noBorder
                                     title={isManagerApprovedSelect ? "Who is the manager approved to send from?" : "Who can send badges?"}
@@ -242,8 +242,9 @@ export function TransfersMappingSelect({
                                 </InformationDisplayCard>
 
 
-                            </div>
-                            <div style={{ width: '48%', display: 'flex' }}>
+                            </Col>
+
+                            <Col md={12} sm={24} xs={24} style={{ display: 'flex', marginTop: 50 }}>
                                 <InformationDisplayCard
                                     noBorder
                                     title={isManagerApprovedSelect ? "Who is the manager approved to send to?" : "Who can receive badges?"}
@@ -295,21 +296,24 @@ export function TransfersMappingSelect({
                                         </div>
                                     </div>}
                                 </InformationDisplayCard>
-                            </div>
-                        </div>
+                            </Col>
+                        </Row>
                         <Divider />
                     </div>
                     }
                 </div>}
             </div>
-        </div>}
-        {DEV_MODE &&
+        </div>
+        }
+        {
+            DEV_MODE &&
             <pre style={{
                 color: SECONDARY_TEXT,
                 backgroundColor: 'black',
                 padding: 20,
             }}>
                 {JSON.stringify(transfersMapping, null, 2)}
-            </pre>}
+            </pre>
+        }
     </div >
 }

@@ -64,7 +64,7 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
-                    display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column'
+                    display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column', padding: 0
                 }}>
                     <AddressDisplay
                         fontSize={14}

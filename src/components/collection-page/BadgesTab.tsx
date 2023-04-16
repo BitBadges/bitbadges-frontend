@@ -55,9 +55,9 @@ export function BadgesTab({ collection, }: {
             <Divider />
             <div
                 style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
+                    // display: 'flex',
+                    // justifyContent: 'center',
+                    // flexWrap: 'wrap',
                 }}
             >
                 <MultiCollectionBadgeDisplay

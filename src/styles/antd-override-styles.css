@@ -207,3 +207,7 @@
     padding-right: 0px !important;
     margin-right: 4px !important;
 }
+
+.ant-popover-placement-bottom, .ant-popover-placement-bottomLeft, .ant-popover-placement-bottomRight {
+    width: 100%;
+}

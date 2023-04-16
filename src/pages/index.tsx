@@ -1,4 +1,4 @@
-import { Button, Divider, Layout, Typography } from 'antd';
+import { Button, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../constants';
@@ -56,18 +56,36 @@ const Home: NextPage = () => {
                             </div>
                             <Divider />
                             <Divider />
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                {/* <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>Team</Typography.Text> */}
-                                <br />
-                                <iframe
-                                    width={443 * 1.2}
-                                    height={249 * 1.2}
+                            {/* <div style={{ display: 'flex', justifyContent: 'center' }}> */}
 
-                                    src="https://www.youtube.com/embed/vgL1BR4PZNU" title="Create a Badge in 45 Seconds w/ BitBadges" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-                            </div>
+                            {/* </div> */}
+
                         </div>
+
                     </div>
+                    <Row style={{ display: 'flex', justifyContent: 'center' }}>
+                        <Col md={12} sm={24} xs={24}>
+                            {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
+                            {/* <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>Team</Typography.Text> */}
+                            <br />
+                            <div className="container">
+                                <iframe
+                                    className='responsive-iframe'
+                                    // width={'100%'}
+                                    // height={249 * 1.2}
+                                    src="https://www.youtube.com/embed/vgL1BR4PZNU"
+                                    title="Create a Badge in 45 Seconds w/ BitBadges"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                />
+                            </div>
+
+                            {/* </div> */}
+                        </Col>
+                    </Row>
                 </div>
+
 
                 <Divider />
 

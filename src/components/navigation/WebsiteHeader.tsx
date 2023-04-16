@@ -182,10 +182,10 @@ export function WalletHeader() {
             <div
                 style={{
                     backgroundColor: 'white',
-                    width: '85vw',
+                    width: '100%',
                 }}
             >
-                {SearchBar}
+                {ExpandedSearchBar}
             </div>
         ),
     }
@@ -251,7 +251,7 @@ export function WalletHeader() {
                         HomeTabWithIcon,
                         CollapsedSearchIconTab,
                         BrowseTabWithIcon,
-                        MintTabWithIcon,
+                        // MintTabWithIcon,
                         NotificationsTabWithIcon,
                         UserTab,
 
