@@ -14,7 +14,6 @@ export function OwnersTab({ collection, badgeId }: {
     collection: BitBadgeCollection | undefined;
     badgeId: number
 }) {
-    //TODO: paginate
     const accounts = useAccountsContext();
     const chain = useChainContext();
     const isPreview = collection?.collectionId === 0;

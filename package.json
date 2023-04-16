@@ -26,7 +26,7 @@
         "@walletconnect/web3-provider": "^1.8.0",
         "antd": "^4.23.0",
         "axios": "^0.27.2",
-        "bitbadges-sdk": "^1.0.47",
+        "bitbadges-sdk": "^1.0.48",
         "bitbadgesjs-address-converter": "^0.0.3",
         "bitbadgesjs-proto": "^0.0.64",
         "bitbadgesjs-provider": "^0.0.3",

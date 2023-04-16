@@ -21,8 +21,6 @@ const tabInfo = [
     { key: 'activity', content: 'Activity', disabled: false }
 ];
 
-//TODO: paginations and parallelizations
-
 function PortfolioPage() {
     const router = useRouter();
     const collections = useCollectionsContext();

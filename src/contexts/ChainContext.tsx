@@ -182,8 +182,6 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     const cosmosContext = useCosmosContext();
 
 
-    //TODO: better handle login and chain cookies (with address changes, expirations, etc)
-
     useEffect(() => {
         if (chain === 'Ethereum') {
             ethereumContext.setChainId('eth');

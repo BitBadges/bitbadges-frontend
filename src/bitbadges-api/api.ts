@@ -15,19 +15,19 @@ const axios = axiosApi.create({
 //Get account by address
 export async function getAccountInformation(address: string) {
     const bech32Address = convertToCosmosAddress(address);
-    const accountObject: AccountResponse = await axios.get(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
+    const accountObject: AccountResponse = await axios.post(BACKEND_URL + GetAccountRoute(bech32Address.toLowerCase())).then((res) => res.data);
     return accountObject;
 }
 
 //Get indexer status
 export async function getStatus() {
-    const status: IndexerStatus = await axios.get(BACKEND_URL + GetStatusRoute()).then((res) => res.data);
+    const status: IndexerStatus = await axios.post(BACKEND_URL + GetStatusRoute()).then((res) => res.data);
     return status;
 }
 
 //Get account by account number
 export async function getAccountInformationByAccountNumber(id: number) {
-    const accountObject: AccountResponse = await axios.get(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
+    const accountObject: AccountResponse = await axios.post(BACKEND_URL + GetAccountByNumberRoute(id)).then((res) => res.data);
     return accountObject;
 }
 
@@ -38,7 +38,7 @@ export async function getAccounts(accountNums: number[], addresses: string[]) {
 
 //Query owners for a specific badge
 export async function getBadgeOwners(collectionId: number, badgeId: number) {
-    const owners: GetOwnersResponse = await axios.get(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
+    const owners: GetOwnersResponse = await axios.post(BACKEND_URL + GetOwnersRoute(collectionId, badgeId)).then((res) => res.data);
     return owners;
 }
 
@@ -210,7 +210,7 @@ export async function getBadgeBalance(
     await validatePositiveNumber(collectionId);
     await validatePositiveNumber(accountNumber);
 
-    const balanceRes: GetBadgeBalanceResponse = await axios.get(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
+    const balanceRes: GetBadgeBalanceResponse = await axios.post(BACKEND_URL + GetBadgeBalanceRoute(collectionId, accountNumber)).then((res) => res.data);
     return balanceRes;
 }
 
@@ -236,19 +236,19 @@ export async function getPortfolio(accountNumber: number) {
 }
 
 export async function addAnnouncement(announcement: string, collectionId: number) {
-    const res = await axios.post(BACKEND_URL + `/api/collection/${collectionId}/addAnnouncement`, { announcement }).then((res) => res.data);
+    const res = await axios.post(BACKEND_URL + `/api/v0/collection/${collectionId}/addAnnouncement`, { announcement }).then((res) => res.data);
     return res;
 }
 
 //Get search results
 export async function getSearchResults(searchTerm: string) {
-    const searchResults: SearchResponse = await axios.get(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
+    const searchResults: SearchResponse = await axios.post(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
     return searchResults;
 }
 
 //Blockin API Routes
 export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
-    const data: { params: ChallengeParams } = await axios.post(BACKEND_URL + '/api/getChallengeParams', {
+    const data: { params: ChallengeParams } = await axios.post(BACKEND_URL + '/api/v0/auth/getChallenge', {
         address,
         chain
     }).then(res => res.data);
@@ -258,33 +258,33 @@ export const getChallengeParams = async (chain: string, address: string): Promis
 
 export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uint8Array, signatureBytes: Uint8Array) => {
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
-    const verificationRes = await axios.post(BACKEND_URL + '/api/verifyChallenge', bodyStr).then(res => res.data);
+    const verificationRes = await axios.post(BACKEND_URL + '/api/v0/auth/verify', bodyStr).then(res => res.data);
     return verificationRes;
 }
 
 export const logout = async () => {
-    await axios.post(BACKEND_URL + '/api/logout').then(res => res.data);
+    await axios.post(BACKEND_URL + '/api/v0/auth/logout').then(res => res.data);
 }
 
 export const getCodeForPassword = async (collectionId: number, claimId: number, password: string) => {
-    const res: { code: string } = await axios.get(BACKEND_URL + '/api/password/' + collectionId + '/' + claimId + '/' + password).then(res => res.data);
+    const res: { code: string } = await axios.post(BACKEND_URL + '/api/v0/collection/' + collectionId + '/password/' + claimId + '/' + password).then(res => res.data);
     return res;
 }
 
 export const fetchCodes = async (collectionId: number) => {
-    const res: { codes: string[][], passwords?: string[] } = await axios.get(BACKEND_URL + '/api/collection/codes/' + collectionId).then(res => res.data);
+    const res: { codes: string[][], passwords?: string[] } = await axios.post(BACKEND_URL + '/api/v0/collection/' + collectionId + '/codes').then(res => res.data);
     return res;
 }
 
 export const getTokensFromFaucet = async () => {
-    const res: { result: any } = await axios.post(BACKEND_URL + '/api/faucet').then(res => res.data);
+    const res: { result: any } = await axios.post(BACKEND_URL + '/api/v0/faucet').then(res => res.data);
     return res;
 }
 
 export const getBrowseInfo = async () => {
     const res: {
         [categoryName: string]: StoredBadgeCollection[]
-    } = await axios.get(BACKEND_URL + '/api/browse').then(res => res.data);
+    } = await axios.post(BACKEND_URL + '/api/v0/browse').then(res => res.data);
     return res;
 }
 
@@ -294,12 +294,12 @@ export const updateAccountSettings = async (settingsToUpdate: {
     telegram?: string,
     github?: string,
 }) => {
-    const res: { success: string } = await axios.post(BACKEND_URL + '/api/user/updateAccount', settingsToUpdate).then(res => res.data);
+    const res: { success: string } = await axios.post(BACKEND_URL + '/api/v0/user/updateAccount', settingsToUpdate).then(res => res.data);
     return res;
 }
 
 export const updateLastSeenActivity = async () => {
-    const res: { success: string } = await axios.post(BACKEND_URL + '/api/user/updateAccount', {
+    const res: { success: string } = await axios.post(BACKEND_URL + '/api/v0/user/updateAccount', {
         seenActivity: Date.now()
     }).then(res => res.data);
     return res;
@@ -311,7 +311,7 @@ export const getAccountActivity = async (accountNum: number) => {
             announcements: PaginationInfo,
             activity: PaginationInfo
         }
-    } = await axios.get(BACKEND_URL + '/api/user/activity/' + accountNum).then(res => res.data);
+    } = await axios.post(BACKEND_URL + '/api/v0/user/' + accountNum + '/activity').then(res => res.data);
 
     return res;
 }
@@ -324,7 +324,7 @@ export const fetchMetadata = async (uri: string) => {
         return Promise.reject(error);
     }
 
-    const res: { metadata: BadgeMetadata } = await axios.post(BACKEND_URL + '/api/metadata', { uri }).then(res => res.data);
+    const res: { metadata: BadgeMetadata } = await axios.post(BACKEND_URL + '/api/v0/metadata', { uri }).then(res => res.data);
     return res;
 }
 
@@ -333,13 +333,13 @@ export const getBadgeActivity = async (collectionId: number, badgeId: number, bo
         activity: TransferActivityItem[], pagination: {
             activity: PaginationInfo
         }
-    } = await axios.post(BACKEND_URL + '/api/collection/activity/' + collectionId + '/' + badgeId, { bookmark }).then(res => res.data);
+    } = await axios.post(BACKEND_URL + '/api/v0/collection/' + collectionId + '/' + badgeId + '/activity', { bookmark }).then(res => res.data);
     return res;
 }
 
 //Refreshes the metadata on the backend by adding it to the queue
 export const refreshMetadataOnBackend = async (collectionId: number, badgeId?: number) => {
-    const res = await axios.post(BACKEND_URL + '/api/collection/refreshMetadata', { collectionId, badgeId }).then(res => res.data);
+    const res = await axios.post(BACKEND_URL + '/api/v0/collection/refreshMetadata/' + collectionId + `${badgeId ? '/' + badgeId : ''}`).then(res => res.data);
     return res;
 }
 
@@ -352,7 +352,7 @@ export const addMerkleTreeToIpfs = async (leaves: string[], addresses: string[],
         password
     }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/addMerkleTreeToIpfs', bodyStr).then(res => res.data);
+    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/v0/addMerkleTreeToIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }
 
@@ -362,6 +362,6 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
         individualBadgeMetadata: Object.values(individualBadgeMetadata).map(x => x.metadata)
     }); //hack to preserve uint8 arrays
 
-    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/addToIpfs', bodyStr).then(res => res.data);
+    const addToIpfsRes = await axios.post(BACKEND_URL + '/api/v0/addToIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }

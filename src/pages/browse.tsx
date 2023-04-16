@@ -9,9 +9,6 @@ import { useCollectionsContext } from '../contexts/CollectionsContext';
 
 const { Content } = Layout;
 
-//TODO: paginations and parallelizations
-//TODO: make this actually work
-
 function BrowsePage() {
     const collections = useCollectionsContext();
 
@@ -76,11 +73,11 @@ function BrowsePage() {
 
                     <div>
                         <br />
-                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                             {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
                                 const collection = collections.collections[portfolioCollection.collectionId]?.collection;
                                 if (!collection) return null;
-                                
+
                                 return <>
                                     <CollectionDisplay
                                         key={portfolioCollection.collectionId}
