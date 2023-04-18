@@ -48,7 +48,7 @@ function RegisterScreen({ message }: { message?: string }) {
                                     }}
                                     style={{ margin: 5 }}
                                 >
-                                    Receive 10 $BADGE Tokens from Faucet
+                                    Receive 1000 $BADGE Tokens from Faucet
                                 </Button>
                             </Content>
                         }

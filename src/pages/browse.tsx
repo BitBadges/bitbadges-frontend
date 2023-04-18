@@ -73,7 +73,7 @@ function BrowsePage() {
 
                     <div>
                         <br />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
                             {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
                                 const collection = collections.collections[portfolioCollection.collectionId]?.collection;
                                 if (!collection) return null;
