@@ -21,8 +21,8 @@ declare global {
 const BitBadgesKeplrSuggestChainInfo = {
     chainId: "bitbadges_1-1",
     chainName: "bitbadges",
-    rpc: "http://146.190.197.77:26657",
-    rest: "http://146.190.197.77:1317",
+    rpc: "https://146.190.197.77:26657",
+    rest: "https://146.190.197.77:1317",
     bip44: {
         coinType: 60,
     },
@@ -221,7 +221,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
         console.log(offlineSigner);
         const signingClient = await SigningStargateClient.connectWithSigner(
-            'http://146.190.197.77:26657',
+            'https://146.190.197.77:26657',
             offlineSigner,
         )
 
