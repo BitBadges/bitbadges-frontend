@@ -1,6 +1,8 @@
 import { SupportedChain } from "bitbadges-sdk";
+import getConfig from 'next/config';
 
-export const HOSTNAME = window.location.hostname;
+const { publicRuntimeConfig } = getConfig();
+export const HOSTNAME = publicRuntimeConfig.HOSTNAME;
 
 export const NODE_URL = `http://${HOSTNAME}:1317`;
 export const BACKEND_URL = `https://${HOSTNAME}:3001`;
