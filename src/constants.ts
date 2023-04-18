@@ -1,6 +1,6 @@
 import { SupportedChain } from "bitbadges-sdk";
 
-export const HOSTNAME = process.env.BITBADGES_IO ? 'bitbadges.io' : 'localhost';
+export const HOSTNAME = window.location.hostname;
 
 export const NODE_URL = `http://${HOSTNAME}:1317`;
 export const BACKEND_URL = `https://${HOSTNAME}:3001`;
