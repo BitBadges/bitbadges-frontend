@@ -288,6 +288,11 @@ export const getBrowseInfo = async () => {
     return res;
 }
 
+export const broadcastTx = async (body: any) => {
+    const res = await axios.post(BACKEND_URL + '/api/v0/broadcast', body);
+    return res;
+}
+
 export const updateAccountSettings = async (settingsToUpdate: {
     twitter?: string,
     discord?: string,

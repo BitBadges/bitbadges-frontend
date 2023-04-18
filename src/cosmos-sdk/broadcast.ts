@@ -1,7 +1,7 @@
-import { BroadcastMode, generateEndpointBroadcast, generatePostBodyBroadcast } from "bitbadgesjs-provider"
-import { ChainContextType } from "../contexts/ChainContext"
-import axios from 'axios';
-import { DEV_MODE, NODE_URL } from "../constants";
+import { BroadcastMode, generatePostBodyBroadcast } from "bitbadgesjs-provider";
+import { broadcastTx } from "../bitbadges-api/api";
+import { DEV_MODE } from "../constants";
+import { ChainContextType } from "../contexts/ChainContext";
 
 
 
@@ -14,8 +14,7 @@ export async function broadcastTransaction(txRaw: any) {
     // }
 
     if (DEV_MODE) console.log("Broadcasting Tx...")
-    let broadcastPost = await axios.post(
-        `${NODE_URL}${generateEndpointBroadcast()}`,
+    let broadcastPost = await broadcastTx(
         generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
     );
 
