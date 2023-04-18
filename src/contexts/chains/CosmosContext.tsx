@@ -10,7 +10,7 @@ import { verifyADR36Amino } from '@keplr-wallet/cosmos'
 import { createTxRaw } from 'bitbadgesjs-proto';
 import Long from 'long';
 import { useCookies } from 'react-cookie';
-import { COSMOS_LOGO } from '../../constants';
+import { COSMOS_LOGO, HOSTNAME } from '../../constants';
 import { ChainSpecificContextType } from '../ChainContext';
 
 
@@ -21,8 +21,8 @@ declare global {
 const BitBadgesKeplrSuggestChainInfo = {
     chainId: "bitbadges_1-1",
     chainName: "bitbadges",
-    rpc: "http://146.190.197.77:26657",
-    rest: "http://146.190.197.77:1317",
+    rpc: `http://${HOSTNAME}:26657`,
+    rest: `http://${HOSTNAME}:1317`,
     bip44: {
         coinType: 60,
     },
@@ -221,7 +221,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
         console.log(offlineSigner);
         const signingClient = await SigningStargateClient.connectWithSigner(
-            'http://146.190.197.77:26657',
+            `http://${HOSTNAME}:26657`,
             offlineSigner,
         )
 
