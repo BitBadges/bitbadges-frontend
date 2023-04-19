@@ -118,8 +118,9 @@ export function AddressDisplay(
     return <>
         {title && AddressDisplayTitle({ title, icon })}
         <div style={{
-            // display: 'flex',
+            display: 'flex',
             flexDirection: 'row',
+            flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingRight: 0

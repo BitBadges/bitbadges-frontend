@@ -56,13 +56,13 @@ export function TxModal(
     const [txDetails, setTxDetails] = useState<any>(null);
     const [exceedsBalance, setExceedsBalance] = useState(false);
 
-    useEffect(() => {
-        async function fetchDetails() {
-            const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
-            setTxDetails(txDetails);
-        }
-        fetchDetails();
-    }, []);
+    // useEffect(() => {
+    //     async function fetchDetails() {
+    //         const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
+    //         setTxDetails(txDetails);
+    //     }
+    //     fetchDetails();
+    // }, []);
 
     useEffect(() => {
         async function fetchDetails() {
@@ -70,7 +70,7 @@ export function TxModal(
             setTxDetails(txDetails);
         }
         fetchDetails();
-    }, [chain.address, chain.cosmosAddress, chain.sequence, statusContext.status.gasPrice]);
+    }, [chain]);
 
     useEffect(() => {
         if (visible) {

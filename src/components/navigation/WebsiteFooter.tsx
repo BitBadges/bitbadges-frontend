@@ -48,8 +48,6 @@ export function WalletFooter() {
                                 </div>
 
                             </div>
-                        </Col>
-                        <Col md={6} sm={24} xs={24}>
                             <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
                                 {/* <h4 style={{ color: PRIMARY_TEXT }}>app.footer.community</h4> */}
                                 <div>
@@ -58,12 +56,28 @@ export function WalletFooter() {
                                     </a>
                                 </div>
                             </div>
-                        </Col>
-                        <Col md={6} sm={24} xs={24}>
                             <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
                                 <div>
                                     <a target="_blank" rel="noopener noreferrer" href="https://github.com/bitbadges">
                                         GitHub
+                                    </a>
+                                </div>
+                            </div>
+                        </Col>
+                        <Col md={6} sm={24} xs={24}>
+                            <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
+                                <div>
+                                    <a target="_blank" rel="noopener noreferrer" href="https://bitbadges.io/policies/termsofservice">
+                                        Terms of Service
+                                    </a>
+                                </div>
+                            </div>
+                        </Col>
+                        <Col md={6} sm={24} xs={24}>
+                            <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
+                                <div>
+                                    <a target="_blank" rel="noopener noreferrer" href="https://bitbadges.io/policies/privacy">
+                                        Privacy Policy
                                     </a>
                                 </div>
                             </div>
