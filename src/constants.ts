@@ -5,7 +5,7 @@ const { publicRuntimeConfig } = getConfig();
 export const HOSTNAME = publicRuntimeConfig.HOSTNAME;
 
 export const NODE_URL = `http://${HOSTNAME}:1317`;
-export const BACKEND_URL = `https://${HOSTNAME}:3001`;
+export const BACKEND_URL = `https://${HOSTNAME}`;
 
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
