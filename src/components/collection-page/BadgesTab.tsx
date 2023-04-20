@@ -1,5 +1,5 @@
 import { Divider, Select } from 'antd';
-import { BitBadgeCollection } from 'bitbadges-sdk';
+import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 

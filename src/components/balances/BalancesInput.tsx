@@ -1,4 +1,4 @@
-import { Balance } from 'bitbadges-sdk';
+import { Balance } from 'bitbadgesjs-utils';
 import { NumberInput } from '../display/NumberInput';
 
 export function BalancesInput({

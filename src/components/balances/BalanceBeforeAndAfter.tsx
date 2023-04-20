@@ -1,4 +1,4 @@
-import { BitBadgeCollection, UserBalance } from "bitbadges-sdk";
+import { BitBadgeCollection, UserBalance } from "bitbadgesjs-utils";
 import { BalanceDisplay } from "./BalanceDisplay";
 
 export function BalanceBeforeAndAfter({

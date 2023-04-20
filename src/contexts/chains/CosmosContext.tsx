@@ -1,4 +1,4 @@
-import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem, convertToCosmosAddress } from 'bitbadges-sdk';
+import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';

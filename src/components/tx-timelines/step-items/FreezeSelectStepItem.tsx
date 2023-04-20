@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { CanUpdateDisallowedDigit, GetPermissions, Permissions } from "bitbadges-sdk";
+import { CanUpdateDisallowedDigit, GetPermissions, Permissions } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function FreezeSelectStepItem(

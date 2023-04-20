@@ -10,7 +10,7 @@ import { SignChallengeResponse, useChainContext } from "../../contexts/ChainCont
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { useCookies } from 'react-cookie';
-import { SupportedChain } from "bitbadges-sdk";
+import { SupportedChain } from "bitbadgesjs-utils";
 
 const { Text } = Typography;
 

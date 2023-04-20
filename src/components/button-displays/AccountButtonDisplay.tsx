@@ -3,7 +3,7 @@ import {
     ShareAltOutlined
 } from '@ant-design/icons';
 import { Avatar, Layout, Tooltip, message, Col } from 'antd';
-import { BitBadgesUserInfo, SupportedChain } from 'bitbadges-sdk';
+import { BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 import { PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';

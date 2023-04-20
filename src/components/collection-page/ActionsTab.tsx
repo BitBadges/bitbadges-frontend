@@ -1,7 +1,7 @@
 import { Card, Empty, message } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useState } from 'react';
-import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
+import { BitBadgeCollection, UserBalance } from 'bitbadgesjs-utils';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';

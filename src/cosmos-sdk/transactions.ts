@@ -1,4 +1,4 @@
-import { CHAIN_DETAILS } from "bitbadges-sdk";
+import { CHAIN_DETAILS } from "bitbadgesjs-utils";
 import { DEV_MODE } from "../constants";
 import { ChainContextType } from "../contexts/ChainContext";
 import { getSenderInformation } from "./broadcast";

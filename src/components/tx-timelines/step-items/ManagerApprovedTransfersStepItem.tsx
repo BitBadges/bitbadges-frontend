@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useState } from "react";
-import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadgesjs-utils";
 import { TransferMappingSelectType, TransfersMappingSelect } from "../form-items/TransfersMappingSelect";
 
 export function ManagerApprovedTransfersStepItem(

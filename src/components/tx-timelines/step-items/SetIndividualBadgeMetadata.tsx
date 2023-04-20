@@ -1,9 +1,9 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { useState } from "react";
-import { getMetadataForBadgeId } from "bitbadges-sdk";
-import { getBlankBalance } from "bitbadges-sdk";
-import { populateFieldsOfOtherBadges, updateMetadataMap } from "bitbadges-sdk";
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "bitbadges-sdk";
+import { getMetadataForBadgeId } from "bitbadgesjs-utils";
+import { getBlankBalance } from "bitbadgesjs-utils";
+import { populateFieldsOfOtherBadges, updateMetadataMap } from "bitbadgesjs-utils";
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "bitbadgesjs-utils";
 import { PRIMARY_TEXT } from '../../../constants';
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { MetadataForm } from "../form-items/MetadataForm";

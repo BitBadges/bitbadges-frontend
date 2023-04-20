@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AnnouncementActivityItem, SupportedChain, TransferActivityItem } from 'bitbadges-sdk';
+import { AnnouncementActivityItem, SupportedChain, TransferActivityItem } from 'bitbadgesjs-utils';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useEthereumContext } from './chains/EthereumContext';

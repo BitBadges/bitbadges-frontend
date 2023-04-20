@@ -1,8 +1,8 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
 import { useState } from "react";
-import { SortIdRangesAndMergeIfNecessary } from "bitbadges-sdk";
-import { BitBadgeCollection, IdRange } from "bitbadges-sdk";
+import { SortIdRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { BitBadgeCollection, IdRange } from "bitbadgesjs-utils";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";

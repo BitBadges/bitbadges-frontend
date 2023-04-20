@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { Balance, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod } from "bitbadges-sdk";
+import { Balance, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod } from "bitbadgesjs-utils";
 import { CreateClaims } from "../form-items/CreateClaims";
 
 export function CreateClaimsStepItem(

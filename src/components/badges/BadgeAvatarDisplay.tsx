@@ -1,5 +1,5 @@
 import { Pagination } from "antd";
-import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance, getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
+import { BadgeMetadata, BitBadgeCollection, IdRange, UserBalance, getBadgeIdsToDisplayForPageNumber, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { useCollectionsContext } from "../../contexts/CollectionsContext";

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { DbStatus } from 'bitbadges-sdk';
+import { DbStatus } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getStatus } from '../bitbadges-api/api';
 

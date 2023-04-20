@@ -1,5 +1,5 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
-import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem } from 'bitbadges-sdk';
+import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem } from 'bitbadgesjs-utils';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { PresetResource } from 'blockin';

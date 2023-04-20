@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { AddressDisplayList, AddressDisplayTitle } from "./AddressDisplay";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
-import { BitBadgesUserInfo, SupportedChain, getChainForAddress } from "bitbadges-sdk";
+import { BitBadgesUserInfo, SupportedChain, getChainForAddress } from "bitbadgesjs-utils";
 import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
 
 export function AddressListSelect({

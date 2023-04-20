@@ -2,9 +2,9 @@ import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
-import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
-import { updateTransferMappingAccountNums } from 'bitbadges-sdk';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from 'bitbadges-sdk';
+import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadgesjs-utils';
+import { updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from 'bitbadgesjs-utils';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 

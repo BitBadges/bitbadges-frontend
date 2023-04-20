@@ -1,4 +1,4 @@
-import { DistributionMethod, MetadataAddMethod } from 'bitbadges-sdk';
+import { DistributionMethod, MetadataAddMethod } from 'bitbadgesjs-utils';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';

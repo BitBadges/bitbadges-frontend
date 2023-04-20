@@ -1,5 +1,5 @@
 import { Avatar, Tooltip } from "antd";
-import { getChainForAddress } from "bitbadges-sdk";
+import { getChainForAddress } from "bitbadgesjs-utils";
 import { Address } from "./Address";
 import { getChainLogo } from "../../constants";
 import { BlockiesAvatar } from "./Blockies";

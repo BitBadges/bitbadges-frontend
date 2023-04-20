@@ -1,4 +1,4 @@
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItemWithTrees, DefaultPlaceholderMetadata, DistributionMethod, ErrorMetadata, GO_MAX_UINT_64, GetPermissionNumberValue, GetPermissions, MetadataAddMethod, Permissions, TransferMappingWithUnregisteredUsers, UpdatePermissions, createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId, updateMetadataMap } from 'bitbadges-sdk';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItemWithTrees, DefaultPlaceholderMetadata, DistributionMethod, ErrorMetadata, GO_MAX_UINT_64, GetPermissionNumberValue, GetPermissions, MetadataAddMethod, Permissions, TransferMappingWithUnregisteredUsers, UpdatePermissions, createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId, updateMetadataMap } from 'bitbadgesjs-utils';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
 import { fetchMetadata } from '../../bitbadges-api/api';

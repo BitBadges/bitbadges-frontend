@@ -1,4 +1,4 @@
-import { SupportedChain } from "bitbadges-sdk";
+import { SupportedChain } from "bitbadgesjs-utils";
 import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();

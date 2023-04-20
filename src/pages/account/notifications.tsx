@@ -1,5 +1,5 @@
 import { Layout } from 'antd';
-import { BitBadgeCollection } from 'bitbadges-sdk';
+import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { updateLastSeenActivity, updateUserActivity, updateUserAnnouncements } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';

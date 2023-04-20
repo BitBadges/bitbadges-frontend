@@ -1,6 +1,6 @@
 
 import { Avatar, Menu, Spin, Typography } from 'antd';
-import { AccountDocument, BitBadgesUserInfo, MetadataDocument, SupportedChain, convertToBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadges-sdk';
+import { AccountDocument, BitBadgesUserInfo, MetadataDocument, SupportedChain, convertToBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../contexts/AccountsContext';

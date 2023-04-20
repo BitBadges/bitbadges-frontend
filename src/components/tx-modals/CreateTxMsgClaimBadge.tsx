@@ -1,7 +1,7 @@
 import { MessageMsgClaimBadge, createTxMsgClaimBadge } from 'bitbadgesjs-transactions';
 import SHA256 from 'crypto-js/sha256';
 import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem } from 'bitbadges-sdk';
+import { BitBadgeCollection, ClaimItem } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';

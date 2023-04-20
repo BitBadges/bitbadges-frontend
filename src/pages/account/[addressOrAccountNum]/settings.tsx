@@ -1,6 +1,6 @@
 import { Button, Form, Input, Layout } from 'antd';
 import Text from 'antd/lib/typography/Text';
-import { SupportedChain } from 'bitbadges-sdk';
+import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { updateAccountSettings } from '../../../bitbadges-api/api';

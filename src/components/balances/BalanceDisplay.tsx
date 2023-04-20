@@ -1,5 +1,5 @@
 import { Empty } from "antd";
-import { BitBadgeCollection, IdRange, UserBalance } from "bitbadges-sdk";
+import { BitBadgeCollection, IdRange, UserBalance } from "bitbadgesjs-utils";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { MultiCollectionBadgeDisplay } from "../badges/MultiCollectionBadgeDisplay";

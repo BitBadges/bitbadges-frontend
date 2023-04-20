@@ -1,6 +1,6 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Col, Empty, Pagination, Row, Tooltip, Typography } from "antd";
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended } from "bitbadges-sdk";
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from "../../contexts/AccountsContext";

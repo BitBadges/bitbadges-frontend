@@ -2,7 +2,7 @@ import { UserDeleteOutlined } from '@ant-design/icons';
 import { Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
 import { AddressWithBlockies } from './AddressWithBlockies';
-import { BitBadgesUserInfo } from 'bitbadges-sdk';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 export function AddressDisplayTitle(
     {

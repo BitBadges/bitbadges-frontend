@@ -1,4 +1,4 @@
-import { DistributionMethod } from 'bitbadges-sdk';
+import { DistributionMethod } from 'bitbadgesjs-utils';
 import { FormTimeline } from '../navigation/FormTimeline';
 import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';

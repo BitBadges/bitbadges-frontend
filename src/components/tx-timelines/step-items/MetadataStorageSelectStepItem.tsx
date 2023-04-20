@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { MetadataAddMethod } from "bitbadges-sdk";
+import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Tooltip } from "antd";
 

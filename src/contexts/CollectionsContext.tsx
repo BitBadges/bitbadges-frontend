@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { notification } from 'antd';
-import { BitBadgeCollection, CollectionMap } from 'bitbadges-sdk';
+import { BitBadgeCollection, CollectionMap } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { getCollections, updateCollectionActivity, updateCollectionAnnouncements, updateMetadata } from '../bitbadges-api/api';
 

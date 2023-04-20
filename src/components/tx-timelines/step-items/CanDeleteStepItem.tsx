@@ -1,5 +1,5 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { CanDeleteDigit, GetPermissions, Permissions } from "bitbadges-sdk";
+import { CanDeleteDigit, GetPermissions, Permissions } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanDeleteStepItem(

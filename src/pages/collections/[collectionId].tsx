@@ -1,5 +1,5 @@
 import { Divider, Empty, Layout, notification } from 'antd';
-import { BitBadgeCollection, UserBalance } from 'bitbadges-sdk';
+import { BitBadgeCollection, UserBalance } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';

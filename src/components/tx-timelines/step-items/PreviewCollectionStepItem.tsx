@@ -1,4 +1,4 @@
-import { BitBadgeCollection } from "bitbadges-sdk";
+import { BitBadgeCollection } from "bitbadgesjs-utils";
 import CollectionPage from "../../../pages/collections/[collectionId]";
 
 export function PreviewCollectionStepItem(collection: BitBadgeCollection,

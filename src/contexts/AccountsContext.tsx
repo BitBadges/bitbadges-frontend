@@ -2,7 +2,7 @@
 import { createContext, useContext, useState } from 'react';
 import { getAccounts } from '../bitbadges-api/api';
 import { notification } from 'antd';
-import { AccountMap, BitBadgesUserInfo, AccountResponse, MINT_ACCOUNT, convertToBitBadgesUserInfo } from 'bitbadges-sdk';
+import { AccountMap, BitBadgesUserInfo, AccountResponse, MINT_ACCOUNT, convertToBitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 export type AccountsContextType = {
     accounts: AccountMap,

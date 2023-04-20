@@ -1,5 +1,5 @@
 import { Avatar, Spin, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection, UserBalance, getSupplyByBadgeId } from "bitbadges-sdk";
+import { BadgeMetadata, BitBadgeCollection, UserBalance, getSupplyByBadgeId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 
 export function BadgeAvatar({

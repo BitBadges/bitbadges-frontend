@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { SearchDropdown } from '../navigation/SearchDropdown';
 import { AddressDisplay } from './AddressDisplay';
-import { BitBadgesUserInfo, SupportedChain, convertToCosmosAddress, getChainForAddress } from 'bitbadges-sdk';
+import { BitBadgesUserInfo, SupportedChain, convertToCosmosAddress, getChainForAddress } from 'bitbadgesjs-utils';
 import { PRIMARY_TEXT, PRIMARY_BLUE } from "../../constants";
 
 export enum EnterMethod {

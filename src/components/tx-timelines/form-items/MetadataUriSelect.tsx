@@ -1,6 +1,6 @@
 import { Form, Input, Typography } from "antd";
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BitBadgeCollection } from "bitbadges-sdk";
+import { BitBadgeCollection } from "bitbadgesjs-utils";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";

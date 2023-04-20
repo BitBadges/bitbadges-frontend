@@ -1,6 +1,6 @@
 import { MessageMsgRequestTransferManager, createTxMsgRequestTransferManager } from 'bitbadgesjs-transactions';
 import React from 'react';
-import { BitBadgeCollection } from 'bitbadges-sdk';
+import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxModal } from './TxModal';

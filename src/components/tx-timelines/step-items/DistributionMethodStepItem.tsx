@@ -1,4 +1,4 @@
-import { DistributionMethod } from "bitbadges-sdk";
+import { DistributionMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function DistributionMethodStepItem(

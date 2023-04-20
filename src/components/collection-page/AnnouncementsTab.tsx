@@ -1,5 +1,5 @@
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AnnouncementActivityItem, BitBadgeCollection, SupportedChain } from 'bitbadges-sdk';
+import { AnnouncementActivityItem, BitBadgeCollection, SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

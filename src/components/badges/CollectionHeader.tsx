@@ -1,5 +1,5 @@
 import { Avatar, Col, Row, Spin, Typography } from 'antd';
-import { BadgeMetadata, BitBadgeCollection } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { PRIMARY_TEXT } from '../../constants';
 

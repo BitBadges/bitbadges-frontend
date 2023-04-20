@@ -1,18 +1,18 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, Modal, Row, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
+import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus } from '../../bitbadges-api/api';
-import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
-import { fetchDefaultTxDetails, formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
-import { TransactionStatus } from 'bitbadges-sdk';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
+import { useStatusContext } from '../../contexts/StatusContext';
+import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
+import { fetchDefaultTxDetails, formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { AddressDisplay, AddressDisplayList } from '../address/AddressDisplay';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { useStatusContext } from '../../contexts/StatusContext';
 
 const { Step } = Steps;
 
@@ -63,6 +63,7 @@ export function TxModal(
     //     }
     //     fetchDetails();
     // }, []);
+
 
     useEffect(() => {
         async function fetchDetails() {

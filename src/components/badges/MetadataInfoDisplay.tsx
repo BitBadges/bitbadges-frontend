@@ -4,8 +4,8 @@ import {
     WarningFilled,
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { getMetadataMapObjForBadgeId, getSupplyByBadgeId } from 'bitbadges-sdk';
-import { BadgeMetadata, BitBadgeCollection, MAX_DATE_TIMESTAMP } from 'bitbadges-sdk';
+import { getMetadataMapObjForBadgeId, getSupplyByBadgeId } from 'bitbadgesjs-utils';
+import { BadgeMetadata, BitBadgeCollection, MAX_DATE_TIMESTAMP } from 'bitbadgesjs-utils';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';

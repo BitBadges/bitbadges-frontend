@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider } from 'antd';
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadges-sdk';
+import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadgesjs-utils';
 import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
 import React, { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';

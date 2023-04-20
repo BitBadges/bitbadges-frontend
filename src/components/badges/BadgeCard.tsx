@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Card, Spin, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { BadgeMetadata, BitBadgeCollection, getSupplyByBadgeId } from 'bitbadges-sdk';
+import { BadgeMetadata, BitBadgeCollection, getSupplyByBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
 

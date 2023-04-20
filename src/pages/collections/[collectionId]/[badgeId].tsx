@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { faSnowflake, faUserPen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Col, Divider, Layout, Row, Tooltip, Typography } from 'antd';
-import { AllAddressesTransferMapping, BitBadgeCollection, TransferActivityItem, getMetadataForBadgeId } from 'bitbadges-sdk';
+import { AllAddressesTransferMapping, BitBadgeCollection, TransferActivityItem, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';

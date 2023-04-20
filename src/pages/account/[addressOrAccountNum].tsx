@@ -1,6 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Select, Spin } from 'antd';
-import { BitBadgeCollection, GetPortfolioResponse, IdRange, isAddressValid } from 'bitbadges-sdk';
+import { BitBadgeCollection, GetPortfolioResponse, IdRange, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

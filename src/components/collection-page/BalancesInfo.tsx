@@ -3,7 +3,7 @@ import {
     SwapOutlined,
 } from '@ant-design/icons';
 import { Empty } from 'antd';
-import { AllAddressesTransferMapping, BitBadgeCollection, BitBadgesUserInfo, SupportedChain, UserBalance, getBlankBalance, getSupplyByBadgeId, isAddressValid } from 'bitbadges-sdk';
+import { AllAddressesTransferMapping, BitBadgeCollection, BitBadgesUserInfo, SupportedChain, UserBalance, getBlankBalance, getSupplyByBadgeId, isAddressValid } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getBadgeBalance } from '../../bitbadges-api/api';
 import { PRIMARY_TEXT } from '../../constants';

@@ -1,6 +1,6 @@
 import { Button, Divider, Empty, Pagination } from 'antd';
 import { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem, getSupplyByBadgeId } from 'bitbadges-sdk';
+import { BitBadgeCollection, ClaimItem, getSupplyByBadgeId } from 'bitbadgesjs-utils';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';

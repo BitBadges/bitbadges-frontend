@@ -1,5 +1,5 @@
 import { Modal, Tooltip, Typography } from 'antd';
-import { MINT_ACCOUNT, SupportedChain, doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadges-sdk';
+import { MINT_ACCOUNT, SupportedChain, doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { useRouter } from 'next/router';
 import { PRIMARY_TEXT } from '../../constants';

@@ -4,7 +4,7 @@ import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
-import { BitBadgeCollection, ClaimItem, MAX_DATE_TIMESTAMP, MINT_ACCOUNT } from "bitbadges-sdk";
+import { BitBadgeCollection, ClaimItem, MAX_DATE_TIMESTAMP, MINT_ACCOUNT } from "bitbadgesjs-utils";
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT, WEBSITE_HOSTNAME } from "../../constants";
 import { useAccountsContext } from "../../contexts/AccountsContext";
 import { useChainContext } from "../../contexts/ChainContext";

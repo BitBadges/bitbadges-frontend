@@ -2,10 +2,10 @@ import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from
 import { Avatar, Button, DatePicker, Divider, Input, InputNumber, StepProps, Steps, Tooltip } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from 'bitbadges-sdk';
-import { getBalanceAfterTransfers, getBlankBalance } from 'bitbadges-sdk';
-import { checkIfIdRangesOverlap } from 'bitbadges-sdk';
-import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from 'bitbadges-sdk';
+import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from 'bitbadgesjs-utils';
+import { getBalanceAfterTransfers, getBlankBalance } from 'bitbadgesjs-utils';
+import { checkIfIdRangesOverlap } from 'bitbadgesjs-utils';
+import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from 'bitbadgesjs-utils';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { AddressListSelect } from '../address/AddressListSelect';

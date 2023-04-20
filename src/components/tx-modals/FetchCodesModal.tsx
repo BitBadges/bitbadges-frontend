@@ -2,7 +2,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { fetchCodes } from '../../bitbadges-api/api';
-import { BitBadgeCollection } from 'bitbadges-sdk';
+import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';

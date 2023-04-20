@@ -2,13 +2,13 @@ import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transacti
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
-import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from 'bitbadges-sdk';
+import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
-import { RemoveIdsFromIdRange } from 'bitbadges-sdk';
+import { RemoveIdsFromIdRange } from 'bitbadgesjs-utils';
 import { useAccountsContext } from '../../contexts/AccountsContext';
-import { getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadges-sdk';
+import { getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadgesjs-utils';
 import { Modal } from 'antd';
 
 export function CreateTxMsgMintBadgeModal(
@@ -220,7 +220,7 @@ export function CreateTxMsgMintBadgeModal(
                 await collections.refreshCollection(collectionId);
                 router.push(`/collections/${collectionId}`)
                 Modal.destroyAll()
-            }}  
+            }}
             onRegister={onRegister}
             unregisteredUsers={unregisteredUsers}
             requireRegistration

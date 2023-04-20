@@ -1,7 +1,7 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { CanUpdateUrisDigit, GetPermissions, Permissions } from "bitbadges-sdk";
-import { MetadataAddMethod } from "bitbadges-sdk";
+import { CanUpdateUrisDigit, GetPermissions, Permissions } from "bitbadgesjs-utils";
+import { MetadataAddMethod } from "bitbadgesjs-utils";
 
 export function UpdatableMetadataSelectStepItem(
     newCollectionMsg: MessageMsgNewCollection,

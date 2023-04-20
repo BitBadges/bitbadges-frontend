@@ -1,5 +1,5 @@
 import { Divider, Layout } from 'antd';
-import { StoredBadgeCollection } from 'bitbadges-sdk';
+import { StoredBadgeCollection } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getBrowseInfo } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';

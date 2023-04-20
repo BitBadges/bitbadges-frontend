@@ -8,7 +8,7 @@ import {
     UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography } from 'antd';
-import { isAddressValid } from 'bitbadges-sdk';
+import { isAddressValid } from 'bitbadgesjs-utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';

@@ -1,5 +1,5 @@
 import { Avatar, Modal, Tooltip } from "antd";
-import { BitBadgeCollection, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
+import { BitBadgeCollection, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";

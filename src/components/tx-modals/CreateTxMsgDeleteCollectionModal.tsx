@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { BitBadgeCollection } from 'bitbadges-sdk';
+import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { MessageMsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React from 'react';

@@ -1,5 +1,5 @@
 import { Avatar, Modal, Pagination, Tooltip } from "antd";
-import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, getBadgeIdsToDisplayForPageNumber, getIdRangesForAllBadgeIdsInCollection, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadges-sdk";
+import { BadgeMetadata, BitBadgeCollection, BitBadgesUserInfo, IdRange, getBadgeIdsToDisplayForPageNumber, getIdRangesForAllBadgeIdsInCollection, getMetadataForBadgeId, updateMetadataForBadgeIdsFromIndexerIfAbsent } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useCollectionsContext } from "../../contexts/CollectionsContext";
@@ -201,7 +201,7 @@ export function MultiCollectionBadgeDisplay({
                 />
             </div>
             }
-            
+
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
                 {
                     badgeIdsToDisplay.map((badgeIdObj) => {

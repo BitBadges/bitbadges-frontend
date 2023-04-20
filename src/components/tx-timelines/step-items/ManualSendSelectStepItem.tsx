@@ -1,6 +1,6 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from "bitbadges-sdk";
-import { BitBadgeCollection } from "bitbadges-sdk";
+import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from "bitbadgesjs-utils";
+import { BitBadgeCollection } from "bitbadgesjs-utils";
 import { useAccountsContext } from "../../../contexts/AccountsContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 

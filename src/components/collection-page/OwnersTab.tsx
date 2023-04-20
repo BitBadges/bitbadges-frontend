@@ -1,5 +1,5 @@
 import { Empty, Pagination, Spin } from 'antd';
-import { BitBadgeCollection, getSupplyByBadgeId } from 'bitbadges-sdk';
+import { BitBadgeCollection, getSupplyByBadgeId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getBadgeOwners } from '../../bitbadges-api/api';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';

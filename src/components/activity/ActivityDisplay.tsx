@@ -1,6 +1,6 @@
 import { Col, Collapse, Divider, Empty, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { BitBadgeCollection, SupportedChain, TransferActivityItem, filterBadgeActivityForBadgeId } from 'bitbadges-sdk';
+import { BitBadgeCollection, SupportedChain, TransferActivityItem, filterBadgeActivityForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

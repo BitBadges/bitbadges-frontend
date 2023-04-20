@@ -1,8 +1,8 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Divider, Row } from "antd";
 import { useEffect, useState } from "react";
-import { getTransferMappingForSelectOptions, isTransferMappingFull } from "bitbadges-sdk";
-import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadges-sdk";
+import { getTransferMappingForSelectOptions, isTransferMappingFull } from "bitbadgesjs-utils";
+import { BitBadgesUserInfo, TransferMappingWithUnregisteredUsers } from "bitbadgesjs-utils";
 import { DEV_MODE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../../constants";
 import { AddressListSelect } from "../../address/AddressListSelect";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";

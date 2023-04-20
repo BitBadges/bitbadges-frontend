@@ -1,7 +1,7 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { populateFieldsOfOtherBadges } from "bitbadges-sdk";
-import { GetPermissions } from "bitbadges-sdk";
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "bitbadges-sdk";
+import { populateFieldsOfOtherBadges } from "bitbadgesjs-utils";
+import { GetPermissions } from "bitbadgesjs-utils";
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, IdRange, MetadataAddMethod } from "bitbadgesjs-utils";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 

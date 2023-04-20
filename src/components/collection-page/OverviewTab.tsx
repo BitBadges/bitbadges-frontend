@@ -2,7 +2,7 @@ import { GiftOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, getIdRangesForAllBadgeIdsInCollection } from "bitbadges-sdk";
+import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import Markdown from 'react-markdown';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
