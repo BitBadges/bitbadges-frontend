@@ -1,18 +1,26 @@
-## Blockin Quickstart Repo
+## BitBadges Frontend
+Welcome to the BitBadges frontend! This is a Next.js project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) and the [Blockin quickstart repo](https://github.com/blockin).
+For the UI, this repo uses [Ant Design](https://ant.design/).
 
-Welcome to the Blockin Quickstart Repo! This repository is a quickstart frontend / backend example repository to get started using Blockin. The pages/api folder is for your backend. Everything else is for your frontend. The backend and frontend should be completely decoupled with no overlap.
+Check this frontend out in production at [bitbadges.io](https://bitbadges.io). 
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Blockin also offers an Express backend only template at [`https://github.com/Blockin-Labs/blockin-quickstart-express`](https://github.com/Blockin-Labs/blockin-quickstart-express).
-
-Note that this implementation uses one ChainDriver implementation for Algorand and one for Ethereum. The Algorand one uses WalletConnect, AlgoSDK, and PureStake API. The Ethereum one is built for Moralis and Metamask.
-
-The authorizing resource's backend is simulated in src/pages/api. For an actual implementation, this API should be hosted elsewhere, but it is done like this for convenience purposes using Next.js. Here, we make use of local secrets using process.env variables defined in the .env file. Anything not in this api folder should never use the Blockin library.
-
-
+This frontend communicates with the BitBadges blockchain via the BitBadges Indexer and BitBadgesJS / BitBadges SDK. You can find the indexer repo [here](
+    https://github.com/bitbadges/bitbadges-indexer
+) and the BitBadgesJS / BitBadges SDK repo [here](
+    https://github.com/bitbadges/bitbadgesjs
+). See the BitBadges documentation for more information and tutorials [here](
+    https://blockin.github.io/bitbadges/
+).
 
 ## Getting Started
 
-First, you will need to create a .env file with a sample passphrase and all valid API links and secrets. An example is provided at .env.example.
+First, you will need to create a .env file with the BITBADGES_IO variable. Format can be found below or in the provided
+.env.example. This variable is used to determine whether or not to use the production BitBadges Indexer. If you are running a version of the BitBadges Indexer locally, you will want to set this variable to false. If you are using the production BitBadges Indexer, you will want to set this variable to true. 
+
+```bash
+# production .env variable
+BITBADGES_IO=true
+```
 
 Second, run the development server:
 
@@ -24,13 +32,18 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+You can start editing the pages by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+For a production build, run
+```bash
+npm run build
+```
+and
+```bash
+npm run start
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
+## Learn More About Next.js
 
 To learn more about Next.js, take a look at the following resources:
 
@@ -38,9 +51,3 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
