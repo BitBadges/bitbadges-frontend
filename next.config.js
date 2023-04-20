@@ -3,7 +3,7 @@ const nextConfig = {
     reactStrictMode: true,
     publicRuntimeConfig: {
         // Will be available on both server and client
-        HOSTNAME: process.env.BITBADGES_IO ? 'bitbadges.io' : 'localhost',
+        HOSTNAME: process.env.BITBADGES_IO ? 'api.bitbadges.io' : 'localhost',
     },
 };
 
