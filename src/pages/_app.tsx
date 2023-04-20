@@ -11,8 +11,8 @@ import { CollectionsContextProvider } from '../contexts/CollectionsContext';
 import { StatusContextProvider } from '../contexts/StatusContext';
 import { CosmosContextProvider } from '../contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../contexts/chains/EthereumContext';
-import '../styles/antd-override-styles.css';
 import '../styles/index.css';
+import '../styles/antd-override-styles.css';
 import { useEffect, useState } from 'react';
 
 const App = ({ Component, pageProps }: AppProps) => {

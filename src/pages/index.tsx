@@ -48,7 +48,7 @@ const Home: NextPage = () => {
                                 <Button
                                     className='screen-button'
                                     style={{ marginTop: '20px', marginLeft: 8 }}
-                                    href="https://blockin.gitbook.io/bitbadges"
+                                    href="https://docs.bitbadges.io/overview"
                                     target='_blank'
                                 >
                                     Learn More

@@ -22,7 +22,7 @@ export function WalletFooter() {
                             <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
                                 {/* <h4 style={{ color: PRIMARY_TEXT }}>Links</h4> */}
                                 <div>
-                                    <a target="_blank " href="https://blockin.gitbook.io/bitbadges">
+                                    <a target="_blank " href="https://docs.bitbadges.io/overview">
                                         Documentation
                                     </a>
                                 </div>
