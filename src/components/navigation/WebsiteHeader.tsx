@@ -5,9 +5,10 @@ import {
     GlobalOutlined,
     HomeOutlined,
     SearchOutlined,
+    SwapOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography } from 'antd';
+import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography, Tooltip } from 'antd';
 import { isAddressValid } from 'bitbadgesjs-utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -20,8 +21,11 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { SearchDropdown } from './SearchDropdown';
+import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
+import { ButtonDisplay } from '../display/ButtonDisplay';
 
 const { Header } = Layout;
+const { Text } = Typography;
 
 export function WalletHeader() {
     const router = useRouter()
@@ -29,6 +33,7 @@ export function WalletHeader() {
 
     const [searchValue, setSearchValue] = useState<string>('');
     const [_cookies, _setCookie, removeCookie] = useCookies(['blockincookie']);
+    const [visible, setVisible] = useState<boolean>(false);
 
     const address = chain.address;
     const avatar = chain.avatar;
@@ -81,6 +86,7 @@ export function WalletHeader() {
     };
 
     let signedIn = chain.loggedIn;
+    let disabled = false;
     const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
             <p>
@@ -94,12 +100,57 @@ export function WalletHeader() {
                 />
                     <br />
                     {chain.balance} $BADGE
+                    <br />
+                    <div
+                        style={{
+                            width: '100%',
+                            padding: '10',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginTop: 8,
+                            // marginBottom: 30,
+                        }}
+                    >
+
+                        <Tooltip
+                            title={<div style={{ textAlign: 'center' }}> {'Send $BADGE'}</div>}
+                            placement='bottom'
+                            style={{ textAlign: 'center' }}
+                        >
+                            <div style={{ minWidth: 75 }}>
+                                <Avatar
+                                    style={{
+                                        marginBottom: 1,
+                                        cursor: disabled ? 'not-allowed' : 'pointer',
+                                        fontSize: 20,
+                                        padding: 0,
+                                        margin: 0,
+                                        alignItems: 'center',
+
+                                    }}
+                                    size="large"
+                                    onClick={disabled ? () => { } : () => { setVisible(true) }}
+                                    className="screen-button-normal"
+                                >
+                                    <SwapOutlined />
+                                </Avatar>
+                                <div style={{ marginTop: 3 }}>
+                                    <Text>
+                                        Send $BADGE
+                                    </Text>
+                                </div>
+                            </div>
+                        </Tooltip>
+                    </div>
+
                 </div>
                     : `Not Connected`}
                 </b>
 
             </p>
         </div>
+
         <hr />
         {!address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
         {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
@@ -190,73 +241,79 @@ export function WalletHeader() {
     }
 
     return (
-        <Header className="App-header">
-            <div onClick={() => router.push('/')}>
-                <div className="navbar-super-collapsed">
-                    <Image
-                        src={'/images/bitbadgeslogo.png'}
-                        className="App-logo"
-                        alt="logo"
-                        height={"65%"}
-                        width={"65%"}
-                    />
-                    <Typography className='App-title'>
-                        BitBadges
-                    </Typography>
+        <>
+            <Header className="App-header">
+                <div onClick={() => router.push('/')}>
+                    <div className="navbar-super-collapsed">
+                        <Image
+                            src={'/images/bitbadgeslogo.png'}
+                            className="App-logo"
+                            alt="logo"
+                            height={"65%"}
+                            width={"65%"}
+                        />
+                        <Typography className='App-title'>
+                            BitBadges
+                        </Typography>
+                    </div>
                 </div>
-            </div>
 
-            <div className="navbar-expanded"
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    width: '50%',
-                }}
-            >
-                {ExpandedSearchBar}
-            </div>
-            <div
-                className="navbar-expanded"
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'end',
-                }}
-            >
-                <Tabs
-                    tab=''
-                    setTab={(e) => {
-                        router.push(`/${e}`)
+                <div className="navbar-expanded"
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '50%',
                     }}
-                    noSelectedKeys
-                    tabInfo={[
-                        HomeTabWithText,
-                        BrowseTabWithText,
-                        MintTabWithText,
-                        NotificationsTabWithIcon,
-                        UserTab
-                    ]}
-                />
-            </div>
-            <div className="navbar-collapsed">
-                <Tabs
-                    tab=''
-                    setTab={(e) => {
-                        router.push(`/${e}`)
+                >
+                    {ExpandedSearchBar}
+                </div>
+                <div
+                    className="navbar-expanded"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'end',
                     }}
-                    noSelectedKeys
-                    tabInfo={[
-                        HomeTabWithIcon,
-                        CollapsedSearchIconTab,
-                        BrowseTabWithIcon,
-                        // MintTabWithIcon,
-                        NotificationsTabWithIcon,
-                        UserTab,
+                >
+                    <Tabs
+                        tab=''
+                        setTab={(e) => {
+                            router.push(`/${e}`)
+                        }}
+                        noSelectedKeys
+                        tabInfo={[
+                            HomeTabWithText,
+                            BrowseTabWithText,
+                            MintTabWithText,
+                            NotificationsTabWithIcon,
+                            UserTab
+                        ]}
+                    />
+                </div>
+                <div className="navbar-collapsed">
+                    <Tabs
+                        tab=''
+                        setTab={(e) => {
+                            router.push(`/${e}`)
+                        }}
+                        noSelectedKeys
+                        tabInfo={[
+                            HomeTabWithIcon,
+                            CollapsedSearchIconTab,
+                            BrowseTabWithIcon,
+                            // MintTabWithIcon,
+                            NotificationsTabWithIcon,
+                            UserTab,
 
-                    ]}
-                />
-            </div>
-        </Header>
+                        ]}
+                    />
+                </div>
+            </Header>
+            <CreateTxMsgSendModal
+                visible={visible}
+                setVisible={setVisible}
+            />
+        </>
     );
 }

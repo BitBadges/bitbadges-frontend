@@ -1,11 +1,14 @@
-import { SupportedChain } from "bitbadgesjs-utils";
+import { SupportedChain, MAINNET_CHAIN_DETAILS, BETANET_CHAIN_DETAILS } from "bitbadgesjs-utils";
 import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();
 export const HOSTNAME = publicRuntimeConfig.HOSTNAME;
+export const BACKEND_PORT = publicRuntimeConfig.BACKEND_PORT;
+
+export const CHAIN_DETAILS = publicRuntimeConfig.MAINNET ? MAINNET_CHAIN_DETAILS : BETANET_CHAIN_DETAILS;
 
 export const NODE_URL = `http://${HOSTNAME}:1317`;
-export const BACKEND_URL = `https://${HOSTNAME}`;
+export const BACKEND_URL = `https://${HOSTNAME}${BACKEND_PORT}`;
 
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 

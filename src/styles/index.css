@@ -133,6 +133,19 @@ code {
     background: initial;
 }
 
+.screen-button-normal {
+    background: inherit;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    border: 1px solid black;
+    color: black;
+}
+
+.screen-button-normal:hover {
+  color: #1890ff;
+  border: 1px solid #1890ff;
+  background: initial;
+}
+
 .screen-button-modal {
     background: inherit;
     transition: background 0.3s, border-color 0.3s, color 0.3s;

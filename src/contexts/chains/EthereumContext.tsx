@@ -1,5 +1,5 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
-import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem } from 'bitbadgesjs-utils';
+import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadgesjs-utils';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { PresetResource } from 'blockin';
@@ -11,6 +11,7 @@ import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/a
 import { Secp256k1 } from '@cosmjs/crypto';
 import { useCookies } from 'react-cookie';
 import { ChainSpecificContextType } from '../ChainContext';
+import { CHAIN_DETAILS } from '../../constants';
 
 export type EthereumContextType = ChainSpecificContextType & {
     web3Modal?: Web3Modal,

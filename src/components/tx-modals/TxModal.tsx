@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, Modal, Row, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
-import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
+import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses, MessageSendParams, createMessageSend, MessageMsgExecuteContractCompat, createTxMsgExecuteContractCompat } from 'bitbadgesjs-transactions';
 import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
@@ -110,6 +110,26 @@ export function TxModal(
 
             //Sign and broadcast transaction
             const unsignedTx = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
+            console.log(unsignedTx);
+
+            // const msgExecuteContract: MessageMsgExecuteContractCompat = {
+            //     sender: txDetails.sender.accountAddress,
+            //     contract: "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr",
+            //     msg: '{"registerAddressesMsg": {"addressesToRegister": ["cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02"]}}',
+            //     // msg: "{}",
+            //     funds: '1badge'
+            // }
+            // const unsignedTx = await formatAndCreateGenericTx(createTxMsgExecuteContractCompat, txDetails, msgExecuteContract);
+            // console.log(unsignedTx);
+
+            // // const msgStoreCode: MessageSendParams = {
+            // //     destinationAddress: txDetails.sender.accountAddress,
+            // //     amount: '1',
+            // //     denom: 'badge'
+            // // }
+            // // const unsignedTx = await formatAndCreateGenericTx(createMessageSend, txDetails, msgStoreCode);
+            // // console.log(unsignedTx);
+
             const rawTx = await chain.signTxn(unsignedTx);
             const msgResponse = await broadcastTransaction(rawTx);
 

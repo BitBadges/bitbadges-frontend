@@ -1,4 +1,4 @@
-import { AnnouncementActivityItem, CHAIN_DETAILS, TransferActivityItem, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { AnnouncementActivityItem, TransferActivityItem, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
@@ -12,6 +12,7 @@ import Long from 'long';
 import { useCookies } from 'react-cookie';
 import { COSMOS_LOGO, HOSTNAME } from '../../constants';
 import { ChainSpecificContextType } from '../ChainContext';
+import { CHAIN_DETAILS } from '../../constants';
 
 
 declare global {
@@ -264,6 +265,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
     const signTxn = async (txn: any) => {
         const chain = CHAIN_DETAILS;
+        
         const sender = {
             accountAddress: cosmosAddress,
             sequence: sequence,

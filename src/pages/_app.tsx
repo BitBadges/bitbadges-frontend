@@ -46,8 +46,6 @@ const App = ({ Component, pageProps }: AppProps) => {
                             <StatusContextProvider>
                                 <Layout className="layout">
                                     <WalletHeader />
-                                    <>{console.log("TEST", JSON.stringify(cookies))}</>
-                                    <>{console.log(cookies && cookies.policies !== 'accepted')}</>
                                     {handled && myCookieValue !== 'accepted' &&
                                         <div style={{
                                             textAlign: 'center',
