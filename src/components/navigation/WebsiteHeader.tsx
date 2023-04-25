@@ -8,7 +8,7 @@ import {
     SwapOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Typography, Tooltip } from 'antd';
+import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
 import { isAddressValid } from 'bitbadgesjs-utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -20,9 +20,8 @@ import { useChainContext } from '../../contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
-import { SearchDropdown } from './SearchDropdown';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
-import { ButtonDisplay } from '../display/ButtonDisplay';
+import { SearchDropdown } from './SearchDropdown';
 
 const { Header } = Layout;
 const { Text } = Typography;

@@ -1,14 +1,11 @@
-import { InputNumber, Modal, Typography } from 'antd';
-import { MessageSendParams, createMessageSend, createTxMsgUpdateUris } from 'bitbadgesjs-transactions';
+import { InputNumber, Modal } from 'antd';
+import { MessageSendParams, createMessageSend } from 'bitbadgesjs-transactions';
 import { BitBadgesUserInfo, SupportedChain, isAddressValid } from 'bitbadgesjs-utils';
-import { useRouter } from 'next/router';
 import React, { useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { PRIMARY_BLUE } from '../../constants';
 import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
-import { AddressDisplay } from '../address/AddressDisplay';
 
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,

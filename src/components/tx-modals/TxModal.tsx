@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
-import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses, MessageSendParams, createMessageSend, MessageMsgExecuteContractCompat, createTxMsgExecuteContractCompat } from 'bitbadgesjs-transactions';
+import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
