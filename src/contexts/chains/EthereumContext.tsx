@@ -270,22 +270,28 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const getPublicKey = async (cosmosAddress: string) => {
-        const message = 'Please sign this message, so we can generate your public key';
+        try {
+            const message = "Hello there! We noticed that you haven't used the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your public key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
 
-        let sig = await window.ethereum.request({
-            method: 'personal_sign',
-            params: [message, cosmosToEth(cosmosAddress)],
-        })
+            let sig = await window.ethereum.request({
+                method: 'personal_sign',
+                params: [message, cosmosToEth(cosmosAddress)],
+            })
 
-        const msgHash = ethers.utils.hashMessage(message);
-        const msgHashBytes = ethers.utils.arrayify(msgHash);
-        const pubKey = ethers.utils.recoverPublicKey(msgHashBytes, sig);
+            const msgHash = ethers.utils.hashMessage(message);
+            const msgHashBytes = ethers.utils.arrayify(msgHash);
+            const pubKey = ethers.utils.recoverPublicKey(msgHashBytes, sig);
 
 
-        const pubKeyHex = pubKey.substring(2);
-        const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
-        const base64PubKey = Buffer.from(compressedPublicKey).toString('base64')
-        return base64PubKey;
+            const pubKeyHex = pubKey.substring(2);
+            const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
+            const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
+            setPublicKey(base64PubKey);
+            return base64PubKey;
+        } catch (e) {
+            console.log(e);
+            return '';
+        }
     }
 
     const ethereumContext: EthereumContextType = {

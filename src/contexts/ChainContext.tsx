@@ -103,8 +103,6 @@ export type ChainSpecificContextType = {
     displayedResources: PresetResource[],
     selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
     ownedAssetIds: string[],
-
-
 }
 
 const ChainContext = createContext<ChainContextType>({

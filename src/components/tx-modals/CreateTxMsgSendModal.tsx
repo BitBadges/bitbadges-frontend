@@ -25,7 +25,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
         accountNumber: -1,
         chain: SupportedChain.UNKNOWN
     });
-    const [sendAmount, setSendAmount] = useState<number>();
+    const [sendAmount, setSendAmount] = useState<number>(0);
 
     const msgSend: MessageSendParams = {
         destinationAddress: currUserInfo?.cosmosAddress ? currUserInfo.cosmosAddress : '',
@@ -64,7 +64,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
                 <b>Current Balance: {chain.balance} $BADGE</b>
             </div>,
 
-            disabled: !isAddressValid(currUserInfo.address),
+            disabled: sendAmount <= 0
         }
     ];
 

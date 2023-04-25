@@ -1,11 +1,11 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, Col, Divider, Modal, Row, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
+import { Checkbox, Col, Divider, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses, MessageSendParams, createMessageSend, MessageMsgExecuteContractCompat, createTxMsgExecuteContractCompat } from 'bitbadgesjs-transactions';
 import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus } from '../../bitbadges-api/api';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useStatusContext } from '../../contexts/StatusContext';
@@ -67,11 +67,13 @@ export function TxModal(
 
     useEffect(() => {
         async function fetchDetails() {
-            const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
-            setTxDetails(txDetails);
+            if ((!txDetails || !txDetails.sender.pubkey) && msgSteps && currentStep === msgSteps.length) {
+                const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
+                setTxDetails(txDetails);
+            }
         }
         fetchDetails();
-    }, [chain]);
+    }, [chain, currentStep]);
 
     useEffect(() => {
         if (visible) {
@@ -285,7 +287,7 @@ export function TxModal(
                                     />
                                 </div>
                                 <Divider />
-                                {txDetails?.fee && <>
+                                {txDetails?.fee && txDetails.sender.pubkey ? <>
                                     <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                                         <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
                                             Your Balance: {chain.balance} ${txDetails.fee.denom.toUpperCase()}
@@ -311,7 +313,11 @@ export function TxModal(
                                         </div>}
 
                                     <Divider />
-                                </>}
+                                </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <Spin size='large' />
+                                    <Typography.Text style={{ color: SECONDARY_TEXT, textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
+                                    <Divider />
+                                </div>}
                                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 
                                     <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
@@ -436,7 +442,7 @@ export function TxModal(
             }}
             onOk={unregisteredUsers && unregisteredUsers.length > 0 ? registerUsers : handleSubmitTx}
             okButtonProps={{
-                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || exceedsBalance || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked || disabled)),
+                disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || !txDetails || exceedsBalance || (unregisteredUsers && unregisteredUsers.length > 0 ? false : (!checked || !irreversibleChecked || !betaChecked || disabled)),
                 loading: transactionStatus != TransactionStatus.None
             }}
             onCancel={() => setVisible(false)}
