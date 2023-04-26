@@ -10,7 +10,6 @@ export function AddressWithBlockies({
     addressName,
     addressAvatar,
     fontColor,
-    blockiesScale,
     hideTooltip,
     hidePortfolioLink
 }: {
@@ -19,7 +18,6 @@ export function AddressWithBlockies({
     addressAvatar?: string,
     fontSize?: number,
     fontColor?: string,
-    blockiesScale?: number,
     accountNumber?: number,
     hidePortfolioLink?: boolean
     hideTooltip?: boolean
@@ -43,7 +41,7 @@ export function AddressWithBlockies({
                 size={fontSize ? fontSize : 20}
             />
         </Tooltip>
-        <BlockiesAvatar blockiesScale={blockiesScale} address={address} avatar={addressAvatar} fontSize={fontSize} />
+        <BlockiesAvatar address={address} avatar={addressAvatar} fontSize={fontSize} />
         <Address
             fontSize={fontSize}
             address={address}

@@ -3,12 +3,12 @@ import Blockies from 'react-blockies';
 
 export function BlockiesAvatar({
     address,
-    blockiesScale,
+    // blockiesScale,
     avatar,
     fontSize
 }: {
     address: string;
-    blockiesScale?: number,
+    // blockiesScale?: number,
     avatar?: string
     fontSize?: number
 }) {
