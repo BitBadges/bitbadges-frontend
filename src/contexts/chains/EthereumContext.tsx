@@ -1,17 +1,20 @@
-import WalletConnectProvider from '@walletconnect/web3-provider';
-import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadgesjs-utils';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
+import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadgesjs-utils';
 import { PresetResource } from 'blockin';
 import { ethers } from 'ethers';
-import { Dispatch, SetStateAction, createContext, useContext, useState } from 'react';
+import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import Web3Modal from "web3modal";
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
+import { disconnect as disconnectWeb3 } from "@wagmi/core";
+import { useWeb3Modal } from "@web3modal/react";
 import { useCookies } from 'react-cookie';
-import { ChainSpecificContextType } from '../ChainContext';
+import { useAccount } from "wagmi";
 import { CHAIN_DETAILS } from '../../constants';
+import { ChainSpecificContextType } from '../ChainContext';
+
 
 export type EthereumContextType = ChainSpecificContextType & {
     web3Modal?: Web3Modal,
@@ -118,6 +121,21 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [activityHasMore, setActivityHasMore] = useState<boolean>(true);
     const [balance, setBalance] = useState<number>(0);
     const [airdropped, setAirdropped] = useState<boolean>(false);
+    const { open } = useWeb3Modal();
+    const web3AccountContext = useAccount();
+    // const { disconnectAsync } = useDisconnect();
+
+
+    useEffect(() => {
+        setConnected(web3AccountContext.isConnected);
+    }, [web3AccountContext.isConnected])
+
+    useEffect(() => {
+        if (web3AccountContext.address) {
+            setAddress(web3AccountContext.address);
+            updatePortfolioInfo(web3AccountContext.address);
+        }
+    }, [web3AccountContext.address])
 
 
     const selectedChainInfo = {};
@@ -160,63 +178,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const connect = async () => {
-        const providerOptions = {
-            // Example with WalletConnect provider
-            walletconnect: {
-                package: WalletConnectProvider,
-                options: {
-                    infuraId: "27e484dcd9e3efcfd25a83a78777cdf1"
-                }
-            }
-        };
-
-        const web3ModalInstance = web3Modal ? web3Modal : new Web3Modal({
-            network: "mainnet", // optional
-            cacheProvider: true, // optional
-            providerOptions // required
-        });
-        setWeb3Modal(web3ModalInstance);
-        web3ModalInstance.clearCachedProvider();
-
-        const instance = await web3ModalInstance.connect();
-        const provider = new ethers.providers.Web3Provider(instance);
-        const signer = provider.getSigner();
-        const signerAddress = await signer.getAddress();
-
-        await updatePortfolioInfo(signerAddress);
-
-        setSigner(signer);
-        setConnected(true);
-        setAddress(await signer.getAddress());
-
-        instance.on("accountsChanged", async (accounts: string[]) => {
-            console.log("accountsChanged", accounts);
-            const provider = new ethers.providers.Web3Provider(instance);
-            const signer = provider.getSigner();
-            const newAddress = await signer.getAddress();
-            if (address !== newAddress) {
-                await updatePortfolioInfo(newAddress);
-
-                setSigner(signer);
-                setConnected(true);
-                setAddress(await signer.getAddress());
-            }
-        });
-
-        // // Subscribe to chainId change
-        // provider.on("chainChanged", async (chainId: number) => {
-        //     console.log(chainId);
-        // });
-
-        // // Subscribe to provider connection
-        // provider.on("connect", async (info: { chainId: number }) => {
-        //     console.log(info);
-        // });
-
-        // // Subscribe to provider disconnection
-        // provider.on("disconnect", async (error: { code: number; message: string }) => {
-        //     console.log(error);
-        // });
+        await open();
     }
 
     const incrementSequence = () => {
@@ -226,8 +188,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const disconnect = async () => {
         setAddress('');
         setConnected(false);
-
-        web3Modal?.clearCachedProvider();
+        await disconnectWeb3();
     };
 
     const signChallenge = async (message: string) => {

@@ -11,9 +11,27 @@ import { CollectionsContextProvider } from '../contexts/CollectionsContext';
 import { StatusContextProvider } from '../contexts/StatusContext';
 import { CosmosContextProvider } from '../contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../contexts/chains/EthereumContext';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import '../styles/index.css';
 import '../styles/antd-override-styles.css';
 import { useEffect, useState } from 'react';
+import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
+import { Web3Modal } from '@web3modal/react'
+import { configureChains, createClient, WagmiConfig } from 'wagmi'
+import { mainnet } from 'wagmi/chains'
+
+const chains = [mainnet]
+const projectId = 'febf8d9986a2cd637fa4004338dad39b'
+
+const { provider } = configureChains(chains, [w3mProvider({ projectId })])
+const wagmiClient = createClient({
+    autoConnect: true,
+    connectors: w3mConnectors({ projectId, version: 2, chains }),
+    provider
+})
+const ethereumClient = new EthereumClient(wagmiClient, chains)
+const queryClient = new QueryClient()
+
 
 const App = ({ Component, pageProps }: AppProps) => {
 
@@ -39,43 +57,48 @@ const App = ({ Component, pageProps }: AppProps) => {
 
     return (
         <CosmosContextProvider>
-            <EthereumContextProvider>
-                <ChainContextProvider>
-                    <AccountsContextProvider>
-                        <CollectionsContextProvider>
-                            <StatusContextProvider>
-                                <Layout className="layout">
-                                    <WalletHeader />
-                                    {handled && myCookieValue !== 'accepted' &&
-                                        <div style={{
-                                            textAlign: 'center',
-                                            color: SECONDARY_TEXT,
-                                            background: PRIMARY_BLUE,
-                                            borderBottom: '1px solid white',
-                                            paddingBottom: 16,
-                                        }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'center'
-                                            }}>
-                                                This website uses cookies to ensure you get the best experience.
-                                                By continuing to use this website, you agree to our use of cookies, {" "}
-                                                <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/privacy')}><a>privacy policy</a></p>, and
-                                                <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/termsofservice')}><a>terms of service</a></p>.
-                                            </div>
-                                            <Button key="accept" type='primary' onClick={() => handleCookieResponse(true)}>
-                                                Accept
-                                            </Button>
-                                            <br />
-                                        </div>}
-                                    <Component {...pageProps} />
-                                    <WalletFooter />
-                                </Layout>
-                            </StatusContextProvider>
-                        </CollectionsContextProvider>
-                    </AccountsContextProvider>
-                </ChainContextProvider>
-            </EthereumContextProvider>
+            <QueryClientProvider client={queryClient}>
+                <EthereumContextProvider>
+                    <ChainContextProvider>
+                        <AccountsContextProvider>
+                            <CollectionsContextProvider>
+                                <StatusContextProvider>
+                                    <WagmiConfig client={wagmiClient}>
+                                        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+                                        <Layout className="layout">
+                                            <WalletHeader />
+                                            {handled && myCookieValue !== 'accepted' &&
+                                                <div style={{
+                                                    textAlign: 'center',
+                                                    color: SECONDARY_TEXT,
+                                                    background: PRIMARY_BLUE,
+                                                    borderBottom: '1px solid white',
+                                                    paddingBottom: 16,
+                                                }}>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        This website uses cookies to ensure you get the best experience.
+                                                        By continuing to use this website, you agree to our use of cookies, {" "}
+                                                        <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/privacy')}><a>privacy policy</a></p>, and
+                                                        <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/termsofservice')}><a>terms of service</a></p>.
+                                                    </div>
+                                                    <Button key="accept" type='primary' onClick={() => handleCookieResponse(true)}>
+                                                        Accept
+                                                    </Button>
+                                                    <br />
+                                                </div>}
+                                            <Component {...pageProps} />
+                                            <WalletFooter />
+                                        </Layout>
+                                    </WagmiConfig>
+                                </StatusContextProvider>
+                            </CollectionsContextProvider>
+                        </AccountsContextProvider>
+                    </ChainContextProvider>
+                </EthereumContextProvider>
+            </QueryClientProvider>
         </CosmosContextProvider >
     )
 }
