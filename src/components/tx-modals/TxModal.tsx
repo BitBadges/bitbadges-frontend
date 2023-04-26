@@ -18,7 +18,7 @@ const { Step } = Steps;
 
 export function TxModal(
     { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, width, beforeTx, disabled,
+        unregisteredUsers, onRegister, msgSteps, displayMsg, onSuccessfulTx, beforeTx, disabled,
         requireRegistration
     }: {
         createTxFunction: any,
@@ -36,7 +36,7 @@ export function TxModal(
         beforeTx?: () => Promise<any>,
         msgSteps?: StepProps[],
         displayMsg?: string | ReactNode
-        width?: number | string
+        // width?: number | string
         disabled?: boolean,
         requireRegistration?: boolean
     }
