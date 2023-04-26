@@ -468,9 +468,17 @@ export function TxModal(
                             /> : innerContent}
                     </Col> :
                     <Col md={24} xs={24} sm={24}>
-                        <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
-                            We currently do not support submitting transactions using your connected wallet. See our list of supported wallets here. We are working on adding support for more wallets.
-                        </Typography.Text>
+                        {requireRegistration ?
+                            <RegisteredWrapper
+                                node={
+                                    <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
+                                        We currently do not support submitting transactions using your connected wallet. See our list of supported wallets <a href="https://docs.bitbadges.io/overview/supported-wallets" target='_blank' rel="noreferrer">here</a>. We are working on adding support for more wallets.
+                                    </Typography.Text>
+                                }
+                            /> : <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
+                                We currently do not support submitting transactions using your connected wallet. See our list of supported wallets <a href="https://docs.bitbadges.io/overview/supported-wallets" target='_blank' rel="noreferrer">here</a>. We are working on adding support for more wallets.
+                            </Typography.Text>}
+
                     </Col>}
             </Row>
         </Modal >
