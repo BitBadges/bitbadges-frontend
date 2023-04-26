@@ -344,7 +344,7 @@ export const getBadgeActivity = async (collectionId: number, badgeId: number, bo
 
 //Refreshes the metadata on the backend by adding it to the queue
 export const refreshMetadataOnBackend = async (collectionId: number, badgeId?: number) => {
-    const res = await axios.post(BACKEND_URL + '/api/v0/collection/refreshMetadata/' + collectionId + `${badgeId ? '/' + badgeId : ''}`).then(res => res.data);
+    const res = await axios.post(BACKEND_URL + '/api/v0/collection/' + collectionId + `${badgeId ? '/' + badgeId : ''}/refreshMetadata`).then(res => res.data);
     return res;
 }
 
