@@ -93,9 +93,11 @@ export function OwnersTab({ collection, badgeId }: {
                                             twitter: chain.twitter,
                                             telegram: chain.telegram,
                                         }}
-                                        fontColor={PRIMARY_TEXT} />
+                                        fontColor={PRIMARY_TEXT}
+                                        fontSize={16}
+                                    />
                                 </div>
-                                <div style={{ fontSize: 20 }}>
+                                <div style={{ fontSize: 16 }}>
                                     x{getSupplyByBadgeId(badgeId, balances[chain.accountNumber]?.balances || [])}
                                 </div>
                             </div> : <BlockinDisplay hideLogo />
@@ -137,9 +139,10 @@ export function OwnersTab({ collection, badgeId }: {
                                         :
                                         <AddressDisplay
                                             userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]]}
-                                            fontColor={PRIMARY_TEXT} />}
+                                            fontColor={PRIMARY_TEXT}
+                                            fontSize={16} />}
                                 </div>
-                                <div style={{ fontSize: 20 }}>
+                                <div style={{ fontSize: 16 }}>
                                     x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
                                 </div>
                             </div>

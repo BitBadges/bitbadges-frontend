@@ -40,9 +40,10 @@ export function AddressWithBlockies({
             <Avatar
                 src={chainLogo}
                 style={{ marginRight: 8 }}
+                size={fontSize ? fontSize : 20}
             />
         </Tooltip>
-        <BlockiesAvatar blockiesScale={blockiesScale} address={address} avatar={addressAvatar} />
+        <BlockiesAvatar blockiesScale={blockiesScale} address={address} avatar={addressAvatar} fontSize={fontSize} />
         <Address
             fontSize={fontSize}
             address={address}

@@ -12,7 +12,7 @@ export function TableRow({
     labelSpan?: number,
     valueSpan?: number
 }) {
-    return <Row>
+    return <Row style={{ alignItems: 'center' }}>
         <Col span={labelSpan ? labelSpan : 16} style={{ textAlign: 'left', paddingLeft: 10 }}>
             <Text style={{ fontSize: 16, color: PRIMARY_TEXT }}>
                 {label}

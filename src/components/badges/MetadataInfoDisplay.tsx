@@ -61,13 +61,13 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
 
             {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
             {<TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
-            {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'row' }}>
+            {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', alignItems: 'center', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
-                    display: 'flex', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column', padding: 0
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column', padding: 0
                 }}>
                     <AddressDisplay
-                        fontSize={14}
+                        fontSize={12}
                         fontColor={SECONDARY_TEXT}
                         userInfo={collection?.manager}
                         hideChains
@@ -86,7 +86,10 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {isCollectionInfo && collection.collectionUri && <TableRow label={"Metadata URL"} value={
                 <div>
                     <Tooltip placement='bottom' title={collection.collectionUri}>
-                        <a href={collection.collectionUri} target="_blank" rel="noreferrer">{collection.collectionUri.length > 20 ? collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13) : collection.collectionUri} <LinkOutlined /></a>
+                        <a href={collection.collectionUri} target="_blank" rel="noreferrer">
+                            {/* {collection.collectionUri.length > 20 ? collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13) : collection.collectionUri}  */}
+                            View
+                            <LinkOutlined style={{ marginLeft: 4 }} /></a>
                     </Tooltip>
                 </div>
             } labelSpan={9} valueSpan={15} />}
