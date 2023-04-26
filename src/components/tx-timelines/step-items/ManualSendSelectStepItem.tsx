@@ -26,7 +26,7 @@ export function ManualSendSelectStepItem(
                     isSelected: manualSend,
                 },
                 {
-                    title: 'Claimable (Recommended)',
+                    title: 'Claimable',
                     message: 'The badges will be able to be claimed by the whitelisted addresses.',
                     isSelected: !manualSend,
                 },

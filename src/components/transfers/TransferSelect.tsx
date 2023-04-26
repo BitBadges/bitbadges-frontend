@@ -696,8 +696,6 @@ export function TransferSelect({
                         <Steps
                             current={currentStep}
                             onChange={onStepChange}
-                            direction='horizontal'
-                            type='navigation'
                         >
                             {TransferSteps.map((item, index) => (
                                 <Step

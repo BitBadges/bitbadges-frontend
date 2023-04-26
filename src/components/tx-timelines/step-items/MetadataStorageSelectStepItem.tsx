@@ -18,7 +18,7 @@ export function MetadataStorageSelectStepItem(
                     isSelected: addMethod === MetadataAddMethod.UploadUrl,
                 },
                 {
-                    title: 'Outsourced (Recommended)',
+                    title: 'Outsourced',
                     message: <div>{`We handle the metadata storage for you! This is done in a decentralized manner using IPFS.`}
                         <Tooltip
                             placement='bottom'

@@ -220,7 +220,7 @@ export function MetadataForm({
                             <InputNumber min={startId ? startId : 1} max={endId ? endId : GO_MAX_UINT_64}
                                 value={id}
                                 onChange={(e) => {
-                                    if (setId) setId(e)
+                                    if (e && e > 0 && setId) setId(e)
                                 }}
                                 style={{
                                     marginLeft: 8,

@@ -67,7 +67,10 @@ export function TxModal(
 
     useEffect(() => {
         async function fetchDetails() {
-            if ((!txDetails || !txDetails.sender.pubkey) && msgSteps && currentStep === msgSteps.length) {
+            if ((!txDetails
+                || !txDetails.sender.pubkey
+                || chain.sequence !== txDetails.sender.sequence
+                || chain.cosmosAddress !== txDetails.sender.accountAddress) && msgSteps && currentStep === msgSteps.length) {
                 const txDetails = await fetchDefaultTxDetails(chain, statusContext.status.gasPrice);
                 setTxDetails(txDetails);
             }
@@ -224,173 +227,176 @@ export function TxModal(
         }
     };
 
+    const finalStep = {
+        title: unregisteredUsers && unregisteredUsers.length > 0 ? <>Register Users</> : <>Sign and Submit Transaction</>,
+        description: <div>
+            {currentStep === msgSteps.length && <div>
+                {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
+                    {displayMsg &&
+                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                            <br />
+                            {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
+                            {displayMsg}
+                            {/* </Typography.Text> */}
+                            <hr />
+                        </div>
+                    }
+
+                    <br />
+
+                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                            This transaction is to be signed by the following address:
+                        </Typography.Text>
+
+
+                    </div>
+                    <br />
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <AddressDisplay
+                            userInfo={{
+                                chain: chain.chain,
+                                address: chain.address,
+                                cosmosAddress: chain.cosmosAddress,
+                                accountNumber: chain.accountNumber,
+                            }}
+                            // title={"Your Connected Wallet"}
+                            // showAccountNumber
+                            hidePortfolioLink
+                            darkMode
+                        />
+                    </div>
+                    <Divider />
+                    {txDetails?.fee && txDetails.sender.pubkey ? <>
+                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                Your Balance: {chain.balance} ${txDetails.fee.denom.toUpperCase()}
+                            </Typography.Text>
+                        </div>
+                        <br />
+                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                Transaction Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()} <Tooltip
+                                    color='black'
+                                    title="The gas fee is the amount of cryptocurrency that is paid to the network for processing the transaction. This fee was calculated based on the current market price of gas and the type of transaction."
+                                >
+                                    <InfoCircleOutlined />
+                                </Tooltip>
+                            </Typography.Text>
+                        </div>
+
+                        {exceedsBalance &&
+                            <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                                    The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
+                                </Typography.Text>
+                            </div>}
+
+                        <Divider />
+                    </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+                        <Spin size='large' />
+                        <Typography.Text style={{ color: SECONDARY_TEXT, textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
+                        <Divider />
+                    </div>}
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                            By checking the box below, I confirm that I have verified all transaction details are correct.
+                        </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Checkbox
+                            checked={checked}
+                            onChange={(e) => setChecked(e.target.checked)}
+                        />
+                    </div>
+                    <br />
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                            By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
+                        </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Checkbox
+                            checked={betaChecked}
+                            onChange={(e) => setBetaChecked(e.target.checked)}
+                        />
+                    </div>
+                    <br />
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
+                            By checking the box below, I understand that this transaction is irreversible.
+                        </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Checkbox
+                            checked={irreversibleChecked}
+                            onChange={(e) => setIrreversibleChecked(e.target.checked)}
+                        />
+                    </div>
+                </>}
+                {
+                    unregisteredUsers && unregisteredUsers.length > 0 &&
+                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                            Before proceeding with this transaction, we need to register the following addresses via a blockchain transaction.
+                        </Typography.Text>
+                        {txDetails?.fee && <>
+                            <Divider />
+                            <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
+                                    Gas Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()}
+                                </Typography.Text>
+                            </div>
+                            {exceedsBalance &&
+                                <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
+                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                                        The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
+                                    </Typography.Text>
+                                </div>}
+                        </>}
+                        <Divider />
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <AddressDisplayList
+                                title={'Unregistered Addresses'}
+                                users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
+                                fontColor={PRIMARY_TEXT}
+                                hideAccountNumber
+                            />
+                        </div>
+                    </div>
+                }</div>}
+        </div>,
+        disabled: msgSteps.find((step) => step.disabled) ? true : false
+    };
+
+
     const innerContent = <>
         {children}
 
         <Steps
             current={currentStep}
             onChange={onStepChange}
-            direction="vertical"
         >
-            {msgSteps && msgSteps.map((item, index) => (
+            {msgSteps && [...msgSteps, finalStep].map((item, index) => (
                 <Step
                     key={index}
-                    title={<b>{item.title}</b>} description={
-                        <div style={{ color: PRIMARY_TEXT }}>
-                            {currentStep === index && <div>
-                                {item.description}
-                            </div>}
-                        </div>
-                    }
-                    disabled={msgSteps && msgSteps.find((step, idx) => step.disabled && idx < index) ? true : false}
+                    title={<b>{item.title}</b>}
+                    // description={
+
+                    // }
+                    disabled={msgSteps && [...msgSteps, finalStep].find((step, idx) => step.disabled && idx < index) ? true : false}
                 />
             ))}
-            <Step
-                key={msgSteps.length}
-                title={unregisteredUsers && unregisteredUsers.length > 0 ? <b>Register Users</b> : <b>Sign and Submit Transaction</b>}
-                description={
-                    <div>
-                        {currentStep === msgSteps.length && <div>
-                            {!(unregisteredUsers && unregisteredUsers.length > 0) && <>
-                                {displayMsg &&
-                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <br />
-                                        {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
-                                        {displayMsg}
-                                        {/* </Typography.Text> */}
-                                        <hr />
-                                    </div>
-                                }
 
-                                <br />
-
-                                <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                        This transaction is to be signed by the following address:
-                                    </Typography.Text>
-
-
-                                </div>
-                                <br />
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <AddressDisplay
-                                        userInfo={{
-                                            chain: chain.chain,
-                                            address: chain.address,
-                                            cosmosAddress: chain.cosmosAddress,
-                                            accountNumber: chain.accountNumber,
-                                        }}
-                                        // title={"Your Connected Wallet"}
-                                        // showAccountNumber
-                                        hidePortfolioLink
-                                        darkMode
-                                    />
-                                </div>
-                                <Divider />
-                                {txDetails?.fee && txDetails.sender.pubkey ? <>
-                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            Your Balance: {chain.balance} ${txDetails.fee.denom.toUpperCase()}
-                                        </Typography.Text>
-                                    </div>
-                                    <br />
-                                    <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                            Transaction Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()} <Tooltip
-                                                color='black'
-                                                title="The gas fee is the amount of cryptocurrency that is paid to the network for processing the transaction. This fee was calculated based on the current market price of gas and the type of transaction."
-                                            >
-                                                <InfoCircleOutlined />
-                                            </Tooltip>
-                                        </Typography.Text>
-                                    </div>
-
-                                    {exceedsBalance &&
-                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
-                                                The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
-                                            </Typography.Text>
-                                        </div>}
-
-                                    <Divider />
-                                </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-                                    <Spin size='large' />
-                                    <Typography.Text style={{ color: SECONDARY_TEXT, textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
-                                    <Divider />
-                                </div>}
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-
-                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                        By checking the box below, I confirm that I have verified all transaction details are correct.
-                                    </Typography.Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Checkbox
-                                        checked={checked}
-                                        onChange={(e) => setChecked(e.target.checked)}
-                                    />
-                                </div>
-                                <br />
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                        By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
-                                    </Typography.Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Checkbox
-                                        checked={betaChecked}
-                                        onChange={(e) => setBetaChecked(e.target.checked)}
-                                    />
-                                </div>
-                                <br />
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT, alignItems: 'center' }}>
-                                        By checking the box below, I understand that this transaction is irreversible.
-                                    </Typography.Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Checkbox
-                                        checked={irreversibleChecked}
-                                        onChange={(e) => setIrreversibleChecked(e.target.checked)}
-                                    />
-                                </div>
-                            </>}
-                            {
-                                unregisteredUsers && unregisteredUsers.length > 0 &&
-                                <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                    <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                        Before proceeding with this transaction, we need to register the following addresses via a blockchain transaction.
-                                    </Typography.Text>
-                                    {txDetails?.fee && <>
-                                        <Divider />
-                                        <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                                Gas Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()}
-                                            </Typography.Text>
-                                        </div>
-                                        {exceedsBalance &&
-                                            <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
-                                                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
-                                                    The gas fee for this transaction exceeds your wallet balance ({txDetails.fee.amount} {">"} {chain.balance} $BADGE).
-                                                </Typography.Text>
-                                            </div>}
-                                    </>}
-                                    <Divider />
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <AddressDisplayList
-                                            title={'Unregistered Addresses'}
-                                            users={unregisteredUsers.map((address) => accounts.accounts[accounts.cosmosAddresses[address]])}
-                                            fontColor={PRIMARY_TEXT}
-                                            hideAccountNumber
-                                        />
-                                    </div>
-                                </div>
-                            }</div>}
-                    </div>
-                }
-                disabled={msgSteps.find((step) => step.disabled) ? true : false}
-            />
         </Steps>
+        <div style={{ color: PRIMARY_TEXT }}>
+            <br />
+            {<div>
+                {[...msgSteps, finalStep][currentStep].description}
+            </div>}
+            <br />
+        </div>
 
         {
             error && <div>
@@ -426,16 +432,17 @@ export function TxModal(
                 paddingTop: '0px',
                 paddingBottom: '0px',
                 borderBottom: '0px',
+                minWidth: '60vw',
                 ...style
             }}
-            width={width ? width : '80%'}
+            // width={width ? width : '80%'}
             closeIcon={<div style={{
                 backgroundColor: PRIMARY_BLUE,
                 color: PRIMARY_TEXT,
             }}>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
             bodyStyle={{
+
                 paddingTop: 8,
-                fontSize: 20,
                 ...bodyStyle,
                 backgroundColor: PRIMARY_BLUE,
                 color: PRIMARY_TEXT
@@ -451,7 +458,7 @@ export function TxModal(
             destroyOnClose={true}
         >
             <Row>
-                <Col md={24} xs={0} sm={0}>
+                <Col md={24} xs={24} sm={24}>
                     {requireRegistration ?
                         <RegisteredWrapper
                             node={
@@ -459,11 +466,11 @@ export function TxModal(
                             }
                         /> : innerContent}
                 </Col>
-                <Col md={0} xs={24} sm={24}>
+                {/* <Col md={0} xs={24} sm={24}>
                     <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
                         Mobile support for submitting transactions is not currently supported, but it is coming soon!
                     </Typography.Text>
-                </Col>
+                </Col> */}
             </Row>
         </Modal >
     );

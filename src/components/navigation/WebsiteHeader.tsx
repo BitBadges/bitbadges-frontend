@@ -6,7 +6,8 @@ import {
     HomeOutlined,
     SearchOutlined,
     SwapOutlined,
-    UserOutlined
+    UserOutlined,
+    PlusOutlined
 } from '@ant-design/icons';
 import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
 import { isAddressValid } from 'bitbadgesjs-utils';
@@ -60,7 +61,7 @@ export function WalletHeader() {
     const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
 
     const MintTabMenu = <></>
-    // const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />), subMenuOverlay: MintTabMenu };
+    const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />), subMenuOverlay: MintTabMenu };
     const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
     let unseenNotificationCount = 0;
@@ -176,7 +177,7 @@ export function WalletHeader() {
     </Menu>
 
     const UserTab = {
-        key: !address ? 'connect' : `account/${address}`,
+        key: `popup-user`,
         content: (
             <>
                 {!address ? (
@@ -193,6 +194,7 @@ export function WalletHeader() {
             </>
         ),
         subMenuOverlay: UserTabMenu,
+        subMenuTrigger: ['hover', 'click']
     };
 
     const SearchBar = <Search
@@ -278,6 +280,9 @@ export function WalletHeader() {
                     <Tabs
                         tab=''
                         setTab={(e) => {
+                            if (e.startsWith('popup-')) {
+                                return;
+                            }
                             router.push(`/${e}`)
                         }}
                         noSelectedKeys
@@ -294,6 +299,9 @@ export function WalletHeader() {
                     <Tabs
                         tab=''
                         setTab={(e) => {
+                            if (e.startsWith('popup-')) {
+                                return;
+                            }
                             router.push(`/${e}`)
                         }}
                         noSelectedKeys
@@ -301,7 +309,7 @@ export function WalletHeader() {
                             HomeTabWithIcon,
                             CollapsedSearchIconTab,
                             BrowseTabWithIcon,
-                            // MintTabWithIcon,
+                            MintTabWithIcon,
                             NotificationsTabWithIcon,
                             UserTab,
 

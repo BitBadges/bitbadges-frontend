@@ -97,8 +97,6 @@ export function BadgeSupplySelectStepItem(
                     <Steps
                         current={currentStep}
                         onChange={onStepChange}
-                        direction='horizontal'
-                        type='navigation'
                     >
 
                         <Step

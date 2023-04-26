@@ -126,14 +126,17 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     // const { disconnectAsync } = useDisconnect();
 
 
-    useEffect(() => {
-        setConnected(web3AccountContext.isConnected);
-    }, [web3AccountContext.isConnected])
+    // useEffect(() => {
+    //     setConnected(web3AccountContext.isConnected);
+    // }, [web3AccountContext.isConnected])
 
     useEffect(() => {
         if (web3AccountContext.address) {
             setAddress(web3AccountContext.address);
             updatePortfolioInfo(web3AccountContext.address);
+            setConnected(true);
+        } else {
+            setConnected(false);
         }
     }, [web3AccountContext.address])
 
@@ -178,7 +181,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const connect = async () => {
-        await open();
+        if (!web3AccountContext.address) {
+            await open();
+        } else if (web3AccountContext.address) {
+            await updatePortfolioInfo(web3AccountContext.address);
+        }
     }
 
     const incrementSequence = () => {

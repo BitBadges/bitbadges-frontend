@@ -77,7 +77,8 @@ const App = ({ Component, pageProps }: AppProps) => {
                                                 }}>
                                                     <div style={{
                                                         display: 'flex',
-                                                        justifyContent: 'center'
+                                                        justifyContent: 'center',
+                                                        flexWrap: 'wrap'
                                                     }}>
                                                         This website uses cookies to ensure you get the best experience.
                                                         By continuing to use this website, you agree to our use of cookies, {" "}

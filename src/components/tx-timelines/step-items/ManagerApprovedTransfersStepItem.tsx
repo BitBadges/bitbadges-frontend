@@ -18,9 +18,9 @@ export function ManagerApprovedTransfersStepItem(
 ) {
     const [handled, setHandled] = useState(false);
     return {
-        title: <>{'Manager\'s Approved Transfers'} <Tooltip color="black" title="The manager's approved transfers are those they can execute without needing to be approved by the badge owner. These transfers override the transferability restrictions selected in the previous step." >
+        title: <div style={{ display: 'flex', flexWrap: 'wrap' }}>{'Manager\'s Approved Transfers'} <Tooltip color="black" title="The manager's approved transfers are those they can execute without needing to be approved by the badge owner. These transfers override the transferability restrictions selected in the previous step." >
             <InfoCircleOutlined style={{ marginLeft: 4, marginRight: 4 }} />
-        </Tooltip></>,
+        </Tooltip></div>,
         description: `The manager's approved transfers cannot be updated after the collection is created.`,
         node: <TransfersMappingSelect
             transfersMapping={managerApprovedTransfersWithUnregisteredUsers}
