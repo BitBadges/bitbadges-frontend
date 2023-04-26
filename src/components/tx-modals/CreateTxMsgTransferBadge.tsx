@@ -125,6 +125,7 @@ export function CreateTxMsgTransferBadgeModal(
                                 avatar={sender.avatar}
                                 address={sender.address.toLowerCase()}
                                 fontSize={150}
+                                shape='circle'
                             />
                         }
                     />

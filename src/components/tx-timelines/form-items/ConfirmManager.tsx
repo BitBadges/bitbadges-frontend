@@ -30,6 +30,7 @@ export function ConfirmManager() {
                             address={address}
                             avatar={chain.avatar}
                             fontSize={150}
+                            shape='circle'
                         />
                     }
                 />
