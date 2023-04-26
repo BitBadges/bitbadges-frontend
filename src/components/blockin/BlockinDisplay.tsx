@@ -170,7 +170,8 @@ export const BlockinDisplay = ({
                             address ? <BlockiesAvatar
                                 avatar={avatar}
                                 address={address.toLowerCase()}
-                                fontSize={100}
+                                fontSize={200}
+                                shape={'circle'}
                             /> :
                                 <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
                         }

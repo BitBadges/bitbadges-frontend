@@ -458,19 +458,20 @@ export function TxModal(
             destroyOnClose={true}
         >
             <Row>
-                <Col md={24} xs={24} sm={24}>
-                    {requireRegistration ?
-                        <RegisteredWrapper
-                            node={
-                                innerContent
-                            }
-                        /> : innerContent}
-                </Col>
-                {/* <Col md={0} xs={24} sm={24}>
-                    <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
-                        Mobile support for submitting transactions is not currently supported, but it is coming soon!
-                    </Typography.Text>
-                </Col> */}
+                {typeof window !== 'undefined' && window?.ethereum ?
+                    <Col md={24} xs={24} sm={24}>
+                        {requireRegistration ?
+                            <RegisteredWrapper
+                                node={
+                                    innerContent
+                                }
+                            /> : innerContent}
+                    </Col> :
+                    <Col md={24} xs={24} sm={24}>
+                        <Typography.Text strong style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
+                            We currently do not support submitting transactions using your connected wallet. See our list of supported wallets here. We are working on adding support for more wallets.
+                        </Typography.Text>
+                    </Col>}
             </Row>
         </Modal >
     );

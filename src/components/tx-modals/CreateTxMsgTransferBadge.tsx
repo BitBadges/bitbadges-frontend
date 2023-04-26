@@ -124,7 +124,7 @@ export function CreateTxMsgTransferBadgeModal(
                             <BlockiesAvatar
                                 avatar={sender.avatar}
                                 address={sender.address.toLowerCase()}
-                                fontSize={40}
+                                fontSize={150}
                             />
                         }
                     />

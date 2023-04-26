@@ -5,16 +5,18 @@ export function BlockiesAvatar({
     address,
     // blockiesScale,
     avatar,
-    fontSize
+    fontSize,
+    shape
 }: {
     address: string;
     // blockiesScale?: number,
     avatar?: string
-    fontSize?: number
+    fontSize?: number,
+    shape?: 'circle' | 'square'
 }) {
     if (avatar) {
-        return <Avatar shape='square' src={avatar} size={fontSize ? fontSize : 20} />
+        return <Avatar shape={shape ? shape : 'square'} src={avatar} size={fontSize ? fontSize : 20} />
     } else {
-        return <Avatar shape='square' src={<Blockies size={fontSize ? fontSize : 20} seed={address ? address.toLowerCase() : ''} />} size={fontSize ? fontSize : 20} />
+        return <Avatar shape={shape ? shape : 'square'} src={<Blockies scale={4} size={fontSize ? fontSize / 4 : 10} seed={address ? address.toLowerCase() : ''} />} size={fontSize ? fontSize : 20} />
     }
 }

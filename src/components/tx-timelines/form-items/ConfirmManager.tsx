@@ -29,7 +29,7 @@ export function ConfirmManager() {
                         <BlockiesAvatar
                             address={address}
                             avatar={chain.avatar}
-                            fontSize={40}
+                            fontSize={150}
                         />
                     }
                 />

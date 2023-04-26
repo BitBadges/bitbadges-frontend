@@ -179,19 +179,23 @@ export function WalletHeader() {
     const UserTab = {
         key: `popup-user`,
         content: (
-            <>
+            <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                 {!address ? (
-                    <Avatar src={<UserOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />
+                    <Avatar src={<UserOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} size={40} />} />
                 ) : (
                     <Avatar src={
                         <BlockiesAvatar
+                            fontSize={40}
+                            shape='circle'
                             avatar={avatar}
                             address={address.toLowerCase()}
                         />
+
                     }
+                        size={40}
                     />
                 )}
-            </>
+            </div>
         ),
         subMenuOverlay: UserTabMenu,
         subMenuTrigger: ['hover', 'click']

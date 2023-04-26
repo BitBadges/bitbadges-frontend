@@ -8,7 +8,7 @@ import Web3Modal from "web3modal";
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
-import { disconnect as disconnectWeb3 } from "@wagmi/core";
+import { disconnect as disconnectWeb3, signMessage } from "@wagmi/core";
 import { useWeb3Modal } from "@web3modal/react";
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
@@ -176,7 +176,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
             setActivityHasMore(activityRes.pagination.activity.hasMore);
             setAnnouncementsHasMore(activityRes.pagination.announcements.hasMore);
-
         }
     }
 
@@ -199,13 +198,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     };
 
     const signChallenge = async (message: string) => {
-        let accounts = await window.ethereum.request({ method: 'eth_accounts' })
-
-        const from = accounts[0];
         const msg = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
-        const sign = await window.ethereum.request({
-            method: 'personal_sign',
-            params: [msg, from],
+        const sign = await signMessage({
+            message: message
         });
 
         return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
@@ -220,10 +215,21 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             pubkey: publicKey
         };
 
-        let sig = await window.ethereum.request({
+        // txn.eipToSign.domain.verifyingContract = '0x1A16c87927570239FECD343ad2654fD81682725e'
+        // txn.eipToSign.domain.salt = '0x6c00000000000000000000000000000000000000000000000000000000000000'
+
+        // console.log(txn.eipToSign);
+        let sigOrig = await window.ethereum.request({
             method: 'eth_signTypedData_v4',
             params: [cosmosToEth(sender.accountAddress), JSON.stringify(txn.eipToSign)],
         })
+
+        console.log(sigOrig);
+
+        // let sig = await signTypedData(txn.eipToSign);
+        // console.log(sig)
+        let sig = sigOrig
+
 
         let txnExtension = signatureToWeb3Extension(chain, sender, sig)
 
@@ -237,14 +243,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         return rawTx;
     }
 
-    const getPublicKey = async (cosmosAddress: string) => {
+    const getPublicKey = async (_cosmosAddress: string) => {
         try {
             const message = "Hello there! We noticed that you haven't used the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your public key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
 
-            let sig = await window.ethereum.request({
-                method: 'personal_sign',
-                params: [message, cosmosToEth(cosmosAddress)],
-            })
+            const sig = await signMessage({
+                message: message
+            });
 
             const msgHash = ethers.utils.hashMessage(message);
             const msgHashBytes = ethers.utils.arrayify(msgHash);

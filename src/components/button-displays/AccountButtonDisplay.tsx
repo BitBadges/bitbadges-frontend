@@ -26,7 +26,7 @@ export function AccountButtonDisplay({
     const profilePicSrc = profilePic ? (
         profilePic
     ) : (
-        <BlockiesAvatar avatar={avatar} address={address.toLowerCase()} fontSize={40} />
+        <BlockiesAvatar avatar={avatar} address={address.toLowerCase()} fontSize={200} shape='circle' />
     );
 
     // const blockScanLink = 'https://chat.blockscan.com/index?a=' + address;
@@ -184,7 +184,7 @@ export function AccountButtonDisplay({
                             marginTop: 20,
                         }}
                     >
-                        <Avatar size={150} src={profilePicSrc} />
+                        <Avatar size={200} src={profilePicSrc} />
                         <div style={{ marginTop: 4, justifyContent: 'center', display: 'flex' }}>
                             <AddressDisplay
                                 userInfo={accountInfo}
