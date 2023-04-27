@@ -65,26 +65,6 @@ const App = ({ Component, pageProps }: AppProps) => {
                                     <WagmiConfig client={wagmiClient}>
                                         <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
                                             themeMode="dark"
-                                            mobileWallets={[
-                                                {
-                                                    id: 'rainbow',
-                                                    name: 'Rainbow',
-                                                    links: { native: 'rainbow://', universal: 'https://rainbow.me' },
-                                                },
-                                                {
-                                                    id: 'zerion',
-                                                    name: 'Zerion',
-                                                    links: {
-                                                        native: 'zerion://',
-                                                        universal: 'https://wallet.zerion.io',
-                                                    },
-                                                },
-                                                {
-                                                    id: 'tokenary',
-                                                    name: 'Tokenary',
-                                                    links: { native: 'tokenary://', universal: 'https://tokenary.io' },
-                                                },
-                                            ]}
                                         />
                                         <Layout className="layout">
                                             <WalletHeader />
