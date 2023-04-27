@@ -1,4 +1,4 @@
-import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
+import { ethToCosmos } from 'bitbadgesjs-address-converter';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
 import { AnnouncementActivityItem, TransferActivityItem } from 'bitbadgesjs-utils';
 import { PresetResource } from 'blockin';
@@ -8,7 +8,7 @@ import Web3Modal from "web3modal";
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
-import { disconnect as disconnectWeb3, signMessage } from "@wagmi/core";
+import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi/core";
 import { useWeb3Modal } from "@web3modal/react";
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
@@ -215,21 +215,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             pubkey: publicKey
         };
 
-        // txn.eipToSign.domain.verifyingContract = '0x1A16c87927570239FECD343ad2654fD81682725e'
-        // txn.eipToSign.domain.salt = '0x6c00000000000000000000000000000000000000000000000000000000000000'
-
-        // console.log(txn.eipToSign);
-        let sigOrig = await window.ethereum.request({
-            method: 'eth_signTypedData_v4',
-            params: [cosmosToEth(sender.accountAddress), JSON.stringify(txn.eipToSign)],
-        })
-
-        console.log(sigOrig);
-
-        // let sig = await signTypedData(txn.eipToSign);
-        // console.log(sig)
-        let sig = sigOrig
-
+        const sig = await signTypedData({
+            value: txn.eipToSign.message,
+            types: txn.eipToSign.types,
+            domain: txn.eipToSign.domain
+        });
 
         let txnExtension = signatureToWeb3Extension(chain, sender, sig)
 
