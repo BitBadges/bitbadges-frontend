@@ -11,7 +11,7 @@ import { CollectionsContextProvider } from '../contexts/CollectionsContext';
 import { StatusContextProvider } from '../contexts/StatusContext';
 import { CosmosContextProvider } from '../contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../contexts/chains/EthereumContext';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { QueryCache, QueryClient, QueryClientProvider } from "react-query"
 import '../styles/index.css';
 import '../styles/antd-override-styles.css';
 import { useEffect, useState } from 'react';
@@ -30,7 +30,22 @@ const wagmiClient = createClient({
     provider,
 })
 const ethereumClient = new EthereumClient(wagmiClient, chains)
-const queryClient = new QueryClient()
+// Create a react-query client
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+        },
+    },
+    queryCache: new QueryCache({
+        onError: () => {
+            console.error(
+                "Network Error: Ensure MetaMask is connected to the same network that your contract is deployed to."
+            );
+        },
+    }),
+});
+
 
 
 const App = ({ Component, pageProps }: AppProps) => {
@@ -55,16 +70,18 @@ const App = ({ Component, pageProps }: AppProps) => {
     };
 
     return (
-        <CosmosContextProvider>
-            <QueryClientProvider client={queryClient}>
-                <EthereumContextProvider>
-                    <ChainContextProvider>
-                        <AccountsContextProvider>
-                            <CollectionsContextProvider>
-                                <StatusContextProvider>
-                                    <WagmiConfig client={wagmiClient}>
+        <WagmiConfig client={wagmiClient}>
+            <CosmosContextProvider>
+                <QueryClientProvider client={queryClient}>
+                    <EthereumContextProvider>
+                        <ChainContextProvider>
+                            <AccountsContextProvider>
+                                <CollectionsContextProvider>
+                                    <StatusContextProvider>
+
                                         <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
                                             themeMode="dark"
+
                                         />
                                         <Layout className="layout">
                                             <WalletHeader />
@@ -94,14 +111,15 @@ const App = ({ Component, pageProps }: AppProps) => {
                                             <Component {...pageProps} />
                                             <WalletFooter />
                                         </Layout>
-                                    </WagmiConfig>
-                                </StatusContextProvider>
-                            </CollectionsContextProvider>
-                        </AccountsContextProvider>
-                    </ChainContextProvider>
-                </EthereumContextProvider>
-            </QueryClientProvider>
-        </CosmosContextProvider>
+
+                                    </StatusContextProvider>
+                                </CollectionsContextProvider>
+                            </AccountsContextProvider>
+                        </ChainContextProvider>
+                    </EthereumContextProvider>
+                </QueryClientProvider>
+            </CosmosContextProvider>
+        </WagmiConfig>
     )
 }
 

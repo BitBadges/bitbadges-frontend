@@ -8,10 +8,9 @@ import Web3Modal from "web3modal";
 import { getAccountActivity, getAccountInformation } from '../../bitbadges-api/api';
 // import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
-import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi/core";
 import { useWeb3Modal } from "@web3modal/react";
 import { useCookies } from 'react-cookie';
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect, useSignMessage, useSignTypedData } from "wagmi";
 import { CHAIN_DETAILS } from '../../constants';
 import { ChainSpecificContextType } from '../ChainContext';
 
@@ -123,22 +122,25 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [airdropped, setAirdropped] = useState<boolean>(false);
     const { open } = useWeb3Modal();
     const web3AccountContext = useAccount();
-    // const { disconnectAsync } = useDisconnect();
+    const { signMessageAsync } = useSignMessage();
+    const { signTypedDataAsync } = useSignTypedData();
+    const { disconnect } = useDisconnect();
 
-
-    // useEffect(() => {
-    //     setConnected(web3AccountContext.isConnected);
-    // }, [web3AccountContext.isConnected])
 
     useEffect(() => {
-        if (web3AccountContext.address) {
-            setAddress(web3AccountContext.address);
-            updatePortfolioInfo(web3AccountContext.address);
-            setConnected(true);
+        if (!web3AccountContext) return;
+        if (web3AccountContext.isConnected) {
+
+            if (web3AccountContext.address && web3AccountContext.address !== address) {
+                updatePortfolioInfo(web3AccountContext.address);
+                setAddress(web3AccountContext.address);
+            }
         } else {
-            setConnected(false);
+            setAddress('');
         }
-    }, [web3AccountContext.address])
+
+        setConnected(web3AccountContext.isConnected);
+    }, [web3AccountContext])
 
 
     const selectedChainInfo = {};
@@ -182,8 +184,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const connect = async () => {
         if (!web3AccountContext.address) {
             await open();
-        } else if (web3AccountContext.address) {
-            await updatePortfolioInfo(web3AccountContext.address);
         }
     }
 
@@ -191,15 +191,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setSequence(Number(sequence) + 1);
     }
 
-    const disconnect = async () => {
-        setAddress('');
-        setConnected(false);
-        await disconnectWeb3();
+    const disconnectWeb3Modal = async () => {
+        disconnect();
     };
 
     const signChallenge = async (message: string) => {
         const msg = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
-        const sign = await signMessage({
+        const sign = await signMessageAsync({
             message: message
         });
 
@@ -215,7 +213,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             pubkey: publicKey
         };
 
-        const sig = await signTypedData({
+        const sig = await signTypedDataAsync({
             value: txn.eipToSign.message,
             types: txn.eipToSign.types,
             domain: txn.eipToSign.domain
@@ -237,7 +235,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         try {
             const message = "Hello there! We noticed that you haven't used the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your public key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
 
-            const sig = await signMessage({
+            const sig = await signMessageAsync({
                 message: message
             });
 
@@ -265,7 +263,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         chainId,
         setChainId,
         connect,
-        disconnect,
+        disconnect: disconnectWeb3Modal,
         ownedAssetIds,
         selectedChainInfo,
         displayedResources,
