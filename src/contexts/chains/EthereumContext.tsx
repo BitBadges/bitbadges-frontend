@@ -194,6 +194,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const disconnect = async () => {
         setAddress('');
         setConnected(false);
+        setLoggedIn(false);
         await disconnectWeb3();
     };
 

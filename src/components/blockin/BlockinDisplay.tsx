@@ -50,9 +50,10 @@ export const BlockinDisplay = ({
      * Update challengeParams when address or chain changes
      */
     useEffect(() => {
-        if (!address) return;
-        updateChallengeParams();
-    }, [address]);
+        if (connected && address && challengeParams.address !== address) {
+            updateChallengeParams();
+        }
+    }, [address, connected]);
 
     const updateChallengeParams = async () => {
         const challengeParams = await getChallengeParams(chain, address);
@@ -91,6 +92,7 @@ export const BlockinDisplay = ({
             return { success: false, message: `${signChallengeResponse.message}` };
         }
 
+        console.log(challenge);
         const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
             signChallengeResponse.originalBytes,
             signChallengeResponse.signatureBytes,
