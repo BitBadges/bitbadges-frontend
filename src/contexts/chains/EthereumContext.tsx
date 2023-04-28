@@ -207,7 +207,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
     }
 
-    const signTxn = async (txn: any) => {
+    const signTxn = async (txn: any, simulate: boolean) => {
         const chain = CHAIN_DETAILS;
         const sender = {
             accountAddress: cosmosAddress,
@@ -215,12 +215,14 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
             accountNumber: accountNumber,
             pubkey: publicKey
         };
-
-        const sig = await signTypedData({
-            value: txn.eipToSign.message,
-            types: txn.eipToSign.types,
-            domain: txn.eipToSign.domain
-        });
+        let sig = '';
+        if (!simulate) {
+            sig = await signTypedData({
+                value: txn.eipToSign.message,
+                types: txn.eipToSign.types,
+                domain: txn.eipToSign.domain
+            });
+        }
 
         let txnExtension = signatureToWeb3Extension(chain, sender, sig)
 

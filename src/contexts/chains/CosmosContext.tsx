@@ -263,9 +263,9 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         return { originalBytes: new Uint8Array(Buffer.from(`0x${Buffer.from(message, 'utf8').toString('hex')}`, 'utf8')), signatureBytes: new Uint8Array(concat), message: 'Success' }
     }
 
-    const signTxn = async (txn: any) => {
+    const signTxn = async (txn: any, simulate: boolean) => {
         const chain = CHAIN_DETAILS;
-        
+
         const sender = {
             accountAddress: cosmosAddress,
             sequence: sequence,
@@ -275,37 +275,50 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
         await window.keplr?.enable(chainId);
 
-        const signResponse = await window?.keplr?.signDirect(
-            chain.cosmosChainId,
-            sender.accountAddress,
-            {
-                bodyBytes: txn.signDirect.body.serializeBinary(),
-                authInfoBytes: txn.signDirect.authInfo.serializeBinary(),
-                chainId: chain.cosmosChainId,
-                accountNumber: new Long(sender.accountNumber),
-            },
-            {
-                preferNoSetFee: true,
+        if (!simulate) {
+
+            const signResponse = await window?.keplr?.signDirect(
+                chain.cosmosChainId,
+                sender.accountAddress,
+                {
+                    bodyBytes: txn.signDirect.body.serializeBinary(),
+                    authInfoBytes: txn.signDirect.authInfo.serializeBinary(),
+                    chainId: chain.cosmosChainId,
+                    accountNumber: new Long(sender.accountNumber),
+                },
+                {
+                    preferNoSetFee: true,
+                }
+            )
+
+            if (!signResponse) {
+                return;
             }
-        )
 
-        if (!signResponse) {
-            return;
+            const signatures = [
+                new Uint8Array(Buffer.from(signResponse.signature.signature, 'base64')),
+            ]
+
+            const { signed } = signResponse;
+
+            const signedTx = createTxRaw(
+                signed.bodyBytes,
+                signed.authInfoBytes,
+                signatures,
+            )
+
+            return signedTx;
+        } else {
+            const simulatedTx = createTxRaw(
+                txn.signDirect.body.serializeBinary(),
+                txn.signDirect.authInfo.serializeBinary(),
+                [
+                    new Uint8Array(Buffer.from('0x', 'hex')),
+                ],
+            )
+
+            return simulatedTx;
         }
-
-        const signatures = [
-            new Uint8Array(Buffer.from(signResponse.signature.signature, 'base64')),
-        ]
-
-        const { signed } = signResponse
-
-        const signedTx = createTxRaw(
-            signed.bodyBytes,
-            signed.authInfoBytes,
-            signatures,
-        )
-
-        return signedTx;
     }
 
     const getPublicKey = async (_cosmosAddress: string) => {

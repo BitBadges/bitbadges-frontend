@@ -6,7 +6,7 @@ import { getSenderInformation } from "./broadcast";
 export async function fetchDefaultTxDetails(chain: ChainContextType, gasPrice: number) {
     const sender = await getSenderInformation(chain);
 
-    const gasLimit = 200000; //TODO: simulate this
+    const gasLimit = 200000; //default; simulates later
     const amount = Math.ceil(gasLimit * gasPrice);
 
     const fee = {
@@ -32,6 +32,8 @@ export async function formatAndCreateGenericTx(createTxFunction: any, txDetails:
         txDetails.memo,
         msg
     )
+
+
 
     return txMsg;
 }

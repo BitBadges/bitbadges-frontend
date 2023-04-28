@@ -98,7 +98,7 @@ export type ChainSpecificContextType = {
     disconnect: () => Promise<any>,
     connect: () => Promise<any>,
     signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
-    signTxn: (txn: object) => Promise<any>,
+    signTxn: (txn: object, simulate: boolean) => Promise<any>,
     getPublicKey: (cosmosAddress: string) => Promise<string>,
     displayedResources: PresetResource[],
     selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,

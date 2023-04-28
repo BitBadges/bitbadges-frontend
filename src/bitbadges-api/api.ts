@@ -257,9 +257,9 @@ export const getChallengeParams = async (chain: string, address: string): Promis
 }
 
 export const verifyChallengeOnBackend = async (chain: string, originalBytes: Uint8Array, signatureBytes: Uint8Array) => {
-    
+
     const bodyStr = stringify({ originalBytes, signatureBytes, chain }); //hack to preserve uint8 arrays
-    
+
     const verificationRes = await axios.post(BACKEND_URL + '/api/v0/auth/verify', bodyStr).then(res => res.data);
     return verificationRes;
 }
@@ -292,6 +292,11 @@ export const getBrowseInfo = async () => {
 
 export const broadcastTx = async (body: any) => {
     const res = await axios.post(BACKEND_URL + '/api/v0/broadcast', body);
+    return res;
+}
+
+export const simulateTx = async (body: any) => {
+    const res = await axios.post(BACKEND_URL + '/api/v0/simulate', body);
     return res;
 }
 

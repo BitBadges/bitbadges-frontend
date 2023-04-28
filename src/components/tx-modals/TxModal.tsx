@@ -1,10 +1,11 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
+import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
-import { getStatus } from '../../bitbadges-api/api';
+import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
@@ -114,28 +115,26 @@ export function TxModal(
 
 
             //Sign and broadcast transaction
-            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
-            console.log(unsignedTx);
+            const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
+            const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
+            const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
+            const gasUsed = simulatedTx.data.gas_info.gas_used;
+            console.log("Simulated Tx Resposne: ", "Gas Used (", gasUsed, ")", simulatedTx);
+            const finalTxDetails = {
+                ...txDetails,
+                fee: {
+                    ...txDetails.fee,
+                    gas: `${Math.round(gasUsed * 1.3)}`
+                }
+            }
 
-            // const msgExecuteContract: MessageMsgExecuteContractCompat = {
-            //     sender: txDetails.sender.accountAddress,
-            //     contract: "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr",
-            //     msg: '{"registerAddressesMsg": {"addressesToRegister": ["cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02"]}}',
-            //     // msg: "{}",
-            //     funds: '1badge'
-            // }
-            // const unsignedTx = await formatAndCreateGenericTx(createTxMsgExecuteContractCompat, txDetails, msgExecuteContract);
-            // console.log(unsignedTx);
 
-            // // const msgStoreCode: MessageSendParams = {
-            // //     destinationAddress: txDetails.sender.accountAddress,
-            // //     amount: '1',
-            // //     denom: 'badge'
-            // // }
-            // // const unsignedTx = await formatAndCreateGenericTx(createMessageSend, txDetails, msgStoreCode);
-            // // console.log(unsignedTx);
+            const unsignedTx = await formatAndCreateGenericTx(createTxFunction, finalTxDetails, cosmosMsg);
+            console.log("Unsigned TX:", unsignedTx);
+            const rawTx = await chain.signTxn(unsignedTx, false);
+            console.log("Raw TX:", rawTx);
 
-            const rawTx = await chain.signTxn(unsignedTx);
+
             const msgResponse = await broadcastTransaction(rawTx);
 
             if (DEV_MODE) console.log(msgResponse);
@@ -285,19 +284,20 @@ export function TxModal(
                                 </Tooltip>:
 
                                 <InputNumber
+
                                     value={txDetails.fee.amount}
                                     onChange={(value) => {
                                         setTxDetails({
                                             ...txDetails,
                                             fee: {
                                                 ...txDetails.fee,
-                                                amount: value,
+                                                amount: `${Math.round(value)}`
                                             }
                                         })
                                     }}
                                     min={0}
                                     max={chain.balance}
-                                    step={0.01}
+                                    step={1}
                                     style={{ marginLeft: 5, marginRight: 5, color: PRIMARY_TEXT, background: PRIMARY_BLUE }}
                                 /> ${txDetails.fee.denom.toUpperCase()}
                             </Typography.Text>
