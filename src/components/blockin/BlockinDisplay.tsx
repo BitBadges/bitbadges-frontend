@@ -1,16 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Avatar, Typography, notification } from "antd";
+import { Avatar, Tooltip, Typography, notification } from "antd";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api";
-import { PRIMARY_TEXT } from "../../constants";
+import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
 import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { useCookies } from 'react-cookie';
 import { SupportedChain } from "bitbadgesjs-utils";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -162,6 +163,22 @@ export const BlockinDisplay = ({
                 />
             }
 
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', color: 'black' }}>
+          <Typography.Text style={{  color: SECONDARY_TEXT }}>
+            <Tooltip placement="bottom" color="black" title={<>
+                {"Connecting allows us to access certain information from your Web3 wallet, such as your wallet address and account balance. It also enables you to sign transactions to interact with the BitBadges blockchain, such as creating or claiming badges."}
+                <br/>
+                <br/>
+                {"Signing in lets you prove your identity to our website using your Web3 wallet, like a username and password. This allows you to access features (i.e. non-blockchain features) for our website that are only available to authenticated users, such as customizing your profile."}
+                <br/>
+                <br/>
+                {"Note certain features may require both connecting and signing in."}
+                </>}
+            >
+              <InfoCircleOutlined /> Hover to learn more
+            </Tooltip>
+          </Typography.Text>
         </div>
         {!hideLogo && <>
             <div>
