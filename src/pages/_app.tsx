@@ -50,7 +50,8 @@ const App = ({ Component, pageProps }: AppProps) => {
 
     const handleCookieResponse = (accepted: boolean) => {
         if (accepted) {
-            setCookie('policies', 'accepted', { path: '/' });
+            //never expires
+            setCookie('policies', 'accepted', { path: '/', expires: new Date(Date.now() + 2592000) });
         }
     };
 

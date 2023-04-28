@@ -38,7 +38,8 @@ export function AddressDisplayList(
         title,
         hideAccountNumber,
         hideTitle,
-        center
+        center,
+        toLength
     }: {
         users: BitBadgesUserInfo[],
         setUsers?: (users: BitBadgesUserInfo[]) => void
@@ -49,11 +50,12 @@ export function AddressDisplayList(
         title?: string,
         hideAccountNumber?: boolean
         hideTitle?: boolean
-        center?: boolean
+        center?: boolean,
+        toLength?: number
     }
 ) {
     return <div style={{ maxHeight: 400, overflow: 'auto', color: fontColor ? fontColor : darkMode ? 'white' : undefined, fontSize: fontSize }}>
-        {!hideTitle && <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Addresses'} ({users.length})</h3>}
+        {!hideTitle && <h3 style={{ color: fontColor ? fontColor : darkMode ? 'white' : undefined }} >{title ? title : 'Added Addresses'} ({toLength ? toLength : users.length})</h3>}
         {
             users.map((user, index) => {
                 let disallowedMessage = '';

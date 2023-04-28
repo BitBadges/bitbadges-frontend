@@ -1,5 +1,5 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, Col, Divider, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
+import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { MessageMsgRegisterAddresses, createTxMsgRegisterAddresses } from 'bitbadgesjs-transactions';
 import { TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -276,12 +276,30 @@ export function TxModal(
                         <br />
                         <div style={{ textAlign: 'center', color: PRIMARY_TEXT }}>
                             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: PRIMARY_TEXT }}>
-                                Transaction Fee: {txDetails.fee.amount} ${txDetails.fee.denom.toUpperCase()} <Tooltip
+                                Transaction Fee<Tooltip
+
                                     color='black'
-                                    title="The gas fee is the amount of cryptocurrency that is paid to the network for processing the transaction. This fee was calculated based on the current market price of gas and the type of transaction."
+                                    title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The default fee was calculated based on the current market price of gas and the type of transaction."
                                 >
-                                    <InfoCircleOutlined />
-                                </Tooltip>
+                                    <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
+                                </Tooltip>:
+
+                                <InputNumber
+                                    value={txDetails.fee.amount}
+                                    onChange={(value) => {
+                                        setTxDetails({
+                                            ...txDetails,
+                                            fee: {
+                                                ...txDetails.fee,
+                                                amount: value,
+                                            }
+                                        })
+                                    }}
+                                    min={0}
+                                    max={chain.balance}
+                                    step={0.01}
+                                    style={{ marginLeft: 5, marginRight: 5, color: PRIMARY_TEXT, background: PRIMARY_BLUE }}
+                                /> ${txDetails.fee.denom.toUpperCase()}
                             </Typography.Text>
                         </div>
 

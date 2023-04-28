@@ -2,7 +2,7 @@ import { CloseOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from
 import { Avatar, Button, DatePicker, Divider, Input, InputNumber, StepProps, Steps, Tooltip } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { checkIfApproved, getIdRangesForAllBadgeIdsInCollection, getMatchingAddressesFromTransferMapping } from 'bitbadgesjs-utils';
+import { checkIfApproved, getMatchingAddressesFromTransferMapping } from 'bitbadgesjs-utils';
 import { getBalanceAfterTransfers, getBlankBalance } from 'bitbadgesjs-utils';
 import { checkIfIdRangesOverlap } from 'bitbadgesjs-utils';
 import { Balance, BitBadgeCollection, BitBadgesUserInfo, DistributionMethod, IdRange, TransfersExtended, UserBalance } from 'bitbadgesjs-utils';
@@ -66,12 +66,7 @@ export function TransferSelect({
     const [codeType, setCodeType] = useState(CodeType.None);
     const [currTimeRange, setCurrTimeRange] = useState<IdRange>({ start: 0, end: 0 });
     const [numCodes, setNumCodes] = useState<number>(0);
-    const [balances, setBalances] = useState<Balance[]>([
-        {
-            balance: 1,
-            badgeIds: getIdRangesForAllBadgeIdsInCollection(collection)
-        },
-    ]);
+    const [balances, setBalances] = useState<Balance[]>(JSON.parse(JSON.stringify(userBalance.balances)));
     const [postTransferBalance, setPostTransferBalance] = useState<UserBalance>();
     const [preTransferBalance, setPreTransferBalance] = useState<UserBalance>();
     const [transfersToAdd, setTransfersToAdd] = useState<TransfersExtended[]>([]);
@@ -94,7 +89,9 @@ export function TransferSelect({
         }
     }
 
-
+    useEffect(() => {
+        setBalances(JSON.parse(JSON.stringify(userBalance.balances)));
+    }, [userBalance]);
 
     useEffect(() => {
         if (numRecipients === 0) return;
@@ -271,8 +268,8 @@ export function TransferSelect({
     const firstStepDisabled = distributionMethod && distributionMethod !== DistributionMethod.Whitelist ? numCodes <= 0 : toAddresses.length === 0;
     const secondStepDisabled = balances.length == 0 || !!postTransferBalance?.balances?.find((balance) => balance.balance < 0);
 
-    const idRangesOverlap = checkIfIdRangesOverlap(balances[0].badgeIds);
-    const idRangesLengthEqualsZero = balances[0].badgeIds.length === 0;
+    const idRangesOverlap = checkIfIdRangesOverlap(balances[0]?.badgeIds || []);
+    const idRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
 
     //We have five potential steps
     //1. Select recipients, number of codes, max number of claims depending on distribution method
@@ -626,12 +623,7 @@ export function TransferSelect({
                 onClick={async () => {
                     setTransfers([...transfersToAdd]);
                     setToAddresses([]);
-                    setBalances([
-                        {
-                            balance: 1,
-                            badgeIds: getIdRangesForAllBadgeIdsInCollection(collection)
-                        },
-                    ]);
+                    setBalances(JSON.parse(JSON.stringify(userBalance.balances)));
                     setAmountSelectType(AmountSelectType.None);
                     setIncrement(0);
 

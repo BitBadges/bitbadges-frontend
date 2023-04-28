@@ -95,6 +95,7 @@ export function TransferDisplay({
                                 <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                     <AddressDisplayList
                                         users={from}
+                                        toLength={toLength}
                                         hideAccountNumber
                                         darkMode
                                         title={'From'}
@@ -110,6 +111,7 @@ export function TransferDisplay({
                                 <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                                     <AddressDisplayList
                                         users={to}
+                                        toLength={toLength}
                                         hideAccountNumber
                                         darkMode
                                         title={'To'}
