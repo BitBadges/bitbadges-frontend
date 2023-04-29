@@ -16,11 +16,13 @@ export function SetCollectionMetadataStepItem(
     simulatedCollection: BitBadgeCollection,
     existingCollection?: BitBadgeCollection,
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void,
-    hideCollectionSelect?: boolean
+    hideCollectionSelect?: boolean,
+    hideBadgeSelect?: boolean,
 ) {
+  const isUserList = hideBadgeSelect;
     return {
-        title: 'Set Collection Metadata',
-        description: `Provide details about the badge collection.`,
+        title: isUserList ? "Set Metadata" : 'Set Collection Metadata',
+        description: `Provide details about the ${isUserList ? "user list" : "collection"} you are creating.`,
         node: <div>
 
             {addMethod === MetadataAddMethod.Manual &&
@@ -40,6 +42,7 @@ export function SetCollectionMetadataStepItem(
                     badgeMetadata: individualBadgeMetadata
                 }}
                 hideCollectionSelect={hideCollectionSelect}
+                hideBadgeSelect={hideBadgeSelect}
                 updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                 addMethod={addMethod}
                 metadata={collectionMetadata}
@@ -57,7 +60,7 @@ export function SetCollectionMetadataStepItem(
             />
         </div>,
         disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-            || (addMethod === MetadataAddMethod.UploadUrl && (!(newCollectionMsg.collectionUri) || !(newCollectionMsg.badgeUris.length)))
+            || (addMethod === MetadataAddMethod.UploadUrl && ((!hideCollectionSelect && !newCollectionMsg.collectionUri) || (!hideBadgeSelect && !newCollectionMsg.badgeUris.length)))
             || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
     }
 }

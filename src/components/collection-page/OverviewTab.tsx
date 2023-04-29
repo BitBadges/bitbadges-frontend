@@ -2,7 +2,7 @@ import { GiftOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
+import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, convertToCosmosAddress, getChainForAddress, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import Markdown from 'react-markdown';
 import { PRIMARY_TEXT } from '../../constants';
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
@@ -13,6 +13,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
+import { AddressDisplayList } from "../address/AddressDisplay";
 
 
 export function OverviewTab({
@@ -54,8 +55,10 @@ export function OverviewTab({
         return false;
     }) : [];
 
+    const isUserList = collection && collection.standard === 1;
 
     return <>
+    {!isUserList && <>
         <div style={{ paddingRight: 4, paddingLeft: 4 }}>
             <InformationDisplayCard
                 title="Badges in Collection"
@@ -71,6 +74,8 @@ export function OverviewTab({
             </InformationDisplayCard>
         </div>
         <br />
+        </>}
+    
 
         <br />
         <Row
@@ -86,7 +91,7 @@ export function OverviewTab({
                     isCollectionInfo
                     span={24}
                 />
-                <br />
+                {!isUserList && <>                <br />
                 <InformationDisplayCard
                     title={<>
                         Transferability
@@ -127,10 +132,12 @@ export function OverviewTab({
                         }
                     </div>
                 </InformationDisplayCard>
+                </>}
                 <br />
                 <PermissionsOverview
                     collection={collection}
                     span={24}
+                    isUserList={isUserList}
                 />
             </Col>
 
@@ -151,6 +158,7 @@ export function OverviewTab({
                     <br />
                 </>}
                 <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
+                {!isUserList && <>
                 <InformationDisplayCard
                     title={<>Distribution</>}
                     span={24}
@@ -165,7 +173,8 @@ export function OverviewTab({
                                 hideMessage
                                 balance={{
                                     balances: collection.maxSupplys, approvals: []
-                                }} />
+                                }} 
+                            />
                         </div>
                     } labelSpan={12} valueSpan={12} />
                     }
@@ -221,6 +230,32 @@ export function OverviewTab({
                         />
                     </div>
                 </InformationDisplayCard>
+                </>}
+
+                {isUserList && <>
+                  <InformationDisplayCard
+                      title={<>Distribution</>}
+                      span={24}
+                  >
+                    <AddressDisplayList 
+                      users={collection.userList.map((x: string) => {
+                        return {
+                          address: x,
+                          chain: getChainForAddress(x),
+                          cosmosAddress: convertToCosmosAddress(x),
+                          accountNumber: -1,
+                        }
+                      })}
+                      title="Owners"
+                      darkMode={true}
+                      center={true}
+                      hideAccountNumber
+                      fontColor={PRIMARY_TEXT}
+                      
+                      
+                    />
+                  </InformationDisplayCard>
+                </>}
 
             </Col>
         </Row >

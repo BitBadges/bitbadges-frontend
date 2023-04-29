@@ -9,7 +9,7 @@ export function MetadataStorageSelectStepItem(
 ) {
     return {
         title: 'Metadata Storage',
-        description: `Choose how to store the metadata for this collection.`,
+        description: `Choose how to store metadata for these badge(s).`,
         node: <SwitchForm
             options={[
                 {

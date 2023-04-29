@@ -31,6 +31,7 @@ export function MetadataForm({
     setMetadata,
     addMethod,
     hideCollectionSelect,
+    hideBadgeSelect,
 
     id,
     setId,
@@ -57,6 +58,7 @@ export function MetadataForm({
     collection: BitBadgeCollection;
     updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void
     hideCollectionSelect?: boolean;
+    hideBadgeSelect?: boolean;
 }) {
     const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
     const [name, setName] = useState('');
@@ -208,6 +210,7 @@ export function MetadataForm({
                         endId={endId}
                         updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
                         hideCollectionSelect={hideCollectionSelect}
+                        hideBadgeSelect={hideBadgeSelect}
                     />
                 </>}
 
@@ -664,7 +667,7 @@ export function MetadataForm({
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                Website <Tooltip title={'Provide a website link for users to learn more about this collection.'}>
+                                Website <Tooltip title={'Provide a website link for users to learn more.'}>
                                     <InfoCircleOutlined />
                                 </Tooltip>
                             </Text>
@@ -736,7 +739,7 @@ export function MetadataForm({
                                 style={{ color: PRIMARY_TEXT }}
                                 strong
                             >
-                                Expiration Date <Tooltip title={'How long will badges in this collection be valid? Note this has no on-chain significance and is only informational.'}>
+                                Expiration Date <Tooltip title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational.'}>
                                     <InfoCircleOutlined />
                                 </Tooltip>
                             </Text>

@@ -1,8 +1,8 @@
 import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { useEffect, useState } from 'react';
-import { addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
-import { ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadgesjs-utils';
+import { addMerkleTreeToIpfs, addToIpfs, addUserListToIpfs } from '../../../bitbadges-api/api';
+import { BitBadgesUserInfo, ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadgesjs-utils';
 import { updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from 'bitbadgesjs-utils';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
@@ -19,7 +19,8 @@ export function SubmitMsgNewCollection({
     manualSend,
     managerApprovedTransfersWithUnregisteredUsers,
     disallowedTransfersWithUnregisteredUsers,
-    simulatedCollection
+    simulatedCollection,
+    userList
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -31,7 +32,8 @@ export function SubmitMsgNewCollection({
     manualSend: boolean;
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-    simulatedCollection: BitBadgeCollection
+    simulatedCollection: BitBadgeCollection,
+    userList: BitBadgesUserInfo[]
 }) {
     const [visible, setVisible] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -93,7 +95,7 @@ export function SubmitMsgNewCollection({
 
     async function updateIPFSUris() {
         let badgeMsg = newCollectionMsg;
-
+        if (newCollectionMsg.standard === 0) {
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (addMethod == MetadataAddMethod.Manual) {
             let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
@@ -123,7 +125,21 @@ export function SubmitMsgNewCollection({
             }
         }
 
-        setNewCollectionMsg(badgeMsg);
+        
+      } else if (newCollectionMsg.standard === 1) {
+          //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
+          if (addMethod == MetadataAddMethod.Manual) {
+            let res = await addToIpfs(collectionMetadata, {});
+
+            badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
+            badgeMsg.badgeUris = [];
+            //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing collection
+          }
+
+        let res = await addUserListToIpfs(userList);
+        badgeMsg.bytes = 'ipfs://' + res.cid;
+      }
+      setNewCollectionMsg(badgeMsg);
     }
 
     const onRegister = async () => {

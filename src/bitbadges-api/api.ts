@@ -1,5 +1,5 @@
 import axiosApi from 'axios';
-import { AccountResponse, AnnouncementActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IdRange, IndexerStatus, METADATA_PAGE_LIMIT, PaginationInfo, SearchResponse, StoredBadgeCollection, TransferActivityItem, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadgesjs-utils";
+import { AccountResponse, AnnouncementActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IdRange, IndexerStatus, METADATA_PAGE_LIMIT, PaginationInfo, SearchResponse, StoredBadgeCollection, TransferActivityItem, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadgesjs-utils";
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
@@ -377,3 +377,14 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
     const addToIpfsRes = await axios.post(BACKEND_URL + '/api/v0/addToIpfs', bodyStr).then(res => res.data);
     return addToIpfsRes;
 }
+
+export const addUserListToIpfs = async (userList: BitBadgesUserInfo[]) => {
+  const bodyStr = stringify({
+      userList: userList.map(x => x.address)
+  }); //hack to preserve uint8 arrays
+
+  const addToIpfsRes = await axios.post(BACKEND_URL + '/api/v0/addToIpfs', bodyStr).then(res => res.data);
+  return addToIpfsRes;
+}
+
+

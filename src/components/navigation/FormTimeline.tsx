@@ -10,7 +10,7 @@ import { PRIMARY_TEXT } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 
 
-interface Item {
+export interface TimelineItem {
     disabled?: boolean;
     node: ReactNode;
     title: string | ReactNode;
@@ -22,7 +22,7 @@ export function FormTimeline({
     items,
     onFinish
 }: {
-    items: Item[]
+    items: TimelineItem[]
     onFinish?: () => void
 }) {
     const [formStepNum, setFormStepNum] = useState(1);

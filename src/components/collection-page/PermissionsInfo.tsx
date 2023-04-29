@@ -9,11 +9,13 @@ import { TableRow } from "../display/TableRow";
 export function PermissionsOverview({
     collection,
     span,
-    isBadgeView
+    isBadgeView,
+    isUserList
 }: {
     collection: BitBadgeCollection
     span?: number
-    isBadgeView?: boolean
+    isBadgeView?: boolean,
+    isUserList?: boolean
 }) {
     if (!collection?.permissions) return <></>
 
@@ -21,12 +23,14 @@ export function PermissionsOverview({
         <>
 
             <>
-                {!isBadgeView && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {!isBadgeView && !isUserList && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-                {<TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {!isUserList && <TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Can delete collection?"} value={collection.permissions.CanDelete ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {isUserList && <TableRow label={"Can update user list?"} value={collection.permissions.CanUpdateBytes ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
 
+                {!isUserList && <>
                 <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
                 <h3 style={{ color: PRIMARY_TEXT }}>{"Manager's Approved Transfers"}
                     <Tooltip title="The manager's approved transfers are those that they can execute without needing the owner's permission. These transfers forcefully override any other transfer restrictions (e.g. non-transferable).">
@@ -55,7 +59,9 @@ export function PermissionsOverview({
                             </>
                     }
                 </div>
+                
                 <br />
+                </>}
             </>
         </>
     </InformationDisplayCard>

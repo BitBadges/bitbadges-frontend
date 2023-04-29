@@ -16,6 +16,7 @@ export function MetadataUriSelect({
     startId,
     endId,
     hideCollectionSelect,
+    hideBadgeSelect
 }: {
     collection: BitBadgeCollection,
     newCollectionMsg: MessageMsgNewCollection,
@@ -24,6 +25,7 @@ export function MetadataUriSelect({
     startId: number;
     endId: number;
     hideCollectionSelect?: boolean;
+    hideBadgeSelect?: boolean;
 }) {
     const [collectionUri, setCollectionUri] = useState(newCollectionMsg.collectionUri);
     const [badgeUri, setBadgeUri] = useState(newCollectionMsg.badgeUris[0]?.uri);
@@ -98,6 +100,7 @@ export function MetadataUriSelect({
         </>
         }
 
+      {!hideBadgeSelect && <>
         <Form.Item
             label={
                 <Text
@@ -139,5 +142,6 @@ export function MetadataUriSelect({
                 />
             </div>
         }
+      </>}
     </>
 }

@@ -60,7 +60,7 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}
 
             {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
-            {<TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" : "Unknown"} labelSpan={9} valueSpan={15} />}
+            {<TableRow label={"Type"} value={collection.standard == 0 ? "Token" :  collection.standard == 1 ? "User List" :"Unknown"} labelSpan={9} valueSpan={15} />}
             {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', alignItems: 'center', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
@@ -112,7 +112,18 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
 
 
 
-            {isCollectionInfo && collection.bytes && <TableRow label={"Arbitrary Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />}
+            {isCollectionInfo && collection.bytes && <TableRow label={collection.standard === 0 ? "Bytes" : "User List"} value={
+              collection.standard === 0 ? <>{collection.bytes}</> : 
+              <div>
+                    <Tooltip placement='bottom' title={`${collection.bytes}`}>
+                        {/* <a href={`${collection.bytes}`} target="_blank" rel="noreferrer">{collection.bytes.length > 20 ? collection.bytes.slice(0, 10) + '...' + collection.bytes.slice(collection.bytes.length - 10) : collection.bytes} <LinkOutlined /></a> */}
+                        <a href={collection.bytes} target="_blank" rel="noreferrer">
+                            {/* {collection.collectionUri.length > 20 ? collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13) : collection.collectionUri}  */}
+                            View
+                            <LinkOutlined style={{ marginLeft: 4 }} /></a>
+                    </Tooltip>
+                </div>
+            } labelSpan={9} valueSpan={15} />}
             <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
                 {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
                     ? 'Until ' +

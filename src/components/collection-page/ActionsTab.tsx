@@ -15,6 +15,7 @@ import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisMo
 import { refreshMetadataOnBackend } from '../../bitbadges-api/api';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { CreateTxMsgUpdateBytesModal } from '../tx-modals/CreateTxMsgUpdateBytesModal';
 
 export function ActionsTab({
     collection,
@@ -41,6 +42,7 @@ export function ActionsTab({
     const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
     const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
     const [deleteIsVisible, setDeleteIsVisible] = useState(false);
+    const [updateUserListIsVisible, setUpdateUserListIsVisible] = useState(false);
 
 
     if (!collection) return <></>;
@@ -69,18 +71,31 @@ export function ActionsTab({
         disabled?: boolean
     }[] = [];
 
-    actions.push({
-        title: getTitleElem("Transfer"),
-        description: getDescriptionElem(
-            "Transfer badge(s) in this collection, if allowed."
-        ),
-        showModal: () => {
-            setTransferIsVisible(!transferIsVisible);
-        },
-    });
-
+    if (collection.standard === 0) {
+      actions.push({
+          title: getTitleElem("Transfer"),
+          description: getDescriptionElem(
+              "Transfer badge(s) in this collection, if allowed."
+          ),
+          showModal: () => {
+              setTransferIsVisible(!transferIsVisible);
+          },
+      });
+    }
 
     if (isManager && !badgeView) {
+        if (collection.permissions.CanUpdateBytes && collection.standard === 1) {
+          actions.push({
+            title: getTitleElem("Update User List"),
+            description: getDescriptionElem(
+                "Update the owners of this badge."
+            ),
+            showModal: () => {
+                setUpdateUserListIsVisible(!updateUserListIsVisible);
+            },
+        });
+        }
+
         if (collection.permissions.CanCreateMoreBadges) {
             actions.push({
                 title: getTitleElem("Add Badges"),
@@ -347,6 +362,12 @@ export function ActionsTab({
                         visible={deleteIsVisible}
                         setVisible={setDeleteIsVisible}
                         collection={collection}
+                    />
+
+                    <CreateTxMsgUpdateBytesModal
+                        visible={updateUserListIsVisible}
+                        setVisible={setUpdateUserListIsVisible}
+                        collectionId={collection.collectionId}
                     />
 
                 </div >

@@ -19,14 +19,7 @@ import { useStatusContext } from '../../contexts/StatusContext';
 
 const { Content } = Layout;
 
-const tabInfo = [
-    { key: 'overview', content: 'Overview', disabled: false },
-    { key: 'announcements', content: 'Announcements', disabled: false },
-    { key: 'badges', content: 'Badges', disabled: false },
-    { key: 'claims', content: 'Claims', disabled: false },
-    { key: 'activity', content: 'Activity', disabled: false },
-    { key: 'actions', content: 'Actions', disabled: false },
-];
+
 
 function CollectionPage({
     collectionPreview, //Only used for previews on TxTimeline
@@ -56,6 +49,25 @@ function CollectionPage({
     const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
 
     const collectionMetadata = collection?.collectionMetadata;
+
+    const tabInfo = [];
+    if (collection && collection.standard === 0) {
+      tabInfo.push(
+      { key: 'overview', content: 'Overview', disabled: false },
+      { key: 'announcements', content: 'Announcements', disabled: false },
+      { key: 'badges', content: 'Badges', disabled: false },
+      { key: 'claims', content: 'Claims', disabled: false },
+      { key: 'activity', content: 'Activity', disabled: false },
+      { key: 'actions', content: 'Actions', disabled: false },
+      )
+    } else {
+      tabInfo.push(
+        { key: 'overview', content: 'Overview', disabled: false },
+        { key: 'announcements', content: 'Announcements', disabled: false },
+        { key: 'activity', content: 'Activity', disabled: false },
+        { key: 'actions', content: 'Actions', disabled: false },
+      )
+    }
 
 
 

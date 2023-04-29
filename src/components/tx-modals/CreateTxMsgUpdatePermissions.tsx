@@ -33,10 +33,13 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
         }
     }, [visible, collection.permissions]);
 
+    const isUserList = collection.standard === 1;
+
     const items = [
         {
             title: 'Select Permissions To Update',
             description: <>
+                {!isUserList &&
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Freeze / Unfreeze Addresses (Edit Transferability)
                     <div>
@@ -46,7 +49,8 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                             }} />
                         </Tooltip>
                     </div>
-                </div>
+                </div>}
+                {!isUserList &&
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Add More Badges to Collection
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
@@ -54,7 +58,8 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                             setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
                         }} />
                     </Tooltip>
-                </div>
+                </div>}
+
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Update Metadata URLs
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
@@ -63,14 +68,15 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         }} />
                     </Tooltip>
                 </div>
+                {isUserList &&
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Update Bytes
+                    Update User List
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
                         }} />
                     </Tooltip>
-                </div>
+                </div>}
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Transfer the Manager Role
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
