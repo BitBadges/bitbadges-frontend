@@ -74,7 +74,7 @@ export function Notifications() {
                                                 fetchMore={async () => {
                                                     if (!chain.activity) return;
 
-                                                    const newRes = await updateUserActivity(chain.accountNumber, chain.activityBookmark);
+                                                    const newRes = await updateUserActivity(chain.cosmosAddress, chain.activityBookmark);
                                                     chain.setActivityBookmark(newRes.pagination.userActivity.bookmark);
                                                     chain.setActivityHasMore(newRes.pagination.userActivity.hasMore);
 
@@ -89,7 +89,7 @@ export function Notifications() {
                                             fetchMore={async () => {
                                                 if (!chain.announcements) return;
 
-                                                const newRes = await updateUserAnnouncements(chain.accountNumber, chain.announcementsBookmark);
+                                                const newRes = await updateUserAnnouncements(chain.cosmosAddress, chain.announcementsBookmark);
                                                 chain.setAnnouncementsBookmark(newRes.pagination.announcements.bookmark);
                                                 chain.setAnnouncementsHasMore(newRes.pagination.announcements.hasMore);
 

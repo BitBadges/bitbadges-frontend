@@ -242,24 +242,29 @@ export async function getBadgeBalance(
     return balanceRes;
 }
 
-export async function updatePortfolioCollections(accountNumber: number, bookmark: string) {
-    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { collectedBookmark: bookmark }).then((res) => res.data);
+export async function updatePortfolioCollections(cosmosAddress: string, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(cosmosAddress), { collectedBookmark: bookmark }).then((res) => res.data);
     return portfolio;
 }
 
-export async function updateUserAnnouncements(accountNumber: number, bookmark: string) {
-    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { announcementsBookmark: bookmark }).then((res) => res.data);
+export async function updateUserAnnouncements(cosmosAddress: string, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(cosmosAddress), { announcementsBookmark: bookmark }).then((res) => res.data);
     return portfolio;
 }
 
-export async function updateUserActivity(accountNumber: number, bookmark: string) {
-    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber), { userActivityBookmark: bookmark }).then((res) => res.data);
+export async function updateUserActivity(cosmosAddress: string, bookmark: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(cosmosAddress), { userActivityBookmark: bookmark }).then((res) => res.data);
     return portfolio;
+}
+
+export async function updateUserReviews(cosmosAddress: string, bookmark: string) {
+  const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(cosmosAddress), { reviewsBookmark: bookmark }).then((res) => res.data);
+  return portfolio;
 }
 
 //Get portfolio infromation for a specific account
-export async function getPortfolio(accountNumber: number) {
-    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(accountNumber)).then((res) => res.data);
+export async function getPortfolio(cosmosAddr: string) {
+    const portfolio: GetPortfolioResponse = await axios.post(BACKEND_URL + GetPortfolioRoute(cosmosAddr)).then((res) => res.data);
     return portfolio;
 }
 
@@ -273,6 +278,11 @@ export async function addReview(review: string, stars: number, collectionId: num
   return res;
 }
 
+export async function addReviewForUser(review: string, stars: number, cosmosAddress: string) {
+  const res = await axios.post(BACKEND_URL + `/api/v0/user/${cosmosAddress}/addReview`, { review, stars }).then((res) => res.data);
+  return res;
+}
+
 //Get search results
 export async function getSearchResults(searchTerm: string) {
     const searchResults: SearchResponse = await axios.post(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
@@ -280,10 +290,11 @@ export async function getSearchResults(searchTerm: string) {
 }
 
 //Blockin API Routes
-export const getChallengeParams = async (chain: string, address: string): Promise<ChallengeParams> => {
+export const getChallengeParams = async (chain: string, address: string, hours?: number): Promise<ChallengeParams> => {
     const data: { params: ChallengeParams } = await axios.post(BACKEND_URL + '/api/v0/auth/getChallenge', {
         address,
-        chain
+        chain,
+        hours: hours ? hours : 24
     }).then(res => res.data);
 
     return data.params;

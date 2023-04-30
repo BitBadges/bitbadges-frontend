@@ -3,7 +3,7 @@ import { BitBadgeCollection, ReviewActivityItem, SupportedChain } from 'bitbadge
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";
-import { addReview } from '../../bitbadges-api/api';
+import { addReview, addReviewForUser } from '../../bitbadges-api/api';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
@@ -13,8 +13,10 @@ import { AddressDisplay } from '../address/AddressDisplay';
 
 export function ReputationTab(
   { reviews, collection, 
+    cosmosAddress,
     // user, 
     fetchMore, hasMore }: {
+      cosmosAddress?: string,
     reviews: ReviewActivityItem[];
     collection?: BitBadgeCollection,
     // user?: BitBadgesUserInfo,
@@ -43,14 +45,13 @@ export function ReputationTab(
             if (accountsToFetch.length > 0) {
                 accounts.fetchAccountsByNumber(accountsToFetch);
             }
-           
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reviews])
 
     return (
         <>
-            {collection && (<>
+            {(collection || cosmosAddress) && (<>
                 <br />
                 <ReactStars
                   count={5}
@@ -65,7 +66,7 @@ export function ReputationTab(
 
                     value={newReview}
                     onChange={(e) => setNewReview(e.target.value)}
-                    placeholder="Is this badge legit? What was your experience? Leave a review (Max 2048 Characters)"
+                    placeholder={`Is this ${cosmosAddress ? 'user': 'badge'} legit? What was your experience? Leave a review (Max 2048 Characters)`}
                     style={{ marginBottom: 16, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
                 />
                 <Tooltip color="black" title={!chain.loggedIn ? 'Must be connected and signed in.' : ''}>
@@ -77,8 +78,13 @@ export function ReputationTab(
                     onClick={async () => {
                         if (newReview.length === 0) return;
                         setLoading(true);
-                        await addReview(newReview, stars, collection.collectionId);
-                        await collections.refreshCollection(collection.collectionId);
+                        if (collection) {
+                          await addReview(newReview, stars, collection.collectionId);
+                          await collections.refreshCollection(collection.collectionId);
+                        } else if (cosmosAddress) {
+                          await addReviewForUser(newReview, stars, cosmosAddress);
+                          await accounts.fetchAccounts([cosmosAddress], true);
+                        }
                         setNewReview('');
                         setLoading(false);
                     }}

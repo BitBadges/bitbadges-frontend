@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Avatar, Tooltip, Typography, notification } from "antd";
+import { Avatar, InputNumber, Tooltip, Typography, notification } from "antd";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api";
-import { PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
 import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
@@ -38,6 +38,7 @@ export const BlockinDisplay = ({
     } = useChainContext();
 
     const [_cookies, setCookie] = useCookies(['blockincookie']);
+    const [hours, setHours] = useState<number>(24);
 
     const [challengeParams, setChallengeParams] = useState({
         domain: 'https://blockin.com',
@@ -51,13 +52,13 @@ export const BlockinDisplay = ({
      * Update challengeParams when address or chain changes
      */
     useEffect(() => {
-        if (connected && address && challengeParams.address !== address) {
+        if (connected && address) {
             updateChallengeParams();
         }
-    }, [address, connected]);
+    }, [address, connected, hours]);
 
     const updateChallengeParams = async () => {
-        const challengeParams = await getChallengeParams(chain, address);
+        const challengeParams = await getChallengeParams(chain, address, hours);
         setChallengeParams(challengeParams);
     }
 
@@ -132,6 +133,7 @@ export const BlockinDisplay = ({
                             })
                         }
                     }}
+
                     buttonStyle={{ minWidth: 100 }}
                     modalStyle={{ color: `black` }}
                     disconnect={async () => {
@@ -164,6 +166,24 @@ export const BlockinDisplay = ({
             }
 
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', color: 'black', alignItems: 'center', marginTop: 4 }}>
+          <Typography.Text style={{  color: SECONDARY_TEXT }}>
+            Remember my sign-in for 
+          </Typography.Text>
+          <InputNumber
+            value={hours}
+            onChange={(value) => {
+              setHours(value);
+            }}
+            min={1}
+            max={168}
+            style={{ width: 70, marginLeft: 10, marginRight: 10, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+          />
+          <Typography.Text style={{  color: SECONDARY_TEXT }}>
+            hours
+          </Typography.Text>
+        </div>
+        <br/>
         <div style={{ display: 'flex', justifyContent: 'center', color: 'black' }}>
           <Typography.Text style={{  color: SECONDARY_TEXT }}>
             <Tooltip placement="bottom" color="black" title={<>

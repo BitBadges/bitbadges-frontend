@@ -111,7 +111,7 @@ export function ActionsTab({
 
 
 
-        if (collection.unmintedSupplys.length > 0) {
+        if (collection.standard === 0 && collection.unmintedSupplys.length > 0) {
             actions.push({
                 title: getTitleElem("Distribute Badges"),
                 description: getDescriptionElem(

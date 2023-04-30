@@ -33,7 +33,7 @@ export function TransferDisplay({
 }) {
     const accounts = useAccountsContext();
     const [page, setPage] = useState(0);
-
+    console.log(from, transfers)
 
     return <div style={{ marginTop: 4 }}    >
         {
@@ -60,7 +60,11 @@ export function TransferDisplay({
             if (index !== page) return <></>;
 
             const to = transfer.toAddressInfo ? transfer.toAddressInfo : [];
-            if (to.length) accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
+            console.log("FETCHING")
+            if (to.length) {
+              
+              accounts.fetchAccounts(to.map((user) => user.cosmosAddress));
+            }
 
             const toLength = to.length > 0 ? to.length : transfer.numCodes ? transfer.numCodes : 0;
             const hasPassword = transfer.password ? true : false;

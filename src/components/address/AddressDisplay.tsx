@@ -76,20 +76,6 @@ export function AddressDisplayList(
 
       setCurrPageStart(currPageStart);
       setCurrPageEnd(currPageEnd);
-
-      const accountsToFetch: string[] = [];
-
-      for (let i = currPageStart; i <= currPageEnd; i++) {
-          const user = users[i];
-          if (!user) continue;
-          accountsToFetch.push(user.cosmosAddress);
-      }
-
-
-
-
-      accounts.fetchAccounts(accountsToFetch)
-
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currPage, pageSize, users]);
     

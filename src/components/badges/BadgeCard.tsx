@@ -138,7 +138,9 @@ export function BadgeCard({
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}>
-                                        <div>Supply: {totalSupply} <Tooltip
+                                        <div>Supply: {totalSupply} 
+                                        {collection.standard === 0 &&
+                                        <Tooltip
                                             title={<>
                                                 <>Unminted: {undistributedSupply}</>
                                                 <br />
@@ -148,7 +150,8 @@ export function BadgeCard({
                                             </>}
                                             placement='bottom'>
                                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                                        </Tooltip></div>
+                                        </Tooltip>}
+                                        </div>
 
                                     </div>
                                 </>}

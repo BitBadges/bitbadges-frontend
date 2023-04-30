@@ -47,6 +47,10 @@ export function AddBadgesTimeline({
     const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection);
     const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
 
+
+    const offChainBalances = existingCollection?.standard === 1;
+    //TODO: Support updating balances here for off-chain as well and on DIstributeTImeline
+    //Will need to add updateBytes field to MsgMintBadge
     return (
         <FormTimeline
             items={[
@@ -56,10 +60,11 @@ export function AddBadgesTimeline({
                     ? SetCollectionMetadataStep : EmptyStepItem,
                 addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
-                DistributionMethodStep,
-                distributionMethod === DistributionMethod.Whitelist
+                
+                !offChainBalances ? DistributionMethodStep : EmptyStepItem,
+                !offChainBalances && distributionMethod === DistributionMethod.Whitelist
                     ? ManualSendSelect : EmptyStepItem,
-                distributionMethod !== DistributionMethod.Unminted
+                !offChainBalances && distributionMethod !== DistributionMethod.Unminted
                     ? CreateClaims : EmptyStepItem,
                 addMethod === MetadataAddMethod.Manual
                     ? CollectionPreviewStep : EmptyStepItem,
