@@ -1,31 +1,39 @@
 import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { Permissions } from "bitbadgesjs-utils";
+import { DistributionMethod } from "bitbadgesjs-utils";
 
-export function ChooseBadgeTypeStepItem(newCollectionMsg: MessageMsgNewCollection, setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void) {
+export function ChooseBadgeTypeStepItem(
+  newCollectionMsg: MessageMsgNewCollection, 
+  setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void, 
+  setManualSend: (manualSend: boolean) => void,
+  setDistributionMethod: (distributionMethod: DistributionMethod) => void,
+) {
     return {
-        title: 'Choose Badge Standard',
-        description: 'What standard of badge(s) do you want to create?',
+        title: 'Choose Badge Type',
+        description: 'Select a badge type.',
         node: <SwitchForm
             options={[
                 {
-                    title: 'Token Collection',
-                    message: 'Tokens are unique digital assets that can be traded, claimed, and exchanged. You will create a collection of tokens where each token (badge) can be unique. Tokens are the most customizable type of badge, but they are also the most expensive.',
+                    title: 'On-Chain',
+                    message: 'Everything about a badge is stored on the blockchain and updated via blockchain transactions. Most customizable option but also the most expensive. ',
                     isSelected: newCollectionMsg.standard === 0,
                 },
                 {
-                    title: 'User List',
-                    message: 'User lists are an easy and cheaper way to create a badge. You will create a single badge and simply provide a list of addresses that own the badge.',
+                    title: 'Off-Chain Balances',
+                    message: 'Badges are stored on the blockchain, but all balances (i.e. the owners of each badge) are stored off-chain to make it less expensive. This option should only in two cases: a) it is okay for the manager (you) to have complete control over the badge balances and can update them at all times, or b) the badge is non-transferable (soulbound) and balances are to be permanent forever.',
                     isSelected: newCollectionMsg.standard === 1,
                 },
             ]}
             onSwitchChange={(idx) => { 
-
               setNewCollectionMsg({
                 ...newCollectionMsg,
                 standard: idx,
-
               })
+
+              if (idx === 1) {
+                setManualSend(true);
+                setDistributionMethod(DistributionMethod.Whitelist);
+              }
             }}
         />
     }

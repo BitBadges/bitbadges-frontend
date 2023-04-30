@@ -22,13 +22,7 @@ import { useCollectionsContext } from '../../../contexts/CollectionsContext';
 
 const { Content } = Layout;
 
-const tabInfo = [
-    { key: 'overview', content: 'Overview' },
-    // { key: 'collection', content: 'Collection' },
-    { key: 'claims', content: 'Claims' },
-    { key: 'activity', content: 'Activity' },
-    { key: 'actions', content: 'Actions' },
-];
+
 
 export function BadgePage({ collectionPreview }
     : {
@@ -61,11 +55,32 @@ export function BadgePage({ collectionPreview }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectionIdNumber]);
 
+    const tabInfo = []
+    if (collection?.standard === 0) {
+      tabInfo.push(
+        { key: 'overview', content: 'Overview' },
+      // { key: 'collection', content: 'Collection' },
+      { key: 'claims', content: 'Claims' },
+      { key: 'activity', content: 'Activity' },
+      { key: 'actions', content: 'Actions' },
+      );
+    } else {
+      tabInfo.push(
+        { key: 'overview', content: 'Overview' },
+      // { key: 'collection', content: 'Collection' },
+      // { key: 'claims', content: 'Claims' },
+      { key: 'activity', content: 'Activity' },
+      { key: 'actions', content: 'Actions' },
+      );
+    }
+
     const isTransferable = !collection?.disallowedTransfers?.length;
     const isNonTransferable = collection?.disallowedTransfers?.length === 1
         && JSON.stringify(collection?.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
         && JSON.stringify(collection?.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
 
+    const isOffChainBalances = collection?.standard == 1;
+    
     return (
 
         <Layout>
@@ -134,6 +149,7 @@ export function BadgePage({ collectionPreview }
                                             span={24}
                                         />
                                         <br />
+                                        {!isOffChainBalances && <>
                                         <InformationDisplayCard
                                             title={<>
                                                 Transferability
@@ -175,12 +191,15 @@ export function BadgePage({ collectionPreview }
                                             </div>
                                         </InformationDisplayCard>
                                         <br />
+                                        </>}
                                         {collection &&
                                             <PermissionsOverview
                                                 collection={collection}
                                                 isBadgeView
                                                 span={24}
-                                            />}
+                                                isUserList={true}
+                                            />
+                                        }
 
                                     </Col>
                                     <Col md={0} sm={24} xs={24} style={{ height: 20 }} />

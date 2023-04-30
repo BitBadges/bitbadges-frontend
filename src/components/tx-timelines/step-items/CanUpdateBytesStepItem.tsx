@@ -8,18 +8,18 @@ export function CanUpdateBytesStepItem(
     updatePermissions: (digit: number, value: boolean) => void
 ) {
     return {
-        title: 'Can Update User List?',
+        title: 'Can Update Balances?',
         description: ``,
         node: <SwitchForm
             options={[
                 {
                     title: 'No',
-                    message: `The user list (who owns the badge?) can never be updated.`,
+                    message: `The balances (who owns the badge?) are permanent and can never be updated.`,
                     isSelected: handledPermissions.CanUpdateBytes && !GetPermissions(newCollectionMsg.permissions).CanUpdateBytes
                 },
                 {
                     title: 'Yes',
-                    message: `The user list (who owns the badge?) can be updated by the manager.`,
+                    message: `The balances (who owns the badge?) can be updated by the manager.`,
                     isSelected: handledPermissions.CanUpdateBytes && !!GetPermissions(newCollectionMsg.permissions).CanUpdateBytes,
                 },
             ]}

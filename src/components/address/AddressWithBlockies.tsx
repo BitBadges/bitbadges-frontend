@@ -8,6 +8,7 @@ export function AddressWithBlockies({
     address,
     fontSize,
     addressName,
+    resolvedName, 
     addressAvatar,
     fontColor,
     hideTooltip,
@@ -15,6 +16,7 @@ export function AddressWithBlockies({
 }: {
     address: string;
     addressName?: string,
+    resolvedName?: string,
     addressAvatar?: string,
     fontSize?: number,
     fontColor?: string,
@@ -46,6 +48,7 @@ export function AddressWithBlockies({
             fontSize={fontSize}
             address={address}
             addressName={addressName}
+            resolvedName={resolvedName}
             fontColor={fontColor}
             hidePortfolioLink={hidePortfolioLink}
             hideTooltip={hideTooltip}

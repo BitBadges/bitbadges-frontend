@@ -2,7 +2,7 @@ import { UserDeleteOutlined } from '@ant-design/icons';
 import { Pagination, Tooltip, Typography } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 import { AddressWithBlockies } from './AddressWithBlockies';
-import { BitBadgesUserInfo, getBadgeIdsToDisplayForPageNumber, updateMetadataForBadgeIdsFromIndexerIfAbsent } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 import collection from '../../pages/mint/collection';
 import { getPageDetails } from '../../utils/pagination';
@@ -198,6 +198,7 @@ export function AddressDisplay(
                 address={userInfo.address}
                 addressName={userInfo.name}
                 addressAvatar={userInfo.avatar}
+                resolvedName={userInfo.resolvedName}
                 fontSize={fontSize}
                 fontColor={fontColor ? fontColor : darkMode ? 'white' : undefined}
                 accountNumber={showAccountNumber ? userInfo.accountNumber : undefined}

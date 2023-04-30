@@ -85,7 +85,9 @@ export const EthereumContext = createContext<EthereumContextType>({
     setBalance: () => { },
     updatePortfolioInfo: async (_address: string) => { },
     airdropped: false,
-    setAirdropped: () => { }
+    setAirdropped: () => { },
+    resolvedName: '',
+    setResolvedName: () => { },
 })
 
 
@@ -110,6 +112,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const [discord, setDiscord] = useState<string>('');
     const [github, setGithub] = useState<string>('');
     const [telegram, setTelegram] = useState<string>('');
+    const [resolvedName, setResolvedName] = useState<string>('');
     const [activity, setActivity] = useState<TransferActivityItem[]>([]);
     const [announcements, setAnnouncements] = useState<AnnouncementActivityItem[]>([]);
     const [seenActivity, setSeenActivity] = useState(0);
@@ -163,6 +166,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setSeenActivity(accountInformation.seenActivity ? accountInformation.seenActivity : 0);
         setBalance(accountInformation.balance?.amount ? Number(accountInformation.balance.amount) : 0);
         setAirdropped(accountInformation.airdropped || false);
+        setResolvedName(accountInformation.resolvedName || '');
 
         setLoggedIn(cookies.blockincookie === accountInformation.cosmosAddress);
 
@@ -322,7 +326,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         setActivityHasMore,
         updatePortfolioInfo,
         airdropped,
-        setAirdropped
+        setAirdropped,
+        resolvedName,
+        setResolvedName
     };
 
 

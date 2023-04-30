@@ -192,7 +192,7 @@ export const BlockinDisplay = ({
                                 fontSize={200}
                                 shape={'circle'}
                             /> :
-                                <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'200%'} width={'200%'} />
+                                <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'180px'} width={'180px'} quality={100}/>
                         }
                         style={{ marginTop: 40 }}
                     />

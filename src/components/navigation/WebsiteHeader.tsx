@@ -254,8 +254,9 @@ export function WalletHeader() {
                             src={'/images/bitbadgeslogo.png'}
                             className="App-logo"
                             alt="logo"
-                            height={"65%"}
-                            width={"65%"}
+                            height={"60px"}
+                            width={"60px"}
+                            quality={100}
                         />
                         <Typography className='App-title'>
                             BitBadges

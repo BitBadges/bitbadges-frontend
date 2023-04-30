@@ -1,5 +1,5 @@
 import axiosApi from 'axios';
-import { AccountResponse, AnnouncementActivityItem, BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IdRange, IndexerStatus, METADATA_PAGE_LIMIT, PaginationInfo, SearchResponse, StoredBadgeCollection, TransferActivityItem, convertToCosmosAddress, getMaxBatchId, updateMetadataMap } from "bitbadgesjs-utils";
+import { AccountResponse, AnnouncementActivityItem, BadgeMetadata, BadgeMetadataMap, BalancesMap, BitBadgeCollection, GetAccountByNumberRoute, GetAccountRoute, GetAccountsRoute, GetBadgeBalanceResponse, GetBadgeBalanceRoute, GetCollectionResponse, GetCollectionRoute, GetCollectionsRoute, GetMetadataRoute, GetOwnersResponse, GetOwnersRoute, GetPermissions, GetPortfolioResponse, GetPortfolioRoute, GetSearchRoute, GetStatusRoute, IdRange, IndexerStatus, METADATA_PAGE_LIMIT, PaginationInfo, SearchResponse, StoredBadgeCollection, TransferActivityItem, convertToCosmosAddress, getMaxBatchId, isAddressValid, updateMetadataMap } from "bitbadgesjs-utils";
 import { ChallengeParams } from "blockin";
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
@@ -32,6 +32,12 @@ export async function getAccountInformationByAccountNumber(id: number) {
 }
 
 export async function getAccounts(accountNums: number[], addresses: string[]) {
+    accountNums = accountNums.filter((x) => x !== undefined && x !== -1);
+    addresses = addresses.filter((x) => x !== undefined && x !== '' && isAddressValid(x));
+    if (accountNums.length === 0 && addresses.length === 0) {
+        return [];
+    }
+
     const accountObjects: { accounts: AccountResponse[] } = await axios.post(BACKEND_URL + GetAccountsRoute(), { accountNums, addresses }).then((res) => res.data);
     return accountObjects.accounts;
 }
@@ -75,7 +81,7 @@ function validatePositiveNumber(collectionId: number, fieldName?: string) {
 
 export async function getCollections(collectionIds: number[], fetchAllMetadata: boolean = false): Promise<{
     collections: BitBadgeCollection[],
-    paginations: { activity: PaginationInfo, announcements: PaginationInfo }[],
+    paginations: { activity: PaginationInfo, announcements: PaginationInfo, reviews: PaginationInfo }[],
 }> {
     for (const collectionId of collectionIds) {
         await validatePositiveNumber(collectionId);
@@ -102,6 +108,28 @@ export async function getCollections(collectionIds: number[], fetchAllMetadata: 
         paginations: badgeDataResponse.paginations
     };
 }
+
+export async function updateCollectionReviews(collectionId: number, bookmark: string) {
+  await validatePositiveNumber(collectionId);
+
+  const badgeDataResponse: {
+      collection: BitBadgeCollection,
+      pagination: {
+          reviews: {
+              bookmark: string,
+              hasMore: boolean
+          }
+      }
+  } = await axios.post(BACKEND_URL + GetCollectionRoute(collectionId), {
+      bookmark
+  }).then((res) => res.data);
+
+  return {
+      reviews: badgeDataResponse.collection.reviews,
+      pagination: badgeDataResponse.pagination
+  };
+}
+
 
 export async function updateCollectionAnnouncements(collectionId: number, announcementsBookmark: string) {
     await validatePositiveNumber(collectionId);
@@ -240,6 +268,11 @@ export async function addAnnouncement(announcement: string, collectionId: number
     return res;
 }
 
+export async function addReview(review: string, stars: number, collectionId: number) {
+  const res = await axios.post(BACKEND_URL + `/api/v0/collection/${collectionId}/addReview`, { review, stars }).then((res) => res.data);
+  return res;
+}
+
 //Get search results
 export async function getSearchResults(searchTerm: string) {
     const searchResults: SearchResponse = await axios.post(BACKEND_URL + GetSearchRoute(searchTerm)).then((res) => res.data);
@@ -305,6 +338,7 @@ export const updateAccountSettings = async (settingsToUpdate: {
     discord?: string,
     telegram?: string,
     github?: string,
+    name?: string
 }) => {
     const res: { success: string } = await axios.post(BACKEND_URL + '/api/v0/user/updateAccount', settingsToUpdate).then(res => res.data);
     return res;
@@ -378,9 +412,9 @@ export const addToIpfs = async (collectionMetadata: BadgeMetadata, individualBad
     return addToIpfsRes;
 }
 
-export const addUserListToIpfs = async (userList: BitBadgesUserInfo[]) => {
+export const addBalancesToIpfs = async (balances: BalancesMap) => {
   const bodyStr = stringify({
-      userList: userList.map(x => x.address)
+    balances
   }); //hack to preserve uint8 arrays
 
   const addToIpfsRes = await axios.post(BACKEND_URL + '/api/v0/addToIpfs', bodyStr).then(res => res.data);

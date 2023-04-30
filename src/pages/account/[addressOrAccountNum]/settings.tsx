@@ -1,12 +1,11 @@
-import { Button, Form, Input, Layout } from 'antd';
+import { Button, Form, Input, Layout, Typography } from 'antd';
 import Text from 'antd/lib/typography/Text';
-import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { updateAccountSettings } from '../../../bitbadges-api/api';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../../constants';
+import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { useChainContext } from '../../../contexts/ChainContext';
 
 const { Content } = Layout;
@@ -34,6 +33,10 @@ export function AccountSettings() {
         chain?.telegram ? chain.telegram : ''
     );
 
+    const [name, setName] = useState(
+        chain?.name ? chain.name : ''
+    );
+
 
     useEffect(() => {
         if (!chain) return;
@@ -41,8 +44,11 @@ export function AccountSettings() {
         setDiscord(chain.discord ? chain.discord : '');
         setGithub(chain.github ? chain.github : '');
         setTelegram(chain.telegram ? chain.telegram : '');
+        setName(chain.name ? chain.name : '');
     }, [chain]);
 
+
+    const regex = /^[a-zA-Z0-9_\-]+$/; // regular expression for username
 
     return (
         <DisconnectedWrapper
@@ -74,23 +80,22 @@ export function AccountSettings() {
                                             </Text>
                                         </>}
                                     >
-                                        {chain &&
-                                            <div style={{ color: PRIMARY_TEXT }}>
-                                                {chain.chain === SupportedChain.ETH && <>
-                                                    {`For ${chain.chain} names, this site uses ${chain.chain === SupportedChain.ETH ? 'Ethereum Name Service (ENS)' : ''}. Please setup your name on `}
-                                                    {chain.chain === SupportedChain.ETH ?
-                                                        <a href='https://ens.domains/'>
-
-                                                            the ENS website.
-
-                                                        </a>
-                                                        : <></>}
-                                                </>}
-                                                {chain.chain === SupportedChain.COSMOS && <>
-                                                    This site does not support Cosmos names. We are looking into adding support for Cosmos names in the future.
-                                                </>}
-                                            </div>}
+                                        <Input
+                                            defaultValue={name}
+                                            value={name}
+                                            onChange={(e) => {
+                                                setName(e.target.value);
+                                            }}
+                                            className="form-input"
+                                        />
+                                        <Typography.Text strong style={{color: SECONDARY_TEXT}}>
+                                          *If left blank, we will attempt to resolve your name from your native chain (ex: Ethereum Name Service for Ethereum).
+                                        </Typography.Text>
+                                        {!regex.test(name) && name.length > 0 && <Typography.Text type="danger">
+                                            Name must only contain letters, numbers, underscores, and dashes.
+                                        </Typography.Text>}
                                     </Form.Item>
+
 
                                     <Form.Item
                                         label={
@@ -166,6 +171,7 @@ export function AccountSettings() {
                                 <Button
                                     type="primary"
                                     loading={loading}
+                                    disabled={!regex.test(name) && name.length > 0}
                                     style={{ width: '80%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}
                                     onClick={async () => {
                                         setLoading(true);
@@ -176,6 +182,7 @@ export function AccountSettings() {
                                                 discord,
                                                 github,
                                                 telegram,
+                                                name
                                             };
 
                                             await updateAccountSettings(data);

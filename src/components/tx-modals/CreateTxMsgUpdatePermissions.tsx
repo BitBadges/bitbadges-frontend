@@ -33,6 +33,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
         }
     }, [visible, collection.permissions]);
 
+    // EXPERIMENTAL STANDARD
     const isUserList = collection.standard === 1;
 
     const items = [
@@ -50,7 +51,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                         </Tooltip>
                     </div>
                 </div>}
-                {!isUserList &&
+                {
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
                     Add More Badges to Collection
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
@@ -70,7 +71,7 @@ export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisi
                 </div>
                 {isUserList &&
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Update User List
+                    Update Balances
                     <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
                         <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
                             setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))

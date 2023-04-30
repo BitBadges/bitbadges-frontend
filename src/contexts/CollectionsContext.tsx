@@ -2,7 +2,7 @@
 import { notification } from 'antd';
 import { BitBadgeCollection, CollectionMap } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
-import { getCollections, updateCollectionActivity, updateCollectionAnnouncements, updateMetadata } from '../bitbadges-api/api';
+import { getCollections, updateCollectionActivity, updateCollectionAnnouncements, updateMetadata, updateCollectionReviews } from '../bitbadges-api/api';
 
 export type CollectionsContextType = {
     collections: CollectionMap,
@@ -11,6 +11,7 @@ export type CollectionsContextType = {
     updateCollectionMetadata: (collectionId: number, startBatchIds: number[]) => Promise<void>,
     fetchNextActivity: (collectionId: number) => Promise<void>,
     fetchNextAnnouncements: (collectionId: number) => Promise<void>,
+    fetchNextReviews: (collectionId: number) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
@@ -20,6 +21,7 @@ const CollectionsContext = createContext<CollectionsContextType>({
     updateCollectionMetadata: async () => { },
     fetchNextActivity: async () => { },
     fetchNextAnnouncements: async () => { },
+    fetchNextReviews: async () => { },
 });
 
 type Props = {
@@ -112,6 +114,38 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
+    async function fetchNextReviews(collectionId: number) {
+        try {
+            if (!collections[`${collectionId}`]) return;
+            const collection = collections[`${collectionId}`];
+            if (!collection) return;
+
+            const res = await updateCollectionReviews(collection.collection.collectionId, collection.pagination.reviews.bookmark);
+            const newCollection = {
+                ...collection.collection,
+                reviews: [...collection.collection.reviews, ...res.reviews]
+            };
+
+            const newPagination = res.pagination;
+            setCollections({
+                ...collections,
+                [`${collectionId}`]: {
+                    collection: newCollection,
+                    pagination: {
+                        ...collection.pagination,
+                        reviews: newPagination.reviews
+                    }
+                }
+            });
+
+        } catch (e: any) {
+            notification.error({
+                message: 'Oops! We ran into an error fetching the collection activity.',
+                description: e.message
+            });
+        }
+    }
+
     async function fetchNextAnnouncements(collectionId: number) {
         try {
             if (!collections[`${collectionId}`]) return;
@@ -182,7 +216,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         refreshCollection,
         updateCollectionMetadata,
         fetchNextActivity,
-        fetchNextAnnouncements
+        fetchNextAnnouncements,
+        fetchNextReviews
     };
 
     return <CollectionsContext.Provider value={collectionsContext}>

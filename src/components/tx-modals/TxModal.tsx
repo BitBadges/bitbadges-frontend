@@ -99,7 +99,7 @@ export function TxModal(
         setCurrentStep(value);
     };
 
-    const submitTx = async (createTxFunction: any, cosmosMsg: object) => {
+    const submitTx = async (createTxFunction: any, cosmosMsg: object, isRegister: boolean) => {
         setError('');
         setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
@@ -107,7 +107,7 @@ export function TxModal(
 
             //Currently used for updating IPFS metadata URIs right before tx
             //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
-            if (beforeTx) {
+            if (!isRegister && beforeTx) {
                 let newMsg = await beforeTx();
                 if (newMsg) cosmosMsg = newMsg;
             }
@@ -198,7 +198,7 @@ export function TxModal(
 
     const handleSubmitTx = async () => {
         try {
-            await submitTx(createTxFunction, txCosmosMsg);
+            await submitTx(createTxFunction, txCosmosMsg, false);
             setVisible(false);
 
             await chain.updatePortfolioInfo(chain.address);
@@ -215,9 +215,9 @@ export function TxModal(
                 creator: chain.cosmosAddress,
                 addressesToRegister: unregisteredUsers,
             };
-
+            console.log("Registering Users: ", registerTxCosmosMsg);
             try {
-                await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg);
+                await submitTx(createTxMsgRegisterAddresses, registerTxCosmosMsg, true);
 
                 onRegister();
             } catch (err: any) {

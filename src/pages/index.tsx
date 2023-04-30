@@ -1,9 +1,10 @@
 import { Button, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE, SECONDARY_TEXT } from '../constants';
+import { PRIMARY_BLUE, SECONDARY_BLUE, SECONDARY_TEXT } from '../constants';
 // import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 // import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 
@@ -32,8 +33,8 @@ const Home: NextPage = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-around', minHeight: '100%' }}>
 
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', }}>
-                            <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="auto" />
-                            <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>BitBadges</Typography.Text>
+                            <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="300px" width="300px" quality={100}/>
+                            {/* <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>BitBadges</Typography.Text> */}
                             <Typography.Text strong style={{ color: SECONDARY_TEXT, fontSize: 18 }}>Issue cross-chain badges on the blockchain!</Typography.Text>
                             <div style={{ display: 'flex' }}>
                                 <Button

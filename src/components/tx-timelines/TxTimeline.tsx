@@ -10,7 +10,7 @@ import { MintCollectionTimeline } from './NewCollectionTimeline';
 import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
 import { TransferMappingSelectType } from './form-items/TransfersMappingSelect';
-import { UpdateUserListTimeline } from './UpdateUserListTimeline';
+import { UpdateUserBalancesTimeline } from './UpdateUserListTimeline';
 
 export const EmptyStepItem = {
     title: '',
@@ -35,7 +35,7 @@ export const EmptyStepItem = {
 
 
 export interface TxTimelineProps {
-    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateUserList'
+    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
     newCollectionMsg: MessageMsgNewCollection
     setNewCollectionMsg: (msg: MessageMsgNewCollection) => void
     collectionMetadata: BadgeMetadata
@@ -84,8 +84,8 @@ export interface TxTimelineProps {
     setManagerTo: (users: BitBadgesUserInfo[]) => void,
     managerFrom: BitBadgesUserInfo[],
     setManagerFrom: (users: BitBadgesUserInfo[]) => void,
-    userList: BitBadgesUserInfo[],
-    setUserList: (users: BitBadgesUserInfo[]) => void,
+    UserBalances: BitBadgesUserInfo[],
+    setUserBalances: (users: BitBadgesUserInfo[]) => void,
 }
 
 export function TxTimeline({
@@ -93,7 +93,7 @@ export function TxTimeline({
     collectionId,
     onFinish,
 }: {
-    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateUserList'
+    txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
     collectionId?: number,
     onFinish?: (txState: TxTimelineProps) => void
 }) {
@@ -172,7 +172,7 @@ export function TxTimeline({
         CanDelete: false,
     });
 
-    const [userList, setUserList] = useState<BitBadgesUserInfo[]>([]);
+    const [UserBalances, setUserBalances] = useState<BitBadgesUserInfo[]>([]);
 
     //Whether the whitelisted addresses are sent the badges manually by the manager or via a claiming process
     const [manualSend, setManualSend] = useState(false);
@@ -430,8 +430,8 @@ export function TxTimeline({
         setManagerTo,
         managerFrom,
         setManagerFrom,
-        userList,
-        setUserList,
+        UserBalances,
+        setUserBalances,
     }
 
 
@@ -449,8 +449,8 @@ export function TxTimeline({
         return <DistributeTimeline txTimelineProps={txTimelineProps} />
     } else if (txType === 'AddBadges') {
         return <AddBadgesTimeline txTimelineProps={txTimelineProps} />
-    } else if (txType === 'UpdateUserList') {
-      return <UpdateUserListTimeline txTimelineProps={txTimelineProps} />
+    } else if (txType === 'UpdateBalances') {
+      return <UpdateUserBalancesTimeline txTimelineProps={txTimelineProps} />
     } else {
         return <></>
     }

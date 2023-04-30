@@ -16,6 +16,7 @@ import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../cons
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { useStatusContext } from '../../contexts/StatusContext';
+import { ReputationTab } from '../../components/collection-page/ReputationTab';
 
 const { Content } = Layout;
 
@@ -57,13 +58,16 @@ function CollectionPage({
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
       { key: 'claims', content: 'Claims', disabled: false },
+      { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
       )
     } else {
+      // EXPERIMENTAL STANDARD
       tabInfo.push(
         { key: 'overview', content: 'Overview', disabled: false },
         { key: 'announcements', content: 'Announcements', disabled: false },
+        { key: 'reputation', content: 'Reviews', disabled: false },
         { key: 'activity', content: 'Activity', disabled: false },
         { key: 'actions', content: 'Actions', disabled: false },
       )
@@ -170,6 +174,16 @@ function CollectionPage({
                             <BadgesTab
                                 collection={collection}
                             />
+                        )}
+                        {tab === 'reputation' && (
+                          <ReputationTab
+                            reviews={collection.reviews}
+                              collection={collection}
+                              fetchMore={async () => {
+                                await collections.fetchNextReviews(collection.collectionId);
+                            }}
+                            hasMore={collections.collections[`${collection.collectionId}`]?.pagination.reviews.hasMore || false}
+                          />
                         )}
 
                         {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements') && <Empty

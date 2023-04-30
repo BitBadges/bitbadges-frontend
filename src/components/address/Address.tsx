@@ -1,6 +1,6 @@
 import { Modal, Tooltip, Typography } from 'antd';
-import { MINT_ACCOUNT, SupportedChain, doesChainMatchName, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { cosmosToEth, ethToCosmos } from 'bitbadgesjs-address-converter';
+import { MINT_ACCOUNT, SupportedChain, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { PRIMARY_TEXT } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
@@ -14,7 +14,8 @@ export function Address({
     fontColor,
     hideTooltip,
     hidePortfolioLink,
-    addressName
+    addressName,
+    resolvedName,
 }: {
     address: string;
     blockExplorer?: string;
@@ -24,13 +25,15 @@ export function Address({
     hideTooltip?: boolean;
     hidePortfolioLink?: boolean
     addressName?: string
+    resolvedName?: string
 }) {
     const router = useRouter();
     const accounts = useAccountsContext();
     const chain = getChainForAddress(address);
 
-    const chainMatchesName = doesChainMatchName(chain, addressName);
-    let displayAddress = addressName && chainMatchesName ? addressName : getAbbreviatedAddress(address);
+    // const chainMatchesName = doesChainMatchName(chain, addressName);
+    let displayAddress = 
+      addressName ? addressName : getAbbreviatedAddress(address);
 
     let isValidAddress = isAddressValid(address);
     const accountNumber = accounts.accounts[accounts.cosmosAddresses[address]]?.accountNumber || -1;
@@ -54,6 +57,9 @@ export function Address({
                         minWidth: 360
                     }}>
                         {`${getChainForAddress(address)} Address${accountNumber && accountNumber !== -1 ? ` (ID #${accountNumber})` : ``}`}
+                        <br/>
+                        {`${resolvedName ? resolvedName : ''}`}
+                        
                         <br />
                         <br />
                         {`${address}`}

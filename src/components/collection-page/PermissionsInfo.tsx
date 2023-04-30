@@ -23,12 +23,12 @@ export function PermissionsOverview({
         <>
 
             <>
-                {!isBadgeView && !isUserList && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {!isBadgeView && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {!isUserList && <TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateDisallowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
                 {<TableRow label={"Can delete collection?"} value={collection.permissions.CanDelete ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-                {isUserList && <TableRow label={"Can update user list?"} value={collection.permissions.CanUpdateBytes ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+                {isUserList && <TableRow label={"Can update balances?"} value={collection.permissions.CanUpdateBytes ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
 
                 {!isUserList && <>
                 <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>

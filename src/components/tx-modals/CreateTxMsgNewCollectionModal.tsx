@@ -4,7 +4,7 @@ import { TxModal } from './TxModal';
 import { message } from 'antd';
 
 export function CreateTxMsgNewCollectionModal(
-    { txCosmosMsg, visible, setVisible, children, unregisteredUsers, onRegister }
+    { txCosmosMsg, visible, setVisible, children, unregisteredUsers, onRegister, beforeTx }
         :
         {
             txCosmosMsg: MessageMsgNewCollection,
@@ -12,7 +12,8 @@ export function CreateTxMsgNewCollectionModal(
             setVisible: (visible: boolean) => void,
             children?: React.ReactNode,
             unregisteredUsers?: string[],
-            onRegister?: () => Promise<void>
+            onRegister?: () => Promise<void>,
+            beforeTx?: () => Promise<void>
         }) {
     return (
         <TxModal
@@ -22,6 +23,7 @@ export function CreateTxMsgNewCollectionModal(
             txCosmosMsg={txCosmosMsg}
             createTxFunction={createTxMsgNewCollection}
             onRegister={onRegister}
+            beforeTx={beforeTx}
             unregisteredUsers={unregisteredUsers}
             onSuccessfulTx={async () => {
                 //navigating to the new collection page is handled in TxModal

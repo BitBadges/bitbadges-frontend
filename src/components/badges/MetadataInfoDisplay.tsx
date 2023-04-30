@@ -60,7 +60,7 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}
 
             {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
-            {<TableRow label={"Type"} value={collection.standard == 0 ? "Token" :  collection.standard == 1 ? "User List" :"Unknown"} labelSpan={9} valueSpan={15} />}
+            {<TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" :  collection.standard == 1 ? "BitBadge (Off-Chain Balances)" :"Unknown"} labelSpan={9} valueSpan={15} />}
             {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', alignItems: 'center', flexDirection: 'row' }}>
                 <div></div>
                 <div style={{
@@ -78,9 +78,11 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {!isCollectionInfo && <TableRow label={"Supply"} value={
                 <div>
                     <div>Total: {totalSupply}</div>
-                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
-                    <div>Claimable: {claimableSupply} / {totalSupply}</div>
-                    <div>Minted: {distributedSupply} / {totalSupply}</div>
+                    {collection?.standard === 0 && <>                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
+                      <div>Claimable: {claimableSupply} / {totalSupply}</div>
+                      <div>Minted: {distributedSupply} / {totalSupply}</div>
+                      </>
+              }
                 </div>
             } labelSpan={12} valueSpan={12} />}
             {isCollectionInfo && collection.collectionUri && <TableRow label={"Metadata URL"} value={
@@ -111,8 +113,7 @@ export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, 
             {/* {metadata?.description && <TableRow label={"Description"} value={metadata.description} labelSpan={12} valueSpan={12} />} */}
 
 
-
-            {isCollectionInfo && collection.bytes && <TableRow label={collection.standard === 0 ? "Bytes" : "User List"} value={
+            {isCollectionInfo && collection.bytes && <TableRow label={collection.standard === 0 ? "Bytes" : "Balances URL"} value={
               collection.standard === 0 ? <>{collection.bytes}</> : 
               <div>
                     <Tooltip placement='bottom' title={`${collection.bytes}`}>

@@ -1,13 +1,15 @@
 import { Modal } from 'antd';
 import { MessageMsgUpdateBytes, createTxMsgUpdateBytes } from 'bitbadgesjs-transactions';
+import { getTransfersFromClaimItems } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { addBalancesToIpfs } from '../../bitbadges-api/api';
+import { handleTransfers } from '../../bitbadges-api/transfers';
+import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useChainContext } from '../../contexts/ChainContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
-import { MetadataAddMethod } from 'bitbadgesjs-utils';
-import { addToIpfs, addUserListToIpfs } from '../../bitbadges-api/api';
 
 
 export function CreateTxMsgUpdateBytesModal({ visible, setVisible, children, collectionId }
@@ -19,10 +21,30 @@ export function CreateTxMsgUpdateBytesModal({ visible, setVisible, children, col
     }) {
     const router = useRouter();
     const collections = useCollectionsContext();
+    const accounts = useAccountsContext();
     const chain = useChainContext();
 
     const [txState, setTxState] = useState<TxTimelineProps>();
     const [disabled, setDisabled] = useState<boolean>(true);
+    const [unregisteredUsers, setUnregisteredUsers] = useState<string[]>([]);
+
+    useEffect(() => {
+      if (!txState) return;
+      let newUnregisteredUsers: string[] = [];
+        for (const claimItem of txState?.claimItems) {
+          console.log("TEsT", claimItem);
+            for (const address of claimItem.addresses) {
+                console.log(accounts.accounts[address].accountNumber);
+              
+                if (accounts.accounts[address].accountNumber >= 0) continue;
+
+                newUnregisteredUsers.push(address);
+            }
+        }
+      newUnregisteredUsers = [...new Set(newUnregisteredUsers)];
+      setUnregisteredUsers(newUnregisteredUsers);
+    }, [accounts, txState]);
+
 
     const UpdateBytesMsg: MessageMsgUpdateBytes = {
         creator: chain.cosmosAddress,
@@ -32,28 +54,20 @@ export function CreateTxMsgUpdateBytesModal({ visible, setVisible, children, col
 
     async function updateIPFSUris() {
       if (!txState) return;
-      const addMethod = txState.addMethod;
-      const collectionMetadata = txState.collectionMetadata;
-      const userList = txState.userList;
-
 
       let badgeMsg = txState.newCollectionMsg;
-      if (txState.newCollectionMsg.standard === 0) {
-      
-      
-    } else if (txState.newCollectionMsg.standard === 1) {
-        //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
-        if (addMethod == MetadataAddMethod.Manual) {
-          let res = await addToIpfs(collectionMetadata, {});
+      let claimItems = txState.claimItems;
 
-          badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
-          badgeMsg.badgeUris = [];
-          //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing collection
-        }
+      if (badgeMsg.standard === 1) {
+        const transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);
 
-      let res = await addUserListToIpfs(userList);
-      badgeMsg.bytes = 'ipfs://' + res.cid;
-    }
+        const balanceMap = await handleTransfers(["Mint"], transfers);
+
+        let res = await addBalancesToIpfs(balanceMap);
+        badgeMsg.bytes = 'ipfs://' + res.cid;
+        badgeMsg.claims = [];
+        badgeMsg.transfers = [];
+      }
 
     return {
         creator: txState ? txState?.newCollectionMsg.creator : '',
@@ -62,11 +76,17 @@ export function CreateTxMsgUpdateBytesModal({ visible, setVisible, children, col
     } as MessageMsgUpdateBytes;
   }
 
+  const onRegister = async () => {
+      await accounts.fetchAccounts(unregisteredUsers, true); // This will update the useEffect() above and set unregisterUsers to []
+
+      setVisible(true);
+  }
+
     const msgSteps = [
         {
-            title: 'Update User List',
+            title: 'Update Balances',
             description: <TxTimeline
-                txType='UpdateUserList'
+                txType='UpdateBalances'
                 collectionId={collectionId}
                 onFinish={(txState: TxTimelineProps) => {
                     setDisabled(false);
@@ -79,14 +99,16 @@ export function CreateTxMsgUpdateBytesModal({ visible, setVisible, children, col
 
     return (
         <TxModal
-              beforeTx={async () => {
-                const newMsg = await updateIPFSUris();
-                return newMsg
+            beforeTx={async () => {
+              const newMsg = await updateIPFSUris();
+              return newMsg
             }}
+            onRegister={onRegister}
+            unregisteredUsers={unregisteredUsers}
             msgSteps={msgSteps}
             visible={visible}
             setVisible={setVisible}
-            txName="Update User List"
+            txName="Update Balances"
             txCosmosMsg={UpdateBytesMsg}
             createTxFunction={createTxMsgUpdateBytes}
             onSuccessfulTx={async () => {

@@ -18,6 +18,7 @@ const crypto = require('crypto');
 
 const { Text } = Typography;
 
+//TODO: Create Claims - Select type (codes vs direct transfers vs whitelist vs anyone) dynamically all in TransferSelect
 export function CreateClaims({
     collection,
     newCollectionMsg,

@@ -28,7 +28,7 @@ export function UpdateMetadataTimeline({
     //All mint timeline step items
     const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
 
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent, undefined, collection.standard === 1);
+    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
     const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
     const CollectionPreviewStep = PreviewCollectionStepItem(collection);
 
@@ -37,7 +37,7 @@ export function UpdateMetadataTimeline({
             items={[
                 MetadataStorageSelectStep,
                 SetCollectionMetadataStep,
-                addMethod === MetadataAddMethod.Manual && collection.standard !== 1
+                addMethod === MetadataAddMethod.Manual
                     ? SetIndividualBadgeMetadataStep : EmptyStepItem,
                 addMethod === MetadataAddMethod.Manual
                     ? CollectionPreviewStep : EmptyStepItem,

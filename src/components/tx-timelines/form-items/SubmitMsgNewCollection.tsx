@@ -1,10 +1,9 @@
 import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
+import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers, getClaimsFromClaimItems, getTransfersFromClaimItems, updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { addMerkleTreeToIpfs, addToIpfs, addUserListToIpfs } from '../../../bitbadges-api/api';
-import { BitBadgesUserInfo, ClaimItemWithTrees, getClaimsFromClaimItems, getTransfersFromClaimItems } from 'bitbadgesjs-utils';
-import { updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers } from 'bitbadgesjs-utils';
+import { addBalancesToIpfs, addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
+import { handleTransfers } from '../../../bitbadges-api/transfers';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
 
@@ -19,8 +18,7 @@ export function SubmitMsgNewCollection({
     manualSend,
     managerApprovedTransfersWithUnregisteredUsers,
     disallowedTransfersWithUnregisteredUsers,
-    simulatedCollection,
-    userList
+    simulatedCollection
 }: {
     newCollectionMsg: MessageMsgNewCollection;
     setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
@@ -32,8 +30,7 @@ export function SubmitMsgNewCollection({
     manualSend: boolean;
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-    simulatedCollection: BitBadgeCollection,
-    userList: BitBadgesUserInfo[]
+    simulatedCollection: BitBadgeCollection
 }) {
     const [visible, setVisible] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -95,7 +92,6 @@ export function SubmitMsgNewCollection({
 
     async function updateIPFSUris() {
         let badgeMsg = newCollectionMsg;
-        if (newCollectionMsg.standard === 0) {
         //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
         if (addMethod == MetadataAddMethod.Manual) {
             let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
@@ -125,21 +121,24 @@ export function SubmitMsgNewCollection({
             }
         }
 
+        if (badgeMsg.standard === 1) {
+          //TODO: if distribution method is off-chain balances
+          const transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);
+
+          const balanceMap = await handleTransfers(["Mint"], transfers);
+
+
+          let res = await addBalancesToIpfs(balanceMap);
+          badgeMsg.bytes = 'ipfs://' + res.cid;
+          badgeMsg.claims = [];
+          badgeMsg.transfers = [];
+        }
+
+
+
         
-      } else if (newCollectionMsg.standard === 1) {
-          //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
-          if (addMethod == MetadataAddMethod.Manual) {
-            let res = await addToIpfs(collectionMetadata, {});
-
-            badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
-            badgeMsg.badgeUris = [];
-            //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing collection
-          }
-
-        let res = await addUserListToIpfs(userList);
-        badgeMsg.bytes = 'ipfs://' + res.cid;
-      }
-      setNewCollectionMsg(badgeMsg);
+      
+        setNewCollectionMsg(badgeMsg);
     }
 
     const onRegister = async () => {
@@ -228,12 +227,7 @@ export function SubmitMsgNewCollection({
             type="primary"
             style={{ width: '90%' }}
             loading={loading}
-            onClick={async () => {
-                setLoading(true);
-                await updateIPFSUris();
-                setVisible(true);
-                setLoading(false);
-            }}
+            onClick={() => setVisible(true)}
         >
             Create Badge Collection!
         </Button>
@@ -243,6 +237,12 @@ export function SubmitMsgNewCollection({
             txCosmosMsg={newCollectionMsg}
             unregisteredUsers={unregisteredUsers}
             onRegister={onRegister}
+            beforeTx={async () => {
+              setLoading(true);
+              await updateIPFSUris();
+              setVisible(true);
+              setLoading(false);
+          }}
         />
     </div>
 }

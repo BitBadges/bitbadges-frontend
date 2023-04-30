@@ -94,6 +94,9 @@ export type ChainSpecificContextType = {
     airdropped: boolean,
     setAirdropped: Dispatch<SetStateAction<boolean>>,
 
+    resolvedName: string,
+    setResolvedName: Dispatch<SetStateAction<string>>,
+
     //These are assumed to remain constant, but included because they are chain-specific
     disconnect: () => Promise<any>,
     connect: () => Promise<any>,
@@ -166,6 +169,8 @@ const ChainContext = createContext<ChainContextType>({
     updatePortfolioInfo: async (_address: string) => { },
     airdropped: false,
     setAirdropped: () => { },
+    resolvedName: '',
+    setResolvedName: () => { },
 });
 
 type Props = {

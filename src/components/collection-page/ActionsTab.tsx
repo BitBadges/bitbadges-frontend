@@ -84,9 +84,10 @@ export function ActionsTab({
     }
 
     if (isManager && !badgeView) {
+        // EXPERIMENTAL STANDARD
         if (collection.permissions.CanUpdateBytes && collection.standard === 1) {
           actions.push({
-            title: getTitleElem("Update User List"),
+            title: getTitleElem("Update Balances"),
             description: getDescriptionElem(
                 "Update the owners of this badge."
             ),

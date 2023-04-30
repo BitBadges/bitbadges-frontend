@@ -133,6 +133,8 @@ export const CosmosContext = createContext<CosmosContextType>({
     balance: 0,
     setBalance: () => { },
     updatePortfolioInfo: async (_address: string) => { },
+    resolvedName: '',
+    setResolvedName: () => { },
 })
 
 
@@ -167,6 +169,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     const [activityHasMore, setActivityHasMore] = useState<boolean>(true);
     const [balance, setBalance] = useState<number>(0);
     const [airdropped, setAirdropped] = useState<boolean>(false);
+    const [resolvedName, setResolvedName] = useState<string>('');
 
     const selectedChainInfo: SupportedChainMetadata = {
         name: 'Cosmos',
@@ -195,6 +198,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setBalance(accountInformation.balance?.amount ? Number(accountInformation.balance.amount) : 0);
         setAirdropped(accountInformation.airdropped || false);
         setLoggedIn(cookies.blockincookie === accountInformation.cosmosAddress);
+        setResolvedName(accountInformation.resolvedName || '');
 
         if (Number(accountInformation.account_number) >= 0) {
             const activityRes = await getAccountActivity(Number(accountInformation.account_number));
@@ -391,7 +395,9 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setActivityHasMore,
         updatePortfolioInfo,
         airdropped,
-        setAirdropped
+        setAirdropped,
+        resolvedName,
+        setResolvedName
     };
 
 
