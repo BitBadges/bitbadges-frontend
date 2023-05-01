@@ -1,98 +1,114 @@
-import { Divider, Layout } from 'antd';
+import { Divider, Layout, Tabs } from 'antd';
 import { StoredBadgeCollection } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getBrowseInfo } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';
-import { Tabs } from '../components/navigation/Tabs';
 import { PRIMARY_BLUE, SECONDARY_BLUE } from '../constants';
 import { useCollectionsContext } from '../contexts/CollectionsContext';
 
 const { Content } = Layout;
 
 function BrowsePage() {
-    const collections = useCollectionsContext();
+  const collections = useCollectionsContext();
 
-    const [browseInfo, setBrowseInfo] = useState<{ [category: string]: StoredBadgeCollection[] }>();
-    const [tab, setTab] = useState('featured');
+  const [browseInfo, setBrowseInfo] = useState<{ [category: string]: StoredBadgeCollection[] }>();
+  const [tab, setTab] = useState('featured');
 
 
-    useEffect(() => {
-        async function getCollections() {
-            //TODO: Redundancies
-            const browseInfo = await getBrowseInfo();
-            if (!browseInfo) return;
+  useEffect(() => {
+    async function getCollections() {
+      //TODO: Redundancies
+      const browseInfo = await getBrowseInfo();
+      if (!browseInfo) return;
 
-            const collectionsToFetch = [];
-            for (const category of Object.keys(browseInfo)) {
-                for (const collection of browseInfo[category]) {
-                    collectionsToFetch.push(collection.collectionId);
-                }
-            }
-
-            await collections.fetchCollections(collectionsToFetch);
-
-            setBrowseInfo(browseInfo);
+      const collectionsToFetch = [];
+      for (const category of Object.keys(browseInfo)) {
+        for (const collection of browseInfo[category]) {
+          collectionsToFetch.push(collection.collectionId);
         }
-        getCollections();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+      }
 
-    return (
-        <Layout>
-            <Content
-                style={{
-                    background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
-                    textAlign: 'center',
-                    minHeight: '100vh',
-                }}
-            >
-                <div
-                    style={{
-                        marginLeft: '10vw',
-                        marginRight: '10vw',
-                        paddingLeft: '2vw',
-                        paddingRight: '2vw',
-                        paddingTop: '20px',
-                        background: PRIMARY_BLUE,
-                    }}
-                >
-                    <Tabs
-                        tab={tab}
-                        setTab={setTab}
-                        tabInfo={browseInfo ? Object.keys(browseInfo).map(category => {
-                            return {
-                                key: category,
-                                onClick: () => setTab(category),
-                                //uppercase first letter
-                                content: category.charAt(0).toUpperCase() + category.slice(1),
-                            }
-                        }) : []}
-                        theme='dark'
-                        fullWidth
-                    />
+      await collections.fetchCollections(collectionsToFetch);
 
-                    <div>
-                        <br />
-                        <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-                            {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
-                                const collection = collections.collections[portfolioCollection.collectionId]?.collection;
-                                if (!collection) return null;
+      setBrowseInfo(browseInfo);
+    }
+    getCollections();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-                                return <>
-                                    <CollectionDisplay
-                                        key={portfolioCollection.collectionId}
-                                        collection={collection}
-                                    />
-                                </>
-                            })}
-                        </div>
-                    </div>
-                </div>
+  return (
+    <Layout>
+      <Content
+        style={{
+          background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+          textAlign: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <div
+          style={{
+            marginLeft: '10vw',
+            marginRight: '10vw',
+            paddingLeft: '2vw',
+            paddingRight: '2vw',
+            paddingTop: '20px',
+            background: PRIMARY_BLUE,
+          }}
+        >
+          {/* 
+          tab={tab}
+            setTab={setTab}
+            tabInfo={browseInfo ? Object.keys(browseInfo).map(category => {
+              return {
+                key: category,
+                onClick: () => setTab(category),
+                //uppercase first letter
+                content: category.charAt(0).toUpperCase() + category.slice(1),
+              }
+            }) : []}
+            theme='dark'
+            fullWidth */}
 
-                <Divider />
-            </Content >
-        </Layout >
-    );
+          {/* antd tabs */}
+          <Tabs
+            defaultActiveKey="featured"
+            onChange={(key) => setTab(key)}
+            style={{ textAlign: 'center' }}
+            color='white'
+            size='large'
+            type='line'
+            tabBarStyle={{ color: 'white' }}
+            tabPosition='top'
+            centered
+          >
+            {browseInfo ? Object.keys(browseInfo).map(category => {
+              return <Tabs.TabPane tab={category.charAt(0).toUpperCase() + category.slice(1)} key={category} />
+            }) : []}
+          </Tabs>
+
+
+          <div>
+            <br />
+            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+              {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
+                const collection = collections.collections[portfolioCollection.collectionId]?.collection;
+                if (!collection) return null;
+
+                return <>
+                  <CollectionDisplay
+                    key={portfolioCollection.collectionId}
+                    collection={collection}
+                  />
+                </>
+              })}
+            </div>
+          </div>
+        </div>
+
+        <Divider />
+      </Content >
+    </Layout >
+  );
 }
 
 export default BrowsePage;
