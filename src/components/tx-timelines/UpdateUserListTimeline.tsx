@@ -7,37 +7,37 @@ import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 //See TxTimeline for explanations and documentation
 
 export function UpdateUserBalancesTimeline({
-    txTimelineProps
+  txTimelineProps
 }: {
-    txTimelineProps: TxTimelineProps
+  txTimelineProps: TxTimelineProps
 }) {
-    //TODO: Make sure manualSend is on
-    useEffect(() => {
-        txTimelineProps.setManualSend(true);
-        txTimelineProps.setDistributionMethod(DistributionMethod.Whitelist);
+  //TODO: Make sure manualSend is on
+  useEffect(() => {
+    txTimelineProps.setManualSend(true);
+    txTimelineProps.setDistributionMethod(DistributionMethod.Whitelist);
 
-    }, []);
+  }, []);
 
-    const simulatedCollection = txTimelineProps.simulatedCollection;
-    const newCollectionMsg = txTimelineProps.newCollectionMsg;
-    const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
-    const distributionMethod = txTimelineProps.distributionMethod;
-    const claimItems = txTimelineProps.claimItems;
-    const setClaimItems = txTimelineProps.setClaimItems;
-    const manualSend = txTimelineProps.manualSend;
-    const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = txTimelineProps.updateMetadataForBadgeIdsDirectlyFromUriIfAbsent;
+  const simulatedCollection = txTimelineProps.simulatedCollection;
+  const newCollectionMsg = txTimelineProps.newCollectionMsg;
+  const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
+  const distributionMethod = txTimelineProps.distributionMethod;
+  const claimItems = txTimelineProps.claimItems;
+  const setClaimItems = txTimelineProps.setClaimItems;
+  const manualSend = txTimelineProps.manualSend;
+  const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = txTimelineProps.updateMetadataForBadgeIdsDirectlyFromUriIfAbsent;
 
 
-    const CreateClaimsStep = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
+  const CreateClaimsStep = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
 
-    return (
-        <FormTimeline
-            items={[
-              CreateClaimsStep
-            ]}
-            onFinish={() => {
-                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
-            }}
-        />
-    );
+  return (
+    <FormTimeline
+      items={[
+        CreateClaimsStep
+      ]}
+      onFinish={() => {
+        if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+      }}
+    />
+  );
 }

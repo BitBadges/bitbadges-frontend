@@ -28,20 +28,20 @@ export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
 
 export function getChainLogo(chain: string) {
-    let chainLogo = '';
+  let chainLogo = '';
 
-    switch (chain) {
-        case SupportedChain.ETH:
-        case SupportedChain.UNKNOWN:
-            chainLogo = ETH_LOGO;
-            break;
-        case SupportedChain.COSMOS:
-            chainLogo = COSMOS_LOGO;
-            break;
-        default:
-            chainLogo = ETH_LOGO;
-            break;
-    }
+  switch (chain) {
+    case SupportedChain.ETH:
+    case SupportedChain.UNKNOWN:
+      chainLogo = ETH_LOGO;
+      break;
+    case SupportedChain.COSMOS:
+      chainLogo = COSMOS_LOGO;
+      break;
+    default:
+      chainLogo = ETH_LOGO;
+      break;
+  }
 
-    return chainLogo;
+  return chainLogo;
 }

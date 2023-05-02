@@ -14,6 +14,7 @@ export function CreateCollectionStepItem(
     managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
     simulatedCollection: BitBadgeCollection,
+    providedCustomJson: boolean
 ) {
     return {
         title: 'Submit Transaction',
@@ -30,6 +31,7 @@ export function CreateCollectionStepItem(
             disallowedTransfersWithUnregisteredUsers={disallowedTransfersWithUnregisteredUsers}
             manualSend={manualSend}
             simulatedCollection={simulatedCollection}
+            providedCustomJson={providedCustomJson}
         />
     }
 }
