@@ -92,6 +92,7 @@ export function OwnersTab({ collection, badgeId }: {
                                             discord: chain.discord,
                                             twitter: chain.twitter,
                                             telegram: chain.telegram,
+                                            readme: chain.readme
                                         }}
                                         fontColor={PRIMARY_TEXT}
                                         fontSize={16}

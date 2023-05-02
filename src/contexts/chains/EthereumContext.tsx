@@ -63,6 +63,8 @@ export const EthereumContext = createContext<EthereumContextType>({
   setDiscord: () => { },
   telegram: '',
   setTelegram: () => { },
+  readme: '',
+  setReadme: () => { },
   twitter: '',
   setTwitter: () => { },
   activity: [],
@@ -112,6 +114,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const [discord, setDiscord] = useState<string>('');
   const [github, setGithub] = useState<string>('');
   const [telegram, setTelegram] = useState<string>('');
+  const [readme, setReadme] = useState<string>('');
   const [resolvedName, setResolvedName] = useState<string>('');
   const [activity, setActivity] = useState<TransferActivityItem[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementActivityItem[]>([]);
@@ -166,6 +169,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setName(accountInformation.name || '');
     setAvatar(accountInformation.avatar || '');
     setTelegram(accountInformation.telegram || '');
+    setReadme(accountInformation.readme || '');
     setDiscord(accountInformation.discord || '');
     setGithub(accountInformation.github || '');
     setTwitter(accountInformation.twitter || '');
@@ -320,6 +324,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setAvatar,
     telegram,
     setTelegram,
+    readme, 
+    setReadme,
     discord,
     setDiscord,
     github,

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
 import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod, DefaultPlaceholderMetadata, GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, } from 'bitbadgesjs-utils';
 import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
@@ -12,7 +13,7 @@ import { MetadataUriSelect } from './MetadataUriSelect';
 import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
-import 'react-markdown-editor-lite/lib/index.css';
+
 import { getIdRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
 import { IdRangesInput } from '../../balances/IdRangesInput';

@@ -112,6 +112,8 @@ export const CosmosContext = createContext<CosmosContextType>({
     setDiscord: () => { },
     telegram: '',
     setTelegram: () => { },
+    readme: '',
+    setReadme: () => { },
     twitter: '',
     setTwitter: () => { },
     activity: [],
@@ -158,6 +160,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     const [discord, setDiscord] = useState<string>('');
     const [github, setGithub] = useState<string>('');
     const [telegram, setTelegram] = useState<string>('');
+    const [readme, setReadme] = useState<string>('');
     const [activity, setActivity] = useState<TransferActivityItem[]>([]);
     const [announcements, setAnnouncements] = useState<AnnouncementActivityItem[]>([]);
     const [seenActivity, setSeenActivity] = useState(0);
@@ -191,6 +194,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setName(accountInformation.name || '');
         setAvatar(accountInformation.avatar || '');
         setTelegram(accountInformation.telegram || '');
+        setReadme(accountInformation.readme || '');
         setDiscord(accountInformation.discord || '');
         setGithub(accountInformation.github || '');
         setTwitter(accountInformation.twitter || '');
@@ -371,6 +375,8 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         setAvatar,
         telegram,
         setTelegram,
+        readme,
+        setReadme,
         discord,
         setDiscord,
         github,

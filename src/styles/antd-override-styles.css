@@ -180,8 +180,15 @@
 .custom-html-style h5,
 .custom-html-style h6,
 .custom-html-style p,
-.custom-html-style blockquote {
+.custom-html-style blockquote
+.custom-html-style code {
     color: white !important;
+}
+.custom-html-style code, 
+.custom-html-style pre,
+.custom-html-style table th,
+.custom-html-style blockquote {
+  background: #192c3e;
 }
 
 .custom-html-style {

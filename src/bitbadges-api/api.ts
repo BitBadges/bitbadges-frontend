@@ -353,7 +353,8 @@ export const updateAccountSettings = async (settingsToUpdate: {
   discord?: string,
   telegram?: string,
   github?: string,
-  name?: string
+  name?: string,
+  readme?: string
 }) => {
   const res: { success: string } = await axios.post(BACKEND_URL + '/api/v0/user/updateAccount', settingsToUpdate).then(res => res.data);
   return res;

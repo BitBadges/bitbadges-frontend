@@ -39,6 +39,7 @@ export function BalanceOverview({ collection, balance, setTab, refreshUserBalanc
         discord: chain.discord,
         twitter: chain.twitter,
         telegram: chain.telegram,
+        readme: chain.readme,
     } : {
         name: '',
         avatar: '',
@@ -61,6 +62,7 @@ export function BalanceOverview({ collection, balance, setTab, refreshUserBalanc
                 discord: chain.discord,
                 twitter: chain.twitter,
                 telegram: chain.telegram,
+                readme: chain.readme
             });
         }
     }, [chain]);

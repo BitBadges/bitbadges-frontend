@@ -52,6 +52,9 @@ export type ChainSpecificContextType = {
     telegram: string,
     setTelegram: Dispatch<SetStateAction<string>>,
 
+    readme: string,
+    setReadme: Dispatch<SetStateAction<string>>,
+
     twitter: string,
     setTwitter: Dispatch<SetStateAction<string>>,
 
@@ -148,6 +151,8 @@ const ChainContext = createContext<ChainContextType>({
     setDiscord: () => { },
     telegram: '',
     setTelegram: () => { },
+    readme: '',
+    setReadme: () => { },
     twitter: '',
     setTwitter: () => { },
     activity: [],

@@ -1,27 +1,27 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Select, Spin } from 'antd';
 import { BitBadgeCollection, GetPortfolioResponse, IdRange, isAddressValid } from 'bitbadgesjs-utils';
+import HtmlToReact from 'html-to-react';
+import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getPortfolio, updatePortfolioCollections, updateUserActivity, updateUserReviews } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
+import { ReputationTab } from '../../components/collection-page/ReputationTab';
+import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
 import { useAccountsContext } from '../../contexts/AccountsContext';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { ReputationTab } from '../../components/collection-page/ReputationTab';
+
+const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
 
-const tabInfo = [
-  { key: 'collected', content: 'Collected', disabled: false },
-  // { key: 'managing', content: 'Managing', disabled: false },
-  { key: 'activity', content: 'Activity', disabled: false },
-  { key: 'reputation', content: 'Reviews' }
-];
+
 
 function PortfolioPage() {
   const router = useRouter();
@@ -31,6 +31,7 @@ function PortfolioPage() {
 
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   // const [acctNumber, setAcctNumber] = useState<number>(-1);
+  const [readme, setReadme] = useState<string>('');
   const [portfolioInfo, setPortfolioInfo] = useState<GetPortfolioResponse>();
   const [tab, setTab] = useState('collected');
   const [cardView, setCardView] = useState(true);
@@ -47,6 +48,20 @@ function PortfolioPage() {
   const [collectionsArr, setCollectionsArr] = useState<BitBadgeCollection[]>([]);
 
   const accountInfo = accounts.accounts[cosmosAddress];
+
+  const tabInfo = [];
+  if (readme) {
+    tabInfo.push({ key: 'overview', content: 'Overview', disabled: false });
+  }
+
+  tabInfo.push(
+    { key: 'collected', content: 'Collected', disabled: false },
+    // { key: 'managing', content: 'Managing', disabled: false },
+    { key: 'activity', content: 'Activity', disabled: false },
+    { key: 'reputation', content: 'Reviews' }
+  )
+
+
 
   useEffect(() => {
     async function getPortfolioInfo() {
@@ -65,6 +80,7 @@ function PortfolioPage() {
       let accountNum = fetchedInfo[0].accountNumber
       let cosmosAddr = fetchedInfo[0].cosmosAddress;
       setCosmosAddress(fetchedInfo[0].cosmosAddress);
+      setReadme(fetchedInfo[0].readme ? fetchedInfo[0].readme : '');
       // setAcctNumber(fetchedInfo[0].accountNumber);
 
       if (accountNum) {
@@ -143,9 +159,18 @@ function PortfolioPage() {
   }, [numBadgesDisplayed, collections, portfolioInfo]);
 
 
+  const [reactElement, setReactElement] = useState<ReactElement | null>(null);
+
+  useEffect(() => {
+    const HtmlToReactParser = HtmlToReact.Parser();
+    const reactElement = HtmlToReactParser.parse(mdParser.render(readme ? readme : ''));
+    setReactElement(reactElement);
+  }, [readme]);
+
   if (!portfolioInfo) {
     return <></>
   }
+
 
 
   return (
@@ -171,6 +196,21 @@ function PortfolioPage() {
           {accountInfo && <AccountButtonDisplay accountInfo={accountInfo} />}
 
           <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+          {tab === 'overview' && (<>
+            <br />
+            <InformationDisplayCard
+              span={24}
+              title="About"
+            >
+              <div style={{ overflow: 'auto' }} >
+                <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
+                  {/* <Markdown> */}
+                  {reactElement}
+                  {/* </Markdown> */}
+                </div>
+              </div>
+            </InformationDisplayCard>
+          </>)}
           {tab === 'collected' && (<>
             <br />
             <div style={{

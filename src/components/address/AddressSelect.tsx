@@ -102,6 +102,7 @@ export function AddressSelect({
                                 twitter: acctInformation[0].twitter,
                                 discord: acctInformation[0].discord,
                                 telegram: acctInformation[0].telegram,
+                                readme: acctInformation[0].readme,
                             });
                         } catch (err) {
 
