@@ -21,11 +21,9 @@ export const tools = [{
 }]
 
 export function ToolIcon({
-  name,
-  setDistributionMethod
+  name
 }: {
-  name: string,
-  setDistributionMethod?: (newDistributionMethod: DistributionMethod) => void
+  name: string
 }) {
   const tool = tools.find(tool => tool.name === name);
 
@@ -36,9 +34,6 @@ export function ToolIcon({
   return (
     <Card hoverable style={{ margin: 10, width: 240, background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
       onClick={() => {
-        if (setDistributionMethod && tool.distributionMethod) {
-          setDistributionMethod(tool.distributionMethod)
-        }
         window.open(tool.url)
       }}
     >

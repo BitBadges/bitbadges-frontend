@@ -28,7 +28,7 @@ function CollectionPage({
 }
   : {
     collectionPreview: BitBadgeCollection
-    // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+    // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
   }
 ) {
   const router = useRouter()
@@ -156,7 +156,7 @@ function CollectionPage({
           {collection && <>
             <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />
             {/* Overview and Tabs */}
-            <CollectionHeader metadata={collectionMetadata} />
+            {collectionMetadata && <CollectionHeader metadata={collectionMetadata} />}
             <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
             <br />
 
@@ -165,7 +165,6 @@ function CollectionPage({
               <OverviewTab
                 setTab={setTab}
                 collection={collection}
-                refreshUserBalance={refreshBadgeBalance}
                 userBalance={userBalance}
                 isPreview={isPreview}
               />

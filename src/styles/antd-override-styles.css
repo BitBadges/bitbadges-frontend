@@ -188,7 +188,7 @@
 .custom-html-style pre,
 .custom-html-style table th,
 .custom-html-style blockquote {
-  background: #192c3e;
+  background: #192c3e  !important;
 }
 
 .custom-html-style {

@@ -38,7 +38,7 @@ export function CreateClaims({
   setClaimItems: (claimItems: ClaimItemWithTrees[]) => void;
   balancesToDistribute?: Balance[];
   manualSend: boolean;
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
 }) {
   const accounts = useAccountsContext();
 

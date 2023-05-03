@@ -53,7 +53,7 @@ export function TransferSelect({
   showIncrementSelect?: boolean;
   manualSend?: boolean;
   plusButton?: boolean;
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void;
+  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
 }) {
   const chain = useChainContext();
 

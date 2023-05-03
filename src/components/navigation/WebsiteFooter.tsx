@@ -7,7 +7,6 @@ export function WalletFooter() {
       <Content
         style={{
           backgroundColor: PRIMARY_BLUE,
-          // borderTop: '1px solid black',
           display: 'flex',
           alignItems: 'center',
           padding: '1rem 5rem',
@@ -32,7 +31,6 @@ export function WalletFooter() {
               </Col>
               <Col md={6} sm={24} xs={24}>
                 <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
-                  {/* <h4 style={{ color: PRIMARY_TEXT }}>app.footer.links</h4> */}
                   <h4 style={{ color: PRIMARY_TEXT }}>Socials</h4>
                   <div>
                     <a target="_blank " href="http://ant.design">
@@ -42,8 +40,6 @@ export function WalletFooter() {
 
                 </div>
                 <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
-                  {/* <h4 style={{ color: PRIMARY_TEXT }}>app.footer.community</h4> */}
-
                   <div>
                     <a target="_blank" rel="noreferrer" href="">
                       Twitter
@@ -88,50 +84,6 @@ export function WalletFooter() {
 
           </div>
         </footer>
-        {/* <Row justify="space-around" style={{ width: '100%' }}>
-                <Col>
-                    <Button
-                        style={{
-                            minWidth: '20vw',
-                            fontWeight: 'bolder',
-                            margin: '1rem',
-                        }}
-                        type="primary"
-                        href="https://bitbadges.github.io/"
-                        target="_blank"
-                    >
-                        Docs
-                    </Button>
-                </Col>
-                <Col>
-                    <Button
-                        style={{
-                            minWidth: '20vw',
-                            fontWeight: 'bolder',
-                            margin: '1rem',
-                        }}
-                        type="primary"
-                        href="https://decentralizeduniversity.org/"
-                        target="_blank"
-                    >
-                        Decentralized University
-                    </Button>
-                </Col>
-                <Col>
-                    <Button
-                        style={{
-                            minWidth: '20vw',
-                            fontWeight: 'bolder',
-                            margin: '1rem',
-                        }}
-                        type="primary"
-                        href="https://github.com/BitBadges"
-                        target={'_blank'}
-                    >
-                        GitHub
-                    </Button>
-                </Col>
-            </Row> */}
       </Content>
     </>
   );

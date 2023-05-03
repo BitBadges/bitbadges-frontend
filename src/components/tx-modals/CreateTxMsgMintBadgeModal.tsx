@@ -1,7 +1,7 @@
 import { MessageMsgMintBadge, createTxMsgMintBadge } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { addMerkleTreeToIpfs, addToIpfs } from '../../bitbadges-api/api';
+import { addClaimToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { BadgeMetadataMap, BadgeUri, DistributionMethod, IdRange, MetadataAddMethod } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../contexts/CollectionsContext';
 import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
@@ -113,7 +113,7 @@ export function CreateTxMsgMintBadgeModal(
         }
       }
 
-      let res = await addToIpfs(txState.collectionMetadata, prunedMetadata);
+      let res = await addMetadataToIpfs(txState.collectionMetadata, prunedMetadata);
 
       keys = Object.keys(prunedMetadata);
       values = Object.values(prunedMetadata);
@@ -153,7 +153,7 @@ export function CreateTxMsgMintBadgeModal(
         const promises = [];
 
         for (let i = 0; i < txState.claimItems.length; i++) {
-          promises.push(addMerkleTreeToIpfs(txState.claimItems[i].name || '', txState.claimItems[i].description || '', [], txState.claimItems[i].addresses, txState.claimItems[i].codes, txState.claimItems[i].hashedCodes, txState.claimItems[i].password));
+          promises.push(addClaimToIpfs(txState.claimItems[i].name || '', txState.claimItems[i].description || '', [], txState.claimItems[i].addresses, txState.claimItems[i].codes, txState.claimItems[i].hashedCodes, txState.claimItems[i].password));
         }
 
         const merkleTreeResponses = await Promise.all(promises);

@@ -2,7 +2,7 @@ import { Button } from 'antd';
 import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers, getClaimsFromClaimItems, getTransfersFromClaimItems, updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { addBalancesToIpfs, addMerkleTreeToIpfs, addToIpfs } from '../../../bitbadges-api/api';
+import { addBalancesToIpfs, addClaimToIpfs, addMetadataToIpfs } from '../../../bitbadges-api/api';
 import { handleTransfers } from '../../../bitbadges-api/transfers';
 import { useAccountsContext } from '../../../contexts/AccountsContext';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
@@ -98,7 +98,7 @@ export function SubmitMsgNewCollection({
     let badgeMsg = newCollectionMsg;
     //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
     if (addMethod == MetadataAddMethod.Manual) {
-      let res = await addToIpfs(collectionMetadata, individualBadgeMetadata);
+      let res = await addMetadataToIpfs(collectionMetadata, individualBadgeMetadata);
 
       badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
       badgeMsg.badgeUris = [];
@@ -119,13 +119,13 @@ export function SubmitMsgNewCollection({
     if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.Whitelist) {
       if (badgeMsg.claims?.length > 0) {
         for (let i = 0; i < claimItems.length; i++) {
-          let merkleTreeRes = await addMerkleTreeToIpfs(claimItems[i].name || '', claimItems[i].description || '', [], claimItems[i].addresses, claimItems[i].codes, claimItems[i].hashedCodes, claimItems[i].password);
+          let merkleTreeRes = await addClaimToIpfs(claimItems[i].name || '', claimItems[i].description || '', [], claimItems[i].addresses, claimItems[i].codes, claimItems[i].hashedCodes, claimItems[i].password);
 
           badgeMsg.claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
         }
       }
     }
-    
+
     if (badgeMsg.standard === 1) {
       //TODO: if distribution method is off-chain balances
       const transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);

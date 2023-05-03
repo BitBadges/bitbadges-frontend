@@ -110,10 +110,12 @@ export function BadgePage({ collectionPreview }
         >
           <BadgeButtonDisplay website={metadata?.externalUrl} />
 
-          <CollectionHeader
-            metadata={metadata}
-            collection={collection}
-          />
+          {metadata &&
+            <CollectionHeader
+              metadata={metadata}
+              collection={collection}
+            />
+          }
 
           <Tabs
             tab={tab}

@@ -15,25 +15,21 @@ import { TableRow } from "../display/TableRow";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
 
-
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 export function OverviewTab({
   collection,
-  refreshUserBalance,
   userBalance,
   setTab,
   isPreview
 }: {
   collection: BitBadgeCollection | undefined;
-  refreshUserBalance: () => Promise<void>;
   userBalance: UserBalance | undefined;
   setTab: (tab: string) => void;
   isPreview?: boolean;
 }) {
   if (!collection) return <></>;
   const collectionMetadata = collection?.collectionMetadata;
-
 
   const isTransferable = !collection.disallowedTransfers?.length;
   const isNonTransferable = collection.disallowedTransfers?.length === 1
@@ -218,7 +214,6 @@ export function OverviewTab({
                   onClick: () => {
                     setTab('claims')
                   },
-                  // count: hasViewedClaimTab ? undefined : activeClaimIds.length,
                   tooltipMessage: `Claim this badge!`,
                   disabled: isPreview
                 }]} />
@@ -233,9 +228,6 @@ export function OverviewTab({
             <div style={{ display: 'flex' }}>
               <BalanceOverview
                 collection={collection}
-                refreshUserBalance={refreshUserBalance}
-                balance={userBalance}
-                setTab={setTab}
                 isPreview={isPreview}
               />
             </div>

@@ -67,7 +67,7 @@ export interface TxTimelineProps {
   setManagerApprovedTransfersWithUnregisteredUsers: (mapping: TransferMappingWithUnregisteredUsers[]) => void,
   disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
   setDisallowedTransfersWithUnregisteredUsers: (transfers: TransferMappingWithUnregisteredUsers[]) => void,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent: (badgeIds: number[]) => void,
+  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent: (badgeIds: number[]) => Promise<void>,
   transferabilityToSelectType: TransferMappingSelectType,
   setTransferabilityToSelectType: (type: TransferMappingSelectType) => void,
   transferabilityFromSelectType: TransferMappingSelectType,

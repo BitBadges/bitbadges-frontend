@@ -21,7 +21,7 @@ export function ChooseBadgeTypeStepItem(
           },
           {
             title: 'Off-Chain Balances',
-            message: 'Badges are stored on the blockchain, but all balances (i.e. the owners of each badge) are stored off-chain to make it less expensive. This option should only in two cases: a) it is okay for the manager (you) to have complete control over the badge balances and can update them at all times, or b) the badge is non-transferable (soulbound) and balances are to be permanent forever.',
+            message: 'Badges are stored on the blockchain, but all balances are stored off-chain to make it less expensive. Because balances are off-chain, they must either a) be permanent and frozen forever or b) only updatable by the manager of the collection.',
             isSelected: newCollectionMsg.standard === 1,
           },
         ]}

@@ -13,6 +13,7 @@ export const BACKEND_URL = `https://${HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
 export const DEV_MODE = false;
+export const INFINITE_LOOP_MODE = false;
 
 export const PRIMARY_BLUE = '#001529';
 export const SECONDARY_BLUE = '#3e83f8';
@@ -26,6 +27,13 @@ export const LINK_COLOR = '#0000EE';
 
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
+
+export const BLANK_USER_INFO = {
+  accountNumber: -1,
+  address: '',
+  cosmosAddress: '',
+  chain: SupportedChain.UNKNOWN,
+}
 
 export function getChainLogo(chain: string) {
   let chainLogo = '';

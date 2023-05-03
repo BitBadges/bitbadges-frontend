@@ -6,7 +6,7 @@ import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { getPortfolio, updatePortfolioCollections, updateUserActivity, updateUserReviews } from '../../bitbadges-api/api';
+import { getPortfolio, updatePortfolioCollected, updateUserActivity, updateUserReviews } from '../../bitbadges-api/api';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
@@ -81,6 +81,9 @@ function PortfolioPage() {
       let cosmosAddr = fetchedInfo[0].cosmosAddress;
       setCosmosAddress(fetchedInfo[0].cosmosAddress);
       setReadme(fetchedInfo[0].readme ? fetchedInfo[0].readme : '');
+      if (fetchedInfo[0].readme) {
+        setTab('overview');
+      }
       // setAcctNumber(fetchedInfo[0].accountNumber);
 
       if (accountNum) {
@@ -295,7 +298,7 @@ function PortfolioPage() {
 
                   if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
                     //if over threshold, fetch more
-                    const newRes = await updatePortfolioCollections(cosmosAddress, collectedBookmark);
+                    const newRes = await updatePortfolioCollected(cosmosAddress, collectedBookmark);
                     setCollectedBookmark(newRes.pagination.collected.bookmark);
                     setCollectedHasMore(newRes.pagination.collected.hasMore);
 

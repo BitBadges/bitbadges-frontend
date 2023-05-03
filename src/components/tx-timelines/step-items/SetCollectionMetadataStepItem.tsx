@@ -18,7 +18,7 @@ export function SetCollectionMetadataStepItem(
   setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void,
   simulatedCollection: BitBadgeCollection,
   existingCollection?: BitBadgeCollection,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => void,
+  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>,
   hideCollectionSelect?: boolean,
   hideBadgeSelect?: boolean,
 ) {
@@ -60,10 +60,12 @@ export function SetCollectionMetadataStepItem(
         }}
       />
       <Divider />
-      <Typography.Text strong style={{ fontSize: 20, color: PRIMARY_TEXT }}>Useful Tools</Typography.Text>
-      <div style={{ display: 'flex' }}>
-        <ToolIcon name="Sketch.io" />
-      </div>
+      {addMethod === MetadataAddMethod.Manual && <>
+        <Typography.Text strong style={{ fontSize: 20, color: PRIMARY_TEXT }}>Useful Tools</Typography.Text>
+        <div style={{ display: 'flex' }}>
+          <ToolIcon name="Sketch.io" />
+        </div>
+      </>}
     </div>,
     disabled: (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
       || (addMethod === MetadataAddMethod.UploadUrl && ((!hideCollectionSelect && !newCollectionMsg.collectionUri) || (!hideBadgeSelect && !newCollectionMsg.badgeUris.length)))

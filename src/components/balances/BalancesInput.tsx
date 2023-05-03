@@ -2,38 +2,38 @@ import { Balance } from 'bitbadgesjs-utils';
 import { NumberInput } from '../display/NumberInput';
 
 export function BalancesInput({
-    balances,
-    setBalances,
-    darkMode,
-    title
+  balances,
+  setBalances,
+  darkMode,
+  title
 }: {
-    balances: Balance[],
-    setBalances: (balances: Balance[]) => void,
-    darkMode?: boolean
-    title?: string
+  balances: Balance[],
+  setBalances: (balances: Balance[]) => void,
+  darkMode?: boolean
+  title?: string
 }) {
-    return <NumberInput
-        min={1}
-        value={balances[0]?.balance}
-        setValue={(value: number) => {
-            if (!value || value <= 0) {
-                setBalances([
-                    {
-                        badgeIds: balances[0]?.badgeIds || [],
-                        balance: 0,
-                    }
-                ]);
-            }
-            else {
-                setBalances([
-                    {
-                        badgeIds: balances[0]?.badgeIds || [],
-                        balance: value,
-                    }
-                ]);
-            }
-        }}
-        darkMode={darkMode}
-        title={title ? title : "Amount to Transfer"}
-    />
+  return <NumberInput
+    min={1}
+    value={balances[0]?.balance}
+    setValue={(value: number) => {
+      if (!value || value <= 0) {
+        setBalances([
+          {
+            badgeIds: balances[0]?.badgeIds || [],
+            balance: 0,
+          }
+        ]);
+      }
+      else {
+        setBalances([
+          {
+            badgeIds: balances[0]?.badgeIds || [],
+            balance: value,
+          }
+        ]);
+      }
+    }}
+    darkMode={darkMode}
+    title={title ? title : "Amount to Transfer"}
+  />
 }

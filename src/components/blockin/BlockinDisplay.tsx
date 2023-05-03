@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Avatar, InputNumber, Tooltip, Typography, notification } from "antd";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
@@ -57,6 +56,12 @@ export const BlockinDisplay = ({
     }
   }, [address, connected, hours]);
 
+  useEffect(() => {
+    if (connected && address) {
+      updateChallengeParams();
+    }
+  }, []); //eslint-disable-line react-hooks/exhaustive-deps
+
   const updateChallengeParams = async () => {
     const challengeParams = await getChallengeParams(chain, address, hours);
     setChallengeParams(challengeParams);
@@ -94,7 +99,6 @@ export const BlockinDisplay = ({
       return { success: false, message: `${signChallengeResponse.message}` };
     }
 
-    console.log(challenge);
     const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
       signChallengeResponse.originalBytes,
       signChallengeResponse.signatureBytes,
