@@ -60,5 +60,4 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
     </StatusContext.Provider>;
 }
 
-
 export const useStatusContext = () => useContext(StatusContext);

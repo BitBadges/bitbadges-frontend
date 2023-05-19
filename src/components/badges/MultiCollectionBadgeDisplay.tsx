@@ -90,7 +90,7 @@ export function MultiCollectionBadgeDisplay({
     const badgeIdsToDisplay: {
       collection: BitBadgeCollection
       badgeIds: number[]
-    }[] = getBadgeIdsToDisplayForPageNumber(allBadgeIds, currPageStart, pageSize);
+    }[] = getBadgeIdsToDisplayForPageNumber(allBadgeIds, currPage, pageSize);
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
     for (const badgeIdObj of badgeIdsToDisplay) {

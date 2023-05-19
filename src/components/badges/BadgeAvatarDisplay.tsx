@@ -61,7 +61,7 @@ export function BadgeAvatarDisplay({
         badgeIds: badgeIds,
         collection: collection
       }
-    ], currPageStart, pageSize);
+    ], currPage, pageSize);
 
     const badgeIdsToDisplay: number[] = [];
     for (const badgeIdObj of badgeIdsToDisplayResponse) {

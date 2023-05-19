@@ -12,7 +12,7 @@ import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi
 import { useWeb3Modal } from "@web3modal/react";
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
-import { CHAIN_DETAILS } from '../../constants';
+import { BLANK_USER_INFO, CHAIN_DETAILS } from '../../constants';
 import { ChainSpecificContextType } from '../ChainContext';
 
 
@@ -24,14 +24,14 @@ export type EthereumContextType = ChainSpecificContextType & {
 }
 
 export const EthereumContext = createContext<EthereumContextType>({
+  userInfo: BLANK_USER_INFO,
+  setUserInfo: () => { },
   web3Modal: undefined,
   setWeb3Modal: () => { },
   connect: async () => { },
   disconnect: async () => { },
   chainId: 'Mainnet',
   setChainId: () => { },
-  address: '',
-  setAddress: () => { },
   signChallenge: async () => { return {} },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
@@ -42,15 +42,11 @@ export const EthereumContext = createContext<EthereumContextType>({
   setConnected: () => { },
   signer: undefined,
   setSigner: () => { },
-  cosmosAddress: '',
-  setCosmosAddress: () => { },
   sequence: -1,
   incrementSequence: () => { },
   setSequence: () => { },
   publicKey: '',
   setPublicKey: () => { },
-  accountNumber: -1,
-  setAccountNumber: () => { },
   isRegistered: false,
   setIsRegistered: () => { },
   name: '',
@@ -300,15 +296,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     displayedResources,
     signChallenge,
     signTxn,
-    address,
-    setAddress,
+    
     web3Modal,
     setWeb3Modal,
     signer,
     setSigner,
     getPublicKey,
-    cosmosAddress,
-    setCosmosAddress,
+    
     sequence,
     setSequence,
     publicKey,
@@ -324,7 +318,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setAvatar,
     telegram,
     setTelegram,
-    readme, 
+    readme,
     setReadme,
     discord,
     setDiscord,

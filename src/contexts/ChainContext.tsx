@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AnnouncementActivityItem, SupportedChain, TransferActivityItem } from 'bitbadgesjs-utils';
+import { AnnouncementActivityItem, BitBadgesUserInfo, SupportedChain, TransferActivityItem } from 'bitbadgesjs-utils';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useEthereumContext } from './chains/EthereumContext';
 import { useCosmosContext } from './chains/CosmosContext';
+import { BLANK_USER_INFO } from '../constants';
 
 export type SignChallengeResponse = {
   originalBytes?: Uint8Array;
@@ -12,12 +13,13 @@ export type SignChallengeResponse = {
 }
 
 export type ChainContextType = ChainSpecificContextType & {
-  //Global
-  chain: SupportedChain, //Should be consistent with the ChainSelect Props for the UI button
-  setChain: Dispatch<SetStateAction<SupportedChain>>,
+
 }
 
 export type ChainSpecificContextType = {
+  userInfo: BitBadgesUserInfo,
+  setUserInfo: Dispatch<SetStateAction<BitBadgesUserInfo>>,
+
   balance: number,
   setBalance: Dispatch<SetStateAction<number>>,
 
@@ -31,42 +33,7 @@ export type ChainSpecificContextType = {
   chainId: string,
   setChainId: Dispatch<SetStateAction<string>>,
 
-  address: string,
-  setAddress: Dispatch<SetStateAction<string>>,
-
-  cosmosAddress: string,
-  setCosmosAddress: Dispatch<SetStateAction<string>>,
-
-  name: string,
-  setName: Dispatch<SetStateAction<string>>,
-
-  avatar: string,
-  setAvatar: Dispatch<SetStateAction<string>>,
-
-  github: string,
-  setGithub: Dispatch<SetStateAction<string>>,
-
-  discord: string,
-  setDiscord: Dispatch<SetStateAction<string>>,
-
-  telegram: string,
-  setTelegram: Dispatch<SetStateAction<string>>,
-
-  readme: string,
-  setReadme: Dispatch<SetStateAction<string>>,
-
-  twitter: string,
-  setTwitter: Dispatch<SetStateAction<string>>,
-
-  sequence: number,
   incrementSequence: () => void,
-  setSequence: Dispatch<SetStateAction<number>>,
-
-  publicKey: string,
-  setPublicKey: Dispatch<SetStateAction<string>>,
-
-  accountNumber: number,
-  setAccountNumber: Dispatch<SetStateAction<number>>,
 
   isRegistered: boolean,
   setIsRegistered: Dispatch<SetStateAction<boolean>>,
@@ -97,9 +64,6 @@ export type ChainSpecificContextType = {
   airdropped: boolean,
   setAirdropped: Dispatch<SetStateAction<boolean>>,
 
-  resolvedName: string,
-  setResolvedName: Dispatch<SetStateAction<string>>,
-
   //These are assumed to remain constant, but included because they are chain-specific
   disconnect: () => Promise<any>,
   connect: () => Promise<any>,
@@ -120,41 +84,17 @@ const ChainContext = createContext<ChainContextType>({
   disconnect: async () => { },
   chainId: '1',
   setChainId: async () => { },
-  address: '',
-  setAddress: () => { },
+  userInfo: BLANK_USER_INFO,
+  setUserInfo: () => { },
   signChallenge: async () => { return {} },
   signTxn: async () => { },
   getPublicKey: async () => { return '' },
-  chain: SupportedChain.UNKNOWN,
-  setChain: () => { },
   ownedAssetIds: [],
   displayedResources: [],
   selectedChainInfo: {},
-  cosmosAddress: '',
-  setCosmosAddress: () => { },
-  sequence: -1,
   incrementSequence: () => { },
-  setSequence: () => { },
-  publicKey: '',
-  setPublicKey: () => { },
-  accountNumber: -1,
-  setAccountNumber: () => { },
   isRegistered: false,
   setIsRegistered: () => { },
-  name: '',
-  setName: () => { },
-  avatar: '',
-  setAvatar: () => { },
-  github: '',
-  setGithub: () => { },
-  discord: '',
-  setDiscord: () => { },
-  telegram: '',
-  setTelegram: () => { },
-  readme: '',
-  setReadme: () => { },
-  twitter: '',
-  setTwitter: () => { },
   activity: [],
   setActivity: () => { },
   announcements: [],
@@ -174,8 +114,6 @@ const ChainContext = createContext<ChainContextType>({
   updatePortfolioInfo: async (_address: string) => { },
   airdropped: false,
   setAirdropped: () => { },
-  resolvedName: '',
-  setResolvedName: () => { },
 });
 
 type Props = {
@@ -216,9 +154,6 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const chainContext: ChainContextType = {
-    chain,
-    setChain,
-
     ...currentChainContext
   };
 

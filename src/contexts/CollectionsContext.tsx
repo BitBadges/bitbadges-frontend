@@ -49,7 +49,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       if (collectionsToFetch.length > 0) {
         const res = await getCollections(collectionsToFetch, fetchAllMetadata);
 
-
         const collectionMap = { ...collections };
         for (let i = 0; i < res.collections.length; i++) {
           const collection = res.collections[i];
