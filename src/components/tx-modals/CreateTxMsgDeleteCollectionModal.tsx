@@ -1,62 +1,60 @@
 import { message } from 'antd';
-import { BitBadgeCollection } from 'bitbadgesjs-utils';
-import { MessageMsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-transactions';
+import { MsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { useChainContext } from '../../contexts/ChainContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { TxModal } from './TxModal';
 
 
-export function CreateTxMsgDeleteCollectionModal({ collection, visible, setVisible, children }
-    : {
-        collection: BitBadgeCollection,
-        visible: boolean
-        setVisible: (visible: boolean) => void,
-        children?: React.ReactNode,
-    }) {
-    const chain = useChainContext();
-    const router = useRouter();
+export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVisible, children }
+  : {
+    collectionId: bigint,
+    visible: boolean
+    setVisible: (visible: boolean) => void,
+    children?: React.ReactNode,
+  }) {
+  const chain = useChainContext();
+  const router = useRouter();
 
-    const txCosmosMsg: MessageMsgDeleteCollection = {
-        creator: chain.cosmosAddress,
-        collectionId: collection.collectionId,
-    };
+  const txCosmosMsg: MsgDeleteCollection<bigint> = {
+    creator: chain.cosmosAddress,
+    collectionId: collectionId,
+  };
 
-    const items = [
-        {
-            title: 'Delete Confirmation',
-            description: <>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+  const items = [
+    {
+      title: 'Delete Confirmation',
+      description: <>
+        <div className='flex-center flex-column'>
+          <div>
+            <b style={{ marginRight: 10, fontSize: 20 }}>IMPORTANT: Once you delete this collection, it will be gone forever.</b>
+          </div>
+          <br />
+          <div>
+            <p>If you are sure you want to delete this collection, please continue.</p>
+          </div>
+          <br />
+        </div>
+      </>,
+    }
+  ]
 
-                    <div>
-                        <b style={{ marginRight: 10, fontSize: 20 }}>IMPORTANT: Once you delete this collection, it will be gone forever.</b>
-                    </div>
-                    <br />
-                    <div>
-                        <p>If you are sure you want to delete this collection, please continue.</p>
-                    </div>
-                    <br />
-                </div>
-            </>,
-        }
-    ]
-
-    return (
-        <TxModal
-            msgSteps={items}
-            visible={visible}
-            setVisible={setVisible}
-            txName="Delete Collection"
-            txCosmosMsg={txCosmosMsg}
-            createTxFunction={createTxMsgDeleteCollection}
-            onSuccessfulTx={async () => {
-                //Force refresh page
-                message.success('Collection deleted successfully! Redirecting to home page...');
-                router.push('/');
-            }}
-            requireRegistration
-        >
-            {children}
-        </TxModal>
-    );
+  return (
+    <TxModal
+      msgSteps={items}
+      visible={visible}
+      setVisible={setVisible}
+      txName="Delete Collection"
+      txCosmosMsg={txCosmosMsg}
+      createTxFunction={createTxMsgDeleteCollection}
+      onSuccessfulTx={async () => {
+        //Force refresh page
+        message.success('Collection deleted successfully! Redirecting to home page...');
+        router.push('/');
+      }}
+      requireRegistration
+    >
+      {children}
+    </TxModal>
+  );
 }

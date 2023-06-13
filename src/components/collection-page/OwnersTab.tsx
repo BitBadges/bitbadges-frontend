@@ -1,31 +1,42 @@
-import { Empty, Pagination, Spin } from 'antd';
-import { BitBadgeCollection, getSupplyByBadgeId } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
-import { getBadgeOwners } from '../../bitbadges-api/api';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { AddressDisplay } from '../address/AddressDisplay';
-import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { Empty, Spin } from 'antd';
+import { BalanceInfo, Numberify, PaginationInfo, getBalanceForId } from 'bitbadgesjs-utils';
+import { useEffect, useRef, useState } from 'react';
+import { getOwnersForBadge } from '../../bitbadges-api/api';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getPageDetails } from '../../utils/pagination';
-import { useChainContext } from '../../contexts/ChainContext';
+import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { Pagination } from '../common/Pagination';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
-export function OwnersTab({ collection, badgeId }: {
-  collection: BitBadgeCollection | undefined;
-  badgeId: number
+export function OwnersTab({ collectionId, badgeId }: {
+  collectionId: bigint;
+  badgeId: bigint
 }) {
   const accounts = useAccountsContext();
   const chain = useChainContext();
-  const isPreview = collection?.collectionId === 0;
+  const accountsRef = useRef(accounts);
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+  const isPreview = collection?.collectionId === MSG_PREVIEW_ID;
 
-  const [badgeOwners, setBadgeOwners] = useState<number[]>([]);
-  const [balances, setBalances] = useState<any>({});
   const [loaded, setLoaded] = useState(false);
-
+  const [owners, setOwners] = useState<BalanceInfo<bigint>[]>([]);
   const [currPage, setCurrPage] = useState<number>(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    bookmark: '',
+    hasMore: true,
+    total: 0
+  });
+
+  const totalNumOwners = pagination.total ? Numberify(pagination.total) : 0;
+
   const PAGE_SIZE = 10;
   const minId = 1;
-  const maxId = badgeOwners.length;
+  const maxId = totalNumOwners;
 
   const currPageDetails = getPageDetails(currPage, PAGE_SIZE, minId, maxId);
   const pageStartId = currPageDetails.start;
@@ -33,124 +44,80 @@ export function OwnersTab({ collection, badgeId }: {
 
 
   useEffect(() => {
-    const accountsToFetch: number[] = [];
+    if (!collection) return;
+
+    const accountsToFetch: string[] = [];
     for (let i = pageStartId - 1; i < pageEndId; i++) {
-      accountsToFetch.push(badgeOwners[i]);
+      accountsToFetch.push(collection.owners[i].cosmosAddress);
     }
 
-    accounts.fetchAccountsByNumber(accountsToFetch);
-  }, [pageStartId, pageEndId, currPage, accounts, badgeOwners]);
+    accountsRef.current.fetchAccounts(accountsToFetch);
+    //Even though this depends on collection (context), it should be okay because collection should not change
+  }, [pageStartId, pageEndId, currPage, collection]);
 
+  //TODO: Handle bookmarking logic within context
   useEffect(() => {
     async function getOwners() {
-      if (collection) {
-        if (collection.collectionId === 0) {
-          //Is preview
-          setLoaded(true);
-        }
-        const ownersRes = await getBadgeOwners(collection?.collectionId, badgeId)
-        const badgeOwners = ownersRes.owners;
-
-        setBadgeOwners(badgeOwners);
-        setBalances(ownersRes.balances);
+      if (isPreview) {
+        //Is preview
         setLoaded(true);
       }
+      const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: pagination.bookmark });
+      const badgeOwners = ownersRes.owners;
+      setOwners(badgeOwners);
+      setPagination({
+        ...ownersRes.pagination,
+        total: pagination.total ? pagination.total : ownersRes.pagination.total
+      })
+
+      setLoaded(true);
     }
     getOwners();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [collectionId, badgeId, pagination.bookmark, pagination.total, isPreview]);
 
   return (
-
     <InformationDisplayCard
       title="Balances"
     >
       {loaded ?
-        <div
-          style={{
-            color: PRIMARY_TEXT,
-            justifyContent: 'center',
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-          <div style={{ width: '100%' }}>
-            <h2 style={{ color: PRIMARY_TEXT }}>You</h2>
-            {chain.connected && chain.accountNumber ?
-              <div className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', padding: 10 }}>
+        <div className='primary-text flex-center flex-column'>
+          <div className='full-width'>
+            <h2 className='primary-text'>You</h2>
+            {chain.connected && chain.cosmosAddress ?
+              <div className='flex-between primary-text full-width' style={{ padding: 10 }}>
                 <div>
                   <AddressDisplay
-                    userInfo={{
-                      name: chain.name,
-                      avatar: chain.avatar,
-                      address: chain.address,
-                      cosmosAddress: chain.cosmosAddress,
-                      chain: chain.chain,
-                      accountNumber: chain.accountNumber,
-                      github: chain.github,
-                      discord: chain.discord,
-                      twitter: chain.twitter,
-                      telegram: chain.telegram,
-                      readme: chain.readme
-                    }}
-                    fontColor={PRIMARY_TEXT}
+                    addressOrUsername={chain.cosmosAddress}
                     fontSize={16}
                   />
                 </div>
                 <div style={{ fontSize: 16 }}>
-                  x{getSupplyByBadgeId(badgeId, balances[chain.accountNumber]?.balances || [])}
+                  x{`${getBalanceForId(badgeId, owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances || [])}`}
                 </div>
               </div> : <BlockinDisplay hideLogo />
             }
             <hr />
           </div>
 
-          <h2 style={{ color: PRIMARY_TEXT }}>All Owners</h2>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 4,
+          <h2 className='primary-text'>All Owners</h2>
+          <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} />
 
-          }} >
-            <Pagination
-              style={{ background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
-              current={currPage}
-              total={Number(maxId) - Number(minId)}
-              pageSize={PAGE_SIZE}
-              onChange={(page) => {
-                setCurrPage(page);
-              }}
-              hideOnSinglePage
-              showSizeChanger={false}
-            />
-          </div>
-
-
-          {badgeOwners?.map((owner, idx) => {
+          {owners?.map((owner, idx) => {
             if (idx < pageStartId - 1 || idx > pageEndId - 1) {
               return <></>
             } else {
-              return <div key={idx} className='flex-between' style={{ color: PRIMARY_TEXT, width: '100%', display: 'flex', justifyContent: 'space-between', padding: 10 }}>
-                <div>
-                  {!accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]] ?
-                    <Spin size={'small'} />
-                    :
-                    <AddressDisplay
-                      userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[owner]]}
-                      fontColor={PRIMARY_TEXT}
-                      fontSize={16} />}
-                </div>
+              return <div key={idx} className='flex-between primary-text full-width' style={{ padding: 10 }}>
+                <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
                 <div style={{ fontSize: 16 }}>
-                  x{getSupplyByBadgeId(badgeId, balances[owner].balances)}
+                  x{`${getBalanceForId(badgeId, owner.balances)}`}
                 </div>
               </div>
             }
           })}
-          {badgeOwners.length === 0 && <Empty
+          {totalNumOwners === 0 && <Empty
             description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            style={{ color: PRIMARY_TEXT }}
+            className='primary-text'
           />}
         </div>
         : <div>

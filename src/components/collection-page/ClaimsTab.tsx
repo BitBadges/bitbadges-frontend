@@ -1,66 +1,63 @@
-import { Button, Divider, Empty, Pagination } from 'antd';
-import { useEffect, useState } from 'react';
-import { BitBadgeCollection, ClaimItem, getSupplyByBadgeId } from 'bitbadgesjs-utils';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { ClaimDisplay } from '../claims/ClaimDisplay';
-import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
-import { useChainContext } from '../../contexts/ChainContext';
-import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { Button, Divider, Empty } from 'antd';
+import { Numberify } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
+import { useEffect, useRef, useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { ClaimDisplay } from '../claims/ClaimDisplay';
+import { DevMode } from '../common/DevMode';
+import { Pagination } from '../common/Pagination';
+import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
+import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
-export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, passwords, isModal, badgeId }: {
-  collection: BitBadgeCollection;
-  refreshUserBalance: () => Promise<void>;
-  isPreview?: boolean;
+export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: {
+  collectionId: bigint;
   codes?: string[][];
   passwords?: string[];
   isModal?: boolean
-  badgeId?: number;
+  badgeId?: bigint;
 }) {
+  const collections = useCollectionsContext();
+  const collectionsRef = useRef(collections);
   const chain = useChainContext();
   const router = useRouter();
+  const isPreview = collectionId === MSG_PREVIEW_ID;
 
-  const [claimId, setClaimId] = useState<number>(0);
-  const [claimItem, setClaimItem] = useState<ClaimItem>();
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [code, setCode] = useState<string>("");
   const [currPage, setCurrPage] = useState<number>(1);
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
 
+  const collection = collections.getCollection(collectionId);
+  const claimItem = collection?.claims.length && collection?.claims.length > currPage - 1 ? collection?.claims[currPage - 1] : undefined;
   const query = router.query;
+  const numActiveClaims = collection?.views.claimsById?.pagination.total ?? 0;
 
-  const activeClaimIds: number[] = []
-  const activeClaims = collection ? collection?.claims.filter((x, idx) => {
-    if (x.balances.length > 0) {
-      if (badgeId) {
-        const supply = getSupplyByBadgeId(badgeId, x.balances);
-        if (supply > 0) {
-          activeClaimIds.push(idx + 1);
-          return true;
-        }
-      } else {
-        activeClaimIds.push(idx + 1);
-        return true;
-      }
+  //Auto scroll to page upon claim ID
+  useEffect(() => {
+    if (query.claimId && typeof query.claimId === 'string') {
+      setCurrPage(Numberify(query.claimId));
     }
-    return false;
-  }) : [];
+  }, [query.claimId]);
 
 
   useEffect(() => {
-    if (query.claimId) {
-      const idx = activeClaimIds.indexOf(Number(query.claimId));
-      if (idx >= 0) {
-        setCurrPage(idx + 1);
+    async function fetchClaims() {
+      if (claimItem) return;
+
+      //TODO: fetch exact claim instead of just fetching next page by id (should be fine for now as collections will not have >50 active claims (2 pages))
+      if (!claimItem) {
+        await collectionsRef.current.fetchNextForViews(collectionId, ['claimsById']);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.claimId, collection]);
 
+    fetchClaims();
+  }, [claimItem, collectionId]);
 
   if (isPreview) return <Empty
-    style={{ color: PRIMARY_TEXT }}
+    className='primary-text'
     description={
       "Claim displays are not supported for previews."
     }
@@ -70,18 +67,17 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
 
 
   return (
-    <div
+    <div className='primary-text'
       style={{
-        color: PRIMARY_TEXT,
         justifyContent: 'center',
       }}>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-        {!isModal && collection?.manager.accountNumber === chain.accountNumber && collection?.claims.find(claim => claim.hasPassword || claim.codeRoot) && <div>
+      <div className='flex-center'>
+        {!isModal && collection?.manager === chain.cosmosAddress && collection?.claims.length && <div>
           {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
           <br />
           <Button
-            className='screen-button'
-            style={{ marginTop: '12px', backgroundColor: PRIMARY_BLUE }}
+            className='screen-button primary-blue-bg'
+            style={{ marginTop: '12px' }}
             onClick={() => {
               setFetchCodesModalIsVisible(true);
             }}
@@ -92,44 +88,30 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
           <FetchCodesModal
             visible={fetchCodesModalIsVisible}
             setVisible={setFetchCodesModalIsVisible}
-            collection={collection}
+            collectionId={collectionId}
           />
           <Divider />
         </div>}
-        {!isModal && collection?.manager.accountNumber !== chain.accountNumber && collection?.claims.find(claim => claim.hasPassword || claim.codeRoot) && <div>
+        {!isModal && collection?.manager !== chain.cosmosAddress && collection?.claims.length && <div>
           {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
         </div>}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-        <Pagination
-          current={currPage}
-          total={activeClaims.length}
-          pageSize={1}
-          onChange={(page) => {
-            setCurrPage(page);
-          }}
-          hideOnSinglePage
-        />
-      </div>
+      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
 
-
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-        {activeClaims && activeClaims.length > 0 && collection && collection.claims[activeClaimIds[currPage - 1] - 1] &&
+      <div className='flex-center'>
+        {claimItem &&
           <>
             <ClaimDisplay
-              collection={collection}
-              claim={collection.claims[activeClaimIds[currPage - 1] - 1]}
-              claimId={activeClaimIds[currPage - 1]}
-              openModal={(claimItem, code, whitelistIndex) => {
-                setClaimId(activeClaimIds[currPage - 1])
+              collectionId={collectionId}
+              claim={claimItem}
+              openModal={(code, whitelistIndex) => {
                 setModalVisible(true);
                 setCode(code ? code : "");
-                setClaimItem(claimItem);
                 setWhitelistIndex(whitelistIndex);
               }}
               isCodeDisplay={codes ? true : false}
-              codes={codes ? codes[activeClaimIds[currPage - 1] - 1] : []}
-              claimPassword={passwords ? passwords[activeClaimIds[currPage - 1] - 1] : ''}
+              codes={codes ? codes[Numberify(claimItem.claimId - 1n)] : []}
+              claimPassword={passwords ? passwords[Numberify(claimItem.claimId - 1n)] : ""}
             />
           </>
         }
@@ -137,27 +119,15 @@ export function ClaimsTab({ collection, refreshUserBalance, isPreview, codes, pa
       </div>
 
       {
-        !activeClaimIds.length &&
-        <Empty
-          style={{ color: PRIMARY_TEXT }}
+        !collection?.claims.length && <Empty
+          className='primary-text'
           description={`No active claims found${badgeId ? ' for this badge' : ''}.`}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       }
-      {
-        collection?.claims.map((claim, idx) => {
-          return <div key={idx}>
-            {DEV_MODE &&
-              <pre>
-                {JSON.stringify(claim, null, 2)}
-              </pre>}
-          </div>
-        })
-      }
+      <DevMode obj={claimItem} />
       <CreateTxMsgClaimBadgeModal
-        collection={collection}
-        refreshUserBalance={refreshUserBalance}
-        claimId={claimId}
+        collectionId={collectionId}
         visible={modalVisible}
         setVisible={setModalVisible}
         code={code}

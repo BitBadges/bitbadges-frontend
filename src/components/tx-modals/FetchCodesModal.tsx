@@ -1,18 +1,13 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { fetchCodes } from '../../bitbadges-api/api';
-import { BitBadgeCollection } from 'bitbadgesjs-utils';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
+import { getAllPasswordsAndCodes } from '../../bitbadges-api/api';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { ClaimsTab } from '../collection-page/ClaimsTab';
 
-
-
-export function FetchCodesModal({ visible, setVisible, children, collection
-}: {
-  collection: BitBadgeCollection,
+export function FetchCodesModal({ visible, setVisible, children, collectionId }: {
+  collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode,
@@ -23,9 +18,9 @@ export function FetchCodesModal({ visible, setVisible, children, collection
   const [passwords, setPasswords] = useState<string[]>([]);
 
   useEffect(() => {
-    if (collection && chain.connected && chain.loggedIn) {
-      const getCodes = async () => {
-        const codesRes = await fetchCodes(collection.collectionId);
+    if (collectionId && chain.connected && chain.loggedIn) {
+      const getAll = async () => {
+        const codesRes = await getAllPasswordsAndCodes(collectionId);
         if (codesRes.codes) {
           setCodes(codesRes.codes);
         }
@@ -34,16 +29,13 @@ export function FetchCodesModal({ visible, setVisible, children, collection
           setPasswords(codesRes.passwords);
         }
       }
-      getCodes();
+      getAll();
     }
-  }, [collection, chain]);
+  }, [collectionId, chain]);
 
   return (
     <Modal
-      title={<div style={{
-        backgroundColor: PRIMARY_BLUE,
-        color: PRIMARY_TEXT,
-      }}><b>{'Distribute'}</b></div>}
+      title={<div className='primary-text primary-blue-bg'><b>{'Distribute'}</b></div>}
       open={visible}
 
       style={{
@@ -56,26 +48,21 @@ export function FetchCodesModal({ visible, setVisible, children, collection
       footer={null}
 
       width={'80%'}
-      closeIcon={<div style={{
-        backgroundColor: PRIMARY_BLUE,
-        color: PRIMARY_TEXT,
-      }}>{<CloseOutlined />}</div>}
+      closeIcon={<div className='primary-text primary-blue-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,
-        backgroundColor: PRIMARY_BLUE,
-        color: PRIMARY_TEXT
       }}
+      className='primary-text primary-blue-bg'
       onCancel={() => setVisible(false)}
       destroyOnClose={true}
     >
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div className='flex-center'>
         {!chain.connected || !chain.loggedIn ?
           <div style={{ textAlign: 'center' }}>
             <BlockinDisplay />
           </div>
           : <ClaimsTab
-            collection={collection}
-            refreshUserBalance={async () => { }}
+            collectionId={collectionId}
             codes={codes}
             passwords={passwords}
             isModal

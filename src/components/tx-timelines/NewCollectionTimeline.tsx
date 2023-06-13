@@ -1,6 +1,6 @@
 import { DistributionMethod, MetadataAddMethod } from 'bitbadgesjs-utils';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
-import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, MsgNewCollectionProps } from './TxTimeline';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
 import { CanDeleteStepItem } from './step-items/CanDeleteStepItem';
@@ -12,96 +12,66 @@ import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem'
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
 import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { ManagerApprovedTransfersStepItem } from './step-items/ManagerApprovedTransfersStepItem';
-import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
-import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
+import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { CanUpdateBytesStepItem } from './step-items/CanUpdateBytesStepItem';
-import { UploadJSONStepItem } from './step-items/UploadDistributionJSON';
+import { CanUpdateBalancesStepItem } from './step-items/CanUpdateBytesStepItem';
 
 //See TxTimeline for explanations and documentation
 
 export function MintCollectionTimeline({
   txTimelineProps
 }: {
-  txTimelineProps: TxTimelineProps
+  txTimelineProps: MsgNewCollectionProps
 }) {
-  const newCollectionMsg = txTimelineProps.newCollectionMsg;
-  const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
   const handledPermissions = txTimelineProps.handledPermissions;
   const updatePermissions = txTimelineProps.updatePermissions;
   const addMethod = txTimelineProps.addMethod;
   const setAddMethod = txTimelineProps.setAddMethod;
-  const collectionMetadata = txTimelineProps.collectionMetadata;
-  const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
-  const individualBadgeMetadata = txTimelineProps.individualBadgeMetadata;
-  const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
   const distributionMethod = txTimelineProps.distributionMethod;
   const setDistributionMethod = txTimelineProps.setDistributionMethod;
-  const claimItems = txTimelineProps.claimItems;
-  const setClaimItems = txTimelineProps.setClaimItems;
-  const manualSend = txTimelineProps.manualSend;
-  const setManualSend = txTimelineProps.setManualSend;
-  const simulatedCollection = txTimelineProps.simulatedCollection;
   const metadataSize = txTimelineProps.metadataSize;
-  const existingCollection = txTimelineProps.existingCollection;
-  const managerApprovedTransfersWithUnregisteredUsers = txTimelineProps.managerApprovedTransfersWithUnregisteredUsers;
-  const setManagerApprovedTransfersWithUnregisteredUsers = txTimelineProps.setManagerApprovedTransfersWithUnregisteredUsers;
-  const disallowedTransfersWithUnregisteredUsers = txTimelineProps.disallowedTransfersWithUnregisteredUsers;
-  const setDisallowedTransfersWithUnregisteredUsers = txTimelineProps.setDisallowedTransfersWithUnregisteredUsers;
-  const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = txTimelineProps.updateMetadataForBadgeIdsDirectlyFromUriIfAbsent;
-  const transferabilityToSelectType = txTimelineProps.transferabilityToSelectType;
-  const setTransferabilityToSelectType = txTimelineProps.setTransferabilityToSelectType;
-  const transferabilityFromSelectType = txTimelineProps.transferabilityFromSelectType;
-  const setTransferabilityFromSelectType = txTimelineProps.setTransferabilityFromSelectType;
-  const transferabilityTo = txTimelineProps.transferabilityTo;
-  const setTransferabilityTo = txTimelineProps.setTransferabilityTo;
-  const transferabilityFrom = txTimelineProps.transferabilityFrom;
-  const setTransferabilityFrom = txTimelineProps.setTransferabilityFrom;
-  const managerToSelectType = txTimelineProps.managerToSelectType;
-  const setManagerToSelectType = txTimelineProps.setManagerToSelectType;
-  const managerFromSelectType = txTimelineProps.managerFromSelectType;
-  const setManagerFromSelectType = txTimelineProps.setManagerFromSelectType;
-  const managerTo = txTimelineProps.managerTo;
-  const setManagerTo = txTimelineProps.setManagerTo;
-  const managerFrom = txTimelineProps.managerFrom;
-  const setManagerFrom = txTimelineProps.setManagerFrom;
-  const providedCustomJson = txTimelineProps.providedCustomJson;
+  const badgeSupplys = txTimelineProps.badgeSupplys;
+  const setBadgeSupplys = txTimelineProps.setBadgeSupplys;
+  const claims = txTimelineProps.claims;
+  const setClaims = txTimelineProps.setClaims;
+  const transfers = txTimelineProps.transfers;
+  const setTransfers = txTimelineProps.setTransfers;
+  const existingCollectionId = txTimelineProps.existingCollectionId;
 
   //All mint timeline step items
-  const ChooseBadgeType = ChooseBadgeTypeStepItem(newCollectionMsg, setNewCollectionMsg, setManualSend, setDistributionMethod);
+  const ChooseBadgeType = ChooseBadgeTypeStepItem(distributionMethod, setDistributionMethod);
   const ConfirmManager = ConfirmManagerStepItem();
-  const BadgeSupplySelectStep = BadgeSupplySelectStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection)
-  // const TransferableSelectStep = TransferableSelectStepItem(newCollectionMsg, setNewCollectionMsg);
-  const FreezeSelectStep = FreezeSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions);
-  const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(newCollectionMsg, handledPermissions, updatePermissions);
+  const BadgeSupplySelectStep = BadgeSupplySelectStepItem(badgeSupplys, setBadgeSupplys);
+  // const TransferableSelectStep = TransferableSelectStepItem(msg, setMsg);
+  const FreezeSelectStep = FreezeSelectStepItem(handledPermissions, updatePermissions);
+  const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(handledPermissions, updatePermissions);
   const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-  const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(newCollectionMsg, handledPermissions, updatePermissions, addMethod);
-  const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, simulatedCollection, existingCollection, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent, undefined);
-  const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, simulatedCollection, individualBadgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod, existingCollection);
-  const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod);
-  const CreateClaims = CreateClaimsStepItem(simulatedCollection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
-  const CreateCollectionStep = CreateCollectionStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, claimItems, collectionMetadata, individualBadgeMetadata, distributionMethod, manualSend, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers, simulatedCollection, providedCustomJson);
-  const ManualSendSelect = ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection);
-  const ManagerApprovedSelect = ManagerApprovedTransfersStepItem(managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers, managerToSelectType, setManagerToSelectType, managerFromSelectType, setManagerFromSelectType, managerTo, setManagerTo, managerFrom, setManagerFrom);
-  const CanCreateMoreStep = CanCreateMoreStepItem(newCollectionMsg, handledPermissions, updatePermissions);
-  const CanDeleteStep = CanDeleteStepItem(newCollectionMsg, handledPermissions, updatePermissions);
-  const CollectionPreviewStep = PreviewCollectionStepItem(simulatedCollection);
+  const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(handledPermissions, updatePermissions, addMethod);
+  const SetCollectionMetadataStep = SetCollectionMetadataStepItem(addMethod, existingCollectionId);
+  const SetBadgeMetadataStep = SetBadgeMetadataStepItem(addMethod, existingCollectionId, false);
+  const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, badgeSupplys);
+  const CreateClaims = CreateClaimsStepItem(transfers, setTransfers, claims, setClaims, distributionMethod);
+  const CreateCollectionStep = CreateCollectionStepItem(claims, transfers, badgeSupplys, addMethod, distributionMethod);
+  const ManagerApprovedSelect = ManagerApprovedTransfersStepItem();
+  const CanCreateMoreStep = CanCreateMoreStepItem(handledPermissions, updatePermissions);
+  const CanDeleteStep = CanDeleteStepItem(handledPermissions, updatePermissions);
+  const CollectionPreviewStep = PreviewCollectionStepItem();
   const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
-  const TransferabilityStep = TransferabilitySelectStepItem(disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers, transferabilityToSelectType, setTransferabilityToSelectType, transferabilityFromSelectType, setTransferabilityFromSelectType, transferabilityTo, setTransferabilityTo, transferabilityFrom, setTransferabilityFrom);
-  const CustomJSONStep = UploadJSONStepItem(newCollectionMsg, setNewCollectionMsg);
+  const TransferabilityStep = TransferabilitySelectStepItem();
 
-  // const UserListStep = UserListSelectStepItem(userList, setUserList);
-  const CanUpdateBytesStep = CanUpdateBytesStepItem(newCollectionMsg, handledPermissions, updatePermissions);
+  // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
+  const CanUpdateBytesStep = CanUpdateBalancesStepItem(handledPermissions, updatePermissions);
 
   const items: TimelineItem[] = [ChooseBadgeType];
 
+  const isOffChainBalances = distributionMethod === DistributionMethod.OffChainBalances;
 
-  if (newCollectionMsg.standard === 0) {
+  if (!isOffChainBalances) {
     items.push(
       ConfirmManager,
       BadgeSupplySelectStep,
@@ -115,15 +85,15 @@ export function MintCollectionTimeline({
       UpdatableMetadataSelectStep,
       SetCollectionMetadataStep,
       addMethod === MetadataAddMethod.Manual
-        ? SetIndividualBadgeMetadataStep : EmptyStepItem,
+        ? SetBadgeMetadataStep : EmptyStepItem,
       MetadataTooLargeStep,
       DistributionMethodStep,
-      distributionMethod === DistributionMethod.Whitelist
-        ? ManualSendSelect : EmptyStepItem,
+      // distributionMethod === DistributionMethod.Whitelist
+      //   ? ManualSendSelect : EmptyStepItem,
       distributionMethod !== DistributionMethod.Unminted && distributionMethod !== DistributionMethod.JSON
         ? CreateClaims : EmptyStepItem,
-      distributionMethod === DistributionMethod.JSON && providedCustomJson
-        ? CustomJSONStep : EmptyStepItem,
+      // distributionMethod === DistributionMethod.JSON
+      //   ? CustomJSONStep : EmptyStepItem,
       addMethod === MetadataAddMethod.Manual ?
         CollectionPreviewStep : EmptyStepItem, //In the future, we can support this but we need to pass updateMetadataForBadgeIdsDirectlyFromUriIfAbsent everywhere :/
       //Will also need to support distribution method === JSON (see line 220 TxTimeline with createCollectionFromMsgNewCollection and manualSend)
@@ -140,7 +110,7 @@ export function MintCollectionTimeline({
       UpdatableMetadataSelectStep,
       SetCollectionMetadataStep,
       addMethod === MetadataAddMethod.Manual
-        ? SetIndividualBadgeMetadataStep : EmptyStepItem,
+        ? SetBadgeMetadataStep : EmptyStepItem,
       MetadataTooLargeStep,
       CanUpdateBytesStep,
       CreateClaims,

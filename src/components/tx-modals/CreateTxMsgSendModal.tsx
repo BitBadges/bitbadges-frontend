@@ -1,11 +1,11 @@
-import { InputNumber, Modal } from 'antd';
-import { MessageSendParams, createMessageSend } from 'bitbadgesjs-transactions';
-import { BitBadgesUserInfo, isAddressValid } from 'bitbadgesjs-utils';
+import { InputNumber } from 'antd';
+import { MsgSend, createTxMsgSend } from 'bitbadgesjs-transactions';
 import React, { useState } from 'react';
-import { BLANK_USER_INFO, PRIMARY_BLUE } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
+import { Numberify } from 'bitbadgesjs-utils';
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,
 }: {
@@ -14,13 +14,15 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
   children?: React.ReactNode,
 }) {
   const chain = useChainContext();
+  const accounts = useAccountsContext();
+  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
-  const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>(BLANK_USER_INFO);
+  const [currUserInfo, setCurrUserInfo] = useState<string>('');
   const [sendAmount, setSendAmount] = useState<number>(0);
 
-  const msgSend: MessageSendParams = {
-    destinationAddress: currUserInfo?.cosmosAddress ? currUserInfo.cosmosAddress : '',
-    amount: `${sendAmount}`,
+  const msgSend: MsgSend<bigint> = {
+    destinationAddress: accounts.getAccount(currUserInfo)?.cosmosAddress ?? '',
+    amount: BigInt(sendAmount),
     denom: 'badge'
   }
 
@@ -28,30 +30,26 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
     {
       title: 'Select Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <AddressSelect
-          darkMode
-          onUserSelect={setCurrUserInfo}
-        />
+        <AddressSelect onUserSelect={setCurrUserInfo} />
       </div>,
-      disabled: !isAddressValid(currUserInfo.address),
+      disabled: !accounts.getAccount(currUserInfo)
     },
     {
       title: 'Select Amount',
-      description: <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      description: <div className='flex-center flex-column'>
         <b>$BADGE to Send</b>
         <InputNumber
           value={sendAmount}
           onChange={(e) => {
             setSendAmount(e)
           }}
-          style={{ backgroundColor: PRIMARY_BLUE, color: 'white' }}
+          className='primary-text primary-blue-bg'
           min={0}
-          max={chain.balance}
+          max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
         />
         <br />
-        <b>Current Balance: {chain.balance} $BADGE</b>
+        <b>Current Balance: {`${signedInAccount?.balance?.amount}`} $BADGE</b>
       </div>,
-
       disabled: sendAmount <= 0
     }
   ];
@@ -64,12 +62,17 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       setVisible={setVisible}
       txName="Send $BADGE"
       txCosmosMsg={msgSend}
-      createTxFunction={createMessageSend}
+      createTxFunction={createTxMsgSend}
       onSuccessfulTx={async () => {
-        await chain.updatePortfolioInfo(chain.address);
-        Modal.destroyAll()
+        await accounts.fetchAccounts([chain.cosmosAddress], true);
       }}
       requireRegistration
+      coinsToTransfer={[
+        {
+          denom: 'badge',
+          amount: BigInt(sendAmount)
+        }
+      ]}
     >
       {children}
     </TxModal >

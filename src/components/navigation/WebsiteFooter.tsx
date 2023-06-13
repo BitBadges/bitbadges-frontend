@@ -1,12 +1,12 @@
 import { Col, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
+
 export function WalletFooter() {
   return (
     <>
       <Content
+        className='primary-blue-bg'
         style={{
-          backgroundColor: PRIMARY_BLUE,
           display: 'flex',
           alignItems: 'center',
           padding: '1rem 5rem',
@@ -15,12 +15,12 @@ export function WalletFooter() {
         }}
       >
 
-        <footer id="footer" className="dark" style={{ width: '100%' }}>
+        <footer id="footer" className="dark full-width">
           <div className="footer-wrap">
-            <Row style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <Row className='flex-center' style={{ width: '100%' }}>
               <Col md={6} sm={24} xs={24}>
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>
-                  <h4 style={{ color: PRIMARY_TEXT }}>Links</h4>
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
+                  <h4 className='primary-text'>Links</h4>
                   <div>
                     <a target="_blank " href="https://docs.bitbadges.io/overview">
                       Documentation
@@ -30,8 +30,8 @@ export function WalletFooter() {
                 <br />
               </Col>
               <Col md={6} sm={24} xs={24}>
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
-                  <h4 style={{ color: PRIMARY_TEXT }}>Socials</h4>
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
+                  <h4 className='primary-text'>Socials</h4>
                   <div>
                     <a target="_blank " href="http://ant.design">
                       Discord
@@ -39,14 +39,14 @@ export function WalletFooter() {
                   </div>
 
                 </div>
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
                   <div>
                     <a target="_blank" rel="noreferrer" href="">
                       Twitter
                     </a>
                   </div>
                 </div>
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
                   <div>
                     <a target="_blank" rel="noopener noreferrer" href="https://github.com/bitbadges">
                       GitHub
@@ -56,8 +56,8 @@ export function WalletFooter() {
                 <br />
               </Col>
               <Col md={6} sm={24} xs={24}>
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
-                  <h4 style={{ color: PRIMARY_TEXT }}>Policies</h4>
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
+                  <h4 className='primary-text'>Policies</h4>
                   <div>
                     <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf">
                       Terms of Service
@@ -68,8 +68,8 @@ export function WalletFooter() {
               </Col>
               <Col md={6} sm={24} xs={24}>
 
-                <div className="footer-center" style={{ color: PRIMARY_TEXT, textAlign: 'center' }} >
-                  <h4 style={{ color: PRIMARY_TEXT }}>Other</h4>
+                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
+                  <h4 className='primary-text'>Other</h4>
                   <div>
                     <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf">
                       Privacy Policy

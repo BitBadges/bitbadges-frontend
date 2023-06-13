@@ -1,32 +1,26 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { Balance, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod } from "bitbadgesjs-utils";
+import { Balance } from "bitbadgesjs-proto";
+import { ClaimInfoWithDetails, DistributionMethod, TransferWithIncrements } from "bitbadgesjs-utils";
 import { CreateClaims } from "../form-items/CreateClaims";
 
 export function CreateClaimsStepItem(
-  collection: BitBadgeCollection,
-  newCollectionMsg: MessageMsgNewCollection,
-  setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
+  transfers: TransferWithIncrements<bigint>[],
+  setTransfers: (transfers: TransferWithIncrements<bigint>[]) => void,
+  claims: (ClaimInfoWithDetails<bigint> & { password: string, codes: string[] })[],
+  setClaims: (claims: (ClaimInfoWithDetails<bigint> & { password: string, codes: string[] })[]) => void,
   distributionMethod: DistributionMethod,
-  claimItems: ClaimItemWithTrees[],
-  setClaimItems: (claimItems: ClaimItemWithTrees[]) => void,
-  manualSend: boolean,
-  balancesToDistribute?: Balance[],
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>
+  balancesToDistribute?: Balance<bigint>[],
 ) {
   return {
     title: `${distributionMethod === DistributionMethod.Codes ? 'Generate Codes' : distributionMethod === DistributionMethod.Whitelist ? 'Whitelist' : 'Claims'}`,
     description: '',
     node: <CreateClaims
-      collection={collection}
-      newCollectionMsg={newCollectionMsg}
-      setNewCollectionMsg={setNewCollectionMsg}
       distributionMethod={distributionMethod}
-      claimItems={claimItems}
-      setClaimItems={setClaimItems}
       balancesToDistribute={balancesToDistribute}
-      manualSend={manualSend}
-      updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+      claims={claims}
+      setClaims={setClaims}
+      transfers={transfers}
+      setTransfers={setTransfers}
     />,
-    disabled: claimItems.length == 0
+    disabled: claims.length == 0
   }
 }

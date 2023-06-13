@@ -1,8 +1,8 @@
 import { Divider, Empty, Layout, notification } from 'antd';
-import { BitBadgeCollection, UserBalance } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { getBadgeBalance } from '../../bitbadges-api/api';
+import { useEffect, useRef, useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
@@ -11,48 +11,36 @@ import { AnnouncementsTab } from '../../components/collection-page/Announcements
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
-import { Tabs } from '../../components/navigation/Tabs';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
-import { useStatusContext } from '../../contexts/StatusContext';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
+import { Tabs } from '../../components/navigation/Tabs';
+import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 
 const { Content } = Layout;
 
-
-
 function CollectionPage({
   collectionPreview, //Only used for previews on TxTimeline
-  // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
-}
-  : {
-    collectionPreview: BitBadgeCollection
-    // updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
-  }
-) {
+}: {
+  collectionPreview: boolean
+}) {
   const router = useRouter()
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const statusContext = useStatusContext();
+  const collectionsRef = useRef(collections);
   const { collectionId, badgeId, password, code, claimsTab } = router.query;
-
-  const accountNumber = chain.accountNumber;
   const isPreview = collectionPreview ? true : false;
 
-  const collectionIdNumber = collectionId && !isPreview ? Number(collectionId) : -1;
+  const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? MSG_PREVIEW_ID : -1n;
+  const collection = collections.getCollection(collectionIdNumber);
+  const badgeIdNumber = badgeId && typeof badgeId === 'string' ? BigInt(badgeId) : -1;
 
-
-
-  const [collection, setCollection] = useState<BitBadgeCollection | undefined>(isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection);
-  const [badgeIdNumber, setBadgeIdNumber] = useState<number>(Number(badgeId));
-  const [userBalance, setUserBalance] = useState<UserBalance>();
   const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
 
   const collectionMetadata = collection?.collectionMetadata;
 
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+
   const tabInfo = [];
-  if (collection && collection.standard === 0) {
+  if (!isOffChainBalances) {
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
@@ -73,47 +61,28 @@ function CollectionPage({
     )
   }
 
-
-
-  async function refreshBadgeBalance() {
-    if (isPreview) return;
-    const res = await getBadgeBalance(collectionIdNumber, accountNumber);
-    setUserBalance(res.balance);
-  }
-
-  useEffect(() => {
-    setCollection(isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection);
-  }, [isPreview, collectionPreview, collections, collectionIdNumber]);
-
   //Get collection information
   useEffect(() => {
     async function fetchCollections() {
       if (collectionIdNumber > 0) {
-        await collections.fetchCollections([collectionIdNumber]);
+        const collections = await collectionsRef.current.fetchCollections([collectionIdNumber]);
+        const currCollection = collections[0];
 
-        const status = statusContext.status;
-        if (status.queue.find(x => x.collectionId === collectionIdNumber)) {
+        if (currCollection.collectionMetadata?._isUpdating || currCollection.badgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({
             message: 'Metadata for this collection is currently being fetched.',
             description: 'Certain metadata may not be up to date until the fetch is complete.',
           });
         }
       }
-
-
     }
     if (isPreview) return;
     fetchCollections();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectionIdNumber]);
+  }, [collectionIdNumber, isPreview])
 
   //Set tab to badges if badgeId is in query
   useEffect(() => {
-    const badgeIdNum = Number(badgeId);
-    if (!isNaN(badgeIdNum)) {
-      setTab('badges');
-      setBadgeIdNumber(badgeIdNum);
-    }
+    if (badgeId) setTab('badges');
   }, [badgeId])
 
   //Set tab to badges if badgeId is in query
@@ -121,42 +90,39 @@ function CollectionPage({
     if (code || password || claimsTab) setTab('claims');
   }, [code, password, claimsTab])
 
-
   // Get user's badge balance
   useEffect(() => {
     if (isPreview) return;
-    async function getBadgeBalanceFromApi() {
-      if (collectionIdNumber > 0 && accountNumber > 0) {
-        const res = await getBadgeBalance(collectionIdNumber, accountNumber);
-        setUserBalance(res.balance);
-      }
+    async function getBadgeBalanceByAddressFromApi() {
+      if (isPreview) return;
+      await collectionsRef.current.fetchBalanceForUser(collectionIdNumber, chain.cosmosAddress);
     }
-    getBadgeBalanceFromApi();
-  }, [collectionIdNumber, accountNumber, isPreview])
+    getBadgeBalanceByAddressFromApi();
+  }, [collectionIdNumber, chain.cosmosAddress, isPreview]);
 
   return (
     <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
       >
         <div
+          className='primary-blue-bg'
           style={{
             marginLeft: !isPreview ? '7vw' : undefined,
             marginRight: !isPreview ? '7vw' : undefined,
             paddingLeft: !isPreview ? '1vw' : undefined,
             paddingRight: !isPreview ? '1vw' : undefined,
             paddingTop: '20px',
-            background: PRIMARY_BLUE,
           }}
         >
           {collection && <>
             <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />
             {/* Overview and Tabs */}
-            {collectionMetadata && <CollectionHeader metadata={collectionMetadata} />}
+            {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} />}
             <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
             <br />
 
@@ -164,20 +130,17 @@ function CollectionPage({
             {tab === 'overview' && (
               <OverviewTab
                 setTab={setTab}
-                collection={collection}
-                userBalance={userBalance}
-                isPreview={isPreview}
+                collectionId={collectionIdNumber}
+
               />
             )}
             {tab === 'badges' && (
-              <BadgesTab
-                collection={collection}
-              />
+              <BadgesTab collectionId={collectionIdNumber} />
             )}
 
 
             {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation') && <Empty
-              style={{ color: PRIMARY_TEXT }}
+              className='primary-text'
               description={
                 "This tab is not supported for previews."
               }
@@ -187,58 +150,50 @@ function CollectionPage({
             {tab === 'reputation' && !isPreview && (
               <ReputationTab
                 reviews={collection.reviews}
-                collection={collection}
+                collectionId={collectionIdNumber}
                 fetchMore={async () => {
-                  await collections.fetchNextReviews(collection.collectionId);
+                  await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
                 }}
-                hasMore={collections.collections[`${collection.collectionId}`]?.pagination.reviews.hasMore || false}
+                hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore || false}
               />
             )}
 
             {tab === 'claims' && !isPreview && (
               <ClaimsTab
-                collection={collection}
-                refreshUserBalance={refreshBadgeBalance}
-                isPreview={isPreview}
+                collectionId={collectionIdNumber}
+
               />
             )}
 
             {tab === 'actions' && !isPreview && (
               <ActionsTab
-                collection={collection}
-                refreshUserBalance={refreshBadgeBalance}
-                userBalance={userBalance}
+                collectionId={collectionIdNumber}
               />
             )}
 
             {tab === 'activity' && !isPreview && collection && (
               <ActivityTab
-                collection={collection}
+                activity={collection.activity}
                 fetchMore={async () => {
-                  await collections.fetchNextActivity(collection.collectionId);
+                  await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
                 }}
-                hasMore={collections.collections[`${collection.collectionId}`]?.pagination.activity.hasMore || false}
+                hasMore={collections.getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore || false}
               />
             )}
 
             {tab === 'announcements' && !isPreview && collection && (
               <>
-                <AnnouncementsTab announcements={collection.announcements} collection={collection}
+                <AnnouncementsTab announcements={collection.announcements} collectionId={collectionIdNumber}
                   fetchMore={async () => {
-                    await collections.fetchNextAnnouncements(collection.collectionId);
+                    await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
                   }}
-                  hasMore={collections.collections[`${collection.collectionId}`]?.pagination.announcements.hasMore || false}
+                  hasMore={collections.getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore || false}
                 />
               </>
             )}
           </>
           }
         </div>
-        {DEV_MODE && (
-          <pre style={{ color: PRIMARY_TEXT }}>
-            USER BALANCE: {JSON.stringify(userBalance, null, 2)}
-          </pre>
-        )}
         <Divider />
       </Content>
     </Layout>

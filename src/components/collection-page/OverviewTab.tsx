@@ -2,10 +2,11 @@ import { GiftOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row, Tooltip, Typography } from "antd";
-import { AddBalancesForIdRanges, AllAddressesTransferMapping, BitBadgeCollection, UserBalance, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
+import { UserBalance } from "bitbadgesjs-proto";
+import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
-import { PRIMARY_TEXT } from '../../constants';
+import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
@@ -14,51 +15,41 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
+import { MSG_PREVIEW_ID } from "../tx-timelines/TxTimeline";
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 export function OverviewTab({
-  collection,
-  userBalance,
-  setTab,
-  isPreview
+  collectionId,
+  addressOrUsername,
+  setTab
 }: {
-  collection: BitBadgeCollection | undefined;
-  userBalance: UserBalance | undefined;
+  collectionId: bigint,
+  addressOrUsername?: string,
   setTab: (tab: string) => void;
-  isPreview?: boolean;
 }) {
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+  const isPreview = collectionId === MSG_PREVIEW_ID;
+
   if (!collection) return <></>;
   const collectionMetadata = collection?.collectionMetadata;
 
-  const isTransferable = !collection.disallowedTransfers?.length;
-  const isNonTransferable = collection.disallowedTransfers?.length === 1
-    && JSON.stringify(collection.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-    && JSON.stringify(collection.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
+  const isNonTransferable = !collection.allowedTransfers?.length;
+  const isTransferable = collection.allowedTransfers?.length === 1
+    && JSON.stringify(collection.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
+    && JSON.stringify(collection.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
 
-  let claimableBalances: UserBalance = {
+  let claimableBalances: UserBalance<bigint> = {
     balances: [],
     approvals: []
   };
 
-  for (const claim of collection.claims) {
-    for (const balance of claim.balances) {
-      claimableBalances = AddBalancesForIdRanges(claimableBalances, balance.badgeIds, balance.balance);
-    }
-  }
-
-  const activeClaims = collection ? collection?.claims.filter((x, _idx) => {
-    if (x.balances.length > 0) {
-      return true;
-    }
-    return false;
-  }) : [];
-
   // EXPERIMENTAL STANDARD
-  const isUserList = collection && collection.standard === 1;
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
 
   const HtmlToReactParser = HtmlToReact.Parser();
-  const reactElement = HtmlToReactParser.parse(mdParser.render(collectionMetadata?.description));
+  const reactElement = HtmlToReactParser.parse(mdParser.render(collectionMetadata?.description ?? ''));
 
 
   return <>
@@ -70,8 +61,8 @@ export function OverviewTab({
           <BadgeAvatarDisplay
             showIds
             size={75}
-            collection={collection}
-            userBalance={userBalance}
+            collectionId={collectionId}
+            addressOrUsernameToShowBalance={addressOrUsername}
             badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={'100%'}
           />
@@ -90,12 +81,10 @@ export function OverviewTab({
     >
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
         <MetadataDisplay
-          collection={collection}
-          metadata={collectionMetadata}
-          isCollectionInfo
+          collectionId={collectionId}
           span={24}
         />
-        {!isUserList && <>
+        {!isOffChainBalances && <>
           <br />
           <InformationDisplayCard
             title={<>
@@ -103,7 +92,7 @@ export function OverviewTab({
               <Tooltip title="Which badge owners can transfer to which badge owners?">
                 <InfoCircleOutlined style={{ marginLeft: 4 }} />
               </Tooltip>
-              {!collection.permissions.CanUpdateDisallowed ?
+              {!collection.permissions.CanUpdateAllowed ?
                 <Tooltip title="The transferability is frozen and can never be changed.">
                   <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
                 </Tooltip> :
@@ -116,22 +105,21 @@ export function OverviewTab({
           >
             <div style={{ margin: 8 }}>
               {
-                isTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Transferable</Typography.Text> : <>
-                  {isNonTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Non-Transferable</Typography.Text>
-                    : <>                                        {
-                      collection.disallowedTransfers.map((transfer) => {
+                isTransferable ? <Typography.Text className='primary-text' style={{ fontSize: 20 }}>Transferable</Typography.Text> : <>
+                  {isNonTransferable ? <Typography.Text className='primary-text' style={{ fontSize: 20 }}>Non-Transferable</Typography.Text>
+                    : <>{
+                      collection.allowedTransfers.map((transfer) => {
                         return <>
-                          The addresses with account IDs {transfer.from.accountIds.map((range, index) => {
-                            return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                          })} {transfer.from.options === 1 ? '(including the manager)' : transfer.from.options === 2 ? '(excluding the manager)' : ''} cannot
-                          transfer to the addresses with account IDs {transfer.to.accountIds.map((range, index) => {
-                            return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                          })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
+                          The addresses {transfer.from.addresses.map((range, index) => {
+                            return <span key={index}>{index > 0 && ','} {range}</span>
+                          })} {transfer.from.managerOptions === 1n ? '(including the manager)' : transfer.from.managerOptions === 2n ? '(excluding the manager)' : ''} cannot
+                          transfer to the addresses with account IDs {transfer.to.addresses.map((range, index) => {
+                            return <span key={index}>{index > 0 && ','} {range}</span>
+                          })} {transfer.to.managerOptions === 1n ? '(including the manager)' : transfer.to.managerOptions === 2n ? '(excluding the manager)' : ''}.
                           <br />
                         </>
                       })
-                    }
-                    </>
+                    }</>
                   }
                 </>
               }
@@ -140,9 +128,9 @@ export function OverviewTab({
         </>}
         <br />
         <PermissionsOverview
-          collection={collection}
+          collectionId={collectionId}
           span={24}
-          isUserList={isUserList}
+          isOffChainBalances={isOffChainBalances}
         />
       </Col>
 
@@ -153,8 +141,7 @@ export function OverviewTab({
             span={24}
           >
             <div style={{ maxHeight: 400, overflow: 'auto', textAlign: 'left' }} >
-              <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
-
+              <div className='custom-html-style primary-text' id="description" >
                 {reactElement}
               </div>
             </div>
@@ -167,13 +154,13 @@ export function OverviewTab({
             title={<>Distribution</>}
             span={24}
           >
-            <TableRow label={"Number of Badges"} value={collection.nextBadgeId - 1} labelSpan={12} valueSpan={12} />
+            <TableRow label={"Number of Badges"} value={`${collection.nextBadgeId - 1n}`} labelSpan={12} valueSpan={12} />
             {collection && <TableRow label={"Badge Supplys"} value={
               <div style={{ float: 'right' }}>
                 <BalanceDisplay
                   hideBadges
                   floatToRight
-                  collection={collection}
+                  collectionId={collectionId}
                   hideMessage
                   balance={{
                     balances: collection.maxSupplys, approvals: []
@@ -182,13 +169,13 @@ export function OverviewTab({
               </div>
             } labelSpan={12} valueSpan={12} />
             }
-            {!isUserList && <>
+            {!isOffChainBalances && <>
               {collection && <TableRow label={"Unminted"} value={
                 <div style={{ float: 'right' }}>
                   <BalanceDisplay
                     floatToRight
                     hideBadges
-                    collection={collection}
+                    collectionId={collectionId}
                     hideMessage
                     balance={{
                       balances: collection.unmintedSupplys, approvals: []
@@ -200,16 +187,15 @@ export function OverviewTab({
                   <BalanceDisplay
                     hideBadges
                     floatToRight
-                    collection={collection}
+                    collectionId={collectionId}
                     hideMessage
                     balance={claimableBalances} />
-
                 </div>
               } labelSpan={12} valueSpan={12} />}
 
-              {activeClaims.length > 0 && <div>
+              <div>
                 <ButtonDisplay buttons={[{
-                  name: <>Claim ({`${activeClaims.length}`})</>,
+                  name: <>Claim</>,
                   icon: <GiftOutlined />,
                   onClick: () => {
                     setTab('claims')
@@ -217,7 +203,7 @@ export function OverviewTab({
                   tooltipMessage: `Claim this badge!`,
                   disabled: isPreview
                 }]} />
-              </div>}
+              </div>
             </>}
           </InformationDisplayCard>
           <br />
@@ -225,10 +211,9 @@ export function OverviewTab({
             title={<>Balance Checker</>}
             span={24}
           >
-            <div style={{ display: 'flex' }}>
+            <div className='flex'>
               <BalanceOverview
-                collection={collection}
-                isPreview={isPreview}
+                collectionId={collectionId}
               />
             </div>
           </InformationDisplayCard>

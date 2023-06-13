@@ -1,7 +1,6 @@
 import { LinkOutlined, MailOutlined, TeamOutlined } from '@ant-design/icons';
 import { Avatar, Card } from 'antd';
 import { DistributionMethod } from 'bitbadgesjs-utils';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 export const tools = [{
   name: 'Sketch.io',
@@ -32,7 +31,7 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 10, width: 240, background: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+    <Card hoverable style={{ margin: 10, width: 240 }} className='primary-text primary-blue-bg'
       onClick={() => {
         window.open(tool.url)
       }}
@@ -40,18 +39,17 @@ export function ToolIcon({
       <Card.Meta
         avatar={<Avatar src={tool.icon} />}
         title={
-          <div style={{ color: PRIMARY_TEXT }}>
+          <div className='primary-text'>
             {tool.name}
             <LinkOutlined style={{ marginLeft: 10 }} />
             {tool.communityBuilt &&
               <TeamOutlined style={{ marginLeft: 10 }} />}
 
           </div>}
-        description={<div style={{ color: PRIMARY_TEXT }}>
-
+        description={<div className='primary-text'>
           {tool.description}
         </div>}
-        style={{ color: PRIMARY_TEXT }}
+        className='primary-text'
       />
     </Card>
   );

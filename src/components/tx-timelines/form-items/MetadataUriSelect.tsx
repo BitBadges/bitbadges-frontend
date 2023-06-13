@@ -1,44 +1,58 @@
 import { Form, Input, Typography } from "antd";
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
-import { BitBadgeCollection } from "bitbadgesjs-utils";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../../constants";
+import { useEffect, useRef, useState } from "react";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
-import { useEffect, useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { DefaultPlaceholderMetadata } from "bitbadgesjs-utils";
 
 const { Text } = Typography;
 
 export function MetadataUriSelect({
-  collection,
-  newCollectionMsg,
-  setNewCollectionMsg,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
+  collectionId,
+
   startId,
   endId,
   hideCollectionSelect,
   hideBadgeSelect
 }: {
-  collection: BitBadgeCollection,
-  newCollectionMsg: MessageMsgNewCollection,
-  setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection, updateCollection: boolean, updateBadges: boolean) => void,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
-  startId: number;
-  endId: number;
+  collectionId: bigint,
+  startId: bigint;
+  endId: bigint;
   hideCollectionSelect?: boolean;
   hideBadgeSelect?: boolean;
 }) {
-  const [collectionUri, setCollectionUri] = useState(newCollectionMsg.collectionUri);
-  const [badgeUri, setBadgeUri] = useState(newCollectionMsg.badgeUris[0]?.uri);
+  const collections = useCollectionsContext();
+  const collectionsRef = useRef(collections);
+  const collection = collections.getCollection(collectionId);
 
+  const [collectionUri, setCollectionUri] = useState(collection?.collectionUri);
+  const [badgeUri, setBadgeUri] = useState(collection?.badgeUris[0]?.uri);
+
+  //Upon initial load, populate with placeholder
+  useEffect(() => {
+    const collection = collectionsRef.current.getCollection(collectionId);
+    if (!collection) return;
+
+    collectionsRef.current.updateCollection({
+      ...collection,
+      collectionMetadata: DefaultPlaceholderMetadata,
+      badgeMetadata: collection?.badgeMetadata.map(badge => ({
+        ...badge,
+        metadata: DefaultPlaceholderMetadata
+      })) || []
+    })
+  }, [collectionId])
+
+  
   const DELAY_MS = 1000;
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
-      if (!collectionUri) return
+      if (!collectionUri || !collection) return
 
-      setNewCollectionMsg({
-        ...newCollectionMsg,
+      collectionsRef.current.updateCollection({
+        ...collection,
         collectionUri: collectionUri
-      }, true, false);
+      })
 
     }, DELAY_MS)
 
@@ -48,17 +62,17 @@ export function MetadataUriSelect({
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
-      if (!collectionUri) return
-      setNewCollectionMsg({
-        ...newCollectionMsg,
-        badgeUris: [
+      if (!collectionUri || !badgeUri || !collection) return
 
+      collectionsRef.current.updateCollection({
+        ...collection,
+        badgeUris: [
           {
             badgeIds: [{ start: startId, end: endId }],
             uri: badgeUri
           }
         ]
-      }, false, true);
+      })
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
@@ -71,7 +85,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            style={{ color: PRIMARY_TEXT }}
+            className='primary-text'
             strong
           >
             Collection Metadata URI
@@ -84,18 +98,12 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setCollectionUri(e.target.value);
           }}
-          style={{
-            backgroundColor: PRIMARY_BLUE,
-            color: PRIMARY_TEXT,
-          }}
+          className='primary-text primary-blue-bg'
         />
       </Form.Item>
 
       {
-        newCollectionMsg.collectionUri &&
-        <CollectionHeader
-          metadata={collection.collectionMetadata}
-        />
+        <CollectionHeader collectionId={collectionId} />
       }
     </>
     }
@@ -104,7 +112,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            style={{ color: PRIMARY_TEXT }}
+            className='primary-text'
             strong
           >
             Badge Metadata URI
@@ -117,10 +125,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setBadgeUri(e.target.value);
           }}
-          style={{
-            backgroundColor: PRIMARY_BLUE,
-            color: PRIMARY_TEXT,
-          }}
+          className='primary-text primary-blue-bg'
         />
         <div style={{ fontSize: 12 }}>
           <Text style={{ color: 'lightgray' }}>
@@ -131,14 +136,13 @@ export function MetadataUriSelect({
 
 
 
-      {newCollectionMsg.badgeUris[0] &&
-        <div className='flex-between' style={{ width: '100%', justifyContent: 'center', display: 'flex', color: PRIMARY_TEXT }}>
+      {collection?.badgeUris[0] &&
+        <div className='flex-center primary-tect full-width'>
           <BadgeAvatarDisplay
-            badgeIds={newCollectionMsg.badgeUris[0].badgeIds}
-            collection={collection}
-            userBalance={undefined}
+            badgeIds={collection?.badgeUris[0].badgeIds}
+            collectionId={collectionId}
             showIds
-            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+
           />
         </div>
       }

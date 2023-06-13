@@ -1,58 +1,51 @@
 import { Divider, Layout, Tabs } from 'antd';
-import { StoredBadgeCollection } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
-import { getBrowseInfo } from '../bitbadges-api/api';
+import { useEffect, useRef, useState } from 'react';
+import { getBrowseCollections } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';
-import { PRIMARY_BLUE, SECONDARY_BLUE } from '../constants';
-import { useCollectionsContext } from '../contexts/CollectionsContext';
+import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
+import { BitBadgesCollection, GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const collections = useCollectionsContext();
+  const collectionsRef = useRef(collections);
 
-  const [browseInfo, setBrowseInfo] = useState<{ [category: string]: StoredBadgeCollection[] }>();
+  const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
   const [tab, setTab] = useState('featured');
-
 
   useEffect(() => {
     async function getCollections() {
-      //TODO: Redundancies
-      const browseInfo = await getBrowseInfo();
+      const browseInfo = await getBrowseCollections();
       if (!browseInfo) return;
 
-      const collectionsToFetch = [];
       for (const category of Object.keys(browseInfo)) {
         for (const collection of browseInfo[category]) {
-          collectionsToFetch.push(collection.collectionId);
+          collectionsRef.current.updateCollection(collection);
         }
       }
-
-      await collections.fetchCollections(collectionsToFetch);
 
       setBrowseInfo(browseInfo);
     }
     getCollections();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
       >
-        <div
+        <div className='primary-blue-bg'
           style={{
             marginLeft: '10vw',
             marginRight: '10vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
-            background: PRIMARY_BLUE,
           }}
         >
           {/* 
@@ -90,14 +83,14 @@ function BrowsePage() {
           <div>
             <br />
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-              {browseInfo && browseInfo[tab]?.map((portfolioCollection: StoredBadgeCollection) => {
-                const collection = collections.collections[portfolioCollection.collectionId]?.collection;
+              {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>) => {
+                const collection = collections.getCollection(portfolioCollection.collectionId);
                 if (!collection) return null;
 
                 return <>
                   <CollectionDisplay
-                    key={portfolioCollection.collectionId}
-                    collection={collection}
+                    key={portfolioCollection.collectionId.toString()}
+                    collectionId={portfolioCollection.collectionId}
                   />
                 </>
               })}

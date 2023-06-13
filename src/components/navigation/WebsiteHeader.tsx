@@ -1,27 +1,27 @@
-import Search from 'antd/lib/input/Search';
 import {
   BellOutlined,
   GlobalOutlined,
   HomeOutlined,
+  PlusOutlined,
   SearchOutlined,
   SwapOutlined,
-  UserOutlined,
-  PlusOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
-import { isAddressValid } from 'bitbadgesjs-utils';
+import Search from 'antd/lib/input/Search';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { logout } from '../../bitbadges-api/api';
-import { PRIMARY_TEXT } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
+import { signOut } from '../../bitbadges-api/api';
+
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -29,18 +29,20 @@ const { Text } = Typography;
 export function WalletHeader() {
   const router = useRouter()
   const chain = useChainContext();
+  const accounts = useAccountsContext();
+  const account = accounts.getAccount(chain.cosmosAddress);
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [_cookies, _setCookie, removeCookie] = useCookies(['blockincookie']);
   const [visible, setVisible] = useState<boolean>(false);
 
   const address = chain.address;
-  const avatar = chain.avatar;
+  const avatar = account?.avatar;
 
-  const onSearch = async (value: string) => {
+  const onSearch = async (value: string, isAccount?: boolean) => {
     if (!value) return;
 
-    if (isAddressValid(value)) {
+    if (isAccount) {
       router.push('/account/' + value);
     } else {
       router.push('/collections/' + value);
@@ -60,13 +62,14 @@ export function WalletHeader() {
   const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18 }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
   const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
   let unseenNotificationCount = 0;
   let overflowCount = 10;
-  for (const activityItem of [...chain.activity, ...chain.announcements]) {
-    if (chain.seenActivity < activityItem.timestamp) {
+  const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
+  for (const activity of allActivity) {
+    if (account?.seenActivity && account.seenActivity < activity.timestamp) {
       unseenNotificationCount++;
 
       if (unseenNotificationCount > overflowCount) {
@@ -79,7 +82,7 @@ export function WalletHeader() {
   const NotificationsTabWithIcon = {
     key: 'account/notifications', content: (
       <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
-        <Avatar src={<BellOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} />} />
+        <Avatar src={<BellOutlined style={{ fontSize: 18 }} className='primary-text' />} />
       </Badge>
     ), subMenuOverlay: NotificationsTabMenu
   };
@@ -87,30 +90,20 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let disabled = false;
   const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
+    <div className='flex-center' style={{ marginTop: 10 }}>
       <p>
-        <b>{address ? <div><AddressDisplay userInfo={{
-          address: chain.address,
-          cosmosAddress: chain.cosmosAddress,
-          accountNumber: chain.accountNumber,
-          chain: chain.chain,
-        }}
-          hidePortfolioLink
-        />
-          <br />
-          {chain.balance} $BADGE
-          <br />
-          <div
-            style={{
-              width: '100%',
-              padding: '10',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 8,
-            }}
-          >
+        <b>{address ? <div>
+          <AddressDisplay
+            addressOrUsername={address}
+            hidePortfolioLink
+          />
+          {account?.balance ? <>
+            <br />
+            {account.balance} $BADGE
+          </> : ''}
 
+          <br />
+          <div className='flex-center full-width' style={{ padding: '10', marginTop: 8 }}>
             <Tooltip
               title={<div style={{ textAlign: 'center' }}> {'Send $BADGE'}</div>}
               placement='bottom'
@@ -141,7 +134,6 @@ export function WalletHeader() {
               </div>
             </Tooltip>
           </div>
-
         </div>
           : `Not Connected`}
         </b>
@@ -165,7 +157,7 @@ export function WalletHeader() {
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
       <Menu.Item className='dropdown-item' onClick={() => {
         chain.disconnect();
-        logout();
+        signOut();
         chain.setLoggedIn(false);
         removeCookie('blockincookie');
       }}>Disconnect and Sign Out</Menu.Item>
@@ -177,7 +169,7 @@ export function WalletHeader() {
     content: (
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {!address ? (
-          <Avatar src={<UserOutlined style={{ fontSize: 18, color: PRIMARY_TEXT }} size={40} />} />
+          <Avatar src={<UserOutlined style={{ fontSize: 18 }} className='primary-text' size={40} />} />
         ) : (
           <Avatar src={
             <BlockiesAvatar
@@ -199,8 +191,10 @@ export function WalletHeader() {
 
   const SearchBar = <Search
     defaultValue=""
-    placeholder="Enter an Address, Collection Name, or Collection ID Number"
-    onSearch={onSearch}
+    placeholder="Enter an Address, Username, or Collection Name"
+    onSearch={async (value) => {
+      onSearch(value, true);
+    }}
     value={searchValue}
     onChange={async (e) => {
       setSearchValue(e.target.value);

@@ -1,235 +1,118 @@
 import { Button } from 'antd';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, ClaimItemWithTrees, DistributionMethod, MetadataAddMethod, TransferMappingWithUnregisteredUsers, getClaimsFromClaimItems, getTransfersFromClaimItems, updateTransferMappingAccountNums } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
+import { BadgeSupplyAndAmount } from 'bitbadgesjs-proto';
+import { MsgNewCollection } from 'bitbadgesjs-transactions';
+import { ClaimInfoWithDetails, DistributionMethod, GetPermissionNumberValue, MetadataAddMethod, TransferWithIncrements, createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils';
+import { useState } from 'react';
 import { addBalancesToIpfs, addClaimToIpfs, addMetadataToIpfs } from '../../../bitbadges-api/api';
-import { handleTransfers } from '../../../bitbadges-api/transfers';
-import { useAccountsContext } from '../../../contexts/AccountsContext';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { CreateTxMsgNewCollectionModal } from '../../tx-modals/CreateTxMsgNewCollectionModal';
+import { MSG_PREVIEW_ID } from '../TxTimeline';
 
 export function SubmitMsgNewCollection({
-  newCollectionMsg,
-  setNewCollectionMsg,
-  collectionMetadata,
-  individualBadgeMetadata,
   addMethod,
-  claimItems,
+  claims,
+  transfers,
+  badgeSupplys,
   distributionMethod,
-  manualSend,
-  managerApprovedTransfersWithUnregisteredUsers,
-  disallowedTransfersWithUnregisteredUsers,
-  simulatedCollection,
-  providedCustomJson
 }: {
-  newCollectionMsg: MessageMsgNewCollection;
-  setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
   addMethod: MetadataAddMethod;
-  claimItems: ClaimItemWithTrees[];
-  collectionMetadata: BadgeMetadata;
-  individualBadgeMetadata: BadgeMetadataMap;
+  claims: (ClaimInfoWithDetails<bigint> & { password: string, codes: string[] })[];
+  transfers: TransferWithIncrements<bigint>[];
+  badgeSupplys: BadgeSupplyAndAmount<bigint>[];
   distributionMethod: DistributionMethod;
-  manualSend: boolean;
-  managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-  disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-  simulatedCollection: BitBadgeCollection
-  providedCustomJson: boolean;
 }) {
-  const [visible, setVisible] = useState<boolean>(false);
+  const chain = useChainContext();
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collectionMetadata = collection?.collectionMetadata;
+  const badgeMetadata = collection?.badgeMetadata || [];
+
+  const [visible, setVisible] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
-  const [unregisteredUsers, setUnregisteredUsers] = useState<string[]>([]);
 
-  const accounts = useAccountsContext();
-
-  useEffect(() => {
-    let newUnregisteredUsers: string[] = [];
-    if (manualSend && !providedCustomJson) {
-      for (const claimItem of claimItems) {
-        for (const address of claimItem.addresses) {
-          if (accounts.accounts[address].accountNumber >= 0) continue;
-
-          newUnregisteredUsers.push(address);
-        }
-      }
-    }
-
-    for (const transfer of managerApprovedTransfersWithUnregisteredUsers) {
-      for (const address of [...transfer.toUnregisteredUsers, ...transfer.fromUnregisteredUsers]) {
-        if (accounts.accounts[address].accountNumber >= 0) continue;
-
-        newUnregisteredUsers.push(address);
-      }
-    }
-
-    for (const transfer of disallowedTransfersWithUnregisteredUsers) {
-      for (const address of [...transfer.toUnregisteredUsers, ...transfer.fromUnregisteredUsers]) {
-        if (accounts.accounts[address].accountNumber >= 0) continue;
-
-        newUnregisteredUsers.push(address);
-      }
-    }
-
-    newUnregisteredUsers = [...new Set(newUnregisteredUsers)];
-    setUnregisteredUsers(newUnregisteredUsers);
-
-    //If we are manually sending, we need to update the transfers field. If not, we update the claims.
-    if (providedCustomJson) return;
-
-    if (manualSend) {
-      setNewCollectionMsg({
-        ...newCollectionMsg,
-        transfers: getTransfersFromClaimItems(claimItems, accounts.accounts),
-        claims: []
-      });
-    } else if (!manualSend) {
-      const balance = {
-        balances: simulatedCollection.maxSupplys,
-        approvals: [],
-      }
-      const claimRes = getClaimsFromClaimItems(balance, claimItems);
-      setNewCollectionMsg({
-        ...newCollectionMsg,
-        claims: claimRes.claims,
-        transfers: []
-      });
-    }
-  }, [claimItems, accounts, manualSend, setNewCollectionMsg, managerApprovedTransfersWithUnregisteredUsers, disallowedTransfersWithUnregisteredUsers]);
+  const [collectionUri, setCollectionUri] = useState(collection?.collectionUri);
+  const [badgeUri, setBadgeUri] = useState(collection?.badgeUris);
+  const [balancesUri, setBalancesUri] = useState(collection?.balancesUri);
+  const [isOffChainBalances, setIsOffChainBalances] = useState<boolean>(false);
 
   async function updateIPFSUris() {
-    let badgeMsg = newCollectionMsg;
     //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
+    let collectionUri = collection?.collectionUri;
+    let badgeUris = collection?.badgeUris || [];
+    let balancesUri = collection?.balancesUri;
+
     if (addMethod == MetadataAddMethod.Manual) {
-      let res = await addMetadataToIpfs(collectionMetadata, individualBadgeMetadata);
+      let res = await addMetadataToIpfs({ collectionMetadata, badgeMetadata });
+      if (!res.collectionMetadataResult) throw new Error('Collection metadata not added to IPFS');
 
-      badgeMsg.collectionUri = 'ipfs://' + res.cid + '/collection';
-      badgeMsg.badgeUris = [];
+      collectionUri = 'ipfs://' + res.collectionMetadataResult?.cid + '/' + res.collectionMetadataResult?.path
+      badgeUris = [];
 
-      const keys = Object.keys(individualBadgeMetadata);
-      const values = Object.values(individualBadgeMetadata);
-      for (let i = 0; i < keys.length; i++) {
-        badgeMsg.badgeUris.push({
-          uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
-          badgeIds: values[i].badgeIds
+
+      for (let i = 0; i < res.badgeMetadataResults.length; i++) {
+        const badgeRes = res.badgeMetadataResults[i];
+        badgeUris.push({
+          uri: 'ipfs://' + badgeRes.cid + '/' + badgeRes.path,
+          badgeIds: badgeMetadata[i].badgeIds
         });
       }
 
-      //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing collection
+      //No need to append here or perform any additional logic with the badge URIs like in MintBadge because there is no existing metadata
     }
 
     //If distribution method is codes or a whitelist, add the merkle tree to IPFS and update the claim URI
     if (distributionMethod == DistributionMethod.Codes || distributionMethod == DistributionMethod.Whitelist) {
-      if (badgeMsg.claims?.length > 0) {
-        for (let i = 0; i < claimItems.length; i++) {
-          let merkleTreeRes = await addClaimToIpfs(claimItems[i].name || '', claimItems[i].description || '', [], claimItems[i].addresses, claimItems[i].codes, claimItems[i].hashedCodes, claimItems[i].password);
+      if (claims?.length > 0) {
+        for (let i = 0; i < claims.length; i++) {
+          let merkleTreeRes = await addClaimToIpfs({
+            name: claims[i].details?.name || '',
+            description: claims[i].details?.description || '',
+            challengeDetails: claims[i].details?.challengeDetails || [],
+            password: claims[i].password,
+          });
 
-          badgeMsg.claims[i].uri = 'ipfs://' + merkleTreeRes.cid + '';
+          claims[i].uri = 'ipfs://' + merkleTreeRes.result.cid + '/' + merkleTreeRes.result.path;
         }
       }
     }
 
-    if (badgeMsg.standard === 1) {
-      //TODO: if distribution method is off-chain balances
-      const transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);
+    if (distributionMethod === DistributionMethod.OffChainBalances) {
+      const balanceMap = await createBalanceMapForOffChainBalances(transfers);
 
-      const balanceMap = await handleTransfers(["Mint"], transfers);
-
-
-      let res = await addBalancesToIpfs(balanceMap);
-      badgeMsg.bytes = 'ipfs://' + res.cid;
-      badgeMsg.claims = [];
-      badgeMsg.transfers = [];
+      let res = await addBalancesToIpfs({ balances: balanceMap });
+      balancesUri = 'ipfs://' + res.result.cid + '/' + res.result.path;
     }
 
-
-
-
-
-    setNewCollectionMsg(badgeMsg);
-  }
-
-  const onRegister = async () => {
-    setLoading(true);
-
-    const fetchedAccounts = await accounts.fetchAccounts(unregisteredUsers, true); // This will update the useEffect() above and set unregisterUsers to []
-
-    const finalCollectionMsg = { ...newCollectionMsg };
-
-    if (!providedCustomJson) {
-      //If we are manually sending, we need to update the transfers field. If not, we update the claims.
-      if (manualSend) {
-        finalCollectionMsg.transfers = getTransfersFromClaimItems(claimItems, accounts.accounts);
-        finalCollectionMsg.claims = [];
-      } else if (!manualSend) {
-        const balance = {
-          balances: simulatedCollection.maxSupplys,
-          approvals: [],
-        }
-        const claimRes = getClaimsFromClaimItems(balance, claimItems);
-
-        finalCollectionMsg.claims = claimRes.claims;
-        finalCollectionMsg.transfers = [];
-      }
-    }
-
-    //Update the manager approved transfers with the newly registered users
-    for (const transferMapping of managerApprovedTransfersWithUnregisteredUsers) {
-      for (const address of transferMapping.toUnregisteredUsers) {
-        const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
-        if (fetchedAcctNumber == undefined) continue;
-        transferMapping.to = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeToUsers, transferMapping.to);
-      }
-
-      for (const address of transferMapping.fromUnregisteredUsers) {
-        const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
-        if (fetchedAcctNumber == undefined) continue;
-        transferMapping.from = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeFromUsers, transferMapping.from);
-      }
-
-      finalCollectionMsg.managerApprovedTransfers = managerApprovedTransfersWithUnregisteredUsers.map((x) => {
-        return {
-          to: x.to,
-          from: x.from
-        }
-      });
-    }
-
-    //Update the disallowed transfers with newly registered users
-    for (const transferMapping of disallowedTransfersWithUnregisteredUsers) {
-      for (const address of transferMapping.toUnregisteredUsers) {
-        const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
-        if (fetchedAcctNumber == undefined) continue;
-        transferMapping.to = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeToUsers, transferMapping.to);
-      }
-
-      for (const address of transferMapping.fromUnregisteredUsers) {
-        const fetchedAcctNumber = fetchedAccounts.find((x) => x.cosmosAddress == address)?.accountNumber;
-        if (fetchedAcctNumber == undefined) continue;
-        transferMapping.from = updateTransferMappingAccountNums(fetchedAcctNumber, transferMapping.removeFromUsers, transferMapping.from);
-      }
-
-      finalCollectionMsg.disallowedTransfers = disallowedTransfersWithUnregisteredUsers.map((x) => {
-        return {
-          to: x.to,
-          from: x.from
-        }
-      });
-    }
-
-    setNewCollectionMsg(finalCollectionMsg);
-
-    setVisible(true);
-    setLoading(false);
+    setIsOffChainBalances(distributionMethod === DistributionMethod.OffChainBalances);
+    setBalancesUri(balancesUri);
+    setCollectionUri(collectionUri);
+    setBadgeUri(badgeUris);
   }
 
 
-  return <div
-    style={{
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 20,
-    }}
-  >
+  const msg: MsgNewCollection<bigint> = {
+    creator: chain.cosmosAddress,
+    collectionUri: collectionUri || '',
+    badgeUris: badgeUri || [],
+    balancesUri: balancesUri || '',
+    badgeSupplys: badgeSupplys,
+    permissions: collection ? GetPermissionNumberValue(collection?.permissions) : 0n,
+    bytes: collection?.bytes || '',
+    managerApprovedTransfers: collection?.managerApprovedTransfers || [],
+    allowedTransfers: collection?.allowedTransfers || [],
+    standard: collection?.standard || 0n,
+    transfers: isOffChainBalances ? [] : transfers,
+    claims: isOffChainBalances ? [] : claims.map(claim => ({
+      ...claim,
+      codes: undefined,
+      password: undefined,
+      details: undefined,
+    })),
+  }
+
+  return <div className='full-width flex-center'
+    style={{ marginTop: 20, }} >
     <Button
       type="primary"
       style={{ width: '90%' }}
@@ -241,9 +124,7 @@ export function SubmitMsgNewCollection({
     <CreateTxMsgNewCollectionModal
       visible={visible}
       setVisible={setVisible}
-      txCosmosMsg={newCollectionMsg}
-      unregisteredUsers={unregisteredUsers}
-      onRegister={onRegister}
+      txCosmosMsg={msg}
       beforeTx={async () => {
         setLoading(true);
         await updateIPFSUris();
@@ -251,5 +132,5 @@ export function SubmitMsgNewCollection({
         setLoading(false);
       }}
     />
-  </div>
+  </div >
 }

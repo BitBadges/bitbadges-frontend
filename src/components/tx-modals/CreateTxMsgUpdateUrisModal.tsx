@@ -1,18 +1,18 @@
-import { MessageMsgUpdateUris, createTxMsgUpdateUris } from 'bitbadgesjs-transactions';
+import { MsgUpdateUris, createTxMsgUpdateUris } from 'bitbadgesjs-transactions';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { MetadataAddMethod } from 'bitbadgesjs-utils';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { TxModal } from './TxModal';
-import { TxTimeline, TxTimelineProps } from '../tx-timelines/TxTimeline';
+import { TxTimeline, MsgUpdateUrisProps, MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 import { Modal } from 'antd';
 
 
 export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, collectionId
 }: {
-  collectionId: number,
+  collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode,
@@ -20,50 +20,42 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
   const router = useRouter();
   const collections = useCollectionsContext();
   const chain = useChainContext();
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
-  const [txState, setTxState] = useState<TxTimelineProps>();
-
+  const [txState, setTxState] = useState<MsgUpdateUrisProps>();
 
   async function updateIPFSUris() {
-    if (!txState) return;
+    if (!txState || !collection) return;
 
     //If metadata was added manually, add it to IPFS and update the colleciton and badge URIs
     if (txState.addMethod == MetadataAddMethod.Manual) {
-      let res = await addMetadataToIpfs(txState.collectionMetadata, txState.individualBadgeMetadata);
-      const keys = Object.keys(txState.individualBadgeMetadata);
-      const values = Object.values(txState.individualBadgeMetadata);
+      let res = await addMetadataToIpfs({ collectionMetadata: collection.collectionMetadata, badgeMetadata: collection.badgeMetadata });
+
       let badgeUris = [];
-      for (let i = 0; i < keys.length; i++) {
+      for (let i = 0; i < collection.badgeMetadata.length; i++) {
         badgeUris.push({
-          uri: 'ipfs://' + res.cid + '/batch/' + keys[i],
-          badgeIds: values[i].badgeIds
+          uri: 'ipfs://' + res.badgeMetadataResults[i].cid + '/' + res.badgeMetadataResults[i].path,
+          badgeIds: collection.badgeMetadata[i].badgeIds
         });
       }
 
-      setTxState({
-        ...txState,
-        newCollectionMsg: {
-          ...txState.newCollectionMsg,
-          collectionUri: 'ipfs://' + res.cid + '/collection',
-          badgeUris
-        }
-      });
       return {
         creator: chain.cosmosAddress,
         collectionId: collectionId,
-        collectionUri: 'ipfs://' + res.cid + '/collection',
+        collectionUri: 'ipfs://' + res.collectionMetadataResult?.cid + '/' + res.collectionMetadataResult?.path,
         badgeUris: badgeUris
-      }
+      } as MsgUpdateUris<bigint>;
     }
 
-    //If metadata is self-hosted from a URL, we currently assume that they are updating all metadata, and txState.newCollectionMsg is already set
+    //If metadata is self-hosted from a URL, we currently assume that they are updating all metadata, and txState.msg is already set
   }
 
-  const updateUrisMsg: MessageMsgUpdateUris = {
+  const updateUrisMsg: MsgUpdateUris<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
-    collectionUri: txState ? txState?.newCollectionMsg.collectionUri : '',
-    badgeUris: txState ? txState?.newCollectionMsg.badgeUris : [],
+    collectionUri: collection ? collection?.collectionUri : '',
+    badgeUris: collection ? collection?.badgeUris : [],
+    balancesUri: collection ? collection?.balancesUri : '',
   }
 
   const [disabled, setDisabled] = useState<boolean>(true);
@@ -73,7 +65,7 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
       title: 'Update Metadata',
       description: <TxTimeline txType='UpdateMetadata'
         collectionId={collectionId}
-        onFinish={(txState: TxTimelineProps) => {
+        onFinish={(txState: MsgUpdateUrisProps) => {
           setDisabled(false);
           setTxState(txState);
         }}
@@ -96,8 +88,8 @@ export function CreateTxMsgUpdateUrisModal({ visible, setVisible, children, coll
       txCosmosMsg={updateUrisMsg}
       createTxFunction={createTxMsgUpdateUris}
       onSuccessfulTx={async () => {
-        await collections.refreshCollection(updateUrisMsg.collectionId);
-        router.push(`/collections/${updateUrisMsg.collectionId}`)
+        await collections.triggerMetadataRefresh(collectionId);
+        router.push(`/collections/${collectionId}`)
         Modal.destroyAll()
       }}
       requireRegistration

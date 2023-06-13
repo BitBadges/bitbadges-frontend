@@ -1,60 +1,65 @@
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AnnouncementActivityItem, BitBadgeCollection } from 'bitbadgesjs-utils';
+import { AnnouncementInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { addAnnouncement } from '../../bitbadges-api/api';
-import { BLANK_USER_INFO, INFINITE_LOOP_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 
-export function AnnouncementsTab({ announcements, collection, hideCollection, fetchMore, hasMore }: {
-  announcements: AnnouncementActivityItem[];
-  collection?: BitBadgeCollection,
+export function AnnouncementsTab({ announcements, collectionId, hideCollection, fetchMore, hasMore }: {
+  announcements: AnnouncementInfo<bigint>[],
+  collectionId?: bigint,
   hideCollection?: boolean,
   fetchMore: () => void,
   hasMore: boolean
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
+  const accountsRef = useRef(accounts);
   const collections = useCollectionsContext();
+  const collectionsRef = useRef(collections);
+  const collection = collectionId ? collections.getCollection(collectionId) : undefined;
+
   const router = useRouter();
 
   const [newAnnouncement, setNewAnnouncement] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const accountsToFetch: number[] = announcements.map(a => a.from);
-    const collectionsToFetch: number[] = announcements.map(a => a.collectionId);
-    accounts.fetchAccountsByNumber(accountsToFetch);
-    collections.fetchCollections(collectionsToFetch);
+    const accountsToFetch = announcements.map(a => a.from);
+    const collectionsToFetch = announcements.map(a => a.collectionId);
+    accountsRef.current.fetchAccounts(accountsToFetch);
+    collectionsRef.current.fetchCollections(collectionsToFetch);
 
     if (INFINITE_LOOP_MODE) console.log('AnnouncementsTab useEffect', { accountsToFetch, collectionsToFetch });
-  }, [announcements, accounts, collections]);
+  }, [announcements]);
 
   return (
     <>
-      {collection && chain.accountNumber === collection.manager.accountNumber && chain.loggedIn && (<>
+      {collection && collectionId && chain.cosmosAddress === collection.managerInfo.cosmosAddress && chain.loggedIn && (<>
         <br />
         <Input.TextArea
           value={newAnnouncement}
           onChange={(e) => setNewAnnouncement(e.target.value)}
           placeholder="New Announcement (Max 2048 Characters)"
-          style={{ marginBottom: 16, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+          style={{ marginBottom: 16, }}
+          className='primary-text primary-blue-bg'
         />
 
         <Button
           disabled={newAnnouncement.length > 2048}
           type="primary"
           loading={loading}
-          style={{ width: '100%' }}
+          className='full-width'
           onClick={async () => {
             if (newAnnouncement.length === 0) return;
             setLoading(true);
-            await addAnnouncement(newAnnouncement, collection.collectionId);
-            await collections.refreshCollection(collection.collectionId);
+            await addAnnouncement(collectionId, { announcement: newAnnouncement });
+            await collections.fetchCollections([collectionId], true);
             setNewAnnouncement('');
             setLoading(false);
           }}
@@ -66,8 +71,9 @@ export function AnnouncementsTab({ announcements, collection, hideCollection, fe
       {announcements.length === 0 && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No Announcements"
-        style={{ color: PRIMARY_TEXT }}
+        className='primary-text'
       />}
+
       <InfiniteScroll
         dataLength={announcements.length}
         next={fetchMore}
@@ -77,33 +83,28 @@ export function AnnouncementsTab({ announcements, collection, hideCollection, fe
           <Spin size={'large'} />
         </div>}
         scrollThreshold="200px"
-        endMessage={
-          <></>
-        }
+        endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}
       >
         {announcements.map((announcement, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
 
-          const collectionToDisplay = collections.collections[announcement.collectionId]?.collection;
+          const collectionToDisplay = collections.getCollection(announcement.collectionId);
           return (
-            <div key={index} style={{ color: PRIMARY_TEXT, width: '100%', }}>
-
+            <div key={index} className='primary-text full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-                <Col md={12} sm={24} xs={24} style={{ color: PRIMARY_TEXT, alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }} >
-                    <AddressDisplay userInfo={accounts.accounts[accounts.cosmosAddressesByAccountNumbers[announcement.from]] || BLANK_USER_INFO}
-                      darkMode
-                    />
+                <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+                  <div className='flex-center' style={{ alignItems: 'center' }} >
+                    <AddressDisplay addressOrUsername={announcement.from} />
                   </div>
                   {!hideCollection && collectionToDisplay &&
-                    <div style={{ display: 'flex', alignItems: 'center' }} >
+                    <div className='flex-center' style={{ alignItems: 'center' }} >
 
                       <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
-                        <div className='link-button-nav' onClick={() => {
+                        <div className='link-button-nav flex-center' onClick={() => {
                           router.push('/collections/' + collectionToDisplay.collectionId)
                           Modal.destroyAll()
-                        }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                        }} style={{ fontSize: 20 }}>
                           <a>
                             {collectionToDisplay.collectionMetadata?.name}
                           </a>
@@ -113,18 +114,18 @@ export function AnnouncementsTab({ announcements, collection, hideCollection, fe
                     </div>}
 
 
-                  <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    {new Date(announcement.timestamp).toLocaleDateString() + ' '}
-                    {new Date(announcement.timestamp).toLocaleTimeString()}
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                    {new Date(announcement.timestamp.toString()).toLocaleDateString() + ' '}
+                    {new Date(announcement.timestamp.toString()).toLocaleTimeString()}
                   </Typography.Text>
                 </Col>
               </Row>
               <Divider />
 
-              <div style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+              <div className='flex-between full-width primary-text'>
 
-                <div style={{ color: PRIMARY_TEXT, display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-                  <Typography.Text style={{ color: PRIMARY_TEXT, fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                <div className='flex-between full-width primary-text'>
+                  <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
                     {announcement.announcement}
                   </Typography.Text>
                 </div>

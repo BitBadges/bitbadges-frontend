@@ -1,50 +1,42 @@
 import { MetadataAddMethod } from 'bitbadgesjs-utils';
 import { FormTimeline } from '../navigation/FormTimeline';
-import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, MsgUpdateUrisProps } from './TxTimeline';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
+import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
-import { SetIndividualBadgeMetadataStepItem } from './step-items/SetIndividualBadgeMetadata';
 
 //See TxTimeline for explanations and documentation
 
 export function UpdateMetadataTimeline({
-    txTimelineProps
+  txTimelineProps
 }: {
-    txTimelineProps: TxTimelineProps
+  txTimelineProps: MsgUpdateUrisProps
 }) {
-    const newCollectionMsg = txTimelineProps.newCollectionMsg;
-    const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
-    const collection = txTimelineProps.simulatedCollection;
-    const addMethod = txTimelineProps.addMethod;
-    const setAddMethod = txTimelineProps.setAddMethod;
-    const collectionMetadata = txTimelineProps.collectionMetadata;
-    const badgeMetadata = txTimelineProps.individualBadgeMetadata;
-    const setCollectionMetadata = txTimelineProps.setCollectionMetadata;
-    const individualBadgeMetadata = txTimelineProps.individualBadgeMetadata;
-    const setIndividualBadgeMetadata = txTimelineProps.setIndividualBadgeMetadata;
-    const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = txTimelineProps.updateMetadataForBadgeIdsDirectlyFromUriIfAbsent;
+  const addMethod = txTimelineProps.addMethod;
+  const setAddMethod = txTimelineProps.setAddMethod;
+  const existingCollectionId = txTimelineProps.existingCollectionId;
 
-    //All mint timeline step items
-    const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
+  //All mint timeline step items
+  const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
 
-    const SetCollectionMetadataStep = SetCollectionMetadataStepItem(newCollectionMsg, setNewCollectionMsg, addMethod, collectionMetadata, setCollectionMetadata, individualBadgeMetadata, setIndividualBadgeMetadata, collection, undefined, updateMetadataForBadgeIdsDirectlyFromUriIfAbsent);
-    const SetIndividualBadgeMetadataStep = SetIndividualBadgeMetadataStepItem(newCollectionMsg, setNewCollectionMsg, collection, badgeMetadata, setIndividualBadgeMetadata, collectionMetadata, addMethod);
-    const CollectionPreviewStep = PreviewCollectionStepItem(collection);
+  const SetCollectionMetadataStep = SetCollectionMetadataStepItem(addMethod, existingCollectionId);
+  const SetBadgeMetadataStep = SetBadgeMetadataStepItem(addMethod, existingCollectionId, false);
+  const CollectionPreviewStep = PreviewCollectionStepItem();
 
-    return (
-        <FormTimeline
-            items={[
-                MetadataStorageSelectStep,
-                SetCollectionMetadataStep,
-                addMethod === MetadataAddMethod.Manual
-                    ? SetIndividualBadgeMetadataStep : EmptyStepItem,
-                addMethod === MetadataAddMethod.Manual
-                    ? CollectionPreviewStep : EmptyStepItem,
-            ]}
-            onFinish={() => {
-                if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
-            }}
-        />
-    );
+  return (
+    <FormTimeline
+      items={[
+        MetadataStorageSelectStep,
+        SetCollectionMetadataStep,
+        addMethod === MetadataAddMethod.Manual
+          ? SetBadgeMetadataStep : EmptyStepItem,
+        addMethod === MetadataAddMethod.Manual
+          ? CollectionPreviewStep : EmptyStepItem,
+      ]}
+      onFinish={() => {
+        if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+      }}
+    />
+  );
 }

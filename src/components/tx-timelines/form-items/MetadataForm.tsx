@@ -1,20 +1,20 @@
 import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
-import { BadgeMetadata, BitBadgeCollection, IdRange, MetadataAddMethod, DefaultPlaceholderMetadata, GO_MAX_UINT_64, MAX_DATE_TIMESTAMP, } from 'bitbadgesjs-utils';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
 import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 
-import { getIdRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
+import { IdRange } from 'bitbadgesjs-proto';
+import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { FOREVER_DATE } from '../../../utils/dates';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
 import { IdRangesInput } from '../../balances/IdRangesInput';
 
@@ -26,48 +26,71 @@ const DELAY_TIME = 300;
 
 //TODO: abstract and clean this
 
-//Do not pass an id if this is for the collection metadata
+//Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
-  metadata,
-  setMetadata,
+  collectionId,
+  isCollectionSelect,
   addMethod,
-  hideCollectionSelect,
-  hideBadgeSelect,
-
-  id,
-  setId,
-  newCollectionMsg,
-  setNewCollectionMsg,
-  populateOtherBadges,
   startId,
   endId,
   toBeFrozen,
-  collection,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
+  hideCollectionSelect
 }: {
-  newCollectionMsg: MessageMsgNewCollection;
-  setNewCollectionMsg: (badge: MessageMsgNewCollection) => void;
-  metadata: BadgeMetadata;
-  setMetadata: (metadata: BadgeMetadata) => void;
-  id?: number;
-  setId?: (id: number) => void;
   addMethod: MetadataAddMethod;
-  populateOtherBadges: (badgeIds: IdRange[], key: string, value: any, metadataToSet?: BadgeMetadata) => void;
-  startId: number;
-  endId: number;
+  isCollectionSelect?: boolean;
+  startId: bigint;
+  endId: bigint;
   toBeFrozen?: boolean;
-  collection: BitBadgeCollection;
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>
+  collectionId: bigint;
   hideCollectionSelect?: boolean;
-  hideBadgeSelect?: boolean;
+
 }) {
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+
+  const [badgeId, setBadgeId] = useState<bigint>(startId ?? 1n);
+
+  let metadata = (isCollectionSelect ? collection?.collectionMetadata : getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
+
+  //TODO: Think about race conditions between the debounce time
+  const setMetadata = (metadata: Metadata<bigint>) => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (!collection) return;
+      if (isCollectionSelect) {
+        collections.updateCollection({
+          ...collection,
+          collectionMetadata: metadata
+        });
+      } else {
+        const newBadgeMetadata = updateBadgeMetadata(collection.badgeMetadata, { metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
+        collections.updateCollection({
+          ...collection,
+          badgeMetadata: newBadgeMetadata
+        })
+      }
+    }, DELAY_TIME);
+
+    return () => clearTimeout(delayDebounceFn)
+  }
+
+  const populateOtherBadges = (badgeIds: IdRange<bigint>[], key: string, value: any) => {
+    if (!collection) return;
+
+    const badgeMetadata = collection.badgeMetadata;
+    const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
+    collections.updateCollection({
+      ...collection,
+      badgeMetadata: newBadgeMetadata,
+    })
+  }
+
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
-  const [validForeverChecked, setValidForeverChecked] = useState(metadata.validFrom?.end === MAX_DATE_TIMESTAMP);
-  const [idRanges, setIdRanges] = useState<IdRange[]>([
+  const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom?.end === FOREVER_DATE);
+  const [idRanges, setIdRanges] = useState<IdRange<bigint>[]>([
     {
-      start: startId ? startId : 1,
-      end: endId ? endId : GO_MAX_UINT_64
+      start: startId ? startId : 1n,
+      end: endId ? endId : FOREVER_DATE
     }
   ]);
 
@@ -88,7 +111,7 @@ export function MetadataForm({
 
   const [images, setImages] = useState([
     ...sampleImages,
-    metadata.image && !sampleImages.find(x => x.value === metadata.image)
+    metadata?.image && !sampleImages.find(x => x.value === metadata.image)
       ? {
         value: metadata.image,
         label: 'Custom Image',
@@ -108,20 +131,6 @@ export function MetadataForm({
   const onNameChange = (event: any) => {
     setName(event.target.value);
   };
-
-  const [currentMetadata, setCurrentMetadata] = useState(metadata);
-  const [updateParentMetadataFlag, setUpdateParentMetadataFlag] = useState(false);
-
-  const updateCurrentMetadata = (metadata: BadgeMetadata) => {
-    console.log("SETTING CURR METADATA", metadata);
-    setCurrentMetadata(metadata);
-    setUpdateParentMetadataFlag(!updateParentMetadataFlag);
-  };
-
-  useEffect(() => {
-    setCurrentMetadata(metadata);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
   const dummyRequest = ({ onSuccess }: any) => {
     setTimeout(() => {
@@ -152,8 +161,8 @@ export function MetadataForm({
             label: info.file.url ? info.file.url : info.file.name,
           })
           setImages(images);
-          updateCurrentMetadata({
-            ...currentMetadata,
+          setMetadata({
+            ...metadata,
             image: base64
           });
           setImageIsUploading(false);
@@ -177,60 +186,40 @@ export function MetadataForm({
   }
 
   function handleEditorChange({ text }: any) {
-    updateCurrentMetadata({
-      ...currentMetadata,
+    setMetadata({
+      ...metadata,
       description: text
     });
     // console.log('handleEditorChange', html, text);
   }
-
-
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      setMetadata(currentMetadata);
-    }, DELAY_TIME);
-
-    return () => clearTimeout(delayDebounceFn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateParentMetadataFlag])
 
   return (
     <>
       <div>
         {addMethod === MetadataAddMethod.UploadUrl && <>
           <MetadataUriSelect
-            collection={collection}
-            newCollectionMsg={newCollectionMsg}
-            setNewCollectionMsg={(newCollectionMsg: MessageMsgNewCollection, updateCollection: boolean, updateBadges: boolean) => {
-              setNewCollectionMsg(newCollectionMsg);
-              if (updateCollection) setMetadata(JSON.parse(JSON.stringify({ ...DefaultPlaceholderMetadata, image: '' })));
-              if (updateBadges) populateOtherBadges(getIdRangesForAllBadgeIdsInCollection(collection), 'all', '', { ...DefaultPlaceholderMetadata, image: '' });
-            }}
+            collectionId={collectionId}
             startId={startId}
             endId={endId}
-            updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
             hideCollectionSelect={hideCollectionSelect}
-            hideBadgeSelect={hideBadgeSelect}
           />
         </>}
 
         {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
 
-          {id && <div>
-            <div style={{ color: PRIMARY_TEXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
+          {!!badgeId && badgeId > 0 && !isCollectionSelect && <div>
+            <div className='primary-text flex-center' >
 
               <div><b>Setting Metadata for Badge ID:{' '}</b></div>
-              <InputNumber min={startId ? startId : 1} max={endId ? endId : GO_MAX_UINT_64}
-                value={id}
+              <InputNumber min={Numberify((startId ? startId : 1n).toString())} max={Numberify((endId ? endId : FOREVER_DATE).toString())}
+                value={Numberify(badgeId.toString())}
                 onChange={(e) => {
-                  if (e && e > 0 && setId) setId(e)
+                  if (e && e > 0 && setBadgeId) setBadgeId(BigInt(e));
                 }}
                 style={{
                   marginLeft: 8,
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
+                className='primary-text primary-blue-bg'
               />
               <Tooltip title='Populate the metadata of other badges with the metadata of this badge.'>
                 <Avatar
@@ -249,39 +238,37 @@ export function MetadataForm({
 
             </div>
             <br />
-            <div style={{ color: PRIMARY_TEXT }}>
+            <div className='primary-text'>
               <BadgeAvatar
-                badgeId={id}
-                metadata={currentMetadata}
-                collection={collection}
+                badgeId={badgeId}
+                collectionId={collectionId}
                 size={75}
                 showId
               />
             </div>
             <div>
-              {populateIsOpen && fieldName === 'all' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+              {populateIsOpen && fieldName === 'all' && <div style={{ marginTop: 8 }} className='primary-text'>
                 <br />
-                <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
+                <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
                 <br />
                 <IdRangesInput
-                  darkMode
-                  minimum={startId ? startId : 1}
-                  maximum={endId ? endId : GO_MAX_UINT_64}
+                  minimum={startId ? startId : 1n}
+                  maximum={endId ? endId : FOREVER_DATE}
                   setIdRanges={setIdRanges}
                   verb={'Update'}
-                  collection={collection}
+                  collectionId={collectionId}
                 />
 
                 <Divider />
-                {!id && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+                {!badgeId && <div className='secondary-text' style={{ textAlign: 'center' }}>
                   <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
                   <br />
                   <br />
                 </div>}
                 <Button type='primary'
-                  style={{ width: '100%' }}
+                  className='full-width'
                   onClick={() => {
-                    populateOtherBadges(idRanges, fieldName, '', currentMetadata);
+                    populateOtherBadges(idRanges, fieldName, '');
                     setPopulateIsOpen(false);
                   }}
                 > Update </Button>
@@ -298,7 +285,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Title
@@ -306,19 +293,18 @@ export function MetadataForm({
             }
             required
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Input
-                value={currentMetadata.name}
+                value={metadata.name}
                 onChange={(e: any) => {
-                  updateCurrentMetadata({
-                    ...currentMetadata,
+                  setMetadata({
+                    ...metadata,
                     name: e.target.value
                   });
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
+                className='primary-text primary-blue-bg'
               />
               <Tooltip title='Populate the metadata of other badges with this title.'>
                 <Avatar
@@ -335,29 +321,28 @@ export function MetadataForm({
                 />
               </Tooltip>
             </div>
-            {populateIsOpen && fieldName === 'name' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'name' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this title?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this title?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
-              {!id && <div style={{ color: SECONDARY_TEXT, textAlign: 'center' }}>
+              {!badgeId && <div className='secondary-text' style={{ textAlign: 'center' }}>
                 <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
                 <br />
                 <br />
               </div>}
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -368,7 +353,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Image
@@ -376,26 +361,24 @@ export function MetadataForm({
             }
             required
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Select
-                className="selector"
-                value={images.find((item: any) => item.value === currentMetadata.image)?.label}
+                className="selector primary-text primary-blue-bg"
+                value={images.find((item: any) => item.value === metadata.image)?.label}
                 onChange={(e) => {
                   const newImage = images.find((item: any) => e === item.label)?.value;
                   if (newImage) {
-                    updateCurrentMetadata({
-                      ...currentMetadata,
+                    setMetadata({
+                      ...metadata,
                       image: newImage
                     });
                   }
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
                 suffixIcon={
                   <DownOutlined
-                    style={{ color: PRIMARY_TEXT }}
+                    className='primary-text'
                   />
                 }
                 dropdownRender={(menu) => (
@@ -453,24 +436,23 @@ export function MetadataForm({
                 />
               </Tooltip>
             </div>
-            {populateIsOpen && fieldName === 'image' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'image' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this image?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this image?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -482,7 +464,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Category
@@ -490,25 +472,23 @@ export function MetadataForm({
             }
           // required={type === 0}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Select
-                className="selector"
-                value={currentMetadata.category}
+                className="selector primary-text primary-blue-bg"
+                value={metadata.category}
                 placeholder="Default: None"
                 onChange={(e: any) => {
-                  updateCurrentMetadata({
-                    ...currentMetadata,
+                  setMetadata({
+                    ...metadata,
                     category: e
                   });
 
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
                 suffixIcon={
                   <DownOutlined
-                    style={{ color: PRIMARY_TEXT }}
+                    className='primary-text'
                   />
                 }
                 dropdownRender={(menu) => (
@@ -563,24 +543,23 @@ export function MetadataForm({
               </Tooltip>
 
             </div>
-            {populateIsOpen && fieldName === 'category' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'category' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this category?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this category?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -591,27 +570,28 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Description
               </Text>
             }
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <MdEditor style={{
-                width: '100%',
-                minHeight: '250px',
-                backgroundColor: PRIMARY_BLUE,
-                color: PRIMARY_TEXT
-              }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
-                value={currentMetadata.description}
+            <div className='flex-between'>
+              <MdEditor
+                className='primary-text primary-blue-bg'
+                style={{
+                  width: '100%',
+                  minHeight: '250px',
+
+                }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                value={metadata.description}
               />
               {/* <Input.TextArea
-                            value={currentMetadata.description}
+                            value={metadata.description}
                             onChange={(e) => {
                                 setMetadata({
-                                    ...currentMetadata,
+                                    ...metadata,
                                     description: e.target.value
                                 });
                             }}
@@ -635,24 +615,23 @@ export function MetadataForm({
                 />
               </Tooltip>
             </div>
-            {populateIsOpen && fieldName === 'description' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'description' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this description?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this description?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -665,7 +644,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Website <Tooltip title={'Provide a website link for users to learn more.'}>
@@ -674,19 +653,18 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Input
-                value={currentMetadata.externalUrl}
+                value={metadata.externalUrl}
                 onChange={(e) => {
-                  updateCurrentMetadata({
-                    ...currentMetadata,
+                  setMetadata({
+                    ...metadata,
                     externalUrl: e.target.value
                   });
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
+                className='primary-text primary-blue-bg'
               />
               <Tooltip title='Populate the metadata of other badges with this website.'>
                 <Avatar
@@ -709,24 +687,23 @@ export function MetadataForm({
                 {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
               </Text>
             </div>
-            {populateIsOpen && fieldName === 'externalUrl' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'externalUrl' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this website?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this website?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -737,7 +714,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Expiration Date <Tooltip title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational.'}>
@@ -746,60 +723,49 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-              <div style={{
-                width: '100%',
-                backgroundColor: PRIMARY_BLUE,
-                color: PRIMARY_TEXT,
-              }}>
+            <div className='flex-between'>
+              <div className='primary-text primary-blue-bg full-width'>
                 {!validForeverChecked &&
                   <DatePicker
                     placeholder='Default: No Expiration Date'
-                    value={currentMetadata.validFrom ? moment(new Date(currentMetadata.validFrom.end * 1000)) : undefined}
-                    style={{
-                      width: '100%',
-                      backgroundColor: PRIMARY_BLUE,
-                      color: PRIMARY_TEXT,
-                    }}
+                    value={metadata.validFrom ? moment(new Date(metadata.validFrom.end.toString())) : undefined}
+                    className='primary-text primary-blue-bg full-width'
                     suffixIcon={
                       <CalendarOutlined
-                        style={{
-                          color: PRIMARY_TEXT,
-                        }}
+                        className='primary-text'
                       />
                     }
                     onChange={(_date, dateString) => {
-                      updateCurrentMetadata({
-                        ...currentMetadata,
+                      setMetadata({
+                        ...metadata,
                         validFrom: {
-                          start: Date.now() / 1000,
-                          end: new Date(dateString).valueOf() / 1000,
+                          start: BigInt(Date.now()),
+                          end: BigInt(new Date(dateString).valueOf()),
                         }
                       });
                     }}
                   />
                 }
-                <div style={{ color: PRIMARY_TEXT }}>
+                <div className='primary-text'>
                   Valid Forever?
                   <Checkbox
                     checked={validForeverChecked}
                     style={{ marginLeft: 5 }}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        updateCurrentMetadata({
-                          ...currentMetadata,
+                        setMetadata({
+                          ...metadata,
                           validFrom: {
-                            start: Date.now() / 1000,
-                            end: MAX_DATE_TIMESTAMP
+                            start: BigInt(Date.now()),
+                            end: FOREVER_DATE
                           }
                         });
                       } else {
-                        updateCurrentMetadata({
-                          ...currentMetadata,
+                        setMetadata({
+                          ...metadata,
                           validFrom: {
-                            start: Date.now() / 1000,
-                            end: Date.now() / 1000,
+                            start: BigInt(Date.now()),
+                            end: BigInt(Date.now()),
                           }
                         });
                       }
@@ -826,24 +792,23 @@ export function MetadataForm({
               </Tooltip>
 
             </div>
-            {populateIsOpen && fieldName === 'validFrom' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'validFrom' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -857,7 +822,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Tags / Keywords <Tooltip title={'Use tags and keywords to further categorize your badge and make it more searchable!'}>
@@ -866,19 +831,18 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Input
-                value={currentMetadata.tags}
+                value={metadata.tags}
                 onChange={(e) => {
-                  updateCurrentMetadata({
-                    ...currentMetadata,
+                  setMetadata({
+                    ...metadata,
                     tags: e.target.value.split(','),
                   })
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
+                className='primary-text primary-blue-bg'
               />
               <Tooltip title='Populate the metadata of other badges with these tags.'>
                 <Avatar
@@ -902,7 +866,7 @@ export function MetadataForm({
               </Text>
             </div>
             <div style={{ display: 'flex', marginTop: 4 }}>
-              {currentMetadata.tags?.map((tag: any, idx: number) => {
+              {metadata.tags?.map((tag: any, idx: number) => {
                 if (tag === '') return;
                 return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
                   {tag}
@@ -911,24 +875,23 @@ export function MetadataForm({
 
             </div>
 
-            {populateIsOpen && fieldName === 'tags' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'tags' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have these tags?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have these tags?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -939,7 +902,7 @@ export function MetadataForm({
           <Form.Item
             label={
               <Text
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 strong
               >
                 Border Color <Tooltip title={'Add a colored border around the image!'}>
@@ -948,23 +911,21 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='flex-between'>
               <Select
-                className="selector"
-                defaultValue={currentMetadata.color}
+                className="selector primary-text primary-blue-bg"
+                defaultValue={metadata.color}
                 onSelect={(e: any) => {
-                  updateCurrentMetadata({
-                    ...currentMetadata,
+                  setMetadata({
+                    ...metadata,
                     color: e
                   });
                 }}
                 style={{
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
                 }}
                 suffixIcon={
                   <DownOutlined
-                    style={{ color: PRIMARY_TEXT }}
+                    className='primary-text'
                   />
                 }
               >
@@ -1036,24 +997,23 @@ export function MetadataForm({
               </Tooltip>
 
             </div>
-            {populateIsOpen && fieldName === 'color' && <div style={{ marginTop: 8, color: PRIMARY_TEXT }}>
+            {populateIsOpen && fieldName === 'color' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
-              <h3 style={{ color: PRIMARY_TEXT, textAlign: 'center' }}>Set other badges to have this color?</h3>
+              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this color?</h3>
               <br />
               <IdRangesInput
-                darkMode
-                minimum={startId ? startId : 1}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                minimum={startId ? startId : 1n}
+                maximum={endId ? endId : FOREVER_DATE}
                 setIdRanges={setIdRanges}
                 verb={'Update'}
-                collection={collection}
+                collectionId={collectionId}
               />
 
               <Divider />
               <Button type='primary'
-                style={{ width: '100%' }}
+                className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, currentMetadata[fieldName]);
+                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>

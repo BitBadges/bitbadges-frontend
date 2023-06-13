@@ -33,6 +33,58 @@ code {
 }
 
 
+.primary-blue {
+    color: #001529;
+}
+
+.secondary-blue {
+    color: #3e83f8;
+}
+
+.tertiary-blue {
+    color: #192c3e;
+}
+
+.fourth-blue {
+    color: #304151;
+}
+
+.primary-pink {
+    color: #Ea1795;
+}
+
+.primary-text {
+    color: white;
+}
+
+.secondary-text {
+    color: #dedede;
+}
+
+.link-color {
+    color: #0000EE;
+}
+
+.primary-blue-bg {
+    background-color: #001529;
+}
+
+.secondary-blue-bg {
+    background-color: #3e83f8;
+}
+
+.tertiary-blue-bg {
+    background-color: #192c3e;
+}
+
+.fourth-blue-bg {
+    background-color: #304151;
+}
+
+.primary-pink-bg {
+    background-color: #Ea1795;
+}
+
 .App {
     position: absolute;
     top: 0px;
@@ -213,6 +265,9 @@ transform: scale(1.01);
     padding: 0;
     margin: 0;
 }
+.full-width {
+    width: '100%';
+}
 
 .primaryBg {
     background-color: #001529;
@@ -283,12 +338,25 @@ transform: scale(1.01);
     padding-bottom: 10px;
 }
 
+.flex {
+  display: flex;
+}
+
 .flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: row;
 }
+
+
+.flex-evenly {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+}
+  
   
 .flex-between {
     display: flex;

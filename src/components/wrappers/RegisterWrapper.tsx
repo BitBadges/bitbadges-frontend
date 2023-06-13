@@ -1,15 +1,19 @@
 import React from 'react';
-import { useChainContext } from '../../contexts/ChainContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import RegisterScreen from '../../pages/register';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
-    const chain = useChainContext();
-    const isRegistered = chain.isRegistered;
-    const airdropped = chain.airdropped;
+  const chain = useChainContext();
+  const accounts = useAccountsContext();
 
-    return (
-        <>
-            {isRegistered && airdropped ? node : <RegisterScreen message={message} />}
-        </>
-    );
+  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+  const isRegistered = signedInAccount?.accountNumber && signedInAccount?.accountNumber > 0;
+  const airdropped = signedInAccount?.airdropped;
+
+  return (
+    <>
+      {isRegistered && airdropped ? node : <RegisterScreen message={message} />}
+    </>
+  );
 }

@@ -1,6 +1,6 @@
-import { BitBadgeCollection, UserBalance } from "bitbadgesjs-utils";
-import { BalanceDisplay } from "./BalanceDisplay";
 import { Col, Row } from "antd";
+import { UserBalance } from "bitbadgesjs-proto";
+import { BalanceDisplay } from "./BalanceDisplay";
 
 export function BalanceBeforeAndAfter({
   balance,
@@ -9,15 +9,14 @@ export function BalanceBeforeAndAfter({
   hideTitle,
   beforeMessage,
   afterMessage,
-  collection,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
+  collectionId,
+
 }: {
-  balance: UserBalance;
-  newBalance: UserBalance;
+  balance: UserBalance<bigint>;
+  newBalance: UserBalance<bigint>
   partyString: string;
   hideTitle?: boolean;
-  collection: BitBadgeCollection;
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>;
+  collectionId: bigint;
   beforeMessage?: string;
   afterMessage?: string;
 }) {
@@ -32,18 +31,18 @@ export function BalanceBeforeAndAfter({
     <Row>
       <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
-          collection={collection}
+          collectionId={collectionId}
           balance={balance}
           message={beforeMessage ? beforeMessage : 'Before'}
-          updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+
         />
       </Col>
       <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
-          collection={collection}
+          collectionId={collectionId}
           balance={newBalance}
           message={afterMessage ? afterMessage : 'After'}
-          updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
+
         />
       </Col>
     </Row>

@@ -1,14 +1,9 @@
 import {
-  Typography,
   Form,
+  Typography,
 } from 'antd';
-import React, { ReactNode, useEffect } from 'react';
-import { useState } from 'react';
-import { PRIMARY_TEXT } from '../../constants';
-
+import { ReactNode, useEffect, useState } from 'react';
 import { FormNavigationHeader } from './FormNavigationHeader';
-
-
 export interface TimelineItem {
   disabled?: boolean;
   node: ReactNode;
@@ -49,7 +44,7 @@ export function FormTimeline({
   };
 
   useEffect(() => {
-    setNextButton(formStepNum);
+    setNextButtonDisabled(!!filteredItems[formStepNum - 1]?.disabled);
 
     if (formStepNum === filteredItems.length && onFinish) {
       onFinish();
@@ -65,8 +60,8 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
+          className='flex-center'
           style={{
-            color: PRIMARY_TEXT,
             fontSize: 20,
             marginBottom: 10,
           }}
@@ -88,8 +83,8 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
+          className='flex-center'
           style={{
-            color: PRIMARY_TEXT,
             fontSize: 14,
             textAlign: 'center',
           }}

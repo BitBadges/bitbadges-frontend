@@ -1,16 +1,14 @@
-import { BadgeMetadata, BadgeMetadataMap, BitBadgeCollection, BitBadgesUserInfo, ClaimItemWithTrees, DefaultPlaceholderMetadata, DistributionMethod, ErrorMetadata, GO_MAX_UINT_64, GetPermissionNumberValue, GetPermissions, MetadataAddMethod, Permissions, TransferMappingWithUnregisteredUsers, UpdatePermissions, createCollectionFromMsgNewCollection, getMetadataMapObjForBadgeId, updateMetadataMap } from 'bitbadgesjs-utils';
-import { MessageMsgNewCollection } from 'bitbadgesjs-transactions';
-import { useEffect, useState } from 'react';
-import { fetchMetadata } from '../../bitbadges-api/api';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { BadgeSupplyAndAmount } from 'bitbadgesjs-proto';
+import { BLANK_USER_INFO, ClaimInfoWithDetails, DefaultPlaceholderMetadata, DistributionMethod, GetPermissionNumberValue, GetPermissions, MetadataAddMethod, NumberType, Permissions, TransferWithIncrements, UpdatePermissions, removeBadgeMetadata, simulateCollectionAfterMsg, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { useEffect, useRef, useState } from 'react';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { AddBadgesTimeline } from './AddBadgesTimeline';
 import { DistributeTimeline } from './DistributeUnmintedTimeline';
 import { MintCollectionTimeline } from './NewCollectionTimeline';
-import { UpdateDisallowedTimeline } from './UpdateDisallowedTimeline';
+import { UpdateAllowedTimeline } from './UpdateAllowedTimeline';
 import { UpdateMetadataTimeline } from './UpdateMetadataTimeline';
-import { TransferMappingSelectType } from './form-items/TransfersMappingSelect';
-import { UpdateUserBalancesTimeline } from './UpdateUserListTimeline';
+import { UpdateUserBalancesTimeline } from './UpdateOffChainBalancesTimeline';
+import { Spin } from 'antd';
 
 export const EmptyStepItem = {
   title: '',
@@ -19,75 +17,75 @@ export const EmptyStepItem = {
   doNotDisplay: true,
 }
 
-//For the MsgNewCollection, MsgMintBadge, MsgUpdateUris, and MsgUpdateDisallowedTransfers transactions, we use this TxTimeline component. 
+export const MSG_PREVIEW_ID = 0n;
+
+//For the MsgNewCollection, MsgMintAndDistributeBadges, MsgUpdateUris, and MsgUpdateallowedTransfers transactions, we use this TxTimeline component. 
 //We use the txType prop to determine which timeline compoennt to use.
 //Each timeline makes use of the necessary, reusable components in the step-items and form-items folders.
 //The step-items are the individual steps in the timeline, and the form-items are the helper components that are displayed in each step.
-//For reusability purposes, we treat everything as a MessageMsgNewCollection, even if it's not, because that Msg has all the necessary fields for all transactions.
-//We then convert the Msg to the appropriate transaction type at the end.
+//We convert the Msg to the appropriate transaction type at the end.
 
 //NewCollection: Creates a new badge collection
 //UpdateMetadata: Updates the metadata URIs of a badge collection
-//UpdateDisallowed: Updates the disallowed transfers of a badge collection
+//UpdateAllowed: Updates the allowed transfers of a badge collection
 //DistributeBadges: Distributes the unminted badges of a badge collection
 //AddBadges: Adds new badges to a badge collection
 
+/*
+  IMPORTANT FOR DEVELOPERS: Read below
+  
+  Do not update any of the existingCollection or collectionsContext.getCollection(existingCollectionId) fields.
+  Instead, use the simulated collection with ID === 0n aka ID === MSG_PREVIEW_ID. 
+  The simulated collection is a copy of the existing collection with the changes specified by the Msg applied to it.
+  This is because we want to be able to simulate the changes to the collection without actually updating the collection.
 
+  For any new claims, transfers, and badgeSupplys to be added, we export the claims, transfers, and badgeSupplys fields in the TxTimelineProps.
+  We will handle all logic for updating the simulated collection automatically in this file with the changes specified by these fields
+  such as updating the unminted supplys, max supplys, nextBadgeId, nextClaimId, and claims fields of the simulated collection.
 
-export interface TxTimelineProps {
-  txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
-  newCollectionMsg: MessageMsgNewCollection
-  setNewCollectionMsg: (msg: MessageMsgNewCollection) => void
-  collectionMetadata: BadgeMetadata
-  setCollectionMetadata: (metadata: BadgeMetadata) => void
-  individualBadgeMetadata: BadgeMetadataMap
-  setIndividualBadgeMetadata: (metadata: BadgeMetadataMap) => void
-  addMethod: MetadataAddMethod
-  setAddMethod: (method: MetadataAddMethod) => void
+  DO NOT UPDATE ANY OF THE FOLLOWING OF THE SIMULATED COLLECTION'S FIELDS DIRECTLY VIA THE CONTEXT. 
+  -claims, nextBadgeId, nextClaimId, unmintedSupplys, maxSupplys
+
+  USE THE PROVIDED CLAIMS, TRANSFERS, AND BADGESUPPLYS FIELDS AND THEIR SETTER METHODS INSTEAD.
+*/
+
+export interface CreateAndDistributeMsg<T extends NumberType> {
+  claims: (ClaimInfoWithDetails<T> & { password: string, codes: string[] })[]
+  setClaims: (claims: (ClaimInfoWithDetails<T> & { password: string, codes: string[] })[]) => void
+  transfers: TransferWithIncrements<T>[]
+  setTransfers: (transfers: TransferWithIncrements<T>[]) => void
+  badgeSupplys: BadgeSupplyAndAmount<T>[];
+  setBadgeSupplys: (badgeSupplys: BadgeSupplyAndAmount<T>[]) => void
+
+  //TODO: abstract this better so we can have multiple distribution methods for different transfers
   distributionMethod: DistributionMethod
   setDistributionMethod: (method: DistributionMethod) => void
-  claimItems: ClaimItemWithTrees[]
-  setClaimItems: (items: ClaimItemWithTrees[]) => void
-  manualSend: boolean
-  setManualSend: (manualSend: boolean) => void
+}
+
+
+export interface NewCollection {
   handledPermissions: Permissions
   updatePermissions: (digit: number, value: boolean) => void
-  hackyUpdatedFlag: boolean
-  setHackyUpdatedFlag: (flag: boolean) => void
-  fungible: boolean,
-  nonFungible: boolean,
-  simulatedCollection: BitBadgeCollection,
-  onFinish?: (txState: TxTimelineProps) => void,
-  metadataSize: number,
-  existingCollection: BitBadgeCollection | undefined,
-  simulatedCollectionWithoutExistingCollection: BitBadgeCollection,
-  usersToRegister: string[],
-  setUsersToRegister: (users: string[]) => void,
-  managerApprovedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-  setManagerApprovedTransfersWithUnregisteredUsers: (mapping: TransferMappingWithUnregisteredUsers[]) => void,
-  disallowedTransfersWithUnregisteredUsers: TransferMappingWithUnregisteredUsers[],
-  setDisallowedTransfersWithUnregisteredUsers: (transfers: TransferMappingWithUnregisteredUsers[]) => void,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent: (badgeIds: number[]) => Promise<void>,
-  transferabilityToSelectType: TransferMappingSelectType,
-  setTransferabilityToSelectType: (type: TransferMappingSelectType) => void,
-  transferabilityFromSelectType: TransferMappingSelectType,
-  setTransferabilityFromSelectType: (type: TransferMappingSelectType) => void,
-  transferabilityTo: BitBadgesUserInfo[],
-  setTransferabilityTo: (users: BitBadgesUserInfo[]) => void,
-  transferabilityFrom: BitBadgesUserInfo[],
-  setTransferabilityFrom: (users: BitBadgesUserInfo[]) => void,
-  managerToSelectType: TransferMappingSelectType,
-  setManagerToSelectType: (type: TransferMappingSelectType) => void,
-  managerFromSelectType: TransferMappingSelectType,
-  setManagerFromSelectType: (type: TransferMappingSelectType) => void,
-  managerTo: BitBadgesUserInfo[],
-  setManagerTo: (users: BitBadgesUserInfo[]) => void,
-  managerFrom: BitBadgesUserInfo[],
-  setManagerFrom: (users: BitBadgesUserInfo[]) => void,
-  UserBalances: BitBadgesUserInfo[],
-  setUserBalances: (users: BitBadgesUserInfo[]) => void,
-  providedCustomJson: boolean,
-  setProvidedCustomJson: (provided: boolean) => void,
+}
+
+export interface UpdateMetadataMsg {
+  addMethod: MetadataAddMethod
+  setAddMethod: (method: MetadataAddMethod) => void
+  metadataSize: number
+}
+
+export type MsgNewCollectionProps = BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg & { onFinish: (props: BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg) => void };
+export type MsgMintAndDistriubteBadgesProps = BaseTxTimelineProps & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg & { onFinish: (props: BaseTxTimelineProps & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg) => void };
+export type MsgUpdateUrisProps = BaseTxTimelineProps & UpdateMetadataMsg & { onFinish: (props: BaseTxTimelineProps & UpdateMetadataMsg) => void };
+export type MsgUpdateAllowedProps = BaseTxTimelineProps & NewCollection & { onFinish: (props: BaseTxTimelineProps & NewCollection) => void };
+export type MsgUpdateBalancesProps = BaseTxTimelineProps & CreateAndDistributeMsg<bigint> & { onFinish: (props: BaseTxTimelineProps & CreateAndDistributeMsg<bigint>) => void };
+
+
+export interface BaseTxTimelineProps {
+  txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateAllowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
+
+  existingCollectionId?: bigint
+  onFinish?: ((props: MsgNewCollectionProps) => void) | ((props: MsgMintAndDistriubteBadgesProps) => void) | ((props: MsgUpdateUrisProps) => void) | ((props: MsgUpdateAllowedProps) => void) | ((props: MsgUpdateBalancesProps) => void)
 }
 
 export function TxTimeline({
@@ -95,67 +93,141 @@ export function TxTimeline({
   collectionId,
   onFinish,
 }: {
-  txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateDisallowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
-  collectionId?: number,
-  onFinish?: (txState: TxTimelineProps) => void
+  txType: 'NewCollection' | 'UpdateMetadata' | 'UpdateAllowed' | 'DistributeBadges' | 'AddBadges' | 'UpdateBalances'
+  collectionId?: bigint,
+  onFinish?: ((props: MsgNewCollectionProps) => void) | ((props: MsgMintAndDistriubteBadgesProps) => void) | ((props: MsgUpdateUrisProps) => void) | ((props: MsgUpdateAllowedProps) => void) | ((props: MsgUpdateBalancesProps) => void)
 }) {
-  const chain = useChainContext();
   const collections = useCollectionsContext();
-  const existingCollection = collectionId ? collections.collections[collectionId]?.collection : undefined;
+  const collectionsRef = useRef(collections);
+
+  const existingCollection = collectionId ? collections.getCollection(collectionId) : undefined;
+  const simulatedCollection = collections.getCollection(MSG_PREVIEW_ID);
 
   const [size, setSize] = useState(0);
+  const [claims, setClaims] = useState<(ClaimInfoWithDetails<bigint> & { password: string, codes: string[] })[]>([]);
+  const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
+  const [badgeSupplys, setBadgeSupplys] = useState<BadgeSupplyAndAmount<bigint>[]>([]);
+  const [initialLoad, setInitialLoad] = useState(false);
 
-  // Get badge collection information
+  //Only upon first load, we fetch the collection from the server if it exists
+  //Set default values for the collection if it doesn't exist or populate with exsitng values if it does
+  //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
   useEffect(() => {
-    async function fetchCollection() {
-      if (!collectionId) return;
-      const fetchedCollections = await collections.fetchCollections([collectionId], true);
-      const fetchedCollection = fetchedCollections[0];
-      setNewCollectionMsg({
-        ...newCollectionMsg,
-        creator: chain.cosmosAddress,
-        badgeUris: [],
-        collectionUri: fetchedCollection.collectionUri,
-        bytes: fetchedCollection.bytes,
-        permissions: GetPermissionNumberValue(fetchedCollection.permissions),
-        standard: fetchedCollection.standard,
-        badgeSupplys: [],
-        transfers: [],
-        disallowedTransfers: fetchedCollection.disallowedTransfers,
+    async function initialize() {
+      const existingCollection = collectionId ? await collectionsRef.current.fetchCollections([collectionId]) : undefined;
+
+      collectionsRef.current.updateCollection({
+        //Default values
         claims: [],
-        managerApprovedTransfers: fetchedCollection.managerApprovedTransfers,
-      });
+        manager: '',
+        managerInfo: BLANK_USER_INFO,
+        badgeMetadata: [
+          {
+            metadata: DefaultPlaceholderMetadata,
+            badgeIds: [{ start: 1n, end: 10000000000000n }],
+            uri: 'Placeholder',
+          }],
+        collectionMetadata: DefaultPlaceholderMetadata,
+        nextBadgeId: 1n,
+        maxSupplys: [],
+        balancesUri: '',
+        permissions: {
+          CanCreateMoreBadges: true,
+          CanManagerBeTransferred: true,
+          CanUpdateAllowed: true,
+          CanUpdateMetadataUris: true,
+          CanUpdateBytes: true,
+          CanDelete: true,
+          CanUpdateBalancesUri: true,
+        },
+        activity: [],
+        announcements: [],
+        reviews: [],
+        badgeUris: [],
+        owners: [],
+        views: {},
+        collectionUri: '',
+        bytes: '',
+        allowedTransfers: [],
+        managerApprovedTransfers: [],
+        managerRequests: [],
+        nextClaimId: 1n,
+        unmintedSupplys: [],
+        standard: 0n,
+        createdBlock: 0n,
+
+        //Existing collection values
+        ...existingCollection,
+
+        //Preview / simulated collection values
+        _id: "0",
+        collectionId: 0n
+      }, true);
+      setInitialLoad(true);
     }
-    fetchCollection();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    initialize();
   }, [collectionId]);
 
-  //The MsgNewCollection Cosmos message that will be sent to the chain. We use this for all TXs (for compatibility) and convert to respective Msg at the end.
-  const [newCollectionMsg, setNewCollectionMsg] = useState<MessageMsgNewCollection>({
-    creator: chain.cosmosAddress,
-    badgeUris: [],
-    collectionUri: '',
-    bytes: '',
-    permissions: 0,
-    standard: 0,
-    badgeSupplys: [],
-    transfers: [],
-    disallowedTransfers: [],
-    claims: [],
-    managerApprovedTransfers: [],
-  });
+  useEffect(() => {
+    //We have three things that can affect the new simulated collection:
+    //1. If claims change, we need to update the unminted supplys and respective claims field
+    //2. If transfers change, we need to update the unminted supplys and respective transfers field
+    //3. If badgeSupplys change, we need to update the maxSupplys and unminted supplys field
+    //All other updates are handled within CollectionContext
+    //Here, we update the preview collection whenever claims, transfers, or badgeSupplys changes
 
-  const [providedCustomJson, setProvidedCustomJson] = useState(false);
+    //TODO: handle balance docs here as well for transfers. For now, we just say unsupported balances. Will need to fetch all existing balances 
+    //and then update the balances doc with the new balances
 
-  //Metadata for the collection and individual badges
-  const [collectionMetadata, setCollectionMetadata] = useState<BadgeMetadata>(DefaultPlaceholderMetadata);
-  const [individualBadgeMetadata, setBadgeMetadata] = useState<BadgeMetadataMap>({
-    '0': {
-      metadata: DefaultPlaceholderMetadata,
-      badgeIds: [{ start: 1, end: GO_MAX_UINT_64 }],
-      uri: 'Placeholder',
+    const existingCollection = collectionId ? collectionsRef.current.getCollection(collectionId) : undefined;
+    const simulatedCollection = collectionsRef.current.getCollection(0n);
+    if (!simulatedCollection) return;
+
+    //Combine the claims arrays. This is because the fetches may be out of sync between the two
+    //Filter out any new claims to be added because those get added in simulateCollectionAfterMsg
+    const combinedClaims = [...(existingCollection?.claims || []), ...simulatedCollection.claims]
+      //Remove duplicates  
+      .filter(claim => {
+        return !simulatedCollection.claims.some(claim2 => claim2.claimId === claim.claimId) && claim.claimId < simulatedCollection.nextClaimId;
+      });
+
+    const postSimulatedCollection = simulateCollectionAfterMsg({
+      ...simulatedCollection, //These fields do not matter and are ignored. Just for TS. Simularly, we should not read from these fields from postSimulatedCollection
+      claims: combinedClaims,
+      unmintedSupplys: existingCollection?.unmintedSupplys ? existingCollection.unmintedSupplys : [],
+      maxSupplys: existingCollection?.maxSupplys ? existingCollection.maxSupplys : [],
+      nextBadgeId: existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1n,
+      nextClaimId: existingCollection?.nextClaimId ? existingCollection.nextClaimId : 1n,
+    }, claims, transfers, badgeSupplys);
+
+    //If we have created any new badges since the last iteration, add placeholder metadata
+    //Else, if we have deleted any badges since the last iteration, remove the metadata
+    let newBadgeMetadata = simulatedCollection.badgeMetadata;
+    if (postSimulatedCollection.nextBadgeId > simulatedCollection.nextBadgeId) {
+      newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, {
+        metadata: DefaultPlaceholderMetadata,
+        badgeIds: [{
+          start: simulatedCollection.nextBadgeId,
+          end: postSimulatedCollection.nextBadgeId - 1n
+        }]
+      });
+    } else if (postSimulatedCollection.nextBadgeId < simulatedCollection.nextBadgeId) {
+      newBadgeMetadata = removeBadgeMetadata(newBadgeMetadata, [{
+        start: postSimulatedCollection.nextBadgeId,
+        end: simulatedCollection.nextBadgeId - 1n
+      }]);
     }
-  });
+
+    collectionsRef.current.updateCollection({
+      ...simulatedCollection,
+      unmintedSupplys: postSimulatedCollection.unmintedSupplys,
+      claims: postSimulatedCollection.claims,
+      maxSupplys: postSimulatedCollection.maxSupplys,
+      nextBadgeId: postSimulatedCollection.nextBadgeId,
+      nextClaimId: postSimulatedCollection.nextClaimId,
+      badgeMetadata: newBadgeMetadata,
+    }, true);
+  }, [collectionId, claims, transfers, badgeSupplys]);
 
   //The method used to add metadata to the collection and individual badges
   const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
@@ -163,38 +235,27 @@ export function TxTimeline({
   //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
-  //The claim items that will be used to distribute the badges (used for claim vis codes/whitelist)
-  const [claimItems, setClaimItems] = useState<ClaimItemWithTrees[]>([]);
-
   //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
   const [handledPermissions, setHandledPermissions] = useState<Permissions>({
     CanCreateMoreBadges: false,
     CanManagerBeTransferred: false,
-    CanUpdateDisallowed: false,
-    CanUpdateUris: false,
+    CanUpdateAllowed: false,
+    CanUpdateMetadataUris: false,
     CanUpdateBytes: false,
     CanDelete: false,
+    CanUpdateBalancesUri: false,
   });
 
-  const [UserBalances, setUserBalances] = useState<BitBadgesUserInfo[]>([]);
-
-  //Whether the whitelisted addresses are sent the badges manually by the manager or via a claiming process
-  const [manualSend, setManualSend] = useState(false);
-
-  //Bad code but it works and triggers a re-render
-  const [hackyUpdatedFlag, setHackyUpdatedFlag] = useState(false);
-
-  const [usersToRegister, setUsersToRegister] = useState<string[]>([]);
-
-  const [managerApprovedTransfersWithUnregisteredUsers, setManagerApprovedTransfersWithUnregisteredUsers] = useState<TransferMappingWithUnregisteredUsers[]>([]);
-  const [disallowedTransfersWithUnregisteredUsers, setDisallowedTransfersWithUnregisteredUsers] = useState<TransferMappingWithUnregisteredUsers[]>([]);
-
   const updatePermissions = (digit: number, value: boolean) => {
-    const newPermissions = UpdatePermissions(newCollectionMsg.permissions, digit, value);
-    setNewCollectionMsg({
-      ...newCollectionMsg,
-      permissions: newPermissions
-    })
+    if (!simulatedCollection) return;
+
+    const currPermissions = GetPermissionNumberValue(simulatedCollection.permissions);
+    const newPermissions = UpdatePermissions(currPermissions, digit, value);
+
+    collections.updateCollection({
+      ...simulatedCollection,
+      permissions: GetPermissions(newPermissions),
+    });
 
     //Note: This is a hacky way to force a re-render instead of simply doing = handledPermissions
     let handledPermissionsAsNumber = GetPermissionNumberValue(handledPermissions);
@@ -205,259 +266,53 @@ export function TxTimeline({
     return newPermissions;
   }
 
-  const setIndividualBadgeMetadata = (metadata: BadgeMetadataMap) => {
-    console.log(metadata);
-    setBadgeMetadata(metadata);
-    setHackyUpdatedFlag(!hackyUpdatedFlag);
-    setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata })).length);
-  }
-
-
-  //This simulates a BitBadgeCollection object representing what the collection will look like after creation (used for compatibility) 
-  const [simulatedCollection, setSimulatedCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : [], existingCollection));
-  const [simulatedCollectionWithoutExistingCollection, setSimulatedCollectionWithoutExistingCollection] = useState<BitBadgeCollection>(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : []));
-
+  //Upon any new metadata that will need to be added, we need to update the size of the metadata
+  //TODO: Make consistent with actual uploads
   useEffect(() => {
-    setSimulatedCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : [], existingCollection));
-    setSimulatedCollectionWithoutExistingCollection(createCollectionFromMsgNewCollection(newCollectionMsg, collectionMetadata, individualBadgeMetadata, chain, !manualSend ? claimItems : []));
-  }, [newCollectionMsg, collectionMetadata, individualBadgeMetadata, claimItems, distributionMethod, existingCollection, hackyUpdatedFlag, chain, manualSend])
+    const newBadgeMetadata = simulatedCollection?.badgeMetadata.filter(x => existingCollection?.badgeMetadata.some(y => JSON.stringify(x) === JSON.stringify(y)) === false);
+    const newCollectionMetadata = JSON.stringify(simulatedCollection?.collectionMetadata) !== JSON.stringify(existingCollection?.collectionMetadata) ? simulatedCollection?.collectionMetadata : undefined;
 
-  //Upon the badge supply changing, we update the individual badge metadata with placeholders
-  useEffect(() => {
-    if (existingCollection) {
-      setCollectionMetadata(existingCollection.collectionMetadata);
-    }
+    setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
+  }, [simulatedCollection, existingCollection]);
 
-    let nextBadgeId = existingCollection?.nextBadgeId ? existingCollection.nextBadgeId : 1;
-    let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(existingCollection?.badgeMetadata ? existingCollection.badgeMetadata : {}));
-    if (newCollectionMsg.badgeSupplys && newCollectionMsg.badgeSupplys.length > 0) {
-      let origNextBadgeId = nextBadgeId;
-      for (const badgeSupplyObj of newCollectionMsg.badgeSupplys) {
-        nextBadgeId += badgeSupplyObj.amount;
-      }
-
-      metadata = updateMetadataMap(metadata, DefaultPlaceholderMetadata, { start: origNextBadgeId, end: nextBadgeId - 1 }, 'Placeholder');
-    }
-    console.log("SETTING BADGE METADATA");
-    console.log(metadata);
-
-    setBadgeMetadata(metadata);
-    setSize(Buffer.from(JSON.stringify({ metadata, collectionMetadata: existingCollection?.collectionMetadata })).length);
-  }, [newCollectionMsg.badgeSupplys, existingCollection])
-
-
-
-  useEffect(() => {
-    if (addMethod !== MetadataAddMethod.UploadUrl) {
-      setCollectionMetadata(DefaultPlaceholderMetadata);
-      return;
-    };
-
-    async function updateMetadata() {
-      try {
-        const res = await fetchMetadata(newCollectionMsg.collectionUri);
-        setCollectionMetadata(res.metadata);
-      } catch (e) {
-        setCollectionMetadata(ErrorMetadata)
-      }
-    }
-    updateMetadata();
-
-  }, [newCollectionMsg.collectionUri, addMethod]);
-
-  const updateMetadataForBadgeIdsDirectlyFromUriIfAbsent = async (badgeIds: number[]) => {
-    if (addMethod !== MetadataAddMethod.UploadUrl) return;
-
-    let metadata: BadgeMetadataMap = JSON.parse(JSON.stringify(individualBadgeMetadata));
-
-    //Update all the placeholders to iamge = '' to display as loading spinner
-    let origKeys = Object.keys(metadata);
-    let origValues = Object.values(metadata)
-    let updated = false;
-    for (let i = 0; i < origKeys.length; i++) {
-      const metadataObj = origValues[i];
-      if (metadataObj.uri === 'Placeholder') {
-        updated = true;
-        metadata[origKeys[i]].metadata.image = ''; //For loading image
-      }
-    }
-    if (updated) setBadgeMetadata(metadata);
-
-    //For each badgeId to display
-    for (const badgeId of badgeIds) {
-      const currMetadata = getMetadataMapObjForBadgeId(badgeId, metadata);
-      let currUri = '';
-      if (currMetadata) {
-        currUri = currMetadata.uri;
-      }
-
-      //Find the respective URI and update, if it's not already updated
-      for (const badgeUriObj of newCollectionMsg.badgeUris) {
-        const badgeUri = badgeUriObj.uri;
-        let uri = badgeUri.replace("{id}", badgeId.toString());
-
-        if (badgeUriObj.badgeIds.find(x => x.start <= badgeId && x.end >= badgeId)) {
-          //If uris are the same, we have already fetched the metadata
-          if (uri !== currUri) {
-            let currentMetadata = undefined;
-            try {
-              if (badgeUri.includes("{id}")) {
-                const res = await fetchMetadata(uri);
-                currentMetadata = res.metadata;
-              } else {
-                //Check if URI is the same as another badge ID
-                let values = Object.values(metadata);
-                const matchingMetadata = values.find(x => x.uri === uri);
-                if (matchingMetadata) {
-                  currentMetadata = matchingMetadata.metadata;
-                } else {
-                  const res = await fetchMetadata(uri);
-                  currentMetadata = res.metadata;
-                }
-              }
-            } catch (e) {
-              currentMetadata = ErrorMetadata
-            }
-
-            metadata = updateMetadataMap(metadata, currentMetadata, { start: badgeId, end: badgeId }, uri);
-          }
-        }
-      }
-    }
-    setBadgeMetadata(metadata);
-  }
-
-  useEffect(() => {
-    setNewCollectionMsg({
-      ...newCollectionMsg,
-      transfers: [],
-      claims: [],
-    })
-    setClaimItems([]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [distributionMethod]);
-
-  useEffect(() => {
-    setNewCollectionMsg({
-      ...newCollectionMsg,
-      disallowedTransfers: disallowedTransfersWithUnregisteredUsers.map(transferMapping => {
-        return {
-          to: transferMapping.to,
-          from: transferMapping.from,
-        }
-      }),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disallowedTransfersWithUnregisteredUsers]);
-
-  useEffect(() => {
-    setNewCollectionMsg({
-      ...newCollectionMsg,
-      managerApprovedTransfers: managerApprovedTransfersWithUnregisteredUsers.map(transferMapping => {
-        return {
-          to: transferMapping.to,
-          from: transferMapping.from,
-        }
-      }),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [managerApprovedTransfersWithUnregisteredUsers]);
-
-  //Really bad code but see top of TransferMappingSelect file for explanation
-  const [transferabilityToSelectType, setTransferabilityToSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
-  const [transferabilityFromSelectType, setTransferabilityFromSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
-
-  const [transferabilityTo, setTransferabilityTo] = useState<BitBadgesUserInfo[]>([]);
-  const [transferabilityFrom, setTransferabilityFrom] = useState<BitBadgesUserInfo[]>([]);
-
-  const [managerToSelectType, setManagerToSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
-  const [managerFromSelectType, setManagerFromSelectType] = useState<TransferMappingSelectType>(TransferMappingSelectType.UNSELECTED);
-
-  const [managerTo, setManagerTo] = useState<BitBadgesUserInfo[]>([]);
-  const [managerFrom, setManagerFrom] = useState<BitBadgesUserInfo[]>([]);
-
-  //If all supply amounts are 1, it is fungible
-  const fungible = newCollectionMsg.badgeSupplys.length === 1 && newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.amount === 1);
-  const nonFungible = newCollectionMsg.badgeSupplys.every(badgeSupply => badgeSupply.supply === 1);
-
-  useEffect(() => {
-    setProvidedCustomJson(distributionMethod === DistributionMethod.JSON);
-  }, [distributionMethod]);
-
-  const txTimelineProps: TxTimelineProps = {
+  const txTimelineProps = {
     txType,
-    simulatedCollection,
-    newCollectionMsg,
-    setNewCollectionMsg,
-    collectionMetadata,
-    setCollectionMetadata,
-    individualBadgeMetadata,
-    setIndividualBadgeMetadata,
     addMethod,
     setAddMethod,
     distributionMethod,
     setDistributionMethod,
-    claimItems,
-    setClaimItems,
-    manualSend,
-    setManualSend,
     handledPermissions,
     updatePermissions,
-    hackyUpdatedFlag,
-    setHackyUpdatedFlag,
-    fungible,
-    nonFungible,
-    onFinish,
     metadataSize: size,
-    existingCollection,
-    simulatedCollectionWithoutExistingCollection,
-    usersToRegister,
-    setUsersToRegister,
-    disallowedTransfersWithUnregisteredUsers,
-    setDisallowedTransfersWithUnregisteredUsers,
-    managerApprovedTransfersWithUnregisteredUsers,
-    setManagerApprovedTransfersWithUnregisteredUsers,
-    updateMetadataForBadgeIdsDirectlyFromUriIfAbsent,
-    transferabilityToSelectType,
-    setTransferabilityToSelectType,
-    transferabilityFromSelectType,
-    setTransferabilityFromSelectType,
-    transferabilityTo,
-    setTransferabilityTo,
-    transferabilityFrom,
-    setTransferabilityFrom,
-    managerToSelectType,
-    setManagerToSelectType,
-    managerFromSelectType,
-    setManagerFromSelectType,
-    managerTo,
-    setManagerTo,
-    managerFrom,
-    setManagerFrom,
-    UserBalances,
-    setUserBalances,
-    providedCustomJson,
-    setProvidedCustomJson,
+    existingCollectionId: collectionId,
+
+    claims,
+    setClaims,
+    transfers,
+    setTransfers,
+    badgeSupplys,
+    setBadgeSupplys,
+    onFinish,
   }
 
+  if (!initialLoad) return <Spin size='large' />;
 
   if (txType === 'NewCollection') {
-    return <MintCollectionTimeline txTimelineProps={txTimelineProps} />
+    return <MintCollectionTimeline txTimelineProps={txTimelineProps as MsgNewCollectionProps} />
   }
 
   if (!existingCollection) return <></>;
 
   if (txType === 'UpdateMetadata') {
-    return <UpdateMetadataTimeline txTimelineProps={txTimelineProps} />
-  } else if (txType === 'UpdateDisallowed') {
-    return <UpdateDisallowedTimeline txTimelineProps={txTimelineProps} />
+    return <UpdateMetadataTimeline txTimelineProps={txTimelineProps as MsgUpdateUrisProps} />
+  } else if (txType === 'UpdateAllowed') {
+    return <UpdateAllowedTimeline txTimelineProps={txTimelineProps as MsgUpdateAllowedProps} />
   } else if (txType === 'DistributeBadges') {
-    return <DistributeTimeline txTimelineProps={txTimelineProps} />
+    return <DistributeTimeline txTimelineProps={txTimelineProps as MsgMintAndDistriubteBadgesProps} />
   } else if (txType === 'AddBadges') {
-    return <AddBadgesTimeline txTimelineProps={txTimelineProps} />
+    return <AddBadgesTimeline txTimelineProps={txTimelineProps as MsgMintAndDistriubteBadgesProps} />
   } else if (txType === 'UpdateBalances') {
-    return <UpdateUserBalancesTimeline txTimelineProps={txTimelineProps} />
+    return <UpdateUserBalancesTimeline txTimelineProps={txTimelineProps as MsgUpdateBalancesProps} />
   } else {
     return <></>
   }

@@ -1,26 +1,25 @@
-import { Balance } from 'bitbadgesjs-utils';
+import { Balance } from 'bitbadgesjs-proto';
 import { NumberInput } from '../display/NumberInput';
+import { Numberify } from 'bitbadgesjs-utils';
 
 export function BalancesInput({
   balances,
   setBalances,
-  darkMode,
   title
 }: {
-  balances: Balance[],
-  setBalances: (balances: Balance[]) => void,
-  darkMode?: boolean
+  balances: Balance<bigint>[],
+  setBalances: (balances: Balance<bigint>[]) => void,
   title?: string
 }) {
   return <NumberInput
     min={1}
-    value={balances[0]?.balance}
+    value={balances[0]?.amount < Number.MAX_SAFE_INTEGER ? Numberify(balances[0]?.amount.toString()) : 0}
     setValue={(value: number) => {
       if (!value || value <= 0) {
         setBalances([
           {
             badgeIds: balances[0]?.badgeIds || [],
-            balance: 0,
+            amount: 0n,
           }
         ]);
       }
@@ -28,12 +27,11 @@ export function BalancesInput({
         setBalances([
           {
             badgeIds: balances[0]?.badgeIds || [],
-            balance: value,
+            amount: BigInt(value),
           }
         ]);
       }
     }}
-    darkMode={darkMode}
     title={title ? title : "Amount to Transfer"}
   />
 }

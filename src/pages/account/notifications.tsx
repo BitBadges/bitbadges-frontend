@@ -1,111 +1,101 @@
 import { Layout } from 'antd';
-import { BitBadgeCollection } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
-import { updateLastSeenActivity, updateUserActivity, updateUserAnnouncements } from '../../bitbadges-api/api';
+import { useEffect, useRef, useState } from 'react';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { ActivityTab } from '../../components/activity/ActivityDisplay';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { PRIMARY_BLUE } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
 
 const { Content } = Layout;
 
 export function Notifications() {
-    const chain = useChainContext();
-    const [tab, setTab] = useState('announcements');
+  const chain = useChainContext();
+  const accounts = useAccountsContext();
+  const accountsRef = useRef(accounts);
+  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
-    const transferActivity = chain.activity;
+  const [tab, setTab] = useState('announcements');
 
-    useEffect(() => {
-        updateLastSeenActivity();
-        chain.setSeenActivity(Date.now());
-    }, [chain.address]);
+  const transferActivity = signedInAccount?.activity;
+  const announcements = signedInAccount?.announcements;
 
-    return (
-        <DisconnectedWrapper
-            requireLogin
-            message={'Please connect your wallet and sign in to view this page.'}
-            node={
-                <RegisteredWrapper
+  useEffect(() => {
+    if (chain.connected && chain.loggedIn) {
+      accountsRef.current.updateProfileInfo(chain.cosmosAddress, { seenActivity: Date.now() });
+    }
+  }, [chain]);
 
-                    node={
-                        <Layout>
-                            <Content
-                                className="full-area"
-                                style={{ backgroundColor: PRIMARY_BLUE, minHeight: '100vh' }}
-                            >
-                                <div
-                                    style={{
-                                        marginLeft: '7vw',
-                                        marginRight: '7vw',
-                                        paddingLeft: '1vw',
-                                        paddingRight: '1vw',
-                                        paddingTop: '20px',
-                                        background: PRIMARY_BLUE,
-                                    }}
-                                >
-                                    <br />
-                                    <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
-                                        Notifications
-                                    </div>
-                                    <br />
-                                    <Tabs
-                                        fullWidth
-                                        tab={tab}
-                                        setTab={setTab}
-                                        tabInfo={[{
-                                            key: 'announcements',
-                                            content: 'Announcements',
-                                            disabled: false
-                                        }, {
-                                            key: 'transferActivity',
-                                            content: 'Transfer Activity',
-                                            disabled: false
-                                        }]}
-                                    />
-                                    <div style={{ textAlign: 'center' }}>
-                                        {tab === 'transferActivity' && <>
-                                            <br /><ActivityTab
+  return (
+    <DisconnectedWrapper
+      requireLogin
+      message={'Please connect your wallet and sign in to view this page.'}
+      node={
+        <RegisteredWrapper
 
-                                                userActivity={transferActivity}
-                                                collection={{} as BitBadgeCollection}
-                                                fetchMore={async () => {
-                                                    if (!chain.activity) return;
+          node={
+            <Layout>
+              <Content
+                className="full-area primary-blue-bg"
+                style={{ minHeight: '100vh' }}
+              >
+                <div
+                  className="primary-blue-bg"
+                  style={{
+                    marginLeft: '7vw',
+                    marginRight: '7vw',
+                    paddingLeft: '1vw',
+                    paddingRight: '1vw',
+                    paddingTop: '20px'
+                  }}
+                >
+                  <br />
+                  <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+                    Notifications
+                  </div>
+                  <br />
+                  <Tabs
+                    fullWidth
+                    tab={tab}
+                    setTab={setTab}
+                    tabInfo={[{
+                      key: 'announcements',
+                      content: 'Announcements',
+                      disabled: false
+                    }, {
+                      key: 'transferActivity',
+                      content: 'Transfer Activity',
+                      disabled: false
+                    }]}
+                  />
+                  <div style={{ textAlign: 'center' }}>
+                    {tab === 'transferActivity' && <>
+                      <br /><ActivityTab
+                        activity={transferActivity ?? []}
+                        fetchMore={async () => {
+                          await accounts.fetchNextForViews(chain.cosmosAddress, ['latestActivity']);
+                        }}
+                        hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? false}
+                      />
+                    </>}
 
-                                                    const newRes = await updateUserActivity(chain.cosmosAddress, chain.activityBookmark);
-                                                    chain.setActivityBookmark(newRes.pagination.userActivity.bookmark);
-                                                    chain.setActivityHasMore(newRes.pagination.userActivity.hasMore);
-
-                                                    chain.setActivity([...chain.activity, ...newRes.activity]);
-                                                }}
-                                                hasMore={chain.activityHasMore}
-                                            />
-                                        </>}
-
-                                        {tab === 'announcements' && <><br /><AnnouncementsTab
-                                            announcements={chain.announcements}
-                                            fetchMore={async () => {
-                                                if (!chain.announcements) return;
-
-                                                const newRes = await updateUserAnnouncements(chain.cosmosAddress, chain.announcementsBookmark);
-                                                chain.setAnnouncementsBookmark(newRes.pagination.announcements.bookmark);
-                                                chain.setAnnouncementsHasMore(newRes.pagination.announcements.hasMore);
-
-                                                chain.setAnnouncements([...chain.announcements, ...newRes.announcements]);
-                                            }}
-                                            hasMore={chain.announcementsHasMore}
-                                        /></>}
-                                    </div>
-                                </div>
-                            </Content>
-                        </Layout>
-                    }
-                />
-            }
+                    {tab === 'announcements' && <><br /><AnnouncementsTab
+                      announcements={announcements ?? []}
+                      fetchMore={async () => {
+                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestAnnouncements']);
+                      }}
+                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? false}
+                    /></>}
+                  </div>
+                </div>
+              </Content>
+            </Layout>
+          }
         />
-    );
+      }
+    />
+  );
 }
 
 export default Notifications;

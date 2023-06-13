@@ -1,108 +1,71 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider } from 'antd';
-import { BitBadgeCollection, BitBadgesUserInfo, TransfersExtended, UserBalance } from 'bitbadgesjs-utils';
-import { MessageMsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
-import React, { useEffect, useState } from 'react';
-import { getBadgeBalance } from '../../bitbadges-api/api';
-import { PRIMARY_TEXT } from '../../constants';
-
-import { useAccountsContext } from '../../contexts/AccountsContext';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { UserBalance } from 'bitbadgesjs-proto';
+import { MsgTransferBadge, createTxMsgTransferBadge } from 'bitbadgesjs-transactions';
+import { DistributionMethod, TransferWithIncrements } from 'bitbadgesjs-utils';
+import React, { useEffect, useRef, useState } from 'react';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
 import { TransferDisplay } from '../transfers/TransferDisplay';
-import { TransferSelect } from '../transfers/TransferSelect';
+import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgTransferBadgeModal(
-  {
-    collection, visible, setVisible, children, userBalance, refreshUserBalance
-  }: {
-    collection: BitBadgeCollection,
-    refreshUserBalance: () => Promise<void>,
-    userBalance: UserBalance,
-    visible: boolean,
-    setVisible: (visible: boolean) => void,
-    children?: React.ReactNode
-  }
-) {
+export function CreateTxMsgTransferBadgeModal({ collectionId, visible, setVisible, children }: {
+  collectionId: bigint,
+  visible: boolean,
+  setVisible: (visible: boolean) => void,
+  children?: React.ReactNode
+}) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
+  const accountsRef = useRef(accounts);
+  const collectionsRef = useRef(collections);
 
-  const [transfers, setTransfers] = useState<TransfersExtended[]>([]);
-  const [sender, setSender] = useState<BitBadgesUserInfo>({
-    cosmosAddress: chain.cosmosAddress,
-    accountNumber: chain.accountNumber,
-    address: chain.address,
-    chain: chain.chain,
-  });
-  const [senderBalance, setSenderBalance] = useState<UserBalance>(userBalance);
+
+  const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
+  const [sender, setSender] = useState<string>(chain.cosmosAddress);
+  const [senderBalance, setSenderBalance] = useState<UserBalance<bigint>>({ balances: [], approvals: [] });
+
+  const senderAccount = accounts.getAccount(sender);
 
   useEffect(() => {
-    setSender({
-      cosmosAddress: chain.cosmosAddress,
-      accountNumber: chain.accountNumber,
-      address: chain.address,
-      chain: chain.chain,
-    });
-  }, [chain.cosmosAddress, chain.accountNumber, chain.address, chain.chain]);
+    setSender(chain.cosmosAddress);
+  }, [chain]);
 
+  const DELAY_MS = 500;
   useEffect(() => {
     async function getSenderBalance() {
-      const balanceRes = await getBadgeBalance(collection.collectionId, sender.accountNumber);
-      if (!balanceRes?.balance) return;
-      setSenderBalance(balanceRes.balance);
+      const account = await accountsRef.current.fetchAccounts([sender]);
+      const senderAccount = account[0];
+
+      const balanceRes = await collectionsRef.current.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
+      setSenderBalance(balanceRes);
     }
-    getSenderBalance();
-  }, [sender.accountNumber, collection.collectionId]);
+
+    const delayDebounceFn = setTimeout(async () => {
+      getSenderBalance();
+    }, DELAY_MS)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [sender, collectionId]);
 
   useEffect(() => {
     for (const transfer of transfers) {
-      accounts.fetchAccountsByNumber(transfer.toAddresses);
+      accountsRef.current.fetchAccounts(transfer.toAddresses);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transfers]);
 
-  const unregisteredUsers: string[] = [];
-  for (const transfer of transfers) {
-    for (const account of transfer.toAddressInfo ?? []) {
-      if (account?.accountNumber === -1) unregisteredUsers.push(account.cosmosAddress);
-    }
-  }
-
-  const txCosmosMsg: MessageMsgTransferBadge = {
+  const txCosmosMsg: MsgTransferBadge<bigint> = {
     creator: chain.cosmosAddress,
-    collectionId: collection.collectionId,
-    from: sender ? sender.accountNumber : chain.accountNumber,
+    collectionId: collectionId,
+    from: accounts.getAccount(sender)?.cosmosAddress ?? '',
     transfers: transfers
   };
-
-  const onRegister = async () => {
-    const newAccounts = await accounts.fetchAccounts(unregisteredUsers, true);
-
-    const newTransfers = [];
-    for (const transfer of transfers) {
-      const newAddresses = [];
-      for (const toAddress of transfer.toAddressInfo ?? []) {
-        if (toAddress?.accountNumber !== -1) {
-          newAddresses.push(toAddress);
-          continue;
-        }
-        const user = newAccounts.find((account) => account.cosmosAddress === toAddress.cosmosAddress)
-        if (user) newAddresses.push(user);
-      }
-
-      newTransfers.push({
-        ...transfer,
-        toAddresses: newAddresses.map((address) => address?.accountNumber ?? -1),
-        toAddressInfo: newAddresses
-      });
-    }
-    setTransfers(newTransfers);
-  }
 
   const items = [
     {
@@ -120,44 +83,30 @@ export function CreateTxMsgTransferBadgeModal(
           <Avatar
             size={150}
             src={
-
               <BlockiesAvatar
-                avatar={sender.avatar}
-                address={sender.address.toLowerCase()}
+                avatar={senderAccount?.avatar}
+                address={senderAccount?.address.toLowerCase() ?? ''}
                 fontSize={150}
                 shape='circle'
               />
             }
           />
 
-          <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
+          <div className='flex-center' style={{ marginBottom: 10, marginTop: 4 }}>
             <AddressDisplay
-              userInfo={{
-                cosmosAddress: sender.cosmosAddress,
-                accountNumber: sender.accountNumber,
-                address: sender.address,
-                chain: sender.chain,
-                name: sender.name,
-                github: sender.github,
-                discord: sender.discord,
-                twitter: sender.twitter,
-                telegram: sender.telegram,
-                readme: sender.readme
-              }}
+              addressOrUsername={sender}
               hidePortfolioLink
-              darkMode
             />
           </div>
 
-          {sender.address != chain.address && <div style={{}}>
+          {senderAccount?.cosmosAddress != chain.cosmosAddress && <div >
             <br />
             <InfoCircleOutlined /> If you select an address other than yours, note that you must be approved to transfer on their behalf.
           </div>}
 
           <AddressSelect
-            defaultValue={sender.address}
+            defaultValue={senderAccount?.username ?? senderAccount?.address ?? ''}
             onUserSelect={setSender}
-            darkMode
           />
         </div>
       </div >
@@ -165,12 +114,12 @@ export function CreateTxMsgTransferBadgeModal(
     {
       title: 'Add Transfers',
       description: <div>
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className='flex-center'>
           <TransferSelect
-            collection={collection}
+            distributionMethod={DistributionMethod.DirectTransfer}
+            collectionId={collectionId}
             sender={sender}
-            userBalance={senderBalance}
+            originalSenderBalance={senderBalance}
             setTransfers={setTransfers}
             transfers={transfers}
             plusButton
@@ -184,20 +133,17 @@ export function CreateTxMsgTransferBadgeModal(
   return (
     <TxModal
       msgSteps={items}
-      unregisteredUsers={unregisteredUsers}
-      onRegister={onRegister}
       visible={visible}
       setVisible={setVisible}
       txName="Transfer Badge(s)"
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgTransferBadge}
-      onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); await refreshUserBalance(); }}
+      onSuccessfulTx={async () => { await collections.fetchCollections([collectionId], true); await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true); }}
       requireRegistration
-      displayMsg={<div style={{ color: PRIMARY_TEXT }}>
+      displayMsg={<div className='primary-text'>
         <TransferDisplay
           transfers={transfers}
-          collection={collection}
-          fontColor={PRIMARY_TEXT}
+          collectionId={collectionId}
           from={[sender]}
           setTransfers={setTransfers}
         />

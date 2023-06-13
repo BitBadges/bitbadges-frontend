@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AnnouncementActivityItem, BitBadgesUserInfo, SupportedChain, TransferActivityItem } from 'bitbadgesjs-utils';
+import { SupportedChain } from 'bitbadgesjs-utils';
 import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
-import { useEthereumContext } from './chains/EthereumContext';
 import { useCosmosContext } from './chains/CosmosContext';
-import { BLANK_USER_INFO } from '../constants';
+import { useEthereumContext } from './chains/EthereumContext';
 
 export type SignChallengeResponse = {
   originalBytes?: Uint8Array;
@@ -13,15 +12,16 @@ export type SignChallengeResponse = {
 }
 
 export type ChainContextType = ChainSpecificContextType & {
-
+  chain: SupportedChain,
+  setChain: Dispatch<SetStateAction<SupportedChain>>,
 }
 
 export type ChainSpecificContextType = {
-  userInfo: BitBadgesUserInfo,
-  setUserInfo: Dispatch<SetStateAction<BitBadgesUserInfo>>,
+  address: string,
+  setAddress: Dispatch<SetStateAction<string>>,
 
-  balance: number,
-  setBalance: Dispatch<SetStateAction<number>>,
+  cosmosAddress: string,
+  setCosmosAddress: Dispatch<SetStateAction<string>>,
 
   loggedIn: boolean,
   setLoggedIn: Dispatch<SetStateAction<boolean>>,
@@ -32,37 +32,6 @@ export type ChainSpecificContextType = {
 
   chainId: string,
   setChainId: Dispatch<SetStateAction<string>>,
-
-  incrementSequence: () => void,
-
-  isRegistered: boolean,
-  setIsRegistered: Dispatch<SetStateAction<boolean>>,
-
-  activity: TransferActivityItem[],
-  setActivity: Dispatch<SetStateAction<TransferActivityItem[]>>,
-
-  announcements: AnnouncementActivityItem[],
-  setAnnouncements: Dispatch<SetStateAction<AnnouncementActivityItem[]>>,
-
-  announcementsBookmark: string,
-  setAnnouncementsBookmark: Dispatch<SetStateAction<string>>,
-
-  activityBookmark: string,
-  setActivityBookmark: Dispatch<SetStateAction<string>>,
-
-  announcementsHasMore: boolean,
-  setAnnouncementsHasMore: Dispatch<SetStateAction<boolean>>,
-
-  activityHasMore: boolean,
-  setActivityHasMore: Dispatch<SetStateAction<boolean>>,
-
-  seenActivity: number,
-  setSeenActivity: Dispatch<SetStateAction<number>>,
-
-  updatePortfolioInfo: (address: string) => Promise<void>,
-
-  airdropped: boolean,
-  setAirdropped: Dispatch<SetStateAction<boolean>>,
 
   //These are assumed to remain constant, but included because they are chain-specific
   disconnect: () => Promise<any>,
@@ -76,6 +45,10 @@ export type ChainSpecificContextType = {
 }
 
 const ChainContext = createContext<ChainContextType>({
+  address: '',
+  setAddress: () => { },
+  cosmosAddress: '',
+  setCosmosAddress: () => { },
   connected: false,
   setConnected: () => { },
   loggedIn: false,
@@ -84,36 +57,14 @@ const ChainContext = createContext<ChainContextType>({
   disconnect: async () => { },
   chainId: '1',
   setChainId: async () => { },
-  userInfo: BLANK_USER_INFO,
-  setUserInfo: () => { },
   signChallenge: async () => { return {} },
   signTxn: async () => { },
   getPublicKey: async () => { return '' },
   ownedAssetIds: [],
   displayedResources: [],
   selectedChainInfo: {},
-  incrementSequence: () => { },
-  isRegistered: false,
-  setIsRegistered: () => { },
-  activity: [],
-  setActivity: () => { },
-  announcements: [],
-  setAnnouncements: () => { },
-  announcementsBookmark: '',
-  setAnnouncementsBookmark: () => { },
-  activityBookmark: '',
-  setActivityBookmark: () => { },
-  announcementsHasMore: false,
-  setAnnouncementsHasMore: () => { },
-  activityHasMore: false,
-  setActivityHasMore: () => { },
-  seenActivity: 0,
-  setSeenActivity: () => { },
-  balance: 0,
-  setBalance: () => { },
-  updatePortfolioInfo: async (_address: string) => { },
-  airdropped: false,
-  setAirdropped: () => { },
+  chain: SupportedChain.ETH,
+  setChain: () => { },
 });
 
 type Props = {
@@ -154,7 +105,9 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const chainContext: ChainContextType = {
-    ...currentChainContext
+    ...currentChainContext,
+    chain,
+    setChain,
   };
 
   return <ChainContext.Provider value={chainContext}>

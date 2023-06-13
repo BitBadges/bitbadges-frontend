@@ -1,77 +1,40 @@
-import { Avatar, Col, Row, Spin, Typography } from 'antd';
-import { BadgeMetadata, BitBadgeCollection } from 'bitbadgesjs-utils';
+import { Col, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { PRIMARY_TEXT } from '../../constants';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { BadgeAvatar } from './BadgeAvatar';
 
 const { Text } = Typography;
 
-export function CollectionHeader({ metadata, collection }: {
-  metadata: BadgeMetadata;
-  collection?: BitBadgeCollection;
+export function CollectionHeader({ collectionId }: {
+  collectionId: bigint;
 }) {
   const router = useRouter();
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+  const metadata = collection?.collectionMetadata;
 
-  return <>
-    <div style={{
-      color: PRIMARY_TEXT,
-    }}>
-      <Row
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Col span={12}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flexDirection: 'column',
-            }}
-          >
-            <Avatar
-              style={{
-                verticalAlign: 'middle',
-                border: '3px solid',
-                borderColor: metadata?.color
-                  ? metadata?.color
-                  : 'black',
-                margin: 4,
-              }}
-              src={
-                metadata?.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : <Spin />
-              }
-              size={200}
-              onError={() => {
-                return false;
-              }}
-            />
-
-            {<div style={{ maxWidth: 500 }}>
-
-              <Text strong style={{ fontSize: 30, color: PRIMARY_TEXT }}>
-                {metadata?.name}
-              </Text>
-              {collection && <>
-                <br />
-                <Text strong style={{ fontSize: 16, color: PRIMARY_TEXT }}>
-                  <a onClick={() => {
-                    router.push(`/collections/${collection.collectionId}`)
-                  }}>{collection.collectionMetadata?.name}</a>
-                </Text>
-              </>}
-            </div>}
+  return <div className='primary-text'>
+    <Row className='flex-center'>
+      <Col span={12} className='flex-center'>
+        <div className='flex-center flex-column'>
+          <BadgeAvatar
+            collectionId={collectionId}
+            size={200}
+          />
+          <div style={{ maxWidth: 500 }}>
+            <Text strong className='primary-text' style={{ fontSize: 30 }}>
+              {metadata?.name}
+            </Text>
+            <br />
+            <Text strong className='primary-text' style={{ fontSize: 16 }}>
+              <a onClick={() => {
+                router.push(`/collections/${collectionId}`)
+              }}>{metadata?.name}</a>
+            </Text>
           </div>
-        </Col>
-      </Row>
-      <br />
-    </div>
-  </>;
+        </div>
+      </Col>
+    </Row>
+    <br />
+  </div >
 }

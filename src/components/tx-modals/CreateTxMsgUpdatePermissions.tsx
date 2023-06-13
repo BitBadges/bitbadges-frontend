@@ -1,119 +1,113 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Switch, Tooltip } from 'antd';
-import { MessageMsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
-import React, { useEffect, useState } from 'react';
-import { CanCreateMoreBadgesDigit, CanManagerBeTransferredDigit, CanUpdateBytesDigit, CanUpdateDisallowedDigit, CanUpdateUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions, CanDeleteDigit } from 'bitbadgesjs-utils';
-import { BitBadgeCollection } from 'bitbadgesjs-utils';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { MsgUpdatePermissions, createTxMsgUpdatePermissions } from 'bitbadgesjs-transactions';
+import { CanCreateMoreBadgesDigit, CanDeleteDigit, CanManagerBeTransferredDigit, CanUpdateAllowedDigit, CanUpdateBytesDigit, CanUpdateMetadataUrisDigit, GetPermissionNumberValue, GetPermissions, UpdatePermissions } from 'bitbadgesjs-utils';
+import React, { useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { TxModal } from './TxModal';
 
 
-export function CreateTxMsgUpdatePermissionsModal({ collection, visible, setVisible, children, }
-    : {
-        collection: BitBadgeCollection,
-        visible: boolean,
-        setVisible: (visible: boolean) => void,
-        children?: React.ReactNode
-    }) {
-    const chain = useChainContext();
-    const collections = useCollectionsContext();
-    const [currPermissions, setCurrPermissions] = useState<number>(GetPermissionNumberValue(collection.permissions));
+export function CreateTxMsgUpdatePermissionsModal({ collectionId, visible, setVisible, children, }
+  : {
+    collectionId: bigint,
+    visible: boolean,
+    setVisible: (visible: boolean) => void,
+    children?: React.ReactNode
+  }) {
+  const chain = useChainContext();
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
 
-    const txCosmosMsg: MessageMsgUpdatePermissions = {
-        creator: chain.cosmosAddress,
-        collectionId: collection.collectionId,
-        permissions: currPermissions
-    };
+  const [currPermissions, setCurrPermissions] = useState<bigint>(collection ? GetPermissionNumberValue(collection.permissions) : 0n);
 
-    //Upon visible turning to false, reset to initial state
-    useEffect(() => {
-        if (!visible) {
-            setCurrPermissions(GetPermissionNumberValue(collection.permissions));
-        }
-    }, [visible, collection.permissions]);
+  const txCosmosMsg: MsgUpdatePermissions<bigint> = {
+    creator: chain.cosmosAddress,
+    collectionId,
+    permissions: currPermissions
+  };
 
-    // EXPERIMENTAL STANDARD
-    const isUserList = collection.standard === 1;
+  // EXPERIMENTAL STANDARD
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
 
-    const items = [
+  const items = [
+    {
+      title: 'Select Permissions To Update',
+      description: <>
+        {!isOffChainBalances &&
+          <div className='flex-between' style={{ margin: 8 }}>
+            Freeze / Unfreeze Addresses (Edit Transferability)
+            <div>
+              <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+                <Switch disabled={!collection?.permissions.CanUpdateAllowed} defaultChecked={GetPermissions(currPermissions).CanUpdateAllowed} onChange={() => {
+                  setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateAllowedDigit, !GetPermissions(currPermissions).CanUpdateAllowed))
+                }} />
+              </Tooltip>
+            </div>
+          </div>}
         {
-            title: 'Select Permissions To Update',
-            description: <>
-                {!isUserList &&
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Freeze / Unfreeze Addresses (Edit Transferability)
-                    <div>
-                        <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                            <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateDisallowed} defaultChecked={GetPermissions(currPermissions).CanUpdateDisallowed} onChange={() => {
-                                setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateDisallowedDigit, !GetPermissions(currPermissions).CanUpdateDisallowed))
-                            }} />
-                        </Tooltip>
-                    </div>
-                </div>}
-                {
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Add More Badges to Collection
-                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
-                        }} />
-                    </Tooltip>
-                </div>}
+          <div className='flex-between' style={{ margin: 8 }}>
+            Add More Badges to Collection
+            <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+              <Switch disabled={!collection?.permissions.CanCreateMoreBadges} defaultChecked={GetPermissions(currPermissions).CanCreateMoreBadges} onChange={() => {
+                setCurrPermissions(UpdatePermissions(currPermissions, CanCreateMoreBadgesDigit, !GetPermissions(currPermissions).CanCreateMoreBadges))
+              }} />
+            </Tooltip>
+          </div>}
 
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Update Metadata URLs
-                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateUris} defaultChecked={GetPermissions(currPermissions).CanUpdateUris} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateUrisDigit, !GetPermissions(currPermissions).CanUpdateUris))
-                        }} />
-                    </Tooltip>
-                </div>
-                {isUserList &&
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Update Balances
-                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
-                        }} />
-                    </Tooltip>
-                </div>}
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Transfer the Manager Role
-                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
-                        }} />
-                    </Tooltip>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: 8, justifyContent: 'space-between' }}>
-                    Delete Collection
-                    <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
-                        <Switch disabled={!GetPermissions(GetPermissionNumberValue(collection.permissions)).CanDelete} defaultChecked={GetPermissions(currPermissions).CanDelete} onChange={() => {
-                            setCurrPermissions(UpdatePermissions(currPermissions, CanDeleteDigit, !GetPermissions(currPermissions).CanDelete))
-                        }} />
-                    </Tooltip>
-                </div>
-                <br />
-                <InfoCircleOutlined /> Once a permission is turned off, it cannot be turned back on.
-                <br />
-            </>,
-        }
-    ]
+        <div className='flex-between' style={{ margin: 8 }}>
+          Update Metadata URLs
+          <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+            <Switch disabled={!collection?.permissions.CanUpdateMetadataUris} defaultChecked={GetPermissions(currPermissions).CanUpdateMetadataUris} onChange={() => {
+              setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateMetadataUrisDigit, !GetPermissions(currPermissions).CanUpdateMetadataUris))
+            }} />
+          </Tooltip>
+        </div>
+        {isOffChainBalances &&
+          <div className='flex-between' style={{ margin: 8 }}>
+            Update Balances
+            <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+              <Switch disabled={!collection?.permissions.CanUpdateBytes} defaultChecked={GetPermissions(currPermissions).CanUpdateBytes} onChange={() => {
+                setCurrPermissions(UpdatePermissions(currPermissions, CanUpdateBytesDigit, !GetPermissions(currPermissions).CanUpdateBytes))
+              }} />
+            </Tooltip>
+          </div>}
+        <div className='flex-between' style={{ margin: 8 }}>
+          Transfer the Manager Role
+          <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+            <Switch disabled={!collection?.permissions.CanManagerBeTransferred} defaultChecked={GetPermissions(currPermissions).CanManagerBeTransferred} onChange={() => {
+              setCurrPermissions(UpdatePermissions(currPermissions, CanManagerBeTransferredDigit, !GetPermissions(currPermissions).CanManagerBeTransferred))
+            }} />
+          </Tooltip>
+        </div>
+        <div className='flex-between' style={{ margin: 8 }}>
+          Delete Collection
+          <Tooltip title="Once this permission is turned off, it cannot be turned back on." placement='bottom'>
+            <Switch disabled={!collection?.permissions.CanDelete} defaultChecked={GetPermissions(currPermissions).CanDelete} onChange={() => {
+              setCurrPermissions(UpdatePermissions(currPermissions, CanDeleteDigit, !GetPermissions(currPermissions).CanDelete))
+            }} />
+          </Tooltip>
+        </div>
+        <br />
+        <InfoCircleOutlined /> Once a permission is turned off, it cannot be turned back on.
+        <br />
+      </>,
+    }
+  ]
 
-    return (
-        <TxModal
-            msgSteps={items}
-            visible={visible}
-            setVisible={setVisible}
-            txName="Update Permissions"
-            txCosmosMsg={txCosmosMsg}
-            createTxFunction={createTxMsgUpdatePermissions}
-            onSuccessfulTx={async () => {
-                await collections.refreshCollection(collection.collectionId);
-            }}
-        >
-            {children}
-        </TxModal>
-    );
+  return (
+    <TxModal
+      msgSteps={items}
+      visible={visible}
+      setVisible={setVisible}
+      txName="Update Permissions"
+      txCosmosMsg={txCosmosMsg}
+      createTxFunction={createTxMsgUpdatePermissions}
+      onSuccessfulTx={async () => {
+        await collections.fetchCollections([collectionId], true);
+      }}
+    >
+      {children}
+    </TxModal>
+  );
 }

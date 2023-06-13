@@ -3,14 +3,14 @@ import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
-import { getChallengeParams, verifyChallengeOnBackend } from "../../bitbadges-api/api";
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
-import { SignChallengeResponse, useChainContext } from "../../contexts/ChainContext";
+import { getSignInChallenge, verifySignIn } from "../../bitbadges-api/api";
+import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { useCookies } from 'react-cookie';
 import { SupportedChain } from "bitbadgesjs-utils";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 
 const { Text } = Typography;
 
@@ -20,29 +20,31 @@ export const BlockinDisplay = ({
   hideLogo?: boolean;
 }) => {
   const {
-    avatar,
-    chain,
-    setChain,
+    cosmosAddress,
     loggedIn,
     setLoggedIn,
     connect,
     disconnect,
-    address,
     signChallenge,
     selectedChainInfo,
     displayedResources,
+    chain,
+    setChain,
     connected,
-    accountNumber,
-    cosmosAddress,
   } = useChainContext();
+  const accounts = useAccountsContext();
+  const account = accounts.getAccount(cosmosAddress);
+  const avatar = account?.avatar;
+  const address = account?.address;
+
 
   const [_cookies, setCookie] = useCookies(['blockincookie']);
   const [hours, setHours] = useState<number>(24);
 
-  const [challengeParams, setChallengeParams] = useState({
+  const [challengeParams, setChallengeParams] = useState<ChallengeParams>({
     domain: 'https://blockin.com',
     statement: 'Sign in to this website via Blockin. You will remain signed in until you terminate your browser session.',
-    address: address,
+    address: address ? address : 'Default Address',
     uri: 'https://blockin.com/login',
     nonce: 'Default Nonce'
   });
@@ -51,21 +53,17 @@ export const BlockinDisplay = ({
    * Update challengeParams when address or chain changes
    */
   useEffect(() => {
+    async function updateChallengeParams() {
+      if (address && connected) {
+        const res = await getSignInChallenge({ chain, address, hours });
+        setChallengeParams(res.params);
+      }
+    }
+
     if (connected && address) {
       updateChallengeParams();
     }
-  }, [address, connected, hours]);
-
-  useEffect(() => {
-    if (connected && address) {
-      updateChallengeParams();
-    }
-  }, []); //eslint-disable-line react-hooks/exhaustive-deps
-
-  const updateChallengeParams = async () => {
-    const challengeParams = await getChallengeParams(chain, address, hours);
-    setChallengeParams(challengeParams);
-  }
+  }, [address, connected, hours, chain]);
 
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
@@ -73,22 +71,17 @@ export const BlockinDisplay = ({
   }
 
   const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, _challengeObj?: ChallengeParams) => {
-    const verificationResponse = await verifyChallengeOnBackend(chain, originalBytes, signatureBytes);
+    const verificationResponse = await verifySignIn({ chain, originalBytes, signatureBytes });
 
-    if (!verificationResponse.verified) {
-      return { success: false, message: `${verificationResponse.message}` }
-    }
-    else {
-      /**
-       * At this point, the user has been verified by your backend and Blockin. Here, you will do anything needed
-       * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
-       * anything else that needs to be updated.
-       */
-      setLoggedIn(true);
-      setCookie('blockincookie', cosmosAddress, { path: '/', expires: new Date(Date.now() + 1000 * 60 * 60 * hours) });
-      return {
-        success: true, message: `${verificationResponse.message}`
-      }
+    /**
+     * At this point, the user has been verified by your backend and Blockin. Here, you will do anything needed
+     * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
+     * anything else that needs to be updated.
+     */
+    setLoggedIn(true);
+    setCookie('blockincookie', cosmosAddress, { path: '/', expires: new Date(Date.now() + 1000 * 60 * 60 * hours) });
+    return {
+      success: true, message: `${verificationResponse.successMessage}`
     }
   }
 
@@ -122,7 +115,7 @@ export const BlockinDisplay = ({
   }
 
   return <>
-    <div style={{ display: 'flex', justifyContent: 'center', color: 'black' }}>
+    <div className='flex-center' style={{ color: 'black' }}>
       {
         <BlockinUIDisplay
           connected={connected}
@@ -137,7 +130,6 @@ export const BlockinDisplay = ({
               })
             }
           }}
-
           buttonStyle={{ minWidth: 100 }}
           modalStyle={{ color: `black` }}
           disconnect={async () => {
@@ -170,8 +162,8 @@ export const BlockinDisplay = ({
       }
 
     </div>
-    <div style={{ display: 'flex', justifyContent: 'center', color: 'black', alignItems: 'center', marginTop: 4 }}>
-      <Typography.Text style={{ color: SECONDARY_TEXT }}>
+    <div className='flex-center' style={{ color: 'black', alignItems: 'center', marginTop: 4 }}>
+      <Typography.Text className='secondary-text'>
         Remember my sign-in for
       </Typography.Text>
       <InputNumber
@@ -181,15 +173,16 @@ export const BlockinDisplay = ({
         }}
         min={1}
         max={168}
-        style={{ width: 70, marginLeft: 10, marginRight: 10, backgroundColor: PRIMARY_BLUE, color: PRIMARY_TEXT }}
+        className='primary-text primary-blue-bg'
+        style={{ width: 70, marginLeft: 10, marginRight: 10 }}
       />
-      <Typography.Text style={{ color: SECONDARY_TEXT }}>
+      <Typography.Text className='secondary-text'>
         hours
       </Typography.Text>
     </div>
     <br />
-    <div style={{ display: 'flex', justifyContent: 'center', color: 'black' }}>
-      <Typography.Text style={{ color: SECONDARY_TEXT }}>
+    <div className='flex-center' style={{ color: 'black' }}>
+      <Typography.Text className='secondary-text'>
         <Tooltip placement="bottom" color="black" title={<>
           {"Connecting allows us to access certain information from your Web3 wallet, such as your wallet address and account balance. It also enables you to sign transactions to interact with the BitBadges blockchain, such as creating or claiming badges."}
           <br />
@@ -222,16 +215,16 @@ export const BlockinDisplay = ({
           />
         }
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center' }}> {address &&
+      <div className='flex-center'> {address &&
         <AddressDisplay
-          userInfo={{
-            address, accountNumber, cosmosAddress, chain
-          }}
-          fontColor={PRIMARY_TEXT} fontSize={24}
-        />}</div>
+          addressOrUsername={address}
+          fontSize={24}
+        />}
+      </div>
       <div> {address && <Text
         strong
-        style={{ fontSize: 20, color: PRIMARY_TEXT }}
+        className="primary-text"
+        style={{ fontSize: 20 }}
       >
         {loggedIn ? 'Signed In' : 'Not Signed In'}
       </Text>}</div>

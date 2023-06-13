@@ -1,13 +1,13 @@
-import { MessageMsgNewCollection } from "bitbadgesjs-transactions";
 import { DistributionMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { EmptyStepItem } from "../TxTimeline";
 
 export function ChooseBadgeTypeStepItem(
-  newCollectionMsg: MessageMsgNewCollection,
-  setNewCollectionMsg: (newCollectionMsg: MessageMsgNewCollection) => void,
-  setManualSend: (manualSend: boolean) => void,
+  distributionMethod: DistributionMethod,
   setDistributionMethod: (distributionMethod: DistributionMethod) => void,
 ) {
+  return EmptyStepItem;
+
   return {
     title: 'Choose Badge Type',
     description: 'Select a badge type.',
@@ -17,30 +17,22 @@ export function ChooseBadgeTypeStepItem(
           {
             title: 'On-Chain',
             message: 'Everything about a badge is stored on the blockchain and updated via blockchain transactions. Most customizable option but also the most expensive. ',
-            isSelected: newCollectionMsg.standard === 0,
+            isSelected: distributionMethod !== DistributionMethod.OffChainBalances
           },
           {
             title: 'Off-Chain Balances',
             message: 'Badges are stored on the blockchain, but all balances are stored off-chain to make it less expensive. Because balances are off-chain, they must either a) be permanent and frozen forever or b) only updatable by the manager of the collection.',
-            isSelected: newCollectionMsg.standard === 1,
+            isSelected: distributionMethod === DistributionMethod.OffChainBalances
           },
         ]}
         onSwitchChange={(idx) => {
-          setNewCollectionMsg({
-            ...newCollectionMsg,
-            standard: idx,
-          })
-
           if (idx === 1) {
-            setManualSend(true);
-            setDistributionMethod(DistributionMethod.Whitelist);
+            setDistributionMethod(DistributionMethod.OffChainBalances);
           } else {
-            setManualSend(false);
             setDistributionMethod(DistributionMethod.None);
           }
         }}
       />
-
     </div>
   }
 }

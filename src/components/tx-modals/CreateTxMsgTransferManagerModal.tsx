@@ -1,15 +1,15 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { MessageMsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
-import React, { useEffect, useState } from 'react';
-import { BitBadgeCollection, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
-import { useChainContext } from '../../contexts/ChainContext';
-import { useCollectionsContext } from '../../contexts/CollectionsContext';
+import { MsgTransferManager, createTxMsgTransferManager } from 'bitbadgesjs-transactions';
+import { isAddressValid } from 'bitbadgesjs-utils';
+import React, { useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgTransferManagerModal({ collection, visible, setVisible, children }
+export function CreateTxMsgTransferManagerModal({ collectionId, visible, setVisible, children }
   : {
-    collection: BitBadgeCollection,
+    collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
@@ -17,42 +17,24 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const [currUserInfo, setCurrUserInfo] = useState<BitBadgesUserInfo>({
-    chain: SupportedChain.ETH,
-    address: '',
-    cosmosAddress: '',
-    accountNumber: -1,
-  } as BitBadgesUserInfo);
 
-  const txCosmosMsg: MessageMsgTransferManager = {
+  const [newManager, setNewManager] = useState<string>(chain.cosmosAddress);
+
+  const txCosmosMsg: MsgTransferManager<bigint> = {
     creator: chain.cosmosAddress,
-    collectionId: collection.collectionId,
-    address: Number(currUserInfo.accountNumber),
+    collectionId: collectionId,
+    address: chain.cosmosAddress,
   };
-
-  const newManagerAccountNumber = txCosmosMsg.address;
-
-  //Upon visible turning to false, reset to initial state
-  useEffect(() => {
-    if (!visible) {
-      setCurrUserInfo({
-        chain: SupportedChain.ETH,
-        address: '',
-        cosmosAddress: '',
-        accountNumber: -1,
-      } as BitBadgesUserInfo);
-    }
-  }, [visible]);
 
   const items = [
     {
       title: 'Select Address',
       description: <>
-        <AddressSelect defaultValue={currUserInfo.address} onUserSelect={setCurrUserInfo} darkMode />
+        <AddressSelect defaultValue={newManager} onUserSelect={setNewManager} />
         <br />
         <InfoCircleOutlined /> The new manager must have already submitted a transfer manager request.
       </>,
-      disabled: newManagerAccountNumber === undefined || newManagerAccountNumber === null || newManagerAccountNumber < 0
+      disabled: !newManager || !isAddressValid(newManager),
     }
   ]
 
@@ -64,7 +46,7 @@ export function CreateTxMsgTransferManagerModal({ collection, visible, setVisibl
       txName="Transfer Manager"
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgTransferManager}
-      onSuccessfulTx={async () => { await collections.refreshCollection(collection.collectionId); }}
+      onSuccessfulTx={async () => { await collections.fetchCollections([collectionId], true); }}
       requireRegistration
     >
       {children}

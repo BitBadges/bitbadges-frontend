@@ -1,40 +1,34 @@
 import { DistributionMethod } from 'bitbadgesjs-utils';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { FormTimeline } from '../navigation/FormTimeline';
-import { EmptyStepItem, TxTimelineProps } from './TxTimeline';
+import { EmptyStepItem, MSG_PREVIEW_ID, MsgMintAndDistriubteBadgesProps } from './TxTimeline';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { ManualSendSelectStepItem } from './step-items/ManualSendSelectStepItem';
 
 //See TxTimeline for explanations and documentation
 
 export function DistributeTimeline({
   txTimelineProps
 }: {
-  txTimelineProps: TxTimelineProps
+  txTimelineProps: MsgMintAndDistriubteBadgesProps
 }) {
-  const newCollectionMsg = txTimelineProps.newCollectionMsg;
-  const setNewCollectionMsg = txTimelineProps.setNewCollectionMsg;
-  const collection = txTimelineProps.simulatedCollection;
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
+
   const distributionMethod = txTimelineProps.distributionMethod;
   const setDistributionMethod = txTimelineProps.setDistributionMethod;
-  const claimItems = txTimelineProps.claimItems;
-  const setClaimItems = txTimelineProps.setClaimItems;
-  const manualSend = txTimelineProps.manualSend;
-  const setManualSend = txTimelineProps.setManualSend;
-  const fungible = txTimelineProps.fungible;
-  const nonFungible = txTimelineProps.nonFungible;
-  const simulatedCollection = txTimelineProps.simulatedCollection;
-
+  const badgeSupplys = txTimelineProps.badgeSupplys;
+  const transfers = txTimelineProps.transfers;
+  const setTransfers = txTimelineProps.setTransfers;
+  const claims = txTimelineProps.claims;
+  const setClaims = txTimelineProps.setClaims;
 
   return (
     <FormTimeline
       items={[
-
-        DistributionMethodStepItem(distributionMethod, setDistributionMethod, fungible, nonFungible, false, false),
-        distributionMethod === DistributionMethod.Whitelist
-          ? ManualSendSelectStepItem(newCollectionMsg, setNewCollectionMsg, manualSend, setManualSend, claimItems, simulatedCollection) : EmptyStepItem,
+        DistributionMethodStepItem(distributionMethod, setDistributionMethod, badgeSupplys, false, false),
         distributionMethod !== DistributionMethod.Unminted && distributionMethod !== DistributionMethod.JSON
-          ? CreateClaimsStepItem(collection, newCollectionMsg, setNewCollectionMsg, distributionMethod, claimItems, setClaimItems, manualSend, collection.unmintedSupplys) : EmptyStepItem,
+          ? CreateClaimsStepItem(transfers, setTransfers, claims, setClaims, distributionMethod, collection?.unmintedSupplys) : EmptyStepItem,
       ]}
       onFinish={() => {
         if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);

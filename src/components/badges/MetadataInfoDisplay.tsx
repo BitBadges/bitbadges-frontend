@@ -1,170 +1,131 @@
 import {
-    CheckCircleFilled,
-    LinkOutlined,
-    WarningFilled,
+  CheckCircleFilled,
+  LinkOutlined,
+  WarningFilled,
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { getMetadataMapObjForBadgeId, getSupplyByBadgeId } from 'bitbadgesjs-utils';
-import { BadgeMetadata, BitBadgeCollection, MAX_DATE_TIMESTAMP } from 'bitbadgesjs-utils';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
+import { getBalanceForId, getMetadataDetailsForBadgeId, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
+import { getTimeRangeString } from '../../utils/dates';
+import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
-export function MetadataDisplay({ collection, metadata, span, isCollectionInfo, badgeId, showCollectionLink }: {
-    collection: BitBadgeCollection | undefined;
-    metadata: BadgeMetadata | undefined;
-    span?: number;
-    isCollectionInfo?: boolean
-    badgeId?: number
-    showCollectionLink?: boolean
+export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink }: {
+  collectionId: bigint,
+  badgeId?: bigint,
+  span?: number;
+  showCollectionLink?: boolean
 }) {
-    if (!collection || !metadata) return <></>
-
-    let endTimestamp = MAX_DATE_TIMESTAMP;
-    let validForever = true;
-    if (metadata?.validFrom?.end) {
-        endTimestamp = metadata.validFrom.end;
-        validForever = false;
-    }
-
-    const endDateString = validForever ? `Forever` : new Date(
-        endTimestamp * 1000
-    ).toLocaleDateString();
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+  const metadata = badgeId ? getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []) : collection?.collectionMetadata;
+  const uri = badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.badgeMetadata ?? [])?.uri : collection?.collectionUri;
+  const isCollectionInfo = !badgeId;
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
 
 
-    const badgeUri = getMetadataMapObjForBadgeId(badgeId ? badgeId : -1, collection.badgeMetadata)?.uri;
+  let totalSupply, undistributedSupply, distributedSupply = 0n;
+  if (collection && badgeId) {
+    //Calculate total, undistributed, claimable, and distributed supplys
+    totalSupply = getBalanceForId(badgeId, collection.maxSupplys);
+    undistributedSupply = getBalanceForId(badgeId, collection.unmintedSupplys);
+    distributedSupply = totalSupply - undistributedSupply;
+  }
 
-    let totalSupply, undistributedSupply, distributedSupply, claimableSupply = 0;
-    if (badgeId) {
-        //Calculate total, undistributed, claimable, and distributed supplys
-        totalSupply = getSupplyByBadgeId(badgeId, collection.maxSupplys);
-        undistributedSupply = getSupplyByBadgeId(badgeId, collection.unmintedSupplys);
+  return (
+    <InformationDisplayCard
+      title={isCollectionInfo ? <>Collection Info
+        <br />
+        <div style={{ fontSize: 14 }}>
+          {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
+        </div>
+      </> : "Badge Info"}
+      span={span}
+    >
+      {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
+      {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === MSG_PREVIEW_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
 
-        for (const claim of collection.claims) {
-            claimableSupply += getSupplyByBadgeId(badgeId, claim.balances);
+      {<TableRow label={"Standard"} value={collection?.standard === 0n ? "BitBadge" : `${collection?.standard}`} labelSpan={9} valueSpan={15} />}
+      {<TableRow label={"Balances"} value={collection?.balancesUri ? <a href={collection.balancesUri} target='_blank' rel='noreferrer'>Off-Chain</a> : 'On-Chain'} labelSpan={9} valueSpan={15} />}
+
+      {collection?.manager && <TableRow label={"Manager"} value={
+        <div className='flex-between' style={{ textAlign: 'right' }}>
+          <div></div>
+          <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+            <AddressDisplay
+              fontSize={12}
+              addressOrUsername={collection?.manager}
+            />
+          </div>
+        </div>} labelSpan={9} valueSpan={15} />}
+
+      {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
+      {!isCollectionInfo && !isOffChainBalances && <TableRow label={"Supply"} value={
+        <div>
+          <div>Total: {totalSupply?.toString()}</div>
+          {!isOffChainBalances && <>
+            <div>Unminted: {undistributedSupply?.toString()} / {totalSupply?.toString()}</div>
+            <div>Minted + Claimable: {distributedSupply?.toString()} / {totalSupply?.toString()}</div>
+          </>}
+        </div>
+      } labelSpan={12} valueSpan={12} />}
+      {uri && <TableRow label={"Metadata URL"} value={
+        <div>
+          <Tooltip placement='bottom' title={uri}>
+            <a href={uri} target="_blank" rel="noreferrer">
+              View
+              <LinkOutlined style={{ marginLeft: 4 }} /></a>
+          </Tooltip>
+        </div>
+      } labelSpan={9} valueSpan={15} />}
+
+      {metadata?.externalUrl && <TableRow label={"Website"} value={
+        <div>
+          <Tooltip placement='bottom' title={`${metadata.externalUrl}`}>
+            <a href={`${metadata.externalUrl}`} target="_blank" rel="noreferrer">
+              View
+              <LinkOutlined style={{ marginLeft: 4 }} /></a>
+          </Tooltip>
+        </div>
+      } labelSpan={9} valueSpan={15} />}
+
+      {isCollectionInfo && collection?.bytes && <TableRow label={"Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />}
+      {metadata?.validFrom && <TableRow label={"Validity"} value={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
+          {getTimeRangeString(metadata.validFrom)}
+          <Divider type="vertical" />
+          {Date.now() <= metadata.validFrom.end ? (
+            <CheckCircleFilled
+              style={{
+                fontSize: 30,
+                color: 'green',
+              }}
+            />
+          ) : (
+            <WarningFilled
+              style={{
+                fontSize: 30,
+                color: 'red',
+              }}
+            />
+          )}
+        </div>} labelSpan={9} valueSpan={15} />
+      }
+
+      {metadata?.tags && <TableRow label={"Tags"} value={<div style={{ display: 'flex', justifyContent: 'right', alignItems: 'center' }}>
+        {
+          metadata?.tags?.map((tag, index) => {
+            return <Tag key={index} className='secondary-text primary-blue-bg' style={{ margin: 2 }}>
+              {tag}
+            </Tag>
+          })
         }
-        distributedSupply = totalSupply - undistributedSupply - claimableSupply;
-    }
+      </div>} labelSpan={9} valueSpan={15} />}
 
-    return (
-        <InformationDisplayCard
-            title={isCollectionInfo ? <>Collection Info
-
-                <br />
-                <div style={{ fontSize: 14 }}>
-                    {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collection.collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
-                </div></> : "Badge Info"}
-            span={span}
-        >
-            {!isCollectionInfo && <TableRow label={"Badge ID"} value={badgeId} labelSpan={12} valueSpan={12} />}
-
-            {isCollectionInfo && <TableRow label={"Collection ID"} value={collection.collectionId === 0 ? 'N/A (Preview)' : collection.collectionId} labelSpan={9} valueSpan={15} />}
-            {<TableRow label={"Type"} value={collection.standard == 0 ? "BitBadge" :  collection.standard == 1 ? "BitBadge (Off-Chain Balances)" :"Unknown"} labelSpan={9} valueSpan={15} />}
-            {collection.manager && <TableRow label={"Manager"} value={<div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', alignItems: 'center', flexDirection: 'row' }}>
-                <div></div>
-                <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'right', flexDirection: 'column', padding: 0
-                }}>
-                    <AddressDisplay
-                        fontSize={12}
-                        fontColor={SECONDARY_TEXT}
-                        userInfo={collection?.manager}
-                        hideChains
-                    />
-                </div>
-            </div>} labelSpan={9} valueSpan={15} />}
-            {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
-            {!isCollectionInfo && <TableRow label={"Supply"} value={
-                <div>
-                    <div>Total: {totalSupply}</div>
-                    {collection?.standard === 0 && <>                    <div>Unminted: {undistributedSupply} / {totalSupply}</div>
-                      <div>Claimable: {claimableSupply} / {totalSupply}</div>
-                      <div>Minted: {distributedSupply} / {totalSupply}</div>
-                      </>
-              }
-                </div>
-            } labelSpan={12} valueSpan={12} />}
-            {isCollectionInfo && collection.collectionUri && <TableRow label={"Metadata URL"} value={
-                <div>
-                    <Tooltip placement='bottom' title={collection.collectionUri}>
-                        <a href={collection.collectionUri} target="_blank" rel="noreferrer">
-                            {/* {collection.collectionUri.length > 20 ? collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13) : collection.collectionUri}  */}
-                            View
-                            <LinkOutlined style={{ marginLeft: 4 }} /></a>
-                    </Tooltip>
-                </div>
-            } labelSpan={9} valueSpan={15} />}
-            {!isCollectionInfo && badgeId && badgeUri && <TableRow label={"Metadata URL"} value={
-                <div>
-                    <Tooltip placement='bottom' title={`${badgeUri}`}>
-                        <a href={`${badgeUri}`} target="_blank" rel="noreferrer">{badgeUri.length > 20 ? badgeUri.slice(0, 10) + '...' + badgeUri.slice(badgeUri.length - 13) : badgeUri} <LinkOutlined /></a>
-                    </Tooltip>
-                </div>
-            } labelSpan={9} valueSpan={15} />}
-
-            {metadata.externalUrl && <TableRow label={"Website"} value={
-                <div>
-                    <Tooltip placement='bottom' title={`${metadata.externalUrl}`}>
-                        <a href={`${metadata.externalUrl}`} target="_blank" rel="noreferrer">{metadata.externalUrl.length > 20 ? metadata.externalUrl.slice(0, 10) + '...' + metadata.externalUrl.slice(metadata.externalUrl.length - 10) : metadata.externalUrl} <LinkOutlined /></a>
-                    </Tooltip>
-                </div>
-            } labelSpan={9} valueSpan={15} />}
-            {/* {metadata?.description && <TableRow label={"Description"} value={metadata.description} labelSpan={12} valueSpan={12} />} */}
-
-
-            {isCollectionInfo && collection.bytes && <TableRow label={collection.standard === 0 ? "Bytes" : "Balances URL"} value={
-              collection.standard === 0 ? <>{collection.bytes}</> : 
-              <div>
-                    <Tooltip placement='bottom' title={`${collection.bytes}`}>
-                        {/* <a href={`${collection.bytes}`} target="_blank" rel="noreferrer">{collection.bytes.length > 20 ? collection.bytes.slice(0, 10) + '...' + collection.bytes.slice(collection.bytes.length - 10) : collection.bytes} <LinkOutlined /></a> */}
-                        <a href={collection.bytes} target="_blank" rel="noreferrer">
-                            {/* {collection.collectionUri.length > 20 ? collection.collectionUri.slice(0, 10) + '...' + collection.collectionUri.slice(collection.collectionUri.length - 13) : collection.collectionUri}  */}
-                            View
-                            <LinkOutlined style={{ marginLeft: 4 }} /></a>
-                    </Tooltip>
-                </div>
-            } labelSpan={9} valueSpan={15} />}
-            <TableRow label={"Expiration"} value={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
-                {`Valid ${metadata?.validFrom?.end && metadata?.validFrom?.end !== MAX_DATE_TIMESTAMP
-                    ? 'Until ' +
-                    endDateString
-                    : 'Forever'
-                    }`}
-                <Divider type="vertical" />
-                {Date.now() <= endTimestamp ? (
-                    <CheckCircleFilled
-                        style={{
-                            fontSize: 30,
-                            color: 'green',
-                        }}
-                    />
-                ) : (
-                    <WarningFilled
-                        style={{
-                            fontSize: 30,
-                            color: 'red',
-                        }}
-                    />
-                )}
-            </div>} labelSpan={9} valueSpan={15} />
-
-            {metadata?.tags && <TableRow label={"Tags"} value={<div style={{ display: 'flex', justifyContent: 'right', alignItems: 'center' }}>
-                {
-                    metadata?.tags?.map((tag, index) => {
-                        return <Tag key={index} style={{ color: SECONDARY_TEXT, backgroundColor: PRIMARY_BLUE }}>
-                            {tag}
-                        </Tag>
-                    })
-                }
-            </div>} labelSpan={9} valueSpan={15} />}
-
-
-            {DEV_MODE &&
-                <pre style={{ maxHeight: 500, marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-                    {JSON.stringify(collection, null, 2)}
-                </pre>
-            }
-        </InformationDisplayCard>
-    );
+      <DevMode obj={collection} />
+    </InformationDisplayCard>
+  );
 }

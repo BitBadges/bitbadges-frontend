@@ -1,98 +1,69 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Card, Spin, Tooltip } from 'antd';
+import { Card, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { BadgeMetadata, BitBadgeCollection, getSupplyByBadgeId } from 'bitbadgesjs-utils';
+import { getBalanceForId, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from "../../constants";
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { BadgeAvatar } from './BadgeAvatar';
 
 export function BadgeCard({
-  metadata,
   size = 100,
-  collection,
+  collectionId,
   hoverable,
-  id,
+  badgeId,
   hideCollectionLink,
 }: {
-  id: number;
-  metadata?: BadgeMetadata;
-  collection: BitBadgeCollection;
+  badgeId: bigint;
+  collectionId: bigint
   size?: number;
   hoverable?: boolean;
   hideCollectionLink?: boolean;
 }) {
   const router = useRouter();
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+
 
   //Calculate total, undistributed, claimable, and distributed supplys
-  const totalSupply = getSupplyByBadgeId(id, collection.maxSupplys);
-  const undistributedSupply = getSupplyByBadgeId(id, collection.unmintedSupplys);
-  let claimableSupply = 0;
-  for (const claim of collection.claims) {
-    claimableSupply += getSupplyByBadgeId(id, claim.balances);
-  }
-  const distributedSupply = totalSupply - undistributedSupply - claimableSupply;
+  const totalSupply = collection ? getBalanceForId(badgeId, collection.maxSupplys) : 0n;
+  const undistributedSupply = collection ? getBalanceForId(badgeId, collection.unmintedSupplys) : 0n;
+  const distributedSupply = totalSupply - undistributedSupply;
+
+  const metadata = getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []);
+  const collectionMetadata = collection?.collectionMetadata;
+
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
 
   return (
     <>
       <Card
+        className='primary-text primary-blue-bg'
         style={{
           width: 230,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
-          backgroundColor: PRIMARY_BLUE,
-          color: PRIMARY_TEXT,
         }}
         hoverable={hoverable ? hoverable : true}
         onClick={() => {
-          router.push(`/collections/${collection.collectionId}/${id}`);
+          router.push(`/collections/${collectionId}/${badgeId}`);
         }}
         cover={
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '100%',
-              color: PRIMARY_TEXT,
-            }}
-          >
-
-            <Avatar
-              style={{
-                verticalAlign: 'middle',
-                border: '3px solid',
-                borderColor: metadata?.color
-                  ? metadata.color
-                  : 'black',
-                marginTop: '1rem',
-                cursor: 'pointer',
-              }}
-              src={
-                metadata?.image
-                  ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
-                  : <Spin size='large' />
-              }
+          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+            <BadgeAvatar
+              collectionId={collectionId}
+              badgeId={badgeId}
               size={size}
-              onError={() => {
-                return false;
-              }}
             />
           </div>
         }
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            color: PRIMARY_TEXT,
-          }}
-        >
+        <div className='flex-center full-width primary-text'>
           <Meta
             title={<div>
-              <div
+              <div className='primary-text'
                 style={{
                   fontSize: 20,
-                  color: PRIMARY_TEXT,
                   fontWeight: 'bolder',
                   whiteSpace: 'normal'
                 }}
@@ -101,51 +72,49 @@ export function BadgeCard({
               </div>
               {!hideCollectionLink &&
                 <div
+                  className='primary-text'
                   style={{
                     fontSize: 14,
-                    color: PRIMARY_TEXT,
                     fontWeight: 'bolder',
                     whiteSpace: 'normal'
                   }}
                   onClick={(e) => {
-                    router.push(`/collections/${collection.collectionId}`);
+                    router.push(`/collections/${collectionId}`);
                     e.stopPropagation();
                   }}
                 >
                   <a>
-                    {collection.collectionMetadata.name}
+                    {collectionMetadata?.name}
                   </a>
                 </div>}
             </div>
             }
             description={
               <div
+                className='secondary-text full-width'
                 style={{
-                  color: SECONDARY_TEXT,
                   alignItems: 'center',
                   fontSize: 17,
-                  width: '100%',
                   justifyContent: 'center',
                 }}
               >
-                ID #{id} / {collection.nextBadgeId - 1}
-                {collection && collection.maxSupplys && <><br />
+
+                {collection && <>
+                  ID #{`${badgeId}`} / {`${collection.nextBadgeId - 1n}`}
+                  <br />
                   <div className='flex-center'>
-                    <div>Supply: {totalSupply}
-                      {collection.standard === 0 &&
+                    <div>Supply: {totalSupply.toString()}
+                      {isOffChainBalances &&
                         <Tooltip
                           title={<>
                             <>Unminted: {undistributedSupply}</>
                             <br />
-                            <>Claimable: {claimableSupply}</>
-                            <br />
-                            <>Minted: {distributedSupply}</>
+                            <>Minted + Claimable: {distributedSupply}</>
                           </>}
                           placement='bottom'>
                           <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>}
                     </div>
-
                   </div>
                 </>}
               </div>
@@ -154,6 +123,5 @@ export function BadgeCard({
         </div>
       </Card>
     </>
-
   );
 }

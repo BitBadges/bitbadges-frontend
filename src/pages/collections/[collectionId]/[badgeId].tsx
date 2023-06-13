@@ -2,9 +2,9 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { faSnowflake, faUserPen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Col, Divider, Layout, Row, Tooltip, Typography } from 'antd';
-import { AllAddressesTransferMapping, BitBadgeCollection, TransferActivityItem, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { AllAddressesTransferMapping, BitBadgesCollection, TransferActivityInfo, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
 import { ActivityTab } from '../../../components/activity/ActivityDisplay';
@@ -17,26 +17,27 @@ import { OwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_BLUE } from '../../../constants';
-import { useCollectionsContext } from '../../../contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import MarkdownIt from 'markdown-it';
 import HtmlToReact from 'html-to-react';
+import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
 
-
-
 export function BadgePage({ collectionPreview }
   : {
-    collectionPreview?: BitBadgeCollection
+    collectionPreview?: BitBadgesCollection<bigint>
   }) {
   const router = useRouter()
   const collections = useCollectionsContext();
+  const collectionsRef = useRef(collections);
 
   const [tab, setTab] = useState('overview');
-  const [activity, setActivity] = useState<TransferActivityItem[]>([]);
+  const [activity, setActivity] = useState<TransferActivityInfo<bigint>[]>([]);
+
+  //TODO: Do within contexts
   const [hasMore, setHasMore] = useState(true);
   const [bookmark, setBookmark] = useState<string>('');
 
@@ -44,23 +45,24 @@ export function BadgePage({ collectionPreview }
 
   const isPreview = collectionPreview ? true : false;
 
-  const collectionIdNumber = collectionId && !isPreview ? Number(collectionId) : -1;
-  const badgeIdNumber = badgeId && !isPreview ? Number(badgeId) : -1;
+  const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? MSG_PREVIEW_ID : -1n;
+  const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
-  const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`]?.collection;
-  const metadata = collection ? getMetadataForBadgeId(Number(badgeId), collection.badgeMetadata) : undefined;
+  const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
+  const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.badgeMetadata) : undefined;
 
   //Get collection information
   useEffect(() => {
     if (isPreview) return;
     if (collectionIdNumber > 0) {
-      collections.fetchCollections([collectionIdNumber]);
+      collectionsRef.current.fetchCollections([collectionIdNumber]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectionIdNumber]);
+  }, [collectionIdNumber, isPreview]);
+
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
 
   const tabInfo = []
-  if (collection?.standard === 0) {
+  if (!isOffChainBalances) {
     tabInfo.push(
       { key: 'overview', content: 'Overview' },
       // { key: 'collection', content: 'Collection' },
@@ -78,44 +80,36 @@ export function BadgePage({ collectionPreview }
     );
   }
 
-  const isTransferable = !collection?.disallowedTransfers?.length;
-  const isNonTransferable = collection?.disallowedTransfers?.length === 1
-    && JSON.stringify(collection?.disallowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-    && JSON.stringify(collection?.disallowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
-
-  const isOffChainBalances = collection?.standard == 1;
+  const isNonTransferable = !collection?.allowedTransfers?.length;
+  const isTransferable = collection?.allowedTransfers?.length === 1
+    && JSON.stringify(collection?.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
+    && JSON.stringify(collection?.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
 
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
   return (
-
     <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
       >
         <div
+          className="primary-blue-bg"
           style={{
             marginLeft: !isPreview ? '7vw' : undefined,
             marginRight: !isPreview ? '7vw' : undefined,
             paddingLeft: !isPreview ? '1vw' : undefined,
             paddingRight: !isPreview ? '1vw' : undefined,
             paddingTop: '20px',
-            background: PRIMARY_BLUE,
           }}
         >
           <BadgeButtonDisplay website={metadata?.externalUrl} />
 
-          {metadata &&
-            <CollectionHeader
-              metadata={metadata}
-              collection={collection}
-            />
-          }
+          {metadata && <CollectionHeader collectionId={collectionIdNumber} />}
 
           <Tabs
             tab={tab}
@@ -128,10 +122,8 @@ export function BadgePage({ collectionPreview }
           {tab === 'claims' && collection && <>
             <br />
             <ClaimsTab
-              collection={collection}
-              refreshUserBalance={
-                async () => { } //TODO:
-              }
+              collectionId={collectionIdNumber}
+
               badgeId={badgeIdNumber}
             />
           </>}
@@ -142,18 +134,11 @@ export function BadgePage({ collectionPreview }
 
 
             {collection &&
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <Row
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                  }}
-                >
+              <div className='flex-center'>
+                <Row className='flex-between full-width'>
                   <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
                     <MetadataDisplay
-                      collection={collection}
-                      metadata={metadata}
+                      collectionId={collectionIdNumber}
                       badgeId={badgeIdNumber}
                       span={24}
                     />
@@ -165,7 +150,7 @@ export function BadgePage({ collectionPreview }
                           <Tooltip title="Which badge owners can transfer to which badge owners?">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                           </Tooltip>
-                          {!collection?.permissions.CanUpdateDisallowed ?
+                          {!collection?.permissions.CanUpdateAllowed ?
                             <Tooltip title="The transferability is frozen and can never be changed.">
                               <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
                             </Tooltip> :
@@ -178,17 +163,17 @@ export function BadgePage({ collectionPreview }
                       >
                         <div style={{ margin: 8 }}>
                           {
-                            isTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Transferable</Typography.Text> : <>
-                              {isNonTransferable ? <Typography.Text style={{ fontSize: 20, color: PRIMARY_TEXT }}>Non-Transferable</Typography.Text>
+                            isTransferable ? <Typography.Text style={{ fontSize: 20 }} className='primary-text'>Transferable</Typography.Text> : <>
+                              {isNonTransferable ? <Typography.Text style={{ fontSize: 20 }} className='primary-text'>Non-Transferable</Typography.Text>
                                 : <>                                        {
-                                  collection?.disallowedTransfers.map((transfer) => {
+                                  collection?.allowedTransfers.map((transfer) => {
                                     return <>
-                                      The addresses with account IDs {transfer.from.accountIds.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                      })} {transfer.from.options === 1 ? '(including the manager)' : transfer.from.options === 2 ? '(excluding the manager)' : ''} cannot
-                                      transfer to the addresses with account IDs {transfer.to.accountIds.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range.start} to {range.end}</span>
-                                      })} {transfer.to.options === 1 ? '(including the manager)' : transfer.to.options === 2 ? '(excluding the manager)' : ''}.
+                                      The addresses with account IDs {transfer.from.addresses.map((range, index) => {
+                                        return <span key={index}>{index > 0 && ','} {range}</span>
+                                      })} {transfer.from.managerOptions === 1n ? '(including the manager)' : transfer.from.managerOptions === 2n ? '(excluding the manager)' : ''} cannot
+                                      transfer to the addresses with account IDs {transfer.to.addresses.map((range, index) => {
+                                        return <span key={index}>{index > 0 && ','} {range}</span>
+                                      })} {transfer.to.managerOptions === 1n ? '(including the manager)' : transfer.to.managerOptions === 2n ? '(excluding the manager)' : ''}.
                                       <br />
                                     </>
                                   })
@@ -203,10 +188,10 @@ export function BadgePage({ collectionPreview }
                     </>}
                     {collection &&
                       <PermissionsOverview
-                        collection={collection}
+                        collectionId={collectionIdNumber}
                         isBadgeView
                         span={24}
-                        isUserList={true}
+                        isOffChainBalances={isOffChainBalances}
                       />
                     }
 
@@ -218,7 +203,7 @@ export function BadgePage({ collectionPreview }
                         title="About"
                       >
                         <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                          <div className='custom-html-style' id="description" style={{ color: PRIMARY_TEXT }} >
+                          <div className='custom-html-style primary-text' id="description">
                             <Markdown>
                               {reactElement}
                             </Markdown>
@@ -229,7 +214,7 @@ export function BadgePage({ collectionPreview }
                     </>}
 
                     {collection && <OwnersTab
-                      collection={collection}
+                      collectionId={collectionIdNumber}
                       badgeId={badgeIdNumber}
                     />}
                   </Col>
@@ -242,17 +227,13 @@ export function BadgePage({ collectionPreview }
           {tab === 'activity' && collection && (<>
             <br />
             <ActivityTab
-              collection={{
-                ...collection,
-                activity: activity as TransferActivityItem[],
-              }}
-              badgeId={badgeIdNumber}
+              activity={activity}
               fetchMore={async () => {
-                const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, bookmark);
+                const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, { bookmark });
                 if (activityRes) {
                   setActivity([...activity, ...activityRes.activity]);
-                  setHasMore(activityRes.pagination.activity.hasMore);
-                  setBookmark(activityRes.pagination.activity.bookmark);
+                  setHasMore(activityRes.pagination.hasMore);
+                  setBookmark(activityRes.pagination.bookmark);
                 }
               }}
               hasMore={hasMore}
@@ -260,14 +241,11 @@ export function BadgePage({ collectionPreview }
           </>
           )}
 
-          {tab === 'actions' && collection && (<>
+          {tab === 'actions' && (<>
             <ActionsTab
-              collection={collection}
-              refreshUserBalance={async () => { } //TODO:
-              }
+              collectionId={collectionIdNumber}
               badgeView
             />
-
           </>
           )}
         </div>

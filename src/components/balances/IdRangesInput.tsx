@@ -1,9 +1,8 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
+import { IdRange } from "bitbadgesjs-proto";
+import { Numberify, sortIdRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { SortIdRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { BitBadgeCollection, IdRange } from "bitbadgesjs-utils";
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 
@@ -12,37 +11,33 @@ export function IdRangesInput({
   setIdRanges,
   maximum,
   minimum,
-  darkMode,
   verb,
-  collection,
+  collectionId,
   defaultAllSelected = true,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent
 }: {
-  idRanges?: IdRange[],
-  setIdRanges: (idRanges: IdRange[]) => void,
-  maximum?: number,
-  minimum?: number,
-  darkMode?: boolean,
+  idRanges?: IdRange<bigint>[],
+  setIdRanges: (idRanges: IdRange<bigint>[]) => void,
+  maximum?: bigint,
+  minimum?: bigint,
   verb?: string,
-  collection: BitBadgeCollection,
+  collectionId: bigint,
   defaultAllSelected?: boolean,
-  updateMetadataForBadgeIdsDirectlyFromUriIfAbsent?: (badgeIds: number[]) => Promise<void>
 }) {
   const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
 
   const [numRanges, setNumRanges] = useState(idRanges ? idRanges.length : 1);
-  const [sliderValues, setSliderValues] = useState<[number, number][]>(
+  const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
     idRanges ? idRanges.map(({ start, end }) => [start, end])
-      : [[minimum ?? 1, maximum ?? 1]]);
+      : [[minimum ?? 1n, maximum ?? 1n]]);
   const [inputStr, setInputStr] = useState(
     idRanges ?
       idRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
-      : `${minimum ?? 1}-${maximum ?? 1}`);
+      : `${minimum ?? 1n}-${maximum ?? 1n}`);
   const [updateAllIsSelected, setUpdateAllIsSelected] = useState(isDefaultAllSelected);
   // const [clicked, setClicked] = useState(false);
 
-  if (maximum == 0) {
-    return <></>;
+  if (maximum && maximum <= 0) {
+    return null;
   }
 
   const overlaps = sliderValues.some(([start1, end1], i) => {
@@ -55,7 +50,7 @@ export function IdRangesInput({
   });
 
   const switchOptions = [];
-  if (maximum !== 1) {
+  if (maximum !== 1n) {
     switchOptions.push({
       title: 'Custom',
       message: `Select specific badges.`,
@@ -65,9 +60,12 @@ export function IdRangesInput({
 
   switchOptions.push({
     title: 'All Badges',
-    message: `Select all badges in this collection. ${maximum === 1 ? 'This is auto-selected because there is only one badge.' : ''}`,
+    message: `Select all badges in this collection. ${maximum === 1n ? 'This is auto-selected because there is only one badge.' : ''}`,
     isSelected: updateAllIsSelected,
   });
+
+  const maximumNum = Numberify(maximum?.toString() ?? 1);
+  const minimumNum = Numberify(minimum?.toString() ?? 1);
 
 
   return <>
@@ -76,24 +74,21 @@ export function IdRangesInput({
       onSwitchChange={(_idx, name) => {
         setUpdateAllIsSelected(name === 'All Badges');
         if (name === 'All Badges') {
-          setIdRanges([{ start: minimum ?? 1, end: maximum ?? 1 }]);
+          setIdRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
         }
-        // setClicked(true);
       }}
-    // 
     />
 
     {!updateAllIsSelected && <>
       <br />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
+      <div className='flex-center' >
         <Input
-          style={{ width: 750, marginTop: 16, color: PRIMARY_TEXT, backgroundColor: PRIMARY_BLUE, textAlign: 'center' }}
+          style={{ width: 750, marginTop: 16, textAlign: 'center' }}
+          className="primary-text primary-blue-bg"
           value={inputStr}
           onChange={(e) => {
             setInputStr(e.target.value);
-
-
-            let sliderValues: [number, number][] = [];
+            let sliderValues: [bigint, bigint][] = [];
 
             const splitSliderValues = e.target.value.split(', ');
             for (const sliderValue of splitSliderValues) {
@@ -105,11 +100,11 @@ export function IdRangesInput({
                   continue;
                 }
                 //start can't be greater than end
-                if (parseInt(sliderValue.split('-')[0]) > parseInt(sliderValue.split('-')[1])) {
+                if (BigInt(sliderValue.split('-')[0]) > BigInt(sliderValue.split('-')[1])) {
                   continue;
                 }
 
-                sliderValues.push([parseInt(sliderValue.split('-')[0]), parseInt(sliderValue.split('-')[1])]);
+                sliderValues.push([BigInt(sliderValue.split('-')[0]), BigInt(sliderValue.split('-')[1])]);
               }
             }
 
@@ -121,17 +116,19 @@ export function IdRangesInput({
         />
       </div>
       <br />
-      {/* <h2 style={{ textAlign: 'center', color: PRIMARY_TEXT }}>Badge ID Select</h2> */}
+      {/* <h2 style={{ textAlign: 'center',  }} className='primary-text'>Badge ID Select</h2> */}
       {
         new Array(numRanges).fill(0).map((_, i) => {
           return <div key={i} style={{ display: "flex", alignItems: 'center', justifyContent: 'center' }}>
             <div className='flex-between' style={{ flexDirection: 'column', minWidth: 500, marginRight: 12 }} >
               <b>Select Badge IDs to {verb ? verb : 'Transfer'}</b>
-              <Slider min={minimum ?? 1} max={maximum} range
+              <Slider min={minimumNum} max={maximumNum} range
                 style={{ minWidth: 500 }}
-                value={sliderValues[i]} onChange={(e) => {
-                  const newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
-                  setSliderValues(newSliderValues);
+                value={[Numberify(sliderValues[i][0]), Numberify(sliderValues[i][1])]}
+                onChange={(e) => {
+                  const _newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
+                  const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
+                  setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
                   setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                   setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                 }}
@@ -140,49 +137,45 @@ export function IdRangesInput({
             <div className='flex-between' style={{ flexDirection: 'column', marginRight: 8 }} >
               <b>Start</b>
               <InputNumber
-                min={minimum ?? 1}
-                max={sliderValues[i][1]}
-                value={sliderValues[i][0]}
+                min={minimumNum}
+                max={Numberify(sliderValues[i][1])}
+                value={Numberify(sliderValues[i][0])}
                 onChange={
                   (value: number) => {
                     if (value >= 0 && value <= sliderValues[i][1]) {
-                      const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
-                      setSliderValues(newSliderValues);
+                      const _newSliderValues = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
+                      const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
+                      setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
                       setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                       setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                     }
                   }
                 }
-                style={darkMode ? {
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
-                } : undefined}
+                className="primary-text primary-blue-bg"
               />
             </div>
             <div className='flex-between' style={{ flexDirection: 'column' }} >
               <b>End</b>
               <InputNumber
-                min={minimum ?? 1}
-                max={maximum}
+                min={minimumNum}
+                max={maximumNum}
                 title='Amount to Transfer'
-                value={sliderValues[i][1]}
+                value={Numberify(sliderValues[i][1])}
                 onChange={
                   (value: number) => {
                     if (value >= 0 && value >= sliderValues[i][0]) {
-                      const newSliderValues: [number, number][] = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
-                      setSliderValues(newSliderValues);
+                      const _newSliderValues = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
+                      const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
+                      setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
                       setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                       setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                     }
                   }
                 }
-                style={darkMode ? {
-                  backgroundColor: PRIMARY_BLUE,
-                  color: PRIMARY_TEXT,
-                } : undefined}
+                className="primary-text primary-blue-bg"
               />
             </div>
-            <div style={{ display: 'flex' }} >
+            <div className='flex' >
               <Tooltip title="Delete Range" placement='bottom'>
                 <DeleteOutlined
                   style={{
@@ -207,7 +200,7 @@ export function IdRangesInput({
       }
 
       <br />
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div className='flex-center'>
         <Button type='primary'
           style={{ marginRight: 12 }}
           onClick={() => {
@@ -215,16 +208,16 @@ export function IdRangesInput({
 
             const oldSliderValues = sliderValues;
 
-            setSliderValues([...oldSliderValues, [minimum ?? 1, maximum ?? 1]]);
-            setIdRanges([...oldSliderValues, [minimum ?? 1, maximum ?? 1]].map(([start, end]) => ({ start, end })));
-            setInputStr([...oldSliderValues, [minimum ?? 1, maximum ?? 1]].map(([start, end]) => `${start}-${end}`).join(', '));
+            setSliderValues([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]]);
+            setIdRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
+            setInputStr([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => `${start}-${end}`).join(', '));
           }}>
           Add Range
         </Button>
         {overlaps &&
           <Button type='primary'
             onClick={() => {
-              const newIdRanges = SortIdRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
+              const newIdRanges = sortIdRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
               setNumRanges(newIdRanges.length);
               setSliderValues(newIdRanges.map(({ start, end }) => [start, end]));
               setIdRanges(newIdRanges);
@@ -244,13 +237,12 @@ export function IdRangesInput({
       <Divider />
     </>}
     <br />
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ maxWidth: 700, color: PRIMARY_TEXT }}>
+    <div className='flex-center'>
+      <div style={{ maxWidth: 700 }} className='primary-text'>
         <BadgeAvatarDisplay
-          collection={collection}
+          collectionId={collectionId}
           badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
           showIds={true}
-          updateMetadataForBadgeIdsDirectlyFromUriIfAbsent={updateMetadataForBadgeIdsDirectlyFromUriIfAbsent}
         />
       </div>
     </div>

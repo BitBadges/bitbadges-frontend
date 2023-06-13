@@ -1,9 +1,7 @@
 import { Dropdown, Input } from 'antd';
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { PRIMARY_BLUE, PRIMARY_TEXT } from "../../constants";
-import { useAccountsContext } from '../../contexts/AccountsContext';
 import { SearchDropdown } from '../navigation/SearchDropdown';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -13,20 +11,16 @@ export enum EnterMethod {
 export function AddressSelect({
   defaultValue,
   onUserSelect,
-  darkMode
 }: {
   defaultValue?: string,
-  onUserSelect: (currUserInfo: BitBadgesUserInfo) => void,
-  fontColor?: string,
-  darkMode?: boolean,
+  onUserSelect: (currUserInfo: string) => void,
 }) {
-  const accounts = useAccountsContext();
-
   const [input, setInput] = useState<string>(defaultValue ? defaultValue : '');
+  const accounts = useAccountsContext();
 
   return <>
     <br />
-    <Input.Group compact style={{ display: 'flex' }}>
+    <Input.Group compact className='flex'>
       <Dropdown
         open={input !== ''}
         placement="bottom"
@@ -34,8 +28,9 @@ export function AddressSelect({
           <SearchDropdown
             onlyAddresses
             searchValue={input}
-            onSearch={(searchValue: string) => {
-              onUserSelect(accounts.accounts[accounts.cosmosAddresses[searchValue]]);
+            onSearch={async (addressOrUsername: string) => {
+              const account = await accounts.fetchAccounts([addressOrUsername]);
+              onUserSelect(account[0].cosmosAddress);
               setInput('');
             }}
           />
@@ -44,10 +39,7 @@ export function AddressSelect({
       >
         <Input
           value={input}
-          style={darkMode ? {
-            backgroundColor: PRIMARY_BLUE,
-            color: PRIMARY_TEXT
-          } : undefined}
+          className='primary-text primary-blue-bg'
           onChange={async (e) => {
             e.preventDefault();
             setInput(e.target.value);

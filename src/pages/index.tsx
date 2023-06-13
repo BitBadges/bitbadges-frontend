@@ -1,7 +1,6 @@
 import { Button, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
-import { PRIMARY_BLUE, SECONDARY_BLUE, SECONDARY_TEXT } from '../constants';
 // import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 // import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
 import Image from 'next/image';
@@ -14,19 +13,18 @@ const Home: NextPage = () => {
     <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, ${SECONDARY_BLUE} 0,${PRIMARY_BLUE} 0%)`,
+          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '60vh',
         }}
       >
-        <div
+        <div className='primary-blue-bg'
           style={{
             marginLeft: '10vw',
             marginRight: '10vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
-            background: PRIMARY_BLUE,
             minHeight: '80vh'
           }}
         >
@@ -34,9 +32,9 @@ const Home: NextPage = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', }}>
               <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="300px" width="300px" quality={100} />
-              {/* <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>BitBadges</Typography.Text> */}
-              <Typography.Text strong style={{ color: SECONDARY_TEXT, fontSize: 18 }}>Issue digital, verifiable badges on the blockchain!</Typography.Text>
-              <div style={{ display: 'flex' }}>
+              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 24 }}>BitBadges</Typography.Text> */}
+              <Typography.Text strong className='secondary-text' style={{ fontSize: 18 }}>Issue digital, verifiable badges on the blockchain!</Typography.Text>
+              <div className='flex'>
                 <Button
                   className='screen-button'
                   style={{ marginTop: '20px' }}
@@ -57,17 +55,17 @@ const Home: NextPage = () => {
               </div>
               <Divider />
               <Divider />
-              {/* <div style={{ display: 'flex', justifyContent: 'center' }}> */}
+              {/* <div className='flex-center'> */}
 
               {/* </div> */}
 
             </div>
 
           </div>
-          <Row style={{ display: 'flex', justifyContent: 'center' }}>
+          <Row className='flex-center'>
             <Col md={12} sm={24} xs={24}>
               {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
-              {/* <Typography.Text strong style={{ color: PRIMARY_TEXT, fontSize: 24 }}>Team</Typography.Text> */}
+              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 24 }}>Team</Typography.Text> */}
               <br />
               <div className="container">
                 <iframe

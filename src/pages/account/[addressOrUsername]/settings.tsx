@@ -2,14 +2,15 @@ import { Button, Form, Input, Layout, Typography } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { updateAccountSettings } from '../../../bitbadges-api/api';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../../constants';
-import { useChainContext } from '../../../contexts/ChainContext';
+
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
+import { updateAccountInfo } from '../../../bitbadges-api/api';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -18,32 +19,33 @@ const { Content } = Layout;
 export function AccountSettings() {
   const router = useRouter();
   const chain = useChainContext();
-  const { addressOrAccountNum } = router.query;
+  const accounts = useAccountsContext();
+  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
   const [loading, setLoading] = useState<boolean>(false);
 
   const [twitter, setTwitter] = useState(
-    chain?.twitter ? chain.twitter : ''
+    signedInAccount?.twitter ? signedInAccount.twitter : ''
   );
 
   const [discord, setDiscord] = useState(
-    chain?.discord ? chain.discord : ''
+    signedInAccount?.discord ? signedInAccount.discord : ''
   );
 
   const [github, setGithub] = useState(
-    chain?.github ? chain.github : ''
+    signedInAccount?.github ? signedInAccount.github : ''
   );
 
   const [telegram, setTelegram] = useState(
-    chain?.telegram ? chain.telegram : ''
+    signedInAccount?.telegram ? signedInAccount.telegram : ''
   );
 
-  const [name, setName] = useState(
-    chain?.name ? chain.name : ''
-  );
+  // const [name, setName] = useState(
+  //   signedInAccount?.username ? signedInAccount.username : ''
+  // );
 
   const [readme, setReadme] = useState(
-    chain?.readme ? chain.readme : ''
+    signedInAccount?.readme ? signedInAccount.readme : ''
   );
 
   function handleEditorChange({ text }: any) {
@@ -53,17 +55,13 @@ export function AccountSettings() {
 
 
   useEffect(() => {
-    if (!chain) return;
-    setTwitter(chain.twitter ? chain.twitter : '');
-    setDiscord(chain.discord ? chain.discord : '');
-    setGithub(chain.github ? chain.github : '');
-    setTelegram(chain.telegram ? chain.telegram : '');
-    setName(chain.name ? chain.name : '');
-    setReadme(chain.readme ? chain.readme : '');
-  }, [chain]);
-
-
-  const regex = /^[a-zA-Z0-9_\-]+$/; // regular expression for username
+    if (!signedInAccount) return;
+    setTwitter(signedInAccount.twitter ? signedInAccount.twitter : '');
+    setDiscord(signedInAccount.discord ? signedInAccount.discord : '');
+    setGithub(signedInAccount.github ? signedInAccount.github : '');
+    setTelegram(signedInAccount.telegram ? signedInAccount.telegram : '');
+    setReadme(signedInAccount.readme ? signedInAccount.readme : '');
+  }, [signedInAccount]);
 
   return (
     <DisconnectedWrapper
@@ -74,8 +72,8 @@ export function AccountSettings() {
 
           node={
             <Content
-              className="full-area"
-              style={{ backgroundColor: PRIMARY_BLUE, minHeight: '100vh', padding: 8 }}
+              className="full-area primary-blue-bg"
+              style={{ minHeight: '100vh', padding: 8 }}
             >
               <br />
               <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
@@ -88,9 +86,9 @@ export function AccountSettings() {
                 layout="horizontal"
               >
                 <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-                  <Form.Item
+                  {/* <Form.Item
                     label={<>
-                      <Text style={{ color: PRIMARY_TEXT }} strong>
+                      <Text className='primary-text' strong>
                         Name
                       </Text>
                     </>}
@@ -103,18 +101,18 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
-                    <Typography.Text strong style={{ color: SECONDARY_TEXT }}>
+                    <Typography.Text strong className='secondary-text'>
                       *If left blank, we will attempt to resolve your name from your native chain (ex: Ethereum Name Service for Ethereum).
                     </Typography.Text>
                     {!regex.test(name) && name.length > 0 && <Typography.Text type="danger">
                       Name must only contain letters, numbers, underscores, and dashes.
                     </Typography.Text>}
-                  </Form.Item>
+                  </Form.Item> */}
 
 
                   <Form.Item
                     label={
-                      <Text style={{ color: PRIMARY_TEXT }} strong>
+                      <Text className='primary-text' strong>
                         Twitter
                       </Text>
                     }
@@ -131,7 +129,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text style={{ color: PRIMARY_TEXT }} strong>
+                      <Text className='primary-text' strong>
                         GitHub
                       </Text>
                     }
@@ -148,7 +146,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text style={{ color: PRIMARY_TEXT }} strong>
+                      <Text className='primary-text' strong>
                         Telegram
                       </Text>
                     }
@@ -165,7 +163,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text style={{ color: PRIMARY_TEXT }} strong>
+                      <Text className='primary-text' strong>
                         Discord
                       </Text>
                     }
@@ -182,24 +180,21 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text
-                        style={{ color: PRIMARY_TEXT }}
+                        className='primary-text'
                         strong
                       >
                         About
                       </Text>
                     }
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <MdEditor style={{
-                        width: '100%',
-                        minHeight: '250px',
-                        backgroundColor: PRIMARY_BLUE,
-                        color: PRIMARY_TEXT
-                      }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                    <div className='flex-between'>
+                      <MdEditor
+                        className='primary-text primary-blue-bg full-width'
+                        style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                         value={readme}
                       />
                     </div>
-                    <Typography.Text strong style={{ color: SECONDARY_TEXT }}>
+                    <Typography.Text strong className='secondary-text'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
                   </Form.Item>
@@ -210,7 +205,7 @@ export function AccountSettings() {
                 <Button
                   type="primary"
                   loading={loading}
-                  disabled={!regex.test(name) && name.length > 0}
+                  // disabled={!regex.test(name) && name.length > 0}
                   style={{ width: '80%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}
                   onClick={async () => {
                     setLoading(true);
@@ -221,12 +216,12 @@ export function AccountSettings() {
                         discord,
                         github,
                         telegram,
-                        name,
+                        // name,
                         readme
                       };
 
-                      await updateAccountSettings(data);
-                      router.push(`/account/${addressOrAccountNum}`);
+                      await updateAccountInfo(data);
+                      router.push(`/account/${chain.cosmosAddress}`);
                     } catch (err) {
                       console.log(err);
                     }

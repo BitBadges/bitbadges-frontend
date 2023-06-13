@@ -1,26 +1,23 @@
 import { Divider, Select } from 'antd';
-import { BitBadgeCollection } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { DEV_MODE, PRIMARY_BLUE, PRIMARY_TEXT } from '../../constants';
 
 import { DownOutlined } from '@ant-design/icons';
-import { MultiCollectionBadgeDisplay } from '../badges/MultiCollectionBadgeDisplay';
+import { getIdRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 
-export function BadgesTab({ collection }: {
-  collection: BitBadgeCollection
+export function BadgesTab({ collectionId }: {
+  collectionId: bigint
 }) {
   const [cardView, setCardView] = useState(true);
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
 
   return (
-    <div
-      style={{
-        color: PRIMARY_TEXT,
-      }}>
+    <div className='primary-text'>
       <br />
 
-      <div style={{
-        backgroundColor: PRIMARY_BLUE,
-        color: PRIMARY_TEXT,
+      <div className='primary-text primary-blue-bg' style={{
         float: 'right',
         display: 'flex',
         alignItems: 'center',
@@ -30,21 +27,19 @@ export function BadgesTab({ collection }: {
         View:
 
         <Select
-          className="selector"
+          className="selector primary-text primary-blue-bg"
           value={cardView ? 'card' : 'image'}
           placeholder="Default: None"
           onChange={(e: any) => {
             setCardView(e === 'card');
           }}
           style={{
-            backgroundColor: PRIMARY_BLUE,
-            color: PRIMARY_TEXT,
             float: 'right',
             marginLeft: 8
           }}
           suffixIcon={
             <DownOutlined
-              style={{ color: PRIMARY_TEXT }}
+              className='primary-text'
             />
           }
         >
@@ -54,20 +49,14 @@ export function BadgesTab({ collection }: {
       </div>
       <Divider />
       <div>
-        <MultiCollectionBadgeDisplay
-          collections={[collection]}
+        <BadgeAvatarDisplay
+          collectionId={collectionId}
           cardView={cardView}
-          groupByCollection={false}
+          badgeIds={collection ? getIdRangesForAllBadgeIdsInCollection(collection) : []}
           pageSize={cardView ? 25 : 1000}
           hideCollectionLink={true}
         />
       </div>
-
-      {DEV_MODE &&
-        <pre style={{ marginTop: '10px', borderTop: '3px dashed white', color: PRIMARY_TEXT, alignContent: 'left', width: '100%', textAlign: 'left' }}>
-          {JSON.stringify(collection, null, 2)}
-        </pre>
-      }
     </div >
   );
 }

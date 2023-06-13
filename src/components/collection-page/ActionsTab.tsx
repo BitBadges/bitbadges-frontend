@@ -1,35 +1,30 @@
 import { Card, Empty, message } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useState } from 'react';
-import { BitBadgeCollection, UserBalance } from 'bitbadgesjs-utils';
-import { PRIMARY_BLUE, PRIMARY_TEXT, SECONDARY_TEXT } from '../../constants';
-import { useChainContext } from '../../contexts/ChainContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { CreateTxMsgMintBadgeModal } from '../tx-modals/CreateTxMsgMintBadgeModal';
+import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
+import { CreateTxMsgMintAndDistributeBadgesModal } from '../tx-modals/CreateTxMsgMintAndDistributeBadgesModal';
 import { CreateTxMsgRequestTransferManagerModal } from '../tx-modals/CreateTxMsgRequestTransferManagerModal';
 import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
 import { CreateTxMsgTransferManagerModal } from '../tx-modals/CreateTxMsgTransferManagerModal';
-import { CreateTxMsgUpdateDisallowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateDisallowedTransfers';
+import { CreateTxMsgUpdateBalancesModal } from '../tx-modals/CreateTxMsgUpdateBalancesModal';
+import { CreateTxMsgUpdateAllowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateAllowedTransfers';
 import { CreateTxMsgUpdatePermissionsModal } from '../tx-modals/CreateTxMsgUpdatePermissions';
 import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisModal';
-import { refreshMetadataOnBackend } from '../../bitbadges-api/api';
-import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { CreateTxMsgUpdateBytesModal } from '../tx-modals/CreateTxMsgUpdateBytesModal';
 
 export function ActionsTab({
-  collection,
-  userBalance,
-  refreshUserBalance,
+  collectionId,
   badgeView
 }: {
-  collection: BitBadgeCollection;
-  userBalance?: UserBalance;
-  refreshUserBalance: () => Promise<void>;
+  collectionId: bigint,
   badgeView?: boolean;
 }) {
   const chain = useChainContext();
-  const accountNumber = chain.accountNumber;
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
@@ -39,9 +34,9 @@ export function ActionsTab({
   const [addBadgesIsVisible, setAddBadgesIsVisible] = useState(false);
   const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
   const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
-  const [updateDisallowedIsVisible, setUpdateDisallowedIsVisible] = useState(false);
+  const [updateAllowedIsVisible, setUpdateAllowedIsVisible] = useState(false);
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
-  const [updateUserListIsVisible, setUpdateUserListIsVisible] = useState(false);
+  const [updateUserBalancesIsVisible, setUpdateUserBalancesIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -50,11 +45,13 @@ export function ActionsTab({
     disabled?: boolean
   }[] = [];
 
-  const isManager = collection.manager.accountNumber === accountNumber;
+  const isManager = collection && collection.managerInfo.cosmosAddress === chain.cosmosAddress;
+  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+  const isOnChainBalances = collection && !collection.balancesUri;
 
   const getTitleElem = (title: string) => {
     return (
-      <div style={{ color: PRIMARY_TEXT }}>
+      <div className='primary-text'>
         {title}
       </div>
     );
@@ -62,7 +59,7 @@ export function ActionsTab({
 
   const getDescriptionElem = (description: string) => {
     return (
-      <div style={{ color: SECONDARY_TEXT }}>
+      <div className='secondary-text'>
         {description}
       </div>
     );
@@ -70,7 +67,7 @@ export function ActionsTab({
 
 
 
-  if (collection.standard === 0) {
+  if (isOnChainBalances) {
     actions.push({
       title: getTitleElem("Transfer"),
       description: getDescriptionElem(
@@ -83,14 +80,14 @@ export function ActionsTab({
   }
 
   if (isManager && !badgeView) {
-    if (collection.permissions.CanUpdateBytes && collection.standard === 1) {
+    if (collection.permissions.CanUpdateBalancesUri && isOffChainBalances) {
       actions.push({
         title: getTitleElem("Update Balances"),
         description: getDescriptionElem(
           "Update the owners of this badge."
         ),
         showModal: () => {
-          setUpdateUserListIsVisible(!updateUserListIsVisible);
+          setUpdateUserBalancesIsVisible(!updateUserBalancesIsVisible);
         },
       });
     }
@@ -107,9 +104,7 @@ export function ActionsTab({
       });
     }
 
-
-
-    if (collection.standard === 0 && collection.unmintedSupplys.length > 0) {
+    if (isOnChainBalances && collection.unmintedSupplys.length > 0) {
       actions.push({
         title: getTitleElem("Distribute Badges"),
         description: getDescriptionElem(
@@ -121,7 +116,7 @@ export function ActionsTab({
       });
     }
 
-    if (collection.permissions.CanUpdateUris) {
+    if (collection.permissions.CanUpdateMetadataUris) {
       actions.push({
         title: getTitleElem("Update Metadata"),
         description: getDescriptionElem(
@@ -133,14 +128,14 @@ export function ActionsTab({
       });
     }
 
-    if (collection.permissions.CanUpdateDisallowed) {
+    if (collection.permissions.CanUpdateAllowed) {
       actions.push({
         title: getTitleElem("Edit Transferability"),
         description: getDescriptionElem(
           "Freeze or unfreeze if badge owners able to transfer."
         ),
         showModal: () => {
-          setUpdateDisallowedIsVisible(!updateDisallowedIsVisible);
+          setUpdateAllowedIsVisible(!updateAllowedIsVisible);
         },
       });
     }
@@ -175,7 +170,7 @@ export function ActionsTab({
       ),
       showModal: async () => {
         try {
-          await refreshMetadataOnBackend(collection.collectionId);
+          await collections.triggerMetadataRefresh(collectionId);
           message.success("Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later.");
         } catch (e) {
           message.error("Oops! Something went wrong. Please try again later.");
@@ -197,7 +192,7 @@ export function ActionsTab({
   }
 
   if (!isManager && !badgeView) {
-    if (collection.permissions.CanManagerBeTransferred) {
+    if (collection?.permissions.CanManagerBeTransferred) {
       actions.push({
         title: getTitleElem("Request Manager Transfer"),
         description: getDescriptionElem(
@@ -219,154 +214,134 @@ export function ActionsTab({
   return (
     <RegisteredWrapper
       node={
-        <div
-          style={{
-            width: '100%',
-            fontSize: 20,
-          }}
-        >
-          <div
+        <div className='full-width' style={{ fontSize: 20 }}>
+          <div className='primary-text flex-center'
             style={{
               padding: '0',
               textAlign: 'center',
-              color: PRIMARY_TEXT,
-              justifyContent: 'center',
-              alignItems: 'center',
               marginTop: 20,
-              display: 'flex',
-              flexWrap: 'wrap',
             }}
           >
+            {actions.map((action, idx) => {
+              return <Card
+                key={idx}
+                className='primary-text primary-blue-bg flex-center'
+                style={{
+                  width: '300px',
+                  minHeight: '150px',
+                  margin: 8,
+                  textAlign: 'center',
+                  cursor: action.disabled ? 'not-allowed' : undefined,
+                }}
+                hoverable={!action.disabled}
+                onClick={async () => {
+                  if (action.disabled) return;
+                  action.showModal();
+                }}
+              >
+                <Meta
+                  title={
+                    <div
+                      className='primary-text'
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 'bolder',
+                      }}
+                    >
+                      {action.title}
+                    </div>
+                  }
+                  description={
+                    <div className='secondary-text flex-center full-width'>
+                      {action.description}
+                    </div>
+                  }
+                />
+              </Card>
 
-            {
-              actions.map((action, idx) => {
-                return <Card
-                  key={idx}
-                  style={{
-                    width: '300px',
-                    minHeight: '150px',
-                    margin: 8,
-                    textAlign: 'center',
-                    backgroundColor: PRIMARY_BLUE,
-                    color: PRIMARY_TEXT,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: action.disabled ? 'not-allowed' : undefined,
-                  }}
-                  hoverable={!action.disabled}
-                  onClick={async () => {
-                    if (action.disabled) return;
-                    action.showModal();
-                  }}
-
-                >
-                  <Meta
-                    title={
-                      <div
-                        style={{
-                          fontSize: 20,
-                          color: PRIMARY_TEXT,
-                          fontWeight: 'bolder',
-                        }}
-                      >
-                        {action.title}
-                      </div>
-                    }
-                    description={
-                      <div
-                        style={{
-                          color: SECONDARY_TEXT,
-                          display: 'flex',
-                          alignItems: 'center',
-                          width: '100%',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {action.description}
-                      </div>
-                    }
-                  />
-                </Card>
-
-              })
+            })
             }
           </div>
           {actions.length == 0 && (
             <>
               <Empty
-                style={{ color: PRIMARY_TEXT }}
+                className='primary-text'
                 description="No actions can be taken."
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             </>
           )}
+          {addBadgesIsVisible &&
+            <CreateTxMsgMintAndDistributeBadgesModal
+              visible={addBadgesIsVisible}
+              setVisible={setAddBadgesIsVisible}
+              txType='AddBadges'
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgMintBadgeModal
-            visible={addBadgesIsVisible}
-            setVisible={setAddBadgesIsVisible}
-            txType='AddBadges'
-            collectionId={collection.collectionId}
-          />
+          {distributeIsVisible &&
+            <CreateTxMsgMintAndDistributeBadgesModal
+              visible={distributeIsVisible}
+              setVisible={setDistributeIsVisible}
+              txType='DistributeBadges'
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgMintBadgeModal
-            visible={distributeIsVisible}
-            setVisible={setDistributeIsVisible}
-            txType='DistributeBadges'
-            collectionId={collection.collectionId}
-          />
+          {updateMetadataIsVisible &&
+            <CreateTxMsgUpdateUrisModal
+              visible={updateMetadataIsVisible}
+              setVisible={setUpdateMetadataIsVisible}
+              collectionId={collectionId}
+            />}
 
+          {transferIsVisible &&
+            <CreateTxMsgTransferBadgeModal
+              visible={transferIsVisible}
+              setVisible={setTransferIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgUpdateUrisModal
-            visible={updateMetadataIsVisible}
-            setVisible={setUpdateMetadataIsVisible}
-            collectionId={collection.collectionId}
-          />
+          {transferManagerIsVisible &&
+            <CreateTxMsgTransferManagerModal
+              visible={transferManagerIsVisible}
+              setVisible={setTransferManagerIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgTransferBadgeModal
-            visible={transferIsVisible}
-            setVisible={setTransferIsVisible}
-            collection={collection}
-            userBalance={userBalance ? userBalance : { approvals: [], balances: [] }}
-            refreshUserBalance={refreshUserBalance}
-          />
+          {requestTransferManagerIsVisible &&
+            <CreateTxMsgRequestTransferManagerModal
+              visible={requestTransferManagerIsVisible}
+              setVisible={setRequestTransferManagerIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgTransferManagerModal
-            visible={transferManagerIsVisible}
-            setVisible={setTransferManagerIsVisible}
-            collection={collection}
-          />
+          {updatePermissionsIsVisible &&
+            <CreateTxMsgUpdatePermissionsModal
+              visible={updatePermissionsIsVisible}
+              setVisible={setUpdatePermissionsIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgRequestTransferManagerModal
-            visible={requestTransferManagerIsVisible}
-            setVisible={setRequestTransferManagerIsVisible}
-            collection={collection}
-          />
+          {updateAllowedIsVisible &&
+            <CreateTxMsgUpdateAllowedTransfersModal
+              visible={updateAllowedIsVisible}
+              setVisible={setUpdateAllowedIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgUpdatePermissionsModal
-            visible={updatePermissionsIsVisible}
-            setVisible={setUpdatePermissionsIsVisible}
-            collection={collection}
-          />
+          {deleteIsVisible &&
+            <CreateTxMsgDeleteCollectionModal
+              visible={deleteIsVisible}
+              setVisible={setDeleteIsVisible}
+              collectionId={collectionId}
+            />}
 
-          <CreateTxMsgUpdateDisallowedTransfersModal
-            visible={updateDisallowedIsVisible}
-            setVisible={setUpdateDisallowedIsVisible}
-            collectionId={collection.collectionId}
-          />
-
-          <CreateTxMsgDeleteCollectionModal
-            visible={deleteIsVisible}
-            setVisible={setDeleteIsVisible}
-            collection={collection}
-          />
-
-          <CreateTxMsgUpdateBytesModal
-            visible={updateUserListIsVisible}
-            setVisible={setUpdateUserListIsVisible}
-            collectionId={collection.collectionId}
-          />
-
+          {updateUserBalancesIsVisible &&
+            <CreateTxMsgUpdateBalancesModal
+              visible={updateUserBalancesIsVisible}
+              setVisible={setUpdateUserBalancesIsVisible}
+              collectionId={collectionId}
+            />}
         </div >
       }
     />

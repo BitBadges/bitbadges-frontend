@@ -1,55 +1,37 @@
-import { Avatar, Modal, Tooltip } from "antd";
-import { BitBadgeCollection, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
+import { Modal, Tooltip } from "antd";
 import { useRouter } from "next/router";
-import { PRIMARY_TEXT } from '../../constants';
+import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { BadgeAvatar } from "../badges/BadgeAvatar";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
-export function CollectionDisplay({ collection }: { collection: BitBadgeCollection }) {
+export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
   const router = useRouter();
-
-  if (!collection) return <></>;
+  const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
 
   return <div style={{ width: 265, margin: 4, marginBottom: 15, display: 'flex' }}>
     <InformationDisplayCard
       noBorder
       title={<>
-        <Tooltip color='black' title={"Collection ID: " + collection.collectionId} placement="bottom">
+        <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
           <div className='link-button-nav' onClick={() => {
-            router.push('/collections/' + collection.collectionId)
+            router.push('/collections/' + collectionId)
             Modal.destroyAll()
           }} style={{ alignItems: 'center', justifyContent: 'center' }}>
-
-            <Avatar
-              src={collection.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-              size={150}
-              style={{
-                verticalAlign: 'middle',
-                border: '1px solid',
-                borderColor: collection.collectionMetadata?.color
-                  ? collection.collectionMetadata?.color
-                  : 'black',
-                margin: 4,
-              }}
-            />
-            <br />{collection.collectionMetadata?.name}
-
+            <BadgeAvatar collectionId={collectionId} size={150} />
+            <br />{collection?.collectionMetadata?.name}
           </div>
         </Tooltip>
         <br />
-
       </>}
     >
-      <div key={collection.collectionId} style={{ color: PRIMARY_TEXT }}>
+      <div className='primary-text'>
         <br />
         <b style={{ fontSize: 16 }}>Badges</b>
         <BadgeAvatarDisplay
-          collection={collection}
-          userBalance={{
-            balances: collection.maxSupplys,
-            approvals: []
-          }}
-          badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
+          collectionId={collectionId}
+          badgeIds={collection?.maxSupplys.map((x) => x.badgeIds).flat() ?? []}
         />
       </div>
     </InformationDisplayCard>
