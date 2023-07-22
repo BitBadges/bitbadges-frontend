@@ -1,15 +1,17 @@
-import { CanDeleteDigit, Permissions } from "bitbadgesjs-utils";
+import { ActionPermission, CollectionPermissions } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanDeleteStepItem(
 
-  handledPermissions: Permissions,
-  updatePermissions: (digit: number, value: boolean) => void
+  handledPermissions: CollectionPermissions<bigint>,
+  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void
 ) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+
+  if (!collection) return EmptyStepItem;
 
   return {
     title: 'Can Delete?',
@@ -19,19 +21,39 @@ export function CanDeleteStepItem(
         {
           title: 'No',
           message: `These badge(s) will always exist and can never be deleted.`,
-          isSelected: handledPermissions.CanDelete && !collection?.permissions.CanDelete
+          isSelected: handledPermissions.canDeleteCollection.length > 0 && collection.collectionPermissions.canDeleteCollection.length > 0
         },
         {
           title: 'Yes',
           message: `These badge(s) can be deleted by the manager.`,
-          isSelected: handledPermissions.CanDelete && !!collection?.permissions.CanDelete,
+          isSelected: handledPermissions.canDeleteCollection.length > 0 && collection.collectionPermissions.canDeleteCollection.length === 0,
         },
       ]}
       onSwitchChange={(idx) => {
-        updatePermissions(CanDeleteDigit, idx === 1);
+        setHandledPermissions({
+          ...handledPermissions,
+          canDeleteCollection: [{} as ActionPermission<bigint>]
+        });
+
+        collections.updateCollection({
+          ...collection,
+          collectionPermissions: {
+            ...collection.collectionPermissions,
+            canDeleteCollection: idx === 0 ? [{
+              defaultValues: {
+                permittedTimes: [],
+                forbiddenTimes: [],
+              },
+              combinations: [{
+                permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+              }]
+            }] : []
+          }
+        });
       }}
       helperMessage="*If this permission is enabled (set to Yes), the manager can disable it at anytime. However, if disabled (set to No), it can never be re-enabled."
     />,
-    disabled: !handledPermissions.CanDelete
+    disabled: handledPermissions.canDeleteCollection.length == 0,
   }
 }

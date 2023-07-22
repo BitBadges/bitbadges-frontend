@@ -3,12 +3,16 @@ import { useState } from 'react';
 import { getTokensFromFaucet } from '../bitbadges-api/api';
 import { DisconnectedWrapper } from '../components/wrappers/DisconnectedWrapper';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
+import { useStatusContext } from '../bitbadges-api/contexts/StatusContext';
+import { useAccountsContext } from '../bitbadges-api/contexts/AccountsContext';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
   const chain = useChainContext();
+  const accounts = useAccountsContext();
+  const status = useStatusContext();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -40,8 +44,18 @@ function RegisterScreen({ message }: { message?: string }) {
                   type="primary"
                   onClick={async () => {
                     setLoading(true)
-                    await getTokensFromFaucet();
-                    await chain.connect();
+                    const res = await getTokensFromFaucet();
+                    const height = res.height;
+                    let currStatus = status.status;
+                    while (currStatus.block.height <= height) {
+                      console.log(status.status.block.height, height);
+                      const statusRes = await status.updateStatus();
+                      currStatus = statusRes
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+
+                    const res1 = await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true }], true);
+                    console.log(res1);
 
                     setLoading(false);
                   }}

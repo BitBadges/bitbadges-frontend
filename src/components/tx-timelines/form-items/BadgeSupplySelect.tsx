@@ -1,27 +1,33 @@
 import { InputNumber } from 'antd';
-import { BadgeSupplyAndAmount } from 'bitbadgesjs-proto';
+import { Balance } from 'bitbadgesjs-proto';
 import { useState } from 'react';
+import { FOREVER_DATE } from '../../../utils/dates';
 
 export function BadgeSupply({
   setCurrentSupply,
-  fungible
-}: {
-  setCurrentSupply: (currentSupply: BadgeSupplyAndAmount<bigint>) => void,
-  fungible: boolean;
-}) {
-  const [supplyToCreate, setSupplyToCreate] = useState<number>(0);
+  fungible,
+  startBadgeId,
 
-  const addTokens = (supply: number) => {
+}: {
+  setCurrentSupply: (currentSupply: Balance<bigint>) => void,
+  fungible: boolean;
+  startBadgeId: bigint;
+}) {
+  const [supplyToCreate, setSupplyToCreate] = useState<bigint>(0n);
+
+  const addTokens = (supply: bigint) => {
     if (supply > 0) {
       if (!fungible) {
         setCurrentSupply({
-          amount: BigInt(supply),
-          supply: 1n
+          amount: 1n,
+          badgeIds: [{ start: startBadgeId, end: startBadgeId + BigInt(supply) - 1n }],
+          ownedTimes: [{ start: 1n, end: FOREVER_DATE }],
         })
       } else {
         setCurrentSupply({
-          amount: 1n,
-          supply: BigInt(supply)
+          amount: BigInt(supply),
+          badgeIds: [{ start: startBadgeId, end: startBadgeId }],
+          ownedTimes: [{ start: 1n, end: FOREVER_DATE }],
         })
       }
     }
@@ -32,14 +38,15 @@ export function BadgeSupply({
       <div className='flex-between' style={{ flexDirection: 'column' }} >
         <b>Number of Badges</b>
         <InputNumber
-          value={supplyToCreate}
+          value={Number(supplyToCreate)}
           className='primary-text primary-blue-bg'
           defaultValue={1}
           min={1}
+          max={Number.MAX_SAFE_INTEGER}
           onChange={
             (value) => {
-              setSupplyToCreate(value as number);
-              addTokens(value);
+              setSupplyToCreate(BigInt(value));
+              addTokens(BigInt(value));
             }
           } />
       </div>

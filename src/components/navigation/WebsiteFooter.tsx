@@ -5,7 +5,7 @@ export function WalletFooter() {
   return (
     <>
       <Content
-        className='primary-blue-bg'
+        className='primary-blue-bg full-width'
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -1,19 +1,13 @@
-import { Card, Empty, message } from 'antd';
+import { Card, Empty, notification } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
-import { CreateTxMsgMintAndDistributeBadgesModal } from '../tx-modals/CreateTxMsgMintAndDistributeBadgesModal';
-import { CreateTxMsgRequestTransferManagerModal } from '../tx-modals/CreateTxMsgRequestTransferManagerModal';
-import { CreateTxMsgTransferBadgeModal } from '../tx-modals/CreateTxMsgTransferBadge';
-import { CreateTxMsgTransferManagerModal } from '../tx-modals/CreateTxMsgTransferManagerModal';
-import { CreateTxMsgUpdateBalancesModal } from '../tx-modals/CreateTxMsgUpdateBalancesModal';
-import { CreateTxMsgUpdateAllowedTransfersModal } from '../tx-modals/CreateTxMsgUpdateAllowedTransfers';
-import { CreateTxMsgUpdatePermissionsModal } from '../tx-modals/CreateTxMsgUpdatePermissions';
-import { CreateTxMsgUpdateUrisModal } from '../tx-modals/CreateTxMsgUpdateUrisModal';
+import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { CreateTxMsgUpdateCollectionModal } from '../tx-modals/CreateTxMsgUpdateCollection';
 
 export function ActionsTab({
   collectionId,
@@ -24,19 +18,13 @@ export function ActionsTab({
 }) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
-  const [transferManagerIsVisible, setTransferManagerIsVisible] = useState(false);
-  const [updatePermissionsIsVisible, setUpdatePermissionsIsVisible] = useState(false);
-  const [distributeIsVisible, setDistributeIsVisible] = useState(false);
-  const [addBadgesIsVisible, setAddBadgesIsVisible] = useState(false);
   const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
-  const [requestTransferManagerIsVisible, setRequestTransferManagerIsVisible] = useState(false);
-  const [updateAllowedIsVisible, setUpdateAllowedIsVisible] = useState(false);
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
-  const [updateUserBalancesIsVisible, setUpdateUserBalancesIsVisible] = useState(false);
+  const [updateCollectionIsVisible, setUpdateCollectionIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -46,8 +34,8 @@ export function ActionsTab({
   }[] = [];
 
   const isManager = collection && collection.managerInfo.cosmosAddress === chain.cosmosAddress;
-  const isOffChainBalances = collection && collection.balancesUri ? true : false;
-  const isOnChainBalances = collection && !collection.balancesUri;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+  const isOnChainBalances = collection && collection.balancesType == "Standard";
 
   const getTitleElem = (title: string) => {
     return (
@@ -65,13 +53,12 @@ export function ActionsTab({
     );
   };
 
-
-
+  //TODO: Only show if transferable
   if (isOnChainBalances) {
     actions.push({
       title: getTitleElem("Transfer"),
       description: getDescriptionElem(
-        "Transfer badge(s) in this collection, if allowed."
+        "Transfer badge(s) in this collection, if approved to do so."
       ),
       showModal: () => {
         setTransferIsVisible(!transferIsVisible);
@@ -80,105 +67,33 @@ export function ActionsTab({
   }
 
   if (isManager && !badgeView) {
-    if (collection.permissions.CanUpdateBalancesUri && isOffChainBalances) {
-      actions.push({
-        title: getTitleElem("Update Balances"),
-        description: getDescriptionElem(
-          "Update the owners of this badge."
-        ),
-        showModal: () => {
-          setUpdateUserBalancesIsVisible(!updateUserBalancesIsVisible);
-        },
-      });
-    }
-
-    if (collection.permissions.CanCreateMoreBadges) {
-      actions.push({
-        title: getTitleElem("Add Badges"),
-        description: getDescriptionElem(
-          "Add new badges to the collection."
-        ),
-        showModal: () => {
-          setAddBadgesIsVisible(!addBadgesIsVisible);
-        },
-      });
-    }
-
-    if (isOnChainBalances && collection.unmintedSupplys.length > 0) {
-      actions.push({
-        title: getTitleElem("Distribute Badges"),
-        description: getDescriptionElem(
-          "Distribute badges that are currently unminted."
-        ),
-        showModal: () => {
-          setDistributeIsVisible(!distributeIsVisible);
-        },
-      });
-    }
-
-    if (collection.permissions.CanUpdateMetadataUris) {
-      actions.push({
-        title: getTitleElem("Update Metadata"),
-        description: getDescriptionElem(
-          "Update the metadata of this collection and badges."
-        ),
-        showModal: () => {
-          setUpdateMetadataIsVisible(!updateMetadataIsVisible);
-        },
-      });
-    }
-
-    if (collection.permissions.CanUpdateAllowed) {
-      actions.push({
-        title: getTitleElem("Edit Transferability"),
-        description: getDescriptionElem(
-          "Freeze or unfreeze if badge owners able to transfer."
-        ),
-        showModal: () => {
-          setUpdateAllowedIsVisible(!updateAllowedIsVisible);
-        },
-      });
-    }
-
-    if (collection.permissions.CanManagerBeTransferred) {
-      actions.push({
-        title: getTitleElem("Transfer Manager"),
-        description: getDescriptionElem(
-          "Transfer manager privileges to new address"
-        ),
-        showModal: () => {
-          setTransferManagerIsVisible(!transferManagerIsVisible);
-        },
-      });
-    }
-
-
     actions.push({
-      title: getTitleElem("Update Permissions"),
+      title: getTitleElem("Update Collection"),
       description: getDescriptionElem(
-        "Update the permissions of this collection."
+        "Update the details of this collection."
       ),
       showModal: () => {
-        setUpdatePermissionsIsVisible(!updatePermissionsIsVisible);
+        setUpdateMetadataIsVisible(!updateMetadataIsVisible);
       },
-    })
+    });
 
     actions.push({
-      title: getTitleElem("Refresh Metadata"),
+      title: getTitleElem(isOffChainBalances ? "Refresh Metadata and Balances" : "Refresh Metadata"),
       description: getDescriptionElem(
-        "Perform a forceful refresh for all metadata for this collection."
+        "Refetch all " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection from their sources."
       ),
       showModal: async () => {
         try {
           await collections.triggerMetadataRefresh(collectionId);
-          message.success("Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later.");
+          notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
         } catch (e) {
-          message.error("Oops! Something went wrong. Please try again later.");
+          console.error(e);
+          notification.error({ message: "Oops! Something went wrong. Please try again later." });
         }
       },
     })
 
-    if (collection.permissions.CanDelete) {
+    if (collection.collectionPermissions.canDeleteCollection.length == 0) {
       actions.push({
         title: getTitleElem("Delete Collection"),
         description: getDescriptionElem(
@@ -188,20 +103,6 @@ export function ActionsTab({
           setDeleteIsVisible(!deleteIsVisible);
         },
       });
-    }
-  }
-
-  if (!isManager && !badgeView) {
-    if (collection?.permissions.CanManagerBeTransferred) {
-      actions.push({
-        title: getTitleElem("Request Manager Transfer"),
-        description: getDescriptionElem(
-          "Request to become the manager of this collection."
-        ),
-        showModal: () => {
-          setRequestTransferManagerIsVisible(!requestTransferManagerIsVisible);
-        },
-      })
     }
   }
 
@@ -271,61 +172,19 @@ export function ActionsTab({
               />
             </>
           )}
-          {addBadgesIsVisible &&
-            <CreateTxMsgMintAndDistributeBadgesModal
-              visible={addBadgesIsVisible}
-              setVisible={setAddBadgesIsVisible}
-              txType='AddBadges'
+          {updateCollectionIsVisible &&
+            <CreateTxMsgUpdateCollectionModal
+              visible={updateCollectionIsVisible}
+              setVisible={setUpdateCollectionIsVisible}
+              // txType='UpdateCollection'
               collectionId={collectionId}
-            />}
-
-          {distributeIsVisible &&
-            <CreateTxMsgMintAndDistributeBadgesModal
-              visible={distributeIsVisible}
-              setVisible={setDistributeIsVisible}
-              txType='DistributeBadges'
-              collectionId={collectionId}
-            />}
-
-          {updateMetadataIsVisible &&
-            <CreateTxMsgUpdateUrisModal
-              visible={updateMetadataIsVisible}
-              setVisible={setUpdateMetadataIsVisible}
-              collectionId={collectionId}
-            />}
+            />
+          }
 
           {transferIsVisible &&
-            <CreateTxMsgTransferBadgeModal
+            <CreateTxMsgTransferBadgesModal
               visible={transferIsVisible}
               setVisible={setTransferIsVisible}
-              collectionId={collectionId}
-            />}
-
-          {transferManagerIsVisible &&
-            <CreateTxMsgTransferManagerModal
-              visible={transferManagerIsVisible}
-              setVisible={setTransferManagerIsVisible}
-              collectionId={collectionId}
-            />}
-
-          {requestTransferManagerIsVisible &&
-            <CreateTxMsgRequestTransferManagerModal
-              visible={requestTransferManagerIsVisible}
-              setVisible={setRequestTransferManagerIsVisible}
-              collectionId={collectionId}
-            />}
-
-          {updatePermissionsIsVisible &&
-            <CreateTxMsgUpdatePermissionsModal
-              visible={updatePermissionsIsVisible}
-              setVisible={setUpdatePermissionsIsVisible}
-              collectionId={collectionId}
-            />}
-
-          {updateAllowedIsVisible &&
-            <CreateTxMsgUpdateAllowedTransfersModal
-              visible={updateAllowedIsVisible}
-              setVisible={setUpdateAllowedIsVisible}
               collectionId={collectionId}
             />}
 
@@ -333,13 +192,6 @@ export function ActionsTab({
             <CreateTxMsgDeleteCollectionModal
               visible={deleteIsVisible}
               setVisible={setDeleteIsVisible}
-              collectionId={collectionId}
-            />}
-
-          {updateUserBalancesIsVisible &&
-            <CreateTxMsgUpdateBalancesModal
-              visible={updateUserBalancesIsVisible}
-              setVisible={setUpdateUserBalancesIsVisible}
               collectionId={collectionId}
             />}
         </div >

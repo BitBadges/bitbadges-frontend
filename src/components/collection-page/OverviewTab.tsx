@@ -1,56 +1,53 @@
-import { GiftOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { faSnowflake, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Col, Row, Tooltip, Typography } from "antd";
-import { UserBalance } from "bitbadgesjs-proto";
-import { AllAddressesTransferMapping, getIdRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
+import { Col, Row } from "antd";
+import { getUintRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
-import { ButtonDisplay } from "../display/ButtonDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
-import { MSG_PREVIEW_ID } from "../tx-timelines/TxTimeline";
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 export function OverviewTab({
   collectionId,
   addressOrUsername,
-  setTab
+  // setTab
 }: {
   collectionId: bigint,
   addressOrUsername?: string,
-  setTab: (tab: string) => void;
+  // setTab: (tab: string) => void;
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
-  const isPreview = collectionId === MSG_PREVIEW_ID;
+  const collection = collections.collections[collectionId.toString()]
+  // const isPreview = collectionId === MSG_PREVIEW_ID;
 
   if (!collection) return <></>;
   const collectionMetadata = collection?.collectionMetadata;
 
-  const isNonTransferable = !collection.allowedTransfers?.length;
-  const isTransferable = collection.allowedTransfers?.length === 1
-    && JSON.stringify(collection.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-    && JSON.stringify(collection.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
-
-  let claimableBalances: UserBalance<bigint> = {
-    balances: [],
-    approvals: []
-  };
 
   // EXPERIMENTAL STANDARD
-  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(collectionMetadata?.description ?? ''));
 
+
+  const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
+  const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
+
+  let maxBadgeId = 0n;
+  for (const balance of totalSupplyBalance) {
+    for (const badgeIdRange of balance.badgeIds) {
+      if (badgeIdRange.end > maxBadgeId) {
+        maxBadgeId = badgeIdRange.end;
+      }
+    }
+  }
 
   return <>
     {<>
@@ -63,7 +60,7 @@ export function OverviewTab({
             size={75}
             collectionId={collectionId}
             addressOrUsernameToShowBalance={addressOrUsername}
-            badgeIds={getIdRangesForAllBadgeIdsInCollection(collection)}
+            badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={'100%'}
           />
         </InformationDisplayCard>
@@ -84,7 +81,7 @@ export function OverviewTab({
           collectionId={collectionId}
           span={24}
         />
-        {!isOffChainBalances && <>
+        {/* {!isOffChainBalances && <>
           <br />
           <InformationDisplayCard
             title={<>
@@ -125,7 +122,7 @@ export function OverviewTab({
               }
             </div>
           </InformationDisplayCard>
-        </>}
+        </>} */}
         <br />
         <PermissionsOverview
           collectionId={collectionId}
@@ -154,7 +151,7 @@ export function OverviewTab({
             title={<>Distribution</>}
             span={24}
           >
-            <TableRow label={"Number of Badges"} value={`${collection.nextBadgeId - 1n}`} labelSpan={12} valueSpan={12} />
+            <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />
             {collection && <TableRow label={"Badge Supplys"} value={
               <div style={{ float: 'right' }}>
                 <BalanceDisplay
@@ -162,9 +159,7 @@ export function OverviewTab({
                   floatToRight
                   collectionId={collectionId}
                   hideMessage
-                  balance={{
-                    balances: collection.maxSupplys, approvals: []
-                  }}
+                  balances={totalSupplyBalance}
                 />
               </div>
             } labelSpan={12} valueSpan={12} />
@@ -177,33 +172,11 @@ export function OverviewTab({
                     hideBadges
                     collectionId={collectionId}
                     hideMessage
-                    balance={{
-                      balances: collection.unmintedSupplys, approvals: []
-                    }} />
-                </div>
-              } labelSpan={12} valueSpan={12} />}
-              {collection && <TableRow label={"Claimable"} value={
-                <div style={{ float: 'right' }}>
-                  <BalanceDisplay
-                    hideBadges
-                    floatToRight
-                    collectionId={collectionId}
-                    hideMessage
-                    balance={claimableBalances} />
-                </div>
-              } labelSpan={12} valueSpan={12} />}
+                    balances={mintSupplyBalance}
+                  />
 
-              <div>
-                <ButtonDisplay buttons={[{
-                  name: <>Claim</>,
-                  icon: <GiftOutlined />,
-                  onClick: () => {
-                    setTab('claims')
-                  },
-                  tooltipMessage: `Claim this badge!`,
-                  disabled: isPreview
-                }]} />
-              </div>
+                </div>
+              } labelSpan={12} valueSpan={12} />}
             </>}
           </InformationDisplayCard>
           <br />

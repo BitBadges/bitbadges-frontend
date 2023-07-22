@@ -10,7 +10,8 @@ export function CollectionHeader({ collectionId }: {
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  console.log("RERENDER HE");
+  const collection = collections.collections[collectionId.toString()]
   const metadata = collection?.collectionMetadata;
 
   return <div className='primary-text'>
@@ -21,7 +22,7 @@ export function CollectionHeader({ collectionId }: {
             collectionId={collectionId}
             size={200}
           />
-          <div style={{ maxWidth: 500 }}>
+          <div style={{ maxWidth: 500, textAlign: 'center' }}>
             <Text strong className='primary-text' style={{ fontSize: 30 }}>
               {metadata?.name}
             </Text>

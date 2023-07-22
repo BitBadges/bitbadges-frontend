@@ -1,5 +1,5 @@
-import { message } from 'antd';
-import { MsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-transactions';
+import { notification } from 'antd';
+import { MsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-proto';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -49,7 +49,7 @@ export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVis
       createTxFunction={createTxMsgDeleteCollection}
       onSuccessfulTx={async () => {
         //Force refresh page
-        message.success('Collection deleted successfully! Redirecting to home page...');
+        notification.success({ message: 'Collection deleted successfully! Redirecting to home page...' });
         router.push('/');
       }}
       requireRegistration

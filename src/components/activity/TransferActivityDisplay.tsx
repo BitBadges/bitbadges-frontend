@@ -83,7 +83,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
             >
               {activity.map((activity, idx) => {
                 const collectionId = activity.collectionId;
-                const collection = collections.getCollection(collectionId);
+                const collection = collections.collections[collectionId.toString()]
 
                 return <CollapsePanel
                   key={idx}
@@ -91,7 +91,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                   header={
                     <Row className='flex-between primary-text' style={{ textAlign: 'left' }} >
                       <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {getPanelHeaderAddress(activity.from)}
+                        {getPanelHeaderAddress([activity.from])}
                         <b style={{ marginRight: 8 }}>to</b>
                         {getPanelHeaderAddress(activity.to)}
                       </Col>
@@ -127,11 +127,14 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                                 <TransferDisplay
                                   key={idx}
                                   collectionId={collectionId}
-                                  from={activity.from}
                                   transfers={[
                                     {
+                                      from: activity.from,
                                       toAddresses: activity.to,
-                                      balances: activity.balances
+                                      balances: activity.balances,
+                                      memo: activity.memo,
+                                      precalculationDetails: activity.precalculationDetails,
+                                      merkleProofs: [],
                                     }
                                   ]}
                                 />

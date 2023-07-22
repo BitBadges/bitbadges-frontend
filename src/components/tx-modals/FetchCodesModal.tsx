@@ -5,6 +5,7 @@ import { getAllPasswordsAndCodes } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { ClaimsTab } from '../collection-page/ClaimsTab';
+import { CodesAndPasswords } from 'bitbadgesjs-utils';
 
 export function FetchCodesModal({ visible, setVisible, children, collectionId }: {
   collectionId: bigint,
@@ -14,20 +15,13 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
 }) {
   const chain = useChainContext();
 
-  const [codes, setCodes] = useState<string[][]>([]);
-  const [passwords, setPasswords] = useState<string[]>([]);
+  const [codesAndPasswords, setCodesAndPasswords] = useState<CodesAndPasswords[]>([]);
 
   useEffect(() => {
     if (collectionId && chain.connected && chain.loggedIn) {
       const getAll = async () => {
         const codesRes = await getAllPasswordsAndCodes(collectionId);
-        if (codesRes.codes) {
-          setCodes(codesRes.codes);
-        }
-
-        if (codesRes.passwords) {
-          setPasswords(codesRes.passwords);
-        }
+        setCodesAndPasswords(codesRes.codesAndPasswords);
       }
       getAll();
     }
@@ -63,8 +57,7 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
           </div>
           : <ClaimsTab
             collectionId={collectionId}
-            codes={codes}
-            passwords={passwords}
+            codesAndPasswords={codesAndPasswords}
             isModal
           />}
       </div>

@@ -76,7 +76,7 @@ export function AccountSettings() {
               style={{ minHeight: '100vh', padding: 8 }}
             >
               <br />
-              <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+              <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
                 Account Settings
               </div>
               <br />

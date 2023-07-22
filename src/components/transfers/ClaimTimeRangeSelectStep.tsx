@@ -1,10 +1,10 @@
 import { DatePicker } from "antd";
-import { IdRange } from "bitbadgesjs-proto";
+import { UintRange } from "bitbadgesjs-proto";
 import moment from "moment";
 
 export function ClaimTimeRangeSelectStep(
-  timeRange: IdRange<bigint>,
-  setTimeRange: (timeRange: IdRange<bigint>) => void,
+  timeRange: UintRange<bigint>,
+  setTimeRange: (timeRange: UintRange<bigint>) => void,
 ) {
   return {
     title: 'Time',

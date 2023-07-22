@@ -30,6 +30,7 @@ export function SwitchForm({
           style={{
             padding: '0',
             textAlign: 'center',
+            alignItems: 'normal'
           }}
         >
           {options.map((option, index) => {

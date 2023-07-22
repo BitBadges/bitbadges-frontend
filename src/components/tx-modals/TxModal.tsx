@@ -1,5 +1,5 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, message, notification } from 'antd';
+import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -8,12 +8,12 @@ import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
+import { CHAIN_DETAILS, DEV_MODE } from '../../constants';
 import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
-import { fetchDefaultTxDetails, formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
+import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { AddressDisplay, } from '../address/AddressDisplay';
-import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { DEV_MODE } from '../../constants';
 import { DevMode } from '../common/DevMode';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 const { Step } = Steps;
 
@@ -33,7 +33,7 @@ export function TxModal(
     closeIcon?: React.ReactNode,
     bodyStyle?: React.CSSProperties,
     onSuccessfulTx?: () => Promise<void>,
-    beforeTx?: () => Promise<any>,
+    beforeTx?: (simulate: boolean) => Promise<any>,
     msgSteps?: StepProps[],
     displayMsg?: string | ReactNode
     // width?: number | string
@@ -55,44 +55,109 @@ export function TxModal(
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [txDetails, setTxDetails] = useState<any>(null);
-  const [exceedsBalance, setExceedsBalance] = useState(false);
+
+  const [amount, setAmount] = useState(0n);
+  const [simulatedGas, setSimulatedGas] = useState(200000n);
+  const [simulated, setSimulated] = useState(false);
 
   const signedInAccount = accounts.getAccount(chain.cosmosAddress);
-  
-  useEffect(() => {
-    async function fetchDetails() {
-      if ((!txDetails
-        || !txDetails.sender.pubkey
-        || signedInAccount?.sequence !== txDetails.sender.sequence
-        || signedInAccount?.cosmosAddress !== txDetails.sender.accountAddress) && msgSteps && currentStep === msgSteps.length) {
 
-        const txDetails = await fetchDefaultTxDetails(chain, accounts, statusContext.status.gasPrice);
-        setTxDetails(txDetails);
+  const fee = {
+    amount: `${amount}`,
+    denom: 'badge',
+    gas: `${simulatedGas}`,
+  }
+
+  const txDetails = {
+    chain: CHAIN_DETAILS,
+    sender: {
+      accountAddress: signedInAccount?.cosmosAddress ?? "",
+      sequence: signedInAccount?.sequence ?? "0",
+      accountNumber: signedInAccount?.accountNumber ?? "0",
+      pubkey: signedInAccount?.publicKey ?? "",
+    },
+    fee,
+    memo: '',
+  }
+
+
+  let exceedsBalance = false;
+  let amountBadgeTransferred = 0n;
+  for (const coin of coinsToTransfer ?? []) {
+    if (coin.denom === 'badge') {
+      amountBadgeTransferred += BigIntify(coin.amount);
+    }
+  }
+  amountBadgeTransferred += BigIntify(txDetails.fee.amount);
+
+  if (signedInAccount?.balance?.amount && (amountBadgeTransferred) > BigIntify(signedInAccount?.balance?.amount)) {
+    exceedsBalance = true
+  } else {
+    exceedsBalance = false;
+  }
+
+  useEffect(() => {
+    //Simulates the transaction and sets the expected gas to be used.
+    //This is used to calculate the transaction fee.
+    //NOTE: This is not 100% accurate, but it is close enough. This is before the actual IPFS uris are added in, but we simulate their existince with beforeTx(..., true);
+    setError('');
+    if (!visible || currentStep != msgSteps?.length) return;
+
+
+
+    async function simulate() {
+      try {
+        if (!signedInAccount) return;
+        const status = await statusRef.current.updateStatus();
+
+
+        let cosmosMsg = txCosmosMsg;
+        if (beforeTx) {
+          let newMsg = await beforeTx(true);
+          if (newMsg) cosmosMsg = newMsg;
+        }
+
+        //Sign and broadcast transaction
+        const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, {
+          chain: CHAIN_DETAILS,
+          sender: {
+            accountAddress: signedInAccount?.cosmosAddress,
+            sequence: signedInAccount?.sequence ?? "0",
+            accountNumber: signedInAccount?.accountNumber ?? "0",
+            pubkey: signedInAccount?.publicKey ?? "",
+          },
+          fee: {
+            amount: `0`,
+            denom: 'badge',
+            gas: `100000000000`,
+          },
+          memo: '',
+        }, cosmosMsg);
+        const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
+        const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
+        console.log(simulatedTx);
+        const gasUsed = simulatedTx.gas_info.gas_used;
+        console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
+
+        setSimulatedGas(BigIntify(gasUsed));
+        setSimulated(true);
+        setAmount(BigIntify(gasUsed) * status.gasPrice);
+      } catch (e: any) {
+        if (e?.response?.data?.message) {
+          setError(e.response.data.message);
+        } else if (e?.message) {
+          setError(e.message)
+        } else {
+          setError("Unknown error")
+        }
       }
     }
-    fetchDetails();
-  }, [currentStep, msgSteps, signedInAccount, txDetails, statusContext.status.gasPrice, chain, accounts]);
+    simulate();
+  }, [txCosmosMsg, chain, createTxFunction, signedInAccount, beforeTx, currentStep, msgSteps, visible]);
 
   useEffect(() => {
     statusRef.current.updateStatus();
   }, []);
-
-  useEffect(() => {
-    if (!txDetails || !txDetails.fee) return;
-    let amountBadgeTransferred = 0n;
-    for (const coin of coinsToTransfer ?? []) {
-      if (coin.denom === 'badge') {
-        amountBadgeTransferred += BigIntify(coin.amount);
-      }
-    }
-
-    if (signedInAccount?.balance?.amount && BigIntify(txDetails.fee.amount) + amountBadgeTransferred >= BigIntify(signedInAccount?.balance?.amount)) {
-      setExceedsBalance(true);
-    } else {
-      setExceedsBalance(false);
-    }
-  }, [txDetails, signedInAccount?.balance?.amount, coinsToTransfer]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);
@@ -106,25 +171,39 @@ export function TxModal(
 
       //Currently used for updating IPFS metadata URIs right before tx
       //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
+
+      //Note this 
       if (!isRegister && beforeTx) {
-        let newMsg = await beforeTx();
+        let newMsg = await beforeTx(false);
         if (newMsg) cosmosMsg = newMsg;
       }
-
-
 
       //Sign and broadcast transaction
       const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
       const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
       const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
-      const gasUsed = simulatedTx.data.gas_info.gas_used;
-      console.log("Simulated Tx Resposne: ", "Gas Used (", gasUsed, ")", simulatedTx);
+      const gasUsed = simulatedTx.gas_info.gas_used;
+      console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
+
+      //Get public key (if not already stored)
+      const publicKey = await chain.getPublicKey(chain.cosmosAddress);
+      accounts.setPublicKey(chain.cosmosAddress, publicKey);
+
       const finalTxDetails = {
         ...txDetails,
         fee: {
           ...txDetails.fee,
-          gas: `${Math.round(gasUsed * 1.3)}`
+          gas: `${Math.round(Number(gasUsed) * 1.3)}`
+        },
+        sender: {
+          ...txDetails.sender,
+          pubkey: publicKey
         }
+      }
+
+      if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
+        setSimulated(false);
+        throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please try again.`);
       }
 
 
@@ -164,7 +243,7 @@ export function TxModal(
 
 
       //If it is a new collection, redirect to collection page
-      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgNewCollection") {
+      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateCollection") {
         const collectionIdStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collectionId")?.value;
         if (collectionIdStr) {
           const collectionId = Numberify(collectionIdStr)
@@ -179,14 +258,6 @@ export function TxModal(
         message: 'Transaction Successful',
         description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
       });
-
-
-      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateUris") {
-        notification.info({
-          message: 'Refreshing Metadata',
-          description: 'We have added your new metadata to the refresh queue. Note that it may take awhile for it to be processed and reflected on the website. Please check back later.'
-        });
-      }
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -204,7 +275,6 @@ export function TxModal(
       if (onSuccessfulTx) onSuccessfulTx();
     } catch (err: any) {
       console.error(err);
-      message.error(err.message);
     }
   };
 
@@ -235,10 +305,10 @@ export function TxModal(
           <AddressDisplay hidePortfolioLink addressOrUsername={chain.cosmosAddress} overrideChain={chain.chain} />
         </div>
         <Divider />
-        {txDetails?.fee && txDetails.sender.pubkey ? <>
+        {txDetails?.fee && simulated ? <>
           <div style={{ textAlign: 'center' }} className='primary-text'>
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-              Your Balance: {signedInAccount?.balance?.amount ?? 0} ${txDetails.fee.denom.toUpperCase()}
+              Your Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
             </Typography.Text>
           </div>
           <br />
@@ -253,15 +323,15 @@ export function TxModal(
               </Tooltip>:
 
               <InputNumber
-                value={txDetails.fee.amount}
+                value={Numberify(txDetails.fee.amount)}
                 onChange={(value) => {
-                  setTxDetails({
-                    ...txDetails,
-                    fee: {
-                      ...txDetails.fee,
-                      amount: `${Math.round(value)}`
-                    }
-                  })
+                  value = Math.round(value);
+                  setAmount(BigInt(value));
+                  if (statusContext.status.gasPrice == 0n) {
+                    // setSimulatedGas(0n);
+                  } else {
+                    // setSimulatedGas(BigIntify(value) / statusContext.status.gasPrice);
+                  }
                 }}
                 min={0}
                 max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
@@ -275,7 +345,7 @@ export function TxModal(
           {exceedsBalance &&
             <div style={{ textAlign: 'center' }} className='primary-text'>
               <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
-                This transaction will send more $BADGE than your wallet balance ({txDetails.fee.amount} {">"} {signedInAccount?.balance?.amount ?? 0} $BADGE).
+                This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
               </Typography.Text>
             </div>}
 
@@ -285,6 +355,8 @@ export function TxModal(
           <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
           <Divider />
         </div>}
+
+
         <div className='flex-center'>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
             By checking the box below, I confirm that I have verified all transaction details are correct.

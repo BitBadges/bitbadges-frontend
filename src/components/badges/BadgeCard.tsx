@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Card, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { getBalanceForId, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { getBalanceForIdAndTime, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
@@ -21,18 +21,31 @@ export function BadgeCard({
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
 
   //Calculate total, undistributed, claimable, and distributed supplys
-  const totalSupply = collection ? getBalanceForId(badgeId, collection.maxSupplys) : 0n;
-  const undistributedSupply = collection ? getBalanceForId(badgeId, collection.unmintedSupplys) : 0n;
+  const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
+  const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
+
+  const totalSupply = getBalanceForIdAndTime(badgeId, BigInt(Date.now()), totalSupplyBalance);
+  const undistributedSupply = getBalanceForIdAndTime(badgeId, BigInt(Date.now()), mintSupplyBalance);
   const distributedSupply = totalSupply - undistributedSupply;
 
   const metadata = getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []);
   const collectionMetadata = collection?.collectionMetadata;
 
-  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+
+  let maxBadgeId = 0n;
+  for (const balance of totalSupplyBalance) {
+    for (const badgeIdRange of balance.badgeIds) {
+      if (badgeIdRange.end > maxBadgeId) {
+        maxBadgeId = badgeIdRange.end;
+      }
+    }
+  }
+
 
   return (
     <>
@@ -100,7 +113,7 @@ export function BadgeCard({
               >
 
                 {collection && <>
-                  ID #{`${badgeId}`} / {`${collection.nextBadgeId - 1n}`}
+                  ID #{`${badgeId}`} / {`${maxBadgeId}`}
                   <br />
                   <div className='flex-center'>
                     <div>Supply: {totalSupply.toString()}

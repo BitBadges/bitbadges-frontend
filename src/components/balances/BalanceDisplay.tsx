@@ -1,16 +1,19 @@
 import { Empty } from "antd";
-import { BigIntify, IdRange, Numberify, UserBalance, convertIdRange } from "bitbadgesjs-proto";
+import { Balance, BigIntify, Numberify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred } from "bitbadgesjs-utils";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
+
+//TODO: ownedTimes logic
 export function BalanceDisplay({
   collectionId,
-  balance,
+  balances,
   message,
   size,
   showingSupplyPreview,
   numIncrements = 0n,
-  incrementIdsBy = 0n,
+  incrementBadgeIdsBy = 0n,
+  incrementOwnedTimesBy = 0n,
 
   cardView,
   hideMessage,
@@ -18,9 +21,10 @@ export function BalanceDisplay({
   floatToRight,
 }: {
   collectionId: bigint;
-  balance: UserBalance<bigint>;
+  balances: Balance<bigint>[];
   numIncrements?: bigint
-  incrementIdsBy?: bigint
+  incrementBadgeIdsBy?: bigint
+  incrementOwnedTimesBy?: bigint
 
   message?: string;
   size?: number;
@@ -34,15 +38,25 @@ export function BalanceDisplay({
 
   const allBalances = getAllBalancesToBeTransferred([
     {
-      balances: balance.balances,
+      from: '',
+      merkleProofs: [],
+      precalculationDetails: {
+        approvalId: '',
+        approvalLevel: '',
+        approverAddress: '',
+      },
+      memo: '',
+
+      balances: balances,
       toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
       toAddresses: [],
-      incrementIdsBy: incrementIdsBy > 0 ? incrementIdsBy : 0n,
+      incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
+      incrementOwnedTimesBy: incrementOwnedTimesBy > 0 ? incrementOwnedTimesBy : 0n,
     }
-  ]).balances;
+  ]);
 
-  const allBadgeIdsArr: IdRange<bigint>[] = allBalances?.map((balanceAmount) => {
-    return balanceAmount.badgeIds.map((idRange) => convertIdRange(idRange, BigIntify));
+  const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
+    return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
   }).flat();
 
   return <>
@@ -63,10 +77,10 @@ export function BalanceDisplay({
                 {idx !== 0 && <br />}
                 ID{badgeIds.length === 1 && badgeIds[0].start === badgeIds[0].end ? ' ' : 's'}{' '}
 
-                {badgeIds.map((idRange, idx) => (
+                {badgeIds.map((uintRange, idx) => (
                   <span key={idx}>
                     {idx !== 0 ? ', ' : ' '}
-                    {idRange.start === idRange.end ? `${idRange.start}` : `${idRange.start}-${idRange.end}`}
+                    {uintRange.start === uintRange.end ? `${uintRange.start}` : `${uintRange.start}-${uintRange.end}`}
                   </span>
                 ))}
 
@@ -74,25 +88,25 @@ export function BalanceDisplay({
                 - {showingSupplyPreview ? <>Supply of </> : <></>}
                 <b>x{`${amount}`}</b>
 
-                {numIncrements > 0 && incrementIdsBy > 0 ? (
+                {numIncrements > 0 && incrementBadgeIdsBy > 0 ? (
                   <>
                     {' '}
                     (x{Numberify(amount)} of IDs{' '}
-                    {badgeIds.map((idRange, idx) => (
+                    {badgeIds.map((uintRange, idx) => (
                       <span key={idx}>
                         {idx !== 0 ? ', ' : ' '}
-                        {idRange.start === idRange.end
-                          ? `${idRange.start}`
-                          : `${idRange.start}-${idRange.end}`}
+                        {uintRange.start === uintRange.end
+                          ? `${uintRange.start}`
+                          : `${uintRange.start}-${uintRange.end}`}
                       </span>
                     ))}
                     to first recipient, then x{Numberify(amount)} of IDs{' '}
-                    {badgeIds.map((idRange, idx) => (
+                    {badgeIds.map((uintRange, idx) => (
                       <span key={idx}>
                         {idx !== 0 ? ', ' : ' '}
-                        {idRange.start === idRange.end
-                          ? `${idRange.start + incrementIdsBy}`
-                          : `${idRange.start + incrementIdsBy}-${idRange.end + incrementIdsBy}`}
+                        {uintRange.start === uintRange.end
+                          ? `${uintRange.start + incrementBadgeIdsBy}`
+                          : `${uintRange.start + incrementBadgeIdsBy}-${uintRange.end + incrementBadgeIdsBy}`}
                       </span>
                     ))}, and so on)
                   </>
@@ -105,10 +119,10 @@ export function BalanceDisplay({
               </span>
             </>
           })}
-          {(!balance || balance.balances?.length === 0) && <span>None</span>}
+          {(!balances || balances?.length === 0) && <span>None</span>}
         </div >
         {!hideBadges && collectionId > 0 && <div>
-          {(!balance || balance.balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
+          {(!balances || balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
             <Empty
               className='primary-text primary-blue-bg'
               image={Empty.PRESENTED_IMAGE_SIMPLE}

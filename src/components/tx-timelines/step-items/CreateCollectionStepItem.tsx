@@ -1,23 +1,18 @@
-import { BadgeSupplyAndAmount } from "bitbadgesjs-proto";
-import { ClaimInfoWithDetails, DistributionMethod, MetadataAddMethod, TransferWithIncrements } from "bitbadgesjs-utils";
-import { SubmitMsgNewCollection } from "../form-items/SubmitMsgNewCollection";
+import { MsgUpdateCollection } from "bitbadgesjs-proto";
+import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUpdateCollection";
+import { MsgUpdateCollectionProps } from "../TxTimeline";
 
 export function CreateCollectionStepItem(
-  claims: (ClaimInfoWithDetails<bigint> & { codes: string[], password: string })[],
-  transfers: TransferWithIncrements<bigint>[],
-  badgeSupplys: BadgeSupplyAndAmount<bigint>[],
-  addMethod: MetadataAddMethod,
-  distributionMethod: DistributionMethod,
+  txState: MsgUpdateCollectionProps,
+  collectionId?: bigint,
+
 ) {
   return {
     title: 'Submit Transaction',
     description: '',
     node: <SubmitMsgNewCollection
-      claims={claims}
-      addMethod={addMethod}
-      distributionMethod={distributionMethod}
-      transfers={transfers}
-      badgeSupplys={badgeSupplys}
+      collectionId={collectionId}
+      txState={txState}
     />
   }
 }

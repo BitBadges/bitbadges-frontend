@@ -1,8 +1,9 @@
 import { Spin, Tooltip, Typography } from 'antd';
-import { MINT_ACCOUNT, SupportedChain, getAbbreviatedAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { MINT_ACCOUNT, SupportedChain, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { AddressDisplay } from './AddressDisplay';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
 
 const { Text } = Typography;
 
@@ -25,12 +26,15 @@ export function Address({
 
   const addressName = userInfo?.username;
   const resolvedName = userInfo?.resolvedName;
-  const address = userInfo?.address || '';
+  let address = userInfo?.address || addressOrUsername || '';
 
-  const chain = userInfo?.chain;
+  console.log(addressOrUsername);
 
-  const displayAddress = addressName ? addressName : getAbbreviatedAddress(address);
+  let chain = userInfo?.chain;
+
   const isValidAddress = isAddressValid(address);
+  const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
+
 
   const innerContent = !hideTooltip && userInfo ? (
     <Tooltip
@@ -66,7 +70,7 @@ export function Address({
             <br />
             {chain === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
               <AddressDisplay
-                addressOrUsername={address}
+                addressOrUsername={convertToCosmosAddress(address)}
                 overrideChain={SupportedChain.COSMOS}
                 hidePortfolioLink
                 hideTooltip
@@ -75,7 +79,7 @@ export function Address({
             </div>}
             {chain === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
               <AddressDisplay
-                addressOrUsername={address}
+                addressOrUsername={cosmosToEth(address)}
                 overrideChain={SupportedChain.ETH}
                 hidePortfolioLink
                 hideTooltip
@@ -95,7 +99,7 @@ export function Address({
   );
 
   const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address;
-  const invalidAddress = address && !isValidAddress;
+  const invalidAddress = !isValidAddress;
   return (
     <div>
       <div
@@ -111,12 +115,16 @@ export function Address({
           onClick={!showLink ? undefined : () => {
             router.push(`/account/${address}`);
           }}
-          copyable={true}
+          copyable={{
+            text: address,
+            tooltips: ['Copy Address', 'Copied!'],
+          }}
           style={{
             color: invalidAddress ? 'red' : fontColor,
           }}
         >
-          {userInfo ? <>{innerContent}</> : <Spin />}
+          {userInfo ? <>{innerContent}</> : !invalidAddress ? <Spin /> : <>{displayAddress}</>}
+
         </Text>
       </div>
     </div>

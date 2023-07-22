@@ -1,35 +1,45 @@
-import { CHAIN_DETAILS, DEV_MODE } from "../constants";
-import { ChainContextType } from "../bitbadges-api/contexts/ChainContext";
-import { getSenderInformation } from "./broadcast";
-import { AccountsContextType } from "../bitbadges-api/contexts/AccountsContext";
+import { Chain, Fee, NumberType, Sender } from "bitbadgesjs-proto";
 
-
-export async function fetchDefaultTxDetails(chain: ChainContextType, accounts: AccountsContextType, gasPrice: bigint) {
-  const sender = await getSenderInformation(chain, accounts);
-
-  const gasLimit = 200000n; //default - simulates and sets later
-  const amount = gasLimit * gasPrice;
-
-  const fee = {
-    amount: `${amount}`,
-    denom: 'badge',
-    gas: `${gasLimit}`,
-  }
-  const memo = '';
-
-  const txDetails = {
-    chain: CHAIN_DETAILS,
-    sender, fee, memo
-  }
-  if (DEV_MODE) console.log("Fetched Default Tx Details: ", txDetails)
-  return txDetails;
+export interface TxDetails {
+  chain: Chain,
+  sender: {
+    accountNumber: NumberType,
+    sequence: NumberType,
+    pubkey: string,
+    accountAddress: string,
+  },
+  fee: {
+    amount: NumberType,
+    denom: NumberType,
+    gas: NumberType,
+  },
+  memo: string
 }
 
-export async function formatAndCreateGenericTx(createTxFunction: any, txDetails: any, msg: any) {
+export async function formatAndCreateGenericTx(
+  createTxFunction: (
+    chain: Chain,
+    sender: Sender,
+    fee: Fee,
+    memo: string,
+    msg: object
+  ) => any,
+  txDetails: TxDetails,
+  msg: object
+) {
+  console.log(txDetails);
   let txMsg = createTxFunction(
     txDetails.chain,
-    txDetails.sender,
-    txDetails.fee,
+    {
+      ...txDetails.sender,
+      sequence: Number(txDetails.sender.sequence.toString()),
+      accountNumber: Number(txDetails.sender.accountNumber.toString()),
+    },
+    {
+      amount: txDetails.fee.amount.toString(),
+      denom: txDetails.fee.denom.toString(),
+      gas: txDetails.fee.gas.toString(),
+    },
     txDetails.memo,
     msg
   )

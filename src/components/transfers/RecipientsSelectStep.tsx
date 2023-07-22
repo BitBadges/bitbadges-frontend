@@ -1,21 +1,25 @@
 import { Divider, Typography } from "antd";
-import { UserBalance } from "bitbadgesjs-proto";
-import { getValidTransfersForTransferMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
-import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { AddressListSelect } from "../address/AddressListSelect";
 import { ToolIcon } from "../display/ToolIcon";
 
-export function RecipientsSelectStep({ sender, collectionId, senderBalance, setNumRecipients }
-  : { sender: string, collectionId: bigint, senderBalance: UserBalance<bigint>, setNumRecipients: (numRecipients: bigint) => void }
+export function RecipientsSelectStep({ sender,
+  // collectionId, senderBalance, 
+  setNumRecipients }
+  : {
+    sender: string,
+    // collectionId: bigint, 
+    // senderBalance: UserBalance<bigint>, 
+    setNumRecipients: (numRecipients: bigint) => void
+  }
 ) {
-  const chain = useChainContext();
-  const collections = useCollectionsContext();
+  // const chain = useChainContext();
+  // const collections = useCollectionsContext();
+
+  // const collection = collections.collections[collectionId.toString()]
+  // const signedInAccount = accounts.getAccount(chain.cosmosAddress);
   const accounts = useAccountsContext();
-  const collection = collections.getCollection(collectionId);
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
   const senderAccount = accounts.getAccount(sender);
 
   const [toAddresses, setToAddresses] = useState<string[]>([]);
@@ -26,22 +30,22 @@ export function RecipientsSelectStep({ sender, collectionId, senderBalance, setN
 
   //Check if the toAddresses are allowed
   //Three things we have to check: 1) allowedTransfer, 2) managerApprovedTransfers, 3) current approvals for sender address (if sending on behalf of another user)
-  const forbiddenAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.allowedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
-  const managerApprovedAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.managerApprovedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
+  // const forbiddenAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.allowedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
+  // const managerApprovedAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.managerApprovedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
 
   //If sender !== current user, check if they have any approvals. 
-  const unapprovedAddresses: any[] = [];
+  // const unapprovedAddresses: any[] = [];
   //TODO: Better check for approvals
   //Tricky here because we need balances but we don't have them yet
   //This is a naive implementation that just checks if the sender has any approval for the current user
   //Right now, we just catch upon simulation
-  if (signedInAccount && signedInAccount?.cosmosAddress !== senderAccount?.cosmosAddress) {
-    if (senderBalance.approvals.find((approval) => approval.address === signedInAccount?.cosmosAddress) === undefined) {
-      for (const address of toAddresses) {
-        unapprovedAddresses.push(address);
-      }
-    }
-  }
+  // if (signedInAccount && signedInAccount?.cosmosAddress !== senderAccount?.cosmosAddress) {
+  //   if (senderBalance.approvals.find((approval) => approval.address === signedInAccount?.cosmosAddress) === undefined) {
+  //     for (const address of toAddresses) {
+  //       unapprovedAddresses.push(address);
+  //     }
+  //   }
+  // }
 
 
   // if (signedInAccount && signedInAccount?.cosmosAddress !== senderAccount?.cosmosAddress) {
@@ -61,19 +65,19 @@ export function RecipientsSelectStep({ sender, collectionId, senderBalance, setN
       forbiddenUsersMap[address] = `Address not found.`;
       continue;
     }
-    //If forbidden or unapproved, add to map
-    if (forbiddenAddresses.includes(account?.cosmosAddress)) {
-      forbiddenUsersMap[account?.cosmosAddress] = `Transfer to this recipient has been allowed by the manager.`;
-    }
+    // //If forbidden or unapproved, add to map
+    // if (forbiddenAddresses.includes(account?.cosmosAddress)) {
+    //   forbiddenUsersMap[account?.cosmosAddress] = `Transfer to this recipient has been allowed by the manager.`;
+    // }
 
-    if (unapprovedAddresses.includes(account?.cosmosAddress)) {
-      forbiddenUsersMap[account?.cosmosAddress] = `The selected sender has not approved you to transfer on their behalf.`;
-    }
+    // if (unapprovedAddresses.includes(account?.cosmosAddress)) {
+    //   forbiddenUsersMap[account?.cosmosAddress] = `The selected sender has not approved you to transfer on their behalf.`;
+    // }
 
-    //If manager approved transfer, this overrides the allowed transfer
-    if (collection && signedInAccount?.cosmosAddress === collection?.manager && managerApprovedAddresses.includes(account?.cosmosAddress)) {
-      delete forbiddenUsersMap[account?.cosmosAddress];
-    }
+    // //If manager approved transfer, this overrides the allowed transfer
+    // if (collection && signedInAccount?.cosmosAddress === collection?.manager && managerApprovedAddresses.includes(account?.cosmosAddress)) {
+    //   delete forbiddenUsersMap[account?.cosmosAddress];
+    // }
 
     //Even in the case of manager approved transfer, the sender cannot be the recipient
     if (account?.cosmosAddress === senderAccount?.cosmosAddress) {

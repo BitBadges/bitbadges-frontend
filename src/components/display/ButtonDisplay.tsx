@@ -1,8 +1,6 @@
 import { Avatar, Badge, Layout, Tooltip, Typography, } from 'antd';
 import { ReactNode } from 'react';
 
-
-
 const { Content } = Layout;
 const { Text } = Typography;
 

@@ -60,7 +60,7 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
-          className='flex-center'
+          className='flex-center primary-text'
           style={{
             fontSize: 20,
             marginBottom: 10,
@@ -83,7 +83,7 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
-          className='flex-center'
+          className='flex-center primary-text'
           style={{
             fontSize: 14,
             textAlign: 'center',

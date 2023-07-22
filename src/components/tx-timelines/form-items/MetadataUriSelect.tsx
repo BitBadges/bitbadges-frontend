@@ -4,6 +4,7 @@ import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { DefaultPlaceholderMetadata } from "bitbadgesjs-utils";
+import { FOREVER_DATE } from "../../../utils/dates";
 
 const { Text } = Typography;
 
@@ -23,14 +24,14 @@ export function MetadataUriSelect({
 }) {
   const collections = useCollectionsContext();
   const collectionsRef = useRef(collections);
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
-  const [collectionUri, setCollectionUri] = useState(collection?.collectionUri);
-  const [badgeUri, setBadgeUri] = useState(collection?.badgeUris[0]?.uri);
+  const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
+  const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
 
   //Upon initial load, populate with placeholder
   useEffect(() => {
-    const collection = collectionsRef.current.getCollection(collectionId);
+    const collection = collectionsRef.current.collections[collectionId.toString()];
     if (!collection) return;
 
     collectionsRef.current.updateCollection({
@@ -43,7 +44,7 @@ export function MetadataUriSelect({
     })
   }, [collectionId])
 
-  
+
   const DELAY_MS = 1000;
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -51,7 +52,13 @@ export function MetadataUriSelect({
 
       collectionsRef.current.updateCollection({
         ...collection,
-        collectionUri: collectionUri
+        collectionMetadataTimeline: [{
+          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          collectionMetadata: {
+            uri: collectionUri,
+            customData: '',
+          }
+        }]
       })
 
     }, DELAY_MS)
@@ -66,12 +73,14 @@ export function MetadataUriSelect({
 
       collectionsRef.current.updateCollection({
         ...collection,
-        badgeUris: [
-          {
+        badgeMetadataTimeline: [{
+          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          badgeMetadata: [{
+            uri: badgeUri,
             badgeIds: [{ start: startId, end: endId }],
-            uri: badgeUri
-          }
-        ]
+            customData: '',
+          }]
+        }],
       })
     }, DELAY_MS)
 
@@ -136,13 +145,12 @@ export function MetadataUriSelect({
 
 
 
-      {collection?.badgeUris[0] &&
+      {collection?.badgeMetadataTimeline[0].badgeMetadata[0] &&
         <div className='flex-center primary-tect full-width'>
           <BadgeAvatarDisplay
-            badgeIds={collection?.badgeUris[0].badgeIds}
+            badgeIds={collection?.badgeMetadataTimeline[0].badgeMetadata[0].badgeIds}
             collectionId={collectionId}
             showIds
-
           />
         </div>
       }

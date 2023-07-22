@@ -8,7 +8,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
   return <div style={{ width: 265, margin: 4, marginBottom: 15, display: 'flex' }}>
     <InformationDisplayCard
@@ -31,7 +31,7 @@ export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
         <b style={{ fontSize: 16 }}>Badges</b>
         <BadgeAvatarDisplay
           collectionId={collectionId}
-          badgeIds={collection?.maxSupplys.map((x) => x.badgeIds).flat() ?? []}
+          badgeIds={collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances.map((x) => x.badgeIds).flat() ?? []}
         />
       </div>
     </InformationDisplayCard>

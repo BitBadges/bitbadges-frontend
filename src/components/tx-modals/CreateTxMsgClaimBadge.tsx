@@ -1,34 +1,36 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { MsgClaimBadge, createTxMsgClaimBadge } from 'bitbadgesjs-transactions';
-import { ClaimInfoWithDetails } from 'bitbadgesjs-utils';
+import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
+import { CollectionApprovedTransferWithDetails, MerkleChallengeWithDetails } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
-import { getClaimCodeViaPassword } from '../../bitbadges-api/api';
+import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { TxModal } from './TxModal';
 
 //TODO: support multiple challenges per claim
+//TODO: handle used claim codes
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, claimItem, code, whitelistIndex
+    collectionId, visible, setVisible, children, approvedTransfer, claimItem, code, whitelistIndex
   }: {
     collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
-    claimItem?: ClaimInfoWithDetails<bigint>,
+    approvedTransfer?: CollectionApprovedTransferWithDetails<bigint>,
+    claimItem?: MerkleChallengeWithDetails<bigint>,
     code: string
     whitelistIndex?: number
   }
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
-  const claimId = claimItem?.claimId;
+  const collection = collections.collections[collectionId.toString()]
+  const approvalId = approvedTransfer?.approvalDetails[0].approvalId;;
   const claimObject = claimItem;
-  const leavesDetails = claimItem?.details?.challengeDetails[0]?.leavesDetails;
+  const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
   const [codeToSubmit, setCodeToSubmit] = useState<string>("");
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
@@ -40,26 +42,31 @@ export function CreateTxMsgClaimBadgeModal(
   ) : null);
 
 
-  const isWhitelist = claimItem?.challenges[0]?.useCreatorAddressAsLeaf ?? false;
+  const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
   // const isCodes = !isWhitelist;
 
   useEffect(() => {
     // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
     async function fetchCode() {
       if (claimItem && claimItem.details?.hasPassword) {
-        const res = await getClaimCodeViaPassword(collectionId, claimId ?? '-1', code);
+        let claimItemCid = '';
+        if (claimItem.uri.startsWith('ipfs://')) {
+          claimItemCid = claimItem.uri.split('ipfs://')[1];
+          claimItemCid = claimItemCid.split('/')[0];
+        }
+        const res = await getMerkleChallengeCodeViaPassword(collectionId, claimItemCid, code);
         setCodeToSubmit(res.code);
       } else {
         setCodeToSubmit(code);
       }
     }
     fetchCode();
-  }, [claimItem, code, claimId, collectionId]);
+  }, [claimItem, code, collectionId]);
 
   useEffect(() => {
     if (claimItem) {
-      const tree = new MerkleTree(claimItem.details?.challengeDetails[0]?.leavesDetails?.leaves.map(x => {
-        return claimItem.details?.challengeDetails[0]?.leavesDetails?.isHashed ? x : SHA256(x);
+      const tree = new MerkleTree(claimItem.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
+        return claimItem.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
       }) ?? [], SHA256, {
         fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000'
       });
@@ -74,23 +81,29 @@ export function CreateTxMsgClaimBadgeModal(
   const proofObj = tree?.getProof(leaf, whitelistIndex);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
 
-  const txCosmosMsg: MsgClaimBadge<bigint> = {
+  const txCosmosMsg: MsgTransferBadges<bigint> = {
     creator: chain.cosmosAddress,
-    collectionId: collection.collectionId,
-    claimId: claimId ?? 0n,
-    solutions: [
-      {
-        proof: {
-          aunts: proofObj ? proofObj.map((proof) => {
-            return {
-              aunt: proof.data.toString('hex'),
-              onRight: proof.position === 'right'
-            }
-          }) : [],
-          leaf,
-        },
+    collectionId: collectionId,
+    transfers: [{
+      from: "Mint",
+      toAddresses: [chain.cosmosAddress],
+      balances: [],
+      precalculationDetails: {
+        approvalId: approvalId ?? '',
+        approvalLevel: "collection",
+        approverAddress: "",
       },
-    ]
+      merkleProofs: [{
+        aunts: proofObj ? proofObj.map((proof) => {
+          return {
+            aunt: proof.data.toString('hex'),
+            onRight: proof.position === 'right'
+          }
+        }) : [],
+        leaf,
+      }],
+      memo: ''
+    }],
   };
 
   return (
@@ -99,7 +112,7 @@ export function CreateTxMsgClaimBadgeModal(
       setVisible={setVisible}
       txName="Claim Badge"
       txCosmosMsg={txCosmosMsg}
-      createTxFunction={createTxMsgClaimBadge}
+      createTxFunction={createTxMsgTransferBadges}
       disabled={!isValidProof}
       displayMsg={isValidProof ? undefined :
         <div style={{ fontSize: 20 }}>

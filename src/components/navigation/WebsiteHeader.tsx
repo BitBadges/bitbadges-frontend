@@ -22,6 +22,7 @@ import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -39,11 +40,11 @@ export function WalletHeader() {
   const address = chain.address;
   const avatar = account?.avatar;
 
-  const onSearch = async (value: string, isAccount?: boolean) => {
+  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean) => {
     if (!value) return;
 
-    if (isAccount) {
-      router.push('/account/' + value);
+    if (isAccount && typeof value !== "string") {
+      router.push('/account/' + value.address);
     } else {
       router.push('/collections/' + value);
     }
@@ -88,6 +89,7 @@ export function WalletHeader() {
   };
 
   let signedIn = chain.loggedIn;
+  let connected = chain.connected;
   let disabled = false;
   const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
     <div className='flex-center' style={{ marginTop: 10 }}>
@@ -96,10 +98,11 @@ export function WalletHeader() {
           <AddressDisplay
             addressOrUsername={address}
             hidePortfolioLink
+            fontColor='black'
           />
-          {account?.balance ? <>
+          {account?.balance?.amount ? <>
             <br />
-            {account.balance} $BADGE
+            {account.balance?.amount.toString()} $BADGE
           </> : ''}
 
           <br />
@@ -142,24 +145,24 @@ export function WalletHeader() {
     </div>
 
     <hr />
-    {!address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
-    {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
+    {!connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
+    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
-    {address && <>
+    {connected && <>
       <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
-    {address && <>
+    {connected && <>
       <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
 
-    {address && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
-    {address && signedIn && <>
+    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
+    {connected && signedIn && <>
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
       <Menu.Item className='dropdown-item' onClick={() => {
         chain.disconnect();
         signOut();
         chain.setLoggedIn(false);
-        removeCookie('blockincookie');
+        _setCookie('blockincookie', '', { path: '/' });
       }}>Disconnect and Sign Out</Menu.Item>
     </>}
   </Menu>

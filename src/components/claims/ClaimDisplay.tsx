@@ -1,14 +1,14 @@
 import { ClockCircleOutlined, InfoCircleOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
 import { Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
-import { ClaimInfoWithDetails, DistributionMethod } from "bitbadgesjs-utils";
-import { SHA256 } from "crypto-js";
+import { ApprovalTrackerIdDetails } from "bitbadgesjs-proto";
+import { CollectionApprovedTransferWithDetails, DistributionMethod, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { WEBSITE_HOSTNAME } from "../../constants";
-import { getTimeRangeString } from "../../utils/dates";
+import { getTimeRangesString } from "../../utils/dates";
 import { downloadJson } from "../../utils/downloadJson";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
@@ -16,16 +16,22 @@ import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { ToolIcon, tools } from "../display/ToolIcon";
 import { TransferDisplay } from "../transfers/TransferDisplay";
 
-//TODO: Support multiple challenges per claim
+
+//TODO: Will need to change when we allow approvalDetails len > 0
+//TODO: per to/from/initiatedBy
+//TODO: max num transfers
+//TODO: Increment badge IDs logic
+//TODO: Manual Balances
+//TODO: Abstract to all approved transfers. not just "Mint" and ones with merkle challenges
 export function ClaimDisplay({
-  claim,
+  approvedTransfer,
   collectionId,
   openModal,
   isCodeDisplay,
   codes,
   claimPassword
 }: {
-  claim: ClaimInfoWithDetails<bigint>,
+  approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
   collectionId: bigint,
   openModal: (code?: string, whitelistIndex?: number) => void,
   isCodeDisplay?: boolean
@@ -35,8 +41,13 @@ export function ClaimDisplay({
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
-  const claimId = claim.claimId;
+  const collection = collections.collections[collectionId.toString()]
+  const collectionsRef = useRef(collections);
+
+  const claim = approvedTransfer.approvalDetails.length > 0 && approvedTransfer.approvalDetails[0].merkleChallenges.length > 0 ?
+    approvedTransfer.approvalDetails[0].merkleChallenges[0] : undefined; //TODO: Support multiple challenges per claim
+
+  const claimId = claim?.challengeId;
 
   const query = router.query;
   const codeQuery = query.code as string;
@@ -46,6 +57,11 @@ export function ClaimDisplay({
   const [currCode, setCurrCode] = useState(codeQuery ? codeQuery as string : passwordQuery ? passwordQuery as string : '');
   const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
 
+  //TODO: Will need to change with more supported features
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
+  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === chain.cosmosAddress);
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
+
   useEffect(() => {
     if (codeQuery) {
       setCurrCode(codeQuery as string);
@@ -54,16 +70,77 @@ export function ClaimDisplay({
     }
   }, [codeQuery, passwordQuery]);
 
-  let isExpired = Date.now() > claim.timeRange.end;
+  useEffect(() => {
+    if (collectionId >= 0) {
+
+    async function fetchTrackers() {
+      const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = [{
+        collectionId,
+        approvalId: approvedTransfer.approvalDetails[0].approvalId,
+        approvalLevel: "collection",
+        approvedAddress: "",
+        approverAddress: "",
+        trackerType: "overall",
+      }];
+      if (approvedTransfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
+        approvalsIdsToFetch.push({
+          collectionId,
+          approvalId: approvedTransfer.approvalDetails[0].approvalId,
+          approvalLevel: "collection",
+          approvedAddress: chain.cosmosAddress,
+          approverAddress: "",
+          trackerType: "initiatedBy",
+        });
+      }
+
+      collectionsRef.current.fetchCollectionsWithOptions([{
+        collectionId,
+        viewsToFetch: [],
+        merkleChallengeIdsToFetch: [{
+          collectionId,
+          challengeId: claimId ?? '',
+          challengeLevel: "collection",
+          approverAddress: "",
+        }],
+        approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+      }]);
+    }
+
+    fetchTrackers();
+  }
+  }, [collectionId, approvedTransfer, claimId, chain]);
+
+  let [_, isActive] = searchUintRangesForId(BigInt(Date.now()), approvedTransfer.transferTimes);
+
 
   let timeStr = '';
-  if (isExpired) {
-    timeStr = 'This claim has expired!';
-  } else {
-    timeStr = getTimeRangeString(claim.timeRange, 'Open');
+  if (!isActive) {
+    timeStr = 'This claim is not currently active. ';
   }
+  timeStr += getTimeRangesString(approvedTransfer.transferTimes, 'Open', true);
 
-  if (claim.undistributedBalances.length === 0) return <></>
+  let currentMintBalances = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
+
+  //Filter out all balances not in the approvedTransfer details
+  currentMintBalances = currentMintBalances.map(x => {
+    const [_, removedBadges] = removeUintRangeFromUintRange(approvedTransfer.badgeIds, x.badgeIds);
+    const [__, removedOwnedTimes] = removeUintRangeFromUintRange(approvedTransfer.ownedTimes, x.ownedTimes);
+
+    return {
+      ...x,
+      badgeIds: removedBadges,
+      ownedTimes: removedOwnedTimes
+    }
+  }).filter(x => x.badgeIds.length > 0 && x.ownedTimes.length > 0);
+
+  const undistributedBalances = subtractBalances(approvalTracker?.amounts ?? [], currentMintBalances);
+
+  const numClaimsPerAddress = approvedTransfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers ?? 0n;
+  const currInitiatedByCount = initiatedByTracker?.numTransfers ?? 0n;
+
+
+
+  if (!claim || undistributedBalances.length === 0 || approvedTransfer.fromMappingId !== "Mint") return <></>
 
   //There are many different cases that can happen here as to why a user can not claim
   //1. Not connected to wallet
@@ -85,16 +162,49 @@ export function ClaimDisplay({
     cantClaim = true;
     notConnected = true;
     errorMessage = 'Please sign in with your wallet!';
-  } else if (claim.numClaimsPerAddress && claim.claimsPerAddressCount[chain.cosmosAddress] >= claim.numClaimsPerAddress) {
+  } else if (numClaimsPerAddress > 0n && currInitiatedByCount >= numClaimsPerAddress) {
     cantClaim = true;
     errorMessage = 'You have exceeded the maximum number of times you can claim!';
-  } else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(currCode).toString())) {
-    cantClaim = true;
-    errorMessage = 'This code has already been used!';
-  } else if (!claim.details) {
+  }
+  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(currCode).toString())) {
+  //   cantClaim = true;
+  //   errorMessage = 'This code has already been used!';
+  // } 
+  else if (!claim.details) {
     cantClaim = true;
     errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
+  } else if (approvedTransfer.approvalDetails[0].merkleChallenges && approvedTransfer.approvalDetails[0].merkleChallenges.length > 1) {
+    //TODO: Support multiple challenges
+    cantClaim = true;
+    errorMessage = 'This claim was custom created by the creator with multiple challenges. This is incompatible with the BitBadges website.';
+  } else if (!approvedTransfer.approvalDetails[0].predeterminedBalances ||
+    approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
+    !approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useOverallNumTransfers) {
+    cantClaim = true;
+    errorMessage = 'This claim was custom created by the creator with a custom order calculation method. This is incompatible with the BitBadges website.';
   }
+
+  const currentClaimAmounts = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances;
+  const incrementIdsBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
+  const incrementOwnedTimesBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnedTimesBy;
+  const numIncrements = approvalTracker?.numTransfers ?? 0n;
+
+  for (let i = 0; i < numIncrements; i++) {
+    for (const balance of currentClaimAmounts) {
+      for (const badgeIdRange of balance.badgeIds) {
+        badgeIdRange.start += incrementIdsBy;
+        badgeIdRange.end += incrementIdsBy;
+      }
+
+      for (const ownedTimeRange of balance.ownedTimes) {
+        ownedTimeRange.start += incrementOwnedTimesBy;
+        ownedTimeRange.end += incrementOwnedTimesBy;
+      }
+    }
+  }
+
+
+
 
   const printStr = claim.details?.hasPassword ? 'password' : 'code';
   const urlSuffix = claim.details?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
@@ -139,27 +249,21 @@ export function ClaimDisplay({
             <BalanceDisplay
               message={'Unclaimed Badges Left'}
               collectionId={collectionId}
-              balance={{
-                approvals: [],
-                balances: claim.undistributedBalances
-              }}
+              balances={undistributedBalances}
             />
             <hr />
             <div>
               <BalanceDisplay
                 message={'Current Claim'}
                 collectionId={collectionId}
-                balance={{
-                  approvals: [],
-                  balances: claim.currentClaimAmounts
-                }}
+                balances={currentClaimAmounts}
               />
 
-              {claim.incrementIdsBy > 0 && <div>
+              {incrementIdsBy > 0 && <div>
                 <br />
                 <Row className='flex-center' >
                   <p className='primary-text'>
-                    <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {`${claim.incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
+                    <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {`${incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
                   </p>
                 </Row>
                 <br />
@@ -173,7 +277,7 @@ export function ClaimDisplay({
                     <BlockinDisplay hideLogo />
                   </div>
                 </> : <>
-                  {claim.challenges && claim.challenges[0].root && !claim.challenges[0].useCreatorAddressAsLeaf &&
+                  {claim && claim.root && !claim.useCreatorAddressAsLeaf &&
                     <>
                       <hr />
                       <h3 className='primary-text'>Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</h3>
@@ -191,11 +295,11 @@ export function ClaimDisplay({
                     </>
                   }
 
-                  {claim.challenges && claim.challenges[0].root && claim.challenges[0].useCreatorAddressAsLeaf &&
+                  {claim && claim.root && claim.useCreatorAddressAsLeaf &&
                     <>
                       <hr />
                       <br />
-                      {!claim.details?.challengeDetails[0].leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))
+                      {!claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))
                         ? <div>
                           <h3 className='primary-text'>You are not on the whitelist.</h3>
                           <div className='flex-between' style={{ justifyContent: 'center' }}>
@@ -212,11 +316,18 @@ export function ClaimDisplay({
                             <TransferDisplay
                               hideBalances
                               collectionId={collectionId}
-                              from={['Mint']}
                               transfers={[
                                 {
+                                  from: 'Mint',
                                   toAddresses: [chain.cosmosAddress],
-                                  balances: claim.currentClaimAmounts
+                                  balances: currentClaimAmounts,
+                                  merkleProofs: [],
+                                  memo: '',
+                                  precalculationDetails: {
+                                    approvalId: approvedTransfer.approvalDetails[0].approvalId,
+                                    approvalLevel: 'collection',
+                                    approverAddress: '',
+                                  },
                                 }
                               ]}
                               setTransfers={() => { }}
@@ -234,8 +345,8 @@ export function ClaimDisplay({
                   <Button disabled={cantClaim} type='primary' onClick={() => openModal(currCode, whitelistIndex)} className='full-width'>Claim</Button>
                 </Tooltip>
 
-                {claim.numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
-                  <p>*Only {claim.numClaimsPerAddress.toString()} claim(s) allowed per account</p>
+                {numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
+                  <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
                 </div>}
               </div>
             </div>
@@ -347,7 +458,7 @@ export function ClaimDisplay({
                   <InfoCircleOutlined /> Note that this code can only be used once.
                   <br />
                   Current Status: {
-                    claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(codes[codePage - 1]).toString()) ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
+                    challengeTracker && challengeTracker.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
                   }
                 </Typography.Text>}
 

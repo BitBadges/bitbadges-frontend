@@ -1,7 +1,7 @@
 import { Button, Divider, Empty } from 'antd';
-import { Numberify } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, Numberify, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
@@ -11,15 +11,13 @@ import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
-export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: {
+export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
-  codes?: string[][];
-  passwords?: string[];
+  codesAndPasswords?: CodesAndPasswords[]
   isModal?: boolean
   badgeId?: bigint;
 }) {
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
   const chain = useChainContext();
   const router = useRouter();
   const isPreview = collectionId === MSG_PREVIEW_ID;
@@ -30,31 +28,40 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
 
-  const collection = collections.getCollection(collectionId);
-  const claimItem = collection?.claims.length && collection?.claims.length > currPage - 1 ? collection?.claims[currPage - 1] : undefined;
-  const query = router.query;
-  const numActiveClaims = collection?.views.claimsById?.pagination.total ?? 0;
+  const collection = collections.collections[collectionId.toString()]
 
-  //Auto scroll to page upon claim ID
+  const approvedTransfersForClaims = [];
+  const merkleChallenges = [];
+
+
+  const approvedTransfers = [];
+  const currIdx = getCurrentValueIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
+  if (collection?.collectionApprovedTransfersTimeline && currIdx >= 0) {
+    approvedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
+  }
+
+  for (const approvedTransfer of approvedTransfers) {
+    for (const approvalDetails of approvedTransfer.approvalDetails) {
+      for (const merkleChallenge of approvalDetails.merkleChallenges) {
+        merkleChallenges.push(merkleChallenge);
+        approvedTransfersForClaims.push(approvedTransfer);
+      }
+    }
+  }
+
+  const numActiveClaims = approvedTransfersForClaims.length;
+
+  const claimItem = numActiveClaims > currPage - 1 ? merkleChallenges[currPage - 1] : undefined;
+  const approvedTransferItem = numActiveClaims > currPage - 1 ? approvedTransfersForClaims[currPage - 1] : undefined;
+  const query = router.query;
+
+  //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
     if (query.claimId && typeof query.claimId === 'string') {
       setCurrPage(Numberify(query.claimId));
     }
   }, [query.claimId]);
 
-
-  useEffect(() => {
-    async function fetchClaims() {
-      if (claimItem) return;
-
-      //TODO: fetch exact claim instead of just fetching next page by id (should be fine for now as collections will not have >50 active claims (2 pages))
-      if (!claimItem) {
-        await collectionsRef.current.fetchNextForViews(collectionId, ['claimsById']);
-      }
-    }
-
-    fetchClaims();
-  }, [claimItem, collectionId]);
 
   if (isPreview) return <Empty
     className='primary-text'
@@ -64,7 +71,15 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
     image={Empty.PRESENTED_IMAGE_SIMPLE}
   />
 
+  const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+  const currentManager = collection?.managerTimeline && currentManagerIdx >= 0 ? collection.managerTimeline[Number(currentManagerIdx)].manager : '';
 
+  //Get IPFS cid and path
+  let currClaimCid = '';
+  if (claimItem?.uri.startsWith('ipfs://')) {
+    currClaimCid = claimItem.uri.split('ipfs://')[1];
+    currClaimCid = currClaimCid.split('/')[0];
+  }
 
   return (
     <div className='primary-text'
@@ -72,7 +87,8 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
         justifyContent: 'center',
       }}>
       <div className='flex-center'>
-        {!isModal && collection?.manager === chain.cosmosAddress && collection?.claims.length && <div>
+        {/* TODO: Only show if code/password claim */}
+        {!isModal && currentManager === chain.cosmosAddress && numActiveClaims > 0 && <div>
           {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
           <br />
           <Button
@@ -92,7 +108,7 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
           />
           <Divider />
         </div>}
-        {!isModal && collection?.manager !== chain.cosmosAddress && collection?.claims.length && <div>
+        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && <div>
           {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
         </div>}
       </div>
@@ -103,15 +119,15 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
           <>
             <ClaimDisplay
               collectionId={collectionId}
-              claim={claimItem}
+              approvedTransfer={approvedTransfersForClaims[currPage - 1]}
               openModal={(code, whitelistIndex) => {
                 setModalVisible(true);
                 setCode(code ? code : "");
                 setWhitelistIndex(whitelistIndex);
               }}
-              isCodeDisplay={codes ? true : false}
-              codes={codes ? codes[Numberify(claimItem.claimId - 1n)] : []}
-              claimPassword={passwords ? passwords[Numberify(claimItem.claimId - 1n)] : ""}
+              isCodeDisplay={codesAndPasswords ? true : false}
+              codes={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.codes : []}
+              claimPassword={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.password : ""}
             />
           </>
         }
@@ -119,7 +135,7 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
       </div>
 
       {
-        !collection?.claims.length && <Empty
+        numActiveClaims == 0 && <Empty
           className='primary-text'
           description={`No active claims found${badgeId ? ' for this badge' : ''}.`}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -131,6 +147,7 @@ export function ClaimsTab({ collectionId, codes, passwords, isModal, badgeId }: 
         visible={modalVisible}
         setVisible={setModalVisible}
         code={code}
+        approvedTransfer={approvedTransferItem}
         claimItem={claimItem}
         whitelistIndex={whitelistIndex}
       />

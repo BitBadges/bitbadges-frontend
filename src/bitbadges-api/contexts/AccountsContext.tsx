@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, SupportedChain, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
+import { deepCopy } from 'bitbadgesjs-proto';
 
 export type AccountsContextType = {
   getAccount: (addressOrUsername: string) => BitBadgesUserInfo<DesiredNumberType> | undefined,
@@ -46,7 +47,18 @@ const AccountsContext = createContext<AccountsContextType>({
   fetchAccountsWithOptions: async () => { return [] },
   fetchAccounts: async () => { return [] },
   fetchNextForViews: async () => { return BLANK_USER_INFO },
-  fetchBalanceForUser: async () => { return { balances: [], approvals: [], collectionId: -1n, onChain: false, cosmosAddress: '', _id: '' } },
+  fetchBalanceForUser: async () => {
+    return {
+      balances: [],
+      approvedIncomingTransfersTimeline: [],
+      approvedOutgoingTransfersTimeline: [],
+      userPermissions: {
+        canUpdateApprovedIncomingTransfers: [],
+        canUpdateApprovedOutgoingTransfers: [],
+      },
+      collectionId: -1n, onChain: false, cosmosAddress: '', _id: ''
+    }
+  },
   updateAccount: () => { return BLANK_USER_INFO },
   getAccount: () => BLANK_USER_INFO,
   incrementSequence: () => { },
@@ -64,23 +76,30 @@ type Props = {
 };
 
 export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
-  const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT });
+  const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT });
   const [cosmosAddressesByUsernames, setCosmosAddressesByUsernames] = useState<{ [username: string]: string }>({});
-  const [cosmosAddressesByAddresses, setCosmosAddressesByAddresses] = useState<{ [address: string]: string }>({ 'Mint': 'Mint' });
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
-
   const getAccount = (addressOrUsername: string) => {
-    if (addressOrUsername === 'Mint') return MINT_ACCOUNT;
-
+    if (addressOrUsername === 'Mint' || addressOrUsername === "Total") return MINT_ACCOUNT;
+    let accountToReturn;
+    console.log(isAddressValid(addressOrUsername), addressOrUsername);
     if (isAddressValid(addressOrUsername)) {
-      if (getChainForAddress(addressOrUsername) === SupportedChain.COSMOS) {
-        return accounts[addressOrUsername];
-      } else {
-        return accounts[cosmosAddressesByAddresses[addressOrUsername]];
+      const cosmosAddress = convertToCosmosAddress(addressOrUsername);
+      accountToReturn = accounts[cosmosAddress];
+
+      console.log(addressOrUsername);
+
+      const chainForAddress = getChainForAddress(addressOrUsername);
+      if (accountToReturn && chainForAddress !== accountToReturn.chain) {
+        accountToReturn.chain = chainForAddress;
+        accountToReturn.address = addressOrUsername;
       }
+
     } else {
-      return accounts[cosmosAddressesByUsernames[addressOrUsername]];
+      accountToReturn = accounts[cosmosAddressesByUsernames[addressOrUsername]];
     }
+    console.log("RETURNING", accountToReturn);
+    return accountToReturn;
   }
 
   const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>) => {
@@ -120,6 +139,9 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
       views: newViews,
       publicKey,
+      sequence: account && account.sequence !== undefined && account.sequence >= 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence >= 0n ? cachedAccount.sequence : undefined,
+      accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
+      resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
     };
 
     //Filter duplicates by _id
@@ -129,16 +151,15 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
 
     accounts[account.cosmosAddress] = newAccount;
-    cosmosAddressesByAddresses[account.address] = account.cosmosAddress;
     if (account.username) {
       cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
     }
 
     //Only trigger a rerender if the account has changed
     if (JSON.stringify(newAccount) !== cachedAccountCopy) {
-      setAccountsMap(accounts);
-      setCosmosAddressesByAddresses(cosmosAddressesByAddresses);
-      setCosmosAddressesByUsernames(cosmosAddressesByUsernames);
+      console.log("SETTING");
+      setAccountsMap(deepCopy(accounts));
+      setCosmosAddressesByUsernames(deepCopy(cosmosAddressesByUsernames));
     }
     return newAccount;
   }
@@ -188,7 +209,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         fetchBalance: false,
         viewsToFetch: []
       }
-    }, forcefulRefresh));
+    }), forcefulRefresh);
   }
 
   const fetchAccountsWithOptions = async (accountsToFetch: {
@@ -207,13 +228,12 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
     //Iterate through and see which accounts + info we actually need to fetch versus which we already have
     for (const accountToFetch of accountsToFetch) {
-      if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
+      // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
 
-      if (forcefulRefresh) {
-        accounts[accountToFetch.address || accountToFetch.username || ''] = undefined;
-      }
-
-      const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '');
+      const cachedAccount = forcefulRefresh ? undefined : getAccount(accountToFetch.address || accountToFetch.username || '');
+      console.log(accountToFetch);
+      console.log(forcefulRefresh);
+      console.log(JSON.stringify(cachedAccount));
       if (cachedAccount === undefined) {
         batchRequestBody.accountsToFetch.push({
           address: accountToFetch.address,
@@ -260,10 +280,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getAccounts(batchRequestBody);
-
+    console.log(res);
     for (const account of res.accounts) {
       accounts[account.cosmosAddress] = updateAccount(account);
     }
+
 
     //If we get here, we have fetched and cached all the accounts we need. 
     //Now we just need to return them in the same order as the input.

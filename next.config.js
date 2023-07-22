@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
+    reactStrictMode: false,
     publicRuntimeConfig: {
         // Will be available on both server and client
         HOSTNAME:

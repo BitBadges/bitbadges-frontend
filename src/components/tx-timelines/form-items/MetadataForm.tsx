@@ -11,12 +11,12 @@ import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 
-import { IdRange } from 'bitbadgesjs-proto';
+import { UintRange } from 'bitbadgesjs-proto';
 import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { FOREVER_DATE } from '../../../utils/dates';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
-import { IdRangesInput } from '../../balances/IdRangesInput';
+import { UintRangesInput } from '../../balances/IdRangesInput';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -46,7 +46,7 @@ export function MetadataForm({
 
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
   const [badgeId, setBadgeId] = useState<bigint>(startId ?? 1n);
 
@@ -73,7 +73,7 @@ export function MetadataForm({
     return () => clearTimeout(delayDebounceFn)
   }
 
-  const populateOtherBadges = (badgeIds: IdRange<bigint>[], key: string, value: any) => {
+  const populateOtherBadges = (badgeIds: UintRange<bigint>[], key: string, value: any) => {
     if (!collection) return;
 
     const badgeMetadata = collection.badgeMetadata;
@@ -86,8 +86,8 @@ export function MetadataForm({
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
-  const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom?.end === FOREVER_DATE);
-  const [idRanges, setIdRanges] = useState<IdRange<bigint>[]>([
+  const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom && metadata?.validFrom?.length > 0 && metadata?.validFrom[0].end === FOREVER_DATE);
+  const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>([
     {
       start: startId ? startId : 1n,
       end: endId ? endId : FOREVER_DATE
@@ -251,10 +251,10 @@ export function MetadataForm({
                 <br />
                 <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
                 <br />
-                <IdRangesInput
+                <UintRangesInput
                   minimum={startId ? startId : 1n}
                   maximum={endId ? endId : FOREVER_DATE}
-                  setIdRanges={setIdRanges}
+                  setUintRanges={setUintRanges}
                   verb={'Update'}
                   collectionId={collectionId}
                 />
@@ -268,7 +268,7 @@ export function MetadataForm({
                 <Button type='primary'
                   className='full-width'
                   onClick={() => {
-                    populateOtherBadges(idRanges, fieldName, '');
+                    populateOtherBadges(uintRanges, fieldName, '');
                     setPopulateIsOpen(false);
                   }}
                 > Update </Button>
@@ -325,10 +325,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this title?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -342,7 +342,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -440,10 +440,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this image?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -452,7 +452,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -547,10 +547,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this category?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -559,7 +559,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -619,10 +619,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this description?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -631,7 +631,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -691,10 +691,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this website?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -703,7 +703,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -728,7 +728,7 @@ export function MetadataForm({
                 {!validForeverChecked &&
                   <DatePicker
                     placeholder='Default: No Expiration Date'
-                    value={metadata.validFrom ? moment(new Date(metadata.validFrom.end.toString())) : undefined}
+                    value={metadata.validFrom && metadata.validFrom.length > 0 ? moment(new Date(metadata.validFrom[0].end.toString())) : undefined}
                     className='primary-text primary-blue-bg full-width'
                     suffixIcon={
                       <CalendarOutlined
@@ -738,10 +738,10 @@ export function MetadataForm({
                     onChange={(_date, dateString) => {
                       setMetadata({
                         ...metadata,
-                        validFrom: {
+                        validFrom: [{
                           start: BigInt(Date.now()),
                           end: BigInt(new Date(dateString).valueOf()),
-                        }
+                        }]
                       });
                     }}
                   />
@@ -755,18 +755,18 @@ export function MetadataForm({
                       if (e.target.checked) {
                         setMetadata({
                           ...metadata,
-                          validFrom: {
+                          validFrom: [{
                             start: BigInt(Date.now()),
                             end: FOREVER_DATE
-                          }
+                          }]
                         });
                       } else {
                         setMetadata({
                           ...metadata,
-                          validFrom: {
+                          validFrom: [{
                             start: BigInt(Date.now()),
                             end: BigInt(Date.now()),
-                          }
+                          }]
                         });
                       }
                       setValidForeverChecked(e.target.checked);
@@ -796,10 +796,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -808,7 +808,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -879,10 +879,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have these tags?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -891,7 +891,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -1001,10 +1001,10 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this color?</h3>
               <br />
-              <IdRangesInput
+              <UintRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
-                setIdRanges={setIdRanges}
+                setUintRanges={setUintRanges}
                 verb={'Update'}
                 collectionId={collectionId}
               />
@@ -1013,7 +1013,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(idRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>

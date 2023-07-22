@@ -2,6 +2,7 @@ import { Dropdown, Input } from 'antd';
 import { useState } from 'react';
 import { SearchDropdown } from '../navigation/SearchDropdown';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -15,22 +16,25 @@ export function AddressSelect({
   defaultValue?: string,
   onUserSelect: (currUserInfo: string) => void,
 }) {
+  const [changed, setChanged] = useState<boolean>(false);
   const [input, setInput] = useState<string>(defaultValue ? defaultValue : '');
-  const accounts = useAccountsContext();
 
   return <>
     <br />
     <Input.Group compact className='flex'>
       <Dropdown
-        open={input !== ''}
+        open={changed && input != ''}
         placement="bottom"
         overlay={
           <SearchDropdown
             onlyAddresses
             searchValue={input}
-            onSearch={async (addressOrUsername: string) => {
-              const account = await accounts.fetchAccounts([addressOrUsername]);
-              onUserSelect(account[0].cosmosAddress);
+            onSearch={async (value: string | BitBadgesUserInfo<bigint>) => {
+              // const account = await accounts.fetchAccounts([addressOrUsername]);
+              // console.log("FETCHED ACCOUNT", JSON.stringify(account));
+              if (typeof value === "string") return
+
+              onUserSelect(value.address);
               setInput('');
             }}
           />
@@ -43,6 +47,7 @@ export function AddressSelect({
           onChange={async (e) => {
             e.preventDefault();
             setInput(e.target.value);
+            setChanged(true);
           }}
         />
       </Dropdown>

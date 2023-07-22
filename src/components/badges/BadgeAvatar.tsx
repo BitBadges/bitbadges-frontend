@@ -20,7 +20,7 @@ export function BadgeAvatar({
   const router = useRouter();
   const collections = useCollectionsContext();
 
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
   const metadata = badgeId ? getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []) : collection?.collectionMetadata;
 
   return <div>
@@ -30,7 +30,7 @@ export function BadgeAvatar({
     >
       <div style={{ textAlign: 'center' }}>
         <Badge
-          count={<Tooltip title={`This collection\'s metadata${collection && collection.balancesUri ? ' and balances are' : ' is'} currently being refreshed.`}>
+          count={<Tooltip title={`This collection\'s metadata${collection && collection.offChainBalancesMetadataTimeline.length > 0 ? ' and balances are' : ' is'} currently being refreshed.`}>
             <CloudSyncOutlined />
           </Tooltip>
           }
@@ -47,8 +47,7 @@ export function BadgeAvatar({
             src={metadata?.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : <Spin />}
             size={size ? size : 50}
             onClick={() => {
-              if (!collection) return;
-              router.push(`/collections/${collection.collectionId}/${badgeId}`)
+              router.push(`/collections/${collectionId}/${badgeId}`)
             }}
             onError={() => {
               return false;

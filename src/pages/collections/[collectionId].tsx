@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -30,14 +30,14 @@ function CollectionPage({
   const isPreview = collectionPreview ? true : false;
 
   const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? MSG_PREVIEW_ID : -1n;
-  const collection = collections.getCollection(collectionIdNumber);
+  const collection = collections.collections[collectionIdNumber.toString()]
   const badgeIdNumber = badgeId && typeof badgeId === 'string' ? BigInt(badgeId) : -1;
 
-  const [tab, setTab] = useState(badgeIdNumber ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
+  const [tab, setTab] = useState(badgeIdNumber > 0 ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
 
   const collectionMetadata = collection?.collectionMetadata;
 
-  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
   const tabInfo = [];
   if (!isOffChainBalances) {
@@ -70,7 +70,7 @@ function CollectionPage({
 
         if (currCollection.collectionMetadata?._isUpdating || currCollection.badgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({
-            message: 'Metadata for this collection is currently being fetched.',
+            message: 'Metadata for this collection is currently being refreshed.',
             description: 'Certain metadata may not be up to date until the fetch is complete.',
           });
         }
@@ -95,7 +95,9 @@ function CollectionPage({
     if (isPreview) return;
     async function getBadgeBalanceByAddressFromApi() {
       if (isPreview) return;
-      await collectionsRef.current.fetchBalanceForUser(collectionIdNumber, chain.cosmosAddress);
+      if (collectionIdNumber > 0 && chain.cosmosAddress) {
+        await collectionsRef.current.fetchBalanceForUser(collectionIdNumber, chain.cosmosAddress);
+      }
     }
     getBadgeBalanceByAddressFromApi();
   }, [collectionIdNumber, chain.cosmosAddress, isPreview]);
@@ -129,9 +131,7 @@ function CollectionPage({
             {/* Tab Content */}
             {tab === 'overview' && (
               <OverviewTab
-                setTab={setTab}
                 collectionId={collectionIdNumber}
-
               />
             )}
             {tab === 'badges' && (
@@ -154,7 +154,7 @@ function CollectionPage({
                 fetchMore={async () => {
                   await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
                 }}
-                hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore || false}
+                hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestReviews?.pagination.hasMore ?? true}
               />
             )}
 
@@ -177,7 +177,7 @@ function CollectionPage({
                 fetchMore={async () => {
                   await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
                 }}
-                hasMore={collections.getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore || false}
+                hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestActivity?.pagination.hasMore ?? true}
               />
             )}
 
@@ -187,7 +187,7 @@ function CollectionPage({
                   fetchMore={async () => {
                     await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
                   }}
-                  hasMore={collections.getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore || false}
+                  hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestAnnouncements?.pagination.hasMore ?? true}
                 />
               </>
             )}

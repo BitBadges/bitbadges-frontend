@@ -2,13 +2,16 @@ import React from 'react';
 import { Layout } from 'antd';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
+// import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
+import { CreateTxMsgUpdateCollectionModal } from '../../components/tx-modals/CreateTxMsgUpdateCollection';
+import { TxTimeline, MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 
 const { Content } = Layout;
 
 function Mint() {
   return (
     <DisconnectedWrapper
+      requireLogin
       message='Please connect a wallet to access the Mint page.'
       node={
         <RegisteredWrapper
@@ -22,7 +25,7 @@ function Mint() {
                   minHeight: '100vh',
                 }}
               >
-                <div className="primary-text">Mint</div>
+                <div className="primary-title">Mint</div>
                 <div className='primary-blue-bg'
                   style={{
                     marginLeft: '7vw',
@@ -32,7 +35,12 @@ function Mint() {
                     paddingTop: '20px',
                   }}
                 >
-                  <TxTimeline txType='NewCollection' />
+                  <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' isModal={false} />
+                  {/* <CreateTxMsgUpdateCollectionModal
+                    visible={true}
+                    setVisible={() => { }}
+                    collectionId={0n}
+                  /> */}
                 </div>
               </Content>
             </Layout>

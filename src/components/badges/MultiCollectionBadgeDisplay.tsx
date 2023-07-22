@@ -1,5 +1,5 @@
 import { Modal, Tooltip } from "antd";
-import { IdRange } from "bitbadgesjs-proto";
+import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, getBadgesToDisplay } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
@@ -44,7 +44,7 @@ export function MultiCollectionBadgeDisplay({
   //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<{
     collectionId: bigint,
-    badgeIds: IdRange<bigint>[]
+    badgeIds: UintRange<bigint>[]
   }[]>([]); // Badge IDs to display of length pageSize
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function MultiCollectionBadgeDisplay({
     //Calculate badge IDs for each collection
     const allBadgeIds: {
       collectionId: bigint,
-      badgeIds: IdRange<bigint>[]
+      badgeIds: UintRange<bigint>[]
     }[] = [];
     for (const collectionId of collectionIds) {
       const balances = accountInfo?.collected.flat() ?? [];
@@ -86,7 +86,7 @@ export function MultiCollectionBadgeDisplay({
     //Calculate badge IDs to display and update metadata for badge IDs if absent
     const badgeIdsToDisplay: {
       collectionId: bigint,
-      badgeIds: IdRange<bigint>[]
+      badgeIds: UintRange<bigint>[]
     }[] = getBadgesToDisplay(allBadgeIds, currPage, pageSize);
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
@@ -157,9 +157,9 @@ export function MultiCollectionBadgeDisplay({
         {
           badgeIdsToDisplay.map((badgeIdObj) => {
             return <>
-              {badgeIdObj.badgeIds.map((badgeIdRange, idx) => {
+              {badgeIdObj.badgeIds.map((badgeUintRange, idx) => {
                 const badgeIds: bigint[] = [];
-                for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+                for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
                   badgeIds.push(i);
                 }
                 return <div key={idx} className="flex-between">

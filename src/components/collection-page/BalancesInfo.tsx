@@ -1,5 +1,5 @@
 import { Empty } from 'antd';
-import { UserBalance } from 'bitbadgesjs-proto';
+import { Balance } from 'bitbadgesjs-proto';
 import { useEffect, useRef, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -22,7 +22,7 @@ export function BalanceOverview({ collectionId }: {
 
   const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
-  const [currBalance, setCurrBalance] = useState<UserBalance<bigint>>();
+  const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(signedInAccount?.username || signedInAccount?.address || '');
 
   useEffect(() => {
@@ -32,17 +32,17 @@ export function BalanceOverview({ collectionId }: {
   const DELAY_MS = 500;
 
   useEffect(() => {
+
     async function refreshBalance() {
       try {
+        if (!addressOrUsername) return;
+
         const balance = await collectionsRef.current.fetchBalanceForUser(collectionId, addressOrUsername);
-        setCurrBalance(balance);
+        setCurrBalances(balance.balances);
         return;
       } catch (e) { }
 
-      setCurrBalance({
-        balances: [],
-        approvals: []
-      });
+      setCurrBalances([]);
     }
 
     const delayDebounceFn = setTimeout(async () => {
@@ -58,6 +58,7 @@ export function BalanceOverview({ collectionId }: {
     <div className='full-width flex-center flex-column'>
       <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} />
       <br />
+      
       <div className='flex-center'>
         <AddressDisplay addressOrUsername={addressOrUsername} />
       </div>
@@ -74,10 +75,10 @@ export function BalanceOverview({ collectionId }: {
         ></Empty>
       </>}
       {
-        currBalance && !isPreview && <div>
+        currBalances && !isPreview && <div>
           <BalanceDisplay
             collectionId={collectionId}
-            balance={currBalance}
+            balances={currBalances}
           />
         </div>
       }

@@ -14,15 +14,12 @@ const { Text } = Typography
 export function TransferDisplay({
   transfers,
   collectionId,
-  from,
   hideAddresses,
   hideBalances,
   setTransfers,
   deletable,
-
 }: {
   collectionId: bigint;
-  from: string[],
   transfers: TransferWithIncrements<bigint>[],
   hideAddresses?: boolean;
   hideBalances?: boolean;
@@ -32,7 +29,7 @@ export function TransferDisplay({
   const accounts = useAccountsContext();
   const accountsRef = useRef(accounts);
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
   const [page, setPage] = useState(0);
 
@@ -62,12 +59,10 @@ export function TransferDisplay({
           <BalanceDisplay
             message={'Badges Transferred'}
             collectionId={collectionId}
-            balance={{
-              balances: transfer.balances,
-              approvals: []
-            }}
+            balances={transfer.balances}
             numIncrements={toLength}
-            incrementIdsBy={transfer.incrementIdsBy}
+            incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
+            incrementOwnedTimesBy={transfer.incrementOwnedTimesBy}
 
           />}
       </div>}
@@ -78,7 +73,7 @@ export function TransferDisplay({
           <Row>
             <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
               <AddressDisplayList
-                users={from}
+                users={[transfer.from]}
                 toLength={Numberify(toLength)}
                 title={'From'}
                 fontSize={18}

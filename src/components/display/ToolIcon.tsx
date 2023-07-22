@@ -17,6 +17,13 @@ export const tools = [{
   distributionMethod: DistributionMethod.Codes,
   createdBy: 'BitBadges',
   communityBuilt: false
+}, {
+  name: 'Excalidraw',
+  url: 'https://excalidraw.com/',
+  icon: <img height="auto" src="https://avatars.githubusercontent.com/u/59452120" alt="Excalidraw" />,
+  description: 'Virtual whiteboard for sketching hand-drawn like diagrams.',
+  createdBy: 'Excalidraw',
+  communityBuilt: true
 }]
 
 export function ToolIcon({

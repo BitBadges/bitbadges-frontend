@@ -1,9 +1,12 @@
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { Divider, Tooltip, Typography } from "antd";
-import { AllAddressesTransferMapping } from "bitbadgesjs-utils";
+import { CheckCircleFilled, ClockCircleFilled, StopOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
+import { GetFirstMatchOnly, invertUintRanges, removeUintRangeFromUintRange } from "bitbadgesjs-utils";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { FOREVER_DATE, getTimeRangesString } from "../../utils/dates";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+
+
 
 export function PermissionsOverview({
   collectionId,
@@ -17,52 +20,111 @@ export function PermissionsOverview({
   isOffChainBalances?: boolean
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
-  if (!collection?.permissions) return <></>
+  console.log(isBadgeView, isOffChainBalances) //For TS
+
+  if (!collection?.collectionPermissions) return <></>
+
+  const forbiddenDeleteTimes = [];
+  const permittedDeleteTimes = [];
+  const neutralDeleteTimes = [];
+  //TODO: This is simple ActionPermission and not taking into account first-match only
+  let allTimeRanges = [{ start: 1n, end: FOREVER_DATE }];
+
+  for (const deletePermission of collection.collectionPermissions.canDeleteCollection) {
+    for (const combination of deletePermission.combinations) {
+      let permittedTimes = deletePermission.defaultValues.permittedTimes;
+      if (combination.permittedTimesOptions.invertDefault) {
+        permittedTimes = invertUintRanges(permittedTimes, 1n, FOREVER_DATE);
+      } else if (combination.permittedTimesOptions.allValues) {
+        permittedTimes = [{ start: 1n, end: FOREVER_DATE }];
+      } else if (combination.permittedTimesOptions.noValues) {
+        permittedTimes = [];
+      }
+
+      let forbiddenTimes = deletePermission.defaultValues.forbiddenTimes;
+      if (combination.forbiddenTimesOptions.invertDefault) {
+        forbiddenTimes = invertUintRanges(forbiddenTimes, 1n, FOREVER_DATE);
+      } else if (combination.forbiddenTimesOptions.allValues) {
+        forbiddenTimes = [{ start: 1n, end: FOREVER_DATE }];
+      } else if (combination.forbiddenTimesOptions.noValues) {
+        forbiddenTimes = [];
+      }
+
+      console.log(permittedTimes, forbiddenTimes)
+
+      forbiddenDeleteTimes.push(...forbiddenTimes);
+      permittedDeleteTimes.push(...permittedTimes);
+
+      const [remaining, _] = removeUintRangeFromUintRange(forbiddenTimes, allTimeRanges)
+      allTimeRanges = remaining;
+
+      const [remaining2, _x] = removeUintRangeFromUintRange(permittedTimes, allTimeRanges)
+      allTimeRanges = remaining2;
+    }
+  }
+  neutralDeleteTimes.push(...allTimeRanges);
+
+  console.log(forbiddenDeleteTimes, permittedDeleteTimes, neutralDeleteTimes)
 
   return <InformationDisplayCard title={'Manager Permissions'} span={span}>
     <>
       <>
-        {!isBadgeView && <TableRow label={"Add badges to the collection?"} value={collection.permissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-        {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.permissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-        {<TableRow label={"Edit metadata URLs?"} value={collection.permissions.CanUpdateMetadataUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-        {!isOffChainBalances && <TableRow label={"Edit transferability?"} value={collection.permissions.CanUpdateAllowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-        {<TableRow label={"Can delete collection?"} value={collection.permissions.CanDelete ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
-        {isOffChainBalances && <TableRow label={"Can update balances?"} value={collection.permissions.CanUpdateBalancesUri ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {!isBadgeView && <TableRow label={"Delete collection?"} value={
+          <>
+            {/* {forbiddenDeleteTimes.length > 0 && (permittedDeleteTimes.length > 0 || neutralDeleteTimes.length > 0) &&
+              "Time-Dependent"}
+            {forbiddenDeleteTimes.length > 0 && permittedDeleteTimes.length == 0 && neutralDeleteTimes.length == 0 &&
+              "Forbidden"}
+            {forbiddenDeleteTimes.length == 0 && (permittedDeleteTimes.length > 0 || neutralDeleteTimes.length > 0) &&
+              "Permitted"} */}
 
-        {!isOffChainBalances && <>
-          <Divider style={{ margin: "4px 0px", color: 'gray', background: 'gray' }}></Divider>
-          <h3 className='primary-text'>{"Manager's Approved Transfers"}
-            <Tooltip title="The manager's approved transfers are those that they can execute without needing the owner's permission. These transfers forcefully override any other transfer restrictions (e.g. non-transferable).">
-              <InfoCircleOutlined style={{ marginLeft: 4 }} />
-            </Tooltip>
-          </h3>
-          <div style={{ margin: 4 }} className='primary-text'>
-            {
-              !collection.managerApprovedTransfers?.length ?
-                <Typography.Text style={{ fontSize: 16 }} className='primary-text'>None</Typography.Text>
-                : <>
-                  {/* //TODO: abstract to own component (there are a couple other places where this is used) */}
-                  {collection.managerApprovedTransfers.length === 1
-                    && JSON.stringify(collection.managerApprovedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-                    && JSON.stringify(collection.managerApprovedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from) ?
-                    <Typography.Text style={{ fontSize: 16 }} className='primary-text'>{"The manager can transfer any badge to and from any address without the approval of the badge's owner."}</Typography.Text>
-                    : <>{collection.managerApprovedTransfers.map((transfer) => {
-                      return <>
-                        The manager can forcefully transfer badges from addresses {transfer.from.addresses.map((range, index) => {
-                          return <span key={index}>{index > 0 && ','} {range}</span>
-                        })} to account IDs {transfer.to.addresses.map((range, index) => {
-                          return <span key={index}>{index > 0 && ','} {range}</span>
-                        })}.
-                        <br />
-                      </>
-                    })}</>}
-                </>
-            }
-          </div>
-          <br />
-        </>}
+            {forbiddenDeleteTimes.length > 0 && neutralDeleteTimes.length == 0 && permittedDeleteTimes.length == 0 &&
+              <Tooltip color='black' title={getTimeRangesString(forbiddenDeleteTimes, 'Forbidden (cannot be changed)', true)}>
+                <StopOutlined style={{ marginLeft: 8, color: 'red' }} />
+              </Tooltip>}
+            {permittedDeleteTimes.length > 0 && neutralDeleteTimes.length == 0 && forbiddenDeleteTimes.length == 0 &&
+              <Tooltip color='black' title={getTimeRangesString(permittedDeleteTimes, 'Permitted (cannot be changed)', true)}>
+                <CheckCircleFilled style={{ marginLeft: 8, color: 'green' }} />
+              </Tooltip>}
+            {!(forbiddenDeleteTimes.length > 0 && neutralDeleteTimes.length == 0 && permittedDeleteTimes.length == 0)
+              && !(permittedDeleteTimes.length > 0 && neutralDeleteTimes.length == 0 && forbiddenDeleteTimes.length == 0) &&
+              <>
+                <Tooltip color='black' title={<div style={{ textAlign: 'center' }}>
+                  {"Time-Dependent"}
+                  {neutralDeleteTimes.length > 0 && <>
+                    <br />
+                    <br />
+                    {getTimeRangesString(neutralDeleteTimes, 'Deletable (but can be set to non-deletable)', true)}
+                  </>}
+                  {permittedDeleteTimes.length > 0 && <>
+                    <br />
+                    <br />
+                    {getTimeRangesString(permittedDeleteTimes, 'Will always be deletable (cannot be changed)', true)}
+                  </>}
+                  {forbiddenDeleteTimes.length > 0 && <>
+                    <br />
+                    <br />
+                    {getTimeRangesString(forbiddenDeleteTimes, 'Will always be non-deletable (cannot be changed)', true)}
+                  </>}
+                </div>
+                }>
+                  <ClockCircleFilled style={{ marginLeft: 8 }} />
+                </Tooltip>
+              </>}
+          </>} labelSpan={20} valueSpan={4} />}
+
+        {!isBadgeView && <TableRow label={"Archive collection?"} value={collection.collectionPermissions.canArchiveCollection ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+
+
+
+        {!isBadgeView && <TableRow label={"Add badges to the collection?"} value={collection.collectionPermissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {!isBadgeView && <TableRow label={"Transfer the role of manager?"} value={collection.collectionPermissions.CanManagerBeTransferred ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {<TableRow label={"Edit metadata URLs?"} value={collection.collectionPermissions.CanUpdateMetadataUris ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {!isOffChainBalances && <TableRow label={"Edit transferability?"} value={collection.collectionPermissions.CanUpdateAllowed ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {<TableRow label={"Can delete collection?"} value={collection.collectionPermissions.CanDelete ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
+        {isOffChainBalances && <TableRow label={"Can update balances?"} value={collection.collectionPermissions.CanUpdateBalancesUri ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
       </>
     </>
   </InformationDisplayCard>

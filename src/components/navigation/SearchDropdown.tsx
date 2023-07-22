@@ -13,7 +13,7 @@ export function SearchDropdown({
   onlyAddresses
 }: {
   searchValue: string,
-  onSearch: (value: string, isAccount?: boolean) => Promise<void>
+  onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean) => Promise<void>
   onlyAddresses?: boolean
 }) {
   const accounts = useAccountsContext();
@@ -78,6 +78,7 @@ export function SearchDropdown({
               addressOrUsername={searchValue}
               hidePortfolioLink
               hideTooltip
+              fontColor={'black'}
             />
           </div>
         </div>
@@ -91,7 +92,7 @@ export function SearchDropdown({
     {/* {Account Results} */}
     {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
       return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
-        await onSearch(result.address, true);
+        await onSearch(result, true);
       }}>
         <div className='flex-between'>
           <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -99,6 +100,7 @@ export function SearchDropdown({
               addressOrUsername={result.address}
               hidePortfolioLink
               hideTooltip
+              fontColor={'black'}
             />
           </div>
         </div>

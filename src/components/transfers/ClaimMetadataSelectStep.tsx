@@ -1,23 +1,23 @@
 import { Form, Input, Typography } from "antd";
-import { ClaimDetails } from "bitbadgesjs-utils";
+import { MerkleChallengeDetails } from "bitbadgesjs-utils";
 
 export function ClaimMetadataSelectSelectStep(
-  claimDetails: ClaimDetails<bigint>,
-  setClaimDetails: (claimDetails: ClaimDetails<bigint>) => void,
+  merkleChallengeDetails: MerkleChallengeDetails<bigint>,
+  setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
 ) {
-  const name = claimDetails.name;
-  const description = claimDetails.description;
+  const name = merkleChallengeDetails.name;
+  const description = merkleChallengeDetails.description;
 
   const setName = (name: string) => {
-    setClaimDetails({
-      ...claimDetails,
+    setMerkleChallengeDetails({
+      ...merkleChallengeDetails,
       name,
     });
   }
 
   const setDescription = (description: string) => {
-    setClaimDetails({
-      ...claimDetails,
+    setMerkleChallengeDetails({
+      ...merkleChallengeDetails,
       description,
     });
   }
@@ -77,6 +77,6 @@ export function ClaimMetadataSelectSelectStep(
         </Form>
       </>
     </div>,
-    disabled: !claimDetails.name || !claimDetails.description,
+    disabled: !merkleChallengeDetails.name || !merkleChallengeDetails.description,
   }
 }

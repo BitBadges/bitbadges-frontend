@@ -2,18 +2,18 @@ import { DistributionMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Avatar, Col, Divider, List, Row, Typography } from "antd";
 import { tools } from "../../display/ToolIcon";
-import { BadgeSupplyAndAmount } from "bitbadgesjs-proto";
+import { Balance } from "bitbadgesjs-proto";
 
 export function DistributionMethodStepItem(
   distributionMethod: DistributionMethod,
   setDistributionMethod: (newDistributionMethod: DistributionMethod) => void,
-  badgeSupplys: BadgeSupplyAndAmount<bigint>[],
+  badgesToCreate: Balance<bigint>[],
   hideUnminted: boolean = false,
   hideFirstComeFirstServe: boolean = false,
 ) {
   //If all supply amounts are 1, it is fungible
-  const fungible = badgeSupplys.length === 1 && badgeSupplys.every(badgeSupply => badgeSupply.amount === 1n);
-  const nonFungible = badgeSupplys.every(badgeSupply => badgeSupply.supply === 1n);
+  const fungible = badgesToCreate.length === 1 && badgesToCreate[0].badgeIds.length == 1 && badgesToCreate[0].badgeIds[0].start == badgesToCreate[0].badgeIds[0].end;
+  const nonFungible = badgesToCreate.every(badgeSupply => badgeSupply.amount === 1n);
 
   const options = [];
   if (!hideFirstComeFirstServe) {

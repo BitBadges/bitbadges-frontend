@@ -1,13 +1,13 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { faSnowflake, faUserPen } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Col, Divider, Layout, Row, Tooltip, Typography } from 'antd';
-import { AllAddressesTransferMapping, BitBadgesCollection, TransferActivityInfo, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { Col, Divider, Layout, Row } from 'antd';
+import { BitBadgesCollection, TransferActivityInfo, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import HtmlToReact from 'html-to-react';
+import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
-import { ActivityTab } from '../../../components/activity/ActivityDisplay';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { ActivityTab } from '../../../components/activity/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
@@ -17,9 +17,6 @@ import { OwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import MarkdownIt from 'markdown-it';
-import HtmlToReact from 'html-to-react';
 import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -48,7 +45,7 @@ export function BadgePage({ collectionPreview }
   const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? MSG_PREVIEW_ID : -1n;
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
-  const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
+  const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.badgeMetadata) : undefined;
 
   //Get collection information
@@ -59,7 +56,7 @@ export function BadgePage({ collectionPreview }
     }
   }, [collectionIdNumber, isPreview]);
 
-  const isOffChainBalances = collection && collection.balancesUri ? true : false;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
   const tabInfo = []
   if (!isOffChainBalances) {
@@ -80,10 +77,10 @@ export function BadgePage({ collectionPreview }
     );
   }
 
-  const isNonTransferable = !collection?.allowedTransfers?.length;
-  const isTransferable = collection?.allowedTransfers?.length === 1
-    && JSON.stringify(collection?.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-    && JSON.stringify(collection?.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
+  // const isNonTransferable = !collection?.allowedTransfers?.length;
+  // const isTransferable = collection?.allowedTransfers?.length === 1
+  //   && JSON.stringify(collection?.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
+  //   && JSON.stringify(collection?.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
 
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
@@ -143,14 +140,14 @@ export function BadgePage({ collectionPreview }
                       span={24}
                     />
                     <br />
-                    {!isOffChainBalances && <>
+                    {/* {!isOffChainBalances && <>
                       <InformationDisplayCard
                         title={<>
                           Transferability
                           <Tooltip title="Which badge owners can transfer to which badge owners?">
                             <InfoCircleOutlined style={{ marginLeft: 4 }} />
                           </Tooltip>
-                          {!collection?.permissions.CanUpdateAllowed ?
+                          {!collection?.collectionPermissions.CanUpdateAllowed ?
                             <Tooltip title="The transferability is frozen and can never be changed.">
                               <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
                             </Tooltip> :
@@ -185,7 +182,7 @@ export function BadgePage({ collectionPreview }
                         </div>
                       </InformationDisplayCard>
                       <br />
-                    </>}
+                    </>} */}
                     {collection &&
                       <PermissionsOverview
                         collectionId={collectionIdNumber}

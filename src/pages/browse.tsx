@@ -84,7 +84,7 @@ function BrowsePage() {
             <br />
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
               {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>) => {
-                const collection = collections.getCollection(portfolioCollection.collectionId);
+                const collection = collections.collections[portfolioCollection.collectionId.toString()]
                 if (!collection) return null;
 
                 return <>

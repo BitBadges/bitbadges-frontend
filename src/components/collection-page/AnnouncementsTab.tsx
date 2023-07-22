@@ -22,7 +22,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
   const accountsRef = useRef(accounts);
   const collections = useCollectionsContext();
   const collectionsRef = useRef(collections);
-  const collection = collectionId ? collections.getCollection(collectionId) : undefined;
+  const collection = collectionId ? collections.collections[collectionId.toString()] : undefined;
 
   const router = useRouter();
 
@@ -68,7 +68,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         </Button>
         <Divider />
       </>)}
-      {announcements.length === 0 && <Empty
+      {announcements.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No Announcements"
         className='primary-text'
@@ -89,7 +89,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         {announcements.map((announcement, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
 
-          const collectionToDisplay = collections.getCollection(announcement.collectionId);
+          const collectionToDisplay = collections.collections[announcement.collectionId.toString()];
           return (
             <div key={index} className='primary-text full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>

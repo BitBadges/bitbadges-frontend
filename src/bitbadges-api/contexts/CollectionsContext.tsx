@@ -1,14 +1,16 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { IdRange, convertIdRange } from 'bitbadgesjs-proto';
-import { AnnouncementInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, ClaimInfoWithDetails, CollectionMap, CollectionViewKey, ErrorMetadata, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeIdsFromIdRange, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
+import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintsFromUintRange, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { createContext, useContext, useState } from 'react';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 import { DesiredNumberType, fetchMetadataDirectly, getBadgeBalanceByAddress, getCollections, refreshMetadata } from '../api';
+import { getCurrentMetadata } from '../utils/metadata';
 import { useAccountsContext } from './AccountsContext';
 
 export type CollectionsContextType = {
-  getCollection: (collectionId: DesiredNumberType) => BitBadgesCollection<DesiredNumberType> | undefined,
+  collections: CollectionMap<DesiredNumberType>,
+
+  // getCollection: (collectionId: DesiredNumberType) => BitBadgesCollection<DesiredNumberType> | undefined,
   updateCollection: (collection: BitBadgesCollection<DesiredNumberType>, fromTxTimeline?: boolean) => BitBadgesCollection<DesiredNumberType>,
 
 
@@ -19,7 +21,7 @@ export type CollectionsContextType = {
   fetchCollections: (collectionsToFetch: DesiredNumberType[], forceful?: boolean) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
   fetchCollectionsWithOptions: (
     collectionsToFetch: (
-      { collectionId: DesiredNumberType } & GetMetadataForCollectionRequestBody & { viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] }
+      { collectionId: DesiredNumberType } & GetMetadataForCollectionRequestBody & GetAdditionalCollectionDetailsRequestBody
     )[],
     forceful?: boolean
   ) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
@@ -42,11 +44,13 @@ export type CollectionsContextType = {
   getAnnouncementsView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => AnnouncementInfo<DesiredNumberType>[],
   getReviewsView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => ReviewInfo<DesiredNumberType>[],
   getBalancesView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => BalanceInfo<DesiredNumberType>[],
-  getClaimsView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => ClaimInfoWithDetails<DesiredNumberType>[],
+  getMerkleChallengeTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => MerkleChallengeInfo<DesiredNumberType>[],
+  getApprovalTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => ApprovalsTrackerInfo<DesiredNumberType>[],
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
-  getCollection: () => undefined,
+  collections: {},
+  // getCollection: () => undefined,
   updateCollection: () => { return {} as BitBadgesCollection<DesiredNumberType> },
   fetchCollections: async () => { return [] },
   fetchCollectionsWithOptions: async () => { return [] },
@@ -58,7 +62,8 @@ const CollectionsContext = createContext<CollectionsContextType>({
   getAnnouncementsView: () => [],
   getReviewsView: () => [],
   getBalancesView: () => [],
-  getClaimsView: () => [],
+  getMerkleChallengeTrackersView: () => [],
+  getApprovalTrackersView: () => [],
   viewHasMore: () => false,
   fetchBalanceForUser: async () => { return {} as BalanceInfo<DesiredNumberType> },
 });
@@ -83,7 +88,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     let cachedCollection = collectionsMap[`${newCollection.collectionId}`];
-    const cachedCollectionCopy = JSON.stringify(newCollection);
+    const cachedCollectionCopy = JSON.stringify(cachedCollection);
     if (cachedCollection) {
       let newBadgeMetadata = cachedCollection?.badgeMetadata || [];
       for (const badgeMetadata of newCollection.badgeMetadata) {
@@ -91,6 +96,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
 
       const newViews = cachedCollection?.views || {};
+
+      console.log("VIEWS", cachedCollection.views);
 
       for (const [key, val] of Object.entries(newCollection.views)) {
         if (!val) continue;
@@ -106,15 +113,16 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
 
       if (cachedCollection && newCollection.collectionId === MSG_PREVIEW_ID && !fromTxTimeline) {
-        //Check to see if we are updating one of the forbidden fields for TxTimeline (see top of TxTimeline) for more info
-        if (newCollection.nextBadgeId !== cachedCollection.nextBadgeId
-          || newCollection.nextClaimId !== cachedCollection.nextClaimId
-          || newCollection.unmintedSupplys.some(x => cachedCollection?.unmintedSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-          || newCollection.maxSupplys.some(x => cachedCollection?.maxSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-          || newCollection.claims.some(x => cachedCollection?.claims.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-        ) {
-          throw new Error("You are updating a forbidden field for preview collections. See top of TxTimeline for more information");
-        }
+        // TODO: 
+        // //Check to see if we are updating one of the forbidden fields for TxTimeline (see top of TxTimeline) for more info
+        // if (newCollection.nextBadgeId !== cachedCollection.nextBadgeId
+        //   || newCollection.nextMerkleChallengeTrackerId !== cachedCollection.nextMerkleChallengeTrackerId
+        //   || newCollection.unmintedSupplys.some(x => cachedCollection?.unmintedSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
+        //   || newCollection.maxSupplys.some(x => cachedCollection?.maxSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
+        //   || newCollection.claims.some(x => cachedCollection?.claims.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
+        // ) {
+        //   throw new Error("You are updating a forbidden field for preview collections. See top of TxTimeline for more information");
+        // }
       }
 
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
@@ -122,20 +130,22 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         ...newCollection,
         collectionMetadata: newCollection.collectionMetadata || cachedCollection?.collectionMetadata,
         badgeMetadata: newBadgeMetadata,
-        reviews: [...(cachedCollection?.reviews || []), ...(newCollection.reviews || [])],
-        announcements: [...(cachedCollection?.announcements || []), ...(newCollection.announcements || [])],
-        activity: [...(cachedCollection?.activity || []), ...(newCollection.activity || [])],
-        owners: [...(cachedCollection?.owners || []), ...(newCollection.owners || [])],
-        claims: [...(cachedCollection?.claims || []), ...(newCollection.claims || [])],
+        reviews: [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])],
+        announcements: [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])],
+        activity: [...(newCollection?.activity || []), ...(cachedCollection.activity || [])],
+        owners: [...(newCollection?.owners || []), ...(cachedCollection.owners || [])],
+        merkleChallenges: [...(newCollection?.merkleChallenges || []), ...(cachedCollection.merkleChallenges || [])],
+        approvalsTrackers: [...(newCollection?.approvalsTrackers || []), ...(cachedCollection.approvalsTrackers || [])],
         views: newViews,
       };
 
-      //Filter duplicates
+      //Filter duplicates (but prioritize the new ones)
       cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.claims = cachedCollection.claims.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
+      cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
+      cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
 
       //Attempt to update the account balances for each of the owners (if we find an account)
       //For now, if we do not find an account, we just carry on. 
@@ -152,15 +162,19 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
       collectionsMap[`${newCollection.collectionId}`] = cachedCollection;
 
+      console.log('Adding new collection to cache');
+
       //Only update if anything has changed
       if (JSON.stringify(cachedCollection) !== cachedCollectionCopy) {
-        setCollections(collectionsMap);
+        console.log("Updating collection");
+        setCollections(deepCopy(collectionsMap)); //TODO: Optimize this. Without it, it does not trigger a reload
       }
       return cachedCollection;
     } else {
       collectionsMap[`${newCollection.collectionId}`] = newCollection;
+
       if (JSON.stringify(newCollection) !== cachedCollectionCopy) {
-        setCollections(collectionsMap);
+        setCollections(deepCopy(collectionsMap));
       }
       return newCollection;
     }
@@ -179,6 +193,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (forceful) {
       res = await getBadgeBalanceByAddress(collectionId, account.cosmosAddress);
     } else {
+      console.log("COLLECTIOn", collection);
+
       const cachedBalance = collection.owners.find(x => x.cosmosAddress === account.cosmosAddress);
       if (cachedBalance) {
         return cachedBalance;
@@ -209,6 +225,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       return {
         collectionId: x,
         viewsToFetch: [],
+        fetchTotalAndMintBalances: true,
       }
     }), forcefulRefresh);
   }
@@ -238,22 +255,25 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       //See if we already have the metadata corresponding to the metadataIds
       if (metadataFetchReq.metadataIds) {
         for (const metadataId of metadataFetchReq.metadataIds) {
-          const metadataIdCastedAsIdRange = metadataId as IdRange<NumberType>;
+          const metadataIdCastedAsUintRange = metadataId as UintRange<NumberType>;
           const metadataIdCastedAsNumber = metadataId as NumberType;
 
-          if (typeof metadataIdCastedAsNumber === 'object' && metadataIdCastedAsIdRange.start && metadataIdCastedAsIdRange.end) {
-            const idRange = convertIdRange(metadataIdCastedAsIdRange, BigIntify);
-            for (let i = idRange.start; i <= idRange.end; i++) {
+          if (typeof metadataIdCastedAsNumber === 'object' && metadataIdCastedAsUintRange.start && metadataIdCastedAsUintRange.end) {
+            const uintRange = convertUintRange(metadataIdCastedAsUintRange, BigIntify);
+            for (let i = uintRange.start; i <= uintRange.end; i++) {
               const existingMetadata = cachedCollection.badgeMetadata.find(x => x.metadataId === i);
               if (!existingMetadata) {
                 metadataToFetch.uris = metadataToFetch.uris || [];
-                const uris = getUrisForMetadataIds([BigInt(i)], cachedCollection.collectionUri, cachedCollection.badgeUris);
+                const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
+
+                const uris = getUrisForMetadataIds([BigInt(i)], collectionMetadata?.uri || '', badgeMetadata);
                 if (!uris[0]) throw new Error('Metadata does not have a uri'); //Shouldn't happen but just in case and for TS
                 metadataToFetch.uris.push(uris[0]);
               }
             }
           } else {
-            const uris = getUrisForMetadataIds([BigInt(metadataIdCastedAsNumber)], cachedCollection.collectionUri, cachedCollection.badgeUris);
+            const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
+            const uris = getUrisForMetadataIds([BigInt(metadataIdCastedAsNumber)], collectionMetadata?.uri || '', badgeMetadata);
             for (const uri of uris) {
               const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
               if (!existingMetadata) {
@@ -270,21 +290,22 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       //Check if we have all metadata corresponding to the badgeIds
       if (metadataFetchReq.badgeIds) {
         for (const badgeId of metadataFetchReq.badgeIds) {
-          const badgeIdCastedAsIdRange = badgeId as IdRange<DesiredNumberType>;
+          const badgeIdCastedAsUintRange = badgeId as UintRange<DesiredNumberType>;
           const badgeIdCastedAsNumber = badgeId as DesiredNumberType;
-          if (typeof badgeIdCastedAsNumber === 'object' && badgeIdCastedAsIdRange.start && badgeIdCastedAsIdRange.end) {
-            const badgeIdsLeft = [convertIdRange(badgeIdCastedAsIdRange, BigIntify)]
+          if (typeof badgeIdCastedAsNumber === 'object' && badgeIdCastedAsUintRange.start && badgeIdCastedAsUintRange.end) {
+            const badgeIdsLeft = [convertUintRange(badgeIdCastedAsUintRange, BigIntify)]
 
             //While we still have badgeIds to handle
             while (badgeIdsLeft.length > 0) {
-              const currBadgeIdRange = badgeIdsLeft.pop();
-              if (!currBadgeIdRange) continue;
+              const currBadgeUintRange = badgeIdsLeft.pop();
+              if (!currBadgeUintRange) continue;
 
+              const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
 
-              const metadataId = getMetadataIdForBadgeId(BigInt(currBadgeIdRange.start), cachedCollection.badgeUris);
+              const metadataId = getMetadataIdForBadgeId(BigInt(currBadgeUintRange.start), badgeMetadata);
               if (metadataId === -1) throw new Error('Badge does not exist');
 
-              const uris = getUrisForMetadataIds([BigInt(metadataId)], cachedCollection.collectionUri, cachedCollection.badgeUris);
+              const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
               for (const uri of uris) {
                 const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
                 if (!existingMetadata) {
@@ -294,19 +315,22 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
               }
 
               //Remove other badgeIds that map to the same metadataId and add any remaining back to the queue
-              const otherMatchingBadgeIdRanges = getBadgeIdsForMetadataId(BigInt(metadataId), cachedCollection.badgeUris);
-              for (const badgeIdRange of otherMatchingBadgeIdRanges) {
-                const updatedBadgeIdRanges = removeIdsFromIdRange(badgeIdRange, currBadgeIdRange);
-                if (updatedBadgeIdRanges.length > 0) {
-                  badgeIdsLeft.push(...updatedBadgeIdRanges);
+              const otherMatchingBadgeUintRanges = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
+              for (const badgeUintRange of otherMatchingBadgeUintRanges) {
+                const [updatedBadgeUintRanges, _] = removeUintsFromUintRange(badgeUintRange, currBadgeUintRange);
+                if (updatedBadgeUintRanges.length > 0) {
+                  badgeIdsLeft.push(...updatedBadgeUintRanges);
                 }
               }
             }
           } else {
-            const metadataId = getMetadataIdForBadgeId(BigInt(badgeIdCastedAsNumber), cachedCollection.badgeUris);
+            const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
+
+            console.log(badgeIdCastedAsNumber, "BADGEIDCASTEDASNUMBER")
+            const metadataId = getMetadataIdForBadgeId(BigInt(badgeIdCastedAsNumber), badgeMetadata);
             if (metadataId === -1) throw new Error('Badge does not exist');
 
-            const uris = getUrisForMetadataIds([BigInt(metadataId)], cachedCollection.collectionUri, cachedCollection.badgeUris);
+            const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
             for (const uri of uris) {
               const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
               if (!existingMetadata) {
@@ -325,9 +349,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   const fetchCollectionsWithOptions = async (collectionsToFetch: (
     { collectionId: DesiredNumberType }
     & GetMetadataForCollectionRequestBody
-    & {
-      viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[]
-    })[], forcefulRefresh?: boolean) => {
+    & GetAdditionalCollectionDetailsRequestBody)[], forcefulRefresh?: boolean) => {
+    if (collectionsToFetch.some(x => x.collectionId === MSG_PREVIEW_ID)) {
+      throw new Error('Cannot fetch preview collection ID === 0');
+    }
+
+
     //Check cache for collections. If non existent, fetch with all parameters
     //If existent, fetch with only the parameters that are missing / we do not have yet
     //metadata, activity, announcements, reviews, owners, claims
@@ -348,6 +375,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           collectionId: collectionToFetch.collectionId,
           metadataToFetch: collectionToFetch.metadataToFetch,
           viewsToFetch: collectionToFetch.viewsToFetch,
+          fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
+          merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
+          approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
         });
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionToFetch.collectionId, collectionToFetch.metadataToFetch);
@@ -359,6 +389,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             collectionId: collectionToFetch.collectionId,
             metadataToFetch: prunedMetadataToFetch,
             viewsToFetch,
+            fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
+            merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
+            approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
           });
         }
       }
@@ -405,7 +438,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
       //Fetch collection metadata if we don't have it
       if (!metadataToFetch.doNotFetchCollectionMetadata) {
-        const collectionUri = getCollection(collectionId)?.collectionUri || '';
+        const { collectionMetadata } = getCurrentMetadata(updatedCollection);
+        const collectionUri = collectionMetadata?.uri || '';
         if (Joi.string().uri().validate(collectionUri).error) {
           updatedCollection.collectionMetadata = ErrorMetadata;
         } else {
@@ -417,11 +451,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       //Check if we have all metadata corresponding to the badgeIds. If not, fetch directly.
       const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionId, metadataToFetch);
       for (const uri of prunedMetadataToFetch.uris || []) {
+        const { badgeMetadata } = getCurrentMetadata(updatedCollection);
         const metadataRes = await fetchMetadataDirectly({ uri: uri });
-        const metadataId = getMetadataIdForUri(uri, updatedCollection.badgeUris);
+        const metadataId = getMetadataIdForUri(uri, badgeMetadata);
         if (metadataId === -1) throw new Error(`Error getting metadataId for uri ${uri}`);
 
-        const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), updatedCollection.badgeUris);
+        const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
         updatedCollection.badgeMetadata = updateBadgeMetadata(updatedCollection.badgeMetadata, { uri: uri, metadata: metadataRes.metadata, metadataId: metadataId, badgeIds: badgeIds });
       }
 
@@ -505,18 +540,28 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }) as BalanceInfo<DesiredNumberType>[];
   }
 
-  function getClaimsView(collectionId: DesiredNumberType, viewKey: CollectionViewKey) {
+  function getMerkleChallengeTrackersView(collectionId: DesiredNumberType, viewKey: CollectionViewKey) {
     const collection = getCollection(collectionId);
     if (!collection) return [];
 
     return collection.views[viewKey]?.ids.map(x => {
-      return collection.claims.find(y => y._id === x);
-    }) as ClaimInfoWithDetails<DesiredNumberType>[];
+      return collection.merkleChallenges.find(y => y._id === x);
+    }) as MerkleChallengeInfo<DesiredNumberType>[];
+  }
+
+  function getApprovalTrackersView(collectionId: DesiredNumberType, viewKey: CollectionViewKey) {
+    const collection = getCollection(collectionId);
+    if (!collection) return [];
+
+    return collection.views[viewKey]?.ids.map(x => {
+      return collection.approvalsTrackers.find(y => y._id === x);
+    }) as ApprovalsTrackerInfo<DesiredNumberType>[];
   }
 
 
   const collectionsContext: CollectionsContextType = {
-    getCollection,
+    collections,
+    // getCollection,
     updateCollection,
     fetchCollections,
     fetchCollectionsWithOptions,
@@ -528,9 +573,10 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     getActivityView,
     getBalancesView,
     getAnnouncementsView,
-    getClaimsView,
+    getMerkleChallengeTrackersView,
     viewHasMore,
     fetchBalanceForUser,
+    getApprovalTrackersView
   };
 
   return <CollectionsContext.Provider value={collectionsContext}>

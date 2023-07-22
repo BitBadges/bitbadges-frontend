@@ -34,6 +34,8 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
     accountsRef.current.fetchAccounts(accountsToFetch);
   }, [reviews])
 
+
+  console.log(hasMore, reviews);
   return (
     <>
       {(collectionId || addressOrUsername) && (<>
@@ -79,7 +81,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         </Tooltip>
         <Divider />
       </>)}
-      {reviews.length === 0 && <Empty
+      {reviews.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No reviews."
         className='primary-text'
@@ -98,34 +100,39 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
       >
         {reviews.map((review, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
+          console.log(review.timestamp.toString());
+          console.log(new Date(review.timestamp.toString()));
           return (
             <div key={index} className='primary-text full-width'>
               <Row className='full-width' style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
                 <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div className='flex-center' style={{ alignItems: 'center' }} >
+                  <div style={{ alignItems: 'center' }} >
                     <AddressDisplay addressOrUsername={review.from} />
                   </div>
+                  <div className='primary-text full-width flex-between'>
+                    <div className='primary-text full-width flex-between'>
+                      <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                        <ReactStars
+                          edit={false}
+                          count={5}
+                          value={Numberify(review.stars)}
+                          size={24}
+                          color2="#ffd700"
+                        />
+                      </Typography.Text>
+                    </div>
+                  </div>
 
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    {new Date(review.timestamp.toString()).toLocaleDateString() + ' '}
-                    {new Date(review.timestamp.toString()).toLocaleTimeString()}
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 15, textAlign: 'left', marginRight: 8 }}>
+                    {new Date(Number(review.timestamp.toString())).toLocaleDateString() + ' '}
+                    {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
                   </Typography.Text>
+                  <br />
+                  {review.review}
                 </Col>
               </Row>
 
-              <div className='primary-text full-width flex-between'>
-                <div className='primary-text full-width flex-between'>
-                  <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    <ReactStars
-                      edit={false}
-                      count={5}
-                      value={Numberify(review.stars)}
-                      size={24}
-                      color2="#ffd700"
-                    /> {review.review}
-                  </Typography.Text>
-                </div>
-              </div>
+
               <Divider />
             </div>
           )

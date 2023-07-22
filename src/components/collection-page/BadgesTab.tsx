@@ -2,7 +2,7 @@ import { Divider, Select } from 'antd';
 import { useState } from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
-import { getIdRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
+import { getUintRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 
@@ -11,7 +11,7 @@ export function BadgesTab({ collectionId }: {
 }) {
   const [cardView, setCardView] = useState(true);
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
 
   return (
     <div className='primary-text'>
@@ -48,11 +48,11 @@ export function BadgesTab({ collectionId }: {
         </Select>
       </div>
       <Divider />
-      <div>
+      <div className="flex-center flex-wrap full-width">
         <BadgeAvatarDisplay
           collectionId={collectionId}
           cardView={cardView}
-          badgeIds={collection ? getIdRangesForAllBadgeIdsInCollection(collection) : []}
+          badgeIds={collection ? getUintRangesForAllBadgeIdsInCollection(collection) : []}
           pageSize={cardView ? 25 : 1000}
           hideCollectionLink={true}
         />

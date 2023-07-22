@@ -1,6 +1,6 @@
 import { notification } from 'antd';
 import axiosApi from 'axios';
-import { AddAnnouncementRoute, AddAnnouncementRouteRequestBody, AddAnnouncementRouteSuccessResponse, AddBalancesToIpfsRoute, AddBalancesToIpfsRouteRequestBody, AddBalancesToIpfsRouteSuccessResponse, AddClaimToIpfsRoute, AddClaimToIpfsRouteRequestBody, AddClaimToIpfsRouteSuccessResponse, AddMetadataToIpfsRoute, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRoute, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRoute, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesCollection, BroadcastTxRoute, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRoute, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse, GetAccountRoute, GetAccountRouteRequestBody, GetAccountRouteSuccessResponse, GetAccountsRoute, GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse, GetAllPasswordsAndCodesRoute, GetBadgeActivityRoute, GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRoute, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBrowseCollectionsRoute, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse, GetClaimCodeViaPasswordRoute, GetClaimCodeViaPasswordRouteRequestBody, GetClaimCodeViaPasswordRouteSuccessResponse, GetCollectionBatchRoute, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse, GetCollectionByIdRoute, GetCollectionByIdRouteRequestBody, GetCollectionRouteSuccessResponse, GetMetadataForCollectionRoute, GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRoute, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetSearchRoute, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRoute, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRoute, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRoute, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, MetadataFetchOptions, NumberType, RefreshMetadataRoute, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse, SignOutRequestBody, SignOutRoute, SignOutSuccessResponse, SimulateTxRoute, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRoute, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, VerifySignInRoute, VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse, convertAddAnnouncementRouteSuccessResponse, convertAddBalancesToIpfsRouteSuccessResponse, convertAddClaimToIpfsRouteSuccessResponse, convertAddMetadataToIpfsRouteSuccessResponse, convertAddReviewForCollectionRouteSuccessResponse, convertAddReviewForUserRouteSuccessResponse, convertBitBadgesCollection, convertBroadcastTxRouteSuccessResponse, convertFetchMetadataDirectlyRouteSuccessResponse, convertGetAccountRouteSuccessResponse, convertGetAccountsRouteSuccessResponse, convertGetAllCodesAndPasswordsRouteSuccessResponse, convertGetBadgeActivityRouteSuccessResponse, convertGetBadgeBalanceByAddressRouteSuccessResponse, convertGetBrowseCollectionsRouteSuccessResponse, convertGetClaimCodeViaPasswordRouteSuccessResponse, convertGetCollectionBatchRouteSuccessResponse, convertGetCollectionRouteSuccessResponse, convertGetMetadataForCollectionRouteSuccessResponse, convertGetOwnersForBadgeRouteSuccessResponse, convertGetSearchRouteSuccessResponse, convertGetSignInChallengeRouteSuccessResponse, convertGetStatusRouteSuccessResponse, convertGetTokensFromFaucetRouteSuccessResponse, convertRefreshMetadataRouteSuccessResponse, convertSignOutSuccessResponse, convertSimulateTxRouteSuccessResponse, convertUpdateAccountInfoRouteSuccessResponse, convertVerifySignInRouteSuccessResponse, getMaxMetadataId, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AddAnnouncementRoute, AddAnnouncementRouteRequestBody, AddAnnouncementRouteSuccessResponse, AddBalancesToIpfsRoute, AddBalancesToIpfsRouteRequestBody, AddBalancesToIpfsRouteSuccessResponse, AddMerkleChallengeToIpfsRoute, AddMerkleChallengeToIpfsRouteRequestBody, AddMerkleChallengeToIpfsRouteSuccessResponse, AddMetadataToIpfsRoute, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRoute, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRoute, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesCollection, BroadcastTxRoute, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRoute, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse, GetAccountRoute, GetAccountRouteRequestBody, GetAccountRouteSuccessResponse, GetAccountsRoute, GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAddressMappingsRoute, GetAddressMappingsRouteRequestBody, GetAddressMappingsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse, GetAllPasswordsAndCodesRoute, GetApprovalsRoute, GetApprovalsRouteRequestBody, GetApprovalsRouteSuccessResponse, GetBadgeActivityRoute, GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRoute, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBrowseCollectionsRoute, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse, GetCollectionBatchRoute, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse, GetCollectionByIdRoute, GetCollectionByIdRouteRequestBody, GetCollectionRouteSuccessResponse, GetMerkleChallengeCodeViaPasswordRoute, GetMerkleChallengeCodeViaPasswordRouteRequestBody, GetMerkleChallengeCodeViaPasswordRouteSuccessResponse, GetMerkleChallengeTrackerRoute, GetMerkleChallengeTrackersRouteRequestBody, GetMerkleChallengeTrackersRouteSuccessResponse, GetMetadataForCollectionRoute, GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRoute, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetSearchRoute, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRoute, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRoute, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRoute, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, MetadataFetchOptions, NumberType, RefreshMetadataRoute, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse, SignOutRequestBody, SignOutRoute, SignOutSuccessResponse, SimulateTxRoute, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRoute, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, VerifySignInRoute, VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse, convertAddAnnouncementRouteSuccessResponse, convertAddBalancesToIpfsRouteSuccessResponse, convertAddMerkleChallengeToIpfsRouteSuccessResponse, convertAddMetadataToIpfsRouteSuccessResponse, convertAddReviewForCollectionRouteSuccessResponse, convertAddReviewForUserRouteSuccessResponse, convertBitBadgesCollection, convertBroadcastTxRouteSuccessResponse, convertFetchMetadataDirectlyRouteSuccessResponse, convertGetAccountRouteSuccessResponse, convertGetAccountsRouteSuccessResponse, convertGetAddressMappingsRouteSuccessResponse, convertGetAllCodesAndPasswordsRouteSuccessResponse, convertGetApprovalsRouteSuccessResponse, convertGetBadgeActivityRouteSuccessResponse, convertGetBadgeBalanceByAddressRouteSuccessResponse, convertGetBrowseCollectionsRouteSuccessResponse, convertGetCollectionBatchRouteSuccessResponse, convertGetCollectionRouteSuccessResponse, convertGetMerkleChallengeCodeViaPasswordRouteSuccessResponse, convertGetMerkleChallengeTrackersRouteSuccessResponse, convertGetMetadataForCollectionRouteSuccessResponse, convertGetOwnersForBadgeRouteSuccessResponse, convertGetSearchRouteSuccessResponse, convertGetSignInChallengeRouteSuccessResponse, convertGetStatusRouteSuccessResponse, convertGetTokensFromFaucetRouteSuccessResponse, convertRefreshMetadataRouteSuccessResponse, convertSignOutSuccessResponse, convertSimulateTxRouteSuccessResponse, convertUpdateAccountInfoRouteSuccessResponse, convertVerifySignInRouteSuccessResponse, getCurrentValueIdxForTimeline, getMaxMetadataId, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
 import { stringify } from '../utils/preserveJson';
@@ -17,21 +17,24 @@ export const axios = axiosApi.create({
   },
 });
 
-async function handleApiError(error: any): Promise<ErrorResponse> {
+async function handleApiError(error: any): Promise<void> {
+  console.error(error);
+
   if (error && error.response && error.response.data) {
     const data: ErrorResponse = error.response.data;
-    return data;
+
+    notification.error({
+      message: "Oops! We ran into an error!",
+      description: data.message ? data.message : "Unknown error",
+    });
   } else {
     notification.error({
-      message: "Oops! We ran into an error.",
+      message: "Oops! We ran into an error!",
       description: error.message ? error.message : "Unknown error",
     });
-
-    return {
-      message: error.message ? error.message : "Unknown error",
-      error: error,
-    };
   }
+
+  return Promise.reject(error);
 }
 
 function assertPositiveInteger(num: NumberType) {
@@ -85,8 +88,10 @@ export async function getCollectionById(collectionId: NumberType, requestBody: G
 
     if (fetchAllMetadata) {
       const _collection = convertBitBadgesCollection(responseData.collection, BigIntify);
+      const currentBadgeMetadataIdx = getCurrentValueIdxForTimeline(_collection.badgeMetadataTimeline);
+      const currentBadgeMetadata = _collection.badgeMetadataTimeline[Number(currentBadgeMetadataIdx)].badgeMetadata;
       responseData.collection = await fetchAndUpdateMetadata(responseData.collection, {
-        metadataIds: [{ start: 0, end: getMaxMetadataId(_collection) }],
+        metadataIds: [{ start: 0, end: getMaxMetadataId(currentBadgeMetadata) }],
       });
     }
 
@@ -170,12 +175,12 @@ export async function getAllPasswordsAndCodes(collectionId: NumberType, requestB
   }
 }
 
-export async function getClaimCodeViaPassword(collectionId: NumberType, claimId: NumberType, password: string, requestBody?: GetClaimCodeViaPasswordRouteRequestBody): Promise<GetClaimCodeViaPasswordRouteSuccessResponse<DesiredNumberType>> {
+export async function getMerkleChallengeCodeViaPassword(collectionId: NumberType, cid: string, password: string, requestBody?: GetMerkleChallengeCodeViaPasswordRouteRequestBody): Promise<GetMerkleChallengeCodeViaPasswordRouteSuccessResponse<DesiredNumberType>> {
   try {
     assertPositiveInteger(collectionId);
 
-    const response = await axios.post<GetClaimCodeViaPasswordRouteSuccessResponse<string>>(`${BACKEND_URL}${GetClaimCodeViaPasswordRoute(collectionId, claimId, password)}`, requestBody);
-    return convertGetClaimCodeViaPasswordRouteSuccessResponse(response.data, ConvertFunction);
+    const response = await axios.post<GetMerkleChallengeCodeViaPasswordRouteSuccessResponse<string>>(`${BACKEND_URL}${GetMerkleChallengeCodeViaPasswordRoute(collectionId, cid, password)}`, requestBody);
+    return convertGetMerkleChallengeCodeViaPasswordRouteSuccessResponse(response.data, ConvertFunction);
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -267,10 +272,10 @@ export async function addMetadataToIpfs(requestBody: AddMetadataToIpfsRouteReque
   }
 }
 
-export async function addClaimToIpfs(requestBody: AddClaimToIpfsRouteRequestBody): Promise<AddClaimToIpfsRouteSuccessResponse<DesiredNumberType>> {
+export async function addMerkleChallengeToIpfs(requestBody: AddMerkleChallengeToIpfsRouteRequestBody): Promise<AddMerkleChallengeToIpfsRouteSuccessResponse<DesiredNumberType>> {
   try {
-    const response = await axios.post<AddClaimToIpfsRouteSuccessResponse<string>>(`${BACKEND_URL}${AddClaimToIpfsRoute()}`, requestBody);
-    return convertAddClaimToIpfsRouteSuccessResponse(response.data, ConvertFunction);
+    const response = await axios.post<AddMerkleChallengeToIpfsRouteSuccessResponse<string>>(`${BACKEND_URL}${AddMerkleChallengeToIpfsRoute()}`, requestBody);
+    return convertAddMerkleChallengeToIpfsRouteSuccessResponse(response.data, ConvertFunction);
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -357,6 +362,36 @@ export async function getTokensFromFaucet(requestBody?: GetTokensFromFaucetRoute
   try {
     const response = await axios.post<GetTokensFromFaucetRouteSuccessResponse<string>>(`${BACKEND_URL}${GetTokensFromFaucetRoute()}`, requestBody);
     return convertGetTokensFromFaucetRouteSuccessResponse(response.data, ConvertFunction);
+  } catch (error) {
+    await handleApiError(error);
+    return Promise.reject(error);
+  }
+}
+
+export async function getAddressMappings(requestBody?: GetAddressMappingsRouteRequestBody): Promise<GetAddressMappingsRouteSuccessResponse<DesiredNumberType>> {
+  try {
+    const response = await axios.post<GetAddressMappingsRouteSuccessResponse<string>>(`${BACKEND_URL}${GetAddressMappingsRoute()}`, requestBody);
+    return convertGetAddressMappingsRouteSuccessResponse(response.data, ConvertFunction);
+  } catch (error) {
+    await handleApiError(error);
+    return Promise.reject(error);
+  }
+}
+
+export async function getApprovalTrackers(requestBody?: GetApprovalsRouteRequestBody): Promise<GetApprovalsRouteSuccessResponse<DesiredNumberType>> {
+  try {
+    const response = await axios.post<GetApprovalsRouteSuccessResponse<string>>(`${BACKEND_URL}${GetApprovalsRoute()}`, requestBody);
+    return convertGetApprovalsRouteSuccessResponse(response.data, ConvertFunction);
+  } catch (error) {
+    await handleApiError(error);
+    return Promise.reject(error);
+  }
+}
+
+export async function getMerkleChallengeTrackers(requestBody?: GetMerkleChallengeTrackersRouteRequestBody): Promise<GetMerkleChallengeTrackersRouteSuccessResponse<DesiredNumberType>> {
+  try {
+    const response = await axios.post<GetMerkleChallengeTrackersRouteSuccessResponse<string>>(`${BACKEND_URL}${GetMerkleChallengeTrackerRoute()}`, requestBody);
+    return convertGetMerkleChallengeTrackersRouteSuccessResponse(response.data, ConvertFunction);
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

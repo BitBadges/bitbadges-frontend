@@ -5,7 +5,7 @@ import { DesiredNumberType, getStatus } from '../api';
 
 export type StatusContextType = {
   status: StatusInfo<DesiredNumberType>,
-  updateStatus: () => Promise<void>,
+  updateStatus: () => Promise<StatusInfo<DesiredNumberType>>
 }
 
 const StatusContext = createContext<StatusContextType>({
@@ -20,7 +20,19 @@ const StatusContext = createContext<StatusContextType>({
     gasPrice: 0n,
     lastXGasPrices: [],
   },
-  updateStatus: async () => { }
+  updateStatus: async () => {
+    return {
+      _id: "status",
+      block: {
+        height: 0n,
+        timestamp: 0n,
+        txIndex: 0n,
+      },
+      nextCollectionId: 1n,
+      gasPrice: 0n,
+      lastXGasPrices: [],
+    }
+  }
 });
 
 type Props = {
@@ -51,6 +63,8 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
   const updateStatus = async () => {
     const res = await getStatus();
     setStatus(res.status);
+    console.log(res.status);
+    return res.status;
   }
 
   const statusContext: StatusContextType = {

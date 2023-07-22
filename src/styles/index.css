@@ -93,8 +93,8 @@ code {
     right: 0px;
     text-align: center;
     height: 100%;
-    color: 'white';
-    background-color: '#001529';
+    color: white;
+    background-color: #001529;
   }
   
   .App-logo {
@@ -103,7 +103,7 @@ code {
   }
   
   .App-header {
-    width: '100%';
+    width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -160,7 +160,7 @@ code {
   }
 
   .site-layout-content {
-    height: '100%';
+    height: 100%;
     padding: 20px;
     background-color: #fff;
   }
@@ -261,19 +261,19 @@ transform: scale(1.01);
 }
 
 .full-area {
-    width: '100%';
+    width: 100%;
     padding: 0;
     margin: 0;
 }
 .full-width {
-    width: '100%';
+    width: 100%;
 }
 
 .primaryBg {
     background-color: #001529;
 }
 
-.primary-text {
+.primary-title {
     font-weight: bolder;
     color: white;
     font-family: Inter,sans-serif;
@@ -349,6 +349,9 @@ transform: scale(1.01);
   flex-direction: row;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
 
 .flex-evenly {
   display: flex;

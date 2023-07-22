@@ -32,6 +32,8 @@ export function getChainLogo(chain: string) {
 
   switch (chain) {
     case SupportedChain.ETH:
+      chainLogo = ETH_LOGO;
+      break;
     case SupportedChain.UNKNOWN:
       chainLogo = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Blue_question_mark_icon.svg/1024px-Blue_question_mark_icon.svg.png';
       break;

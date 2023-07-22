@@ -6,6 +6,7 @@ import { MetadataForm } from "../form-items/MetadataForm";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { ToolIcon } from "../../display/ToolIcon";
 import { MSG_PREVIEW_ID } from "../TxTimeline";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 export function SetCollectionMetadataStepItem(
   addMethod: MetadataAddMethod,
@@ -14,9 +15,9 @@ export function SetCollectionMetadataStepItem(
   hideBadgeSelect?: boolean,
 ) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const collectionMetadata = collection?.collectionMetadata;
-  const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
+  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
 
   return {
@@ -39,20 +40,21 @@ export function SetCollectionMetadataStepItem(
         hideCollectionSelect={hideCollectionSelect}
         isCollectionSelect
         addMethod={addMethod}
-        startId={existingCollection?.nextBadgeId || 1n}
-        endId={collection.nextBadgeId - 1n}
-        toBeFrozen={!collection?.permissions.CanUpdateMetadataUris}
+        startId={existingCollection ? getTotalNumberOfBadges(existingCollection) : 1n}
+        endId={collection ? getTotalNumberOfBadges(collection) : 1n}
+        toBeFrozen={collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0}
       />
       <Divider />
       {addMethod === MetadataAddMethod.Manual && <>
         <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
         <div className='flex'>
           <ToolIcon name="Sketch.io" />
+          <ToolIcon name="Excalidraw" />
         </div>
       </>}
     </div>,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-      || (addMethod === MetadataAddMethod.UploadUrl && ((!hideCollectionSelect && !collection.collectionUri) || (!hideBadgeSelect && !collection.badgeUris.length)))
+      || (addMethod === MetadataAddMethod.UploadUrl && ((!hideCollectionSelect && collection.collectionMetadataTimeline.length == 0) || (!hideBadgeSelect && collection.badgeMetadataTimeline.length == 0)))
       || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
   }
 }

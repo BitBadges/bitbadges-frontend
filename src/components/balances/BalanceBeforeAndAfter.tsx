@@ -1,10 +1,10 @@
 import { Col, Row } from "antd";
-import { UserBalance } from "bitbadgesjs-proto";
+import { Balance } from "bitbadgesjs-proto";
 import { BalanceDisplay } from "./BalanceDisplay";
 
 export function BalanceBeforeAndAfter({
-  balance,
-  newBalance,
+  balances,
+  newBalances,
   partyString,
   hideTitle,
   beforeMessage,
@@ -12,8 +12,8 @@ export function BalanceBeforeAndAfter({
   collectionId,
 
 }: {
-  balance: UserBalance<bigint>;
-  newBalance: UserBalance<bigint>
+  balances: Balance<bigint>[];
+  newBalances: Balance<bigint>[]
   partyString: string;
   hideTitle?: boolean;
   collectionId: bigint;
@@ -32,7 +32,7 @@ export function BalanceBeforeAndAfter({
       <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
           collectionId={collectionId}
-          balance={balance}
+          balances={balances}
           message={beforeMessage ? beforeMessage : 'Before'}
 
         />
@@ -40,7 +40,7 @@ export function BalanceBeforeAndAfter({
       <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
           collectionId={collectionId}
-          balance={newBalance}
+          balances={newBalances}
           message={afterMessage ? afterMessage : 'After'}
 
         />

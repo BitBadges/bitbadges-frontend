@@ -3,7 +3,7 @@ import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
-import { getSignInChallenge, verifySignIn } from "../../bitbadges-api/api";
+import { getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
@@ -20,6 +20,7 @@ export const BlockinDisplay = ({
   hideLogo?: boolean;
 }) => {
   const {
+    address,
     cosmosAddress,
     loggedIn,
     setLoggedIn,
@@ -33,9 +34,8 @@ export const BlockinDisplay = ({
     connected,
   } = useChainContext();
   const accounts = useAccountsContext();
-  const account = accounts.getAccount(cosmosAddress);
+  const account = accounts.getAccount(address);
   const avatar = account?.avatar;
-  const address = account?.address;
 
 
   const [_cookies, setCookie] = useCookies(['blockincookie']);
@@ -86,7 +86,12 @@ export const BlockinDisplay = ({
   }
 
   const signAndVerifyChallenge = async (challenge: string) => {
-    const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(challenge);
+    //TODO: This regenerates a new request right before user signs it (thus updating nonce and expiration date). Should use the exact cached version the user sees. Probably have to work within Blockin to do that.
+    const res = await getSignInChallenge({ chain, address, hours });
+    setChallengeParams(res.params);
+
+
+    const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(res.blockinMessage);
     //Check if error in challenge signature
     if (!signChallengeResponse.originalBytes || !signChallengeResponse.signatureBytes) {
       return { success: false, message: `${signChallengeResponse.message}` };
@@ -112,8 +117,12 @@ export const BlockinDisplay = ({
 
   const logout = async () => {
     setLoggedIn(false);
+    await signOut();
+    const res = await getSignInChallenge({ chain, address, hours });
+    setChallengeParams(res.params);
   }
 
+  console.log(connected);
   return <>
     <div className='flex-center' style={{ color: 'black' }}>
       {
@@ -123,7 +132,7 @@ export const BlockinDisplay = ({
             try {
               await connect();
             } catch (e: any) {
-              console.error("ERROR", e);
+              console.error(e);
               notification.error({
                 message: e.message,
                 description: `Error connecting to wallet. ${e.message === 'User Rejected' ? 'This often occurs when you are not signed in to your wallet before attempting to connect.' : ''}`
@@ -153,6 +162,8 @@ export const BlockinDisplay = ({
           logout={async () => {
             await logout();
             setLoggedIn(false);
+
+
           }}
           selectedChainName={chain}
           displayedResources={displayedResources}
@@ -184,10 +195,13 @@ export const BlockinDisplay = ({
     <div className='flex-center' style={{ color: 'black' }}>
       <Typography.Text className='secondary-text'>
         <Tooltip placement="bottom" color="black" title={<>
-          {"Connecting allows us to access certain information from your Web3 wallet, such as your wallet address and account balance. It also enables you to sign transactions to interact with the BitBadges blockchain, such as creating or claiming badges."}
+          {"What is the difference between connecting and signing in?"}
           <br />
           <br />
-          {"Signing in lets you prove your identity to our website using your Web3 wallet, like a username and password. This allows you to access features (i.e. non-blockchain features) for our website that are only available to authenticated users, such as customizing your profile."}
+          {"Connecting is simply providing us with what your public address is so that we can fetch and display your PUBLIC information, such as your badge balances."}
+          <br />
+          <br />
+          {"Signing in lets you prove your identity (that you are the owner of the address) to our website, similar to a password. This allows you to access PRIVATE features for our website that are only available to authenticated users, such as customizing your profile."}
           <br />
           <br />
           {"Note certain features may require both connecting and signing in."}
@@ -199,11 +213,11 @@ export const BlockinDisplay = ({
     </div>
     {!hideLogo && <>
       <div>
-        {!(hideLogo && !address) &&
+        {!(hideLogo && !connected) &&
           <Avatar
             size={200}
             src={
-              address ? <BlockiesAvatar
+              connected ? <BlockiesAvatar
                 avatar={avatar}
                 address={address.toLowerCase()}
                 fontSize={200}
@@ -215,13 +229,13 @@ export const BlockinDisplay = ({
           />
         }
       </div>
-      <div className='flex-center'> {address &&
+      <div className='flex-center'> {connected &&
         <AddressDisplay
           addressOrUsername={address}
           fontSize={24}
         />}
       </div>
-      <div> {address && <Text
+      <div> {connected && <Text
         strong
         className="primary-text"
         style={{ fontSize: 20 }}

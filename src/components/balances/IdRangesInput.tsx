@@ -1,37 +1,37 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
-import { IdRange } from "bitbadgesjs-proto";
-import { Numberify, sortIdRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { UintRange } from "bitbadgesjs-proto";
+import { Numberify, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 
-export function IdRangesInput({
-  idRanges,
-  setIdRanges,
+export function UintRangesInput({
+  uintRanges,
+  setUintRanges,
   maximum,
   minimum,
   verb,
   collectionId,
   defaultAllSelected = true,
 }: {
-  idRanges?: IdRange<bigint>[],
-  setIdRanges: (idRanges: IdRange<bigint>[]) => void,
+  uintRanges?: UintRange<bigint>[],
+  setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
   maximum?: bigint,
   minimum?: bigint,
   verb?: string,
   collectionId: bigint,
   defaultAllSelected?: boolean,
 }) {
-  const isDefaultAllSelected = idRanges ? idRanges.length === 1 && idRanges[0].start === minimum && idRanges[0].end === maximum : defaultAllSelected;
+  const isDefaultAllSelected = uintRanges ? uintRanges.length === 1 && uintRanges[0].start === minimum && uintRanges[0].end === maximum : defaultAllSelected;
 
-  const [numRanges, setNumRanges] = useState(idRanges ? idRanges.length : 1);
+  const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
-    idRanges ? idRanges.map(({ start, end }) => [start, end])
+    uintRanges ? uintRanges.map(({ start, end }) => [start, end])
       : [[minimum ?? 1n, maximum ?? 1n]]);
   const [inputStr, setInputStr] = useState(
-    idRanges ?
-      idRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
+    uintRanges ?
+      uintRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
       : `${minimum ?? 1n}-${maximum ?? 1n}`);
   const [updateAllIsSelected, setUpdateAllIsSelected] = useState(isDefaultAllSelected);
   // const [clicked, setClicked] = useState(false);
@@ -74,7 +74,7 @@ export function IdRangesInput({
       onSwitchChange={(_idx, name) => {
         setUpdateAllIsSelected(name === 'All Badges');
         if (name === 'All Badges') {
-          setIdRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
+          setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
         }
       }}
     />
@@ -110,7 +110,7 @@ export function IdRangesInput({
 
             setSliderValues(sliderValues);
             setNumRanges(sliderValues.length);
-            setIdRanges(sliderValues.map(([start, end]) => ({ start, end })));
+            setUintRanges(sliderValues.map(([start, end]) => ({ start, end })));
           }}
 
         />
@@ -129,7 +129,7 @@ export function IdRangesInput({
                   const _newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
                   const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
                   setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
-                  setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                  setUintRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                   setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                 }}
               />
@@ -146,7 +146,7 @@ export function IdRangesInput({
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
                       const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
                       setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
-                      setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                      setUintRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                       setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                     }
                   }
@@ -167,7 +167,7 @@ export function IdRangesInput({
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
                       const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
                       setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
-                      setIdRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+                      setUintRanges(newSliderValues.map(([start, end]) => ({ start, end })));
                       setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                     }
                   }
@@ -186,7 +186,7 @@ export function IdRangesInput({
                     if (numRanges > 1) {
                       setNumRanges(numRanges - 1);
                       setSliderValues(sliderValues.filter((_, j) => i !== j));
-                      setIdRanges(sliderValues.filter((_, j) => i !== j).map(([start, end]) => ({ start, end })));
+                      setUintRanges(sliderValues.filter((_, j) => i !== j).map(([start, end]) => ({ start, end })));
                       setInputStr(sliderValues.filter((_, j) => i !== j).map(([start, end]) => `${start}-${end}`).join(', '));
                     }
                   }}
@@ -209,7 +209,7 @@ export function IdRangesInput({
             const oldSliderValues = sliderValues;
 
             setSliderValues([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]]);
-            setIdRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
+            setUintRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
             setInputStr([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => `${start}-${end}`).join(', '));
           }}>
           Add Range
@@ -217,11 +217,11 @@ export function IdRangesInput({
         {overlaps &&
           <Button type='primary'
             onClick={() => {
-              const newIdRanges = sortIdRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
-              setNumRanges(newIdRanges.length);
-              setSliderValues(newIdRanges.map(({ start, end }) => [start, end]));
-              setIdRanges(newIdRanges);
-              setInputStr(newIdRanges.map(({ start, end }) => [start, end]).map(([start, end]) => `${start}-${end}`).join(', '));
+              const newUintRanges = sortUintRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
+              setNumRanges(newUintRanges.length);
+              setSliderValues(newUintRanges.map(({ start, end }) => [start, end]));
+              setUintRanges(newUintRanges);
+              setInputStr(newUintRanges.map(({ start, end }) => [start, end]).map(([start, end]) => `${start}-${end}`).join(', '));
             }}>
             Sort Ranges And Remove Overlaps
           </Button>

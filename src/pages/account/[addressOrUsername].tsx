@@ -1,6 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Select, Spin } from 'antd';
-import { IdRange } from 'bitbadgesjs-proto';
+import { UintRange } from 'bitbadgesjs-proto';
 import { isAddressValid, Numberify } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
@@ -25,8 +25,12 @@ function PortfolioPage() {
   const accounts = useAccountsContext();
   const accountsRef = useRef(accounts);
   const { addressOrUsername } = router.query;
-
-  const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(JSON.stringify(addressOrUsername)) : undefined;
+  console.log("RERENDER");
+  console.log(addressOrUsername);
+  console.log(typeof addressOrUsername === 'string')
+  console.log(typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined);
+  const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
+  console.log(accountInfo);
 
   const [tab, setTab] = useState('collected');
   const [cardView, setCardView] = useState(true);
@@ -47,10 +51,13 @@ function PortfolioPage() {
     { key: 'reputation', content: 'Reviews' }
   )
 
+  console.log(addressOrUsername);
   useEffect(() => {
     async function getPortfolioInfo() {
+      console.log(addressOrUsername, "ASFDSDSF");
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
+
 
       const fetchedAccounts = await accountsRef.current.fetchAccountsWithOptions([{
         address: isAddressValid(addressOrUsername as string) ? addressOrUsername as string : undefined,
@@ -68,6 +75,8 @@ function PortfolioPage() {
       }]);
       const fetchedAccount = fetchedAccounts[0];
 
+      console.log("FETCHED ACCOUNT", JSON.stringify(fetchedAccount))
+
       if (fetchedAccount.readme) {
         setTab('overview');
       }
@@ -83,7 +92,7 @@ function PortfolioPage() {
     //Calculate badge IDs for each collection
     const allBadgeIds: {
       collectionId: bigint
-      badgeIds: IdRange<bigint>[]
+      badgeIds: UintRange<bigint>[]
     }[] = [];
     for (const balanceInfo of accountInfo.collected) {
       if (!balanceInfo) {
@@ -118,9 +127,11 @@ function PortfolioPage() {
   }, [accountInfo?.readme]);
 
   if (!accountInfo) {
+    console.log("NO ACCOUNT INFO)")
     return <></>
   }
 
+  console.log("PAST");
   const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? false;
 
   return (
@@ -143,7 +154,7 @@ function PortfolioPage() {
           }}
         >
           {/* Overview and Tabs */}
-          {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.cosmosAddress} />}
+          {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
 
           <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
           {tab === 'overview' && (<>

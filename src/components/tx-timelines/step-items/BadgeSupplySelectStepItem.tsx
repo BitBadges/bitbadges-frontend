@@ -1,24 +1,27 @@
 import { DeleteOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { Avatar, Button, Divider, Steps, Tooltip } from "antd";
-import { BadgeSupplyAndAmount } from "bitbadgesjs-proto";
+import { Balance } from "bitbadgesjs-proto";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { DevMode } from "../../common/DevMode";
 import { MSG_PREVIEW_ID } from "../TxTimeline";
-import { BadgeSupply } from "../form-items/BadgeSupplySelect";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { BadgeSupply } from "../form-items/BadgeSupplySelect";
+import { FOREVER_DATE } from "../../../utils/dates";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
+import { removeUintRangeFromUintRange } from "bitbadgesjs-utils";
 
 const { Step } = Steps;
 
 export function BadgeSupplySelectStepItem(
-  badgeSupplys: BadgeSupplyAndAmount<bigint>[],
-  setBadgeSupplys: (badgeSupplys: BadgeSupplyAndAmount<bigint>[]) => void,
+  badgesToCreate: Balance<bigint>[],
+  setBadgesToCreate: (badgesToCreate: Balance<bigint>[]) => void,
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(0n);
-  const existingCollectionToExclude = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
+  const collection = collections.collections[0n.toString()];
+  const existingCollectionToExclude = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -31,17 +34,41 @@ export function BadgeSupplySelectStepItem(
 
   const [selectIsVisible, setSelectIsVisible] = useState(false);
 
-  const [currentSupply, setCurrentSupply] = useState<BadgeSupplyAndAmount<bigint>>({
+  const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 0n,
-    supply: 0n,
+    badgeIds: [],
+    ownedTimes: [{ start: 1n, end: FOREVER_DATE }],
   });
 
-  let collectionToShow = collection;
-  if (existingCollectionToExclude && collection && collectionToShow) {
-    collectionToShow.maxSupplys = collection.maxSupplys.filter((supply, idx) => {
-      return supply !== existingCollectionToExclude.maxSupplys[idx];
-    })
+  //TODO: Make more dynamic
+  console.log(collection);
+  let balancesToShow = collection?.owners.find(x => x.cosmosAddress === "Total")?.balances || []
+  console.log(balancesToShow);
+  let previousTotalNumberOfBadges = existingCollectionToExclude ? getTotalNumberOfBadges(existingCollectionToExclude) : 0n;
+  if (existingCollectionToExclude && collection && previousTotalNumberOfBadges > 0n) {
+    const idsToRemove = [{ start: 1n, end: previousTotalNumberOfBadges }];
+    for (const balance of balancesToShow) {
+      const [remaining, _] = removeUintRangeFromUintRange(idsToRemove, balance.badgeIds);
+      balance.badgeIds = remaining;
+    }
   }
+  console.log(balancesToShow);
+
+  let totalNumberOfBadges = 0n;
+  for (const badgeIdRange of currentSupply.badgeIds) {
+    totalNumberOfBadges += badgeIdRange.end - badgeIdRange.start + 1n;
+  }
+
+  let startBadgeId = existingCollectionToExclude ? previousTotalNumberOfBadges + 1n : 1n;
+  for (const balance of badgesToCreate) {
+    for (const badgeIdRange of balance.badgeIds) {
+      if (badgeIdRange.end >= startBadgeId) {
+        startBadgeId = badgeIdRange.end + 1n;
+      }
+    }
+  }
+
+  console.log("startBadgeId", startBadgeId);
 
   return {
     title: `Add Badges`,
@@ -49,11 +76,7 @@ export function BadgeSupplySelectStepItem(
     node: <div className='primary-text'>
       <BalanceDisplay
         collectionId={MSG_PREVIEW_ID}
-        balance={{
-          balances: collectionToShow?.maxSupplys || [],
-          approvals: []
-        }}
-        // size={40}
+        balances={balancesToShow}
         message={'Badge Supplys'}
         showingSupplyPreview
       />
@@ -76,7 +99,7 @@ export function BadgeSupplySelectStepItem(
         <Tooltip placement='bottom' title={'Remove All Added Badges'}>
           <Avatar
             className='screen-button'
-            onClick={() => setBadgeSupplys([])}
+            onClick={() => setBadgesToCreate([])}
             // src={ }
             style={{
               cursor: 'pointer',
@@ -141,28 +164,29 @@ export function BadgeSupplySelectStepItem(
             <BadgeSupply
               setCurrentSupply={setCurrentSupply}
               fungible={fungible}
+              startBadgeId={startBadgeId}
             />
             <br />
             <div className='secondary-text' style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 4 }} />
-              {' '}{`${currentSupply.amount}`}
+              {' '}{`${totalNumberOfBadges}`}
               {' '}
               {fungible ? 'fungible' : 'non-fungible'}
               {' '}
-              badge{currentSupply.amount !== 1n && 's'} with a supply of {`${currentSupply.supply}`} will be added to the collection.
-              {' '}
-              Note that the supply of each badge cannot be edited after they are created.
+              badge{totalNumberOfBadges !== 1n && 's'} each with a supply of {`${currentSupply.amount}`} will be added to the collection.
             </div>
             <Divider />
             <Button
               type="primary"
-              disabled={currentSupply.amount <= 0 || currentSupply.supply <= 0}
+              disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0}
               onClick={() => {
-                setBadgeSupplys([...badgeSupplys, currentSupply]);
+                setBadgesToCreate([...badgesToCreate, currentSupply]);
+
                 setSelectIsVisible(false);
                 setCurrentSupply({
-                  amount: 1n,
-                  supply: 1n,
+                  amount: 0n,
+                  badgeIds: [],
+                  ownedTimes: [{ start: 1n, end: FOREVER_DATE }],
                 });
                 setHandledFungible(false);
                 setCurrentStep(0);
@@ -179,8 +203,8 @@ export function BadgeSupplySelectStepItem(
       </div>
       }
       <Divider />
-      <DevMode obj={badgeSupplys} />
+      <DevMode obj={badgesToCreate} />
     </div >,
-    disabled: badgeSupplys?.length == 0
+    disabled: badgesToCreate?.length == 0
   }
 }

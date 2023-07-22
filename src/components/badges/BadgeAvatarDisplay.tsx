@@ -1,5 +1,5 @@
-import { Balance, IdRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalanceForId } from "bitbadgesjs-utils";
+import { Balance, UintRange } from "bitbadgesjs-proto";
+import { Numberify, getBadgesToDisplay, getBalanceForIdAndTime } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
@@ -18,7 +18,7 @@ export function BadgeAvatarDisplay({
   selectedId,
   showIds,
   pageSize = 10,
-  maxWidth = 350,
+  maxWidth,
 
   cardView,
   hideCollectionLink
@@ -26,7 +26,7 @@ export function BadgeAvatarDisplay({
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
   balance?: Balance<bigint>[],
-  badgeIds: IdRange<bigint>[];
+  badgeIds: UintRange<bigint>[];
   size?: number;
   pageSize?: number;
   selectedId?: bigint;
@@ -37,7 +37,7 @@ export function BadgeAvatarDisplay({
 }) {
   const collections = useCollectionsContext();
   const collectionsRef = useRef(collections);
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
   const accounts = useAccountsContext();
   const account = addressOrUsernameToShowBalance ? accounts.getAccount(addressOrUsernameToShowBalance) : '';
 
@@ -46,7 +46,7 @@ export function BadgeAvatarDisplay({
   const [currPage, setCurrPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(pageSize); //Total number of badges in badgeIds[]
 
-  const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<IdRange<bigint>[]>([]); // Badge IDs to display of length pageSize
+  const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
 
   useEffect(() => {
     if (addressOrUsernameToShowBalance) {
@@ -72,7 +72,7 @@ export function BadgeAvatarDisplay({
       }
     ], currPage, pageSize);
 
-    const badgeIdsToDisplay: IdRange<bigint>[] = [];
+    const badgeIdsToDisplay: UintRange<bigint>[] = [];
     for (const badgeIdObj of badgeIdsToDisplayResponse) {
       badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
     }
@@ -80,7 +80,9 @@ export function BadgeAvatarDisplay({
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
     async function updateMetadata() {
-      await collectionsRef.current.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay });
+      if (collectionId > 0n) {
+        await collectionsRef.current.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay });
+      }
     }
 
     updateMetadata();
@@ -88,13 +90,14 @@ export function BadgeAvatarDisplay({
 
   return <div style={{ maxWidth: maxWidth }}>
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} />
-    <div className='flex-center flex-wrap' style={{ overflow: 'auto' }}>
-      <>
-        <br />
+
+    <>
+      <br /> <div className='flex-center flex-wrap full-width'>
         {
-          badgeIdsToDisplay.map((badgeIdRange) => {
+          badgeIdsToDisplay.map((badgeUintRange) => {
             const badgeIds: bigint[] = [];
-            for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+            console.log(badgeIdsToDisplay);
+            for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
               badgeIds.push(i);
             }
             return badgeIds.map((badgeId, idx) => {
@@ -105,7 +108,7 @@ export function BadgeAvatarDisplay({
                     collectionId={collectionId}
                     badgeId={badgeId}
                     showId={showIds}
-                    balance={userBalance ? getBalanceForId(badgeId, userBalance) : undefined}
+                    balance={userBalance ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), userBalance) : undefined}
                   /> : <BadgeCard
                     size={size && selectedId === badgeId ? size * 1.5 : size}
                     collectionId={collectionId}
@@ -116,7 +119,9 @@ export function BadgeAvatarDisplay({
               </div>
             })
           })
-        }</>
-    </div>
+        }
+      </div>
+    </>
+
   </div>
 }

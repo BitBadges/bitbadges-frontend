@@ -2,7 +2,7 @@ import { Layout } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { ActivityTab } from '../../components/activity/ActivityDisplay';
+import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
@@ -22,10 +22,12 @@ export function Notifications() {
   const announcements = signedInAccount?.announcements;
 
   useEffect(() => {
-    if (chain.connected && chain.loggedIn) {
+    const signedInAccount = accountsRef.current.getAccount(chain.cosmosAddress);
+
+    if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
       accountsRef.current.updateProfileInfo(chain.cosmosAddress, { seenActivity: Date.now() });
     }
-  }, [chain]);
+  }, [chain.connected, chain.loggedIn, chain.cosmosAddress]);
 
   return (
     <DisconnectedWrapper
@@ -51,7 +53,7 @@ export function Notifications() {
                   }}
                 >
                   <br />
-                  <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+                  <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
                     Notifications
                   </div>
                   <br />
@@ -76,7 +78,7 @@ export function Notifications() {
                         fetchMore={async () => {
                           await accounts.fetchNextForViews(chain.cosmosAddress, ['latestActivity']);
                         }}
-                        hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? false}
+                        hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? true}
                       />
                     </>}
 
@@ -85,7 +87,7 @@ export function Notifications() {
                       fetchMore={async () => {
                         await accounts.fetchNextForViews(chain.cosmosAddress, ['latestAnnouncements']);
                       }}
-                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? false}
+                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? true}
                     /></>}
                   </div>
                 </div>

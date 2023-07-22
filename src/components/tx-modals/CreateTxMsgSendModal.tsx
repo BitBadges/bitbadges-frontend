@@ -1,11 +1,12 @@
 import { InputNumber } from 'antd';
-import { MsgSend, createTxMsgSend } from 'bitbadgesjs-transactions';
+import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
 import React, { useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
 import { Numberify } from 'bitbadgesjs-utils';
+import { AddressDisplay } from '../address/AddressDisplay';
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,
 }: {
@@ -31,6 +32,8 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       title: 'Select Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center' }}>
         <AddressSelect onUserSelect={setCurrUserInfo} />
+        <br />
+        <AddressDisplay addressOrUsername={currUserInfo} />
       </div>,
       disabled: !accounts.getAccount(currUserInfo)
     },
@@ -45,7 +48,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
           }}
           className='primary-text primary-blue-bg'
           min={0}
-          max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
+          // max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
         />
         <br />
         <b>Current Balance: {`${signedInAccount?.balance?.amount}`} $BADGE</b>
@@ -64,7 +67,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       txCosmosMsg={msgSend}
       createTxFunction={createTxMsgSend}
       onSuccessfulTx={async () => {
-        await accounts.fetchAccounts([chain.cosmosAddress], true);
+        await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
       }}
       requireRegistration
       coinsToTransfer={[

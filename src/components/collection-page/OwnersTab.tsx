@@ -1,5 +1,5 @@
 import { Empty, Spin } from 'antd';
-import { BalanceInfo, Numberify, PaginationInfo, getBalanceForId } from 'bitbadgesjs-utils';
+import { BalanceInfo, Numberify, PaginationInfo, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
 import { useEffect, useRef, useState } from 'react';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
@@ -20,7 +20,7 @@ export function OwnersTab({ collectionId, badgeId }: {
   const chain = useChainContext();
   const accountsRef = useRef(accounts);
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+  const collection = collections.collections[collectionId.toString()]
   const isPreview = collection?.collectionId === MSG_PREVIEW_ID;
 
   const [loaded, setLoaded] = useState(false);
@@ -92,7 +92,7 @@ export function OwnersTab({ collectionId, badgeId }: {
                   />
                 </div>
                 <div style={{ fontSize: 16 }}>
-                  x{`${getBalanceForId(badgeId, owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances || [])}`}
+                  x{`${getBalanceForIdAndTime(badgeId, BigInt(Date.now()), owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances || [])}`}
                 </div>
               </div> : <BlockinDisplay hideLogo />
             }
@@ -109,7 +109,7 @@ export function OwnersTab({ collectionId, badgeId }: {
               return <div key={idx} className='flex-between primary-text full-width' style={{ padding: 10 }}>
                 <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
                 <div style={{ fontSize: 16 }}>
-                  x{`${getBalanceForId(badgeId, owner.balances)}`}
+                  x{`${getBalanceForIdAndTime(badgeId, BigInt(Date.now()), owner.balances)}`}
                 </div>
               </div>
             }

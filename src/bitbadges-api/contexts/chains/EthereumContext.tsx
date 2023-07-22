@@ -1,4 +1,4 @@
-import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-transactions';
+import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
 import { PresetResource } from 'blockin';
 import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react';
@@ -65,6 +65,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const { open } = useWeb3Modal();
   const web3AccountContext = useAccount();
+
 
 
   useEffect(() => {
@@ -190,6 +191,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
   const getPublicKey = async (_cosmosAddress: string) => {
     try {
+      const currAccount = accountsContext.getAccount(_cosmosAddress);
+      if (currAccount && currAccount.publicKey) {
+        return currAccount.publicKey
+      }
+
       const message = "Hello! We noticed that you haven't used the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your public key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
 
       const sig = await signMessage({
