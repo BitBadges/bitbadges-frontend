@@ -1,8 +1,7 @@
-import React from 'react';
+import { Spin } from 'antd';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import RegisterScreen from '../../pages/register';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { Divider, Spin } from 'antd';
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
   const chain = useChainContext();
