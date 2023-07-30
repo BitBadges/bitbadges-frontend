@@ -151,8 +151,12 @@ export function OverviewTab({
             title={<>Distribution</>}
             span={24}
           >
+            {/* TODO: 
+              Abstract this to single badge distribution
+            */}
+            <TableRow label={"Add badges to the collection?"} value={collection.collectionPermissions.CanCreateMoreBadges ? 'Yes' : 'No'} labelSpan={20} valueSpan={4} />}
             <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />
-            {collection && <TableRow label={"Badge Supplys"} value={
+            {collection && <TableRow label={"Circulating (Total)"} value={
               <div style={{ float: 'right' }}>
                 <BalanceDisplay
                   hideBadges
@@ -162,8 +166,7 @@ export function OverviewTab({
                   balances={totalSupplyBalance}
                 />
               </div>
-            } labelSpan={12} valueSpan={12} />
-            }
+            } labelSpan={12} valueSpan={12} />}
             {!isOffChainBalances && <>
               {collection && <TableRow label={"Unminted"} value={
                 <div style={{ float: 'right' }}>
@@ -178,6 +181,7 @@ export function OverviewTab({
                 </div>
               } labelSpan={12} valueSpan={12} />}
             </>}
+
           </InformationDisplayCard>
           <br />
           <InformationDisplayCard

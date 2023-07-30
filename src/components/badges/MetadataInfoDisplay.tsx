@@ -1,35 +1,23 @@
 import {
   CheckCircleFilled,
-  ClockCircleOutlined,
   InfoCircleOutlined,
   LinkOutlined,
   WarningFilled
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { TimelineItem } from 'bitbadgesjs-proto';
-import { getBalanceForIdAndTime, getCurrentValueIdxForTimeline, getMetadataDetailsForBadgeId, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { BadgeMetadataTimeline, CollectionMetadataTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
+import { getBalanceForIdAndTime, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { getCurrentMetadata } from '../../bitbadges-api/utils/metadata';
 import { getTimeRangesString } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
+import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
 
-export function TimelineTimesIcon(timeline: TimelineItem<bigint>[]) {
 
-  const timelineTimes = timeline.map(x => x.timelineTimes).flat();
-  let str = getTimeRangesString(timelineTimes, 'This property is scheduled to have different values at the following times');
-
-  if (timelineTimes.length <= 1) {
-    return <></>
-  }
-
-  return <Tooltip color='black' title={str}>
-    <ClockCircleOutlined style={{ marginLeft: 8 }} />
-  </Tooltip>
-}
+//TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
 
 export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink }: {
   collectionId: bigint,
@@ -40,11 +28,9 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
   const metadata = badgeId ? getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []) : collection?.collectionMetadata;
-  const { collectionMetadata } = collection ? getCurrentMetadata(collection) : { collectionMetadata: undefined };
-  const uri = badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.badgeMetadata ?? [])?.uri : collectionMetadata?.uri;
+
   const isCollectionInfo = !badgeId;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
-
 
   let totalSupply, undistributedSupply, distributedSupply = 0n;
   if (collection && badgeId) {
@@ -57,15 +43,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
     distributedSupply = totalSupply - undistributedSupply;
   }
 
-  const managerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
-  const manager = collection?.managerTimeline && managerIdx >= 0 ? collection.managerTimeline[Number(managerIdx)].manager : undefined;
-
-  const standardsIdx = getCurrentValueIdxForTimeline(collection?.standardsTimeline ?? []);
-  const standards = collection?.standardsTimeline && standardsIdx >= 0 ? collection.standardsTimeline[Number(standardsIdx)].standards : undefined;
-
-  const offChainBalancesMetadataIdx = getCurrentValueIdxForTimeline(collection?.offChainBalancesMetadataTimeline ?? []);
-  const offChainBalancesMetadata = collection?.offChainBalancesMetadataTimeline && offChainBalancesMetadataIdx >= 0 ? collection.offChainBalancesMetadataTimeline[Number(offChainBalancesMetadataIdx)].offChainBalancesMetadata : undefined;
-
   const [_, isValid] = searchUintRangesForId(BigInt(Date.now()), metadata?.validFrom ?? []);
   let balancesTypeInfoStr = '';
   if (collection?.balancesType === "Off-Chain") {
@@ -75,8 +52,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   } else if (collection?.balancesType === "Inherited") {
     balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
   }
-
-
 
   return (
     <InformationDisplayCard
@@ -91,37 +66,64 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
       {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
       {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === MSG_PREVIEW_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
 
-      {<TableRow label={"Standards"} value={standards && standards.length > 0 ? standards.map((standard) => {
-        return <Tag key={standard} className='secondary-text primary-blue-bg' style={{ margin: 2 }}>
-          {standard}
-        </Tag>
-      }) : 'Default'} labelSpan={9} valueSpan={15} />}
+      {<TableRow label={"Standards"} value={
+        <TimelineFieldWrapper
+          createNode={(timelineVal: StandardsTimeline<bigint>) => {
+            const standards = timelineVal.standards;
+            return <>
+              {standards && standards.length > 0 ? standards.map((standard) => {
+                return <Tag key={standard} className='secondary-text primary-blue-bg' style={{ margin: 2 }}>
+                  {standard}
+                </Tag>
+              }) : 'Default'}
+            </>
+          }}
+          emptyNode={
+            <>Default</>
+          }
+          timeline={collection?.standardsTimeline ?? []}
+        />
+      } labelSpan={9} valueSpan={15} />}
       {<TableRow label={"Balances Type"} value={
         <>
           {collection?.balancesType === "Off-Chain" ?
-            <a href={offChainBalancesMetadata?.uri} target='_blank' rel='noreferrer'>Off-Chain</a>
+            <div>
+              <>
+                <TimelineFieldWrapper
+                  createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
+                    return <a href={timelineVal?.offChainBalancesMetadata.uri} target='_blank' rel='noreferrer'>Off-Chain</a>
+                  }}
+                  emptyNode={
+                    <>None</>
+                  }
+                  timeline={collection?.offChainBalancesMetadataTimeline ?? []}
+                />
+              </>
+            </div>
             : collection?.balancesType}
           <Tooltip color='black' title={balancesTypeInfoStr}>
             <InfoCircleOutlined style={{ marginLeft: 8 }} />
           </Tooltip>
-
-
         </>} labelSpan={9} valueSpan={15} />
       }
 
-      {manager && <TableRow label={"Manager"} value={
+      {<TableRow label={"Manager"} value={
         <>
-          <div style={{ textAlign: 'right', display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
-            <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+          <TimelineFieldWrapper
+            createNode={(managerVal: ManagerTimeline<bigint>) => {
+              return <AddressDisplay
+                fontSize={13}
+                addressOrUsername={managerVal.manager}
+              />
+            }}
+            emptyNode={
               <AddressDisplay
                 fontSize={13}
-                addressOrUsername={manager}
+                addressOrUsername={""}
               />
-            </div>
-            {TimelineTimesIcon(collection?.managerTimeline ?? [])}
-          </div>
-
-
+            }
+            timeline={collection?.managerTimeline ?? []}
+          />
         </>} labelSpan={9} valueSpan={15} />}
 
       {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
@@ -145,14 +147,51 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           </>}
         </div>
       } labelSpan={12} valueSpan={12} />}
-      {uri && <TableRow label={"Metadata URL"} value={
+      {!badgeId && <TableRow label={"Metadata URL"} value={
         <div>
-          <Tooltip placement='bottom' title={uri}>
-            <a href={uri} target="_blank" rel="noreferrer">
-              View
-              <LinkOutlined style={{ marginLeft: 4 }} /></a>
-          </Tooltip>
-          {TimelineTimesIcon(collection?.collectionMetadataTimeline ?? [])}
+          <>
+            <TimelineFieldWrapper
+              createNode={(timelineVal: CollectionMetadataTimeline<bigint>) => {
+                return <Tooltip placement='bottom' title={timelineVal.collectionMetadata.uri}>
+                  <a href={timelineVal.collectionMetadata.uri} target="_blank" rel="noreferrer">
+                    View
+                    <LinkOutlined style={{ marginLeft: 4 }} /></a>
+                </Tooltip>
+              }}
+              emptyNode={
+                <>None</>
+              }
+              timeline={collection?.collectionMetadataTimeline ?? []}
+            />
+          </>
+        </div>
+      } labelSpan={9} valueSpan={15} />}
+
+      {!!badgeId && badgeId > 0n && <TableRow label={"Metadata URL"} value={
+        <div>
+          <>
+            <TimelineFieldWrapper
+              createNode={(timelineVal: BadgeMetadataTimeline<bigint>) => {
+                let uri = '';
+                for (const badgeMetadata of timelineVal.badgeMetadata) {
+                  const [_, found] = searchUintRangesForId(badgeId, badgeMetadata.badgeIds);
+                  if (found && !uri) {
+                    uri = badgeMetadata.uri;
+                  }
+                }
+
+                return <Tooltip placement='bottom' title={uri}>
+                  <a href={uri} target="_blank" rel="noreferrer">
+                    View
+                    <LinkOutlined style={{ marginLeft: 4 }} /></a>
+                </Tooltip>
+              }}
+              emptyNode={
+                <>None</>
+              }
+              timeline={collection?.badgeMetadataTimeline ?? []}
+            />
+          </>
         </div>
       } labelSpan={9} valueSpan={15} />}
 

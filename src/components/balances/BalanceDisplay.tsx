@@ -2,6 +2,7 @@ import { Empty } from "antd";
 import { Balance, BigIntify, Numberify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred } from "bitbadgesjs-utils";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { FOREVER_DATE, getTimeRangesString } from "../../utils/dates";
 
 
 //TODO: ownedTimes logic
@@ -71,6 +72,7 @@ export function BalanceDisplay({
           {allBalances.map((balance, idx) => {
             const amount = balance.amount;
             const badgeIds = balance.badgeIds;
+            const ownedTimes = balance.ownedTimes;
 
             return <>
               <span style={{ color: amount < 0 ? 'red' : undefined }}>
@@ -86,7 +88,9 @@ export function BalanceDisplay({
 
                 {' '}
                 - {showingSupplyPreview ? <>Supply of </> : <></>}
-                <b>x{`${amount}`}</b>
+                <b>x{`${amount}`}</b>{JSON.stringify(ownedTimes) != JSON.stringify([{ start: 1n, end: FOREVER_DATE }]) && <>
+                  {' '}{getTimeRangesString(ownedTimes, '', true)}
+                </>}
 
                 {numIncrements > 0 && incrementBadgeIdsBy > 0 ? (
                   <>

@@ -1,5 +1,5 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalanceForIdAndTime } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalanceForIdAndTime, getBalancesForId } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
@@ -96,10 +96,11 @@ export function BadgeAvatarDisplay({
         {
           badgeIdsToDisplay.map((badgeUintRange) => {
             const badgeIds: bigint[] = [];
-            console.log(badgeIdsToDisplay);
+
             for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
               badgeIds.push(i);
             }
+
             return badgeIds.map((badgeId, idx) => {
               return <div key={idx} className='flex-between' style={{ margin: 2 }}>
                 {!cardView ?
@@ -108,7 +109,7 @@ export function BadgeAvatarDisplay({
                     collectionId={collectionId}
                     badgeId={badgeId}
                     showId={showIds}
-                    balance={userBalance ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), userBalance) : undefined}
+                    balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
                   /> : <BadgeCard
                     size={size && selectedId === badgeId ? size * 1.5 : size}
                     collectionId={collectionId}

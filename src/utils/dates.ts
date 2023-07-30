@@ -2,7 +2,7 @@ import { UintRange } from "bitbadgesjs-proto";
 
 export const FOREVER_DATE = 8640000000000000n //If dates are greater than this, they are considered valid forever
 
-export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "Valid", includeTime = false): string {
+export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "Valid", includeTime = false, numbersOnly?: boolean): string {
   console.log("VALID FROM", validFrom)
   let str = `${prefix} from `
   if (!validFrom) return prefix + " forever!";
@@ -11,21 +11,26 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
     let endTimestamp = timeRange.end;
     let validForever = timeRange.end >= FOREVER_DATE;
 
-    const endDateString = validForever ? `forever` : new Date(
+    if (numbersOnly) {
+      str += timeRange.start.toString() + "-" + timeRange.end.toString()
+      continue
+    }
+
+    const endDateString = validForever ? `forever` : new Date(Number(
       endTimestamp.toString()
-    ).toLocaleDateString();
+    )).toLocaleDateString();
 
-    const endTimeString = validForever ? `` : new Date(
+    const endTimeString = validForever ? `` : new Date(Number(
       endTimestamp.toString()
-    ).toLocaleTimeString();
+    )).toLocaleTimeString();
 
-    const startDateString = new Date(
+    const startDateString = new Date(Number(
       timeRange.start.toString()
-    ).toLocaleDateString();
+    )).toLocaleDateString();
 
-    const startTimeString = new Date(
+    const startTimeString = new Date(Number(
       timeRange.start.toString()
-    ).toLocaleTimeString();
+    )).toLocaleTimeString();
 
     if (includeTime) {
       str += `${startDateString} ${startTimeString} - ${endDateString} ${endTimeString}`;

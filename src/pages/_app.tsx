@@ -67,7 +67,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                       themeMode="dark"
                     />
                     <Layout className="layout">
-                      <WalletHeader />
+                      {/* <WalletHeader />
                       {handled && myCookieValue !== 'accepted' &&
                         <div className='primary-text primary-blue-bg'
                           style={{
@@ -89,7 +89,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                             Accept
                           </Button>
                           <br />
-                        </div>}
+                        </div>} */}
                       <Component {...pageProps} />
                       <WalletFooter />
                     </Layout>
