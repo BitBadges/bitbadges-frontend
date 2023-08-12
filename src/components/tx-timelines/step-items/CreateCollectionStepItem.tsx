@@ -1,4 +1,3 @@
-import { MsgUpdateCollection } from "bitbadgesjs-proto";
 import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUpdateCollection";
 import { MsgUpdateCollectionProps } from "../TxTimeline";
 

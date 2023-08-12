@@ -3,23 +3,23 @@ import { BitBadgesCollection, TransferActivityInfo, getMetadataForBadgeId } from
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { ActivityTab } from '../../../components/activity/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
+import { DistributionOverview } from '../../../components/badges/DistributionCard';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../../components/collection-page/ActionsTab';
 import { ClaimsTab } from '../../../components/collection-page/ClaimsTab';
 import { OwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
+import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
-import { DistributionOverview } from '../../../components/badges/DistributionCard';
-import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);

@@ -1,11 +1,11 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Select, Spin } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { isAddressValid, Numberify } from 'bitbadgesjs-utils';
+import { Numberify, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect, useRef, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
@@ -26,7 +26,7 @@ function PortfolioPage() {
   const accounts = useAccountsContext();
 
   const { addressOrUsername } = router.query;
-  const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
+  const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
 
   const [tab, setTab] = useState('collected');
   const [cardView, setCardView] = useState(true);
@@ -53,7 +53,7 @@ function PortfolioPage() {
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
-
+      console.log("addressOrUsername", addressOrUsername);
       const fetchedAccounts = await accounts.fetchAccountsWithOptions([{
         address: isAddressValid(addressOrUsername as string) ? addressOrUsername as string : undefined,
         username: isAddressValid(addressOrUsername as string) ? undefined : addressOrUsername as string,
@@ -69,15 +69,12 @@ function PortfolioPage() {
         }]
       }]);
       const fetchedAccount = fetchedAccounts[0];
-
       if (fetchedAccount.readme) {
         setTab('overview');
       }
     }
     getPortfolioInfo();
   }, [addressOrUsername]);
-
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: get num total badges ');
@@ -121,6 +118,7 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
+  console.log(accountInfo);
   if (!accountInfo) {
     return <></>
   }

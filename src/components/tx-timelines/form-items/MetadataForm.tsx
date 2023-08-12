@@ -14,11 +14,10 @@ import moment from 'moment';
 import { UintRange } from 'bitbadgesjs-proto';
 import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { FOREVER_DATE } from '../../../utils/dates';
-import { BadgeAvatar } from '../../badges/BadgeAvatar';
-import { UintRangesInput } from '../../balances/IdRangesInput';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { FOREVER_DATE } from '../../../utils/dates';
 import { BadgeCard } from '../../badges/BadgeCard';
+import { UintRangesInput } from '../../badges/balances/IdRangesInput';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -266,7 +265,6 @@ export function MetadataForm({
                   minimum={startId ? startId : 1n}
                   maximum={endId ? endId : FOREVER_DATE}
                   setUintRanges={setUintRanges}
-                  verb={'Update'}
                   collectionId={collectionId}
                 />
 
@@ -340,7 +338,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -455,7 +452,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -562,7 +558,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -634,7 +629,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -706,7 +700,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -811,7 +804,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -894,7 +886,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 
@@ -1016,7 +1007,6 @@ export function MetadataForm({
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : FOREVER_DATE}
                 setUintRanges={setUintRanges}
-                verb={'Update'}
                 collectionId={collectionId}
               />
 

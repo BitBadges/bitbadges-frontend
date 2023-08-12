@@ -1,5 +1,5 @@
 import { Balance } from 'bitbadgesjs-proto';
-import { NumberInput } from '../display/NumberInput';
+import { NumberInput } from '../../display/NumberInput';
 import { Numberify } from 'bitbadgesjs-utils';
 
 export function BalancesInput({

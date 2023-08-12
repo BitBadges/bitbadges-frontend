@@ -38,7 +38,6 @@ const App = ({ Component, pageProps }: AppProps) => {
   const [cookies, setCookie] = useCookies(['policies']);
   const router = useRouter();
   const [myCookieValue, setMyCookieValue] = useState(null);
-  const [handled, setHandled] = useState(false);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: cookie check');
@@ -46,7 +45,6 @@ const App = ({ Component, pageProps }: AppProps) => {
     if (cookies.policies) {
       setMyCookieValue(cookies.policies);
     }
-    setHandled(true);
   }, [cookies]);
 
   const handleCookieResponse = (accepted: boolean) => {

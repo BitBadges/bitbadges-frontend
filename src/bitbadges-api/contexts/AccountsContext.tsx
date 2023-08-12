@@ -1,11 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { deepCopy } from 'bitbadgesjs-proto';
+import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
+import { compareObjects } from '../../utils/compare';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
-import { deepCopy } from 'bitbadgesjs-proto';
 
 export type AccountsContextType = {
+  accounts: AccountMap<DesiredNumberType>,
   getAccount: (addressOrUsername: string) => BitBadgesUserInfo<DesiredNumberType> | undefined,
   updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => BitBadgesUserInfo<DesiredNumberType>,
 
@@ -44,6 +46,7 @@ export type AccountsContextType = {
 }
 
 const AccountsContext = createContext<AccountsContextType>({
+  accounts: {},
   fetchAccountsWithOptions: async () => { return [] },
   fetchAccounts: async () => { return [] },
   fetchNextForViews: async () => { return BLANK_USER_INFO },
@@ -111,7 +114,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
 
     let cachedAccount = accounts[`${account.cosmosAddress}`];
-    const cachedAccountCopy = JSON.stringify(cachedAccount);
+    const cachedAccountCopy = deepCopy(cachedAccount);
+
     let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
 
     //If we have stored the public key in cookies, use that instead (for Ethereum)
@@ -162,10 +166,26 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     //Only trigger a rerender if the account has changed
-    console.log(newAccount, cachedAccountCopy);
-    if (JSON.stringify(newAccount) !== cachedAccountCopy) {
-      setAccountsMap(deepCopy(accounts));
-      setCosmosAddressesByUsernames(deepCopy(cosmosAddressesByUsernames));
+    if (!compareObjects(newAccount, cachedAccountCopy)) {
+      setAccountsMap((accounts) => {
+        return {
+          ...accounts,
+          [account.cosmosAddress]: newAccount
+        };
+      });
+      if (account.username) {
+        setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {
+          if (account.username) {
+            return {
+              ...cosmosAddressesByUsernames,
+              [account.username]: account.cosmosAddress
+            };
+          } else {
+            return cosmosAddressesByUsernames;
+          }
+
+        });
+      }
     }
     return newAccount;
   }
@@ -287,7 +307,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
     const res = await getAccounts(batchRequestBody);
     for (const account of res.accounts) {
-      accounts[account.cosmosAddress] = updateAccount(account, forcefulRefresh);
+      console.log("UPDATING account")
+      updateAccount(account, forcefulRefresh);
     }
 
 
@@ -389,6 +410,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const accountsContext: AccountsContextType = {
+    accounts,
     fetchAccountsWithOptions,
     fetchAccounts,
     fetchBalanceForUser,

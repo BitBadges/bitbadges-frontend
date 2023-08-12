@@ -4,7 +4,6 @@ import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
-import { cosmosToEth } from "bitbadgesjs-address-converter";
 
 export function AddressWithBlockies({
   addressOrUsername,

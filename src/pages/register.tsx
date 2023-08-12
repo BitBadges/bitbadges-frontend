@@ -54,7 +54,7 @@ function RegisterScreen({ message }: { message?: string }) {
                       await new Promise(resolve => setTimeout(resolve, 1000));
                     }
 
-                    const res1 = await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
+                    await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
 
                     setLoading(false);
                   }}

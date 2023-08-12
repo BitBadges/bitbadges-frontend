@@ -1,6 +1,6 @@
 import { castBalancesActionPermissionToUniversalPermission, getBalancesForId, BalancesActionPermissionUsedFlags } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { BalanceDisplay } from "../balances/BalanceDisplay";
+import { BalanceDisplay } from "./balances/BalanceDisplay";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
@@ -30,8 +30,6 @@ export function DistributionOverview({
 
   // EXPERIMENTAL STANDARD
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
-  let uri = '';
-
 
   const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
   const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];

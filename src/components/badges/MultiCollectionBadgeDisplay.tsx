@@ -47,52 +47,72 @@ export function MultiCollectionBadgeDisplay({
   }[]>([]); // Badge IDs to display of length pageSize
 
   useEffect(() => {
-    if (groupByCollection) {
-      return;
-    }
+    // if (groupByCollection) {
+    //   return;
+    // }
 
-    //Is there a way we can not depend on accountsContext with no errors?
-    if (!accountInfo) return;
+    // //Is there a way we can not depend on accountsContext with no errors?
+    // if (!accountInfo) return;
 
     //Calculate badge IDs for each collection
     const allBadgeIds: {
       collectionId: bigint,
       badgeIds: UintRange<bigint>[]
     }[] = [];
-    for (const collectionId of collectionIds) {
-      const balances = accountInfo?.collected.flat() ?? [];
-      if (balances) {
-        const balanceInfo = balances.find(balance => balance.collectionId === collectionId);
-        for (const balance of balanceInfo?.balances || []) {
-          allBadgeIds.push({
-            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
-              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
-            }),
-            collectionId
-          });
+    if (accountInfo) {
+      for (const collectionId of collectionIds) {
+        const balances = accountInfo?.collected.flat() ?? [];
+        if (balances) {
+          const balanceInfo = balances.find(balance => balance.collectionId === collectionId);
+          for (const balance of balanceInfo?.balances || []) {
+            allBadgeIds.push({
+              badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+                return balance.badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
+              }),
+              collectionId
+            });
+          }
+        }
+      }
+    } else {
+      for (const collectionId of collectionIds) {
+        const balances = collections.collections[collectionId.toString()]?.owners?.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
+        if (balances) {
+          for (const balance of balances || []) {
+            allBadgeIds.push({
+              badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+                return balance.badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
+              }),
+              collectionId
+            });
+          }
         }
       }
     }
 
     //Calculate total number of badge IDs
     let total = 0;
-    for (const obj of allBadgeIds) {
-      for (const range of obj.badgeIds) {
-        const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
-        total += numBadgesInRange;
+    if (!groupByCollection) {
+      for (const obj of allBadgeIds) {
+        for (const range of obj.badgeIds) {
+          const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
+          total += numBadgesInRange;
+        }
       }
-    }
-    setTotal(total);
+      setTotal(total);
 
-    //Calculate badge IDs to display and update metadata for badge IDs if absent
-    const badgeIdsToDisplay: {
-      collectionId: bigint,
-      badgeIds: UintRange<bigint>[]
-    }[] = getBadgesToDisplay(allBadgeIds, currPage, pageSize);
-    setBadgeIdsToDisplay(badgeIdsToDisplay);
+      //Calculate badge IDs to display and update metadata for badge IDs if absent
+      const badgeIdsToDisplay: {
+        collectionId: bigint,
+        badgeIds: UintRange<bigint>[]
+      }[] = getBadgesToDisplay(allBadgeIds, currPage, pageSize);
+      setBadgeIdsToDisplay(badgeIdsToDisplay);
 
-    for (const badgeIdObj of badgeIdsToDisplay) {
-      collections.fetchAndUpdateMetadata(badgeIdObj.collectionId, { badgeIds: badgeIdObj.badgeIds });
+      console.log("badgeIdsToDisplay: ", badgeIdsToDisplay, currPage, pageSize)
+
+      for (const badgeIdObj of badgeIdsToDisplay) {
+        collections.fetchAndUpdateMetadata(badgeIdObj.collectionId, { badgeIds: badgeIdObj.badgeIds });
+      }
     }
 
     if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay);
@@ -105,19 +125,21 @@ export function MultiCollectionBadgeDisplay({
       {!hidePagination && <Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} />}
       <br />
 
-      <div className="flex-center flex-wrap">
+      <div className="flex-center flex-wrap" style={{ alignItems: 'normal' }}>
         {
           collectionIds.map((collectionId, idx) => {
             const collection = collections.collections[collectionId.toString()];
-            const balances = accountInfo?.collected.find(collected => collected.collectionId === collectionId)?.balances ?? [];
+            const balances = accountInfo ? accountInfo?.collected.find(collected => collected.collectionId === collectionId)?.balances ?? []
+              : collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
 
             if (balances.length === 0) return <></>;
 
-            return <div key={idx} style={{ width: 350, margin: 10, display: 'flex' }}>
+            return <div key={idx} style={{ width: 350, margin: 10, display: 'flex', }}>
               {/*
                 //TODO: Sync with CollectionDisplay
               */}
               <InformationDisplayCard
+
                 noBorder
                 title={<>
                   <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
@@ -129,7 +151,6 @@ export function MultiCollectionBadgeDisplay({
                         size={100}
                         collectionId={collectionId}
                       />
-                      <br />
                       {collection?.cachedCollectionMetadata?.name}
                     </div>
                   </Tooltip>

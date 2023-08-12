@@ -23,9 +23,7 @@ export function ActionsTab({
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
-  const [updateMetadataIsVisible, setUpdateMetadataIsVisible] = useState(false);
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
-  const [updateCollectionIsVisible, setUpdateCollectionIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,

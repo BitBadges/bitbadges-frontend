@@ -15,7 +15,7 @@ export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: collection display, fetch collection ');
 
-    if (!collection?.owners.find(x => x.cosmosAddress === 'Total')) {
+    if (collection && !collection.owners.find(x => x.cosmosAddress === 'Total')) {
       collections.fetchCollectionsWithOptions([{ collectionId, fetchTotalAndMintBalances: true, handleAllAndAppendDefaults: true }]);
     }
   }, [collectionId]);

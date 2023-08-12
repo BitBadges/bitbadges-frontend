@@ -7,7 +7,7 @@ import { SwitchForm } from "../form-items/SwitchForm";
 
 export function RevokeSelectStepItem(
   updateCollectionApprovedTransfers: boolean,
-  setUpdateCollectionApprovedTransfers: (val: boolean) => void,
+  // setUpdateCollectionApprovedTransfers: (val: boolean) => void,
 
   existingCollectionId?: bigint,
 ) {

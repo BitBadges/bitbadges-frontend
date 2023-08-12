@@ -8,7 +8,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import collection from '../../pages/collections/mint';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
-import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
 

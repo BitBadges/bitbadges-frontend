@@ -3,8 +3,8 @@ import { Avatar, Button, DatePicker, Divider, Steps, Tooltip } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
 import moment from 'moment';
 import { useState } from 'react';
-import { BalanceDisplay } from '../../balances/BalanceDisplay';
-import { UintRangesInput } from '../../balances/IdRangesInput';
+import { BalanceDisplay } from '../../badges/balances/BalanceDisplay';
+import { UintRangesInput } from '../../badges/balances/IdRangesInput';
 import { NumberInput } from '../../display/NumberInput';
 const { Step } = Steps;
 
@@ -123,7 +123,6 @@ export function BalanceInput({
                 minimum={minimum ?? 1n}
                 maximum={maximum ?? 100000n}
                 collectionId={collectionId ?? 0n}
-                verb='Add'
                 hideSelect
               />
 

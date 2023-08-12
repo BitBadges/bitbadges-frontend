@@ -1,4 +1,4 @@
-import { AddressMapping, CollectionApprovedTransferPermission } from "bitbadgesjs-proto";
+import { AddressMapping } from "bitbadgesjs-proto";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { FOREVER_DATE } from "../../../utils/dates";
@@ -37,6 +37,8 @@ export function DefaultToApprovedSelectStepItem(
             defaultUserApprovedIncomingTransfersTimeline: idx === 0 ? [{
               approvedIncomingTransfers: [{
                 fromMappingId: "AllWithMint",
+                fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+                initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
                 initiatedByMappingId: "AllWithMint",
                 transferTimes: [{ start: 1n, end: FOREVER_DATE }],
                 badgeIds: [{ start: 1n, end: FOREVER_DATE }],

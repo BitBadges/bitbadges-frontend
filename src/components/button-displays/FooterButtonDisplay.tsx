@@ -6,9 +6,9 @@ export function FooterButtonDisplay({
   }) {
 
   // const blockScanLink = 'https://chat.blockscan.com/index?a=' + address;
-  const companySiteLink = "https://bitbadges.org";
-  const documentationLink = "https://docs.bitbadges.io/overview";
-  const projectBoardLink = "https://github.com/bitbadges/projects";
+  // const companySiteLink = "https://bitbadges.org";
+  // const documentationLink = "https://docs.bitbadges.io/overview";
+  // const projectBoardLink = "https://github.com/bitbadges/projects";
   const githubLink = "https://github.com/bitbadges";
   const twitterLink = "https://twitter.com/BitBadges_";
   const discordLink = "https://discord.com/invite/TJMaEd9bar";
@@ -19,8 +19,8 @@ export function FooterButtonDisplay({
   const crunchbaseLink = "https://www.crunchbase.com/organization/bitbadges";
   const redditLink = "https://www.reddit.com/r/BitBadges/";
   const telegramLink = "https://t.me/BitBadges";
-  const termsOfServiceLink = "https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf";
-  const privacyPolicyLink = "https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf";
+  // const termsOfServiceLink = "https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf";
+  // const privacyPolicyLink = "https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf";
 
 
 

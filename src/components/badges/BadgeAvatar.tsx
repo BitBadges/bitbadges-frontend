@@ -1,10 +1,10 @@
+import { ClockCircleOutlined, CloudSyncOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Spin, Tooltip } from "antd";
+import { Balance } from "bitbadgesjs-proto";
 import { DefaultPlaceholderMetadata, getBalanceForIdAndTime, getMetadataForBadgeId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { ClockCircleOutlined, CloudSyncOutlined } from "@ant-design/icons";
-import { Balance } from "bitbadgesjs-proto";
-import { FOREVER_DATE, getTimeRangesElement, getTimeRangesString } from "../../utils/dates";
+import { FOREVER_DATE, getTimeRangesString } from "../../utils/dates";
 
 export function BadgeAvatar({
   collectionId,

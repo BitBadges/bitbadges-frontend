@@ -1,5 +1,5 @@
 import { Divider, Row, Typography } from "antd";
-import { AddressMapping, Balance } from "bitbadgesjs-proto";
+import { AddressMapping } from "bitbadgesjs-proto";
 import { DistributionMethod, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { FOREVER_DATE } from "../../../utils/dates";
@@ -10,7 +10,6 @@ import { SwitchForm } from "../form-items/SwitchForm";
 export function DistributionMethodStepItem(
   distributionMethod: DistributionMethod,
   setDistributionMethod: (newDistributionMethod: DistributionMethod) => void,
-  badgesToCreate: Balance<bigint>[],
   existingCollectionId?: bigint,
   hideUnminted: boolean = false,
   hideFirstComeFirstServe: boolean = false,
@@ -20,8 +19,8 @@ export function DistributionMethodStepItem(
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
   //If all supply amounts are 1, it is fungible
-  const fungible = badgesToCreate.length === 1 && badgesToCreate[0].badgeIds.length == 1 && badgesToCreate[0].badgeIds[0].start == badgesToCreate[0].badgeIds[0].end;
-  const nonFungible = badgesToCreate.every(badgeSupply => badgeSupply.amount === 1n);
+  // const fungible = badgesToCreate.length === 1 && badgesToCreate[0].badgeIds.length == 1 && badgesToCreate[0].badgeIds[0].start == badgesToCreate[0].badgeIds[0].end;
+  // const nonFungible = badgesToCreate.every(badgeSupply => badgeSupply.amount === 1n);
 
   const options = [];
   if (!hideFirstComeFirstServe) {

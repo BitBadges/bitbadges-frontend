@@ -71,6 +71,7 @@ export async function getSearchResults(searchValue: string, requestBody?: GetSea
 
 export async function getCollections(requestBody: GetCollectionBatchRouteRequestBody): Promise<GetCollectionBatchRouteSuccessResponse<DesiredNumberType>> {
   try {
+    console.log("fetching collections", requestBody.collectionsToFetch[0].collectionId, !!requestBody.collectionsToFetch[0].fetchTotalAndMintBalances, requestBody);
     const response = await axios.post<GetCollectionBatchRouteSuccessResponse<string>>(`${BACKEND_URL}${GetCollectionBatchRoute()}`, requestBody);
     return convertGetCollectionBatchRouteSuccessResponse(response.data, ConvertFunction);
   } catch (error) {

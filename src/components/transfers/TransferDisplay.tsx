@@ -1,13 +1,13 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Col, Divider, Empty, Row, Tooltip, Typography } from "antd";
+import { Avatar, Empty, Tooltip, Typography } from "antd";
 import { Numberify, TransferWithIncrements } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { AddressDisplayList } from "../address/AddressDisplayList";
-import { BalanceDisplay } from "../balances/BalanceDisplay";
-import { Pagination } from "../common/Pagination";
 import { INFINITE_LOOP_MODE } from "../../constants";
+import { AddressDisplayList } from "../address/AddressDisplayList";
+import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
+import { Pagination } from "../common/Pagination";
 
 const { Text } = Typography
 

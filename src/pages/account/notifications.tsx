@@ -1,5 +1,5 @@
 import { Layout } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { ActivityTab } from '../../components/activity/TransferActivityDisplay';

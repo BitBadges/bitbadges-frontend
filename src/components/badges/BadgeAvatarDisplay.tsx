@@ -94,18 +94,20 @@ export function BadgeAvatarDisplay({
       if (collectionId > 0n ||
         (collectionId === 0n && fetchDirectly)
       ) {
+        console.log("badge avatar fetch");
+        console.log(JSON.stringify({ badgeIds, currPage, pageSize, fetchDirectly }));
         await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       }
     }
 
     updateMetadata();
-  }, [collectionId, badgeIds, currPage, pageSize, collections, fetchDirectly]);
+  }, [badgeIds, currPage, pageSize, fetchDirectly]);
 
   return <div style={{ maxWidth: maxWidth }}>
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} />
 
     <>
-      <br /> <div className='flex-center flex-wrap full-width primary-text'>
+      <div className='flex-center flex-wrap full-width primary-text'>
         {
           badgeIdsToDisplay.map((badgeUintRange) => {
             const badgeIds: bigint[] = [];

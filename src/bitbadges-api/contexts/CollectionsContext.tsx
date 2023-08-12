@@ -1,8 +1,9 @@
 import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, removeUintsFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { createContext, useContext, useState } from 'react';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
+import { compareObjects } from '../../utils/compare';
 import { DesiredNumberType, fetchMetadataDirectly, getBadgeBalanceByAddress, getCollections, refreshMetadata } from '../api';
 import { getCurrentMetadata } from '../utils/metadata';
 import { useAccountsContext } from './AccountsContext';
@@ -72,23 +73,41 @@ type Props = {
   children?: React.ReactNode
 };
 
+
+
 export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   const [collections, setCollections] = useState<CollectionMap<DesiredNumberType>>({});
-
   const accounts = useAccountsContext();
+
+  // const collectionsReducer = (collections: CollectionMap<DesiredNumberType>, action: { type: string, payload: any }) => {
+  //   switch (action.type) {
+  //     case 'UPDATE_COLLECTION':
+  //       return {
+  //         ...collections,
+  //         [`${action.payload.collectionId}`]: action.payload.collection
+  //       }
+  //     default:
+  //       return collections;
+  //   }
+  // }
+
+  // const [collections, dispatch] = useReducer(collectionsReducer, {});
+
+
+
 
   const getCollection = (collectionId: DesiredNumberType) => {
     return collections[`${collectionId}`];
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>, fromTxTimeline = false) => {
-    const collectionsMap = collections;
     if (newCollection.managerInfo) {
       accounts.updateAccount(newCollection.managerInfo);
     }
 
-    let cachedCollection = collectionsMap[`${newCollection.collectionId}`];
-    const cachedCollectionCopy = JSON.stringify(cachedCollection);
+    let cachedCollection = deepCopy(collections[`${newCollection.collectionId}`]);
+    const cachedCollectionCopy = deepCopy(cachedCollection);
+
     if (cachedCollection) {
       let newBadgeMetadata = cachedCollection?.cachedBadgeMetadata || [];
       for (const badgeMetadata of newCollection.cachedBadgeMetadata) {
@@ -122,7 +141,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         //   throw new Error("You are updating a forbidden field for preview collections. See top of TxTimeline for more information");
         // }
       }
-
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
       cachedCollection = {
         ...newCollection,
@@ -144,7 +162,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-
+      console.log("APPROVALS TRACKERS", cachedCollection.approvalsTrackers);
       //Attempt to update the account balances for each of the owners (if we find an account)
       //For now, if we do not find an account, we just carry on. 
       //Can look to fetch all accounts as well in the future but would require async logic whereas this is intended to be synchronous
@@ -158,19 +176,29 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
 
-      collectionsMap[`${newCollection.collectionId}`] = cachedCollection;
+      collections[`${newCollection.collectionId}`] = cachedCollection;
 
 
       //Only update if anything has changed
-      if (JSON.stringify(cachedCollection) !== cachedCollectionCopy) {
-        setCollections(deepCopy(collectionsMap)); //TODO: Optimize this. Without it, it does not trigger a reload
+      if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
+        setCollections((collections) => {
+          return {
+            ...collections,
+            [`${newCollection.collectionId}`]: cachedCollection
+          }
+        });
       }
       return cachedCollection;
     } else {
-      collectionsMap[`${newCollection.collectionId}`] = newCollection;
+      collections[`${newCollection.collectionId}`] = newCollection;
 
-      if (JSON.stringify(newCollection) !== cachedCollectionCopy) {
-        setCollections(deepCopy(collectionsMap));
+      if (!compareObjects(cachedCollectionCopy, newCollection)) {
+        setCollections((collections) => {
+          return {
+            ...collections,
+            [`${newCollection.collectionId}`]: newCollection
+          }
+        });
       }
       return newCollection;
     }
@@ -385,8 +413,18 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
         const shouldFetchTotalAndMint = !hasTotalAndMint && collectionToFetch.fetchTotalAndMintBalances;
+        const shouldFetchMerkleChallengeIds = (collectionToFetch.merkleChallengeIdsToFetch ?? []).find(x => {
 
-        if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || (collectionToFetch.merkleChallengeIdsToFetch ?? []).length > 0 || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).length > 0) {
+          const match = cachedCollection.merkleChallenges.find(y => y.challengeId === x.challengeId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && x.challengeLevel === y.challengeLevel)
+          return !match;
+        }) !== undefined;
+
+        const shouldFetchApprovalTrackerIds = (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
+          const match = cachedCollection.approvalsTrackers.find(y => y.approvalId === x.approvalId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
+          return !match;
+        }) !== undefined;
+
+        if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || shouldFetchMerkleChallengeIds || shouldFetchApprovalTrackerIds) {
           batchRequestBody.collectionsToFetch.push({
             collectionId: collectionToFetch.collectionId,
             metadataToFetch: prunedMetadataToFetch,
@@ -412,16 +450,16 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getCollections(batchRequestBody);
+    console.log("collection res", res);
     //Update collections map
-    const collectionsMap = collections;
     for (let i = 0; i < res.collections.length; i++) {
-      collectionsMap[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
+      collections[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
     }
 
     //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in React state
     const collectionsToReturn = [];
     for (const collectionToFetch of collectionsToFetch) {
-      const collection = collectionsMap[`${collectionToFetch.collectionId}`];
+      const collection = collections[`${collectionToFetch.collectionId}`];
       collectionsToReturn.push(collection ? collection : {} as BitBadgesCollection<DesiredNumberType>); //HACK: should never be undefined
     }
 
@@ -476,6 +514,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
       return [updatedCollection];
     }
+
 
     return await fetchCollectionsWithOptions([{
       collectionId: collectionId,

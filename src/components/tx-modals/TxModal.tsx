@@ -111,7 +111,7 @@ export function TxModal(
     async function simulate() {
       try {
         if (!signedInAccount) return;
-        const status = await statusRef.current.updateStatus();
+        // const status = await statusRef.current.updateStatus();
 
 
         let cosmosMsg = txCosmosMsg;

@@ -2,9 +2,9 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Empty, Tooltip } from "antd";
 import { Balance, BigIntify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { getBadgeIdsString } from "../../utils/badgeIds";
-import { getTimeRangesElement } from "../../utils/dates";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { getBadgeIdsString } from "../../../utils/badgeIds";
+import { getTimeRangesElement } from "../../../utils/dates";
+import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 
 
 //TODO: ownershipTimes logic

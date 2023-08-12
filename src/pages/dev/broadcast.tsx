@@ -1,8 +1,5 @@
 import { Button, Divider, Input, Layout, Typography } from 'antd';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
-import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-// import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
-import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
 import { useState } from 'react';
 import { TxModal } from '../../components/tx-modals/TxModal';
 import { BigIntify, MsgUpdateCollection, convertMsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';

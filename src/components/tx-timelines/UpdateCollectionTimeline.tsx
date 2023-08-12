@@ -1,33 +1,32 @@
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, DistributionMethod, MetadataAddMethod, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, CollectionApprovedTransferWithDetails } from 'bitbadgesjs-utils';
+import { Balance } from 'bitbadgesjs-proto';
+import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferWithDetails, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getPermissionDataSource } from '../collection-page/PermissionsInfo';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
 import { EmptyStepItem, MSG_PREVIEW_ID, MsgUpdateCollectionProps } from './TxTimeline';
+import { IsArchivedSelectStepItem } from './step-items/ArchivedSelectStepItem';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
 import { CanDeleteStepItem } from './step-items/CanDeleteStepItem';
 import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
+import { CanArchiveCollectionStepItem } from './step-items/CanUpdateArchivedStepItem';
 import { CanUpdateBalancesStepItem } from './step-items/CanUpdateBytesStepItem';
 import { ChooseBadgeTypeStepItem } from './step-items/ChooseBadgeTypeStepItem';
 import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
+import { DefaultToApprovedSelectStepItem } from './step-items/DefaultToApprovedSelectStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { ExistingWarningStepItem } from './step-items/ExistingWarningStepItem';
 import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
+import { RevokeSelectStepItem } from './step-items/RevokeSelectStepItem';
 import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { useState } from 'react';
-import { Balance } from 'bitbadgesjs-proto';
-import { DefaultToApprovedSelectStepItem } from './step-items/DefaultToApprovedSelectStepItem';
-import { CanArchiveCollectionStepItem } from './step-items/CanUpdateArchivedStepItem';
-import { IsArchivedSelectStepItem } from './step-items/ArchivedSelectStepItem';
-import { RevokeSelectStepItem } from './step-items/RevokeSelectStepItem';
 
 //See TxTimeline for explanations and documentation
 
@@ -66,20 +65,20 @@ export function UpdateCollectionTimeline({
   const setUpdateCollectionMetadataTimeline = txTimelineProps.setUpdateCollectionMetadataTimeline;
   const updateBadgeMetadataTimeline = txTimelineProps.updateBadgeMetadataTimeline;
   const setUpdateBadgeMetadataTimeline = txTimelineProps.setUpdateBadgeMetadataTimeline;
-  const updateOffChainBalancesMetadataTimeline = txTimelineProps.updateOffChainBalancesMetadataTimeline;
-  const setUpdateOffChainBalancesMetadataTimeline = txTimelineProps.setUpdateOffChainBalancesMetadataTimeline;
-  const updateCustomDataTimeline = txTimelineProps.updateCustomDataTimeline;
-  const setUpdateCustomDataTimeline = txTimelineProps.setUpdateCustomDataTimeline;
-  const updateInheritedBalancesTimeline = txTimelineProps.updateInheritedBalancesTimeline;
-  const setUpdateInheritedBalancesTimeline = txTimelineProps.setUpdateInheritedBalancesTimeline;
-  const updateStandardsTimeline = txTimelineProps.updateStandardsTimeline;
-  const setUpdateStandardsTimeline = txTimelineProps.setUpdateStandardsTimeline;
-  const updateContractAddressTimeline = txTimelineProps.updateContractAddressTimeline;
-  const setUpdateContractAddressTimeline = txTimelineProps.setUpdateContractAddressTimeline;
+  // const updateOffChainBalancesMetadataTimeline = txTimelineProps.updateOffChainBalancesMetadataTimeline;
+  // const setUpdateOffChainBalancesMetadataTimeline = txTimelineProps.setUpdateOffChainBalancesMetadataTimeline;
+  // const updateCustomDataTimeline = txTimelineProps.updateCustomDataTimeline;
+  // const setUpdateCustomDataTimeline = txTimelineProps.setUpdateCustomDataTimeline;
+  // const updateInheritedBalancesTimeline = txTimelineProps.updateInheritedBalancesTimeline;
+  // const setUpdateInheritedBalancesTimeline = txTimelineProps.setUpdateInheritedBalancesTimeline;
+  // const updateStandardsTimeline = txTimelineProps.updateStandardsTimeline;
+  // const setUpdateStandardsTimeline = txTimelineProps.setUpdateStandardsTimeline;
+  // const updateContractAddressTimeline = txTimelineProps.updateContractAddressTimeline;
+  // const setUpdateContractAddressTimeline = txTimelineProps.setUpdateContractAddressTimeline;
   const updateIsArchivedTimeline = txTimelineProps.updateIsArchivedTimeline;
   const setUpdateIsArchivedTimeline = txTimelineProps.setUpdateIsArchivedTimeline;
-  const updateCollectionPermissions = txTimelineProps.updateCollectionPermissions;
-  const setUpdateCollectionPermissions = txTimelineProps.setUpdateCollectionPermissions;
+  // const updateCollectionPermissions = txTimelineProps.updateCollectionPermissions;
+  // const setUpdateCollectionPermissions = txTimelineProps.setUpdateCollectionPermissions;
 
 
 
@@ -95,7 +94,7 @@ export function UpdateCollectionTimeline({
 
   const SetCollectionMetadataStep = SetCollectionMetadataStepItem(addMethod, updateCollectionMetadataTimeline, setUpdateCollectionMetadataTimeline, existingCollectionId);
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem(addMethod, updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline, existingCollectionId);
-  const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, badgesToCreate, existingCollectionId);
+  const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, existingCollectionId);
   const CreateClaims = CreateClaimsStepItem(approvedTransfersToAdd, setApprovedTransfersToAdd, transfers, setTransfers, distributionMethod, existingCollectionId);
   const CreateCollectionStep = CreateCollectionStepItem(txTimelineProps, existingCollectionId);
   const CanCreateMoreStep = CanCreateMoreStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
@@ -106,7 +105,7 @@ export function UpdateCollectionTimeline({
   const IsArchivedSelectStep = IsArchivedSelectStepItem(updateIsArchivedTimeline, setUpdateIsArchivedTimeline, existingCollectionId);
   const CanArchiveCollectionStep = CanArchiveCollectionStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem(existingCollectionId);
-  const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers, existingCollectionId);
+  const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, existingCollectionId);
 
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
   const CanUpdateBytesStep = CanUpdateBalancesStepItem(handledPermissions, setHandledPermissions);

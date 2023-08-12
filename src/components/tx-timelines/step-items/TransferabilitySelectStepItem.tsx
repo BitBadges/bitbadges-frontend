@@ -19,8 +19,8 @@ export function TransferabilitySelectStepItem(
 
   if (!collection) return EmptyStepItem;
 
-  const approvedTransfers = collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []
-  const lastElement = approvedTransfers.length > 0 ? approvedTransfers[approvedTransfers.length - 1] : undefined;
+  // const approvedTransfers = collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []
+  // const lastElement = approvedTransfers.length > 0 ? approvedTransfers[approvedTransfers.length - 1] : undefined;
 
   //Hardcoded and naive
   const filteredApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");

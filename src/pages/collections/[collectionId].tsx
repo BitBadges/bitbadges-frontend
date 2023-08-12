@@ -1,6 +1,6 @@
 import { Divider, Empty, Layout, notification } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
@@ -8,15 +8,15 @@ import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
+import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
+import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
-import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 
 const { Content } = Layout;
 

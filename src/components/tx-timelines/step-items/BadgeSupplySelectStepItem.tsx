@@ -1,4 +1,4 @@
-import { Divider, Steps } from "antd";
+import { Divider } from "antd";
 import { Balance } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, checkBalancesActionPermission } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";

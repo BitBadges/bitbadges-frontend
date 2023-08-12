@@ -1,5 +1,5 @@
 import { ClockCircleOutlined, InfoCircleOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
-import { Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Empty, Input, Pagination, Row, Typography } from "antd";
 import { ApprovalTrackerIdDetails } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, DistributionMethod, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
@@ -11,7 +11,7 @@ import { INFINITE_LOOP_MODE, WEBSITE_HOSTNAME } from "../../constants";
 import { getTimeRangesElement, getTimeRangesString } from "../../utils/dates";
 import { downloadJson } from "../../utils/downloadJson";
 import { AddressDisplay } from "../address/AddressDisplay";
-import { BalanceDisplay } from "../balances/BalanceDisplay";
+import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { ToolIcon, tools } from "../display/ToolIcon";
 import { TransferDisplay } from "../transfers/TransferDisplay";

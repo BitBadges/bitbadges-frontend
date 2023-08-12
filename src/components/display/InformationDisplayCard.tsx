@@ -16,9 +16,9 @@ export function InformationDisplayCard({
   return (
     <Col span={span ? span : 24} style={{ padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
       <div className="primary-text">
-        <Row className='full-width flex-center'>
+        <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>
-            <Row className='full-width flex-center'>
+            <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
               <Text strong style={{ fontSize: 22 }} className="primary-text">
                 {title}
               </Text>

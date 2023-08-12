@@ -3,10 +3,9 @@ import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
 import React, { useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
-import { Numberify } from 'bitbadgesjs-utils';
-import { AddressDisplay } from '../address/AddressDisplay';
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,
 }: {
@@ -48,7 +47,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
           }}
           className='primary-text primary-blue-bg'
           min={0}
-          // max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
+        // max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
         />
         <br />
         <b>Current Balance: {`${signedInAccount?.balance?.amount}`} $BADGE</b>

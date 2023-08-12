@@ -1,7 +1,6 @@
 import { Balance } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, DistributionMethod, TransferWithIncrements } from "bitbadgesjs-utils";
 import { CreateClaims } from "../form-items/CreateClaims";
-import { useState } from "react";
 export function CreateClaimsStepItem(
   approvedTransfers: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[],
   setApprovedTransfers: (transfers: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]) => void,

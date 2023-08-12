@@ -2,8 +2,6 @@ import React from 'react';
 import { Layout } from 'antd';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-// import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
-import { CreateTxMsgUpdateCollectionModal } from '../../components/tx-modals/CreateTxMsgUpdateCollection';
 import { TxTimeline, MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 
 const { Content } = Layout;

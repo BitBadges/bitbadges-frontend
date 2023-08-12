@@ -1,16 +1,15 @@
-import { Avatar, Button, Card, Col, Divider, Layout, Row, Typography } from 'antd';
+import { Button, Card, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
 // import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 // import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+import { DownOutlined, UpOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { ApiOutlined, BankOutlined, ClockCircleOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, EditOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, LikeOutlined, LockOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
-import { COSMOS_LOGO, ETH_LOGO } from '../constants';
 
 
-const LandingCard = ({ content, additionalContent }: {
+export const LandingCard = ({ content, additionalContent }: {
   content: JSX.Element,
   additionalContent?: JSX.Element
 }) => {
@@ -63,7 +62,7 @@ const Home: NextPage = () => {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', }}>
               <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="300px" width="300px" quality={60} />
               {/* <Typography.Text strong className='primary-text' style={{  fontSize: 20 }}>BitBadges</Typography.Text> */}
-              <Typography.Text strong className='secondary-text' style={{ fontSize: 24 }}>Collect badges and build your Web3 identity!</Typography.Text>
+              <Typography.Text strong className='secondary-text' style={{ fontSize: 24 }}>Collect badges and build your digital identity!</Typography.Text>
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
               </Typography.Text> */}

@@ -12,7 +12,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
     ? `calc(100% / ${tabInfo.length})`
     : undefined;
 
-  const tabs = tabInfo.map((tab) => {
+  const tabs = tabInfo.map((tab,) => {
     const menuItem = (
       <Menu.Item
         disabled={tab.disabled}

@@ -32,7 +32,7 @@ export function CreateTxMsgClaimBadgeModal(
 
   const approvalId = approvedTransfer?.approvalDetails[0].approvalId;
 
-  const claimObject = claimItem;
+  // const claimObject = claimItem;
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
   const requiresProof = (approvedTransfer?.approvalDetails[0].merkleChallenges ?? []).length > 0;
@@ -51,6 +51,7 @@ export function CreateTxMsgClaimBadgeModal(
   // const isCodes = !isWhitelist;
 
   useEffect(() => {
+    if (!visible) return;
     if (INFINITE_LOOP_MODE) console.log('useEffect: code to submit ');
     // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
     async function fetchCode() {
@@ -67,9 +68,11 @@ export function CreateTxMsgClaimBadgeModal(
       }
     }
     fetchCode();
-  }, [claimItem, code, collectionId]);
+  }, [claimItem, code, collectionId, visible]);
 
   useEffect(() => {
+    if (!visible) return;
+
     if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
     if (claimItem) {
       const tree = new MerkleTree(claimItem.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
@@ -79,7 +82,7 @@ export function CreateTxMsgClaimBadgeModal(
       });
       setTree(tree);
     }
-  }, [claimItem]);
+  }, [claimItem, visible]);
 
 
   if (!collection) return <></>;
@@ -112,8 +115,6 @@ export function CreateTxMsgClaimBadgeModal(
       memo: ''
     }],
   };
-
-  console.log("TX MSG", txCosmosMsg);
 
   return (
     <TxModal

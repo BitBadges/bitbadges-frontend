@@ -1,11 +1,10 @@
 import { Form, Input, Typography } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { INFINITE_LOOP_MODE } from "../../../constants";
+import { FOREVER_DATE } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { DefaultPlaceholderMetadata } from "bitbadgesjs-utils";
-import { FOREVER_DATE } from "../../../utils/dates";
-import { INFINITE_LOOP_MODE } from "../../../constants";
 
 const { Text } = Typography;
 

@@ -10,6 +10,13 @@ const nextConfig = {
         BACKEND_PORT: process.env.BACKEND_PORT ? process.env.BACKEND_PORT : '',
         MAINNET: process.env.MAINNET === 'true' ? true : false,
     },
+    // typescript: {
+    //     // !! WARN !!
+    //     // Dangerously allow production builds to successfully complete even if
+    //     // your project has type errors.
+    //     // !! WARN !!
+    //     ignoreBuildErrors: true,
+    // },
 };
 
 require('dotenv').config();

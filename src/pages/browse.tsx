@@ -1,9 +1,9 @@
 import { Divider, Layout, Tabs } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { useEffect, useState } from 'react';
 import { getBrowseCollections } from '../bitbadges-api/api';
-import { CollectionDisplay } from '../components/collections/CollectionDisplay';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
-import { BitBadgesCollection, GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { MultiCollectionBadgeDisplay } from '../components/badges/MultiCollectionBadgeDisplay';
 import { INFINITE_LOOP_MODE } from '../constants';
 
 const { Content } = Layout;
@@ -20,10 +20,16 @@ function BrowsePage() {
     async function getCollections() {
       const browseInfo = await getBrowseCollections();
       if (!browseInfo) return;
+      console.log("browseInfo", browseInfo);
 
+      const updatedIds: bigint[] = [];
       for (const category of Object.keys(browseInfo)) {
         for (const collection of browseInfo[category]) {
+
+          if (updatedIds.includes(collection.collectionId)) continue;
+          console.log("UPDATING COLLECTION");
           collections.updateCollection(collection);
+          updatedIds.push(collection.collectionId);
         }
       }
 
@@ -75,27 +81,34 @@ function BrowsePage() {
             tabBarStyle={{ color: 'white' }}
             tabPosition='top'
             centered
+            items={
+              browseInfo ? Object.keys(browseInfo).map((category) => {
+                return { label: category.charAt(0).toUpperCase() + category.slice(1), key: category }
+              }) : undefined}
           >
-            {browseInfo ? Object.keys(browseInfo).map(category => {
-              return <Tabs.TabPane tab={category.charAt(0).toUpperCase() + category.slice(1)} key={category} />
-            }) : []}
+
           </Tabs>
 
 
           <div>
             <br />
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-              {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>) => {
+              <MultiCollectionBadgeDisplay
+                collectionIds={(browseInfo && browseInfo[tab]?.map(collection => collection.collectionId)) ?? []}
+                groupByCollection
+              />
+
+              {/* {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>, idx) => {
                 const collection = collections.collections[portfolioCollection.collectionId.toString()]
                 if (!collection) return null;
 
                 return <>
                   <CollectionDisplay
-                    key={portfolioCollection.collectionId.toString()}
+                    key={idx}
                     collectionId={portfolioCollection.collectionId}
                   />
                 </>
-              })}
+              })} */}
             </div>
           </div>
         </div>

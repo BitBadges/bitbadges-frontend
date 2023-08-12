@@ -1,12 +1,12 @@
 
 import { Avatar, Menu, Spin, Typography } from 'antd';
 import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse } from 'bitbadgesjs-utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { AddressDisplay } from '../address/AddressDisplay';
 
 export function SearchDropdown({
   searchValue,

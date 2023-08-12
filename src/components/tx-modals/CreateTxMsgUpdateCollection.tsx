@@ -2,14 +2,13 @@ import { notification } from 'antd';
 import { CollectionApprovedTransferTimeline, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
 import { BadgeMetadataDetails, DistributionMethod, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { addBalancesToIpfs, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { FOREVER_DATE } from '../../utils/dates';
-import { EmptyStepItem, MSG_PREVIEW_ID, MsgUpdateCollectionProps, TxTimeline } from '../tx-timelines/TxTimeline';
+import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, TxTimeline } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function CreateTxMsgUpdateCollectionModal(
   { visible, setVisible, children, collectionId, doNotShowTimeline, inheritedTxState }
@@ -25,7 +24,7 @@ export function CreateTxMsgUpdateCollectionModal(
   const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
+  // const existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
 
   const [txState, setTxState] = useState<MsgUpdateCollectionProps | undefined>(inheritedTxState ?? undefined);
 
@@ -136,7 +135,7 @@ export function CreateTxMsgUpdateCollectionModal(
         //TODO: Test this
         //TODO: Same with collection metadata and claims and balances
         prunedMetadata = prunedMetadata.filter(x => x.toUpdate);
-        
+
         let res = await addMetadataToIpfs({
           collectionMetadata: txState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
           badgeMetadata: txState.updateBadgeMetadataTimeline ? prunedMetadata : undefined,

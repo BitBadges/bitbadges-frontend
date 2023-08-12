@@ -34,7 +34,7 @@ export function WalletHeader() {
   const account = accounts.getAccount(chain.address);
 
   const [searchValue, setSearchValue] = useState<string>('');
-  const [_cookies, _setCookie, removeCookie] = useCookies(['blockincookie']);
+  const [_cookies, _setCookie] = useCookies(['blockincookie']);
   const [visible, setVisible] = useState<boolean>(false);
 
   const address = chain.address;

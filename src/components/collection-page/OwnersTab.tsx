@@ -8,7 +8,7 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsC
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getPageDetails } from '../../utils/pagination';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
@@ -129,7 +129,7 @@ export function OwnersTab({ collectionId, badgeId }: {
           <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} />
 
           {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-           
+
             if (idx < pageStartId - 1 || idx > pageEndId - 1) {
               return <></>
             } else {

@@ -1,26 +1,17 @@
-import { Avatar, Divider } from "antd";
-import { UniversalPermissionDetails, castTimedUpdatePermissionToUniversalPermission, checkTimedUpdatePermission, convertToCosmosAddress, TimedUpdatePermissionUsedFlags, validateManagerUpdate, validateIsArchivedUpdate } from "bitbadgesjs-utils";
-import { useState } from "react";
-import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
-import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
+import { Divider } from "antd";
+import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, validateIsArchivedUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { FOREVER_DATE } from "../../../utils/dates";
-import { AddressDisplay } from "../../address/AddressDisplay";
-import { AddressSelect } from "../../address/AddressSelect";
-import { BlockiesAvatar } from "../../address/Blockies";
+import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { PermissionIcon } from "../../collection-page/PermissionsInfo";
-import { TimedUpdatePermission, UintRange } from "bitbadgesjs-proto";
 
 export function IsArchivedSelectStepItem(
   canArchiveCollection: boolean,
   setCanArchiveCollection: (canArchiveCollection: boolean) => void,
   existingCollectionId?: bigint
 ) {
-  const chain = useChainContext();
-  const accounts = useAccountsContext();
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
 

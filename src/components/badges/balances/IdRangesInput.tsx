@@ -3,26 +3,22 @@ import { Button, Divider, Input, InputNumber, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
+import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
+import { SwitchForm } from "../../tx-timelines/form-items/SwitchForm";
 
 export function UintRangesInput({
   uintRanges,
   setUintRanges,
   maximum,
   minimum,
-  verb,
   collectionId,
-  defaultAllSelected = true,
   hideSelect
 }: {
   uintRanges?: UintRange<bigint>[],
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
   maximum?: bigint,
   minimum?: bigint,
-  verb?: string,
   collectionId: bigint,
-  defaultAllSelected?: boolean,
   hideSelect?: boolean,
 }) {
   // const isDefaultAllSelected = uintRanges ? uintRanges.length === 1 && uintRanges[0].start === minimum && uintRanges[0].end === maximum : defaultAllSelected;

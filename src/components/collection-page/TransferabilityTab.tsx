@@ -3,7 +3,6 @@ import { Divider, Popover, Select, Tooltip, Typography } from 'antd';
 import { ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovedTransferWithDetails, getCurrentValueIdxForTimeline, getFirstMatchForCollectionApprovedTransfers, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
@@ -11,7 +10,7 @@ import { getBadgeIdsString } from '../../utils/badgeIds';
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressDisplayList } from '../address/AddressDisplayList';
-import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 
 export const getTableHeader = () => {
   return <tr>
@@ -465,11 +464,10 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
 }
 
 
-export function TransferabilityTab({ collectionId, badgeId, setTab, address }: {
+export function TransferabilityTab({ collectionId, badgeId, setTab }: {
   collectionId: bigint,
   badgeId?: bigint,
   setTab?: (tab: string) => void,
-  address?: string,
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
@@ -477,8 +475,6 @@ export function TransferabilityTab({ collectionId, badgeId, setTab, address }: {
   const [defaultIdx, setDefaultIdx] = useState<number>(Number(currTransferabilityIdx));
   const chain = useChainContext();
 
-  const accounts = useAccountsContext();
-  const approverAccount = address ? accounts.getAccount(address) : undefined;
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers b');
@@ -550,7 +546,7 @@ export function TransferabilityTab({ collectionId, badgeId, setTab, address }: {
 
   return (
     <div className='primary-text'>
-      <br/>
+      <br />
       <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
 
         {collection && ((collection?.collectionApprovedTransfersTimeline.length > 1)) ?

@@ -11,9 +11,9 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsC
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { FOREVER_DATE } from '../../utils/dates';
-import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
-import { BalanceDisplay } from '../balances/BalanceDisplay';
-import { BalancesInput } from '../balances/BalancesInput';
+import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalancesInput } from '../badges/balances/BalancesInput';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { ClaimsTab } from '../collection-page/ClaimsTab';
 import { Pagination } from '../common/Pagination';

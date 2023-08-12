@@ -1,8 +1,7 @@
 import { Dropdown, Input } from 'antd';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { SearchDropdown } from '../navigation/SearchDropdown';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 export enum EnterMethod {
   Single = 'Single',

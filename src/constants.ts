@@ -13,7 +13,7 @@ export const BACKEND_URL = `https://${HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
 export const DEV_MODE = false;
-export const INFINITE_LOOP_MODE = true;
+export const INFINITE_LOOP_MODE = false;
 
 
 

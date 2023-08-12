@@ -1,5 +1,5 @@
 import { Avatar, Divider } from "antd";
-import { UniversalPermissionDetails, castTimedUpdatePermissionToUniversalPermission, checkTimedUpdatePermission, convertToCosmosAddress, TimedUpdatePermissionUsedFlags, validateManagerUpdate } from "bitbadgesjs-utils";
+import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, validateManagerUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
@@ -8,11 +8,10 @@ import { FOREVER_DATE } from "../../../utils/dates";
 import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
+import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { PermissionIcon } from "../../collection-page/PermissionsInfo";
-import { TimedUpdatePermission, UintRange } from "bitbadgesjs-proto";
 
 export function ConfirmManagerStepItem(
   canUpdateManager: boolean,
@@ -30,30 +29,30 @@ export function ConfirmManagerStepItem(
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
   if (!collection) return EmptyStepItem;
-  const permissions: TimedUpdatePermission<bigint>[] = [{
-    defaultValues: {
-      timelineTimes: [],
-      forbiddenTimes: [],
-      permittedTimes: [],
-    },
-    combinations: [{
-      timelineTimesOptions: {
-        invertDefault: false,
-        allValues: true,
-        noValues: false,
-      },
-      forbiddenTimesOptions: {
-        invertDefault: false,
-        allValues: true,
-        noValues: false,
-      },
-      permittedTimesOptions: {
-        invertDefault: false,
-        allValues: false,
-        noValues: false,
-      },
-    }]
-  }];
+  // const permissions: TimedUpdatePermission<bigint>[] = [{
+  //   defaultValues: {
+  //     timelineTimes: [],
+  //     forbiddenTimes: [],
+  //     permittedTimes: [],
+  //   },
+  //   combinations: [{
+  //     timelineTimesOptions: {
+  //       invertDefault: false,
+  //       allValues: true,
+  //       noValues: false,
+  //     },
+  //     forbiddenTimesOptions: {
+  //       invertDefault: false,
+  //       allValues: true,
+  //       noValues: false,
+  //     },
+  //     permittedTimesOptions: {
+  //       invertDefault: false,
+  //       allValues: false,
+  //       noValues: false,
+  //     },
+  //   }]
+  // }];
   const err = existingCollection ? validateManagerUpdate(existingCollection.managerTimeline, collection.managerTimeline, existingCollection.collectionPermissions.canUpdateManager) : undefined;
 
   // const err = validateManagerUpdate(existingCollection?.managerTimeline ?? [], collection.managerTimeline, permissions);

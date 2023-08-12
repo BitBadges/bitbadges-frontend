@@ -4,7 +4,7 @@ import { useCollectionsContext } from '../../../bitbadges-api/contexts/Collectio
 import { DevMode } from '../../common/DevMode';
 import { MSG_PREVIEW_ID } from '../TxTimeline';
 import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { FOREVER_DATE } from '../../../utils/dates';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
