@@ -1,5 +1,5 @@
 import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintsFromUintRange, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, removeUintsFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { createContext, useContext, useState } from 'react';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
@@ -30,7 +30,7 @@ export type CollectionsContextType = {
   triggerMetadataRefresh: (collectionId: DesiredNumberType) => Promise<void>,
 
   //Custom fetch functions (not paginated views)
-  fetchAndUpdateMetadata: (collectionId: DesiredNumberType, fetchOptions: MetadataFetchOptions) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
+  fetchAndUpdateMetadata: (collectionId: DesiredNumberType, fetchOptions: MetadataFetchOptions, fetchDirectly?: boolean) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
   fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<BalanceInfo<DesiredNumberType>>,
 
   //Custom fetch functions (paginated views). This handles all pagination logic for you. Just pass in the viewKeys you want to fetch and it will fetch the next page for each of them.
@@ -90,14 +90,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     let cachedCollection = collectionsMap[`${newCollection.collectionId}`];
     const cachedCollectionCopy = JSON.stringify(cachedCollection);
     if (cachedCollection) {
-      let newBadgeMetadata = cachedCollection?.badgeMetadata || [];
-      for (const badgeMetadata of newCollection.badgeMetadata) {
+      let newBadgeMetadata = cachedCollection?.cachedBadgeMetadata || [];
+      for (const badgeMetadata of newCollection.cachedBadgeMetadata) {
         newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, badgeMetadata);
       }
 
       const newViews = cachedCollection?.views || {};
-
-      console.log("VIEWS", cachedCollection.views);
 
       for (const [key, val] of Object.entries(newCollection.views)) {
         if (!val) continue;
@@ -128,8 +126,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
       cachedCollection = {
         ...newCollection,
-        collectionMetadata: newCollection.collectionMetadata || cachedCollection?.collectionMetadata,
-        badgeMetadata: newBadgeMetadata,
+        cachedCollectionMetadata: newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
+        cachedBadgeMetadata: newBadgeMetadata,
         reviews: [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])],
         announcements: [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])],
         activity: [...(newCollection?.activity || []), ...(cachedCollection.activity || [])],
@@ -162,11 +160,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
       collectionsMap[`${newCollection.collectionId}`] = cachedCollection;
 
-      console.log('Adding new collection to cache');
 
       //Only update if anything has changed
       if (JSON.stringify(cachedCollection) !== cachedCollectionCopy) {
-        console.log("Updating collection");
         setCollections(deepCopy(collectionsMap)); //TODO: Optimize this. Without it, it does not trigger a reload
       }
       return cachedCollection;
@@ -193,7 +189,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (forceful) {
       res = await getBadgeBalanceByAddress(collectionId, account.cosmosAddress);
     } else {
-      console.log("COLLECTIOn", collection);
 
       const cachedBalance = collection.owners.find(x => x.cosmosAddress === account.cosmosAddress);
       if (cachedBalance) {
@@ -220,12 +215,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (collectionsToFetch.some(x => x === MSG_PREVIEW_ID)) {
       throw new Error('Cannot fetch preview collection ID === 0');
     }
-
     return await fetchCollectionsWithOptions(collectionsToFetch.map(x => {
       return {
         collectionId: x,
         viewsToFetch: [],
         fetchTotalAndMintBalances: true,
+        handleAllAndAppendDefaults: true,
       }
     }), forcefulRefresh);
   }
@@ -238,14 +233,14 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
 
     const metadataToFetch: MetadataFetchOptions = {
-      doNotFetchCollectionMetadata: cachedCollection.collectionMetadata !== undefined || metadataFetchReq?.doNotFetchCollectionMetadata,
+      doNotFetchCollectionMetadata: cachedCollection.cachedCollectionMetadata !== undefined || metadataFetchReq?.doNotFetchCollectionMetadata,
     };
 
     if (metadataFetchReq) {
       //See if we already have the metadata corresponding to the uris
       if (metadataFetchReq.uris) {
         for (const uri of metadataFetchReq.uris) {
-          if (cachedCollection.badgeMetadata.find(x => x.uri === uri) === undefined) {
+          if (cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri) === undefined) {
             metadataToFetch.uris = metadataToFetch.uris || [];
             metadataToFetch.uris.push(uri);
           }
@@ -261,7 +256,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           if (typeof metadataIdCastedAsNumber === 'object' && metadataIdCastedAsUintRange.start && metadataIdCastedAsUintRange.end) {
             const uintRange = convertUintRange(metadataIdCastedAsUintRange, BigIntify);
             for (let i = uintRange.start; i <= uintRange.end; i++) {
-              const existingMetadata = cachedCollection.badgeMetadata.find(x => x.metadataId === i);
+              const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.metadataId === i);
               if (!existingMetadata) {
                 metadataToFetch.uris = metadataToFetch.uris || [];
                 const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
@@ -275,9 +270,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
             const uris = getUrisForMetadataIds([BigInt(metadataIdCastedAsNumber)], collectionMetadata?.uri || '', badgeMetadata);
             for (const uri of uris) {
-              const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
+              const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
               if (!existingMetadata) {
-                if (cachedCollection.badgeMetadata.find(x => x.uri === uri) === undefined) {
+                if (cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri) === undefined) {
                   metadataToFetch.uris = metadataToFetch.uris || [];
                   metadataToFetch.uris.push(uri);
                 }
@@ -293,12 +288,11 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           const badgeIdCastedAsUintRange = badgeId as UintRange<DesiredNumberType>;
           const badgeIdCastedAsNumber = badgeId as DesiredNumberType;
           if (typeof badgeIdCastedAsNumber === 'object' && badgeIdCastedAsUintRange.start && badgeIdCastedAsUintRange.end) {
-            const badgeIdsLeft = [convertUintRange(badgeIdCastedAsUintRange, BigIntify)]
+            let badgeIdsLeft = [convertUintRange(badgeIdCastedAsUintRange, BigIntify)]
 
             //While we still have badgeIds to handle
             while (badgeIdsLeft.length > 0) {
-              const currBadgeUintRange = badgeIdsLeft.pop();
-              if (!currBadgeUintRange) continue;
+              const currBadgeUintRange = badgeIdsLeft[0];
 
               const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
 
@@ -307,7 +301,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
               const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
               for (const uri of uris) {
-                const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
+                const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
                 if (!existingMetadata) {
                   metadataToFetch.uris = metadataToFetch.uris || [];
                   metadataToFetch.uris.push(uri);
@@ -316,23 +310,24 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
               //Remove other badgeIds that map to the same metadataId and add any remaining back to the queue
               const otherMatchingBadgeUintRanges = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-              for (const badgeUintRange of otherMatchingBadgeUintRanges) {
-                const [updatedBadgeUintRanges, _] = removeUintsFromUintRange(badgeUintRange, currBadgeUintRange);
-                if (updatedBadgeUintRanges.length > 0) {
-                  badgeIdsLeft.push(...updatedBadgeUintRanges);
-                }
-              }
+              const [remaining,] = removeUintRangeFromUintRange(otherMatchingBadgeUintRanges, badgeIdsLeft);
+              badgeIdsLeft = remaining
+              // for (const badgeUintRange of otherMatchingBadgeUintRanges) {
+              //   const [updatedBadgeUintRanges, _] = removeUintsFromUintRange(badgeUintRange, currBadgeUintRange);
+              //   if (updatedBadgeUintRanges.length > 0) {
+              //     badgeIdsLeft.push(...updatedBadgeUintRanges);
+              //   }
+              // }
+              badgeIdsLeft = sortUintRangesAndMergeIfNecessary(badgeIdsLeft);
             }
           } else {
             const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-
-            console.log(badgeIdCastedAsNumber, "BADGEIDCASTEDASNUMBER")
             const metadataId = getMetadataIdForBadgeId(BigInt(badgeIdCastedAsNumber), badgeMetadata);
             if (metadataId === -1) throw new Error('Badge does not exist');
 
             const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
             for (const uri of uris) {
-              const existingMetadata = cachedCollection.badgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
+              const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
               if (!existingMetadata) {
                 metadataToFetch.uris = metadataToFetch.uris || [];
                 metadataToFetch.uris.push(uri);
@@ -342,6 +337,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
     }
+
+
 
     return metadataToFetch;
   }
@@ -363,6 +360,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const batchRequestBody: GetCollectionBatchRouteRequestBody = {
       collectionsToFetch: []
     };
+
+
     for (const collectionToFetch of collectionsToFetch) {
       if (forcefulRefresh) {
         collections[`${collectionToFetch.collectionId}`] = undefined;
@@ -378,13 +377,16 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
           merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
           approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
+          handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
         });
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionToFetch.collectionId, collectionToFetch.metadataToFetch);
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
+        const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
+        const shouldFetchTotalAndMint = !hasTotalAndMint && collectionToFetch.fetchTotalAndMintBalances;
 
-        if (shouldFetchMetadata || viewsToFetch.length > 0) {
+        if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || (collectionToFetch.merkleChallengeIdsToFetch ?? []).length > 0 || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).length > 0) {
           batchRequestBody.collectionsToFetch.push({
             collectionId: collectionToFetch.collectionId,
             metadataToFetch: prunedMetadataToFetch,
@@ -392,6 +394,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
             merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
             approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
+            handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
           });
         }
       }
@@ -409,7 +412,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getCollections(batchRequestBody);
-
     //Update collections map
     const collectionsMap = collections;
     for (let i = 0; i < res.collections.length; i++) {
@@ -433,40 +435,53 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   async function fetchAndUpdateMetadata(collectionId: DesiredNumberType, metadataToFetch: MetadataFetchOptions, fetchDirectly = false) {
     //This is only supported with badgeIDs and metadataIDs (no generic uris)
     if (fetchDirectly) {
-      const updatedCollection = getCollection(collectionId);
-      if (!updatedCollection) throw new Error('Collection does not exist');
+      const _updatedCollection = getCollection(collectionId);
+      if (!_updatedCollection) throw new Error('Collection does not exist');
+
+      const updatedCollection = deepCopy(_updatedCollection);
 
       //Fetch collection metadata if we don't have it
       if (!metadataToFetch.doNotFetchCollectionMetadata) {
         const { collectionMetadata } = getCurrentMetadata(updatedCollection);
         const collectionUri = collectionMetadata?.uri || '';
         if (Joi.string().uri().validate(collectionUri).error) {
-          updatedCollection.collectionMetadata = ErrorMetadata;
+          updatedCollection.cachedCollectionMetadata = ErrorMetadata;
         } else {
-          const collectionMetadataRes = await fetchMetadataDirectly({ uri: collectionUri });
-          updatedCollection.collectionMetadata = collectionMetadataRes.metadata;
+          const collectionMetadataRes = await fetchMetadataDirectly({ uris: [collectionUri] });
+          updatedCollection.cachedCollectionMetadata = collectionMetadataRes.metadata[0];
         }
       }
 
       //Check if we have all metadata corresponding to the badgeIds. If not, fetch directly.
       const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionId, metadataToFetch);
+      const metadataResponses = await fetchMetadataDirectly({ uris: prunedMetadataToFetch.uris || [] });
+
+      let i = 0;
       for (const uri of prunedMetadataToFetch.uris || []) {
+
         const { badgeMetadata } = getCurrentMetadata(updatedCollection);
-        const metadataRes = await fetchMetadataDirectly({ uri: uri });
+
+        const isValidUri = !Joi.string().uri().validate(uri).error;
+        // const badgeMetadataRes = await fetchMetadataDirectly({ uris: [uri] });
+        const metadataRes = isValidUri ? metadataResponses.metadata[i] : ErrorMetadata;
         const metadataId = getMetadataIdForUri(uri, badgeMetadata);
         if (metadataId === -1) throw new Error(`Error getting metadataId for uri ${uri}`);
 
         const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-        updatedCollection.badgeMetadata = updateBadgeMetadata(updatedCollection.badgeMetadata, { uri: uri, metadata: metadataRes.metadata, metadataId: metadataId, badgeIds: badgeIds });
+        updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
+        i++;
       }
+
+      updateCollection(updatedCollection, true);
 
       return [updatedCollection];
     }
 
-
     return await fetchCollectionsWithOptions([{
       collectionId: collectionId,
       metadataToFetch: metadataToFetch,
+      fetchTotalAndMintBalances: true,
+      handleAllAndAppendDefaults: true,
       viewsToFetch: []
     }]);
   }
@@ -500,7 +515,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (!collection) return [];
 
     return collection.views[viewKey]?.ids.map(x => {
-      return collection.badgeMetadata.find(y => y.metadataId && y.metadataId?.toString() === x);
+      return collection.cachedBadgeMetadata.find(y => y.metadataId && y.metadataId?.toString() === x);
     }) as BadgeMetadataDetails<DesiredNumberType>[];
   }
 

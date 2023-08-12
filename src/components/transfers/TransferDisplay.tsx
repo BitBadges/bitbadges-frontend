@@ -1,12 +1,13 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Col, Empty, Row, Tooltip, Typography } from "antd";
+import { Avatar, Col, Divider, Empty, Row, Tooltip, Typography } from "antd";
 import { Numberify, TransferWithIncrements } from "bitbadgesjs-utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
+import { INFINITE_LOOP_MODE } from "../../constants";
 
 const { Text } = Typography
 
@@ -27,22 +28,27 @@ export function TransferDisplay({
   deletable?: boolean;
 }) {
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
   const [page, setPage] = useState(0);
 
-  const transfer = transfers[page];
+
+  const transfer = transfers.length > 0 ? transfers[page] : undefined;
+
 
   useEffect(() => {
-    accountsRef.current.fetchAccounts(transfer.toAddresses);
-  }, [transfer.toAddresses]);
+    if (INFINITE_LOOP_MODE) console.log('useEffect: transfer display, fetch accounts ');
+    if (!transfer) return;
+
+    accounts.fetchAccounts(transfer.toAddresses);
+  }, [transfer]);
 
 
-  const toLength = transfer.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer.toAddresses.length);
+  const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
-  return <div style={{ marginTop: 4 }}    >
+  return <><div style={{ marginTop: 4 }}    >
     {
       transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
         <Empty description='None'
@@ -53,56 +59,52 @@ export function TransferDisplay({
     }
     <br />
 
-    <div >
-      {!hideBalances && <div>
-        {collection &&
-          <BalanceDisplay
-            message={'Badges Transferred'}
-            collectionId={collectionId}
-            balances={transfer.balances}
-            numIncrements={toLength}
-            incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
-            incrementOwnedTimesBy={transfer.incrementOwnedTimesBy}
+    {!hideBalances && transfer && <div>
+      {collection &&
+        <BalanceDisplay
+          message={'Badges Transferred'}
+          collectionId={collectionId}
+          balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
+          numIncrements={toLength}
+          incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
+          incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
 
-          />}
-      </div>}
+        />}
+    </div>}
 
-      {
-        !hideAddresses && <div>
-          <br />
-          <Row>
-            <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-              <AddressDisplayList
-                users={[transfer.from]}
-                toLength={Numberify(toLength)}
-                title={'From'}
-                fontSize={18}
-                center
-              />
-            </Col>
-            <Col md={2} xs={1} sm={1} style={{ textAlign: 'center', justifyContent: 'center', minHeight: 20 }}>
-              {/* <FontAwesomeIcon icon={faArrowRight} /> */}
-            </Col>
 
-            <Col md={11} sm={24} xs={24} style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-              <AddressDisplayList
-                users={transfer.toAddresses}
-                toLength={Numberify(toLength)}
-                title={'To'}
-                fontSize={18}
-                center
-              />
-              {!!toLength && toLength > 0 &&
-                <>
-                  <Text strong>
-                    {`First ${toLength} users to claim`}
-                  </Text>
-                </>}
-            </Col>
-          </Row>
+    {
+      !hideAddresses && transfer && <div className="full-width">
+        <br />
+        <div className="flex-center flex-wrap">
+          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
+            <AddressDisplayList
+              users={[transfer.from]}
+              toLength={Numberify(toLength)}
+              title={'From'}
+              fontSize={15}
+              center
+            />
+          </div>
+
+          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
+            <AddressDisplayList
+              users={transfer.toAddresses}
+              toLength={Numberify(toLength)}
+              title={'To'}
+              fontSize={15}
+              center
+            />
+            {!!transfer?.toAddressesLength && transfer?.toAddressesLength > 0 &&
+              <>
+                <Text strong className='secondary-text' style={{ fontSize: 14 }}>
+                  {`First ${toLength} to Claim`}
+                </Text>
+              </>}
+          </div>
         </div>
-      }
-    </div >
+      </div>
+    }
     {deletable && setTransfers && <div style={{ textAlign: 'center' }}>
       <br />
       <Avatar
@@ -118,5 +120,6 @@ export function TransferDisplay({
       <br />
     </div>}
   </div>
+  </>
 
 }

@@ -2,12 +2,12 @@ import { Col, Collapse, Divider, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { TransferActivityInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { DesiredNumberType } from '../../bitbadges-api/api';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
@@ -19,25 +19,32 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
   hasMore: boolean
 }) {
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
+  useEffect(() => {
+    if (hasMore) {
+      fetchMore();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   // Fetch the accounts and collections for the activity
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: activity display');
     async function getActivity() {
       if (!activity) return;
 
-      const accountsToFetch = activity.map(a => { return [...new Set([...a.from, ...a.to])].filter(a => a !== 'Mint') }).flat();
+      const accountsToFetch = activity.map(a => { return [...new Set([a.from, ...a.to])].filter(a => a !== 'Mint') }).flat();
       const collectionsToFetch = activity.map(a => a.collectionId);
 
-      await collectionsRef.current.fetchCollections(collectionsToFetch);
-      await accountsRef.current.fetchAccounts(accountsToFetch);
-
-      if (INFINITE_LOOP_MODE) console.log("ActivityDisplay");
+      await collections.fetchCollections(collectionsToFetch);
+      await accounts.fetchAccounts(accountsToFetch);
     }
     getActivity();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activity]);
 
 
@@ -48,7 +55,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
         <div className='flex-center flex-column'>
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
         </div>
-        : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} />)}</>}
+        : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={18} />)}</>}
     </div>
   }
 
@@ -95,7 +102,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                         <b style={{ marginRight: 8 }}>to</b>
                         {getPanelHeaderAddress(activity.to)}
                       </Col>
-                      <div>{activity.method} ({new Date(activity.timestamp.toString()).toLocaleDateString()} {new Date(activity.timestamp.toString()).toLocaleTimeString()})</div>
+                      <div>{activity.method} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
                     </Row>
                   }
                 >
@@ -120,7 +127,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                                 }}
                               >
                                 <a>
-                                  {collection?.collectionMetadata?.name}
+                                  {collection?.cachedCollectionMetadata?.name}
                                 </a>
                               </div>
                               {collection &&

@@ -23,7 +23,7 @@ export function ClaimMetadataSelectSelectStep(
   }
 
   return {
-    title: 'Confirm',
+    title: 'Metadata',
     description: <div>
       <>
         <br />
@@ -77,6 +77,6 @@ export function ClaimMetadataSelectSelectStep(
         </Form>
       </>
     </div>,
-    disabled: !merkleChallengeDetails.name || !merkleChallengeDetails.description,
+    // disabled: !merkleChallengeDetails.name || !merkleChallengeDetails.description,
   }
 }

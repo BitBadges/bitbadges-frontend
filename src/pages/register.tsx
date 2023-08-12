@@ -25,20 +25,21 @@ function RegisterScreen({ message }: { message?: string }) {
         }}
       >
         <div>
-          <Content>
-            <Text
-              strong
-              style={{ fontSize: 20 }} className='primary-text'
-            >
-              {message ? message
-                : 'It looks like you have not claimed your airdrop yet!'}
-            </Text>
-          </Content>
+
           <DisconnectedWrapper
             message='Please connect a wallet and sign in to claim your airdrop.'
             requireLogin
             node={
               <Content style={{ paddingTop: '15px' }}>
+                <Content>
+                  <Text
+                    strong
+                    style={{ fontSize: 20 }} className='primary-text'
+                  >
+                    {message ? message
+                      : 'It looks like you have not claimed your airdrop yet!'}
+                  </Text>
+                </Content>
                 <Button
                   loading={loading}
                   type="primary"
@@ -48,14 +49,12 @@ function RegisterScreen({ message }: { message?: string }) {
                     const height = res.height;
                     let currStatus = status.status;
                     while (currStatus.block.height <= height) {
-                      console.log(status.status.block.height, height);
                       const statusRes = await status.updateStatus();
                       currStatus = statusRes
                       await new Promise(resolve => setTimeout(resolve, 1000));
                     }
 
-                    const res1 = await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true }], true);
-                    console.log(res1);
+                    const res1 = await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
 
                     setLoading(false);
                   }}

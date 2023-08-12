@@ -1,17 +1,17 @@
 import { Modal, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalancesForId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 
+import { INFINITE_LOOP_MODE } from "../../constants";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
-import { INFINITE_LOOP_MODE } from "../../constants";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -33,8 +33,7 @@ export function MultiCollectionBadgeDisplay({
   hidePagination?: boolean;
 }) {
   const accountsContext = useAccountsContext();
-  const collectionsContext = useCollectionsContext();
-  const collectionsRef = useRef(collectionsContext);
+  const collections = useCollectionsContext();
   const router = useRouter();
   const accountInfo = addressOrUsernameToShowBalance ? accountsContext.getAccount(addressOrUsernameToShowBalance) : undefined;
 
@@ -66,7 +65,9 @@ export function MultiCollectionBadgeDisplay({
         const balanceInfo = balances.find(balance => balance.collectionId === collectionId);
         for (const balance of balanceInfo?.balances || []) {
           allBadgeIds.push({
-            badgeIds: balance.badgeIds,
+            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
+            }),
             collectionId
           });
         }
@@ -91,7 +92,7 @@ export function MultiCollectionBadgeDisplay({
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
     for (const badgeIdObj of badgeIdsToDisplay) {
-      collectionsRef.current.fetchAndUpdateMetadata(badgeIdObj.collectionId, { badgeIds: badgeIdObj.badgeIds });
+      collections.fetchAndUpdateMetadata(badgeIdObj.collectionId, { badgeIds: badgeIdObj.badgeIds });
     }
 
     if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay);
@@ -107,7 +108,10 @@ export function MultiCollectionBadgeDisplay({
       <div className="flex-center flex-wrap">
         {
           collectionIds.map((collectionId, idx) => {
-            const collection = collectionsContext.getCollection(collectionId);
+            const collection = collections.collections[collectionId.toString()];
+            const balances = accountInfo?.collected.find(collected => collected.collectionId === collectionId)?.balances ?? [];
+
+            if (balances.length === 0) return <></>;
 
             return <div key={idx} style={{ width: 350, margin: 10, display: 'flex' }}>
               {/*
@@ -122,14 +126,13 @@ export function MultiCollectionBadgeDisplay({
                       Modal.destroyAll()
                     }} style={{ alignItems: 'center', justifyContent: 'center' }}>
                       <BadgeAvatar
-                        size={250}
+                        size={100}
                         collectionId={collectionId}
                       />
                       <br />
-                      {collection?.collectionMetadata?.name}
+                      {collection?.cachedCollectionMetadata?.name}
                     </div>
                   </Tooltip>
-                  <br />
                 </>}
               >
                 <BadgeAvatarDisplay
@@ -138,8 +141,9 @@ export function MultiCollectionBadgeDisplay({
                   cardView={cardView}
                   addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
 
-                  badgeIds={badgeIdsToDisplay.map((x) => x.badgeIds).flat()}
+                  badgeIds={balances.map((x) => x.badgeIds).flat()}
                   hideCollectionLink={hideCollectionLink}
+                  showIds
                 />
               </InformationDisplayCard>
             </div>
@@ -152,7 +156,7 @@ export function MultiCollectionBadgeDisplay({
 
     return <>
       {!hidePagination && <div className="flex-center"><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} /></div>}
-      =
+
       <div className="flex-center flex-wrap">
         {
           badgeIdsToDisplay.map((badgeIdObj) => {
@@ -162,7 +166,7 @@ export function MultiCollectionBadgeDisplay({
                 for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
                   badgeIds.push(i);
                 }
-                return <div key={idx} className="flex-between">
+                return <div key={idx} className="flex-center flex-wrap">
                   {badgeIds.map((badgeId) => {
                     return <div key={idx} className="flex-between">
                       {cardView ?
@@ -175,7 +179,9 @@ export function MultiCollectionBadgeDisplay({
                           size={70}
                           collectionId={badgeIdObj.collectionId}
                           badgeId={badgeId}
-                          balance={accountInfo?.collected.find(collected => collected.collectionId === badgeIdObj.collectionId)?.balances.find(balance => balance.badgeIds.find(id => id.start <= badgeId && id.end >= badgeId))?.amount}
+                          balances={
+                            getBalancesForId(badgeId, (accountInfo?.collected.find(collected => collected.collectionId === badgeIdObj.collectionId)?.balances) ?? [])
+                          }
                         />
                       }
                     </div>

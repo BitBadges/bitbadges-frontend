@@ -8,6 +8,7 @@ import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { TxModal } from './TxModal';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 //TODO: support multiple challenges per claim
 //TODO: handle used claim codes
@@ -27,10 +28,14 @@ export function CreateTxMsgClaimBadgeModal(
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
-  const approvalId = approvedTransfer?.approvalDetails[0].approvalId;;
+  const collection = collections.collections[collectionId.toString()];
+
+  const approvalId = approvedTransfer?.approvalDetails[0].approvalId;
+
   const claimObject = claimItem;
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
+
+  const requiresProof = (approvedTransfer?.approvalDetails[0].merkleChallenges ?? []).length > 0;
 
   const [codeToSubmit, setCodeToSubmit] = useState<string>("");
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
@@ -46,6 +51,7 @@ export function CreateTxMsgClaimBadgeModal(
   // const isCodes = !isWhitelist;
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: code to submit ');
     // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
     async function fetchCode() {
       if (claimItem && claimItem.details?.hasPassword) {
@@ -64,6 +70,7 @@ export function CreateTxMsgClaimBadgeModal(
   }, [claimItem, code, collectionId]);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
     if (claimItem) {
       const tree = new MerkleTree(claimItem.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
         return claimItem.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
@@ -75,7 +82,7 @@ export function CreateTxMsgClaimBadgeModal(
   }, [claimItem]);
 
 
-  if (!claimObject || !collection || !claimItem) return <></>;
+  if (!collection) return <></>;
 
   const leaf = isWhitelist ? chain.cosmosAddress : SHA256(codeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, whitelistIndex);
@@ -93,18 +100,20 @@ export function CreateTxMsgClaimBadgeModal(
         approvalLevel: "collection",
         approverAddress: "",
       },
-      merkleProofs: [{
+      merkleProofs: requiresProof ? [{
         aunts: proofObj ? proofObj.map((proof) => {
           return {
             aunt: proof.data.toString('hex'),
             onRight: proof.position === 'right'
           }
         }) : [],
-        leaf,
-      }],
+        leaf: codeToSubmit,
+      }] : [],
       memo: ''
     }],
   };
+
+  console.log("TX MSG", txCosmosMsg);
 
   return (
     <TxModal
@@ -113,8 +122,8 @@ export function CreateTxMsgClaimBadgeModal(
       txName="Claim Badge"
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgTransferBadges}
-      disabled={!isValidProof}
-      displayMsg={isValidProof ? undefined :
+      disabled={requiresProof && !isValidProof}
+      displayMsg={isValidProof || !requiresProof ? undefined :
         <div style={{ fontSize: 20 }}>
           <div style={{ color: 'red' }}><WarningOutlined style={{ color: 'red' }} /> The provided code is invalid. This transaction will fail.</div>
         </div>
@@ -122,7 +131,7 @@ export function CreateTxMsgClaimBadgeModal(
       requireRegistration
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
-        await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
+        await collections.fetchBalanceForUser(collectionId, chain.address, true);
       }}
     >
       {children}

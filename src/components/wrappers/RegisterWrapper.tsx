@@ -7,7 +7,7 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
   const chain = useChainContext();
   const accounts = useAccountsContext();
 
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+  const signedInAccount = accounts.getAccount(chain.address);
   const isRegistered = signedInAccount?.accountNumber && signedInAccount?.accountNumber > 0;
   const airdropped = signedInAccount?.airdropped;
 

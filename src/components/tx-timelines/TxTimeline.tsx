@@ -1,10 +1,13 @@
 import { Divider, Spin } from 'antd';
-import { Balance, CollectionPermissions, NumberType } from 'bitbadgesjs-proto';
+import { Balance, CollectionPermissions, NumberType, deepCopy } from 'bitbadgesjs-proto';
 import { BLANK_USER_INFO, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { FOREVER_DATE } from '../../utils/dates';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export const EmptyStepItem = {
   title: '',
@@ -104,7 +107,8 @@ export function TxTimeline({
   isModal?: boolean
 }) {
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+  const chain = useChainContext();
+
 
   const existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
   const simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
@@ -133,31 +137,44 @@ export function TxTimeline({
   //Set default values for the collection if it doesn't exist or populate with exsitng values if it does
   //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: inital load ');
     async function initialize() {
 
-      const existingCollectionsRes = collectionId && collectionId > 0n ? await collectionsRef.current.fetchCollections([collectionId], true) : [];
-      const existingCollection = collectionId && collectionId > 0n ? existingCollectionsRes[0] : undefined;
+      const existingCollectionsRes = collectionId && collectionId > 0n ? await collections.fetchCollectionsWithOptions(
+        [{
+          collectionId, viewsToFetch: [],
+          fetchTotalAndMintBalances: true,
+          handleAllAndAppendDefaults: false,
+        }], true) : [];
+      let existingCollection = collectionId && collectionId > 0n ? existingCollectionsRes[0] : undefined;
 
       //We need to fetch all metadata for the collection and badges
       if (collectionId && collectionId > 0n && existingCollection) {
-        await collectionsRef.current.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: 1n, end: getTotalNumberOfBadges(existingCollection) }] });
+        const res = await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: 1n, end: getTotalNumberOfBadges(existingCollection) }] });
+        if (res) {
+          existingCollection.cachedBadgeMetadata = res[0].cachedBadgeMetadata;
+          existingCollection.cachedCollectionMetadata = res[0].cachedCollectionMetadata;
+        }
       }
 
-
-      collectionsRef.current.updateCollection({
+      collections.updateCollection({
         //Default values for a new collection
         //If existing, they are overriden
         merkleChallenges: [],
         approvalsTrackers: [],
-        managerTimeline: [],
+        managerTimeline: [{
+          manager: chain.cosmosAddress,
+          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+        }],
         managerInfo: BLANK_USER_INFO,
-        badgeMetadata: [
+        cachedBadgeMetadata: [
           {
             metadata: DefaultPlaceholderMetadata,
             badgeIds: [{ start: 1n, end: 10000000000000n }],
             uri: 'Placeholder',
+            toUpdate: true,
           }],
-        collectionMetadata: DefaultPlaceholderMetadata,
+        cachedCollectionMetadata: DefaultPlaceholderMetadata,
 
         activity: [],
         announcements: [],
@@ -190,11 +207,14 @@ export function TxTimeline({
         views: {},
         collectionApprovedTransfersTimeline: [],
         badgeMetadataTimeline: [],
+        // standardsTimeline: [{
+        //   standards: ["BitBadges"],
+        //   timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+        // }], TODO:
         standardsTimeline: [],
-        offChainBalancesMetadataTimeline: [],
         balancesType: "Standard",
         collectionMetadataTimeline: [],
-        inheritedBalancesTimeline: [],
+
         isArchivedTimeline: [],
         contractAddressTimeline: [],
         customDataTimeline: [],
@@ -223,11 +243,18 @@ export function TxTimeline({
 
         //Existing collection values
         ...existingCollection,
+        offChainBalancesMetadataTimeline: existingCollection && existingCollection.offChainBalancesMetadataTimeline
+          && existingCollection.balancesType === "Off-Chain"
+          ? existingCollection.offChainBalancesMetadataTimeline : [],
+        inheritedBalancesTimeline: existingCollection && existingCollection.inheritedBalancesTimeline
+          && existingCollection.balancesType === "Inherited"
+          ? existingCollection.inheritedBalancesTimeline : [],
 
         //Preview / simulated collection values
         _id: "0",
         collectionId: 0n
       }, true);
+
       setInitialLoad(true);
     }
     initialize();
@@ -235,6 +262,7 @@ export function TxTimeline({
 
   //TODO: Reintroduce transfers / claims
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
     //We have three things that can affect the new simulated collection:
     //1. If claims change, we need to update the unminted supplys and respective claims field
     //2. If transfers change, we need to update the unminted supplys and respective transfers field
@@ -244,9 +272,15 @@ export function TxTimeline({
 
     //TODO: handle balance docs here as well for transfers. For now, we just say unsupported balances. Will need to fetch all existing balances and then update the balances doc with the new balances
 
-    const existingCollection = collectionId ? collectionsRef.current.collections[collectionId.toString()] : undefined;
-    const simulatedCollection = collectionsRef.current.collections[0n.toString()];
-    if (!simulatedCollection) return;
+    const _existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
+    const _simulatedCollection = collections.collections[0n.toString()];
+
+
+
+    if (!_simulatedCollection) return;
+
+    const existingCollection = _existingCollection ? deepCopy(_existingCollection) : undefined;
+    const simulatedCollection = deepCopy(_simulatedCollection);
 
     //TODO: Is this right? Is remove duplicate logic right?
     //Combine the claims arrays. This is because the fetches may be out of sync between the two
@@ -259,16 +293,14 @@ export function TxTimeline({
 
 
     //TODO: Do with approvals trackers too? With balance docs?
-    console.log(existingCollection?.owners, badgesToCreate);
     const newOwnersArr = incrementMintAndTotalBalances(0n, existingCollection?.owners ?? [], badgesToCreate);
-    console.log(newOwnersArr);
 
     //If we have created any new badges since the last iteration, add placeholder metadata
     //Else, if we have deleted any badges since the last iteration, remove the corresponding metadata;
 
     const postSimulatedCollection = { ...simulatedCollection, owners: newOwnersArr, merkleChallenges: combinedClaims };
 
-    let newBadgeMetadata = simulatedCollection.badgeMetadata;
+    let newBadgeMetadata = simulatedCollection.cachedBadgeMetadata;
     if (getTotalNumberOfBadges(postSimulatedCollection) > getTotalNumberOfBadges(simulatedCollection)) {
       newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, {
         metadata: DefaultPlaceholderMetadata,
@@ -285,11 +317,16 @@ export function TxTimeline({
       }]);
     }
 
-    postSimulatedCollection.badgeMetadata = newBadgeMetadata;
+    newBadgeMetadata.push({
+      badgeIds: [{ start: 1n, end: 10000000000000n }],
+      metadata: DefaultPlaceholderMetadata,
+      uri: 'Placeholder',
+      toUpdate: true,
+    });
 
-    console.log(postSimulatedCollection);
+    postSimulatedCollection.cachedBadgeMetadata = newBadgeMetadata;
 
-    collectionsRef.current.updateCollection(postSimulatedCollection, true);
+    collections.updateCollection(postSimulatedCollection, true);
   }, [collectionId, badgesToCreate]);
 
   //The method used to add metadata to the collection and individual badges
@@ -297,6 +334,27 @@ export function TxTimeline({
 
   //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
+    if (!simulatedCollection) return;
+
+    if (distributionMethod === DistributionMethod.OffChainBalances) {
+      collections.updateCollection({
+        ...simulatedCollection,
+        balancesType: "Off-Chain",
+      });
+
+      setUpdateCollectionApprovedTransfersTimeline(false);
+    } else {
+      setUpdateCollectionApprovedTransfersTimeline(true);
+
+      collections.updateCollection({
+        ...simulatedCollection,
+        balancesType: "Standard",
+      }, true);
+    }
+  }, [distributionMethod, simulatedCollection]);
 
   //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
   const [handledPermissions, setHandledPermissions] = useState<CollectionPermissions<bigint>>({
@@ -317,8 +375,9 @@ export function TxTimeline({
   //Upon any new metadata that will need to be added, we need to update the size of the metadata
   //TODO: Make consistent with actual uploads
   useEffect(() => {
-    const newBadgeMetadata = simulatedCollection?.badgeMetadata.filter(x => existingCollection?.badgeMetadata.some(y => JSON.stringify(x) === JSON.stringify(y)) === false);
-    const newCollectionMetadata = JSON.stringify(simulatedCollection?.collectionMetadata) !== JSON.stringify(existingCollection?.collectionMetadata) ? simulatedCollection?.collectionMetadata : undefined;
+    if (INFINITE_LOOP_MODE) console.log('useEffect: metadata size');
+    const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => JSON.stringify(x) === JSON.stringify(y)) === false);
+    const newCollectionMetadata = JSON.stringify(simulatedCollection?.cachedCollectionMetadata) !== JSON.stringify(existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
 
     setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
   }, [simulatedCollection, existingCollection]);
@@ -365,11 +424,10 @@ export function TxTimeline({
     setUpdateIsArchivedTimeline,
   }
 
-  if (!initialLoad) return <div>
+  if (!initialLoad) return <div className='primary-text'>
     <Spin size='large' />
     <Divider />
-    <h1>Loading...</h1>
-    {<p>Fetching all existing details for this collection. This may take some time.</p>}
+    {<p>Fetching all details for this collection. This may take some time.</p>}
   </div>
 
   if (txType === 'UpdateCollection') {

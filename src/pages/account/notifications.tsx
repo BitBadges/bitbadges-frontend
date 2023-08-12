@@ -7,14 +7,15 @@ import { AnnouncementsTab } from '../../components/collection-page/Announcements
 import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 const { Content } = Layout;
 
 export function Notifications() {
   const chain = useChainContext();
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+
+  const signedInAccount = accounts.getAccount(chain.address);
 
   const [tab, setTab] = useState('announcements');
 
@@ -22,10 +23,11 @@ export function Notifications() {
   const announcements = signedInAccount?.announcements;
 
   useEffect(() => {
-    const signedInAccount = accountsRef.current.getAccount(chain.cosmosAddress);
+    if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
+    const signedInAccount = accounts.getAccount(chain.address);
 
     if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
-      accountsRef.current.updateProfileInfo(chain.cosmosAddress, { seenActivity: Date.now() });
+      accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: Date.now() });
     }
   }, [chain.connected, chain.loggedIn, chain.cosmosAddress]);
 

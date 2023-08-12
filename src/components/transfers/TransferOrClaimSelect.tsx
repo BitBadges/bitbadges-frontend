@@ -1,25 +1,26 @@
-import { CloseOutlined, DeleteOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, getBalancesAfterTransfers, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
+import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, getBalancesAfterTransfers, getCurrentValueIdxForTimeline, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { FOREVER_DATE } from '../../utils/dates';
 import { BalanceBeforeAndAfter } from '../balances/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { BalancesInput } from '../balances/BalancesInput';
-import { UintRangesInput } from '../balances/IdRangesInput';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { ClaimsTab } from '../collection-page/ClaimsTab';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { NumberInput } from '../display/NumberInput';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
+import { BalanceInput } from '../tx-timelines/form-items/BalanceInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimCodesSelectStep } from './ClaimCodesSelectStep';
 import { ClaimMetadataSelectSelectStep } from './ClaimMetadataSelectStep';
@@ -46,6 +47,9 @@ export enum CodeType {
 }
 //export TransferSelect with alias of ClaimSelect
 export { TransferSelect as ClaimSelect };
+
+//TODO: There is a weird flash going from increments to custom (standard) because it tries to display the BalanceDisplay with all the balances w/ increments (x1 of 1, x1 of 2, etc) 
+//before updating the balances / increment to be len == 1
 
 export function TransferSelect({
   transfers,
@@ -77,7 +81,7 @@ export function TransferSelect({
 
   const isClaimSelect = distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe || distributionMethod === DistributionMethod.Whitelist ? true : false;
   const isTransferSelect = !isClaimSelect;
-  if (!isClaimSelect || !isTransferSelect) throw new Error('Must be either claims or transfers select');
+  if (!isClaimSelect && !isTransferSelect) throw new Error('Must be either claims or transfers select');
 
   const [numRecipients, setNumRecipients] = useState<bigint>(0n);
   const [increment, setIncrement] = useState<bigint>(0n);
@@ -108,7 +112,14 @@ export function TransferSelect({
       },
     }
   });
-  const [claimTimeRange, setClaimTimeRange] = useState<UintRange<bigint>>({ start: 0n, end: 0n });
+
+  const currTimeNextHour = new Date();
+  currTimeNextHour.setHours(currTimeNextHour.getHours() + 1);
+  currTimeNextHour.setMinutes(0);
+  currTimeNextHour.setSeconds(0);
+  currTimeNextHour.setMilliseconds(0);
+
+  const [claimTimeRange, setClaimTimeRange] = useState<UintRange<bigint>>({ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365), });
   const [claimPassword, setClaimPassword] = useState('');
   const [numClaimsPerAddress, setNumClaimsPerAddress] = useState<bigint>(1n);
 
@@ -133,26 +144,30 @@ export function TransferSelect({
 
   const numActiveClaims = approvedTransfersForClaims.length;
 
+  const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
 
-  const approvalId = crypto.randomBytes(32).toString('hex');
+  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
   const approvedTransferToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] }) = {
-    fromMappingId: "Mint",
-    toMappingId: "All",
-    initiatedByMappingId: "All",
+    fromMappingId: sender,
+    fromMapping: getReservedAddressMapping(sender, "") as AddressMapping,
+    toMappingId: "AllWithMint",
+    toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    initiatedByMappingId: "AllWithMint",
+    initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
     transferTimes: [claimTimeRange],
-    ownedTimes: [{ start: 1n, end: FOREVER_DATE }],
+    ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
     badgeIds: balances.map(x => x.badgeIds).flat(),
     allowedCombinations: [{
       initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
       fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
       toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
       badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-      ownedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+      ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
       transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-      isAllowed: true,
+      isApproved: true,
     }],
     approvalDetails: [{
-      approvalId: approvalId,
+      approvalId: approvalId.current,
       uri: '',
       customData: '',
       mustOwnBadges: [],
@@ -166,15 +181,28 @@ export function TransferSelect({
         overallMaxNumTransfers: 0n,
         perFromAddressMaxNumTransfers: 0n,
         perToAddressMaxNumTransfers: 0n,
-        perInitiatedByAddressMaxNumTransfers: distributionMethod === DistributionMethod.FirstComeFirstServe || (distributionMethod === DistributionMethod.Codes && claimPassword)
+        perInitiatedByAddressMaxNumTransfers: (distributionMethod === DistributionMethod.Codes && claimPassword)
           ? 1n : numClaimsPerAddress,
       },
       predeterminedBalances: {
         manualBalances: [],
         incrementedBalances: {
-          startBalances: balances,
+          startBalances: balances.map((balance) => {
+            if (!increment || amountSelectType !== AmountSelectType.Increment) return balance;
+
+            return {
+              amount: balance.amount,
+              badgeIds: balance.badgeIds.map((uintRange) => {
+                return {
+                  start: uintRange.start,
+                  end: uintRange.start + increment - 1n,
+                }
+              }),
+              ownershipTimes: balance.ownershipTimes,
+            }
+          }),
           incrementBadgeIdsBy: increment,
-          incrementOwnedTimesBy: 0n,
+          incrementOwnershipTimesBy: 0n,
         },
         orderCalculationMethod: {
           useMerkleChallengeLeafIndex: false,
@@ -193,7 +221,7 @@ export function TransferSelect({
         maxOneUsePerLeaf: true,
         uri: '',
         customData: '',
-        challengeId: crypto.randomBytes(32).toString('hex'),
+        challengeId: challengeId.current.toString(),
       }], //handled later
       requireToEqualsInitiatedBy: false,
       requireFromEqualsInitiatedBy: false,
@@ -226,9 +254,9 @@ export function TransferSelect({
         toAddresses: [],
         toAddressesLength: 1n,
         balances: claim.balances,
-        from: "Mint",
+        from: sender,
         precalculationDetails: {
-          approvalId: approvalId,
+          approvalId: approvalId.current,
           approvalLevel: "collection",
           approverAddress: ""
         },
@@ -240,12 +268,15 @@ export function TransferSelect({
   }
 
   //Reset the balances whenever the sender balance changes
-  useEffect(() => {
-    setBalances(originalSenderBalances.map((x) => convertBalance(x, BigIntify)));
-  }, [originalSenderBalances]);
+  // useEffect(() => {
+  // if (INFINITE_LOOP_MODE) console.log('useEffect: ');
+  //   console.log("Original sender balances changed");
+  //   setBalances(originalSenderBalances.map((balance) => convertBalance(balance, BigIntify)));
+  // }, [originalSenderBalances]);
 
   //Whenever something changes, update the pre and post transfer balances
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: convert transfers');
     let convertedTransfers = transfers ?? [];
     if (isClaimSelect) {
       convertedTransfers = approvedTransfersToAdd?.map((claim) => {
@@ -253,9 +284,9 @@ export function TransferSelect({
           toAddresses: [],
           toAddressesLength: 1n,
           balances: claim.balances,
-          from: "Mint",
+          from: sender,
           precalculationDetails: {
-            approvalId: approvalId,
+            approvalId: approvalId.current,
             approvalLevel: "collection",
             approverAddress: ""
           },
@@ -273,17 +304,18 @@ export function TransferSelect({
     if (!postTransferBalanceObj || postTransferBalanceObj.length == 0) return;
     if (!preTransferBalanceObj || preTransferBalanceObj.length == 0) return;
 
-    preTransferBalanceObj = getBalancesAfterTransfers(preTransferBalanceObj, [...convertedTransfers]);
-    postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers]);
-
+    preTransferBalanceObj = getBalancesAfterTransfers(preTransferBalanceObj, [...convertedTransfers], true);
+    postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true);
     //Deduct transfers to add
-    postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd]);
+    postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
+
 
     setPostTransferBalance(postTransferBalanceObj);
     setPreTransferBalance(preTransferBalanceObj);
   }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalId]);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: transfer or claim select, check warnings');
     //Generate any error or warning messages for undistributed or overflowing badge amounts
     const checkForErrorsAndWarnings = () => {
       let errorMessage = '';
@@ -299,13 +331,13 @@ export function TransferSelect({
               }
             }).filter(x => !!x).join(', ')}).`;
           } else if ((badgeUintRange.start + (increment * numRecipients) - 1n) < badgeUintRange.end) {
-            warningMessage = `This will not distribute the following badges: IDs ${balance.badgeIds.map((range) => {
+            warningMessage = `The following badges are included in the claim but will not be distributed: IDs ${balance.badgeIds.map((range) => {
               if ((range.start + (increment * numRecipients) - 1n) < range.end) {
                 return `${range.start + (increment * numRecipients)}-${range.end}`;
               } else {
                 return undefined;
               }
-            }).filter(x => !!x).join(', ')} `;
+            }).filter(x => !!x).join(', ')}.`;
           }
         }
       }
@@ -328,9 +360,9 @@ export function TransferSelect({
         toAddresses: toAddresses,
         balances: balances,
         toAddressesLength: numRecipients,
-        from: "Mint",
+        from: sender,
         precalculationDetails: {
-          approvalId: approvalId,
+          approvalId: approvalId.current,
           approvalLevel: "collection",
           approverAddress: ""
         },
@@ -343,19 +375,20 @@ export function TransferSelect({
       checkForErrorsAndWarnings();
 
       const currBadgeIds: UintRange<bigint>[] = [];
-      const currOwnedTimes: UintRange<bigint>[] = [];
+      const currOwnershipTimes: UintRange<bigint>[] = [];
       for (const balance of balances) {
         for (const badgeUintRange of balance.badgeIds) {
           currBadgeIds.push(convertUintRange(badgeUintRange, BigIntify));
         }
 
-        for (const ownedTimeUintRange of balance.ownedTimes) {
-          currOwnedTimes.push(convertUintRange(ownedTimeUintRange, BigIntify));
+        for (const ownershipTimeUintRange of balance.ownershipTimes) {
+          currOwnershipTimes.push(convertUintRange(ownershipTimeUintRange, BigIntify));
         }
       }
 
       //If we are using increments and directly transferring (doNotUseTransferWithIncrements = true), then we need to add N unique transfers with each increment manually added
       if (doNotUseTransferWithIncrements) {
+        //TODO: Not used but also not correct
         //Add N transfers, each with a different increment
         for (let i = 0; i < numRecipients; i++) {
           newTransfersToAdd.push({
@@ -363,11 +396,11 @@ export function TransferSelect({
             balances: [{
               amount: balances[0]?.amount || 1n,
               badgeIds: currBadgeIds.map((badgeUintRange) => convertUintRange(badgeUintRange, BigIntify)),
-              ownedTimes: currOwnedTimes.map((ownedTimeUintRange) => convertUintRange(ownedTimeUintRange, BigIntify)),
+              ownershipTimes: currOwnershipTimes.map((ownershipTimeUintRange) => convertUintRange(ownershipTimeUintRange, BigIntify)),
             }],
-            from: "Mint",
+            from: sender,
             precalculationDetails: {
-              approvalId: approvalId,
+              approvalId: approvalId.current,
               approvalLevel: "collection",
               approverAddress: ""
             },
@@ -381,25 +414,31 @@ export function TransferSelect({
             currBadgeIds[j].end += increment;
           }
 
-          for (let j = 0; j < currOwnedTimes.length; j++) {
-            currOwnedTimes[j].start += 0n; //TODO: ownedTimes increment
-            currOwnedTimes[j].end += 0n;
+          for (let j = 0; j < currOwnershipTimes.length; j++) {
+            currOwnershipTimes[j].start += 0n; //TODO: ownershipTimes increment
+            currOwnershipTimes[j].end += 0n;
           }
         }
       } else {
         //Else, we can just add the transfer with increments and it'll be handled
         newTransfersToAdd.push({
           toAddresses: toAddresses,
-          balances: [{
-            amount: balances[0]?.amount || 1n,
-            badgeIds: currBadgeIds,
-            ownedTimes: currOwnedTimes,
-          }],
+          balances: balances.map(x => {
+            return {
+              ...x,
+              badgeIds: x.badgeIds.map((badgeUintRange) => {
+                return {
+                  start: badgeUintRange.start,
+                  end: badgeUintRange.start + increment - 1n,
+                }
+              }),
+            }
+          }),
           toAddressesLength: numRecipients,
           incrementBadgeIdsBy: numPerAddress,
-          from: "Mint",
+          from: sender,
           precalculationDetails: {
-            approvalId: approvalId,
+            approvalId: approvalId.current,
             approvalLevel: "collection",
             approverAddress: ""
           },
@@ -433,7 +472,9 @@ export function TransferSelect({
       sender: sender,
       // collectionId: collectionId,
       // senderBalance: originalSenderBalances,
-      setNumRecipients
+      setNumRecipients,
+      toAddresses: toAddresses,
+      setToAddresses: setToAddresses,
     }));
   }
 
@@ -443,21 +484,24 @@ export function TransferSelect({
     description: <div>
       <br />
 
-      <UintRangesInput
-        uintRanges={balances[0]?.badgeIds || []}
-        // defaultAllSelected={false}
-        setUintRanges={(badgeIds) => {
-          setBalances([{
-            amount: balances[0]?.amount || 0n,
-            badgeIds,
-            ownedTimes: [{ start: 1n, end: FOREVER_DATE }]
-          }]);
+      <BalanceInput
+        balancesToShow={balances}
+        onAddBadges={(balance) => {
+          setBalances([...balances, balance]);
+        }}
+        onRemoveAll={() => {
+          setBalances([]);
         }}
         minimum={1n}
         maximum={collection ? getTotalNumberOfBadges(collection) : 0n}
         collectionId={collectionId}
-
       />
+      {isClaimSelect && <>
+        <br />
+        <div className='flex-center'>
+          <InfoCircleOutlined /> <span style={{ marginLeft: 8 }}>This step selects the allocated balances for ALL claims combined. The next step will allow you to customize the per-claim balances.</span>
+        </div>
+      </>}
     </div>,
     disabled: uintRangesOverlap || uintRangesLengthEqualsZero,
   });
@@ -469,27 +513,30 @@ export function TransferSelect({
       {numRecipients > 1 && <div>
         {balances[0]?.badgeIds && (increment ? increment : 0) >= 0 && setIncrement && <div>
           {numRecipients > 1 && <div>
+
             <SwitchForm
               options={[{
                 title: 'Standard',
-                message: 'An equal amount of all badge IDs will be sent to each recipient (often used for fungible collections).',
+                message: `No increments. All badge IDs will be sent to all ${numRecipients} recipients.`,
                 isSelected: amountSelectType === AmountSelectType.Custom,
               },
               {
-                title: 'Incremented',
-                message: `After each claim, the badge IDs will be incremented by X before the next claim (often used with non-fungible collections).`,
+                title: 'Increments',
+                message: `The first recipient will receive an initial subset of the badge IDs selected. After each claim, the badge IDs will increment by X before the next recipient claims.`,
                 isSelected: amountSelectType === AmountSelectType.Increment,
               }]}
               onSwitchChange={(option, _title) => {
 
                 if (option === 0) {
-                  setAmountSelectType(AmountSelectType.Custom);
                   setIncrement(0n);
                   setErrorMessage('');
                   setWarningMessage('');
+                  setAmountSelectType(AmountSelectType.Custom);
+
                 } else {
-                  setAmountSelectType(AmountSelectType.Increment);
                   setIncrement(1n);
+                  setAmountSelectType(AmountSelectType.Increment);
+
                 }
               }}
             />
@@ -511,11 +558,11 @@ export function TransferSelect({
               <div>
                 <div style={{ marginLeft: 8 }}>
                   {increment === 0n && 'All recipients will receive all of the previously selected badge IDs.'}
-                  {increment ? `The first recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start}${increment > 1 ? `-${start + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                  {increment ? `The first recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start}${increment > 1 ? `-${start + increment - 1n}` : ''}`).join(', ')}.` : ''}
                 </div>
                 <div style={{ marginLeft: 8 }}>
 
-                  {increment ? `The second recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start + increment}${increment > 1 ? `-${start + increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                  {increment ? `The second recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + increment}${increment > 1 ? `-${start + increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
 
                 </div>
 
@@ -526,7 +573,7 @@ export function TransferSelect({
                 </div>}
                 {numRecipients > 2 && <div style={{ marginLeft: 8 }}>
                   <div style={{ marginLeft: 8 }}>
-                    {increment ? `The ${numRecipients === 3n ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances[0]?.badgeIds.map(({ start }) => `${start + (numRecipients - 1n) * increment}${increment > 1 ? `-${start + (numRecipients - 1n) * increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                    {increment ? `The ${numRecipients === 3n ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + (numRecipients - 1n) * increment}${increment > 1 ? `-${start + (numRecipients - 1n) * increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
                   </div>
                 </div>}
               </div>
@@ -537,8 +584,8 @@ export function TransferSelect({
                 <div style={{ textAlign: 'center' }}>
                   <div>
                     <WarningOutlined style={{ color: 'orange' }} />
-                    <span style={{ marginLeft: 8 }}>
-                      {warningMessage}. The undistributed badges will be deselected.
+                    <span style={{ marginLeft: 8, color: 'orange' }}>
+                      {warningMessage}
                     </span>
                   </div>
                 </div>
@@ -566,6 +613,7 @@ export function TransferSelect({
       <br />
       {<div>
         <BalancesInput
+          title={isClaimSelect ? 'Per-Claim Amount Transferred' : 'Amount Transferred'}
           balances={balances}
           setBalances={setBalances}
         />
@@ -588,7 +636,9 @@ export function TransferSelect({
         }
       </div>}
     </div >,
-    disabled: balances.length == 0 || !!postTransferBalances?.find((balance) => balance.amount < 0) || errorMessage ? true : false,
+    disabled: balances.length == 0 ||
+      (!!postTransferBalances?.find((balance) => balance.amount < 0)) ||
+      errorMessage ? true : false,
   });
 
   //Add time select step
@@ -597,17 +647,20 @@ export function TransferSelect({
       steps.push(ClaimNumPerAddressSelectStep(numClaimsPerAddress, setNumClaimsPerAddress, distributionMethod, false));
     }
     steps.push(ClaimTimeRangeSelectStep(claimTimeRange, setClaimTimeRange));
-    steps.push(ClaimMetadataSelectSelectStep(claimDetails, setClaimDetails));
+
+    //We can eventually support this but currently, we store name/description tied to the merkleChallenge so first come first serve doesn't have a merkleChallenge and won't work
+    if (distributionMethod !== DistributionMethod.FirstComeFirstServe) {
+      steps.push(ClaimMetadataSelectSelectStep(claimDetails, setClaimDetails));
+    }
   }
 
   steps.push({
     title: 'Confirm',
-    description: <div>
+    description: <div className='flex-center flex-column'>
       {isClaimSelect ? <div>
         <ClaimDisplay
           approvedTransfer={approvedTransferToAdd}
           collectionId={collectionId}
-          openModal={() => { }}
         />
       </div> :
         <TransferDisplay
@@ -621,25 +674,27 @@ export function TransferSelect({
         onClick={async () => {
           if (isTransferSelect && setTransfers && transfers) {
             setTransfers([...transfers, ...transfersToAdd]);
-            setBalances(getBalancesAfterTransfers(originalSenderBalances, [...transfers, ...transfersToAdd]));
+            setBalances([]);
+            // setBalances([]);
           } else if (isClaimSelect && setApprovedTransfersToAdd && approvedTransfersToAdd) {
-            const convertedTransfers: TransferWithIncrements<bigint>[] = [...approvedTransfersToAdd, approvedTransferToAdd].map(approvedTransfer => {
+            // const convertedTransfers: TransferWithIncrements<bigint>[] = [...approvedTransfersToAdd, approvedTransferToAdd].map(approvedTransfer => {
 
-              return {
-                toAddresses: [],
-                toAddressesLength: 1n,
-                balances: approvedTransfer.balances,
-                from: "Mint",
-                precalculationDetails: {
-                  approvalId: approvalId,
-                  approvalLevel: "collection",
-                  approverAddress: ""
-                },
-                merkleProofs: [],
-                memo: "",
-              }
-            })
-            setBalances(getBalancesAfterTransfers(originalSenderBalances, convertedTransfers));
+            //   return {
+            //     toAddresses: [],
+            //     toAddressesLength: 1n,
+            //     balances: approvedTransfer.balances,
+            //     from: sender,
+            //     precalculationDetails: {
+            //       approvalId: approvalId.current,
+            //       approvalLevel: "collection",
+            //       approverAddress: ""
+            //     },
+            //     merkleProofs: [],
+            //     memo: "",
+            //   }
+            // })
+            // console.log("Setting claim balances");
+            setBalances([]);
 
             //Previously we just set challenges and challengeDetails to []
             //Set them here
@@ -666,8 +721,8 @@ export function TransferSelect({
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.leavesDetails.isHashed = true;
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.leavesDetails.preimages = codes;
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.numLeaves = BigInt(numRecipients);
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.password = claimPassword;
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.hasPassword = claimPassword ? true : false;
+              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.password = claimPassword;
+              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.hasPassword = claimPassword ? true : false;
             } else if (distributionMethod === DistributionMethod.Whitelist) {
               const accountsFetched = await accounts.fetchAccounts(toAddresses);
               for (let i = 0; i < toAddresses.length; i++) {
@@ -686,23 +741,24 @@ export function TransferSelect({
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.leavesDetails.leaves = addresses
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.leavesDetails.isHashed = false;
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.numLeaves = BigInt(numRecipients);
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.password = ''
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.hasPassword = false;
+              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.password = ''
+              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.hasPassword = false;
             } else {
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details = claimDetails;
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.password = ''
-              approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.hasPassword = false;
+              // approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details = claimDetails;
+              // approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.password = ''
+              // approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.hasPassword = false;
+              approvedTransferToAdd.approvalDetails[0].merkleChallenges = [];
             }
 
             setApprovedTransfersToAdd([...approvedTransfersToAdd, approvedTransferToAdd]);
           }
-
+          setNumRecipients(0n);
           setToAddresses([]);
           setAmountSelectType(AmountSelectType.None);
           setIncrement(0n);
           setAddTransferIsVisible(false);
           setCurrentStep(0);
-          setNumRecipients(0n);
+
         }}>
         Add Transfer(s)
       </Button>
@@ -722,28 +778,30 @@ export function TransferSelect({
         <Col md={11} sm={24} xs={24} className='flex'>
           <InformationDisplayCard
             title='Undistributed Badges'
+            noBorder
           >
-            {balances.length > 0 && <BalanceDisplay
-              collectionId={MSG_PREVIEW_ID}
-              balances={balances}
+            {preTransferBalances && preTransferBalances.length > 0 && <BalanceDisplay
+              collectionId={collectionId ?? MSG_PREVIEW_ID}
+              balances={preTransferBalances}
             />}
-            {balances.length === 0 && <Empty
+            {(!preTransferBalances || preTransferBalances.length === 0) && <Empty
               className='primary-text'
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description='No badges to distribute.'
+              description='No badges left to distribute.'
             />}
           </InformationDisplayCard>
         </Col>
 
         <Col md={11} sm={24} xs={24} className='flex'>
           <InformationDisplayCard
-            title={distributionMethod}
+            title={<>Added - {distributionMethod}</>}
+            noBorder
           >
             <>
               {[...(transfers ?? []), ...(approvedTransfersToAdd ?? [])].length === 0 && <Empty
                 className='primary-text'
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : distributionMethod === DistributionMethod.Whitelist ? 'No users added.' : 'No approvedTransfersToAdd added.'} />}
+                description={distributionMethod === DistributionMethod.Codes ? 'No codes generated.' : distributionMethod === DistributionMethod.Whitelist ? 'No users added.' : 'No claims added.'} />}
 
               {[...(transfers ?? []), ...(approvedTransfersToAdd ?? [])].length > 0 && <>
                 {distributionMethod === DistributionMethod.Codes && <>
@@ -764,13 +822,13 @@ export function TransferSelect({
 
                     // const transferItem = item as TransferWithIncrements<bigint>;
                     const transfer = item as (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] });
-                    const claimItem = transfer.approvalDetails[0].merkleChallenges[0].details;
+                    const claimItem = transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.approvalDetails[0].merkleChallenges.length > 0 ? transfer.approvalDetails[0].merkleChallenges[0].details : undefined;
                     return <CollapsePanel
                       header={
                         <div className='primary-text' style={{ margin: 0, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
                             <Text strong className='primary-text'>
-                              ({index}) {distributionMethod} {distributionMethod === DistributionMethod.Codes ?
+                              {index + 1}) {distributionMethod} {distributionMethod === DistributionMethod.Codes ?
                                 claimItem?.password ? '(Claim Password: ' + claimItem.password + ')' : claimItem?.challengeDetails?.leavesDetails.preimages?.length + ' Codes'
                                 : ''} {distributionMethod === DistributionMethod.Whitelist ? '(Addresses: ' + claimItem?.challengeDetails?.numLeaves + ')' : ''}
                             </Text>
@@ -791,12 +849,21 @@ export function TransferSelect({
                       key={index}
                       className='primary-text primary-blue-bg'
                     >
-                      <div className='primary-text primary-blue-bg' >
-                        <TransferDisplay
-                          collectionId={collectionId}
-                          transfers={convertedTransfers}
-                        />
-                        <Divider />
+                      <div className='flex-center flex-column'>x
+                        {isClaimSelect && <div className='primary-text primary-blue-bg' >
+                          <ClaimDisplay
+                            approvedTransfer={transfer}
+                            collectionId={collectionId}
+                          />
+                          <Divider />
+                        </div>}
+                        {isTransferSelect && <div className='primary-text primary-blue-bg' >
+                          <TransferDisplay
+                            collectionId={collectionId}
+                            transfers={convertedTransfers}
+                          />
+                          <Divider />
+                        </div>}
                       </div>
                     </CollapsePanel>
                   })}
@@ -809,108 +876,107 @@ export function TransferSelect({
       </Row>
 
     </div >
-    <div style={{ width: 800, alignItems: 'center' }} className='primary-text'>
-      <div>
-        {
-          !addTransferIsVisible && !hideTransferDisplay && <div>
-            {!isClaimSelect && <div>
-              <div className='flex-between'>
-                <div></div>
-                <h2 style={{ textAlign: 'center' }} className='primary-text'>Transfers Added ({convertedTransfers.length})</h2>
-                <div></div>
-              </div>
-              <TransferDisplay
-                transfers={convertedTransfers}
-                setTransfers={setTransfers}
-                collectionId={collectionId}
-                deletable
-              />
-            </div>}
-
-            {isClaimSelect && numActiveClaims > 0 && <div>
-              <div className='flex-between'>
-                <div></div>
-                <h2 style={{ textAlign: 'center' }} className='primary-text'>Claims Added ({approvedTransfersToAdd?.length})</h2>
-                <div></div>
-              </div>
-              <ClaimsTab
-                collectionId={collectionId}
-              // codesAndPasswords={}
-              // codes={approvedTransfersToAdd.map(x => x.codes)}
-              // passwords={approvedTransfersToAdd.map(x => x.password)}
-              />
+    <br />
+    <div style={{ alignItems: 'center' }} className='primary-text full-width'>
+      {
+        !addTransferIsVisible && !hideTransferDisplay && <div>
+          {!isClaimSelect && <div>
+            <div className='flex-between'>
+              <div></div>
+              <h2 style={{ textAlign: 'center' }} className='primary-text'>Transfers Added ({convertedTransfers.length})</h2>
+              <div></div>
             </div>
-            }
+            <TransferDisplay
+              transfers={convertedTransfers}
+              setTransfers={setTransfers}
+              collectionId={collectionId}
+              deletable
+            />
+          </div>}
 
-            <Divider />
-            <hr />
-            <br />
+          {isClaimSelect && numActiveClaims > 0 && <div>
+            <div className='flex-between'>
+              <div></div>
+              <h2 style={{ textAlign: 'center' }} className='primary-text'>Claims Added ({approvedTransfersToAdd?.length})</h2>
+              <div></div>
+            </div>
+            <ClaimsTab
+              collectionId={collectionId}
+            // codesAndPasswords={}
+            // codes={approvedTransfersToAdd.map(x => x.codes)}
+            // passwords={approvedTransfersToAdd.map(x => x.password)}
+            />
           </div>
-        }
+          }
 
-        {
-          addTransferIsVisible ?
-            <div>
-              < div className='flex-between' >
-                <div></div>
-                <h2 style={{ textAlign: 'center' }} className='primary-text'>Add {distributionMethod ? 'Claim' : 'Transfer'}?</h2>
-                <div>
-                  <Tooltip title='Cancel' placement='bottom'>
-                    <CloseOutlined
-                      onClick={() => {
-                        setAddTransferIsVisible(false);
-                      }}
-                      style={{ fontSize: 20, cursor: 'pointer' }} className='primary-text'
-                    />
-                  </Tooltip>
-                </div>
-              </div>
-              <Steps
-                current={currentStep}
-                onChange={onStepChange}
-              >
-                {steps.map((item, index) => (
-                  <Step
-                    key={index}
-                    title={<b>{item.title}</b>}
-                    disabled={item.disabled || (steps && steps.find((step, idx) => step.disabled && idx < index) ? true : false)}
+          <Divider />
+          <br />
+        </div>
+      }
+
+      {
+        addTransferIsVisible ?
+          <div className='full-width'>
+            <div className='flex-between' >
+              <div></div>
+              <div>
+                <Tooltip title='Cancel' placement='bottom'>
+                  <CloseOutlined
+                    onClick={() => {
+                      setAddTransferIsVisible(false);
+                    }}
+                    style={{ fontSize: 20, cursor: 'pointer' }} className='primary-text'
                   />
-                ))}
-              </Steps>
-              {steps.map((item, index) => (
-                <div key={index} className='primary-text'>
-                  {currentStep === index && <div>
-                    {item.description}
-                  </div>}
-                </div>
-              ))}
+                </Tooltip>
+              </div>
             </div>
-            : <>
-              {plusButton ? <div className='flex-center'>
-                <Avatar
-                  style={{ cursor: 'pointer' }}
+            <Steps
+              current={currentStep}
+              onChange={onStepChange}
+              type='navigation'
+              className='full-width'
+            >
+              {steps.map((item, index) => (
+                <Step
+                  key={index}
+                  title={<b>{item.title}</b>}
+                  disabled={(steps && steps.find((step, idx) => step.disabled && idx < index) ? true : false)}
+                />
+              ))}
+            </Steps>
+            {steps.map((item, index) => (
+              <div key={index} className='primary-text full-width'>
+                {currentStep === index && <div className='full-width'>
+                  {item.description}
+                </div>}
+              </div>
+            ))}
+          </div>
+          : <>
+            {plusButton ? <div className='flex-center'>
+              <Avatar
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setAddTransferIsVisible(true);
+                }}
+                src={<PlusOutlined />}
+                className='screen-button'
+              >
+              </Avatar>
+            </div> :
+              <div className='flex-center'>
+                <Button
+                  type='primary'
                   onClick={() => {
                     setAddTransferIsVisible(true);
                   }}
-                  src={<PlusOutlined />}
-                  className='screen-button'
+                  style={{ marginTop: 20, width: '100%' }}
                 >
-                </Avatar>
-              </div> :
-                <div className='flex-center'>
-                  <Button
-                    type='primary'
-                    onClick={() => {
-                      setAddTransferIsVisible(true);
-                    }}
-                    style={{ marginTop: 20, width: '100%' }}
-                  >
-                    Add New Transfer
-                  </Button>
-                </div>}
-            </>}
-        <br />
-      </div>
+                  Add New Transfer
+                </Button>
+              </div>}
+          </>}
+      <br />
     </div >
   </>
 }

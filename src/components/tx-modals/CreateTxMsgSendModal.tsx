@@ -16,7 +16,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+  const signedInAccount = accounts.getAccount(chain.address);
 
   const [currUserInfo, setCurrUserInfo] = useState<string>('');
   const [sendAmount, setSendAmount] = useState<number>(0);

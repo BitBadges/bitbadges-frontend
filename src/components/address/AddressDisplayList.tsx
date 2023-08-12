@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
+import { INFINITE_LOOP_MODE } from "../../constants"
 
 export function AddressDisplayList({
   users,
@@ -15,7 +16,9 @@ export function AddressDisplayList({
   hideTitle,
   center,
   toLength,
-  pageSize = 10
+  pageSize = 10,
+  allExcept,
+  filterMint
 }: {
   users: string[],
   setUsers?: (users: string[]) => void
@@ -27,6 +30,8 @@ export function AddressDisplayList({
   center?: boolean,
   toLength?: number
   pageSize?: number
+  allExcept?: boolean,
+  filterMint?: boolean
 }) {
   const [currPage, setCurrPage] = useState<number>(1);
 
@@ -35,6 +40,7 @@ export function AddressDisplayList({
   const [currPageEnd, setCurrPageEnd] = useState<number>(0); // Index of last badge to display
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: address display list');
     const currPageDetails = getPageDetails(currPage, pageSize, 0, users.length - 1);
     const currPageStart = currPageDetails.start;
     const currPageEnd = currPageDetails.end;
@@ -43,8 +49,26 @@ export function AddressDisplayList({
     setCurrPageEnd(currPageEnd);
   }, [currPage, pageSize, users]);
 
+
+  users = users.filter(x => x !== 'Total');
+
+  let allExceptMint = false;
+  // if (users.length == 1 && users[0] == 'Mint' && allExcept) {
+  //   allExceptMint = true;
+  //   users = [];
+  // }
+
+
+
+  if (filterMint) users = users.filter(x => x !== 'Mint');
+
   return <div style={{ maxHeight: 500, overflow: 'auto', color: fontColor ?? 'white', fontSize: fontSize }}>
-    {!hideTitle && <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : 'Addresses'} ({toLength ? toLength : users.length})</h3>}
+    {!hideTitle &&
+
+
+      <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : users.length == 0 ?
+        !filterMint ? 'All + Mint' :
+          'All' : 'All Except' : users.length == 1 ? '' : 'Addresses'} {!(allExcept && users.length == 0) && !allExceptMint && (toLength ? toLength : users.length) > 1 && <>({toLength ? toLength : users.length})</>}</h3>}
     <Pagination total={users.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
 
     {users.map((user, index) => {

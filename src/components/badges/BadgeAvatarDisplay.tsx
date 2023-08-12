@@ -1,6 +1,6 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalanceForIdAndTime, getBalancesForId } from "bitbadgesjs-utils";
-import { useEffect, useRef, useState } from "react";
+import { Numberify, getBadgesToDisplay, getBalancesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
@@ -17,16 +17,19 @@ export function BadgeAvatarDisplay({
   size,
   selectedId,
   showIds,
+  showSupplys = true,
   pageSize = 10,
   maxWidth,
 
   cardView,
-  hideCollectionLink
+  hideCollectionLink,
+  fetchDirectly
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
   balance?: Balance<bigint>[],
   badgeIds: UintRange<bigint>[];
+  showSupplys?: boolean;
   size?: number;
   pageSize?: number;
   selectedId?: bigint;
@@ -34,9 +37,11 @@ export function BadgeAvatarDisplay({
   maxWidth?: number | string;
   cardView?: boolean;
   hideCollectionLink?: boolean;
+  fetchDirectly?: boolean;
 }) {
+
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
   const collection = collections.collections[collectionId.toString()]
   const accounts = useAccountsContext();
   const account = addressOrUsernameToShowBalance ? accounts.getAccount(addressOrUsernameToShowBalance) : '';
@@ -49,10 +54,12 @@ export function BadgeAvatarDisplay({
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: badge avatar display, balance fetch ');
     if (addressOrUsernameToShowBalance) {
-      collectionsRef.current.fetchBalanceForUser(collectionId, addressOrUsernameToShowBalance);
+      collections.fetchBalanceForUser(collectionId, addressOrUsernameToShowBalance);
     }
   }, [addressOrUsernameToShowBalance, collectionId]);
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
@@ -63,11 +70,15 @@ export function BadgeAvatarDisplay({
       total += numBadgesInRange;
     }
     setTotal(total);
-
+    //Remove duplicates
     //Calculate badge IDs to display and update metadata for badge IDs if absent
     const badgeIdsToDisplayResponse = getBadgesToDisplay([
       {
-        badgeIds: badgeIds,
+        badgeIds:
+          sortUintRangesAndMergeIfNecessary(
+            badgeIds.filter((badgeId, idx) => {
+              return badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
+            })),
         collectionId: collectionId
       }
     ], currPage, pageSize);
@@ -80,19 +91,21 @@ export function BadgeAvatarDisplay({
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
     async function updateMetadata() {
-      if (collectionId > 0n) {
-        await collectionsRef.current.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay });
+      if (collectionId > 0n ||
+        (collectionId === 0n && fetchDirectly)
+      ) {
+        await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       }
     }
 
     updateMetadata();
-  }, [collectionId, badgeIds, currPage, pageSize]);
+  }, [collectionId, badgeIds, currPage, pageSize, collections, fetchDirectly]);
 
   return <div style={{ maxWidth: maxWidth }}>
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} />
 
     <>
-      <br /> <div className='flex-center flex-wrap full-width'>
+      <br /> <div className='flex-center flex-wrap full-width primary-text'>
         {
           badgeIdsToDisplay.map((badgeUintRange) => {
             const badgeIds: bigint[] = [];
@@ -101,14 +114,17 @@ export function BadgeAvatarDisplay({
               badgeIds.push(i);
             }
 
+
+
             return badgeIds.map((badgeId, idx) => {
-              return <div key={idx} className='flex-between' style={{ margin: 2 }}>
+              return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
                 {!cardView ?
                   <BadgeAvatar
                     size={size && selectedId === badgeId ? size * 1.5 : size}
                     collectionId={collectionId}
                     badgeId={badgeId}
                     showId={showIds}
+                    showSupplys={showSupplys}
                     balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
                   /> : <BadgeCard
                     size={size && selectedId === badgeId ? size * 1.5 : size}

@@ -19,7 +19,7 @@ export function BalancesInput({
         setBalances([
           {
             badgeIds: balances[0]?.badgeIds || [],
-            ownedTimes: balances[0]?.ownedTimes || [],
+            ownershipTimes: balances[0]?.ownershipTimes || [],
             amount: 0n,
           }
         ]);
@@ -28,7 +28,7 @@ export function BalancesInput({
         setBalances([
           {
             badgeIds: balances[0]?.badgeIds || [],
-            ownedTimes: balances[0]?.ownedTimes || [],
+            ownershipTimes: balances[0]?.ownershipTimes || [],
             amount: BigInt(value),
           }
         ]);

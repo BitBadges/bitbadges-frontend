@@ -18,6 +18,9 @@ import { PermissionsOverview } from '../../../components/collection-page/Permiss
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
+import { DistributionOverview } from '../../../components/badges/DistributionCard';
+import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
+import { INFINITE_LOOP_MODE } from '../../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -29,7 +32,7 @@ export function BadgePage({ collectionPreview }
   }) {
   const router = useRouter()
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
 
   const [tab, setTab] = useState('overview');
   const [activity, setActivity] = useState<TransferActivityInfo<bigint>[]>([]);
@@ -46,13 +49,14 @@ export function BadgePage({ collectionPreview }
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
   const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
-  const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.badgeMetadata) : undefined;
+  const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
 
   //Get collection information
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: get collection info, badge page');
     if (isPreview) return;
     if (collectionIdNumber > 0) {
-      collectionsRef.current.fetchCollections([collectionIdNumber]);
+      collections.fetchCollections([collectionIdNumber]);
     }
   }, [collectionIdNumber, isPreview]);
 
@@ -63,6 +67,7 @@ export function BadgePage({ collectionPreview }
     tabInfo.push(
       { key: 'overview', content: 'Overview' },
       // { key: 'collection', content: 'Collection' },
+      { key: 'transferability', content: 'Transferability' },
       { key: 'claims', content: 'Claims' },
       { key: 'activity', content: 'Activity' },
       { key: 'actions', content: 'Actions' },
@@ -72,7 +77,7 @@ export function BadgePage({ collectionPreview }
       { key: 'overview', content: 'Overview' },
       // { key: 'collection', content: 'Collection' },
       // { key: 'claims', content: 'Claims' },
-      { key: 'activity', content: 'Activity' },
+      // { key: 'activity', content: 'Activity' },
       { key: 'actions', content: 'Actions' },
     );
   }
@@ -106,7 +111,7 @@ export function BadgePage({ collectionPreview }
         >
           <BadgeButtonDisplay website={metadata?.externalUrl} />
 
-          {metadata && <CollectionHeader collectionId={collectionIdNumber} />}
+          {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
           <Tabs
             tab={tab}
@@ -124,6 +129,9 @@ export function BadgePage({ collectionPreview }
               badgeId={badgeIdNumber}
             />
           </>}
+          {tab === 'transferability' && (
+            <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} badgeId={badgeIdNumber} />
+          )}
 
 
           {tab === 'overview' && (<>
@@ -132,7 +140,7 @@ export function BadgePage({ collectionPreview }
 
             {collection &&
               <div className='flex-center'>
-                <Row className='flex-between full-width'>
+                <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
                   <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
                     <MetadataDisplay
                       collectionId={collectionIdNumber}
@@ -186,9 +194,8 @@ export function BadgePage({ collectionPreview }
                     {collection &&
                       <PermissionsOverview
                         collectionId={collectionIdNumber}
-                        isBadgeView
+                        badgeId={badgeIdNumber}
                         span={24}
-                        isOffChainBalances={isOffChainBalances}
                       />
                     }
 
@@ -209,6 +216,12 @@ export function BadgePage({ collectionPreview }
                       </InformationDisplayCard>
                       <br />
                     </>}
+                    <DistributionOverview
+                      collectionId={collectionIdNumber}
+                      span={24}
+                      badgeId={badgeIdNumber}
+                    />
+                    <br />
 
                     {collection && <OwnersTab
                       collectionId={collectionIdNumber}

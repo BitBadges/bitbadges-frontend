@@ -4,24 +4,26 @@ import { getBrowseCollections } from '../bitbadges-api/api';
 import { CollectionDisplay } from '../components/collections/CollectionDisplay';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
 import { BitBadgesCollection, GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { INFINITE_LOOP_MODE } from '../constants';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
 
   const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
   const [tab, setTab] = useState('featured');
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
     async function getCollections() {
       const browseInfo = await getBrowseCollections();
       if (!browseInfo) return;
 
       for (const category of Object.keys(browseInfo)) {
         for (const collection of browseInfo[category]) {
-          collectionsRef.current.updateCollection(collection);
+          collections.updateCollection(collection);
         }
       }
 

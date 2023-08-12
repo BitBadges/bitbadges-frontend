@@ -37,6 +37,7 @@ export function TransfersMappingSelect({
   // const unselected = toSelectType == AddressMappingSelectType.UNSELECTED || fromSelectType == AddressMappingSelectType.UNSELECTED;
 
   // useEffect(() => {
+  // if (INFINITE_LOOP_MODE) console.log('useEffect: ');
   //   if (!collection) return;
 
   //   if (toSelectType == AddressMappingSelectType.UNSELECTED || fromSelectType == AddressMappingSelectType.UNSELECTED) return;

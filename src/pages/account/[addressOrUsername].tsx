@@ -15,6 +15,7 @@ import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { DevMode } from '../../components/common/DevMode';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { Tabs } from '../../components/navigation/Tabs';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -23,18 +24,13 @@ const { Content } = Layout;
 function PortfolioPage() {
   const router = useRouter();
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
   const { addressOrUsername } = router.query;
-  console.log("RERENDER");
-  console.log(addressOrUsername);
-  console.log(typeof addressOrUsername === 'string')
-  console.log(typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined);
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
-  console.log(accountInfo);
 
   const [tab, setTab] = useState('collected');
   const [cardView, setCardView] = useState(true);
-  const [groupByCollection, setGroupByCollection] = useState(false);
+  const [groupByCollection, setGroupByCollection] = useState(true);
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
@@ -51,15 +47,14 @@ function PortfolioPage() {
     { key: 'reputation', content: 'Reviews' }
   )
 
-  console.log(addressOrUsername);
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: get portfolio info');
     async function getPortfolioInfo() {
-      console.log(addressOrUsername, "ASFDSDSF");
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
 
-      const fetchedAccounts = await accountsRef.current.fetchAccountsWithOptions([{
+      const fetchedAccounts = await accounts.fetchAccountsWithOptions([{
         address: isAddressValid(addressOrUsername as string) ? addressOrUsername as string : undefined,
         username: isAddressValid(addressOrUsername as string) ? undefined : addressOrUsername as string,
         viewsToFetch: [{
@@ -75,8 +70,6 @@ function PortfolioPage() {
       }]);
       const fetchedAccount = fetchedAccounts[0];
 
-      console.log("FETCHED ACCOUNT", JSON.stringify(fetchedAccount))
-
       if (fetchedAccount.readme) {
         setTab('overview');
       }
@@ -87,6 +80,7 @@ function PortfolioPage() {
 
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: get num total badges ');
     if (!accountInfo) return;
 
     //Calculate badge IDs for each collection
@@ -121,17 +115,16 @@ function PortfolioPage() {
   const [reactElement, setReactElement] = useState<ReactElement | null>(null);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: get readme');
     const HtmlToReactParser = HtmlToReact.Parser();
     const reactElement = HtmlToReactParser.parse(mdParser.render(accountInfo?.readme ? accountInfo?.readme : ''));
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
   if (!accountInfo) {
-    console.log("NO ACCOUNT INFO)")
     return <></>
   }
 
-  console.log("PAST");
   const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? false;
 
   return (
@@ -249,6 +242,7 @@ function PortfolioPage() {
 
                   if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
                     await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['badgesCollected']);
+
                   }
 
                   if (!groupByCollection) {
@@ -261,7 +255,7 @@ function PortfolioPage() {
                     }
                   }
                 }}
-                hasMore={collectedHasMore || numBadgesDisplayed < numTotalBadges}
+                hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
                 loader={<div>
                   <br />
                   <Spin size={'large'} />
@@ -275,7 +269,7 @@ function PortfolioPage() {
               >
                 <MultiCollectionBadgeDisplay
                   collectionIds={accountInfo.collected.map((collection) => collection.collectionId)}
-                  addressOrUsernameToShowBalance={accountInfo.cosmosAddress}
+                  addressOrUsernameToShowBalance={accountInfo.address}
                   cardView={cardView}
                   groupByCollection={groupByCollection}
                   pageSize={groupByCollection ? accountInfo.collected.length : numBadgesDisplayed}
@@ -303,6 +297,7 @@ function PortfolioPage() {
                 await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestReviews']);
               }}
               hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? false}
+              addressOrUsername={accountInfo?.address ?? ''}
             />
           </>
           )}

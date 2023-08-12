@@ -1,6 +1,6 @@
 import { notification } from 'antd';
 import { CollectionApprovedTransferTimeline, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DistributionMethod, MetadataAddMethod, createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DistributionMethod, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { addBalancesToIpfs, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
@@ -9,6 +9,7 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsC
 import { FOREVER_DATE } from '../../utils/dates';
 import { EmptyStepItem, MSG_PREVIEW_ID, MsgUpdateCollectionProps, TxTimeline } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function CreateTxMsgUpdateCollectionModal(
   { visible, setVisible, children, collectionId, doNotShowTimeline, inheritedTxState }
@@ -28,11 +29,10 @@ export function CreateTxMsgUpdateCollectionModal(
 
   const [txState, setTxState] = useState<MsgUpdateCollectionProps | undefined>(inheritedTxState ?? undefined);
 
-  useEffect(() => {
-    setTxState(inheritedTxState ?? undefined)
-  }, [inheritedTxState]);
-
-  console.log(collectionId);
+  // useEffect(() => {
+  //   if (INFINITE_LOOP_MODE) console.log('useEffect:  update collection modal');
+  //   setTxState(inheritedTxState ?? undefined)
+  // }, [inheritedTxState]);
 
   const [disabled, setDisabled] = useState<boolean>(true);
 
@@ -106,7 +106,7 @@ export function CreateTxMsgUpdateCollectionModal(
     let offChainBalancesMetadataTimeline = collection.offChainBalancesMetadataTimeline;
     let collectionMetadataTimeline = collection.collectionMetadataTimeline;
     let badgeMetadataTimeline = collection.badgeMetadataTimeline;
-    let prunedMetadata: BadgeMetadataDetails<bigint>[] = collection.badgeMetadata;
+    let prunedMetadata: BadgeMetadataDetails<bigint>[] = collection.cachedBadgeMetadata;
 
     //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
     if (txState.addMethod == MetadataAddMethod.Manual && (txState.updateBadgeMetadataTimeline || txState.updateCollectionMetadataTimeline)) {
@@ -136,10 +136,9 @@ export function CreateTxMsgUpdateCollectionModal(
         //TODO: Test this
         //TODO: Same with collection metadata and claims and balances
         prunedMetadata = prunedMetadata.filter(x => x.toUpdate);
-
-        //TODO: this is also technically not fully the right architecture with timeline values now
+        
         let res = await addMetadataToIpfs({
-          collectionMetadata: txState.updateCollectionMetadataTimeline ? collection.collectionMetadata : undefined,
+          collectionMetadata: txState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
           badgeMetadata: txState.updateBadgeMetadataTimeline ? prunedMetadata : undefined,
         });
         // if (!res.collectionMetadataResult) throw new Error('Collection metadata not added to IPFS');
@@ -202,9 +201,19 @@ export function CreateTxMsgUpdateCollectionModal(
             for (let j = 0; j < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers.length; j++) {
               for (let k = 0; k < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails.length; k++) {
                 for (let x = 0; x < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges.length; x++) {
+                  if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri &&
+                    collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri == 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB') {
+                    collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri = '';
+                  }
+
                   if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri) continue; //If it already has a URI, we don't need to add it to IPFS
 
-                  if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details) {
+                  if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details
+                    && (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.name
+                      || collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.description
+                      || collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.challengeDetails
+                      || collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.password
+                    )) {
                     let res = await addMerkleChallengeToIpfs({
                       name: collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.name || '',
                       description: collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].details?.description || '',
@@ -223,7 +232,13 @@ export function CreateTxMsgUpdateCollectionModal(
 
     if (collection.balancesType == "Off-Chain" && txState.transfers.length > 0 && txState.updateOffChainBalancesMetadataTimeline) {
       if (!simulate) {
-        const balanceMap = await createBalanceMapForOffChainBalances(txState.transfers);
+        const _balanceMap = await createBalanceMapForOffChainBalances(txState.transfers);
+
+        const balanceMap: OffChainBalancesMap<bigint> = {};
+        for (const entries of Object.entries(_balanceMap)) {
+          const [key, value] = entries;
+          balanceMap[convertToCosmosAddress(key)] = value;
+        }
 
         let res = await addBalancesToIpfs({ balances: balanceMap });
         offChainBalancesMetadataTimeline = [{
@@ -277,6 +292,8 @@ export function CreateTxMsgUpdateCollectionModal(
       badgeMetadataTimeline: badgeMetadataTimeline,
       offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
     }
+
+    console.log("FINAL MSG", msgUpdateCollection);
 
     return msgUpdateCollection;
   }

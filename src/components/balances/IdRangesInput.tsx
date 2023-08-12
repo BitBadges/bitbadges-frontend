@@ -1,5 +1,5 @@
-import { DeleteOutlined } from "@ant-design/icons";
-import { Button, Divider, Input, InputNumber, Slider, Tooltip } from "antd";
+import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { Button, Divider, Input, InputNumber, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -14,6 +14,7 @@ export function UintRangesInput({
   verb,
   collectionId,
   defaultAllSelected = true,
+  hideSelect
 }: {
   uintRanges?: UintRange<bigint>[],
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
@@ -22,8 +23,9 @@ export function UintRangesInput({
   verb?: string,
   collectionId: bigint,
   defaultAllSelected?: boolean,
+  hideSelect?: boolean,
 }) {
-  const isDefaultAllSelected = uintRanges ? uintRanges.length === 1 && uintRanges[0].start === minimum && uintRanges[0].end === maximum : defaultAllSelected;
+  // const isDefaultAllSelected = uintRanges ? uintRanges.length === 1 && uintRanges[0].start === minimum && uintRanges[0].end === maximum : defaultAllSelected;
 
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
@@ -33,7 +35,7 @@ export function UintRangesInput({
     uintRanges ?
       uintRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
       : `${minimum ?? 1n}-${maximum ?? 1n}`);
-  const [updateAllIsSelected, setUpdateAllIsSelected] = useState(isDefaultAllSelected);
+  const [updateAllIsSelected, setUpdateAllIsSelected] = useState(false);
   // const [clicked, setClicked] = useState(false);
 
   if (maximum && maximum <= 0) {
@@ -69,48 +71,54 @@ export function UintRangesInput({
 
 
   return <>
-    <SwitchForm
-      options={switchOptions}
-      onSwitchChange={(_idx, name) => {
-        setUpdateAllIsSelected(name === 'All Badges');
-        if (name === 'All Badges') {
-          setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
-        }
-      }}
-    />
+    {!hideSelect &&
+      <SwitchForm
+        options={switchOptions}
+        onSwitchChange={(_idx, name) => {
+          setUpdateAllIsSelected(name === 'All Badges');
+          if (name === 'All Badges') {
+            setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
+          }
+        }}
+      />}
 
     {!updateAllIsSelected && <>
       <br />
       <div className='flex-center' >
         <Input
-          style={{ width: 750, marginTop: 16, textAlign: 'center' }}
+          style={{ marginTop: 16, textAlign: 'center' }}
           className="primary-text primary-blue-bg"
           value={inputStr}
+          placeholder="Enter Badge IDs: 1-10, 20-30, 40-50, ...."
           onChange={(e) => {
             setInputStr(e.target.value);
-            let sliderValues: [bigint, bigint][] = [];
+            try {
+              let sliderValues: [bigint, bigint][] = [];
 
-            const splitSliderValues = e.target.value.split(', ');
-            for (const sliderValue of splitSliderValues) {
-              if (sliderValue.split('-').length !== 2) {
-                continue;
-              } else {
-
-                if (sliderValue.split('-')[0] === '' || sliderValue.split('-')[1] === '') {
+              const splitSliderValues = e.target.value.split(', ');
+              for (const sliderValue of splitSliderValues) {
+                if (sliderValue.split('-').length !== 2) {
                   continue;
-                }
-                //start can't be greater than end
-                if (BigInt(sliderValue.split('-')[0]) > BigInt(sliderValue.split('-')[1])) {
-                  continue;
-                }
+                } else {
 
-                sliderValues.push([BigInt(sliderValue.split('-')[0]), BigInt(sliderValue.split('-')[1])]);
+                  if (sliderValue.split('-')[0] === '' || sliderValue.split('-')[1] === '') {
+                    continue;
+                  }
+                  //start can't be greater than end
+                  if (BigInt(sliderValue.split('-')[0]) > BigInt(sliderValue.split('-')[1])) {
+                    continue;
+                  }
+
+                  sliderValues.push([BigInt(sliderValue.split('-')[0]), BigInt(sliderValue.split('-')[1])]);
+                }
               }
-            }
 
-            setSliderValues(sliderValues);
-            setNumRanges(sliderValues.length);
-            setUintRanges(sliderValues.map(([start, end]) => ({ start, end })));
+              setSliderValues(sliderValues);
+              setNumRanges(sliderValues.length);
+              setUintRanges(sliderValues.map(([start, end]) => ({ start, end })));
+            } catch (err) {
+              console.log(err);
+            }
           }}
 
         />
@@ -120,10 +128,10 @@ export function UintRangesInput({
       {
         new Array(numRanges).fill(0).map((_, i) => {
           return <div key={i} style={{ display: "flex", alignItems: 'center', justifyContent: 'center' }}>
-            <div className='flex-between' style={{ flexDirection: 'column', minWidth: 500, marginRight: 12 }} >
+            {/* <div className='flex-between' style={{ flexDirection: 'column', minWidth: 200, marginRight: 12 }} >
               <b>Select Badge IDs to {verb ? verb : 'Transfer'}</b>
               <Slider min={minimumNum} max={maximumNum} range
-                style={{ minWidth: 500 }}
+                style={{ minWidth: 200 }}
                 value={[Numberify(sliderValues[i][0]), Numberify(sliderValues[i][1])]}
                 onChange={(e) => {
                   const _newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
@@ -133,7 +141,7 @@ export function UintRangesInput({
                   setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
                 }}
               />
-            </div>
+            </div> */}
             <div className='flex-between' style={{ flexDirection: 'column', marginRight: 8 }} >
               <b>Start</b>
               <InputNumber
@@ -180,15 +188,15 @@ export function UintRangesInput({
                 <DeleteOutlined
                   style={{
                     fontSize: 24, marginLeft: 20, marginTop: 16,
-                    cursor: numRanges > 1 ? 'pointer' : 'not-allowed',
+                    cursor: 'pointer',
                   }}
                   onClick={() => {
-                    if (numRanges > 1) {
-                      setNumRanges(numRanges - 1);
-                      setSliderValues(sliderValues.filter((_, j) => i !== j));
-                      setUintRanges(sliderValues.filter((_, j) => i !== j).map(([start, end]) => ({ start, end })));
-                      setInputStr(sliderValues.filter((_, j) => i !== j).map(([start, end]) => `${start}-${end}`).join(', '));
-                    }
+
+                    setNumRanges(numRanges - 1);
+                    setSliderValues(sliderValues.filter((_, j) => i !== j));
+                    setUintRanges(sliderValues.filter((_, j) => i !== j).map(([start, end]) => ({ start, end })));
+                    setInputStr(sliderValues.filter((_, j) => i !== j).map(([start, end]) => `${start}-${end}`).join(', '));
+
                   }}
                   disabled={numRanges === 1}
                 />
@@ -199,25 +207,37 @@ export function UintRangesInput({
         })
       }
 
+
+      <div className='flex-center'>
+        <Tooltip title="Add Range" placement='bottom'>
+          <PlusCircleOutlined
+            style={{
+              fontSize: 24, marginLeft: 20, marginTop: 16,
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              setNumRanges(numRanges + 1)
+
+              const oldSliderValues = sliderValues;
+
+              setSliderValues([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]]);
+              setUintRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
+              setInputStr([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => `${start}-${end}`).join(', '));
+            }}
+            disabled={numRanges === 1}
+          />
+        </Tooltip>
+
+      </div>
+
       <br />
       <div className='flex-center'>
-        <Button type='primary'
-          style={{ marginRight: 12 }}
-          onClick={() => {
-            setNumRanges(numRanges + 1)
-
-            const oldSliderValues = sliderValues;
-
-            setSliderValues([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]]);
-            setUintRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
-            setInputStr([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => `${start}-${end}`).join(', '));
-          }}>
-          Add Range
-        </Button>
         {overlaps &&
           <Button type='primary'
+            className="screen-button"
             onClick={() => {
               const newUintRanges = sortUintRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
+
               setNumRanges(newUintRanges.length);
               setSliderValues(newUintRanges.map(({ start, end }) => [start, end]));
               setUintRanges(newUintRanges);

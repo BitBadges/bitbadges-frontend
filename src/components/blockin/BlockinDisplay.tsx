@@ -11,13 +11,16 @@ import { useCookies } from 'react-cookie';
 import { SupportedChain } from "bitbadgesjs-utils";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { INFINITE_LOOP_MODE } from "../../constants";
 
 const { Text } = Typography;
 
 export const BlockinDisplay = ({
   hideLogo,
+  hideLogin,
 }: {
   hideLogo?: boolean;
+  hideLogin?: boolean;
 }) => {
   const {
     address,
@@ -53,6 +56,7 @@ export const BlockinDisplay = ({
    * Update challengeParams when address or chain changes
    */
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: blockin display');
     async function updateChallengeParams() {
       if (address && connected) {
         const res = await getSignInChallenge({ chain, address, hours });
@@ -122,7 +126,6 @@ export const BlockinDisplay = ({
     setChallengeParams(res.params);
   }
 
-  console.log(connected);
   return <>
     <div className='flex-center' style={{ color: 'black' }}>
       {
@@ -173,44 +176,46 @@ export const BlockinDisplay = ({
       }
 
     </div>
-    <div className='flex-center' style={{ color: 'black', alignItems: 'center', marginTop: 4 }}>
-      <Typography.Text className='secondary-text'>
-        Remember my sign-in for
-      </Typography.Text>
-      <InputNumber
-        value={hours}
-        onChange={(value) => {
-          setHours(value);
-        }}
-        min={1}
-        max={168}
-        className='primary-text primary-blue-bg'
-        style={{ width: 70, marginLeft: 10, marginRight: 10 }}
-      />
-      <Typography.Text className='secondary-text'>
-        hours
-      </Typography.Text>
-    </div>
-    <br />
-    <div className='flex-center' style={{ color: 'black' }}>
-      <Typography.Text className='secondary-text'>
-        <Tooltip placement="bottom" color="black" title={<>
-          {"What is the difference between connecting and signing in?"}
-          <br />
-          <br />
-          {"Connecting is simply providing us with what your public address is so that we can fetch and display your PUBLIC information, such as your badge balances."}
-          <br />
-          <br />
-          {"Signing in lets you prove your identity (that you are the owner of the address) to our website, similar to a password. This allows you to access PRIVATE features for our website that are only available to authenticated users, such as customizing your profile."}
-          <br />
-          <br />
-          {"Note certain features may require both connecting and signing in."}
-        </>}
-        >
-          <InfoCircleOutlined /> Hover to learn more
-        </Tooltip>
-      </Typography.Text>
-    </div>
+    {!hideLogin && <>
+      <div className='flex-center' style={{ color: 'black', alignItems: 'center', marginTop: 4 }}>
+        <Typography.Text className='secondary-text'>
+          Remember my sign-in for
+        </Typography.Text>
+        <InputNumber
+          value={hours}
+          onChange={(value) => {
+            setHours(value);
+          }}
+          min={1}
+          max={168}
+          className='primary-text primary-blue-bg'
+          style={{ width: 70, marginLeft: 10, marginRight: 10 }}
+        />
+        <Typography.Text className='secondary-text'>
+          hours
+        </Typography.Text>
+      </div>
+      <br />
+      <div className='flex-center' style={{ color: 'black' }}>
+        <Typography.Text className='secondary-text'>
+          <Tooltip placement="bottom" color="black" title={<>
+            {"What is the difference between connecting and signing in?"}
+            <br />
+            <br />
+            {"Connecting is simply providing us with what your public address is so that we can fetch and display your PUBLIC information, such as your badge balances. This also allows lets us know what address to prompt you to sign transactions with."}
+            <br />
+            <br />
+            {"Signing in lets you prove your identity (that you are the owner of the address) to our website, similar to a password. This allows you to access PRIVATE features for our website that are only available to authenticated users, such as customizing your profile."}
+            <br />
+            <br />
+            {"Note certain features may require both connecting and signing in."}
+          </>}
+          >
+            <InfoCircleOutlined /> Hover to learn more
+          </Tooltip>
+        </Typography.Text>
+      </div>
+    </>}
     {!hideLogo && <>
       <div>
         {!(hideLogo && !connected) &&

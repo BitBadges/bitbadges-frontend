@@ -2,6 +2,7 @@
 import { StatusInfo } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { DesiredNumberType, getStatus } from '../api';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export type StatusContextType = {
   status: StatusInfo<DesiredNumberType>,
@@ -17,8 +18,9 @@ const StatusContext = createContext<StatusContextType>({
       txIndex: 0n,
     },
     nextCollectionId: 1n,
-    gasPrice: 0n,
-    lastXGasPrices: [],
+    gasPrice: 0,
+    lastXGasAmounts: [],
+    lastXGasLimits: [],
   },
   updateStatus: async () => {
     return {
@@ -29,8 +31,9 @@ const StatusContext = createContext<StatusContextType>({
         txIndex: 0n,
       },
       nextCollectionId: 1n,
-      gasPrice: 0n,
-      lastXGasPrices: [],
+      gasPrice: 0,
+      lastXGasAmounts: [],
+      lastXGasLimits: [],
     }
   }
 });
@@ -48,11 +51,13 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
       txIndex: 0n,
     },
     nextCollectionId: 1n,
-    gasPrice: 0n,
-    lastXGasPrices: [],
+    gasPrice: 0,
+    lastXGasAmounts: [],
+    lastXGasLimits: [],
   });
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: status');
     async function fetchStatus() {
       const res = await getStatus();
       setStatus(res.status);
@@ -63,7 +68,6 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
   const updateStatus = async () => {
     const res = await getStatus();
     setStatus(res.status);
-    console.log(res.status);
     return res.status;
   }
 

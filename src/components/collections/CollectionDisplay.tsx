@@ -4,11 +4,21 @@ import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsC
 import { BadgeAvatar } from "../badges/BadgeAvatar";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { useEffect } from "react";
+import { INFINITE_LOOP_MODE } from "../../constants";
 
 export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
   const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: collection display, fetch collection ');
+
+    if (!collection?.owners.find(x => x.cosmosAddress === 'Total')) {
+      collections.fetchCollectionsWithOptions([{ collectionId, fetchTotalAndMintBalances: true, handleAllAndAppendDefaults: true }]);
+    }
+  }, [collectionId]);
 
   return <div style={{ width: 265, margin: 4, marginBottom: 15, display: 'flex' }}>
     <InformationDisplayCard
@@ -20,7 +30,7 @@ export function CollectionDisplay({ collectionId }: { collectionId: bigint }) {
             Modal.destroyAll()
           }} style={{ alignItems: 'center', justifyContent: 'center' }}>
             <BadgeAvatar collectionId={collectionId} size={150} />
-            <br />{collection?.collectionMetadata?.name}
+            <br />{collection?.cachedCollectionMetadata?.name}
           </div>
         </Tooltip>
         <br />

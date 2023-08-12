@@ -11,6 +11,7 @@ import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
+import { INFINITE_LOOP_MODE } from '../../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -55,6 +56,7 @@ export function AccountSettings() {
 
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
     if (!signedInAccount) return;
     setTwitter(signedInAccount.twitter ? signedInAccount.twitter : '');
     setDiscord(signedInAccount.discord ? signedInAccount.discord : '');

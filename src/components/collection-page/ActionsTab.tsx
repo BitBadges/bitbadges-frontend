@@ -1,5 +1,6 @@
 import { Card, Empty, notification } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
@@ -7,7 +8,6 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { CreateTxMsgUpdateCollectionModal } from '../tx-modals/CreateTxMsgUpdateCollection';
 
 export function ActionsTab({
   collectionId,
@@ -17,6 +17,7 @@ export function ActionsTab({
   badgeView?: boolean;
 }) {
   const chain = useChainContext();
+  const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
@@ -66,6 +67,22 @@ export function ActionsTab({
     });
   }
 
+  actions.push({
+    title: getTitleElem(isOffChainBalances ? "Refresh Metadata and Balances" : "Refresh Metadata"),
+    description: getDescriptionElem(
+      "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection."
+    ),
+    showModal: async () => {
+      try {
+        await collections.triggerMetadataRefresh(collectionId);
+        notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
+      } catch (e) {
+        console.error(e);
+        notification.error({ message: "Oops! Something went wrong. Please try again later." });
+      }
+    },
+  })
+
   if (isManager && !badgeView) {
     actions.push({
       title: getTitleElem("Update Collection"),
@@ -73,25 +90,11 @@ export function ActionsTab({
         "Update the details of this collection."
       ),
       showModal: () => {
-        setUpdateMetadataIsVisible(!updateMetadataIsVisible);
+        router.push('/collections/update/' + collectionId);
       },
     });
 
-    actions.push({
-      title: getTitleElem(isOffChainBalances ? "Refresh Metadata and Balances" : "Refresh Metadata"),
-      description: getDescriptionElem(
-        "Refetch all " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection from their sources."
-      ),
-      showModal: async () => {
-        try {
-          await collections.triggerMetadataRefresh(collectionId);
-          notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
-        } catch (e) {
-          console.error(e);
-          notification.error({ message: "Oops! Something went wrong. Please try again later." });
-        }
-      },
-    })
+
 
     if (collection.collectionPermissions.canDeleteCollection.length == 0) {
       actions.push({
@@ -116,7 +119,7 @@ export function ActionsTab({
     <RegisteredWrapper
       node={
         <div className='full-width' style={{ fontSize: 20 }}>
-          <div className='primary-text flex-center'
+          <div className='primary-text flex-center flex-wrap'
             style={{
               padding: '0',
               textAlign: 'center',
@@ -172,14 +175,6 @@ export function ActionsTab({
               />
             </>
           )}
-          {updateCollectionIsVisible &&
-            <CreateTxMsgUpdateCollectionModal
-              visible={updateCollectionIsVisible}
-              setVisible={setUpdateCollectionIsVisible}
-              // txType='UpdateCollection'
-              collectionId={collectionId}
-            />
-          }
 
           {transferIsVisible &&
             <CreateTxMsgTransferBadgesModal

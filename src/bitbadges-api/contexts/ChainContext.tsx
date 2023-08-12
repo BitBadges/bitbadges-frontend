@@ -4,6 +4,7 @@ import { PresetResource, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export type SignChallengeResponse = {
   originalBytes?: Uint8Array;
@@ -80,6 +81,8 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
 
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
+
     if (chain === 'Ethereum') {
       ethereumContext.setChainId('eth');
     }

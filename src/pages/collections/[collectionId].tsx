@@ -14,6 +14,9 @@ import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
+import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
+import { INFINITE_LOOP_MODE } from '../../constants';
+import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 
 const { Content } = Layout;
 
@@ -25,7 +28,7 @@ function CollectionPage({
   const router = useRouter()
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
   const { collectionId, badgeId, password, code, claimsTab } = router.query;
   const isPreview = collectionPreview ? true : false;
 
@@ -35,7 +38,7 @@ function CollectionPage({
 
   const [tab, setTab] = useState(badgeIdNumber > 0 ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
 
-  const collectionMetadata = collection?.collectionMetadata;
+  const collectionMetadata = collection?.cachedCollectionMetadata;
 
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
@@ -45,6 +48,8 @@ function CollectionPage({
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
+      { key: 'transferability', content: 'Transferability', disabled: false },
+      { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'claims', content: 'Claims', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
@@ -54,21 +59,24 @@ function CollectionPage({
     // EXPERIMENTAL STANDARD
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
+      { key: 'badges', content: 'Badges', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
-      { key: 'activity', content: 'Activity', disabled: false },
+      // { key: 'activity', content: 'Activity', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
     )
   }
 
   //Get collection information
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: fetch collection ,collection page');
     async function fetchCollections() {
       if (collectionIdNumber > 0) {
-        const collections = await collectionsRef.current.fetchCollections([collectionIdNumber]);
-        const currCollection = collections[0];
+        const collectionsRes = await collections.fetchCollections([collectionIdNumber]);
+        const currCollection = collectionsRes[0];
 
-        if (currCollection.collectionMetadata?._isUpdating || currCollection.badgeMetadata.find(badge => badge.metadata._isUpdating)) {
+
+        if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({
             message: 'Metadata for this collection is currently being refreshed.',
             description: 'Certain metadata may not be up to date until the fetch is complete.',
@@ -82,25 +90,28 @@ function CollectionPage({
 
   //Set tab to badges if badgeId is in query
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to badges ');
     if (badgeId) setTab('badges');
   }, [badgeId])
 
   //Set tab to badges if badgeId is in query
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to claims');
     if (code || password || claimsTab) setTab('claims');
   }, [code, password, claimsTab])
 
   // Get user's badge balance
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: get badge balance by address from api ');
     if (isPreview) return;
     async function getBadgeBalanceByAddressFromApi() {
       if (isPreview) return;
-      if (collectionIdNumber > 0 && chain.cosmosAddress) {
-        await collectionsRef.current.fetchBalanceForUser(collectionIdNumber, chain.cosmosAddress);
+      if (collectionIdNumber > 0 && chain.address) {
+        await collections.fetchBalanceForUser(collectionIdNumber, chain.address);
       }
     }
     getBadgeBalanceByAddressFromApi();
-  }, [collectionIdNumber, chain.cosmosAddress, isPreview]);
+  }, [collectionIdNumber, chain.address, isPreview]);
 
   return (
     <Layout>
@@ -124,7 +135,7 @@ function CollectionPage({
           {collection && <>
             <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />
             {/* Overview and Tabs */}
-            {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} />}
+            {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
             <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
             <br />
 
@@ -136,6 +147,13 @@ function CollectionPage({
             )}
             {tab === 'badges' && (
               <BadgesTab collectionId={collectionIdNumber} />
+            )}
+            {tab === 'transferability' && (
+              <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} />
+            )}
+
+            {tab === 'approvals' && (
+              <UserApprovalsTab collectionId={collectionIdNumber} />
             )}
 
 

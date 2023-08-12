@@ -13,27 +13,34 @@ export function Address({
   fontColor,
   hideTooltip,
   hidePortfolioLink,
+  overrideChain,
 }: {
   addressOrUsername: string;
   fontSize?: number | string;
   fontColor?: string;
   hideTooltip?: boolean;
-  hidePortfolioLink?: boolean
+  hidePortfolioLink?: boolean;
+  overrideChain?: SupportedChain;
 }) {
   const router = useRouter();
   const accounts = useAccountsContext();
   const userInfo = accounts.getAccount(addressOrUsername);
 
+  let newAddress = '';
+  if (userInfo && overrideChain && userInfo?.chain !== overrideChain && overrideChain === SupportedChain.COSMOS) {
+    newAddress = userInfo.cosmosAddress;
+  } else if (userInfo && overrideChain && userInfo?.chain !== overrideChain) {
+    newAddress = cosmosToEth(userInfo.cosmosAddress);
+  }
+
+
   const addressName = userInfo?.username;
   const resolvedName = userInfo?.resolvedName;
-  let address = userInfo?.address || addressOrUsername || '';
-
-  console.log(addressOrUsername);
-
-  let chain = userInfo?.chain;
+  let address = (overrideChain ? newAddress : userInfo?.address) || addressOrUsername || '';
+  let chain = overrideChain ?? userInfo?.chain;
 
   const isValidAddress = isAddressValid(address);
-  const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
+  const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && chain === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
 
 
   const innerContent = !hideTooltip && userInfo ? (
@@ -49,7 +56,7 @@ export function Address({
               minWidth: 360
             }}
           >
-            This is a special address used when badges are minted.
+            This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
           </div> :
           <div
             className='primary-text'

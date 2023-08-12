@@ -31,7 +31,7 @@ export function WalletHeader() {
   const router = useRouter()
   const chain = useChainContext();
   const accounts = useAccountsContext();
-  const account = accounts.getAccount(chain.cosmosAddress);
+  const account = accounts.getAccount(chain.address);
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [_cookies, _setCookie, removeCookie] = useCookies(['blockincookie']);
@@ -63,8 +63,8 @@ export function WalletHeader() {
   const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'mint/collection', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18 }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'mint/collection', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18 }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
 
   let unseenNotificationCount = 0;
   let overflowCount = 10;

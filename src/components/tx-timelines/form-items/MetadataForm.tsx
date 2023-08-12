@@ -1,6 +1,6 @@
 import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
@@ -17,6 +17,8 @@ import { useCollectionsContext } from '../../../bitbadges-api/contexts/Collectio
 import { FOREVER_DATE } from '../../../utils/dates';
 import { BadgeAvatar } from '../../badges/BadgeAvatar';
 import { UintRangesInput } from '../../balances/IdRangesInput';
+import { INFINITE_LOOP_MODE } from '../../../constants';
+import { BadgeCard } from '../../badges/BadgeCard';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -50,22 +52,32 @@ export function MetadataForm({
 
   const [badgeId, setBadgeId] = useState<bigint>(startId ?? 1n);
 
-  let metadata = (isCollectionSelect ? collection?.collectionMetadata : getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
+  let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
+
+  const [currMetadata, setCurrMetadata] = useState<Metadata<bigint>>(metadata);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log("MetadataForm: useEffect: collection: ", collectionId);
+    setCurrMetadata(metadata);
+  }, [badgeId]);
+
 
   //TODO: Think about race conditions between the debounce time
   const setMetadata = (metadata: Metadata<bigint>) => {
+    setCurrMetadata(metadata);
+
     const delayDebounceFn = setTimeout(async () => {
       if (!collection) return;
       if (isCollectionSelect) {
         collections.updateCollection({
           ...collection,
-          collectionMetadata: metadata
+          cachedCollectionMetadata: metadata
         });
       } else {
-        const newBadgeMetadata = updateBadgeMetadata(collection.badgeMetadata, { metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
+        const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, { toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
         collections.updateCollection({
           ...collection,
-          badgeMetadata: newBadgeMetadata
+          cachedBadgeMetadata: newBadgeMetadata
         })
       }
     }, DELAY_TIME);
@@ -76,11 +88,11 @@ export function MetadataForm({
   const populateOtherBadges = (badgeIds: UintRange<bigint>[], key: string, value: any) => {
     if (!collection) return;
 
-    const badgeMetadata = collection.badgeMetadata;
+    const badgeMetadata = collection.cachedBadgeMetadata;
     const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
     collections.updateCollection({
       ...collection,
-      badgeMetadata: newBadgeMetadata,
+      cachedBadgeMetadata: newBadgeMetadata,
     })
   }
 
@@ -111,9 +123,9 @@ export function MetadataForm({
 
   const [images, setImages] = useState([
     ...sampleImages,
-    metadata?.image && !sampleImages.find(x => x.value === metadata.image)
+    metadata?.image && !sampleImages.find(x => x.value === currMetadata.image)
       ? {
-        value: metadata.image,
+        value: currMetadata.image,
         label: 'Custom Image',
       } : undefined
   ].filter(x => !!x));
@@ -162,7 +174,7 @@ export function MetadataForm({
           })
           setImages(images);
           setMetadata({
-            ...metadata,
+            ...currMetadata,
             image: base64
           });
           setImageIsUploading(false);
@@ -187,7 +199,7 @@ export function MetadataForm({
 
   function handleEditorChange({ text }: any) {
     setMetadata({
-      ...metadata,
+      ...currMetadata,
       description: text
     });
     // console.log('handleEditorChange', html, text);
@@ -238,12 +250,11 @@ export function MetadataForm({
 
             </div>
             <br />
-            <div className='primary-text'>
-              <BadgeAvatar
+            <div className='primary-text flex-center'>
+              <BadgeCard
                 badgeId={badgeId}
                 collectionId={collectionId}
                 size={75}
-                showId
               />
             </div>
             <div>
@@ -295,10 +306,10 @@ export function MetadataForm({
           >
             <div className='flex-between'>
               <Input
-                value={metadata.name}
+                value={currMetadata.name}
                 onChange={(e: any) => {
                   setMetadata({
-                    ...metadata,
+                    ...currMetadata,
                     name: e.target.value
                   });
                 }}
@@ -342,7 +353,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -364,12 +375,12 @@ export function MetadataForm({
             <div className='flex-between'>
               <Select
                 className="selector primary-text primary-blue-bg"
-                value={images.find((item: any) => item.value === metadata.image)?.label}
+                value={images.find((item: any) => item.value === currMetadata.image)?.label}
                 onChange={(e) => {
                   const newImage = images.find((item: any) => e === item.label)?.value;
                   if (newImage) {
                     setMetadata({
-                      ...metadata,
+                      ...currMetadata,
                       image: newImage
                     });
                   }
@@ -452,7 +463,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -475,11 +486,11 @@ export function MetadataForm({
             <div className='flex-between'>
               <Select
                 className="selector primary-text primary-blue-bg"
-                value={metadata.category}
+                value={currMetadata.category}
                 placeholder="Default: None"
                 onChange={(e: any) => {
                   setMetadata({
-                    ...metadata,
+                    ...currMetadata,
                     category: e
                   });
 
@@ -559,7 +570,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -585,13 +596,13 @@ export function MetadataForm({
                   minHeight: '250px',
 
                 }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
-                value={metadata.description}
+                value={currMetadata.description}
               />
               {/* <Input.TextArea
-                            value={metadata.description}
+                            value={currMetadata.description}
                             onChange={(e) => {
                                 setMetadata({
-                                    ...metadata,
+                                    ...currMetadata,
                                     description: e.target.value
                                 });
                             }}
@@ -631,7 +642,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -655,10 +666,10 @@ export function MetadataForm({
           >
             <div className='flex-between'>
               <Input
-                value={metadata.externalUrl}
+                value={currMetadata.externalUrl}
                 onChange={(e) => {
                   setMetadata({
-                    ...metadata,
+                    ...currMetadata,
                     externalUrl: e.target.value
                   });
                 }}
@@ -703,7 +714,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -728,7 +739,7 @@ export function MetadataForm({
                 {!validForeverChecked &&
                   <DatePicker
                     placeholder='Default: No Expiration Date'
-                    value={metadata.validFrom && metadata.validFrom.length > 0 ? moment(new Date(metadata.validFrom[0].end.toString())) : undefined}
+                    value={currMetadata.validFrom && currMetadata.validFrom.length > 0 ? moment(new Date(Number(currMetadata.validFrom[0].end))) : undefined}
                     className='primary-text primary-blue-bg full-width'
                     suffixIcon={
                       <CalendarOutlined
@@ -737,7 +748,7 @@ export function MetadataForm({
                     }
                     onChange={(_date, dateString) => {
                       setMetadata({
-                        ...metadata,
+                        ...currMetadata,
                         validFrom: [{
                           start: BigInt(Date.now()),
                           end: BigInt(new Date(dateString).valueOf()),
@@ -754,7 +765,7 @@ export function MetadataForm({
                     onChange={(e) => {
                       if (e.target.checked) {
                         setMetadata({
-                          ...metadata,
+                          ...currMetadata,
                           validFrom: [{
                             start: BigInt(Date.now()),
                             end: FOREVER_DATE
@@ -762,7 +773,7 @@ export function MetadataForm({
                         });
                       } else {
                         setMetadata({
-                          ...metadata,
+                          ...currMetadata,
                           validFrom: [{
                             start: BigInt(Date.now()),
                             end: BigInt(Date.now()),
@@ -808,7 +819,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -833,10 +844,10 @@ export function MetadataForm({
           >
             <div className='flex-between'>
               <Input
-                value={metadata.tags}
+                value={currMetadata.tags}
                 onChange={(e) => {
                   setMetadata({
-                    ...metadata,
+                    ...currMetadata,
                     tags: e.target.value.split(','),
                   })
                 }}
@@ -866,7 +877,7 @@ export function MetadataForm({
               </Text>
             </div>
             <div style={{ display: 'flex', marginTop: 4 }}>
-              {metadata.tags?.map((tag: any, idx: number) => {
+              {currMetadata.tags?.map((tag: any, idx: number) => {
                 if (tag === '') return;
                 return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
                   {tag}
@@ -891,7 +902,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>
@@ -914,10 +925,10 @@ export function MetadataForm({
             <div className='flex-between'>
               <Select
                 className="selector primary-text primary-blue-bg"
-                defaultValue={metadata.color}
+                defaultValue={currMetadata.color}
                 onSelect={(e: any) => {
                   setMetadata({
-                    ...metadata,
+                    ...currMetadata,
                     color: e
                   });
                 }}
@@ -1013,7 +1024,7 @@ export function MetadataForm({
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, metadata[fieldName]);
+                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
                   setPopulateIsOpen(false);
                 }}
               > Update </Button>

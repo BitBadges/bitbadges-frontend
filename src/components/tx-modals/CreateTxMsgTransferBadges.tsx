@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider } from 'antd';
 import { Balance, MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { DistributionMethod, TransferWithIncrements } from 'bitbadgesjs-utils';
+import { DistributionMethod, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -12,6 +12,7 @@ import { BlockiesAvatar } from '../address/Blockies';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -22,27 +23,24 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const accountsRef = useRef(accounts);
-  const collectionsRef = useRef(collections);
+
+
 
 
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
-  const [sender, setSender] = useState<string>(chain.cosmosAddress);
+  const [sender, setSender] = useState<string>(chain.address);
   const [senderBalance, setSenderBalance] = useState<Balance<bigint>[]>([]);
 
   const senderAccount = accounts.getAccount(sender);
 
-  useEffect(() => {
-    setSender(chain.cosmosAddress);
-  }, [chain]);
-
   const DELAY_MS = 500;
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
-      const account = await accountsRef.current.fetchAccounts([sender]);
+      const account = await accounts.fetchAccounts([sender]);
       const senderAccount = account[0];
 
-      const balanceRes = await collectionsRef.current.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
+      const balanceRes = await collections.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
       setSenderBalance(balanceRes.balances);
     }
 
@@ -54,15 +52,36 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   }, [sender, collectionId]);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
     for (const transfer of transfers) {
-      accountsRef.current.fetchAccounts(transfer.toAddresses);
+      accounts.fetchAccounts(transfer.toAddresses);
     }
   }, [transfers]);
+
+  const convertedTransfers = transfers.map(x => {
+    return {
+      from: senderAccount?.cosmosAddress ?? '',
+      balances: x.balances,
+      toAddresses: x.toAddresses,
+      precalculationDetails: {
+        approvalId: '',
+        approvalLevel: '',
+        approverAddress: '',
+      },
+      merkleProofs: [],
+      memo: '',
+    }
+  })
 
   const txCosmosMsg: MsgTransferBadges<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
-    transfers: transfers
+    transfers: convertedTransfers.map(x => {
+      return {
+        ...x,
+        toAddresses: x.toAddresses.map(y => convertToCosmosAddress(y)),
+      }
+    })
   };
 
   const items = [
@@ -97,10 +116,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
             />
           </div>
 
-          {senderAccount?.cosmosAddress != chain.cosmosAddress && <div >
-            <br />
-            <InfoCircleOutlined /> If you select an address other than yours, note that you must be approved to transfer on their behalf.
-          </div>}
+
 
           <AddressSelect
             defaultValue={senderAccount?.username ?? senderAccount?.address ?? ''}
@@ -112,7 +128,13 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
     {
       title: 'Add Transfers',
       description: <div>
-        <div className='flex-center'>
+        {<div className=''>
+          <br />
+          <InfoCircleOutlined /> {"Note all transfers must be approved by a) the collection and b) the sender's and recipient's incoming / outgoing approvals."}
+        </div>}
+        <br />
+
+        <div className=''>
           <TransferSelect
             distributionMethod={DistributionMethod.DirectTransfer}
             collectionId={collectionId}
@@ -143,7 +165,8 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       requireRegistration
       displayMsg={<div className='primary-text'>
         <TransferDisplay
-          transfers={transfers}
+
+          transfers={convertedTransfers}
           collectionId={collectionId}
           setTransfers={setTransfers}
         />

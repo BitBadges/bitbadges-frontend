@@ -10,9 +10,10 @@ import { useWeb3Modal } from "@web3modal/react";
 import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
-import { CHAIN_DETAILS } from '../../../constants';
+import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
+import { checkIfSignedIn } from '../../api';
 
 
 export type EthereumContextType = ChainSpecificContextType & {
@@ -69,32 +70,40 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
 
   useEffect(() => {
-    if (web3AccountContext.address) {
-      setAddress(web3AccountContext.address);
-      setCosmosAddress(convertToCosmosAddress(web3AccountContext.address));
-      accountsContextRef.current.fetchAccountsWithOptions([{
-        address: web3AccountContext.address,
-        fetchSequence: true,
-        fetchBalance: true,
-        viewsToFetch: [{
-          viewKey: 'badgesCollected',
-          bookmark: '',
-        }, {
-          viewKey: 'latestActivity',
-          bookmark: '',
-        }, {
-          viewKey: 'latestAnnouncements',
-          bookmark: '',
-        }, {
-          viewKey: 'latestReviews',
-          bookmark: '',
-        }]
-      }]);
-      setLoggedIn(cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address));
-      setConnected(true);
-    } else {
-      setConnected(false);
+    async function setDetails() {
+      if (INFINITE_LOOP_MODE) console.log('useEffect: ethereumContext');
+      if (web3AccountContext.address) {
+        setAddress(web3AccountContext.address);
+        setCosmosAddress(convertToCosmosAddress(web3AccountContext.address));
+        accountsContextRef.current.fetchAccountsWithOptions([{
+          address: web3AccountContext.address,
+          fetchSequence: true,
+          fetchBalance: true,
+          viewsToFetch: [{
+            viewKey: 'badgesCollected',
+            bookmark: '',
+          }, {
+            viewKey: 'latestActivity',
+            bookmark: '',
+          }, {
+            viewKey: 'latestAnnouncements',
+            bookmark: '',
+          }, {
+            viewKey: 'latestReviews',
+            bookmark: '',
+          }]
+        }]);
+        if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
+          const signedInRes = await checkIfSignedIn({});
+          setLoggedIn(signedInRes.signedIn);
+        }
+        setConnected(true);
+      } else {
+        setConnected(false);
+      }
     }
+
+    setDetails();
   }, [web3AccountContext.address, cookies.blockincookie])
 
 
@@ -108,7 +117,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     if (!web3AccountContext.address) {
       await open();
     } else if (web3AccountContext.address) {
-      setLoggedIn(cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address));
+      if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
+        const signedInRes = await checkIfSignedIn({});
+        setLoggedIn(signedInRes.signedIn);
+      }
+
+
       await accountsContext.fetchAccountsWithOptions([{
         address: web3AccountContext.address,
         fetchSequence: true,

@@ -10,6 +10,7 @@ import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -40,16 +41,18 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     approvedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
   }
 
+  //TODO: This is hardcoded for length == 0 for now
   for (const approvedTransfer of approvedTransfers) {
     for (const approvalDetails of approvedTransfer.approvalDetails) {
-      for (const merkleChallenge of approvalDetails.merkleChallenges) {
-        merkleChallenges.push(merkleChallenge);
+      if (approvedTransfer.fromMappingId === "Mint") {
+        merkleChallenges.push(...approvalDetails.merkleChallenges);
         approvedTransfersForClaims.push(approvedTransfer);
       }
     }
   }
 
   const numActiveClaims = approvedTransfersForClaims.length;
+  const numMerkleChallenges = merkleChallenges.length;
 
   const claimItem = numActiveClaims > currPage - 1 ? merkleChallenges[currPage - 1] : undefined;
   const approvedTransferItem = numActiveClaims > currPage - 1 ? approvedTransfersForClaims[currPage - 1] : undefined;
@@ -57,6 +60,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
 
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
     if (query.claimId && typeof query.claimId === 'string') {
       setCurrPage(Numberify(query.claimId));
     }
@@ -86,36 +90,11 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       style={{
         justifyContent: 'center',
       }}>
-      <div className='flex-center'>
-        {/* TODO: Only show if code/password claim */}
-        {!isModal && currentManager === chain.cosmosAddress && numActiveClaims > 0 && <div>
-          {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
-          <br />
-          <Button
-            className='screen-button primary-blue-bg'
-            style={{ marginTop: '12px' }}
-            onClick={() => {
-              setFetchCodesModalIsVisible(true);
-            }}
-          >
-            {"Distribute Codes and/or Passwords"}
-          </Button>
 
-          <FetchCodesModal
-            visible={fetchCodesModalIsVisible}
-            setVisible={setFetchCodesModalIsVisible}
-            collectionId={collectionId}
-          />
-          <Divider />
-        </div>}
-        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && <div>
-          {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
-        </div>}
-      </div>
-      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
+      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} showOnSinglePage />
 
       <div className='flex-center'>
-        {claimItem &&
+        {approvedTransfersForClaims[currPage - 1] &&
           <>
             <ClaimDisplay
               collectionId={collectionId}
@@ -151,6 +130,34 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
         claimItem={claimItem}
         whitelistIndex={whitelistIndex}
       />
+      <Divider />
+      <div className='flex-center'>
+
+        {/* TODO: Only show if code/password claim */}
+        {!isModal && currentManager === chain.cosmosAddress && numMerkleChallenges > 0 && <div>
+          {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
+          <br />
+          <Button
+            className='screen-button primary-blue-bg'
+            style={{ marginTop: '12px' }}
+            onClick={() => {
+              setFetchCodesModalIsVisible(true);
+            }}
+          >
+            {"Distribute Codes and/or Passwords"}
+          </Button>
+
+          <FetchCodesModal
+            visible={fetchCodesModalIsVisible}
+            setVisible={setFetchCodesModalIsVisible}
+            collectionId={collectionId}
+          />
+          <Divider />
+        </div>}
+        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && <div>
+          {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
+        </div>}
+      </div>
     </div >
   );
 }

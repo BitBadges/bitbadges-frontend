@@ -8,7 +8,7 @@ import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
-import { CHAIN_DETAILS, DEV_MODE } from '../../constants';
+import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
 import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { AddressDisplay, } from '../address/AddressDisplay';
@@ -42,7 +42,6 @@ export function TxModal(
     coinsToTransfer?: CosmosCoin<bigint>[],
   }
 ) {
-  if (!msgSteps) msgSteps = [];
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const router = useRouter();
@@ -52,6 +51,7 @@ export function TxModal(
   const [checked, setChecked] = useState(false);
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
   const [betaChecked, setBetaChecked] = useState(false);
+  const [blockchainTruthChecked, setBlockchainTruthChecked] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
@@ -59,6 +59,10 @@ export function TxModal(
   const [amount, setAmount] = useState(0n);
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
+  const [recommendedAmount, setRecommendedAmount] = useState(0n);
+
+  const gasPrice = Number(statusContext.status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(statusContext.status.lastXGasLimits.reduce((a, b) => a + b, 0n));
+
 
   const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
@@ -97,13 +101,12 @@ export function TxModal(
   }
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: amount');
     //Simulates the transaction and sets the expected gas to be used.
     //This is used to calculate the transaction fee.
     //NOTE: This is not 100% accurate, but it is close enough. This is before the actual IPFS uris are added in, but we simulate their existince with beforeTx(..., true);
     setError('');
-    if (!visible || currentStep != msgSteps?.length) return;
-
-
+    if (!visible || (msgSteps && currentStep != msgSteps.length)) return;
 
     async function simulate() {
       try {
@@ -141,7 +144,8 @@ export function TxModal(
 
         setSimulatedGas(BigIntify(gasUsed));
         setSimulated(true);
-        setAmount(BigIntify(gasUsed) * status.gasPrice);
+        setAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
+        setRecommendedAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
       } catch (e: any) {
         if (e?.response?.data?.message) {
           setError(e.response.data.message);
@@ -153,9 +157,12 @@ export function TxModal(
       }
     }
     simulate();
-  }, [txCosmosMsg, chain, createTxFunction, signedInAccount, beforeTx, currentStep, msgSteps, visible]);
+  }, [txCosmosMsg, currentStep, visible, createTxFunction, chain, signedInAccount, beforeTx, msgSteps, gasPrice
+    // chain, signedInAccount, beforeTx, msgSteps
+  ]);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: status');
     statusRef.current.updateStatus();
   }, []);
 
@@ -202,8 +209,8 @@ export function TxModal(
       }
 
       if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
-        setSimulated(false);
-        throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please try again.`);
+        // setSimulated(false);
+        // throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please try again.`);
       }
 
 
@@ -220,7 +227,7 @@ export function TxModal(
       //If transaction goes through, increment sequence number (includes errors within badges module)
       //Note if there is an error within ValidateBasic on the chain, the sequence number will be mismatched
       //However, this is a rare case and the user can just refresh the page to fix it. We should also strive to never allow this to happen on the frontend.
-      accounts.incrementSequence(chain.cosmosAddress);
+      // accounts.incrementSequence(chain.cosmosAddress);
 
       //If transaction fails with badges module error, throw error. Other errors are caught before this.
       if (msgResponse.tx_response.codespace === "badges" && msgResponse.tx_response.code !== 0) {
@@ -271,7 +278,7 @@ export function TxModal(
       await submitTx(createTxFunction, txCosmosMsg, false);
       setVisible(false);
 
-      await accounts.fetchAccounts([chain.cosmosAddress], true);
+      await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
       if (onSuccessfulTx) onSuccessfulTx();
     } catch (err: any) {
       console.error(err);
@@ -281,7 +288,7 @@ export function TxModal(
   const finalStep = {
     title: <>Sign and Submit Transaction</>,
     description: <div>
-      {currentStep === msgSteps.length && <div>
+      {currentStep === (msgSteps ?? []).length && <div>
 
         {displayMsg &&
           <div style={{ textAlign: 'center' }} className='primary-text'>
@@ -302,7 +309,7 @@ export function TxModal(
         </div>
         <br />
         <div className='flex-center'>
-          <AddressDisplay hidePortfolioLink addressOrUsername={chain.cosmosAddress} overrideChain={chain.chain} />
+          <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} />
         </div>
         <Divider />
         {txDetails?.fee && simulated ? <>
@@ -314,24 +321,18 @@ export function TxModal(
           <br />
           <div style={{ textAlign: 'center' }} className='primary-text'>
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-              Transaction Fee
-              <Tooltip
-                color='black'
-                title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The default fee was calculated based on the current market price of gas and the type of transaction."
-              >
-                <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
-              </Tooltip>:
+              Transaction Fee:
 
               <InputNumber
                 value={Numberify(txDetails.fee.amount)}
                 onChange={(value) => {
                   value = Math.round(value);
                   setAmount(BigInt(value));
-                  if (statusContext.status.gasPrice == 0n) {
-                    // setSimulatedGas(0n);
-                  } else {
-                    // setSimulatedGas(BigIntify(value) / statusContext.status.gasPrice);
-                  }
+                  // if (statusContext.gasPrice == 0n) {
+                  //   // setSimulatedGas(0n);
+                  // } else {
+                  //   // setSimulatedGas(BigIntify(value) / statusContext.gasPrice);
+                  // }
                 }}
                 min={0}
                 max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
@@ -340,6 +341,17 @@ export function TxModal(
                 className='primary-text primary-blue-bg'
               /> ${txDetails.fee.denom.toUpperCase()}
             </Typography.Text>
+            <br />
+            <br />
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
+              Recommended Fee <Tooltip
+                color='black'
+                title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction."
+              >
+                <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
+              </Tooltip>: {recommendedAmount.toString()} ${txDetails.fee.denom.toUpperCase()}
+            </Typography.Text>
+
           </div>
 
           {exceedsBalance &&
@@ -359,7 +371,7 @@ export function TxModal(
 
         <div className='flex-center'>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
-            By checking the box below, I confirm that I have verified all transaction details are correct.
+            By checking the box below, I confirm that I will verify all transaction details are as desired when signing the transaction.
           </Typography.Text>
         </div>
         <div className='flex-center'>
@@ -391,11 +403,24 @@ export function TxModal(
             checked={irreversibleChecked}
             onChange={(e) => setIrreversibleChecked(e.target.checked)}
           />
-        </div >
 
+        </div >
+        <br />
+        <div className='flex-center'>
+          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
+            By checking the box below, I understand that the blockchain is the final source of truth.
+          </Typography.Text>
+        </div >
+        <div className='flex-center'>
+          <Checkbox
+            checked={blockchainTruthChecked}
+            onChange={(e) => setBlockchainTruthChecked(e.target.checked)}
+          />
+
+        </div >
       </div >}
     </div >,
-    disabled: msgSteps.find((step) => step.disabled) ? true : false
+    disabled: (msgSteps ?? []).find((step) => step.disabled) ? true : false
   };
 
 
@@ -405,6 +430,7 @@ export function TxModal(
     <Steps
       current={currentStep}
       onChange={onStepChange}
+      type='navigation'
     >
       {msgSteps && [...msgSteps, finalStep].map((item, index) => (
         <Step
@@ -418,7 +444,7 @@ export function TxModal(
     <div className='primary-text'>
       <br />
       {<div>
-        {[...msgSteps, finalStep][currentStep].description}
+        {[...(msgSteps ?? []), finalStep][currentStep].description}
       </div>}
       <br />
     </div>
@@ -459,10 +485,12 @@ export function TxModal(
       }}
       onOk={handleSubmitTx}
       okButtonProps={{
-        disabled: transactionStatus != TransactionStatus.None || currentStep != msgSteps.length || !txDetails || exceedsBalance || (!checked || !irreversibleChecked || !betaChecked || disabled),
+        disabled: transactionStatus != TransactionStatus.None || currentStep != (msgSteps ?? []).length || !txDetails || exceedsBalance || (!checked || !irreversibleChecked || !betaChecked || !blockchainTruthChecked || disabled),
         loading: transactionStatus != TransactionStatus.None
       }}
-      onCancel={() => setVisible(false)}
+      onCancel={() => {
+        setVisible(false)
+      }}
       okText={"Sign and Submit Transaction"}
       cancelText={"Cancel"}
       destroyOnClose={true}

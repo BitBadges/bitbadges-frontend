@@ -4,22 +4,21 @@ import { DistributionMethod } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { CodeType } from "./TransferOrClaimSelect";
+import { EmptyStepItem } from "../tx-timelines/TxTimeline";
+import { INFINITE_LOOP_MODE } from "../../constants";
 
 export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, setNumRecipients: (numRecipients: bigint) => void, password?: string, setClaimPassword?: (password: string) => void) {
   const [numCodes, setNumCodes] = useState<number>(0);
   const [codeType, setCodeType] = useState(CodeType.None);
 
-  if (distributionMethod === DistributionMethod.Codes && (!password || !setClaimPassword)) {
-    throw new Error('Password and setClaimPassword must be defined for reusable codes');
-  }
-
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: num codes ');
     setNumRecipients(BigInt(numCodes));
   }, [numCodes, setNumRecipients]);
 
-  if (distributionMethod === DistributionMethod.FirstComeFirstServe || !password || !setClaimPassword) {
+  if (distributionMethod === DistributionMethod.FirstComeFirstServe) {
     return {
-      title: `Max Claims (${numCodes})`,
+      title: `Num Claims (${numCodes})`,
       description: < div className='flex-center'>
         <div style={{ minWidth: 500 }} >
           <br />
@@ -39,9 +38,9 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
       </div >,
       disabled: numCodes <= 0
     }
-  } else {
+  } else if (password !== undefined && setClaimPassword) {
     return {
-      title: `Codes (${numCodes})`,
+      title: `${codeType === CodeType.Reusable ? 'Uses' : 'Codes'} (${numCodes})`,
       description: <div className="flex-center">
         <div style={{ minWidth: 500 }} >
           <br />
@@ -107,5 +106,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
       </div >,
       disabled: numCodes <= 0 || (codeType === CodeType.Reusable && password.length === 0),
     }
+  } else {
+    return EmptyStepItem
   }
 }

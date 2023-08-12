@@ -79,30 +79,36 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT });
   const [cosmosAddressesByUsernames, setCosmosAddressesByUsernames] = useState<{ [username: string]: string }>({});
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
-  const getAccount = (addressOrUsername: string) => {
+  const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
     if (addressOrUsername === 'Mint' || addressOrUsername === "Total") return MINT_ACCOUNT;
     let accountToReturn;
-    console.log(isAddressValid(addressOrUsername), addressOrUsername);
+
+
+
     if (isAddressValid(addressOrUsername)) {
       const cosmosAddress = convertToCosmosAddress(addressOrUsername);
-      accountToReturn = accounts[cosmosAddress];
+      if (forcefulRefresh) {
+        // accounts[cosmosAddress] = undefined;
+        accountToReturn = undefined;
+      } else accountToReturn = accounts[cosmosAddress];
 
-      console.log(addressOrUsername);
-
-      const chainForAddress = getChainForAddress(addressOrUsername);
-      if (accountToReturn && chainForAddress !== accountToReturn.chain) {
-        accountToReturn.chain = chainForAddress;
-        accountToReturn.address = addressOrUsername;
-      }
+      // const chainForAddress = getChainForAddress(addressOrUsername);
+      // if (accountToReturn && chainForAddress !== accountToReturn.chain) {
+      //   accountToReturn.chain = chainForAddress;
+      //   accountToReturn.address = addressOrUsername;
+      // }
 
     } else {
       accountToReturn = accounts[cosmosAddressesByUsernames[addressOrUsername]];
     }
-    console.log("RETURNING", accountToReturn);
     return accountToReturn;
   }
 
-  const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>) => {
+  const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
+    if (forcefulRefresh) {
+      accounts[account.cosmosAddress] = undefined;
+    }
+
 
     let cachedAccount = accounts[`${account.cosmosAddress}`];
     const cachedAccountCopy = JSON.stringify(cachedAccount);
@@ -156,8 +162,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     //Only trigger a rerender if the account has changed
+    console.log(newAccount, cachedAccountCopy);
     if (JSON.stringify(newAccount) !== cachedAccountCopy) {
-      console.log("SETTING");
       setAccountsMap(deepCopy(accounts));
       setCosmosAddressesByUsernames(deepCopy(cosmosAddressesByUsernames));
     }
@@ -226,14 +232,14 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       accountsToFetch: []
     };
 
+
+
     //Iterate through and see which accounts + info we actually need to fetch versus which we already have
     for (const accountToFetch of accountsToFetch) {
       // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
 
-      const cachedAccount = forcefulRefresh ? undefined : getAccount(accountToFetch.address || accountToFetch.username || '');
-      console.log(accountToFetch);
-      console.log(forcefulRefresh);
-      console.log(JSON.stringify(cachedAccount));
+
+      const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
       if (cachedAccount === undefined) {
         batchRequestBody.accountsToFetch.push({
           address: accountToFetch.address,
@@ -280,9 +286,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getAccounts(batchRequestBody);
-    console.log(res);
     for (const account of res.accounts) {
-      accounts[account.cosmosAddress] = updateAccount(account);
+      accounts[account.cosmosAddress] = updateAccount(account, forcefulRefresh);
     }
 
 
@@ -369,7 +374,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       throw new Error(`Account ${addressOrUsername} not found`);
     }
 
-    setAccountsMap(accounts);
+    updateAccount(account);
   }
 
   const setPublicKey = (addressOrUsername: string, publicKey: string) => {

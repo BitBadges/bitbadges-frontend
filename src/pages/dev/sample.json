@@ -1,0 +1,73 @@
+{
+  "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
+  "collectionId": "0",
+  "defaultApprovedIncomingTransfersTimeline": [],
+  "defaultApprovedOutgoingTransfersTimeline": [],
+  "defaultUserPermissions": {
+    "canUpdateApprovedIncomingTransfers": [],
+    "canUpdateApprovedOutgoingTransfers": []
+  },
+  "badgesToCreate": [
+    {
+      "amount": "1",
+      "badgeIds": [
+        {
+          "start": "1",
+          "end": "1000"
+        }
+      ],
+      "ownershipTimes": [
+        {
+          "start": "1691586000000",
+          "end": "1723122000000"
+        }
+      ]
+    }
+  ],
+  "updateCollectionPermissions": true,
+  "balancesType": "Standard",
+  "collectionPermissions": {
+    "canArchiveCollection": [],
+    "canCreateMoreBadges": [],
+    "canDeleteCollection": [],
+    "canUpdateBadgeMetadata": [],
+    "canUpdateCollectionApprovedTransfers": [],
+    "canUpdateCollectionMetadata": [],
+    "canUpdateContractAddress": [],
+    "canUpdateCustomData": [],
+    "canUpdateInheritedBalances": [],
+    "canUpdateManager": [],
+    "canUpdateOffChainBalancesMetadata": [],
+    "canUpdateStandards": []
+  },
+  "updateManagerTimeline": true,
+  "managerTimeline": [
+    {
+      "manager": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
+      "timelineTimes": [
+        {
+          "start": "1",
+          "end": "18446744073709551615"
+        }
+      ]
+    }
+  ],
+  "updateCollectionMetadataTimeline": true,
+  "collectionMetadataTimeline": [],
+  "updateBadgeMetadataTimeline": true,
+  "badgeMetadataTimeline": [],
+  "updateOffChainBalancesMetadataTimeline": true,
+  "offChainBalancesMetadataTimeline": [],
+  "updateCustomDataTimeline": true,
+  "customDataTimeline": [],
+  "updateInheritedBalancesTimeline": true,
+  "inheritedBalancesTimeline": [],
+  "updateCollectionApprovedTransfersTimeline": true,
+  "collectionApprovedTransfersTimeline": [],
+  "updateStandardsTimeline": true,
+  "standardsTimeline": [],
+  "updateContractAddressTimeline": true,
+  "contractAddressTimeline": [],
+  "updateIsArchivedTimeline": true,
+  "isArchivedTimeline": []
+}

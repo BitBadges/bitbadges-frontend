@@ -18,6 +18,7 @@ import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react'
 import { configureChains, createClient, WagmiConfig } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
+import { INFINITE_LOOP_MODE } from '../constants';
 
 const chains = [mainnet]
 const projectId = 'febf8d9986a2cd637fa4004338dad39b'
@@ -40,6 +41,7 @@ const App = ({ Component, pageProps }: AppProps) => {
   const [handled, setHandled] = useState(false);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: cookie check');
     // Check if the cookie exists before using it
     if (cookies.policies) {
       setMyCookieValue(cookies.policies);
@@ -67,8 +69,8 @@ const App = ({ Component, pageProps }: AppProps) => {
                       themeMode="dark"
                     />
                     <Layout className="layout">
-                      {/* <WalletHeader />
-                      {handled && myCookieValue !== 'accepted' &&
+                      <WalletHeader />
+                      {myCookieValue !== 'accepted' &&
                         <div className='primary-text primary-blue-bg'
                           style={{
                             textAlign: 'center',
@@ -89,7 +91,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                             Accept
                           </Button>
                           <br />
-                        </div>} */}
+                        </div>}
                       <Component {...pageProps} />
                       <WalletFooter />
                     </Layout>

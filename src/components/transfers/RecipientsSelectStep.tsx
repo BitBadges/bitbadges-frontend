@@ -1,14 +1,19 @@
 import { Divider, Typography } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressListSelect } from "../address/AddressListSelect";
 import { ToolIcon } from "../display/ToolIcon";
 
 export function RecipientsSelectStep({ sender,
+  toAddresses,
+  setToAddresses,
   // collectionId, senderBalance, 
   setNumRecipients }
   : {
     sender: string,
+    toAddresses: string[],
+    setToAddresses: (addresses: string[]) => void,
     // collectionId: bigint, 
     // senderBalance: UserBalance<bigint>, 
     setNumRecipients: (numRecipients: bigint) => void
@@ -22,9 +27,8 @@ export function RecipientsSelectStep({ sender,
   const accounts = useAccountsContext();
   const senderAccount = accounts.getAccount(sender);
 
-  const [toAddresses, setToAddresses] = useState<string[]>([]);
-
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: recipients select step, fetch accounts ');
     setNumRecipients(BigInt(toAddresses.length));
   }, [toAddresses, setNumRecipients]);
 
@@ -90,7 +94,7 @@ export function RecipientsSelectStep({ sender,
 
   return {
     title: `Recipients (${toAddresses.length})`,
-    description: <div>
+    description: <div className=''>
       <AddressListSelect
         users={toAddresses}
         setUsers={setToAddresses}

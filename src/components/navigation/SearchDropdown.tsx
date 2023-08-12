@@ -1,11 +1,12 @@
 
 import { Avatar, Menu, Spin, Typography } from 'antd';
-import { BitBadgesUserInfo, GetSearchRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useEffect, useRef, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function SearchDropdown({
   searchValue,
@@ -17,10 +18,10 @@ export function SearchDropdown({
   onlyAddresses?: boolean
 }) {
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
 
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
 
   const [searchResponse, setSearchResponse] = useState<GetSearchRouteSuccessResponse<bigint>>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -30,6 +31,7 @@ export function SearchDropdown({
 
   const DELAY_MS = 500;
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: search dropdown, search value changed ');
     const delayDebounceFn = setTimeout(async () => {
       if (!searchValue) return
 
@@ -39,11 +41,11 @@ export function SearchDropdown({
 
       //Update context if we have new accounts or collections
       for (const account of result.accounts) {
-        accountsRef.current.updateAccount(account);
+        accounts.updateAccount(account);
       }
 
       for (const collection of result.collections) {
-        collectionsRef.current.updateCollection(collection);
+        collections.updateCollection(collection);
       }
 
       setSearchResponse(result);
@@ -51,7 +53,7 @@ export function SearchDropdown({
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [searchValue])
+  }, [searchValue]);
 
 
   //We have three sections of the dropdown:
@@ -117,8 +119,8 @@ export function SearchDropdown({
         }}>
           <div className='flex-between'>
             <div className='flex-center' style={{ alignItems: 'center' }}>
-              <Avatar src={result.collectionMetadata?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')} style={{ marginRight: 8 }} />
-              {result.collectionMetadata?.name}
+              <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+              {result.cachedCollectionMetadata?.name}
             </div>
             <div className='flex-center' style={{ alignItems: 'center' }}>
               ID: {`${result.collectionId}`}

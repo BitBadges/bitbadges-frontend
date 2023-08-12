@@ -1,5 +1,6 @@
 import { Col, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
+import { FooterButtonDisplay } from '../button-displays/FooterButtonDisplay';
 
 export function WalletFooter() {
   return (
@@ -17,40 +18,27 @@ export function WalletFooter() {
 
         <footer id="footer" className="dark full-width">
           <div className="footer-wrap">
-            <Row className='flex-center' style={{ width: '100%' }}>
+            <Row className='flex-center' style={{ width: '100%', alignItems: 'normal' }}>
+              <FooterButtonDisplay />
               <Col md={6} sm={24} xs={24}>
                 <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
                   <h4 className='primary-text'>Links</h4>
+                  <div>
+                    <a target="_blank " href="https://bitbadges.org">
+                      Company Site
+                    </a>
+                  </div>
                   <div>
                     <a target="_blank " href="https://docs.bitbadges.io/overview">
                       Documentation
                     </a>
                   </div>
-                </div>
-                <br />
-              </Col>
-              <Col md={6} sm={24} xs={24}>
-                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
-                  <h4 className='primary-text'>Socials</h4>
-                  <div>
-                    <a target="_blank " href="http://ant.design">
-                      Discord
-                    </a>
-                  </div>
-
-                </div>
-                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
-                  <div>
-                    <a target="_blank" rel="noreferrer" href="">
-                      Twitter
-                    </a>
-                  </div>
-                </div>
-                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
-                  <div>
-                    <a target="_blank" rel="noopener noreferrer" href="https://github.com/bitbadges">
-                      GitHub
-                    </a>
+                  <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
+                    <div>
+                      <a target="_blank" rel="noreferrer" href="https://github.com/bitbadges/projects">
+                        Project Board
+                      </a>
+                    </div>
                   </div>
                 </div>
                 <br />
@@ -63,20 +51,13 @@ export function WalletFooter() {
                       Terms of Service
                     </a>
                   </div>
-                </div>
-                <br />
-              </Col>
-              <Col md={6} sm={24} xs={24}>
-
-                <div className="footer-center primary-text" style={{ textAlign: 'center' }} >
-                  <h4 className='primary-text'>Other</h4>
                   <div>
                     <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf">
                       Privacy Policy
                     </a>
                   </div>
-
                 </div>
+                <br />
               </Col>
             </Row>
           </div>

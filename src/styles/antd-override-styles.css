@@ -69,6 +69,10 @@
     align-items: center;
 }
 
+.ant-checkbox {
+  top: 0
+}
+
 .ant-modal-content {
     margin-bottom: 100px;
 }
@@ -251,3 +255,21 @@
     min-width: 0 !important;
     min-height: 0 !important;
 }
+
+/* .ant-table {
+  background-color: black;
+  color: white;
+}
+
+.ant-table:hover {
+  background-color: #192c3e;
+}
+
+.ant-table-thead > tr > th {
+  background-color: black;
+  color: white;
+}
+
+.ant-table-cell-row-hover {
+  background-color: black !important;
+} */

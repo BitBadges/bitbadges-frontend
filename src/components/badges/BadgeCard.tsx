@@ -1,7 +1,6 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { Card, Tooltip } from 'antd';
+import { Card } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { getBalanceForIdAndTime, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
@@ -26,16 +25,10 @@ export function BadgeCard({
 
   //Calculate total, undistributed, claimable, and distributed supplys
   const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
-  const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
+  const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
+  const collectionMetadata = collection?.cachedCollectionMetadata;
 
-  const totalSupply = getBalanceForIdAndTime(badgeId, BigInt(Date.now()), totalSupplyBalance);
-  const undistributedSupply = getBalanceForIdAndTime(badgeId, BigInt(Date.now()), mintSupplyBalance);
-  const distributedSupply = totalSupply - undistributedSupply;
 
-  const metadata = getMetadataForBadgeId(badgeId, collection?.badgeMetadata ?? []);
-  const collectionMetadata = collection?.collectionMetadata;
-
-  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
   let maxBadgeId = 0n;
   for (const balance of totalSupplyBalance) {
@@ -67,6 +60,7 @@ export function BadgeCard({
               collectionId={collectionId}
               badgeId={badgeId}
               size={size}
+              noHover
             />
           </div>
         }
@@ -76,9 +70,12 @@ export function BadgeCard({
             title={<div>
               <div className='primary-text'
                 style={{
+                  maxWidth: 200,
                   fontSize: 20,
                   fontWeight: 'bolder',
-                  whiteSpace: 'normal'
+                  whiteSpace: 'normal',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
                 }}
               >
                 {metadata?.name}
@@ -114,7 +111,7 @@ export function BadgeCard({
 
                 {collection && <>
                   ID #{`${badgeId}`} / {`${maxBadgeId}`}
-                  <br />
+                  {/* <br />
                   <div className='flex-center'>
                     <div>Supply: {totalSupply.toString()}
                       {isOffChainBalances &&
@@ -128,7 +125,7 @@ export function BadgeCard({
                           <InfoCircleOutlined style={{ marginLeft: 4 }} />
                         </Tooltip>}
                     </div>
-                  </div>
+                  </div> */}
                 </>}
               </div>
             }

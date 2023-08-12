@@ -19,7 +19,7 @@ export function ClaimTimeRangeSelectStep(
         showMinute
         showTime
         placeholder='Start Date'
-        value={timeRange.start ? moment(timeRange.start.toString()) : null}
+        value={timeRange.start ? moment(new Date(Number(timeRange.start))) : null}
         className='primary-text primary-blue-bg full-width'
         onChange={(_date, dateString) => {
           setTimeRange({
@@ -35,7 +35,7 @@ export function ClaimTimeRangeSelectStep(
         showMinute
         showTime
         placeholder='End Date'
-        value={timeRange.end ? moment(timeRange.end.toString()) : null}
+        value={timeRange.end ? moment(new Date(Number(timeRange.end))) : null}
         className='primary-text primary-blue-bg full-width'
         onChange={(_date, dateString) => {
           setTimeRange({

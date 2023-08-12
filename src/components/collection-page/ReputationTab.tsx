@@ -1,6 +1,6 @@
 import { Button, Col, Divider, Empty, Input, Row, Spin, Tooltip, Typography } from 'antd';
 import { Numberify, ReviewInfo } from 'bitbadgesjs-utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";
 import { addReviewForCollection, addReviewForUser } from '../../bitbadges-api/api';
@@ -8,6 +8,7 @@ import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 
 
@@ -22,7 +23,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
 ) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
   const collections = useCollectionsContext();
   const [newReview, setNewReview] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -30,12 +31,17 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
 
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: reputation fetch accounts');
     const accountsToFetch: string[] = reviews.map(r => r.from);
-    accountsRef.current.fetchAccounts(accountsToFetch);
-  }, [reviews])
+    accounts.fetchAccounts(accountsToFetch);
+  }, [reviews]);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: reputation fetch more');
+    if (hasMore) fetchMore();
+  }, [hasMore, fetchMore])
 
 
-  console.log(hasMore, reviews);
   return (
     <>
       {(collectionId || addressOrUsername) && (<>
@@ -58,7 +64,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         />
         <Tooltip color="black" title={!chain.loggedIn ? 'Must be connected and signed in.' : ''}>
           <Button
-            disabled={newReview.length > 2048 || !chain.loggedIn}
+            disabled={newReview.length > 2048 || !chain.loggedIn || loading}
             type="primary"
             loading={loading}
             className='full-width'
@@ -67,10 +73,11 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
               setLoading(true);
               if (collectionId) {
                 await addReviewForCollection(collectionId, { review: newReview, stars });
-                await collections.triggerMetadataRefresh(collectionId);
+                await collections.fetchCollections([collectionId], true);
               } else if (addressOrUsername) {
                 await addReviewForUser(addressOrUsername, { review: newReview, stars });
                 await accounts.fetchAccounts([addressOrUsername], true);
+                await accounts.fetchNextForViews(addressOrUsername, ['latestReviews']);
               }
               setNewReview('');
               setLoading(false);
@@ -98,15 +105,15 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}
       >
-        {reviews.map((review, index) => {
+        {reviews.sort(
+          (a, b) => Number(b.timestamp) - Number(a.timestamp)
+        ).map((review, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
-          console.log(review.timestamp.toString());
-          console.log(new Date(review.timestamp.toString()));
           return (
             <div key={index} className='primary-text full-width'>
               <Row className='full-width' style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
                 <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div style={{ alignItems: 'center' }} >
+                  <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'start' }} >
                     <AddressDisplay addressOrUsername={review.from} />
                   </div>
                   <div className='primary-text full-width flex-between'>

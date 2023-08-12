@@ -1,10 +1,11 @@
 import { Empty } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import collection from '../../pages/mint/collection';
+import { INFINITE_LOOP_MODE } from '../../constants';
+import collection from '../../pages/collections/mint';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
@@ -17,27 +18,24 @@ export function BalanceOverview({ collectionId }: {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
   const isPreview = collectionId === MSG_PREVIEW_ID;
 
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+  const signedInAccount = accounts.getAccount(chain.address);
 
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(signedInAccount?.username || signedInAccount?.address || '');
 
-  useEffect(() => {
-    setAddressOrUsername(chain.cosmosAddress);
-  }, [chain]);
-
   const DELAY_MS = 500;
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set curr balance');
 
     async function refreshBalance() {
       try {
         if (!addressOrUsername) return;
 
-        const balance = await collectionsRef.current.fetchBalanceForUser(collectionId, addressOrUsername);
+        const balance = await collections.fetchBalanceForUser(collectionId, addressOrUsername);
         setCurrBalances(balance.balances);
         return;
       } catch (e) { }
@@ -58,7 +56,7 @@ export function BalanceOverview({ collectionId }: {
     <div className='full-width flex-center flex-column'>
       <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} />
       <br />
-      
+
       <div className='flex-center'>
         <AddressDisplay addressOrUsername={addressOrUsername} />
       </div>

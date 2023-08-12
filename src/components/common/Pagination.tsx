@@ -1,6 +1,6 @@
 import { Pagination as PaginationAntD } from 'antd';
 
-export function Pagination({ currPage, onChange, total, pageSize }: { currPage: number, onChange: (page: number) => void, total: number, pageSize: number }) {
+export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePage }: { currPage: number, onChange: (page: number) => void, total: number, pageSize: number, showOnSinglePage?: boolean }) {
   return <div className='flex-center'>
     <PaginationAntD
       className='primary-text primary-blue-bg'
@@ -15,7 +15,7 @@ export function Pagination({ currPage, onChange, total, pageSize }: { currPage: 
       showLessItems
       showSizeChanger={false}
       size='small'
-      hideOnSinglePage
+      hideOnSinglePage={!showOnSinglePage}
     />
   </div>
 }

@@ -27,7 +27,6 @@ export async function formatAndCreateGenericTx(
   txDetails: TxDetails,
   msg: object
 ) {
-  console.log(txDetails);
   let txMsg = createTxFunction(
     txDetails.chain,
     {

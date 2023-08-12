@@ -9,17 +9,17 @@ export function MetadataStorageSelectStepItem(
 ) {
   return {
     title: 'Metadata Storage',
-    description: `Choose how to store metadata for these badge(s).`,
+    description: `For setting / updating metadata in the following steps, choose your preferred storage method.`,
     node: <SwitchForm
       options={[
         {
           title: 'Self-Hosted (Advanced)',
-          message: `Store and host the metadata yourself.`,
+          message: `Store and host the metadata yourself. Provide a URL to where it is hosted.`,
           isSelected: addMethod === MetadataAddMethod.UploadUrl,
         },
         {
           title: 'Outsourced',
-          message: <div>{`We handle the metadata storage for you! This is done in a decentralized manner using IPFS.`}
+          message: <div>{`Enter your metadata directly into this form, and we handle the metadata storage for you! This is done in a decentralized manner using IPFS.`}
             <Tooltip
               placement='bottom'
               title={`IPFS, or Interplanetary File System, is a way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}

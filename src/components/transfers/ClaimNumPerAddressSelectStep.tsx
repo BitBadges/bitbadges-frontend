@@ -6,8 +6,8 @@ export function ClaimNumPerAddressSelectStep(numPerAddress: bigint, setNumPerAdd
 
 
   return {
-    title: `Max Claims (${numPerAddress})`,
-    description: < div className='flex-center'>
+    title: `Per Address`,
+    description: < div className='flex-center primary-text'>
       <div style={{ minWidth: 500, textAlign: 'center' }} >
         <br />
         <div className='flex-between' style={{ flexDirection: 'column' }} >
@@ -27,8 +27,11 @@ export function ClaimNumPerAddressSelectStep(numPerAddress: bigint, setNumPerAdd
             onChange={(e) => {
               setNumPerAddress(e.target.checked ? BigInt(0) : BigInt(1));
             }}
+            className="primary-text primary-blue-bg"
           >
-            No Limit
+            <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+              No Limit
+            </div>
           </Checkbox>
         </div>
         <br />

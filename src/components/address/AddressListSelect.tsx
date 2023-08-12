@@ -38,18 +38,21 @@ export function AddressListSelect({
   return <>
     <br />
     {users.length > 0 && <div>
-      <AddressDisplayList
-        users={users}
-        setUsers={setUsers}
-        invalidUsers={invalidUsers}
-      />
+      <div className='flex-center'>
+        <AddressDisplayList
+          users={users}
+          setUsers={setUsers}
+          invalidUsers={invalidUsers}
+        />
+      </div>
+
       {invalidUsers && Object.values(invalidUsers)?.length > 0 && <div className='flex-center'><br />
         <Typography.Text type="danger">
           You are not approved to transfer to some of the selected recipients. Please remove these recipients.
         </Typography.Text>
       </div>}
       <Divider />
-    </div>}
+    </div >}
 
     <AddressDisplayTitle
       title={"Add Addresses"}
@@ -63,23 +66,26 @@ export function AddressListSelect({
       </Tooltip>
       }
     />
-    {enterMethod === EnterMethod.Single &&
+    {
+      enterMethod === EnterMethod.Single &&
       <AddressSelect
         onUserSelect={(userInfo) => {
           setUsers([...users, userInfo]);
         }}
       />
     }
-    {enterMethod === EnterMethod.Batch &&
+    {
+      enterMethod === EnterMethod.Batch &&
       <>
         <br />
         <TextArea
           className="primary-text primary-blue-bg"
           style={{ minHeight: 200 }}
-          placeholder="Enter addresses or usernames here (one per line)"
+          placeholder="Enter addresses here (one per line)"
           value={batchAddAddressListInput}
           onChange={(e) => setBatchAddAddressListInput(e.target.value)}
         />
+        <br />
         <br />
         <Button
           type="primary"

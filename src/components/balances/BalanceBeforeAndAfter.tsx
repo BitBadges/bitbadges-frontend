@@ -29,7 +29,7 @@ export function BalanceBeforeAndAfter({
       </div>}
 
     <Row>
-      <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
+      <Col style={{ padding: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
           collectionId={collectionId}
           balances={balances}
@@ -37,7 +37,7 @@ export function BalanceBeforeAndAfter({
 
         />
       </Col>
-      <Col style={{ margin: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
+      <Col style={{ padding: 20 }} xs={24} sm={24} md={12} lg={12} xl={12}>
         <BalanceDisplay
           collectionId={collectionId}
           balances={newBalances}

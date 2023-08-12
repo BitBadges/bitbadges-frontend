@@ -1,7 +1,7 @@
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
 import { AnnouncementInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { addAnnouncement } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
@@ -19,9 +19,9 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
-  const accountsRef = useRef(accounts);
+
   const collections = useCollectionsContext();
-  const collectionsRef = useRef(collections);
+
   const collection = collectionId ? collections.collections[collectionId.toString()] : undefined;
 
   const router = useRouter();
@@ -30,13 +30,20 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     const accountsToFetch = announcements.map(a => a.from);
     const collectionsToFetch = announcements.map(a => a.collectionId);
-    accountsRef.current.fetchAccounts(accountsToFetch);
-    collectionsRef.current.fetchCollections(collectionsToFetch);
+    accounts.fetchAccounts(accountsToFetch);
+    collections.fetchCollections(collectionsToFetch);
 
     if (INFINITE_LOOP_MODE) console.log('AnnouncementsTab useEffect', { accountsToFetch, collectionsToFetch });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcements]);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: ');
+    if (hasMore) fetchMore();
+  }, [hasMore, fetchMore])
 
   return (
     <>
@@ -86,7 +93,9 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}
       >
-        {announcements.map((announcement, index) => {
+        {announcements.sort(
+          (a, b) => Number(b.timestamp) - Number(a.timestamp)
+        ).map((announcement, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
 
           const collectionToDisplay = collections.collections[announcement.collectionId.toString()];
@@ -94,11 +103,11 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
             <div key={index} className='primary-text full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
                 <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div className='flex-center' style={{ alignItems: 'center' }} >
+                  <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
                     <AddressDisplay addressOrUsername={announcement.from} />
                   </div>
                   {!hideCollection && collectionToDisplay &&
-                    <div className='flex-center' style={{ alignItems: 'center' }} >
+                    <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
 
                       <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
                         <div className='link-button-nav flex-center' onClick={() => {
@@ -106,7 +115,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
                           Modal.destroyAll()
                         }} style={{ fontSize: 20 }}>
                           <a>
-                            {collectionToDisplay.collectionMetadata?.name}
+                            {collectionToDisplay.cachedCollectionMetadata?.name}
                           </a>
 
                         </div>
@@ -115,12 +124,11 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
 
 
                   <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    {new Date(announcement.timestamp.toString()).toLocaleDateString() + ' '}
-                    {new Date(announcement.timestamp.toString()).toLocaleTimeString()}
+                    {new Date(Number(announcement.timestamp)).toLocaleDateString() + ' '}
+                    {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
                   </Typography.Text>
                 </Col>
               </Row>
-              <Divider />
 
               <div className='flex-between full-width primary-text'>
 
@@ -130,6 +138,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
                   </Typography.Text>
                 </div>
               </div>
+              <Divider />
             </div>
           )
         })}

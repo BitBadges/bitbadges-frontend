@@ -30,7 +30,8 @@ export function SwitchForm({
           style={{
             padding: '0',
             textAlign: 'center',
-            alignItems: 'normal'
+            alignItems: 'normal',
+            overflowWrap: 'break-word',
           }}
         >
           {options.map((option, index) => {
@@ -43,7 +44,8 @@ export function SwitchForm({
                   margin: 8,
                   textAlign: 'center',
                   border: option.isSelected && canShowSelected ? '1px solid #1890ff' : undefined,
-                  cursor: option.disabled ? 'not-allowed' : undefined
+                  cursor: option.disabled ? 'not-allowed' : undefined,
+                  overflowWrap: 'break-word',
                 }}
                 onClick={() => {
                   if (option.disabled) {
@@ -59,6 +61,8 @@ export function SwitchForm({
                       style={{
                         fontSize: 20,
                         fontWeight: 'bolder',
+                        overflowWrap: 'break-word',
+                        maxWidth: '100%',
                       }}
                     >
                       {option.title}

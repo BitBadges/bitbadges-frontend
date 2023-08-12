@@ -9,7 +9,7 @@ import { PresetResource, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME } from '../../../constants';
+import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
 
@@ -121,6 +121,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const ownedAssetIds: string[] = [];
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: cosmosContext');
     if (address) {
       setAddress(address);
       setCosmosAddress(convertToCosmosAddress(address));
@@ -159,8 +160,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
 
     const offlineSigner = window.getOfflineSigner(chainId);
-
-    console.log(offlineSigner);
     const signingClient = await SigningStargateClient.connectWithSigner(
       `http://${HOSTNAME}:26657`,
       offlineSigner,

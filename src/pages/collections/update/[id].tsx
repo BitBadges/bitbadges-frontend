@@ -1,21 +1,28 @@
-import React from 'react';
 import { Layout } from 'antd';
-import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
-import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
+import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
+import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 // import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
-import { CreateTxMsgUpdateCollectionModal } from '../../components/tx-modals/CreateTxMsgUpdateCollection';
-import { TxTimeline, MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
+import { useRouter } from 'next/router';
+import { TxTimeline } from '../../../components/tx-timelines/TxTimeline';
 
 const { Content } = Layout;
 
-function Mint() {
+function Update() {
+  const router = useRouter();
+
+  const { id } = router.query;
+
+  if (!id) {
+    return null;
+  }
+
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet to access the Mint page.'
+      message='Please connect a wallet to access this page.'
       node={
         <RegisteredWrapper
-          message='Please register to access the Mint page.'
+          message='Please register to access this page.'
           node={
             <Layout>
               <Content
@@ -25,7 +32,6 @@ function Mint() {
                   minHeight: '100vh',
                 }}
               >
-                <div className="primary-title">Mint</div>
                 <div className='primary-blue-bg'
                   style={{
                     marginLeft: '7vw',
@@ -35,12 +41,8 @@ function Mint() {
                     paddingTop: '20px',
                   }}
                 >
-                  <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' isModal={false} />
-                  {/* <CreateTxMsgUpdateCollectionModal
-                    visible={true}
-                    setVisible={() => { }}
-                    collectionId={0n}
-                  /> */}
+                  <TxTimeline collectionId={BigInt(id as string)} txType='UpdateCollection' isModal={false} />
+
                 </div>
               </Content>
             </Layout>
@@ -51,4 +53,4 @@ function Mint() {
   );
 }
 
-export default Mint;
+export default Update;

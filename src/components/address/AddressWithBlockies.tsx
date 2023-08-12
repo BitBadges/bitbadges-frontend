@@ -30,16 +30,9 @@ export function AddressWithBlockies({
     throw new Error(`Cannot call overrideChain with UNKNOWN chain`);
   }
 
-  if (userInfo && overrideChain && userInfo?.chain !== overrideChain && overrideChain === SupportedChain.COSMOS) {
-    userInfo.chain = overrideChain;
-    userInfo.address = userInfo.cosmosAddress;
-  } else if (userInfo && overrideChain && userInfo?.chain !== overrideChain) {
-    userInfo.chain = overrideChain;
-    userInfo.address = cosmosToEth(userInfo.cosmosAddress);
-  }
 
   const address = userInfo?.address || '';
-  const chainLogo = getChainLogo(getChainForAddress(address));
+  const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
   return <div className="flex-center flex-wrap">
     <Tooltip
@@ -59,6 +52,7 @@ export function AddressWithBlockies({
       fontColor={fontColor}
       hidePortfolioLink={hidePortfolioLink}
       hideTooltip={hideTooltip}
+      overrideChain={overrideChain}
     />
-  </div>
+  </div >
 }

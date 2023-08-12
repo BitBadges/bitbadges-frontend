@@ -1,56 +1,55 @@
-import { ClockCircleOutlined, SwapOutlined } from '@ant-design/icons';
-import { Tooltip } from 'antd';
+import { EditOutlined, FieldTimeOutlined } from '@ant-design/icons';
+import { Popover } from 'antd';
 import { TimelineItem } from 'bitbadgesjs-proto';
-import { useState } from 'react';
-import { getTimeRangesString } from '../../utils/dates';
 import { getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { getTimeRangesElement } from '../../utils/dates';
 
-export function TimelineTimesIcon({ timeline, currIdx, setCurrIdx }: { timeline: TimelineItem<bigint>[], currIdx: number, setCurrIdx: (x: number) => void }) {
+export function TimelineTimesIcon<T extends TimelineItem<bigint>>({ timeline, createNode }: { timeline: T[], createNode: (val: T) => JSX.Element }) {
   const timelineTimes = timeline.map(x => x.timelineTimes);
 
-  if (timelineTimes.length <= 1) {
+  if (timelineTimes.length < 1) {
+
     return <></>
   }
 
-  return <Tooltip color='black' title={
-    <div>
+  return <Popover color='black' className="primary-text" content={
+    <div style={{ textAlign: 'center', alignItems: 'center', backgroundColor: 'black', color: 'white' }}>
+      <p>This is a timeline-based property and is currently set to have different values at different times.</p>
       {timelineTimes.map((x, idx) => {
         return <>
-          <div className='flex-center'>
-            <ClockCircleOutlined style={{ marginLeft: 8 }} />
-            {getTimeRangesString(x, '', true)}
-            {idx === currIdx && <>(current)</>}
-            {idx !== currIdx && <SwapOutlined style={{ cursor: 'pointer' }} onClick={
-              () => {
-                setCurrIdx(idx);
-              }
-            } />}
+          <div className='flex' style={{ alignItems: 'center' }}>
+            <b><FieldTimeOutlined style={{ marginLeft: 8 }} /> Time {idx + 1} </b>:{' '}
+            {getTimeRangesElement(x, '', true)}
+            <br />
           </div>
+          <div className='flex' style={{ alignItems: 'center' }}>
+            <b><EditOutlined style={{ marginLeft: 8 }} /> Value {idx + 1} </b>:{' '}
+            {createNode(timeline[idx])}
+            <br />
+          </div>
+          <br />
         </>
       })}
     </div>
   }>
-    <ClockCircleOutlined style={{ marginLeft: 8 }} />
-  </Tooltip>
+    <FieldTimeOutlined style={{ marginLeft: 8 }} />
+  </Popover>
 }
 
 export function TimelineFieldWrapper<T extends TimelineItem<bigint>>({ createNode, timeline, emptyNode }: { createNode: (val: T) => JSX.Element, timeline: T[], emptyNode: JSX.Element }) {
-  let defaultIdx = 0;
+  let defaultIdx = -1;
   const managerIdx = getCurrentValueIdxForTimeline(timeline);
   if (managerIdx >= 0) defaultIdx = Number(managerIdx);
 
-  const [currIdx, setCurrIdx] = useState<number>(defaultIdx);
-
-  if (timeline.length === 0) return emptyNode;
-
   const timelineTimes = timeline.map(x => x.timelineTimes).flat();
-  const currVal = timeline[currIdx];
+  const currVal = timeline.length > 0 && defaultIdx >= 0 ? timeline[defaultIdx] : undefined;
 
   return <>
     <div style={{ textAlign: 'right', display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
-      <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+      <div className='flex-between' style={{ textAlign: 'right', padding: 0 }}>
         {currVal ? createNode(currVal) : emptyNode}
-        {timelineTimes.length > 1 && <TimelineTimesIcon timeline={timeline} currIdx={currIdx} setCurrIdx={setCurrIdx} />}
+        {timelineTimes.length > 1 && <TimelineTimesIcon timeline={timeline} createNode={createNode} />}
+        {timelineTimes.length == 1 && defaultIdx < 0 && <TimelineTimesIcon timeline={timeline} createNode={createNode} />}
       </div>
     </div>
   </>

@@ -1,16 +1,24 @@
-import { DistributionMethod } from "bitbadgesjs-utils";
+import { Divider, Row, Typography } from "antd";
+import { AddressMapping, Balance } from "bitbadgesjs-proto";
+import { DistributionMethod, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { FOREVER_DATE } from "../../../utils/dates";
+import { ToolIcon, tools } from "../../display/ToolIcon";
+import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { Avatar, Col, Divider, List, Row, Typography } from "antd";
-import { tools } from "../../display/ToolIcon";
-import { Balance } from "bitbadgesjs-proto";
 
 export function DistributionMethodStepItem(
   distributionMethod: DistributionMethod,
   setDistributionMethod: (newDistributionMethod: DistributionMethod) => void,
   badgesToCreate: Balance<bigint>[],
+  existingCollectionId?: bigint,
   hideUnminted: boolean = false,
   hideFirstComeFirstServe: boolean = false,
 ) {
+  const collections = useCollectionsContext();
+  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+
   //If all supply amounts are 1, it is fungible
   const fungible = badgesToCreate.length === 1 && badgesToCreate[0].badgeIds.length == 1 && badgesToCreate[0].badgeIds[0].start == badgesToCreate[0].badgeIds[0].end;
   const nonFungible = badgesToCreate.every(badgeSupply => badgeSupply.amount === 1n);
@@ -19,37 +27,65 @@ export function DistributionMethodStepItem(
   if (!hideFirstComeFirstServe) {
     options.push({
       title: 'Open to Anyone',
-      message: `First come, first serve. Limit one claim per address. ${fungible ? 'Any address can claim badges until the supply runs out.' : nonFungible ? 'The first user to claim will receive the badge with ID 1, the second user will receive ID 2, and so on until all badges are claimed.' : ''}`,
+      message: `First come, first serve until all badges are claimed.`,
       isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
     });
   }
-  options.push(
-    {
-      title: 'Codes',
-      message: 'Generate secret codes or passwords that can be entered by users to claim badges. Codes can be distributed to users however you would like (via email, social media, etc) and can be distributed now or at a later time.',
-      isSelected: distributionMethod == DistributionMethod.Codes,
-    },
-    {
-      title: 'Whitelist',
-      message: 'Specific addresses will be able to claim this badge.',
-      isSelected: distributionMethod == DistributionMethod.Whitelist,
-    },
-    {
-      title: 'Off-Chain Balances',
-      message: 'Badges are stored on the blockchain, but all balances are stored off-chain to make it less expensive. Because balances are off-chain, they must either a) be permanent and frozen forever or b) only updatable by the manager of the collection.',
-      isSelected: distributionMethod == DistributionMethod.Whitelist,
-    },
-    {
-      title: 'Direct Transfer',
-      message: 'Directly send badges to specific addresses. You will pay all transfer fees.',
-      isSelected: distributionMethod == DistributionMethod.DirectTransfer,
-    },
-    // {
-    //   title: 'JSON',
-    //   message: 'Advanced option. Upload a JSON file, specifying how to distribute your badges. See BitBadges documentation for more info.',
-    //   isSelected: distributionMethod == DistributionMethod.JSON,
-    // }
-  );
+
+  const CodesStep = {
+    title: 'Codes',
+    message: 'Generate secret codes or passwords that can be entered by users to claim badges. These can be distributed to users however you would like (email, social media, etc).',
+    isSelected: distributionMethod == DistributionMethod.Codes,
+  }
+
+  const WhitelistStep = {
+    title: 'Whitelist',
+    message: 'Define specific addresses that will be able to claim this badge.',
+    isSelected: distributionMethod == DistributionMethod.Whitelist,
+  }
+
+  const ManualTransferStep = {
+    title: 'Manual Transfer',
+    message: 'The manager will be approved to freely transfer badges to any address from the Mint address. Note the manager will pay all transfer fees. This can be done via transfer transactions after the collection has been created.',
+    isSelected: distributionMethod == DistributionMethod.DirectTransfer,
+  }
+
+  const OffChainBalancesStep = {
+    title: 'Off-Chain Balances',
+    message: <div className='flex-center'><span>Balances will be stored on a typical server (not the blockchain) for enhanced scalability and user experience. All balances must be assigned. Users do not need to claim. <br /> <br />IMPORTANT: This option should only be used for specific use cases. Learn more
+      <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
+        {' '}here.
+      </a></span></div>,
+    isSelected: distributionMethod == DistributionMethod.OffChainBalances,
+  }
+
+  const neverHasManager = collection?.managerTimeline.length == 0 || collection?.managerTimeline.every(x => !x.manager);
+
+  if (existingCollection && existingCollection.balancesType === "Off-Chain") {
+    options.push(OffChainBalancesStep);
+  } else if (existingCollection) {
+    options.push(
+      CodesStep,
+      WhitelistStep
+
+      // {
+      //   title: 'JSON',
+      //   message: 'Advanced option. Upload a JSON file, specifying how to distribute your badges. See BitBadges documentation for more info.',
+      //   isSelected: distributionMethod == DistributionMethod.JSON,
+      // }
+    );
+
+    if (!neverHasManager) options.push(ManualTransferStep);
+  } else {
+
+    options.push(
+      CodesStep,
+      WhitelistStep,
+      OffChainBalancesStep
+    );
+
+    if (!neverHasManager) options.push(ManualTransferStep);
+  }
 
   if (!hideUnminted) {
     options.push({
@@ -69,6 +105,8 @@ export function DistributionMethodStepItem(
 
         options={options}
         onSwitchChange={(_idx, newTitle) => {
+          if (!collection) return;
+
           if (newTitle == 'Open to Anyone') {
             setDistributionMethod(DistributionMethod.FirstComeFirstServe);
           } else if (newTitle == 'Codes') {
@@ -79,106 +117,80 @@ export function DistributionMethodStepItem(
             setDistributionMethod(DistributionMethod.JSON);
           } else if (newTitle == 'Unminted') {
             setDistributionMethod(DistributionMethod.Unminted);
+          } else if (newTitle == 'Off-Chain Balances') {
+            setDistributionMethod(DistributionMethod.OffChainBalances);
+            collections.updateCollection({
+              ...collection,
+              collectionApprovedTransfersTimeline: []
+            });
+          } else if (newTitle == 'Manual Transfer') {
+
+            setDistributionMethod(DistributionMethod.DirectTransfer);
+
+            if (!collection) return;
+
+            //Slot it right in the middle of [existing from "Mint", toAdd, non-"Mint"]
+            const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
+              ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
+
+            const existingNonMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
+              ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId !== 'Mint') : [];
+
+            const manager = collection.managerTimeline.length > 0 ? collection.managerTimeline[0].manager : '';
+
+            collections.updateCollection({
+              ...collection,
+              collectionApprovedTransfersTimeline: [{
+                collectionApprovedTransfers: [
+                  ...existingFromMint,
+                  {
+                    fromMappingId: 'Mint',
+                    toMappingId: 'AllWithMint',
+                    initiatedByMappingId: 'Manager',
+                    initiatedByMapping: getReservedAddressMapping('Manager', manager) as AddressMapping,
+                    fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
+                    toMapping: getReservedAddressMapping('AllWithMint', '') as AddressMapping,
+                    transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+                    ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                    badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+                    allowedCombinations: [{
+                      initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+                      ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      isApproved: true,
+                    }],
+                    approvalDetails: []
+                  },
+                  ...existingNonMint],
+                timelineTimes: [{ start: 1n, end: FOREVER_DATE }]
+              }]
+            });
           }
         }}
       />
       <Divider />
       <Divider />
 
-      <div className='flex-center flex-wrap'>
-        <Typography.Text strong className='primary-text' style={{ fontSize: 20, textAlign: 'center' }}>Tools</Typography.Text>
+      <div className='flex-center flex-wrap flex-column'>
+        <Typography.Text strong className='primary-text' style={{ fontSize: 20, textAlign: 'center' }}>Distribution Tools</Typography.Text>
         <Typography.Text strong className='secondary-text' style={{ fontSize: 14, textAlign: 'center' }}>
-          Below is a list of tools compatible with the BitBadges website.
-          If you would like to use a specific tool, select the corresponding distribution method for that tool.
+          Below is a list of compatible tools to help you distribute badges according to your preferred method.
+          Please follow instructions to ensure that your badges are distributed correctly.
         </Typography.Text>
 
         <br />
-        <Row>
+        <Row className='full-width'>
           {/* Three columns */}
-          <Col xs={24} sm={24} md={8}>
-            <List
-              style={{ textAlign: 'left' }} className='primary-text'
-              itemLayout="horizontal"
-              dataSource={tools.filter(x => x.distributionMethod === DistributionMethod.Codes).map(x => ({ title: x.name }))}
-              header={
-                <div style={{
-                  textAlign: 'center'
-                }}>
-                  <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>Codes</Typography.Text>
-                </div>}
-              renderItem={(item, index) => {
-                const tool = tools.find(tool => tool.name == item.title);
-                if (!tool) {
-                  return <></>
-                }
-
-                return <List.Item key={index}>
-                  <List.Item.Meta
-                    className='primary-text'
-                    avatar={<Avatar src={tool?.icon} />}
-                    title={<div className='primary-text'><a href={tool.url} target="_blank" rel="noreferrer">{item.title}</a></div>}
-                    description={<div className='primary-text'>{tool.description}</div>}
-                  />
-                </List.Item>
-              }}
+          {tools.filter(x => x.distributionMethod).map(x => {
+            return <ToolIcon
+              key={x.name}
+              name={x.name}
             />
-          </Col>
-          <Col xs={24} sm={24} md={8}>
-            <List
-              style={{ textAlign: 'left' }} className='primary-text'
-              itemLayout="horizontal"
-              dataSource={tools.filter(x => x.distributionMethod === DistributionMethod.Whitelist).map(x => ({ title: x.name }))}
-              header={
-                <div style={{
-                  textAlign: 'center'
-                }}>
-                  <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>Whitelist</Typography.Text>
-                </div>}
-              renderItem={(item, index) => {
-                const tool = tools.find(tool => tool.name == item.title);
-                if (!tool) {
-                  return <></>
-                }
+          })}
 
-                return <List.Item key={index}>
-                  <List.Item.Meta
-                    className='primary-text'
-                    avatar={<Avatar src={tool?.icon} />}
-                    title={<div className='primary-text'><a href={tool.url} target="_blank" rel="noreferrer">{item.title}</a></div>}
-                    description={<div className='primary-text'>{tool.description}</div>}
-                  />
-                </List.Item>
-              }}
-            />
-          </Col>
-          <Col xs={24} sm={24} md={8}>
-            <List
-              style={{ textAlign: 'left' }} className='primary-text'
-              itemLayout="horizontal"
-              dataSource={tools.filter(x => x.distributionMethod === DistributionMethod.JSON).map(x => ({ title: x.name }))}
-              header={
-                <div style={{
-                  textAlign: 'center'
-                }}>
-                  <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>JSON</Typography.Text>
-                </div>}
-              renderItem={(item, index) => {
-                const tool = tools.find(tool => tool.name == item.title);
-                if (!tool) {
-                  return <></>
-                }
-
-                return <List.Item key={index}>
-                  <List.Item.Meta
-                    className='primary-text'
-                    avatar={<Avatar src={tool?.icon} />}
-                    title={<div className='primary-text'><a href={tool.url} target="_blank" rel="noreferrer">{item.title}</a></div>}
-                    description={<div className='primary-text'>{tool.description}</div>}
-                  />
-                </List.Item>
-              }}
-            />
-          </Col>
         </Row>
 
         <br />

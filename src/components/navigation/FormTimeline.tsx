@@ -4,6 +4,7 @@ import {
 } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 import { FormNavigationHeader } from './FormNavigationHeader';
+import { INFINITE_LOOP_MODE } from '../../constants';
 export interface TimelineItem {
   disabled?: boolean;
   node: ReactNode;
@@ -44,6 +45,7 @@ export function FormTimeline({
   };
 
   useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set next button ');
     setNextButtonDisabled(!!filteredItems[formStepNum - 1]?.disabled);
 
     if (formStepNum === filteredItems.length && onFinish) {
