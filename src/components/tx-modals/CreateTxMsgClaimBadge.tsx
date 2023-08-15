@@ -87,7 +87,7 @@ export function CreateTxMsgClaimBadgeModal(
 
   if (!collection) return <></>;
 
-  const leaf = isWhitelist ? chain.cosmosAddress : SHA256(codeToSubmit).toString();
+  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(codeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, whitelistIndex);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
 
@@ -134,6 +134,7 @@ export function CreateTxMsgClaimBadgeModal(
         await collections.fetchCollections([collectionId], true);
         await collections.fetchBalanceForUser(collectionId, chain.address, true);
       }}
+      msgSteps={[]}
     >
       {children}
     </TxModal>

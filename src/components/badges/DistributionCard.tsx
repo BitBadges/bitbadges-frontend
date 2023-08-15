@@ -1,4 +1,4 @@
-import { castBalancesActionPermissionToUniversalPermission, getBalancesForId, BalancesActionPermissionUsedFlags } from "bitbadgesjs-utils";
+import { castBalancesActionPermissionToUniversalPermission, getBalancesForId, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
@@ -43,11 +43,11 @@ export function DistributionOverview({
     }
   }
 
+  const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
 
   return <InformationDisplayCard title={'Distribution'} span={span}>
     <>
-      {!isBadgeView &&
-        <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
+
       {collection && <TableRow label={"Circulating (Total)"} value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
@@ -58,7 +58,6 @@ export function DistributionOverview({
             hideMessage
             balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, totalSupplyBalance) : totalSupplyBalance}
           />
-          <br />
         </div>
       } labelSpan={8} valueSpan={16} />}
       {<>
@@ -71,11 +70,11 @@ export function DistributionOverview({
               hideMessage
               balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, mintSupplyBalance) : mintSupplyBalance}
             />
-            <br />
-
           </div>
         } labelSpan={8} valueSpan={16} />}
       </>}
+      {!isBadgeView &&
+        <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
       {<TableRow label={"Can more badges be created?"} value={PermissionIcon(castBalancesActionPermissionToUniversalPermission(collection.collectionPermissions.canCreateMoreBadges), "", BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
         collection.managerTimeline.every(x => !x.manager), badgeId)} labelSpan={20} valueSpan={4} />}
       {isOffChainBalances && <TableRow label={"Balances URL"} value={
@@ -103,6 +102,17 @@ export function DistributionOverview({
               }
               timeline={collection?.offChainBalancesMetadataTimeline ?? []}
             />
+          </>
+        </div>
+      } labelSpan={9} valueSpan={15} />}
+      {isOffChainBalances && <TableRow label={"Update balances URL?"} value={
+        PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateOffChainBalancesMetadata), "off-chain balances URL", TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
+          collection.managerTimeline.every(x => !x.manager), badgeId)
+      } labelSpan={9} valueSpan={15} />}
+      {isOffChainBalances && <TableRow label={"Last Updated"} value={
+        <div>
+          <>
+            {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : 'Loading...'}
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}

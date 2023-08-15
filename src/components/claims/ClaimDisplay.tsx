@@ -1,5 +1,5 @@
-import { ClockCircleOutlined, InfoCircleOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
-import { Button, Card, Divider, Empty, Input, Pagination, Row, Typography } from "antd";
+import { ClockCircleOutlined, InfoCircleOutlined, SwapOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
+import { Avatar, Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
 import { ApprovalTrackerIdDetails } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, DistributionMethod, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
@@ -14,7 +14,6 @@ import { AddressDisplay } from "../address/AddressDisplay";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { ToolIcon, tools } from "../display/ToolIcon";
-import { TransferDisplay } from "../transfers/TransferDisplay";
 
 
 //TODO: Will need to change when we allow approvalDetails len > 0
@@ -54,13 +53,19 @@ export function ClaimDisplay({
   const passwordQuery = query.password as string;
 
   const [codePage, setCodePage] = useState(1);
-  const [currCode, setCurrCode] = useState(codeQuery ? codeQuery as string : passwordQuery ? passwordQuery as string : '');
-  const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
 
-  //TODO: Will need to change with more supported features
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
-  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === chain.cosmosAddress);
-  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
+  const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
+  const [showAllUnclaimed, setShowAllUnclaimed] = useState<boolean>(false);
+  const [currCode, setCurrCode] = useState('');
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
+    if (codeQuery) {
+      setCurrCode(codeQuery as string);
+    } else if (passwordQuery) {
+      setCurrCode(passwordQuery as string);
+    }
+  }, []);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
@@ -113,6 +118,11 @@ export function ClaimDisplay({
   }, [collectionId, approvedTransfer, claimId, chain]);
 
   let [, isActive] = searchUintRangesForId(BigInt(Date.now()), approvedTransfer.transferTimes);
+
+  //TODO: Will need to change with more supported features
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
+  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === chain.cosmosAddress);
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
 
 
   let timeStr = '';
@@ -218,8 +228,29 @@ export function ClaimDisplay({
   const printStr = claim?.details?.hasPassword ? 'password' : 'code';
   const urlSuffix = claim?.details?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
 
-  return <>
-    <Card
+  const switchViewIcon = <Tooltip title={showAllUnclaimed ? 'Show Current Claim' : 'Show All Unclaimed'} placement='bottom'>
+
+    <Avatar className="screen-button"
+      onClick={() => setShowAllUnclaimed(!showAllUnclaimed)}
+      src={<SwapOutlined />
+      }
+      style={{ cursor: 'pointer', marginRight: 8 }}
+    />
+
+  </Tooltip>
+  return <div className='flex-center flex-column'>
+    <Divider />
+    <div>
+      {isCodeDisplay && <Row>
+        <div className="full-width">
+          <Button className='screen-button primary-blue-bg' onClick={() => setShowClaimDisplay(!showClaimDisplay)}>{showClaimDisplay ? 'Show Codes/Passwords' : 'Show Claim Details'}</Button>
+          <br />
+          <br />
+        </div>
+      </Row>}
+
+    </div>
+    {showClaimDisplay && <Card
       className="primary-text primary-blue-bg"
       style={{
         maxWidth: 500,
@@ -231,47 +262,58 @@ export function ClaimDisplay({
     >
       <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
         <Row className='flex-center' >
-          <h1 className='primary-text'>{`${claim?.details?.name ? claim?.details?.name : ''}`}</h1>
+          <Typography.Text strong style={{ fontSize: 30 }} className='primary-text'>{`${claim?.details?.name ? claim?.details?.name : ''}`}</Typography.Text>
         </Row>
-        {isCodeDisplay && <Row>
-          <div className="full-width">
-            <Button className='screen-button primary-blue-bg' onClick={() => setShowClaimDisplay(!showClaimDisplay)}>{showClaimDisplay ? 'Show Codes/Passwords' : 'Show Claim Details'}</Button>
-            <br />
-            <hr />
-            <br />
-          </div>
-        </Row>}
+
 
         {<>
-          {showClaimDisplay ?
-            <div>
+
+          <div>
+            <Row className='flex-center' >
+              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> <ClockCircleOutlined /> {isActive ? getTimeRangesElement(approvedTransfer.transferTimes, '', true)
+                : timeStr}</Typography.Text>
+            </Row>
+
+
+            <br />
+            {claim?.details?.description &&
               <Row className='flex-center' >
-                <h3 className='primary-text'><ClockCircleOutlined /> {isActive ? getTimeRangesElement(approvedTransfer.transferTimes, '', true)
-                  : timeStr}</h3>
-              </Row>
+                <div className='primary-text'>{claim.details?.description}</div>
+              </Row>}
+            <br />
 
-
-              <br />
-              {claim?.details?.description &&
-                <Row className='flex-center' >
-                  <div className='primary-text'>{claim.details?.description}</div>
-                </Row>}
-              <br />
-              <div className='flex-center' >
-                <BalanceDisplay
-                  message={'Unclaimed Badges Left'}
-                  collectionId={collectionId}
-                  balances={undistributedBalances}
-                />
+            {showAllUnclaimed && <>  <div className="flex-center flex-column" style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                {switchViewIcon}
               </div>
-              {undistributedBalances.length > 0 && <>
-                <hr />
-                <div>
-                  <BalanceDisplay
-                    message={'Current Claim'}
-                    collectionId={collectionId}
-                    balances={currentClaimAmounts}
-                  />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>All Unclaimed</Typography.Text>
+              <BalanceDisplay
+                // messageSize={20}
+                hideMessage
+                message={'Unclaimed Badges Left'}
+                collectionId={collectionId}
+                balances={undistributedBalances}
+              />
+
+            </div>
+            </>}
+            {undistributedBalances.length > 0 && <>
+
+              <div>
+                {!showAllUnclaimed && <>
+                  <div className="flex-center flex-column" style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                      {switchViewIcon}
+                    </div>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text>
+
+                    <BalanceDisplay
+                      message={'Current Claim'}
+                      hideMessage
+                      collectionId={collectionId}
+                      balances={currentClaimAmounts}
+                    />
+                  </div>
 
                   {incrementIdsBy > 0 && <div>
                     <br />
@@ -282,12 +324,15 @@ export function ClaimDisplay({
                     </Row>
                     <br />
                   </div>}
+                  <hr />
+
 
                   <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
-                    <hr />
+
                     {errorMessage && <>
                       <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
                       {errorMessage}
+
                     </>}
                     {notConnected ? <>
                       <br />
@@ -298,7 +343,9 @@ export function ClaimDisplay({
                     </> : <>
                       {claim && claim.root && !claim.useCreatorAddressAsLeaf &&
                         <>
-                          <h3 className='primary-text'>Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</h3>
+                          <br />
+                          <br />
+                          <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</Typography.Text>
                           <Input
                             placeholder={`Enter ${claim.details?.hasPassword ? 'Password' : 'Code'}`}
                             value={currCode}
@@ -315,11 +362,10 @@ export function ClaimDisplay({
 
                       {claim && claim.root && claim.useCreatorAddressAsLeaf &&
                         <>
-                          <hr />
                           <br />
                           {!claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))
                             ? <div>
-                              <h3 className='primary-text'>This is a whitelist-based claim, but you are not on the whitelist.</h3>
+                              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> This is a whitelist-based claim, but you are not on the whitelist.</Typography.Text>
                               <div className='flex-between' style={{ justifyContent: 'center' }}>
                                 <AddressDisplay
                                   addressOrUsername={chain.address}
@@ -328,11 +374,12 @@ export function ClaimDisplay({
                             </div> :
                             <div>
                               {chain.connected && <div>
-                                <h3 className='primary-text'>This is a whitelist-based claim, and you have been whitelisted!</h3>=
+                                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> This is a whitelist-based claim, and you have been whitelisted!</Typography.Text>
                               </div>}
-                              <div>
+                              {/* <div>
                                 <TransferDisplay
-                                  hideBalances
+                                  // hideBalances
+
                                   collectionId={collectionId}
                                   transfers={[
                                     {
@@ -350,7 +397,7 @@ export function ClaimDisplay({
                                   ]}
                                   setTransfers={() => { }}
                                 />
-                              </div>
+                              </div> */}
                             </div>}
                         </>
                       }
@@ -368,27 +415,41 @@ export function ClaimDisplay({
                       <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
                     </div>}
                   </div>
-                </div>
-              </>}
-            </div>
-            :
-            // Show authenticated manager information (passwords, codes, distribution methods, etc...)
+                </>}
+              </div>
+            </>}
+          </div>
+        </>}
+      </div>
+    </Card>}
+
+    {!showClaimDisplay &&
+      <Card
+        className="primary-text primary-blue-bg"
+        style={{
+          // margin: 8,
+          textAlign: 'center',
+          border: 'none',
+        }}
+
+      >
+
+        {/* // Show authenticated manager information (passwords, codes, distribution methods, etc...) */}
+        <div>
+          <Row className='flex-center flex-column' style={{ textAlign: 'center' }}>
             <div>
-              <Row className='flex-center' >
-                <h3 className='primary-text'>{claim?.details?.hasPassword ? 'Password' : 'Codes'}</h3>
-              </Row>
-              <Row className='flex-center' style={{ textAlign: 'center' }}>
+              <div>
+                {"There are multiple ways to distribute. Select the option that best suits your needs. Keep these codes safe and secure!"}
+              </div>
+              <br />
+
+
+              {!claim?.details?.hasPassword && codes && codes.length > 0 && <>
                 <div>
-                  <div>
-                    {"There are many ways you can distribute these codes. Select the option that best suits your needs."}
-                  </div>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 1: Copy / Download Codes</Typography.Text>
                   <br />
-
-
-                  {!claim?.details?.hasPassword && codes && codes.length > 0 && <>
+                  <div style={{ textAlign: 'center' }}>
                     <div>
-                      <b>Option 1: Copy / Download Codes</b>
-                      <br />
                       <button
                         style={{
                           backgroundColor: 'inherit',
@@ -407,120 +468,139 @@ export function ClaimDisplay({
                         }}
                         className="opacity link-button primary-text"
                       >
-                        Click here to download a file
+                        Download a JSON file
                       </button>
-                      {" "}containing all codes. Or, <button
+                    </div>
+                    <div>
+                      <button
                         style={{
                           backgroundColor: 'inherit',
                         }}
-                        className="opacity link-button primary-text"
                         onClick={() => {
-                          alert('Copied codes to clipboard!\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
-                          //copy to clipboard
-                          navigator.clipboard.writeText(JSON.stringify(codes.join('\n')));
-                        }}
-                      >
-                        click here
-                      </button> to copy the codes to your clipboard.
-                      <br />
-                      Keep these codes safe and secure!
+                          alert('Downloaded codes to a file!\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
+                          const today = new Date();
 
-                      <Divider />
+                          const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                          const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                          downloadJson({
+                            prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
+                            codes
+                          }, `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
+                        }}
+                        className="opacity link-button primary-text"
+                      >
+                        Download a text (.txt) file
+                      </button>
                     </div>
                     <div>
-                      <b>Option 2: Use a Distribution Tool</b>
-                      <br />
                       <div>
-                        <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
-                        {"Tools marked with a "} <TeamOutlined style={{ marginLeft: 10, marginRight: 10 }} />{"are community built. Use at your own risk."}
-                      </div>
-                      <br />
-                      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
-                        {tools.map((tool, idx) => {
-                          if (tool.distributionMethod !== DistributionMethod.Codes) return <></>
+                        Click here
+                        <Typography.Text copyable={{ text: codes.join('\n') }} className='primary-text' style={{ fontSize: 16 }}>
+                          {" "}
+                        </Typography.Text>
+                        {" "}
+                        to copy the codes to your clipboard.
 
-                          return <div style={{ margin: 8 }} key={idx}>
-                            <ToolIcon
-                              name={tool.name}
-                            />
-                          </div>
-                        })}
                       </div>
                       <Divider />
                     </div>
-                    <b>Option 3: Manually Distribute Individual Codes</b>
-                    <br />
-                    <Pagination
-                      className='primary-text'
-                      current={codePage}
-                      total={codes.length}
-                      pageSize={1}
-                      onChange={(page) => {
-                        setCodePage(page);
-                      }}
-                      size='small'
-                      showSizeChanger={false}
-                    />
-                    <br />
-                  </>
-                  }
-                  {claimPassword && <div>
-                    <h3 className='primary-text'>Password: {claimPassword}</h3>
-                  </div>}
-                  <br />
-                  <br />
-                  <Typography.Text className='secondary-text'>
-                    There are three ways you can distribute this {printStr}: manually, by URL, or by QR code.
-                  </Typography.Text>
-                  <Divider />
-
-                  {claim && !claim.details?.hasPassword && codes && <Typography.Text strong className='secondary-text'>
-                    <InfoCircleOutlined /> Note that this code can only be used once.
-                    <br />
-                    Current Status: {
-                      challengeTracker && challengeTracker.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
-                    }
-                  </Typography.Text>}
-
-                  <Divider />
-                  <h3 className='primary-text'>Manual</h3>
-                  <Typography.Text strong copyable className='primary-text' style={{ fontSize: 16 }}>
-                    {claim && claim.details?.hasPassword ? claimPassword : codes ? codes[codePage - 1] : ''}
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text'>
-                    The {printStr} can be manually distributed, and the users will enter it on the claim page.
-                  </Typography.Text>
-                  <Divider />
-                  <h3 className='primary-text'>URL</h3>
-                  <Typography.Link strong copyable style={{ fontSize: 14 }}>
-                    {`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`}
-                  </Typography.Link>
-                  <br />
-
-                  <Typography.Text className='secondary-text'>
-                    When a user navigates to the above URL, the {printStr} will be automatically inputted.
-                  </Typography.Text>
-                  <Divider />
-                  <h3 className='primary-text'>QR Code</h3>
-                  <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`} />
-                  <br />
-
-                  <Typography.Text className='secondary-text'>
-                    When a user scans this QR code, it will take them to the claim page with the {printStr} automatically inputted.
-                  </Typography.Text>
+                  </div>
                 </div>
-              </Row>
-              {claim && !claim.details?.hasPassword && (!codes || codes.length === 0) &&
-                <Empty
-                  description={<span className='primary-text'>There are no {printStr}s for this claim.</span>}
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  className='primary-text'
-                />}
-            </div>}
-        </>
-        }
-      </div>
-    </Card >
-  </>
+                <div>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 2: Use a Distribution Tool</Typography.Text>
+                  <br />
+                  <div>
+                    <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
+                    {"Tools marked with a "} <TeamOutlined style={{ marginLeft: 10, marginRight: 10 }} />{"are community built. Use at your own risk."}
+                  </div>
+                  <br />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
+                    {tools.map((tool, idx) => {
+                      if (tool.distributionMethod !== DistributionMethod.Codes) return <></>
+
+                      return <div style={{ margin: 8 }} key={idx}>
+                        <ToolIcon
+                          name={tool.name}
+                        />
+                      </div>
+                    })}
+                  </div>
+                  <Divider />
+                </div>
+                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 3: Manually Distribute Individual Codes</Typography.Text>
+
+                <br />
+              </>
+              }
+              {claimPassword && <div>
+                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Password: {claimPassword}</Typography.Text>
+              </div>}
+              <Typography.Text className='secondary-text'>
+                There are three ways you can distribute this {printStr}: manually, by URL, or by QR code.
+              </Typography.Text>
+              <Divider />
+              <Pagination
+                className='primary-text'
+                current={codePage}
+                total={codes?.length}
+                pageSize={1}
+                onChange={(page) => {
+                  setCodePage(page);
+                }}
+                size='small'
+                showSizeChanger={false}
+              />
+
+              {claim && !claim.details?.hasPassword && codes && <Typography.Text strong className='secondary-text'>
+                <InfoCircleOutlined /> Note that this code can only be used once.
+                <br />
+                Current Status: {
+                  challengeTracker && challengeTracker.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
+                }
+              </Typography.Text>}
+
+              <Divider />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Manual</Typography.Text>
+              <br />
+              <Typography.Text strong copyable className='primary-text' style={{ fontSize: 16 }}>
+                {claim && claim.details?.hasPassword ? claimPassword : codes ? codes[codePage - 1] : ''}
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text'>
+                The {printStr} can be manually distributed, and the users can enter it on the claim page.
+              </Typography.Text>
+              <Divider />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> URL</Typography.Text>
+              <br />
+              <Typography.Link strong copyable style={{ fontSize: 14 }}>
+                {`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`}
+              </Typography.Link>
+              <br />
+
+              <Typography.Text className='secondary-text'>
+                When a user navigates to the above URL, the {printStr} will be automatically inputted.
+              </Typography.Text>
+              <Divider />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> QR Code</Typography.Text>
+              <br />
+              <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`} />
+              <br />
+
+              <Typography.Text className='secondary-text'>
+                When a user scans this QR code, it will take them to the claim page with the {printStr} automatically inputted.
+              </Typography.Text>
+            </div>
+          </Row>
+          {claim && !claim.details?.hasPassword && (!codes || codes.length === 0) &&
+            <Empty
+              description={<span className='primary-text'>There are no {printStr}s for this claim.</span>}
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              className='primary-text'
+            />}
+        </div>
+      </Card >
+    }
+
+  </div >
 }

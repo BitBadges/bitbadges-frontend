@@ -15,7 +15,7 @@ export function AddressDisplayList({
   title,
   hideTitle,
   center,
-  toLength,
+  // toLength,
   pageSize = 10,
   allExcept,
   filterMint
@@ -28,7 +28,7 @@ export function AddressDisplayList({
   title?: string,
   hideTitle?: boolean
   center?: boolean,
-  toLength?: number
+  // toLength?: number
   pageSize?: number
   allExcept?: boolean,
   filterMint?: boolean
@@ -52,7 +52,7 @@ export function AddressDisplayList({
 
   users = users.filter(x => x !== 'Total');
 
-  let allExceptMint = false;
+  // let allExceptMint = false;
   // if (users.length == 1 && users[0] == 'Mint' && allExcept) {
   //   allExceptMint = true;
   //   users = [];
@@ -62,19 +62,47 @@ export function AddressDisplayList({
 
   if (filterMint) users = users.filter(x => x !== 'Mint');
 
-  return <div style={{ maxHeight: 500, overflow: 'auto', color: fontColor ?? 'white', fontSize: fontSize }}>
+  if (allExcept) {
+    //append it at beginning
+    users.unshift('All');
+
+    // if (!filterMint) {
+    //   users.push('Mint');
+    // }
+  } else if (users.length == 0) {
+    users.push('All');
+  }
+
+  // const str = title
+  //   ? title
+  //   : allExcept
+  //     ? allExceptMint
+  //       ? 'All'
+  //       : users.length === 0
+  //         ? !filterMint
+  //           ? 'All + Mint'
+  //           : 'All'
+  //         : 'All Except'
+  //     : users.length === 1
+  //       ? ''
+  //       : 'Addresses';
+
+  return <div style={{ maxHeight: 500, overflow: 'auto', color: fontColor ?? 'white', fontSize: fontSize, alignItems: 'center' }}>
     {!hideTitle &&
+      title ? <h3 style={{ color: fontColor ?? 'white' }}>{title}</h3> : <></>
 
-
-      <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : users.length == 0 ?
-        !filterMint ? 'All + Mint' :
-          'All' : 'All Except' : users.length == 1 ? '' : 'Addresses'} {!(allExcept && users.length == 0) && !allExceptMint && (toLength ? toLength : users.length) > 1 && <>({toLength ? toLength : users.length})</>}</h3>}
+      // <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : users.length == 0 ?
+      //   !filterMint ? 'All + Mint' :
+      //     'All' : 'All Except' : users.length == 1 ? <></> : 'Addresses'} </h3>
+    }
+    {/* {!(allExcept && users.length == 0) && !allExceptMint && (toLength ? toLength : users.length) > 1 && <>({toLength ? toLength : users.length})</>}</h3>} */}
     <Pagination total={users.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
 
     {users.map((user, index) => {
       if (index < currPageStart || index > currPageEnd) return null;
 
       const allowedMessage = invalidUsers ? invalidUsers[user] : undefined;
+
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
           <AddressDisplay
@@ -87,7 +115,11 @@ export function AddressDisplayList({
               </Tooltip>
             }
             addressOrUsername={user}
-            fontColor={allowedMessage ? 'red' : fontColor}
+
+            fontColor={((allowedMessage || allExcept) && (user != 'All'))
+              || (!allExcept && user == 'All')
+
+              ? 'red' : fontColor}
             fontSize={fontSize}
           />
           {allowedMessage && allowedMessage.length > 0 &&
@@ -95,7 +127,6 @@ export function AddressDisplayList({
               Reason: {allowedMessage}
             </div>
           }
-          <br />
         </div>
       )
     })}

@@ -39,9 +39,8 @@ export function Address({
   let address = (overrideChain ? newAddress : userInfo?.address) || addressOrUsername || '';
   let chain = overrideChain ?? userInfo?.chain;
 
-  const isValidAddress = isAddressValid(address);
+  const isValidAddress = isAddressValid(address) || address == 'All' || address == 'All Other';
   const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && chain === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
-
 
   const innerContent = !hideTooltip && userInfo ? (
     <Tooltip
@@ -53,47 +52,53 @@ export function Address({
             className='primary-text'
             style={{
               textAlign: 'center',
-              minWidth: 360
             }}
           >
             This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
-          </div> :
-          <div
-            className='primary-text'
-            style={{
-              textAlign: 'center',
-              minWidth: 360
-            }}
-          >
-            {`${chain} Address`}
-            {resolvedName ? <><br />{`(${resolvedName})`}</> : ''}
-            <br />
-            <br />
-            {`${address}`}
-            <br />
-            <br />
+          </div> : address == "All" ?
+            <div
+              className='primary-text'
+              style={{
+                textAlign: 'center',
+              }}
+            >
+              This represents all addresses that are not already handled in this list.
+            </div> :
+            <div
+              className='primary-text'
+              style={{
+                textAlign: 'center',
+              }}
+            >
+              {`${chain} Address`}
+              {resolvedName ? <><br />{`(${resolvedName})`}</> : ''}
+              <br />
+              <br />
+              {`${address}`}
+              <br />
+              <br />
 
-            {"Other equivalent addresses include: "}
-            <br />
-            {chain === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
-              <AddressDisplay
-                addressOrUsername={convertToCosmosAddress(address)}
-                overrideChain={SupportedChain.COSMOS}
-                hidePortfolioLink
-                hideTooltip
-              />
+              {"Other equivalent addresses include: "}
               <br />
-            </div>}
-            {chain === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
-              <AddressDisplay
-                addressOrUsername={cosmosToEth(address)}
-                overrideChain={SupportedChain.ETH}
-                hidePortfolioLink
-                hideTooltip
-              />
-              <br />
-            </div>}
-          </div>
+              {chain === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
+                <AddressDisplay
+                  addressOrUsername={convertToCosmosAddress(address)}
+                  overrideChain={SupportedChain.COSMOS}
+                  hidePortfolioLink
+                  hideTooltip
+                />
+                <br />
+              </div>}
+              {chain === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
+                <AddressDisplay
+                  addressOrUsername={cosmosToEth(address)}
+                  overrideChain={SupportedChain.ETH}
+                  hidePortfolioLink
+                  hideTooltip
+                />
+                <br />
+              </div>}
+            </div>
       }
       overlayStyle={{
         minWidth: 360
@@ -105,7 +110,7 @@ export function Address({
     displayAddress
   );
 
-  const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address;
+  const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address && address != 'All' && address != 'All Other';
   const invalidAddress = !isValidAddress;
   return (
     <div>

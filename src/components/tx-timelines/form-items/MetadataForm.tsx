@@ -1,5 +1,5 @@
-import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Avatar, Button, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import MarkdownIt from 'markdown-it';
@@ -9,7 +9,6 @@ import { MetadataUriSelect } from './MetadataUriSelect';
 // import style manually
 import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import moment from 'moment';
 
 import { UintRange } from 'bitbadgesjs-proto';
 import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
@@ -97,7 +96,7 @@ export function MetadataForm({
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
-  const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom && metadata?.validFrom?.length > 0 && metadata?.validFrom[0].end === FOREVER_DATE);
+  // const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom && metadata?.validFrom?.length > 0 && metadata?.validFrom[0].end === FOREVER_DATE);
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>([
     {
       start: startId ? startId : 1n,
@@ -715,7 +714,7 @@ export function MetadataForm({
               <hr />
             </div>}
           </Form.Item>
-          <Form.Item
+          {/* <Form.Item
             label={
               <Text
                 className='primary-text'
@@ -731,6 +730,8 @@ export function MetadataForm({
               <div className='primary-text primary-blue-bg full-width'>
                 {!validForeverChecked &&
                   <DatePicker
+                    showTime
+                    showMinute
                     placeholder='Default: No Expiration Date'
                     value={currMetadata.validFrom && currMetadata.validFrom.length > 0 ? moment(new Date(Number(currMetadata.validFrom[0].end))) : undefined}
                     className='primary-text primary-blue-bg full-width'
@@ -740,6 +741,8 @@ export function MetadataForm({
                       />
                     }
                     onChange={(_date, dateString) => {
+                      console.log(dateString);
+                      console.log(new Date(dateString))
                       setMetadata({
                         ...currMetadata,
                         validFrom: [{
@@ -765,11 +768,19 @@ export function MetadataForm({
                           }]
                         });
                       } else {
+                        const maxDate = new Date();
+                        maxDate.setFullYear(9999);
+                        maxDate.setMonth(11);
+                        maxDate.setDate(31);
+                        maxDate.setHours(0);
+                        maxDate.setMinutes(0);
+                        maxDate.setSeconds(0);
+
                         setMetadata({
                           ...currMetadata,
                           validFrom: [{
                             start: BigInt(Date.now()),
-                            end: BigInt(Date.now()),
+                            end: BigInt(maxDate.valueOf())
                           }]
                         });
                       }
@@ -818,7 +829,7 @@ export function MetadataForm({
               <Divider />
               <hr />
             </div>}
-          </Form.Item>
+          </Form.Item> */}
 
 
 
@@ -901,7 +912,7 @@ export function MetadataForm({
               <hr />
             </div>}
           </Form.Item>
-          <Form.Item
+          {/* <Form.Item
             label={
               <Text
                 className='primary-text'
@@ -1021,7 +1032,7 @@ export function MetadataForm({
               <Divider />
               <hr />
             </div>}
-          </Form.Item>
+          </Form.Item> */}
 
 
         </Form>}

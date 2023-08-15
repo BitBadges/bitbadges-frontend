@@ -61,7 +61,10 @@ export function ConfirmManagerStepItem(
 
   return {
     title: 'Select Manager',
-    description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, etc.'}
+    description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, and more. See full list '}
+      <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
+        {' '}here.
+      </a>
       <br /><br />
       {existingCollectionId ? <> {`Current Permission - Can Update Manager?: `}
         {
@@ -123,7 +126,7 @@ export function ConfirmManagerStepItem(
                 }}
                 options={[{
                   title: 'No Manager',
-                  message: 'Do not have a manager for this collection. No admin privileges will be available. The collection details will be final and frozen after this transaction is processed.',
+                  message: 'Do not have a manager for this collection. No admin privileges will be available to you. The collection details will be final and frozen after this transaction is processed.',
                   isSelected: !hasManager,
                 },
                 {

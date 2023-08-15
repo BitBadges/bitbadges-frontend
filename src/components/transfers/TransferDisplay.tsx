@@ -1,10 +1,8 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Empty, Tooltip, Typography } from "antd";
-import { Numberify, TransferWithIncrements } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { TransferWithIncrements } from "bitbadgesjs-utils";
+import { useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
@@ -27,8 +25,6 @@ export function TransferDisplay({
   setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
   deletable?: boolean;
 }) {
-  const accounts = useAccountsContext();
-
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
@@ -36,16 +32,6 @@ export function TransferDisplay({
 
 
   const transfer = transfers.length > 0 ? transfers[page] : undefined;
-
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: transfer display, fetch accounts ');
-    if (!transfer) return;
-
-    accounts.fetchAccounts(transfer.toAddresses);
-  }, [transfer]);
-
-
   const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
   return <><div style={{ marginTop: 4 }}    >
@@ -64,11 +50,11 @@ export function TransferDisplay({
         <BalanceDisplay
           message={'Badges Transferred'}
           collectionId={collectionId}
-          balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
+          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
+          balances={transfer.balances}
           numIncrements={toLength}
           incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
           incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
-
         />}
     </div>}
 
@@ -80,7 +66,7 @@ export function TransferDisplay({
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
             <AddressDisplayList
               users={[transfer.from]}
-              toLength={Numberify(toLength)}
+              // toLength={Numberify(toLength)}
               title={'From'}
               fontSize={15}
               center
@@ -90,7 +76,7 @@ export function TransferDisplay({
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
             <AddressDisplayList
               users={transfer.toAddresses}
-              toLength={Numberify(toLength)}
+              // toLength={Numberify(toLength)}
               title={'To'}
               fontSize={15}
               center

@@ -354,7 +354,7 @@ export function TxTimeline({
         balancesType: "Standard",
       }, true);
     }
-  }, [distributionMethod, simulatedCollection]);
+  }, [distributionMethod]);
 
   //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
   const [handledPermissions, setHandledPermissions] = useState<CollectionPermissions<bigint>>({

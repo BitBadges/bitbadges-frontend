@@ -359,7 +359,7 @@ export function TransferSelect({
       newTransfersToAdd = [{
         toAddresses: toAddresses,
         balances: balances,
-        toAddressesLength: numRecipients,
+        toAddressesLength: isClaimSelect ? numRecipients : undefined,
         from: sender,
         precalculationDetails: {
           approvalId: approvalId.current,
@@ -434,7 +434,7 @@ export function TransferSelect({
               }),
             }
           }),
-          toAddressesLength: numRecipients,
+          toAddressesLength: isClaimSelect ? numRecipients : undefined,
           incrementBadgeIdsBy: numPerAddress,
           from: sender,
           precalculationDetails: {
@@ -666,6 +666,7 @@ export function TransferSelect({
         <TransferDisplay
           transfers={transfersToAdd}
           collectionId={collectionId}
+        // hideBalances
         />
       }
       <br />

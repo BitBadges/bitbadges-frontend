@@ -15,6 +15,12 @@ export function BlockiesAvatar({
   if (avatar) {
     return <Avatar shape={shape ? shape : 'square'} src={avatar} size={fontSize ? fontSize : 20} />
   } else {
-    return <Avatar shape={shape ? shape : 'square'} src={<Blockies scale={4} size={fontSize ? fontSize / 4 : 10} seed={address ? address.toLowerCase() : ''} />} size={fontSize ? fontSize : 20} />
+    return <Avatar shape={shape ? shape : 'square'} src={<Blockies
+      color={address == 'All' ? 'white' : address == 'Mint' ? 'orange' : undefined}
+      spotColor={address == 'All' ? 'orange' : address == 'Mint' ? 'white' : undefined}
+      bgColor={address == 'All' ? 'green' : address == 'Mint' ? 'white' : undefined}
+      scale={4} size={fontSize ? fontSize / 4 : 10
+      } seed={address ? address.toLowerCase() : ''} />
+    } size={fontSize ? fontSize : 20} />
   }
 }

@@ -55,7 +55,6 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
           const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] =
             approvedTransfers.map(approvedTransfer => {
               const approvalId = approvedTransfer.approvalDetails[0].approvalId;
-              console.log("approvalId", approvalId);
               const approvalIdDetails = [
                 {
                   collectionId,
@@ -115,7 +114,6 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
 
           const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = approvedTransfers.map(approvedTransfer => {
             const approvalId = approvedTransfer.approvalDetails[0].approvalId;
-            console.log("approvalId", approvalId);
             const approvalIdDetails = [
               {
                 collectionId,

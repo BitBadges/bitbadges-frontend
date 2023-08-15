@@ -192,7 +192,9 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
       <br />
       <InformationDisplayCard
         title={<>
-          {"Metadata"} {
+          {badgeId && "Badge Metadata"}
+          {!badgeId && "Collection Metadata"}
+          {
             collection && ((!badgeId && collection?.collectionMetadataTimeline.length > 1) ||
               (badgeId && collection?.badgeMetadataTimeline.length > 1)) ?
               <Tooltip color='black' title="Note this metadata is set to have different values at different times. See the Metadata URL.">
@@ -310,6 +312,8 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
             })
           }
         </div>} labelSpan={9} valueSpan={15} />}
+
+        {!!metadata?.fetchedAt && <TableRow label={"Last Updated"} value={new Date(Number(metadata.fetchedAt)).toLocaleString()} labelSpan={9} valueSpan={15} />}
       </InformationDisplayCard>
     </>
   );

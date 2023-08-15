@@ -1,7 +1,6 @@
 import { Divider, Empty, Layout, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
@@ -26,7 +25,6 @@ function CollectionPage({
   collectionPreview: boolean
 }) {
   const router = useRouter()
-  const chain = useChainContext();
   const collections = useCollectionsContext();
 
   const { collectionId, badgeId, password, code, claimsTab } = router.query;
@@ -78,7 +76,7 @@ function CollectionPage({
 
         if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({
-            message: 'Metadata for this collection is currently being refreshed.',
+            message: collection?.balancesType === "Off-Chain" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
             description: 'Certain metadata may not be up to date until the fetch is complete.',
           });
         }
@@ -101,17 +99,17 @@ function CollectionPage({
   }, [code, password, claimsTab])
 
   // Get user's badge balance
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: get badge balance by address from api ');
-    if (isPreview) return;
-    async function getBadgeBalanceByAddressFromApi() {
-      if (isPreview) return;
-      if (collectionIdNumber > 0 && chain.address) {
-        await collections.fetchBalanceForUser(collectionIdNumber, chain.address);
-      }
-    }
-    getBadgeBalanceByAddressFromApi();
-  }, [collectionIdNumber, chain.address, isPreview]);
+  // useEffect(() => {
+  //   if (INFINITE_LOOP_MODE) console.log('useEffect: get badge balance by address from api ');
+  //   if (isPreview) return;
+  //   async function getBadgeBalanceByAddressFromApi() {
+  //     if (isPreview) return;
+  //     if (collectionIdNumber > 0 && chain.address) {
+  //       await collections.fetchBalanceForUser(collectionIdNumber, chain.address);
+  //     }
+  //   }
+  //   getBadgeBalanceByAddressFromApi();
+  // }, [collectionIdNumber, chain.address, isPreview]);
 
   return (
     <Layout>

@@ -56,7 +56,7 @@ function RegisterScreen({ message }: { message?: string }) {
 
                     await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
 
-                    setLoading(false);
+                    setLoading(false);  
                   }}
                   style={{ margin: 5 }}
                 >

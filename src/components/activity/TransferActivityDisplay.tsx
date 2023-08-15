@@ -39,7 +39,6 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
 
       const accountsToFetch = activity.map(a => { return [...new Set([a.from, ...a.to])].filter(a => a !== 'Mint') }).flat();
       const collectionsToFetch = activity.map(a => a.collectionId);
-
       await collections.fetchCollections(collectionsToFetch);
       await accounts.fetchAccounts(accountsToFetch);
     }

@@ -55,6 +55,21 @@ export function OverviewTab({
         justifyContent: 'space-between',
       }}
     >
+      <Col md={24} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4}}>
+        {collectionMetadata?.description && <>
+          <InformationDisplayCard
+            title={<>About</>}
+            span={24}
+          >
+            <div style={{ maxHeight: 400, overflow: 'auto', }} >
+              <div className='custom-html-style primary-text' id="description" >
+                {reactElement}
+              </div>
+            </div>
+          </InformationDisplayCard>
+          <br />
+        </>}
+      </Col>
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
         <MetadataDisplay
           collectionId={collectionId}
@@ -110,19 +125,7 @@ export function OverviewTab({
       </Col>
 
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
-        {collectionMetadata?.description && <>
-          <InformationDisplayCard
-            title={<>About</>}
-            span={24}
-          >
-            <div style={{ maxHeight: 400, overflow: 'auto', textAlign: 'left' }} >
-              <div className='custom-html-style primary-text' id="description" >
-                {reactElement}
-              </div>
-            </div>
-          </InformationDisplayCard>
-          <br />
-        </>}
+
         <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
         {<>
           <DistributionOverview

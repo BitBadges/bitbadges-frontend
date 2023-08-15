@@ -66,7 +66,7 @@ export function ActionsTab({
   }
 
   actions.push({
-    title: getTitleElem(isOffChainBalances ? "Refresh Metadata and Balances" : "Refresh Metadata"),
+    title: getTitleElem(isOffChainBalances ? "Refresh Metadata / Balances" : "Refresh Metadata"),
     description: getDescriptionElem(
       "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection."
     ),

@@ -13,6 +13,7 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
 
 export function OwnersTab({ collectionId, badgeId }: {
   collectionId: bigint;
@@ -50,14 +51,10 @@ export function OwnersTab({ collectionId, badgeId }: {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
     if (!collection) return;
 
-    const accountsToFetch: string[] = [];
-    for (let i = pageStartId - 1; i < pageEndId; i++) {
-      accountsToFetch.push(collection.owners[i].cosmosAddress);
-    }
-
+    const accountsToFetch: string[] = [...owners.map(x => cosmosToEth(x.cosmosAddress))];  //Default to ETH address if not found
     accounts.fetchAccounts(accountsToFetch);
     //Even though this depends on collection (context), it should be okay because collection should not change
-  }, [pageStartId, pageEndId, currPage]);
+  }, [pageStartId, pageEndId, currPage, collection, owners]);
 
   //TODO: Handle bookmarking logic within context
   useEffect(() => {
@@ -79,7 +76,7 @@ export function OwnersTab({ collectionId, badgeId }: {
         toSubtract++;
       }
       setToSubtract(toSubtract);
-      setOwners(owners => [...owners, ...badgeOwners]);
+      setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
       setPagination(x => {
         return {
           ...ownersRes.pagination,
@@ -129,7 +126,7 @@ export function OwnersTab({ collectionId, badgeId }: {
           <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} />
 
           {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-
+            console.log("OWNERS", owners);
             if (idx < pageStartId - 1 || idx > pageEndId - 1) {
               return <></>
             } else {

@@ -84,7 +84,7 @@ export function RevokeSelectStepItem(
                 customData: "",
                 merkleChallenges: [],
                 overridesFromApprovedOutgoingTransfers: true,
-                overridesToApprovedIncomingTransfers: true,
+                overridesToApprovedIncomingTransfers: false,
                 requireFromDoesNotEqualInitiatedBy: false,
                 requireFromEqualsInitiatedBy: false,
                 requireToDoesNotEqualInitiatedBy: false,

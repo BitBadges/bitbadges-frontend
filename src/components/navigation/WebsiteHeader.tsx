@@ -145,7 +145,7 @@ export function WalletHeader() {
     </div>
 
     <hr />
-    {!connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
+    {!connected && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
     {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
     {connected && <>
@@ -222,7 +222,7 @@ export function WalletHeader() {
     key: 'search',
     content: <Avatar src={<SearchOutlined />} />,
     onClick: () => {
-      console.log('Do Nothing');
+      // console.log('Do Nothing');
     },
     popoverContent: (
       <div

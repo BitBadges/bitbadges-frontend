@@ -1,4 +1,4 @@
-import { Divider, Layout, Tabs } from 'antd';
+import { Divider, Layout, Spin, Tabs } from 'antd';
 import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getBrowseCollections } from '../bitbadges-api/api';
@@ -20,14 +20,12 @@ function BrowsePage() {
     async function getCollections() {
       const browseInfo = await getBrowseCollections();
       if (!browseInfo) return;
-      console.log("browseInfo", browseInfo);
 
       const updatedIds: bigint[] = [];
       for (const category of Object.keys(browseInfo)) {
         for (const collection of browseInfo[category]) {
 
           if (updatedIds.includes(collection.collectionId)) continue;
-          console.log("UPDATING COLLECTION");
           collections.updateCollection(collection);
           updatedIds.push(collection.collectionId);
         }
@@ -84,18 +82,19 @@ function BrowsePage() {
             items={
               browseInfo ? Object.keys(browseInfo).map((category) => {
                 return { label: category.charAt(0).toUpperCase() + category.slice(1), key: category }
-              }) : undefined}
+              }) : [{ label: 'Featureds', key: 'featured' }]}
           >
 
           </Tabs>
 
-
+          {!browseInfo && <Spin size='large' />}
           <div>
             <br />
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
               <MultiCollectionBadgeDisplay
                 collectionIds={(browseInfo && browseInfo[tab]?.map(collection => collection.collectionId)) ?? []}
                 groupByCollection
+
               />
 
               {/* {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>, idx) => {

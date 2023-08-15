@@ -1,7 +1,6 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
 import { Numberify, getBadgesToDisplay, getBalancesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
 import { Pagination } from "../common/Pagination";
@@ -23,7 +22,8 @@ export function BadgeAvatarDisplay({
 
   cardView,
   hideCollectionLink,
-  fetchDirectly
+  fetchDirectly,
+  showOnSinglePage
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
@@ -38,28 +38,17 @@ export function BadgeAvatarDisplay({
   cardView?: boolean;
   hideCollectionLink?: boolean;
   fetchDirectly?: boolean;
+  showOnSinglePage?: boolean;
 }) {
 
   const collections = useCollectionsContext();
 
-  const collection = collections.collections[collectionId.toString()]
-  const accounts = useAccountsContext();
-  const account = addressOrUsernameToShowBalance ? accounts.getAccount(addressOrUsernameToShowBalance) : '';
-
-  const userBalance = balance ? balance : account ? collection?.owners.find(owner => owner.cosmosAddress === account.cosmosAddress)?.balances : undefined;
+  const userBalance = balance ? balance : undefined;
 
   const [currPage, setCurrPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(pageSize); //Total number of badges in badgeIds[]
 
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: badge avatar display, balance fetch ');
-    if (addressOrUsernameToShowBalance) {
-      collections.fetchBalanceForUser(collectionId, addressOrUsernameToShowBalance);
-    }
-  }, [addressOrUsernameToShowBalance, collectionId]);
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
@@ -94,17 +83,15 @@ export function BadgeAvatarDisplay({
       if (collectionId > 0n ||
         (collectionId === 0n && fetchDirectly)
       ) {
-        console.log("badge avatar fetch");
-        console.log(JSON.stringify({ badgeIds, currPage, pageSize, fetchDirectly }));
         await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       }
     }
 
     updateMetadata();
-  }, [badgeIds, currPage, pageSize, fetchDirectly]);
+  }, [badgeIds, currPage, pageSize, fetchDirectly, addressOrUsernameToShowBalance]);
 
   return <div style={{ maxWidth: maxWidth }}>
-    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} />
+    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} />
 
     <>
       <div className='flex-center flex-wrap full-width primary-text'>

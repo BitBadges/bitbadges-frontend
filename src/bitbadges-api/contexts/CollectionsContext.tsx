@@ -1,5 +1,5 @@
 import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { createContext, useContext, useState } from 'react';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
@@ -105,7 +105,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       accounts.updateAccount(newCollection.managerInfo);
     }
 
-    let cachedCollection = deepCopy(collections[`${newCollection.collectionId}`]);
+    let cachedCollection = collections[`${newCollection.collectionId}`];
+    // let cachedCollection = deepCopy(collections[`${newCollection.collectionId}`]);
     const cachedCollectionCopy = deepCopy(cachedCollection);
 
     if (cachedCollection) {
@@ -162,7 +163,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
       cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      console.log("APPROVALS TRACKERS", cachedCollection.approvalsTrackers);
       //Attempt to update the account balances for each of the owners (if we find an account)
       //For now, if we do not find an account, we just carry on. 
       //Can look to fetch all accounts as well in the future but would require async logic whereas this is intended to be synchronous
@@ -176,12 +176,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
 
-      collections[`${newCollection.collectionId}`] = cachedCollection;
-
-
       //Only update if anything has changed
       if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
-        setCollections((collections) => {
+        setCollections(collections => {
           return {
             ...collections,
             [`${newCollection.collectionId}`]: cachedCollection
@@ -190,16 +187,13 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
       return cachedCollection;
     } else {
-      collections[`${newCollection.collectionId}`] = newCollection;
-
-      if (!compareObjects(cachedCollectionCopy, newCollection)) {
-        setCollections((collections) => {
-          return {
-            ...collections,
-            [`${newCollection.collectionId}`]: newCollection
-          }
-        });
-      }
+      // if (!compareObjects(cachedCollectionCopy, newCollection)) {
+      setCollections(collections => {
+        return {
+          ...collections,
+          [`${newCollection.collectionId}`]: newCollection
+        }
+      });
       return newCollection;
     }
   }
@@ -217,7 +211,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (forceful) {
       res = await getBadgeBalanceByAddress(collectionId, account.cosmosAddress);
     } else {
-
       const cachedBalance = collection.owners.find(x => x.cosmosAddress === account.cosmosAddress);
       if (cachedBalance) {
         return cachedBalance;
@@ -452,9 +445,17 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const res = await getCollections(batchRequestBody);
     console.log("collection res", res);
     //Update collections map
+    const accountsToFetch = [];
     for (let i = 0; i < res.collections.length; i++) {
       collections[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
+      accountsToFetch.push(res.collections[i].createdBy)
     }
+
+    await accounts.fetchAccounts(accountsToFetch);
+
+
+
+
 
     //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in React state
     const collectionsToReturn = [];
@@ -502,11 +503,13 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         const isValidUri = !Joi.string().uri().validate(uri).error;
         // const badgeMetadataRes = await fetchMetadataDirectly({ uris: [uri] });
         const metadataRes = isValidUri ? metadataResponses.metadata[i] : ErrorMetadata;
-        const metadataId = getMetadataIdForUri(uri, badgeMetadata);
-        if (metadataId === -1) throw new Error(`Error getting metadataId for uri ${uri}`);
+        const metadataIds = getMetadataIdsForUri(uri, badgeMetadata);
 
-        const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-        updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
+        for (const metadataId of metadataIds) {
+          const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
+          updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
+        }
+
         i++;
       }
 

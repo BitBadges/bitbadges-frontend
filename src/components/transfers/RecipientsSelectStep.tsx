@@ -61,7 +61,6 @@ export function RecipientsSelectStep({ sender,
   //     }
   //   }
   // }
-
   let forbiddenUsersMap: { [cosmosAddress: string]: string } = {}; //Map of cosmosAddress to an error message
   for (const address of toAddresses) {
     const account = accounts.getAccount(address);

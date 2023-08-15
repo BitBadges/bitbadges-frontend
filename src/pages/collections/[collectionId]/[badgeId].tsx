@@ -56,7 +56,7 @@ export function BadgePage({ collectionPreview }
     if (INFINITE_LOOP_MODE) console.log('useEffect: get collection info, badge page');
     if (isPreview) return;
     if (collectionIdNumber > 0) {
-      collections.fetchCollections([collectionIdNumber]);
+      collections.fetchAndUpdateMetadata(collectionIdNumber, { badgeIds: [{ start: badgeIdNumber, end: badgeIdNumber }] });
     }
   }, [collectionIdNumber, isPreview]);
 

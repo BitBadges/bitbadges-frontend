@@ -81,15 +81,15 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
   }
 
   return <>
-    <tr>
-      <td>
+    <tr style={{ borderBottom: '1px solid gray' }} >
+      <td style={{ alignItems: 'center' }}>
         <AddressDisplayList
           users={x.fromMapping.addresses}
           allExcept={!x.fromMapping.includeAddresses}
           fontSize={16}
         />
       </td>
-      <td>
+      <td style={{ alignItems: 'center' }}>
         <AddressDisplayList
           users={toAddresses}
           allExcept={!x.toMapping.includeAddresses}
@@ -97,7 +97,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
           fontSize={16}
         />
       </td>
-      <td>
+      <td style={{ alignItems: 'center' }}>
         <AddressDisplayList
           users={initiatedByAddresses}
           allExcept={!x.initiatedByMapping.includeAddresses}
@@ -106,16 +106,16 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
         />
       </td>
 
-      <td>
+      <td style={{ alignItems: 'center' }}>
         {getTimeRangesElement(x.transferTimes, '', true)}
       </td>
-      <td>
+      <td style={{ alignItems: 'center' }}>
         {getBadgeIdsString(x.badgeIds)}
       </td>
-      <td>
+      <td style={{ alignItems: 'center' }}>
         {getTimeRangesElement(x.ownershipTimes, '', true)}
       </td>
-      <td>
+      <td style={{ alignItems: 'center' }}>
         {x.allowedCombinations[0].isApproved ? <CheckCircleOutlined style={{ color: 'green', fontSize: 20 }} /> : <StopOutlined style={{ color: 'red', fontSize: 20 }} />}
       </td>
 

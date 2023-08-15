@@ -34,48 +34,50 @@ export function BadgeAvatar({
     JSON.stringify(balances) !== JSON.stringify([{ start: 1n, end: FOREVER_DATE }])
     : false;
 
+  const avatar = <Avatar
+    style={{
+      verticalAlign: 'middle',
+      border: `1px solid ${metadata?.color || 'black'}`,
+      margin: 4,
+      cursor: collection && badgeId ? 'pointer' : undefined,
+    }}
+    className={badgeId && !noHover ? 'badge-avatar' : undefined}
+    src={metadata?.image
+      ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
+      : metadata && !metadata.image ? DefaultPlaceholderMetadata.image : <Spin />}
+    size={size ? size : 50}
+    onClick={() => {
+      if (!badgeId) return;
+
+      if (collectionId === 0n) {
+        if (confirm('Navigating to this badge will cause you to lose your progress. Continue?')) {
+          router.push(`/collections/${collectionId}/${badgeId}`)
+        }
+      } else router.push(`/collections/${collectionId}/${badgeId}`)
+    }}
+    onError={() => {
+      return false;
+    }}
+  />
+
   return <div>
-    <Tooltip
-      placement="bottom"
-      title={`${metadata?.name ? metadata.name : ''} ${badgeId ? `(#${badgeId})` : ''}`}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <Badge
-          count={metadata?._isUpdating ? <Tooltip title={`This collection\'s metadata${collection && collection.balancesType === "Off-Chain" ? ' and balances are' : ' is'} currently being refreshed.`}>
-            <CloudSyncOutlined className='primary-text' size={30} style={{ fontSize: 20 }} />
-          </Tooltip> : <></>
-          }
-          style={{ backgroundColor: 'blue' }}
-        >
-          <Avatar
-            style={{
-              verticalAlign: 'middle',
-              border: `1px solid ${metadata?.color || 'black'}`,
-              margin: 4,
-              cursor: collection && badgeId ? 'pointer' : undefined,
-            }}
-            className={badgeId && !noHover ? 'badge-avatar' : undefined}
-            src={metadata?.image
-              ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
-              : metadata && !metadata.image ? DefaultPlaceholderMetadata.image : <Spin />}
-            size={size ? size : 50}
-            onClick={() => {
-              if (!badgeId) return;
-
-              if (collectionId === 0n) {
-                if (confirm('Navigating to this badge will cause you to lose your progress. Continue?')) {
-                  router.push(`/collections/${collectionId}/${badgeId}`)
-                }
-              } else router.push(`/collections/${collectionId}/${badgeId}`)
-            }}
-            onError={() => {
-              return false;
-            }}
-          />
-        </Badge>
-
-      </div>
-    </Tooltip>
+    {noHover ? avatar :
+      <Tooltip
+        placement="bottom"
+        title={`${metadata?.name ? metadata.name : ''} ${badgeId ? `(#${badgeId})` : ''}`}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Badge
+            count={metadata?._isUpdating ? <Tooltip title={`This collection\'s metadata${collection && collection.balancesType === "Off-Chain" ? ' and balances are' : ' is'} currently being refreshed.`}>
+              <CloudSyncOutlined className='primary-text' size={30} style={{ fontSize: 20 }} />
+            </Tooltip> : <></>
+            }
+            style={{ backgroundColor: 'blue' }}
+          >
+          </Badge>
+          {avatar}
+        </div>
+      </Tooltip>}
     <div style={{ textAlign: 'center' }}>
       {showId && <b><span>{`${badgeId}`}</span></b>}
       {!!balances && <>

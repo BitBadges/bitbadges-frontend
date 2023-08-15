@@ -29,8 +29,14 @@ export function AddressListSelect({
   async function handleAddBatchUsers() {
     const addressesList: string[] = batchAddAddressListInput.split('\n').filter((a) => a !== '').map(x => x.trim());
 
-    const accountsFetched = await accounts.fetchAccounts(addressesList);
 
+    //TODO: Should we even fetch the accounts here? We can just manually generate the accounts / convert to cosmosAddresses/
+    const accountsFetched = await accounts.fetchAccountsWithOptions(addressesList.map(x => {
+      return {
+        address: x,
+        noExternalCalls: true
+      }
+    }));
     setUsers([...users, ...accountsFetched.map(x => x.cosmosAddress)]);
     setBatchAddAddressListInput('');
   }

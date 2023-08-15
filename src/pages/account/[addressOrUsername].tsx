@@ -29,7 +29,7 @@ function PortfolioPage() {
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
 
   const [tab, setTab] = useState('collected');
-  const [cardView, setCardView] = useState(true);
+  const [cardView, setCardView] = useState(false);
   const [groupByCollection, setGroupByCollection] = useState(true);
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
@@ -118,7 +118,6 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
-  console.log(accountInfo);
   if (!accountInfo) {
     return <></>
   }

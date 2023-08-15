@@ -5,6 +5,7 @@ import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { getTimeRangesElement } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
+import { useEffect, useState } from "react";
 
 
 //TODO: ownershipTimes logic
@@ -39,28 +40,39 @@ export function BalanceDisplay({
   floatToRight?: boolean
 }) {
 
-  const allBalances = getAllBalancesToBeTransferred([
-    {
-      from: '',
-      merkleProofs: [],
-      precalculationDetails: {
-        approvalId: '',
-        approvalLevel: '',
-        approverAddress: '',
-      },
-      memo: '',
 
-      balances: balances,
-      toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
-      toAddresses: [],
-      incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
-      incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
-    }
-  ], true);
 
-  const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
-    return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
-  }).flat();
+  const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
+  const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
+
+  useEffect(() => {
+    const allBalances = getAllBalancesToBeTransferred([
+      {
+        from: '',
+        merkleProofs: [],
+        precalculationDetails: {
+          approvalId: '',
+          approvalLevel: '',
+          approverAddress: '',
+        },
+        memo: '',
+
+        balances: balances,
+        toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
+        toAddresses: [],
+        incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
+        incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
+      }
+    ], true);
+
+    const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
+      return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
+    }).flat();
+
+    setAllBalances(allBalances);
+    setAllBadgeIdsArr(allBadgeIdsArr);
+  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy]);
+
 
 
   return <div className="flex-center flex-column">
@@ -69,6 +81,14 @@ export function BalanceDisplay({
         <b>{message ? message : 'Balances'}</b>
       </div>
     </div>}
+    {/* {!!lastFetchedAt &&
+      <div>
+        <InfoCircleOutlined style={{ marginRight: 4 }} />
+        <span style={{ fontSize: 12 }}>
+          {lastFetchedAt ? 'Last updated at: ' + new Date(Number(lastFetchedAt)).toLocaleDateString() + ' ' + new Date(Number(lastFetchedAt)).toLocaleTimeString() : 'Loading...'}
+        </span>
+
+      </div>} */}
     <div className="flex-evenly">
       <div className='flex-column full-width' style={{ textAlign: floatToRight ? 'right' : 'center', justifyContent: 'end' }}>
         <div className='full-width flex-center' style={{ fontSize: 15 }}>
@@ -130,26 +150,28 @@ export function BalanceDisplay({
           </table>
         </div >
 
-        <br />
-        {!hideBadges && <div>
-          {(!balances || balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
-            <Empty
-              className='primary-text primary-blue-bg'
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={'No balances found.'}
-            />
-          </div> : <div style={{ marginTop: 4 }}>
-            <BadgeAvatarDisplay
-              collectionId={collectionId}
-              balance={allBalances}
-              badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1))}
-              showIds
-              showSupplys={false}
-              cardView={cardView}
-              size={size ? size : 50}
-            />
-          </div>}
-        </div>}
+
+        {!hideBadges && <>
+          <br /><div>
+            {(!balances || balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
+              <Empty
+                className='primary-text primary-blue-bg'
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={'No balances found.'}
+              />
+            </div> : <div style={{ marginTop: 4 }}>
+              <BadgeAvatarDisplay
+                collectionId={collectionId}
+                balance={allBalances}
+                badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1))}
+                showIds
+                showSupplys={false}
+                cardView={cardView}
+                size={size ? size : 50}
+              />
+            </div>}
+          </div>
+        </>}
       </div>
     </div>
   </div>

@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { deepCopy } from 'bitbadgesjs-proto';
 import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { compareObjects } from '../../utils/compare';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
+import { deepCopy } from 'bitbadgesjs-proto';
+import { compareObjects } from '../../utils/compare';
 
 export type AccountsContextType = {
   accounts: AccountMap<DesiredNumberType>,
@@ -79,11 +79,24 @@ type Props = {
 };
 
 export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
-  const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT });
+  const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': MINT_ACCOUNT, 'All Other': MINT_ACCOUNT });
   const [cosmosAddressesByUsernames, setCosmosAddressesByUsernames] = useState<{ [username: string]: string }>({});
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
   const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
     if (addressOrUsername === 'Mint' || addressOrUsername === "Total") return MINT_ACCOUNT;
+    if (addressOrUsername === "All") {
+      return {
+        ...MINT_ACCOUNT,
+        address: 'All',
+        cosmosAddress: 'All',
+      }
+    } else if (addressOrUsername === 'All Other') {
+      return {
+        ...MINT_ACCOUNT,
+        address: 'All Other',
+        cosmosAddress: 'All Other',
+      }
+    }
     let accountToReturn;
 
 
@@ -114,64 +127,13 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
 
     let cachedAccount = accounts[`${account.cosmosAddress}`];
-    const cachedAccountCopy = deepCopy(cachedAccount);
 
-    let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
-
-    //If we have stored the public key in cookies, use that instead (for Ethereum)
-    if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
-      publicKey = cookies.pub_key.split('-')[1];
-    }
-
-    const newViews = cachedAccount?.views || {};
-
-    for (const [key, val] of Object.entries(account.views)) {
-      if (!val) continue;
-
-      newViews[key] = {
-        ids: [...(newViews[key]?.ids || []), ...(val.ids || [])],
-        pagination: {
-          ...val.pagination,
-          total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-        },
-        type: val.type
-      }
-    }
-
-    //We may have to be careful in the future if we introduce more fine-grained control over API responses
-    //For now, we just overwrite the old account with the new one
-    const newAccount = {
-      ...cachedAccount,
-      ...account,
-      reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
-      collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
-      activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
-      announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
-      views: newViews,
-      publicKey,
-      sequence: account && account.sequence !== undefined && account.sequence >= 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence >= 0n ? cachedAccount.sequence : undefined,
-      accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
-      resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
-    };
-
-    //Filter duplicates by _id
-    newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-    newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-    newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-    newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-
-    accounts[account.cosmosAddress] = newAccount;
-    if (account.username) {
-      cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
-    }
-
-    //Only trigger a rerender if the account has changed
-    if (!compareObjects(newAccount, cachedAccountCopy)) {
-      setAccountsMap((accounts) => {
+    if (cachedAccount == undefined) {
+      setAccountsMap(accounts => {
         return {
           ...accounts,
-          [account.cosmosAddress]: newAccount
-        };
+          [account.cosmosAddress]: account
+        }
       });
       if (account.username) {
         setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {
@@ -183,11 +145,85 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           } else {
             return cosmosAddressesByUsernames;
           }
-
         });
       }
+
+      return account;
+    } else {
+      const cachedAccountCopy = deepCopy(cachedAccount);
+
+      let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
+
+      //If we have stored the public key in cookies, use that instead (for Ethereum)
+      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
+        publicKey = cookies.pub_key.split('-')[1];
+      }
+
+      const newViews = cachedAccount?.views || {};
+
+      for (const [key, val] of Object.entries(account.views)) {
+        if (!val) continue;
+
+        newViews[key] = {
+          ids: [...(newViews[key]?.ids || []), ...(val.ids || [])],
+          pagination: {
+            ...val.pagination,
+            total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
+          },
+          type: val.type
+        }
+      }
+
+      //We may have to be careful in the future if we introduce more fine-grained control over API responses
+      //For now, we just overwrite the old account with the new one
+      const newAccount = {
+        ...cachedAccount,
+        ...account,
+        reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
+        collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
+        activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
+        announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
+        views: newViews,
+        publicKey,
+        sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
+        accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
+        resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
+      };
+
+      //Filter duplicates by _id
+      newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+
+      accounts[account.cosmosAddress] = newAccount;
+      if (account.username) {
+        cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
+      }
+
+      //Only trigger a rerender if the account has changed
+      if (!compareObjects(newAccount, cachedAccountCopy)) {
+        setAccountsMap({
+          ...accounts,
+          [account.cosmosAddress]: newAccount
+        });
+        if (account.username) {
+          setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {
+            if (account.username) {
+              return {
+                ...cosmosAddressesByUsernames,
+                [account.username]: account.cosmosAddress
+              };
+            } else {
+              return cosmosAddressesByUsernames;
+            }
+
+          });
+        }
+      }
+
+      return newAccount;
     }
-    return newAccount;
   }
 
   //Note if you want to update balances both in collections and accounts, you should use fetchBalanceForUser in CollectionsContext
@@ -247,12 +283,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       viewKey: AccountViewKey,
       bookmark: string
     }[],
+    noExternalCalls?: boolean,
   }[], forcefulRefresh?: boolean) => {
     const batchRequestBody: GetAccountsRouteRequestBody = {
       accountsToFetch: []
     };
-
-
 
     //Iterate through and see which accounts + info we actually need to fetch versus which we already have
     for (const accountToFetch of accountsToFetch) {
@@ -267,6 +302,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           fetchSequence: accountToFetch.fetchSequence,
           fetchBalance: accountToFetch.fetchBalance,
           viewsToFetch: accountToFetch.viewsToFetch,
+          noExternalCalls: accountToFetch.noExternalCalls,
         });
       } else {
         //Check if we need to fetch
@@ -282,6 +318,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
             viewsToFetch: accountToFetch.viewsToFetch,
             fetchSequence: accountToFetch.fetchSequence,
             fetchBalance: accountToFetch.fetchBalance,
+            noExternalCalls: accountToFetch.noExternalCalls,
           });
         }
       }
@@ -306,25 +343,26 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getAccounts(batchRequestBody);
-    for (const account of res.accounts) {
-      console.log("UPDATING account")
-      updateAccount(account, forcefulRefresh);
-    }
-
-
     //If we get here, we have fetched and cached all the accounts we need. 
     //Now we just need to return them in the same order as the input.
     //Note that we implement this by using our accounts map and not getAccount because there is no guarantee that the state is updated yet (Look into this; it may work)
     const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
-    for (const account of accountsToFetch) {
-      if (account.address) {
-        const cachedAccount = accounts[convertToCosmosAddress(account.address)];
-        accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-      } else {
-        const cachedAccount = accounts[cosmosAddressesByUsernames[account.username || '']];
-        accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-      }
+    for (const account of res.accounts) {
+      updateAccount(account, forcefulRefresh);
+      accountsToReturn.push(account);
     }
+
+
+
+    // for (const account of accountsToFetch) {
+    //   if (account.address) {
+    //     const cachedAccount = accounts[convertToCosmosAddress(account.address)];
+    //     accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
+    //   } else {
+    //     const cachedAccount = accounts[cosmosAddressesByUsernames[account.username || '']];
+    //     accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
+    //   }
+    // }
 
     return accountsToReturn;
   }

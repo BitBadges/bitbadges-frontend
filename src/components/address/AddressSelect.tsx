@@ -29,8 +29,6 @@ export function AddressSelect({
             onlyAddresses
             searchValue={input}
             onSearch={async (value: string | BitBadgesUserInfo<bigint>) => {
-              // const account = await accounts.fetchAccounts([addressOrUsername]);
-              // console.log("FETCHED ACCOUNT", JSON.stringify(account));
               if (typeof value === "string") return
 
               onUserSelect(value.address);

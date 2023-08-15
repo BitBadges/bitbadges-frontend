@@ -108,8 +108,6 @@ export function MultiCollectionBadgeDisplay({
       }[] = getBadgesToDisplay(allBadgeIds, currPage, pageSize);
       setBadgeIdsToDisplay(badgeIdsToDisplay);
 
-      console.log("badgeIdsToDisplay: ", badgeIdsToDisplay, currPage, pageSize)
-
       for (const badgeIdObj of badgeIdsToDisplay) {
         collections.fetchAndUpdateMetadata(badgeIdObj.collectionId, { badgeIds: badgeIdObj.badgeIds });
       }
@@ -131,7 +129,6 @@ export function MultiCollectionBadgeDisplay({
             const collection = collections.collections[collectionId.toString()];
             const balances = accountInfo ? accountInfo?.collected.find(collected => collected.collectionId === collectionId)?.balances ?? []
               : collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
-
             if (balances.length === 0) return <></>;
 
             return <div key={idx} style={{ width: 350, margin: 10, display: 'flex', }}>
@@ -143,13 +140,14 @@ export function MultiCollectionBadgeDisplay({
                 noBorder
                 title={<>
                   <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
-                    <div className='link-button-nav' onClick={() => {
+                    <div className='link-button-nav flex-center' onClick={() => {
                       router.push('/collections/' + collectionId)
                       Modal.destroyAll()
                     }} style={{ alignItems: 'center', justifyContent: 'center' }}>
                       <BadgeAvatar
-                        size={100}
+                        size={50}
                         collectionId={collectionId}
+                        noHover
                       />
                       {collection?.cachedCollectionMetadata?.name}
                     </div>
@@ -161,10 +159,11 @@ export function MultiCollectionBadgeDisplay({
                   pageSize={cardView ? 1 : 10}
                   cardView={cardView}
                   addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
-
+                  balance={addressOrUsernameToShowBalance ? balances : undefined}
                   badgeIds={balances.map((x) => x.badgeIds).flat()}
                   hideCollectionLink={hideCollectionLink}
                   showIds
+                  showOnSinglePage
                 />
               </InformationDisplayCard>
             </div>
@@ -187,17 +186,19 @@ export function MultiCollectionBadgeDisplay({
                 for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
                   badgeIds.push(i);
                 }
-                return <div key={idx} className="flex-center flex-wrap">
+                return <>
                   {badgeIds.map((badgeId) => {
-                    return <div key={idx} className="flex-between">
+                    return <>
                       {cardView ?
                         <BadgeCard
                           collectionId={badgeIdObj.collectionId}
                           badgeId={badgeId}
                           hideCollectionLink={hideCollectionLink}
+                          key={idx}
                         /> :
                         <BadgeAvatar
                           size={70}
+                          key={idx}
                           collectionId={badgeIdObj.collectionId}
                           badgeId={badgeId}
                           balances={
@@ -205,9 +206,9 @@ export function MultiCollectionBadgeDisplay({
                           }
                         />
                       }
-                    </div>
+                    </>
                   })}
-                </div>
+                </>
               })}
             </>
           })

@@ -30,7 +30,7 @@ export function AddressWithBlockies({
   }
 
 
-  const address = userInfo?.address || '';
+  const address = userInfo?.address || addressOrUsername || '';
   const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
   return <div className="flex-center flex-wrap">

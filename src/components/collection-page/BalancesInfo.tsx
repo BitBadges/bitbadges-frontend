@@ -5,7 +5,6 @@ import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import collection from '../../pages/collections/mint';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
@@ -18,6 +17,7 @@ export function BalanceOverview({ collectionId }: {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
+  const collection = collections.collections[`${collectionId}`];
 
   const isPreview = collectionId === MSG_PREVIEW_ID;
 
@@ -25,6 +25,7 @@ export function BalanceOverview({ collectionId }: {
 
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(signedInAccount?.username || signedInAccount?.address || '');
+  // const [lastFetchedAt, setLastFetchedAt] = useState<bigint>(0n);
 
   const DELAY_MS = 500;
 
@@ -35,8 +36,24 @@ export function BalanceOverview({ collectionId }: {
       try {
         if (!addressOrUsername) return;
 
+        //Check both collections and users for the balances
+        const account = accounts.getAccount(addressOrUsername);
+        const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
+        const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
+
+        if (accountHasBalance) {
+          setCurrBalances(accountHasBalance.balances);
+          // setLastFetchedAt(accountHasBalance.fetchedAt ?? 0n);
+          return;
+        } else if (collectionHasBalance) {
+          setCurrBalances(collectionHasBalance.balances);
+          // setLastFetchedAt(collectionHasBalance.fetchedAt ?? 0n);
+          return;
+        }
+
         const balance = await collections.fetchBalanceForUser(collectionId, addressOrUsername);
         setCurrBalances(balance.balances);
+        // setLastFetchedAt(balance.fetchedAt ?? 0n);
         return;
       } catch (e) { }
 
