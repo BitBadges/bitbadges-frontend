@@ -82,7 +82,7 @@ function BrowsePage() {
             items={
               browseInfo ? Object.keys(browseInfo).map((category) => {
                 return { label: category.charAt(0).toUpperCase() + category.slice(1), key: category }
-              }) : [{ label: 'Featureds', key: 'featured' }]}
+              }) : [{ label: 'Featured', key: 'featured' }]}
           >
 
           </Tabs>

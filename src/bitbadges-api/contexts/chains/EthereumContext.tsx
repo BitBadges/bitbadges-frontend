@@ -14,6 +14,7 @@ import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
 import { checkIfSignedIn } from '../../api';
+import { notification } from 'antd';
 
 
 export type EthereumContextType = ChainSpecificContextType & {
@@ -115,7 +116,14 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
   const connect = async () => {
     if (!web3AccountContext.address) {
-      await open();
+      try {
+        await open();
+      } catch (e) {
+        notification.error({
+          message: 'Error connecting to wallet',
+          description: 'Make sure you have a compatible Ethereum wallet installed (e.g. MetaMask) and that you are signed in to it.',
+        })
+      }
     } else if (web3AccountContext.address) {
       if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
         const signedInRes = await checkIfSignedIn({});

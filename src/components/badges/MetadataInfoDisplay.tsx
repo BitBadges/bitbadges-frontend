@@ -281,7 +281,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
         } labelSpan={9} valueSpan={15} />}
 
         {/* {isCollectionInfo && collection?.bytes && <TableRow label={"Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />} */}
-        {metadata?.validFrom && <TableRow label={"Validity"} value={
+        {metadata?.validFrom && metadata?.validFrom.length > 0 && <TableRow label={"Validity"} value={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
             {getTimeRangesElement(metadata.validFrom, 'Valid from ', true)}
             <Divider type="vertical" />
