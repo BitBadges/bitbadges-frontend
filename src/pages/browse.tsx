@@ -13,7 +13,7 @@ function BrowsePage() {
 
 
   const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
-  const [tab, setTab] = useState('featured');
+  const [tab, setTab] = useState('latest');
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
@@ -70,7 +70,7 @@ function BrowsePage() {
 
           {/* antd tabs */}
           <Tabs
-            defaultActiveKey="featured"
+            defaultActiveKey="latest"
             onChange={(key) => setTab(key)}
             style={{ textAlign: 'center' }}
             color='white'
@@ -82,7 +82,7 @@ function BrowsePage() {
             items={
               browseInfo ? Object.keys(browseInfo).map((category) => {
                 return { label: category.charAt(0).toUpperCase() + category.slice(1), key: category }
-              }) : [{ label: 'Featured', key: 'featured' }]}
+              }) : [{ label: 'Latest', key: 'latest' }]}
           >
 
           </Tabs>
@@ -90,11 +90,10 @@ function BrowsePage() {
           {!browseInfo && <Spin size='large' />}
           <div>
             <br />
-            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
               <MultiCollectionBadgeDisplay
                 collectionIds={(browseInfo && browseInfo[tab]?.map(collection => collection.collectionId)) ?? []}
                 groupByCollection
-
               />
 
               {/* {browseInfo && browseInfo[tab]?.map((portfolioCollection: BitBadgesCollection<bigint>, idx) => {

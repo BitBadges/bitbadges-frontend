@@ -12,7 +12,7 @@ export function BadgeButtonDisplay({
 
   return (
     <div>
-      <div style={{ position: 'absolute', right: 10, top: 74 }}>
+      <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
         {website && (
           <a href={website} target="_blank" rel="noreferrer">
             <Tooltip title="Website" placement="bottom">

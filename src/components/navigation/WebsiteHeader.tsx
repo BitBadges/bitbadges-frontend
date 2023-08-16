@@ -1,5 +1,4 @@
 import {
-  BellOutlined,
   GlobalOutlined,
   HomeOutlined,
   PlusOutlined,
@@ -7,22 +6,21 @@ import {
   SwapOutlined,
   UserOutlined
 } from '@ant-design/icons';
-import { Avatar, Badge, Dropdown, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
-import Search from 'antd/lib/input/Search';
+import { Avatar, Badge, Dropdown, Input, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { signOut } from '../../bitbadges-api/api';
 
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -56,15 +54,15 @@ export function WalletHeader() {
 
   const HomeTabMenu = <></>
   const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined />} />), subMenuOverlay: HomeTabMenu };
-  const HomeTabWithText = { key: '', content: (<>Home</>), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
   const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<>Browse</>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 18 }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'collections/mint', content: (<>Mint</>), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   let unseenNotificationCount = 0;
   let overflowCount = 10;
@@ -79,26 +77,26 @@ export function WalletHeader() {
     }
   }
 
-  const NotificationsTabMenu = <></>
-  const NotificationsTabWithIcon = {
-    key: 'account/notifications', content: (
-      <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
-        <Avatar src={<BellOutlined style={{ fontSize: 18 }} className='primary-text' />} />
-      </Badge>
-    ), subMenuOverlay: NotificationsTabMenu
-  };
+  // const NotificationsTabMenu = <></>
+  // const NotificationsTabWithIcon = {
+  //   key: 'account/notifications', content: (
+  //     <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
+  //       <BellOutlined style={{ fontSize: 22, fontWeight: 'bold', textAlign: 'center' }} className='primary-text' />
+  //     </Badge>
+  //   ), subMenuOverlay: NotificationsTabMenu
+  // };
 
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu className='dropdown' style={{ minWidth: 350, alignItems: 'center' }}>
-    <div className='flex-center' style={{ marginTop: 10 }}>
+  const UserTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
+    <div className='flex-center primary-text primary-blue-bg' style={{ marginTop: 10 }}>
       <p>
-        <b>{address ? <div>
+        <b>{address ? <div className='primary-text'>
           <AddressDisplay
             addressOrUsername={address}
             hidePortfolioLink
-            fontColor='black'
+
           />
           {account?.balance?.amount ? <>
             <br />
@@ -112,7 +110,7 @@ export function WalletHeader() {
               placement='bottom'
               style={{ textAlign: 'center' }}
             >
-              <div style={{ minWidth: 75 }}>
+              <div style={{ minWidth: 75 }} className='primary-text'>
                 <Avatar
                   style={{
                     marginBottom: 1,
@@ -125,12 +123,12 @@ export function WalletHeader() {
                   }}
                   size="large"
                   onClick={disabled ? () => { } : () => { setVisible(true) }}
-                  className="screen-button-normal"
+                  className="screen-button"
                 >
                   <SwapOutlined />
                 </Avatar>
                 <div style={{ marginTop: 3 }}>
-                  <Text>
+                  <Text strong className='primary-text'>
                     Send $BADGE
                   </Text>
                 </div>
@@ -145,6 +143,17 @@ export function WalletHeader() {
     </div>
 
     <hr />
+    {connected &&
+      <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/account/notifications')}>
+        <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+          Notifications{'      '}
+          {overflowCount > 0 && unseenNotificationCount > 0 && <Badge style={{ marginLeft: 6 }} count={unseenNotificationCount} overflowCount={overflowCount}>
+            {/* <BellOutlined /> */}
+          </Badge>}
+        </div>
+      </Menu.Item>
+    }
+
     {!connected && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
     {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
@@ -172,19 +181,21 @@ export function WalletHeader() {
     content: (
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {!address ? (
-          <Avatar src={<UserOutlined style={{ fontSize: 18 }} className='primary-text' size={40} />} />
+          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
         ) : (
-          <Avatar src={
-            <BlockiesAvatar
-              fontSize={40}
-              shape='circle'
-              avatar={avatar}
-              address={address.toLowerCase()}
-            />
+          <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
+            <Avatar src={
+              <BlockiesAvatar
+                fontSize={40}
+                shape='circle'
+                avatar={avatar}
+                address={address.toLowerCase()}
+              />
 
-          }
-            size={40}
-          />
+            }
+              size={40}
+            />
+          </Badge>
         )}
       </div>
     ),
@@ -192,26 +203,31 @@ export function WalletHeader() {
     subMenuTrigger: ['hover', 'click']
   };
 
-  const SearchBar = <Search
+  const SearchBar = <Input
     defaultValue=""
     placeholder="Enter an Address, Username, or Collection Name"
-    onSearch={async (value) => {
-      onSearch(value, true);
-    }}
+    // onSearch={async (value) => {
+    //   onSearch(value, true);
+    // }}
     value={searchValue}
     onChange={async (e) => {
       setSearchValue(e.target.value);
     }}
-    enterButton
-    allowClear
-    size="large"
+    style={{ marginLeft: 10, marginRight: 10 }}
+    className='form-input'
+    // enterButton
+    size='large'
   />;
 
   const ExpandedSearchBar = <>
     <Dropdown
       open={searchValue !== ''}
       placement="bottom"
-      overlay={<SearchDropdown searchValue={searchValue} onSearch={onSearch} />}
+      overlay={
+        <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
+
+
+      }
       trigger={['hover', 'click']}
     >
       {SearchBar}
@@ -287,7 +303,7 @@ export function WalletHeader() {
               HomeTabWithText,
               BrowseTabWithText,
               MintTabWithText,
-              NotificationsTabWithIcon,
+              // NotificationsTabWithIcon,
               UserTab
             ]}
           />
@@ -308,7 +324,7 @@ export function WalletHeader() {
               CollapsedSearchIconTab,
               BrowseTabWithIcon,
               MintTabWithIcon,
-              NotificationsTabWithIcon,
+              // NotificationsTabWithIcon,
               UserTab,
             ]}
           />

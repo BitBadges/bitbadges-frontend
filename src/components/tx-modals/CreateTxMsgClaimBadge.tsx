@@ -1,20 +1,19 @@
-import { WarningOutlined } from '@ant-design/icons';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovedTransferWithDetails, MerkleChallengeWithDetails } from 'bitbadgesjs-utils';
+import { CollectionApprovedTransferWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { TxModal } from './TxModal';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { TxModal } from './TxModal';
 
 //TODO: support multiple challenges per claim
 //TODO: handle used claim codes
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvedTransfer, claimItem, code, whitelistIndex
+    collectionId, visible, setVisible, children, approvedTransfer, claimItem, code, whitelistIndex, recipient
   }: {
     collectionId: bigint,
     visible: boolean,
@@ -24,6 +23,7 @@ export function CreateTxMsgClaimBadgeModal(
     claimItem?: MerkleChallengeWithDetails<bigint>,
     code: string
     whitelistIndex?: number
+    recipient?: string
   }
 ) {
   const chain = useChainContext();
@@ -88,7 +88,9 @@ export function CreateTxMsgClaimBadgeModal(
   if (!collection) return <></>;
 
   const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(codeToSubmit).toString();
-  const proofObj = tree?.getProof(leaf, whitelistIndex);
+
+  const proofObj = tree?.getProof(leaf, whitelistIndex !== undefined && whitelistIndex >= 0 ? whitelistIndex : undefined);
+  console.log(whitelistIndex, proofObj);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
 
   const txCosmosMsg: MsgTransferBadges<bigint> = {
@@ -96,7 +98,7 @@ export function CreateTxMsgClaimBadgeModal(
     collectionId: collectionId,
     transfers: [{
       from: "Mint",
-      toAddresses: [chain.cosmosAddress],
+      toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
       balances: [],
       precalculationDetails: {
         approvalId: approvalId ?? '',
@@ -116,6 +118,8 @@ export function CreateTxMsgClaimBadgeModal(
     }],
   };
 
+  console.log("MSG", txCosmosMsg);
+
   return (
     <TxModal
       visible={visible}
@@ -124,15 +128,15 @@ export function CreateTxMsgClaimBadgeModal(
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgTransferBadges}
       disabled={requiresProof && !isValidProof}
-      displayMsg={isValidProof || !requiresProof ? undefined :
-        <div style={{ fontSize: 20 }}>
-          <div style={{ color: 'red' }}><WarningOutlined style={{ color: 'red' }} /> The provided code is invalid. This transaction will fail.</div>
-        </div>
-      }
+      // displayMsg={isValidProof || !requiresProof ? undefined :
+      //   // <div style={{ fontSize: 20 }}>
+      //   //   <div style={{ color: 'red' }}><WarningOutlined style={{ color: 'red' }} /> The provided code is invalid. This transaction will fail.</div>
+      //   // </div>
+      // }
       requireRegistration
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
-        await collections.fetchBalanceForUser(collectionId, chain.address, true);
+        // await collections.fetchBalanceForUser(collectionId, chain.address, true);
       }}
       msgSteps={[]}
     >

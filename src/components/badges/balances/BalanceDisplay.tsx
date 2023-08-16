@@ -3,7 +3,7 @@ import { Empty, Tooltip } from "antd";
 import { Balance, BigIntify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
-import { getTimeRangesElement } from "../../../utils/dates";
+import { FOREVER_DATE, getTimeRangesElement } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 import { useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ export function BalanceDisplay({
   hideMessage,
   hideBadges,
   floatToRight,
+  isMustOwnBadgesInput
 }: {
   collectionId: bigint;
   balances: Balance<bigint>[];
@@ -37,16 +38,16 @@ export function BalanceDisplay({
   cardView?: boolean;
   hideMessage?: boolean;
   hideBadges?: boolean;
-  floatToRight?: boolean
+  floatToRight?: boolean;
+  isMustOwnBadgesInput?: boolean
 }) {
-
 
 
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
 
   useEffect(() => {
-    const allBalances = getAllBalancesToBeTransferred([
+    const allBalances = isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
       {
         from: '',
         merkleProofs: [],
@@ -63,7 +64,7 @@ export function BalanceDisplay({
         incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
         incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
       }
-    ], true);
+    ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: FOREVER_DATE }] } });
 
     const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
       return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
@@ -95,7 +96,7 @@ export function BalanceDisplay({
           <table>
             {!(!balances || balances?.length === 0) &&
               <tr>
-                <td style={{ textAlign: 'center', paddingRight: 4, minWidth: 80 }}>Amount</td>
+                <td style={{ textAlign: 'center', paddingRight: 4, minWidth: 80 }}>{isMustOwnBadgesInput ? 'Min Amount' : 'Amount'}</td>
                 <td style={{ textAlign: 'center', paddingLeft: 4, minWidth: 80 }}>Badge IDs</td>
                 <td style={{ textAlign: 'center', paddingLeft: 4, minWidth: 80 }}>Times
                   <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
@@ -143,7 +144,7 @@ export function BalanceDisplay({
               return <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
                 <td style={{ textAlign: 'center', paddingRight: 4 }}>x{amount.toString()}</td>
                 <td style={{ textAlign: 'center', paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                <td style={{ textAlign: 'center', paddingLeft: 4 }}>{getTimeRangesElement(ownershipTimes, '', true, showingSupplyPreview)}</td>
+                <td style={{ textAlign: 'center', paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true, showingSupplyPreview)}</td>
               </tr>
             })}
             {(!balances || balances?.length === 0) && <span>None</span>}

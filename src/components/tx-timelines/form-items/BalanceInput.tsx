@@ -16,6 +16,8 @@ export function BalanceInput({
   minimum,
   collectionId,
   message,
+  hideOwnershipTimes,
+  isMustOwnBadgesInput
 }: {
   balancesToShow: Balance<bigint>[],
   onAddBadges: (balance: Balance<bigint>) => void,
@@ -24,6 +26,8 @@ export function BalanceInput({
   minimum?: bigint,
   collectionId?: bigint,
   message?: string,
+  hideOwnershipTimes?: boolean
+  isMustOwnBadgesInput?: boolean
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectIsVisible, setSelectIsVisible] = useState(false);
@@ -45,10 +49,34 @@ export function BalanceInput({
     ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365 * 1) }],
   });
 
+  const AddBadgesButton = <>
+    <Divider />
+    <Button
+      type="primary"
+      disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0}
+      onClick={() => {
+        onAddBadges(currentSupply);
+
+        setCurrentSupply({
+          amount: 1n,
+          badgeIds: [{ start: 1n, end: 1n }],
+          ownershipTimes: [{ start: BigInt(Date.now()), end: BigInt(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100) }],
+        });
+        setCurrentStep(0);
+
+        setSelectIsVisible(false);
+      }}
+      className='full-width'
+
+    >
+      Add Badges
+    </Button>
+  </>
 
   return <>
     <BalanceDisplay
       collectionId={collectionId ?? 0n}
+      isMustOwnBadgesInput={isMustOwnBadgesInput}
       balances={balancesToShow}
       message={message ?? 'Balances'}
       showingSupplyPreview={message == "Circulating Supplys"}
@@ -106,11 +134,14 @@ export function BalanceInput({
                 disabled={currentSupply.badgeIds.length === 0}
               />
 
-              <Step
-                key={2}
-                title={<b>{'Select Ownership Times'}</b>}
-                disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0}
-              />
+              {!hideOwnershipTimes &&
+                <Step
+                  key={2}
+                  title={<b>{'Select Ownership Times'}</b>}
+                  disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0}
+                />}
+
+
 
 
             </Steps>
@@ -139,8 +170,10 @@ export function BalanceInput({
                 min={1}
 
               />
+
+              {hideOwnershipTimes && AddBadgesButton}
             </div>}
-            {currentStep === 2 &&
+            {currentStep === 2 && !hideOwnershipTimes &&
               <>
 
                 <div>
@@ -191,27 +224,7 @@ export function BalanceInput({
                   />
                 </div>
 
-                <Divider />
-                <Button
-                  type="primary"
-                  disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0}
-                  onClick={() => {
-                    onAddBadges(currentSupply);
-
-                    setCurrentSupply({
-                      amount: 1n,
-                      badgeIds: [{ start: 1n, end: 1n }],
-                      ownershipTimes: [{ start: BigInt(Date.now()), end: BigInt(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100) }],
-                    });
-                    setCurrentStep(0);
-
-                    setSelectIsVisible(false);
-                  }}
-                  className='full-width'
-
-                >
-                  Add Badges
-                </Button>
+                {AddBadgesButton}
               </>
 
             }

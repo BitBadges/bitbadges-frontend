@@ -43,7 +43,7 @@ export function AccountButtonDisplay({
 
   return (
     <div>
-      <div style={{ position: 'absolute', right: 10, top: 74 }}>
+      <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">

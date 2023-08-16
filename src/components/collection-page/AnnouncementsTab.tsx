@@ -3,12 +3,13 @@ import { AnnouncementInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { addAnnouncement } from '../../bitbadges-api/api';
+import { addAnnouncement, deleteAnnouncement } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { DeleteOutlined } from '@ant-design/icons';
 
 export function AnnouncementsTab({ announcements, collectionId, hideCollection, fetchMore, hasMore }: {
   announcements: AnnouncementInfo<bigint>[],
@@ -127,6 +128,20 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
                     {new Date(Number(announcement.timestamp)).toLocaleDateString() + ' '}
                     {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
                   </Typography.Text>
+                  {chain.connected && chain.loggedIn && (chain.address === announcement.from || chain.cosmosAddress === announcement.from) &&
+                    <DeleteOutlined className='screen-button' style={{ border: 'none', cursor: 'pointer' }}
+                      onClick={async () => {
+                        if (loading) return;
+
+                        setLoading(true);
+                        await deleteAnnouncement(announcement._id);
+                        if (collectionId) {
+                          await collections.fetchCollections([collectionId], true);
+                        }
+                        setLoading(false);
+                      }}
+                    />
+                  }
                 </Col>
               </Row>
 

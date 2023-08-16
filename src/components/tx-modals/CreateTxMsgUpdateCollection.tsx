@@ -229,7 +229,10 @@ export function CreateTxMsgUpdateCollectionModal(
       }
     }
 
-    if (collection.balancesType == "Off-Chain" && txState.transfers.length > 0 && txState.updateOffChainBalancesMetadataTimeline) {
+    if (collection.balancesType == "Off-Chain" && txState.transfers.length > 0 && txState.updateOffChainBalancesMetadataTimeline
+      && collection.offChainBalancesMetadataTimeline.length === 0
+
+    ) {
       if (!simulate) {
         const _balanceMap = await createBalanceMapForOffChainBalances(txState.transfers);
 

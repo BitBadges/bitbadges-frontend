@@ -112,7 +112,7 @@ export function DistributionOverview({
       {isOffChainBalances && <TableRow label={"Last Updated"} value={
         <div>
           <>
-            {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : 'Loading...'}
+            {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : '...'}
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}

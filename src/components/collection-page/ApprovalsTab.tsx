@@ -37,8 +37,21 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
   const [defaultOutgoingIdx, setDefaultOutgoingIdx] = useState<number>(Number(currOutgoingTransferabilityIdx));
   const [defaultIncomingIdx, setDefaultIncomingIdx] = useState<number>(Number(currIncomingTransferabilityIdx));
 
+  // const [showAllPossible, setShowAllPossible] = useState<boolean>(true);
+  const showAllPossible = true;
 
 
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers a');
+
+    if (collectionId > 0) {
+      const approvedOutgoingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
+      const approvedIncomingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
+
+      setDefaultIncomingIdx(Number(getCurrentValueIdxForTimeline(approvedIncomingTransfersTimeline)));
+      setDefaultOutgoingIdx(Number(getCurrentValueIdxForTimeline(approvedOutgoingTransfersTimeline)));
+    }
+  }, [collectionId, approvedIncomingTransfersTimeline, approvedOutgoingTransfersTimeline]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers a');
@@ -169,8 +182,8 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
 
   if (!collection) return <></>;
 
-  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(defaultOutgoingIdx < 0 ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? '', true);
-  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(defaultIncomingIdx < 0 ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? '', true);
+  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(defaultOutgoingIdx < 0 || defaultOutgoingIdx <= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(defaultIncomingIdx < 0 || defaultIncomingIdx <= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []
@@ -259,6 +272,21 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
               }
               )
             }
+            {/* {
+              convertedFirstOutgoingMatches.length === 0 &&
+              <tr>
+                <td>
+                  <p>No outgoing approvals found.</p>
+                </td>
+              </tr>
+            } */}
+            <br />
+            {/* <TransferabilityRow transfer={{
+              fromMapping: {
+              
+              },
+              approvalDetails: [],
+            }} key={"all else"} badgeId={badgeId} collectionId={collectionId} /> */}
 
           </table>
         </div>

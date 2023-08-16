@@ -65,69 +65,74 @@ export function SearchDropdown({
     if (e.key === '') {
       await onSearch(searchValue);
     }
-  }}>
+  }} theme='dark' style={{ border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
 
-    <Typography.Text strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
-
-    {/* Current Search Value Address Helper - Matches Text Exactly */}
-    {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
-      <Menu.Item className='dropdown-item' disabled={!accounts.getAccount(searchValue)} style={{ cursor: 'disabled' }} onClick={async () => {
-        await onSearch(searchValue, true);
-      }}>
-        <div className='flex-between'>
-          <div className='flex-center' style={{ alignItems: 'center' }}>
-            <AddressDisplay
-              addressOrUsername={searchValue}
-              hidePortfolioLink
-              hideTooltip
-              fontColor={'black'}
-            />
-          </div>
-        </div>
-      </Menu.Item>
-    }
-
-    {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
-      <Spin size={'large'} />
-    </Menu.Item>}
-
-    {/* {Account Results} */}
-    {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
-      return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
-        await onSearch(result, true);
-      }}>
-        <div className='flex-between'>
-          <div className='flex-center' style={{ alignItems: 'center' }}>
-            <AddressDisplay
-              addressOrUsername={result.address}
-              hidePortfolioLink
-              hideTooltip
-              fontColor={'black'}
-            />
-          </div>
-        </div>
-      </Menu.Item>
-    })}
-
-    {/* Collection Results */}
-    {!onlyAddresses && collectionsResults.length > 0 && <>
-      <hr />
-      <Typography.Text strong style={{ fontSize: 20 }}>Collections</Typography.Text>
-      {collectionsResults.map((result,) => {
-        return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
-          onSearch(`${result.collectionId}`, false);
+    <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
+    <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
+      {/* Current Search Value Address Helper - Matches Text Exactly */}
+      {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
+        <Menu.Item className='dropdown-item' disabled={!accounts.getAccount(searchValue)} style={{ cursor: 'disabled' }} onClick={async () => {
+          await onSearch(searchValue, true);
         }}>
           <div className='flex-between'>
             <div className='flex-center' style={{ alignItems: 'center' }}>
-              <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
-              {result.cachedCollectionMetadata?.name}
+              <AddressDisplay
+                addressOrUsername={searchValue}
+                hidePortfolioLink
+                hideTooltip
+              // fontColor={'black'}
+              />
             </div>
+          </div>
+        </Menu.Item>
+      }
+
+      {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
+        <Spin size={'large'} />
+      </Menu.Item>}
+
+      {/* {Account Results} */}
+      {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
+        return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
+          await onSearch(result, true);
+        }}>
+          <div className='flex-between'>
             <div className='flex-center' style={{ alignItems: 'center' }}>
-              ID: {`${result.collectionId}`}
+              <AddressDisplay
+                addressOrUsername={result.address}
+                hidePortfolioLink
+                hideTooltip
+              // fontColor={'black'}
+              />
             </div>
           </div>
         </Menu.Item>
       })}
-    </>}
-  </Menu>
+    </div>
+
+    {/* Collection Results */}
+    {
+      !onlyAddresses && collectionsResults.length > 0 && <>
+        <hr />
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
+          {collectionsResults.map((result,) => {
+            return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
+              onSearch(`${result.collectionId}`, false);
+            }}>
+              <div className='flex-between'>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                  {result.cachedCollectionMetadata?.name}
+                </div>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  ID: {`${result.collectionId}`}
+                </div>
+              </div>
+            </Menu.Item>
+          })}
+        </div>
+      </>
+    }
+  </Menu >
 }

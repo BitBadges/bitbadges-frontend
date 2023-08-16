@@ -180,7 +180,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
-    const accounts = await accountsContext.fetchAccounts([address]);
+    const accounts = await accountsContext.fetchAccountsWithOptions([{ address: address, fetchSequence: true, fetchBalance: true }]);
     const account = accounts[0];
 
     const chain = CHAIN_DETAILS;

@@ -131,7 +131,9 @@ export function DistributionMethodStepItem(
             setDistributionMethod(DistributionMethod.OffChainBalances);
             collections.updateCollection({
               ...collection,
-              collectionApprovedTransfersTimeline: []
+              collectionApprovedTransfersTimeline: [],
+
+              offChainBalancesMetadataTimeline: [],
             });
           } else if (newTitle == 'Manual Transfer') {
 

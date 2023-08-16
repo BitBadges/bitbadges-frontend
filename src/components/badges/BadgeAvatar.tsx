@@ -74,8 +74,9 @@ export function BadgeAvatar({
             }
             style={{ backgroundColor: 'blue' }}
           >
+            {avatar}
           </Badge>
-          {avatar}
+
         </div>
       </Tooltip>}
     <div style={{ textAlign: 'center' }}>

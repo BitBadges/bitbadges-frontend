@@ -121,6 +121,9 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
+    if (account.cosmosAddress === 'Mint' || account.cosmosAddress === "Total" || !account.cosmosAddress) return MINT_ACCOUNT;
+
+    console.log('Updating account', account, forcefulRefresh);
     if (forcefulRefresh) {
       accounts[account.cosmosAddress] = undefined;
     }
@@ -129,6 +132,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     let cachedAccount = accounts[`${account.cosmosAddress}`];
 
     if (cachedAccount == undefined) {
+      console.log("undefined so setting to account", account.sequence);
       setAccountsMap(accounts => {
         return {
           ...accounts,
@@ -196,16 +200,23 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
 
-      accounts[account.cosmosAddress] = newAccount;
-      if (account.username) {
-        cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
-      }
+      // accounts[account.cosmosAddress] = newAccount;
+      // if (account.username) {
+      //   cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
+      // }
+
+
 
       //Only trigger a rerender if the account has changed
       if (!compareObjects(newAccount, cachedAccountCopy)) {
-        setAccountsMap({
-          ...accounts,
-          [account.cosmosAddress]: newAccount
+        console.log("setting to account", newAccount.sequence);
+        console.log(!compareObjects(newAccount, cachedAccountCopy), newAccount, cachedAccountCopy);
+        setAccountsMap(accounts => {
+          return {
+            ...accounts,
+            [account.cosmosAddress]: newAccount
+
+          }
         });
         if (account.username) {
           setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {

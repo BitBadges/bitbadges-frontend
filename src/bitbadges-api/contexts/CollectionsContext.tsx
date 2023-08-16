@@ -101,7 +101,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>, fromTxTimeline = false) => {
-    if (newCollection.managerInfo) {
+    if (newCollection.managerInfo && accounts.getAccount(newCollection.managerInfo.cosmosAddress) === undefined) {
       accounts.updateAccount(newCollection.managerInfo);
     }
 
@@ -448,10 +448,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const accountsToFetch = [];
     for (let i = 0; i < res.collections.length; i++) {
       collections[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
-      accountsToFetch.push(res.collections[i].createdBy)
+      if (!accounts.getAccount(res.collections[i].createdBy)) {
+        accountsToFetch.push(res.collections[i].createdBy)
+      }
     }
 
-    await accounts.fetchAccounts(accountsToFetch);
+    if (accountsToFetch.length > 0) await accounts.fetchAccounts(accountsToFetch);
 
 
 

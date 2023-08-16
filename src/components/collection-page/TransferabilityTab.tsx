@@ -168,7 +168,10 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                     <b>Times Increment: </b>{x.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
                     <br />
                     <p style={{ inlineSize: 'max-content', wordBreak: "break-all", wordWrap: "break-word", overflowWrap: "break-word" }}> <b># Increments Calculation Method: </b>{Object.entries(x.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
-                      <>{"Overall Number of Transfers - First processed transfer will be for the starting balances without any increments applied. Second transfer will be the starting balances plus one increment. And so on."}</> : Object.entries(x.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
+                      <>{"Overall Number of Transfers - First processed transfer will be for the starting balances without any increments applied. Second transfer will be the starting balances plus one increment. And so on."}</>
+                      : Object.entries(x.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
+                        <>{`Predetermined - The creator of this claim prereserved specific increments for specific ${x.approvalDetails[0].merkleChallenges[0].useCreatorAddressAsLeaf ? 'addresses' : 'codes'}.`}</>
+                        : Object.entries(x.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
                   </>
                   )}
 
@@ -218,7 +221,8 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                         amount: x.amountRange.start,
                       }
                     })}
-                    collectionId={collectionId}
+                    collectionId={x.approvalDetails[0].mustOwnBadges[0].collectionId}
+                    isMustOwnBadgesInput={x.approvalDetails[0].mustOwnBadges[0].overrideWithCurrentTime}
                   />
                   <br />
                   <br />
@@ -230,7 +234,8 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                         amount: x.amountRange.start,
                       }
                     })}
-                    collectionId={collectionId}
+                    collectionId={x.approvalDetails[0].mustOwnBadges[0].collectionId}
+                    isMustOwnBadgesInput={x.approvalDetails[0].mustOwnBadges[0].overrideWithCurrentTime}
                   />
                 </div>
               }>
@@ -390,7 +395,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0 && (
                   <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalId === x.approvalDetails[0].approvalId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
-                    out of {x.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
+                    {' '}out of {x.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
 
               </div>
               }>

@@ -1,11 +1,17 @@
-import { AddressMapping } from "bitbadgesjs-proto";
+import { AddressMapping, MustOwnBadges } from "bitbadgesjs-proto";
 import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPermissionToUniversalPermission, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
+import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useStatusContext } from "../../../bitbadges-api/contexts/StatusContext";
 import { FOREVER_DATE } from "../../../utils/dates";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
+import { NumberInput } from "../../display/NumberInput";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { BalanceInput } from "../form-items/BalanceInput";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+
+const crypto = require('crypto');
 
 export function TransferabilitySelectStepItem(
   updateCollectionApprovedTransfers: boolean,
@@ -16,7 +22,116 @@ export function TransferabilitySelectStepItem(
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const status = useStatusContext();
 
+  const [mustOwnBadges, setMustOwnBadges] = useState<MustOwnBadges<bigint>[]>([]);
+  const [collectionId, setCollectionId] = useState<bigint>(1n);
+  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  useEffect(() => {
+    if (!collection) return;
+
+    const newApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
+
+    newApprovedTransfers.push({
+      fromMappingId: "AllWithoutMint",
+      toMappingId: "AllWithoutMint",
+      initiatedByMappingId: "AllWithoutMint",
+      badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+      ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+      toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+      fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+      initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+      approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
+        [{
+          approvalId: approvalId.current,
+          uri: '',
+          customData: '',
+          mustOwnBadges: mustOwnBadges,
+          approvalAmounts: {
+            overallApprovalAmount: 0n,
+            perFromAddressApprovalAmount: 0n,
+            perToAddressApprovalAmount: 0n,
+            perInitiatedByAddressApprovalAmount: 0n,
+          },
+          maxNumTransfers: {
+            overallMaxNumTransfers: 0n,
+            perFromAddressMaxNumTransfers: 0n,
+            perToAddressMaxNumTransfers: 0n,
+            perInitiatedByAddressMaxNumTransfers: 0n,
+          },
+          predeterminedBalances: {
+            manualBalances: [],
+            incrementedBalances: {
+              startBalances: [],
+              incrementBadgeIdsBy: 0n,
+              incrementOwnershipTimesBy: 0n,
+            },
+            orderCalculationMethod: {
+              useMerkleChallengeLeafIndex: false,
+              useOverallNumTransfers: false,
+              usePerFromAddressNumTransfers: false,
+              usePerInitiatedByAddressNumTransfers: false,
+              usePerToAddressNumTransfers: false,
+            },
+          },
+          merkleChallenges: [], //handled later
+          requireToEqualsInitiatedBy: false,
+          requireFromEqualsInitiatedBy: false,
+          requireToDoesNotEqualInitiatedBy: false,
+          requireFromDoesNotEqualInitiatedBy: false,
+
+
+          overridesToApprovedIncomingTransfers: false,
+          overridesFromApprovedOutgoingTransfers: false,
+        }]
+
+        : [], //no restrictions
+      transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+      allowedCombinations: [{
+        isApproved: true,
+        toMappingOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+        fromMappingOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+
+        initiatedByMappingOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+        badgeIdsOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+        ownershipTimesOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+        transferTimesOptions: {
+          invertDefault: false,
+          allValues: false,
+          noValues: false
+        },
+      }]
+
+    });
+
+    collections.updateCollection({
+      ...collection,
+      collectionApprovedTransfersTimeline: [{
+        collectionApprovedTransfers: newApprovedTransfers,
+        timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+      }]
+    });
+  }, [mustOwnBadges]);
   if (!collection) return EmptyStepItem;
 
   // const approvedTransfers = collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []
@@ -146,7 +261,7 @@ export function TransferabilitySelectStepItem(
       node={
 
 
-        <div>
+        <div className="priamry-text">
 
           {err &&
             <div style={{ color: 'red', textAlign: 'center' }}>
@@ -241,6 +356,56 @@ export function TransferabilitySelectStepItem(
               });
             }}
           />
+          <br />
+
+          {transferable && <div className='primary-text'>
+
+
+            <br />
+            <div style={{ textAlign: 'center' }}>
+              <b style={{ textAlign: 'center' }}>{"Select badges that the initiator of a transfer must own at the time of transfer."}</b>
+            </div>
+            <br />
+            <br />
+
+            <NumberInput
+
+              title="Collection ID"
+              value={Number(collectionId)}
+              setValue={(val) => setCollectionId(BigInt(val))}
+              min={1}
+              max={Number(status.status.nextCollectionId) - 1}
+            // max={Number.MAX_SAFE_INTEGER}
+            />
+            <br />
+            <br />
+            <BalanceInput
+              isMustOwnBadgesInput
+              message="Must Own Badges"
+              hideOwnershipTimes
+              balancesToShow={mustOwnBadges.map(x => {
+                return {
+                  ...x,
+                  amount: x.amountRange.start,
+                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                }
+              })}
+              onAddBadges={(balance) => {
+                setMustOwnBadges([...mustOwnBadges, {
+                  collectionId: collectionId,
+                  overrideWithCurrentTime: true,
+                  amountRange: { start: balance.amount, end: balance.amount },
+                  badgeIds: balance.badgeIds,
+                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                }]);
+              }}
+              onRemoveAll={() => {
+                setMustOwnBadges([]);
+              }}
+              // setBalances={setBalances}
+              collectionId={collectionId}
+            />
+          </div>}
 
         </div >
       }

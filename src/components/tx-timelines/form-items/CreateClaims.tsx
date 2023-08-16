@@ -56,7 +56,9 @@ export function CreateClaims({
   }, [approvedTransfersToAdd, existingCollection, distributionMethod]);
 
   //We can either specify specific badges to distribute or distribute the whole collection if blank
-  const originalSenderBalances = balancesToDistribute ? balancesToDistribute.map(x => convertBalance(x, BigIntify)) : collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances || [];
+  const originalSenderBalances = balancesToDistribute ? balancesToDistribute.map(x => convertBalance(x, BigIntify))
+    : distributionMethod === DistributionMethod.OffChainBalances ? collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances || []
+      : collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances || [];
 
   //TODO: Make this more dynamic
 

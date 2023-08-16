@@ -1,6 +1,6 @@
-import { Modal, Tooltip } from "antd";
+import { Modal, Tooltip, Typography } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalancesForId } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalancesForId, getCurrentValueIdxForTimeline } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
@@ -12,6 +12,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
+import { AddressDisplay } from "../address/AddressDisplay";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -131,6 +132,9 @@ export function MultiCollectionBadgeDisplay({
               : collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
             if (balances.length === 0) return <></>;
 
+            const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+            const currentManager = currentManagerIdx >= 0 ? collection?.managerTimeline[Number(currentManagerIdx)].manager : undefined;
+
             return <div key={idx} style={{ width: 350, margin: 10, display: 'flex', }}>
               {/*
                 //TODO: Sync with CollectionDisplay
@@ -151,7 +155,17 @@ export function MultiCollectionBadgeDisplay({
                       />
                       {collection?.cachedCollectionMetadata?.name}
                     </div>
+
                   </Tooltip>
+                  <div>
+                    <Typography.Text style={{ fontSize: 14 }} strong className='primary-text'>{
+                      currentManager ? "Managed By" : "Created By"
+                    }</Typography.Text>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <AddressDisplay fontSize={14} addressOrUsername={currentManager ? currentManager : collection?.createdBy ?? ''} />
+                  </div>
+
                 </>}
               >
                 <BadgeAvatarDisplay

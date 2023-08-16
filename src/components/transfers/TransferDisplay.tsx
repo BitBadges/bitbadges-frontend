@@ -84,7 +84,7 @@ export function TransferDisplay({
             {!!transfer?.toAddressesLength && transfer?.toAddressesLength > 0 &&
               <>
                 <Text strong className='secondary-text' style={{ fontSize: 14 }}>
-                  {`First ${toLength} to Claim`}
+                  {`${toLength} Claimees`}
                 </Text>
               </>}
           </div>

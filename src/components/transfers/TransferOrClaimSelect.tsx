@@ -28,6 +28,7 @@ import { ClaimNumPerAddressSelectStep } from './ClaimNumPerAddressSelectStep';
 import { ClaimTimeRangeSelectStep } from './ClaimTimeRangeSelectStep';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
+import { OrderMattersSelectStepItem } from './OrderMattersSelectStep';
 
 const crypto = require('crypto');
 const { Text } = Typography;
@@ -93,6 +94,7 @@ export function TransferSelect({
   const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [currPage, setCurrPage] = useState(1);
+  const [orderMatters, setOrderMatters] = useState(false);
 
   //For the current transfer we are going to add (we also use these fields to calculate the claim amounts and badges)
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalSenderBalances.map((x) => convertBalance(x, BigIntify)));
@@ -121,7 +123,12 @@ export function TransferSelect({
 
   const [claimTimeRange, setClaimTimeRange] = useState<UintRange<bigint>>({ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365), });
   const [claimPassword, setClaimPassword] = useState('');
-  const [numClaimsPerAddress, setNumClaimsPerAddress] = useState<bigint>(1n);
+
+  const [numClaimsPerInitiatedByAddress, setNumClaimsPerInitiatedByAddress] = useState<bigint>(1n);
+  const [numPerToAddress, setNumPerToAddress] = useState<bigint>(0n);
+  const [requireToEqualsInitiatedBy, setRequireToEqualsInitiatedBy] = useState(true);
+  // const [requireToDoesNotEqualInitiatedBy, setRequireToDoesNotEqualInitiatedBy] = useState(false);
+  const requireToDoesNotEqualInitiatedBy = false;
 
   const approvedTransfersForClaims = [];
   const merkleChallenges = [];
@@ -178,11 +185,11 @@ export function TransferSelect({
         perInitiatedByAddressApprovalAmount: 0n,
       },
       maxNumTransfers: {
-        overallMaxNumTransfers: 0n,
+        overallMaxNumTransfers: numRecipients,
         perFromAddressMaxNumTransfers: 0n,
-        perToAddressMaxNumTransfers: 0n,
+        perToAddressMaxNumTransfers: numPerToAddress,
         perInitiatedByAddressMaxNumTransfers: (distributionMethod === DistributionMethod.Codes && claimPassword)
-          ? 1n : numClaimsPerAddress,
+          ? 1n : numClaimsPerInitiatedByAddress,
       },
       predeterminedBalances: {
         manualBalances: [],
@@ -205,8 +212,8 @@ export function TransferSelect({
           incrementOwnershipTimesBy: 0n,
         },
         orderCalculationMethod: {
-          useMerkleChallengeLeafIndex: false,
-          useOverallNumTransfers: true,
+          useMerkleChallengeLeafIndex: orderMatters,
+          useOverallNumTransfers: !orderMatters,
           usePerFromAddressNumTransfers: false,
           usePerInitiatedByAddressNumTransfers: false,
           usePerToAddressNumTransfers: false,
@@ -223,9 +230,9 @@ export function TransferSelect({
         customData: '',
         challengeId: challengeId.current.toString(),
       }], //handled later
-      requireToEqualsInitiatedBy: false,
+      requireToEqualsInitiatedBy: requireToEqualsInitiatedBy,
       requireFromEqualsInitiatedBy: false,
-      requireToDoesNotEqualInitiatedBy: false,
+      requireToDoesNotEqualInitiatedBy: requireToDoesNotEqualInitiatedBy,
       requireFromDoesNotEqualInitiatedBy: false,
 
 
@@ -642,10 +649,27 @@ export function TransferSelect({
   });
 
   //Add time select step
+  const orderMattersStepItem = OrderMattersSelectStepItem(orderMatters, setOrderMatters, distributionMethod);
+
   if (isClaimSelect) {
-    if (distributionMethod === DistributionMethod.FirstComeFirstServe || (distributionMethod === DistributionMethod.Codes && claimPassword)) {
-      steps.push(ClaimNumPerAddressSelectStep(numClaimsPerAddress, setNumClaimsPerAddress, distributionMethod, false));
+    if (distributionMethod === DistributionMethod.FirstComeFirstServe || (distributionMethod === DistributionMethod.Codes && !claimPassword)) {
+      steps.push(ClaimNumPerAddressSelectStep(
+        numClaimsPerInitiatedByAddress, setNumClaimsPerInitiatedByAddress,
+        numPerToAddress,
+        setNumPerToAddress,
+        requireToEqualsInitiatedBy,
+        setRequireToEqualsInitiatedBy,
+        // requireToDoesNotEqualInitiatedBy,
+        // setRequireToDoesNotEqualInitiatedBy,
+
+        distributionMethod, false));
     }
+    if ((distributionMethod === DistributionMethod.Whitelist && amountSelectType === AmountSelectType.Increment)
+      || (distributionMethod === DistributionMethod.Codes && !claimPassword && amountSelectType === AmountSelectType.Increment)
+    ) {
+      steps.push(orderMattersStepItem);
+    }
+
     steps.push(ClaimTimeRangeSelectStep(claimTimeRange, setClaimTimeRange));
 
     //We can eventually support this but currently, we store name/description tied to the merkleChallenge so first come first serve doesn't have a merkleChallenge and won't work

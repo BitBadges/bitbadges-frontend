@@ -323,6 +323,8 @@ transform: scale(1.01);
     padding: 0px;
     margin: 5px;
     align-items: center;
+    display: flex;
+    justify-content: center;
 }
 
 .dropdown {
@@ -336,6 +338,11 @@ transform: scale(1.01);
     font-size: 16px;
     padding-top: 10px;
     padding-bottom: 10px;
+}
+
+.dropdown-item:hover {
+    background-color: #3e83f8 !important;
+    color: white !important;
 }
 
 .flex {

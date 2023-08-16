@@ -65,7 +65,6 @@ export function TxModal(
 
 
   const signedInAccount = accounts.getAccount(chain.cosmosAddress);
-
   const fee = {
     amount: `${amount}`,
     denom: 'badge',
@@ -186,11 +185,14 @@ export function TxModal(
       }
 
       //Sign and broadcast transaction
+      // txDetails.sender.sequence = "0"
+
       const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
       const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
       const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
       const gasUsed = simulatedTx.gas_info.gas_used;
       console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
+      
 
       //Get public key (if not already stored)
       const publicKey = await chain.getPublicKey(chain.cosmosAddress);
@@ -248,6 +250,8 @@ export function TxModal(
         currIndexerHeight = response.status.block.height;
       }
 
+      await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+
 
       //If it is a new collection, redirect to collection page
       if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateCollection") {
@@ -278,7 +282,7 @@ export function TxModal(
       await submitTx(createTxFunction, txCosmosMsg, false);
       setVisible(false);
 
-      await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+
       if (onSuccessfulTx) onSuccessfulTx();
     } catch (err: any) {
       console.error(err);

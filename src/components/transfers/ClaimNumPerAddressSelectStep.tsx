@@ -1,46 +1,120 @@
-import { Checkbox, InputNumber, Typography } from "antd";
+import { Checkbox, Col, InputNumber, Row, Typography } from "antd";
 import { BigIntify, DistributionMethod, Numberify } from "bitbadgesjs-utils";
 
-export function ClaimNumPerAddressSelectStep(numPerAddress: bigint, setNumPerAddress: (numRecipients: bigint) => void, distributionMethod: DistributionMethod, hasPassword: boolean) {
+export function ClaimNumPerAddressSelectStep(
+  numPerInitiatedByAddress: bigint,
+  setNumPerInitiatedByAddress: (numRecipients: bigint) => void,
+  numPerToAddress: bigint,
+  setNumPerToAddress: (numRecipients: bigint) => void,
+  requireToEqualsInitiatedBy: boolean,
+  setRequireToEqualsInitiatedBy: (requireToEqualsInitiatedBy: boolean) => void,
+  // requireToDoesNotEqualInitiatedBy: boolean,
+  // setRequireToDoesNotEqualInitiatedBy: (requireToDoesNotEqualInitiatedBy: boolean) => void,
+  distributionMethod: DistributionMethod,
+  hasPassword: boolean
+) {
 
 
 
   return {
-    title: `Per Address`,
-    description: < div className='flex-center primary-text'>
-      <div style={{ minWidth: 500, textAlign: 'center' }} >
-        <br />
-        <div className='flex-between' style={{ flexDirection: 'column' }} >
-          <b>Max Claims Per Address</b>
-          {numPerAddress > 0 &&
-            <InputNumber
-              min={1}
-              value={Numberify(numPerAddress)}
-              onChange={(value) => {
-                setNumPerAddress(BigIntify(value));
+    title: `Restrictions`,
+    description: <>
+      <Row className='flex-between primary-text' style={{ minWidth: 500, textAlign: 'center', alignItems: 'normal' }} >
+        <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+          <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
+            Initiated By Address Restrictions
+          </Typography.Text>
+          <br />
+          <br />
+          <div className='flex-between' style={{ flexDirection: 'column' }} >
+            <b>Max Claims Per Initiated By Address</b>
+            {numPerInitiatedByAddress > 0 &&
+              <InputNumber
+                min={1}
+                value={Numberify(numPerInitiatedByAddress)}
+                onChange={(value) => {
+                  setNumPerInitiatedByAddress(BigIntify(value));
+                }}
+                className='primary-text primary-blue-bg'
+              />}
+            <br />
+            <Checkbox
+              checked={numPerInitiatedByAddress === 0n}
+              onChange={(e) => {
+                setNumPerInitiatedByAddress(e.target.checked ? BigInt(0) : BigInt(1));
               }}
-              className='primary-text primary-blue-bg'
-            />}
+              className="primary-text primary-blue-bg"
+            >
+              <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+                No Limit
+              </div>
+            </Checkbox>
+          </div>
+          <Typography.Text className='secondary-text' style={{ textAlign: 'center' }}>
+            {distributionMethod === DistributionMethod.Codes && !hasPassword ? 'Each unique address can initiate' + (numPerInitiatedByAddress === 0n ? ' an unlimited amount of claims (i.e. if the codes are valid and there are claimable badges left).' : ` a maximum of ${numPerInitiatedByAddress} claim(s).`) : ''}
+            {distributionMethod === DistributionMethod.Whitelist ? 'Each unique address on the whitelist can successfully claim ' + (numPerInitiatedByAddress === 0n ? 'an unlimited amount of times  (i.e. if there are claimable badges left).' : `a maximum of ${numPerInitiatedByAddress} time(s).`) : ''}
+          </Typography.Text>
+        </Col>
+        <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+          <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
+            Recipient (To Address) Restrictions
+          </Typography.Text>
+          <br />
           <br />
           <Checkbox
-            checked={numPerAddress === 0n}
+            checked={requireToEqualsInitiatedBy}
             onChange={(e) => {
-              setNumPerAddress(e.target.checked ? BigInt(0) : BigInt(1));
-            }}
+              setRequireToEqualsInitiatedBy(e.target.checked);
+              if (!e.target.checked) {
+                setNumPerToAddress(1n);
+              }
+            }
+            }
             className="primary-text primary-blue-bg"
           >
             <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
-              No Limit
+              Require To Address Equals Initiated By Address?
             </div>
           </Checkbox>
-        </div>
-        <br />
-        <Typography.Text className='secondary-text' style={{ textAlign: 'center' }}>
-          {distributionMethod === DistributionMethod.Codes && !hasPassword ? 'Each address can ' + (numPerAddress === 0n ? 'redeem an unlimited amount of codes (i.e. if the codes are valid and there are claimable badges left).' : `redeem a maximum of ${numPerAddress} code(s).`) : ''}
-          {distributionMethod === DistributionMethod.Whitelist ? 'Each address on the whitelist can successfully claim ' + (numPerAddress === 0n ? 'an unlimited amount of times  (i.e. if there are claimable badges left).' : `a maximum of ${numPerAddress} time(s).`) : ''}
-        </Typography.Text>
-      </div>
-    </div >,
-    disabled: numPerAddress < 0
+          <br />
+          <br />
+
+          {!requireToEqualsInitiatedBy && <>
+            <br />
+            <div className='flex-between' style={{ flexDirection: 'column' }} >
+              <b>Max Claims Per To Address</b>
+              {numPerToAddress > 0 &&
+                <InputNumber
+                  min={1}
+                  value={Numberify(numPerToAddress)}
+                  onChange={(value) => {
+                    setNumPerToAddress(BigIntify(value));
+                  }}
+                  className='primary-text primary-blue-bg'
+                />}
+              <br />
+              <Checkbox
+                checked={numPerToAddress === 0n}
+                onChange={(e) => {
+                  setNumPerToAddress(e.target.checked ? BigInt(0) : BigInt(1));
+                }}
+                className="primary-text primary-blue-bg"
+              >
+                <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+                  No Limit
+                </div>
+              </Checkbox>
+            </div>
+            <br />
+            <Typography.Text className='secondary-text' style={{ textAlign: 'center' }}>
+              {distributionMethod === DistributionMethod.Codes && !hasPassword ? 'Each unique address can be the recipient of' + (numPerToAddress === 0n ? ' an unlimited amount of claims.' : ` a maximum of ${numPerToAddress} claim(s).`) : ''}
+              {distributionMethod === DistributionMethod.Whitelist ? 'Each unique address on the whitelist can successfully claim ' + (numPerToAddress === 0n ? 'an unlimited amount of times  (i.e. if there are claimable badges left).' : `a maximum of ${numPerToAddress} time(s).`) : ''}
+            </Typography.Text>
+          </>}
+        </Col>
+      </Row>
+      <br />
+    </ >,
+    disabled: numPerInitiatedByAddress < 0
   }
 }

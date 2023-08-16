@@ -28,6 +28,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const [currPage, setCurrPage] = useState<number>(1);
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
+  const [recipient, setRecipient] = useState<string>("");
 
   const collection = collections.collections[collectionId.toString()]
 
@@ -99,10 +100,11 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
             <ClaimDisplay
               collectionId={collectionId}
               approvedTransfer={approvedTransfersForClaims[currPage - 1]}
-              openModal={(code, whitelistIndex) => {
+              openModal={(code, whitelistIndex, recipient) => {
                 setModalVisible(true);
                 setCode(code ? code : "");
                 setWhitelistIndex(whitelistIndex);
+                setRecipient(recipient ? recipient : chain.cosmosAddress);
               }}
               isCodeDisplay={codesAndPasswords ? true : false}
               codes={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.codes : []}
@@ -129,6 +131,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
         approvedTransfer={approvedTransferItem}
         claimItem={claimItem}
         whitelistIndex={whitelistIndex}
+        recipient={recipient}
       />
       <Divider />
       <div className='flex-center'>

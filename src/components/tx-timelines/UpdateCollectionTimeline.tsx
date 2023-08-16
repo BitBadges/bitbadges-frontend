@@ -27,6 +27,7 @@ import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
+import { OffChainBalancesStorageSelectStepItem } from './step-items/OffChainBalancesStepItem';
 
 //See TxTimeline for explanations and documentation
 
@@ -106,6 +107,7 @@ export function UpdateCollectionTimeline({
   const CanArchiveCollectionStep = CanArchiveCollectionStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem(existingCollectionId);
   const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, existingCollectionId);
+  const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
 
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
   const CanUpdateBytesStep = CanUpdateBalancesStepItem(handledPermissions, setHandledPermissions);
@@ -203,8 +205,10 @@ export function UpdateCollectionTimeline({
     isOffChainBalances || toShowCanUpdateCollectionApprovedTransfersPermission ?
       DistributionMethodStep : EmptyStepItem,
 
-
-    distributionMethod === DistributionMethod.OffChainBalances ? CreateClaims : EmptyStepItem,
+    distributionMethod === DistributionMethod.OffChainBalances ? OffChainBalancesStorageStepItem : EmptyStepItem,
+    distributionMethod === DistributionMethod.OffChainBalances
+      && (collections.collections[`${MSG_PREVIEW_ID}`]?.offChainBalancesMetadataTimeline ?? []).length == 0
+      ? CreateClaims : EmptyStepItem,
     distributionMethod !== DistributionMethod.None && distributionMethod !== DistributionMethod.Unminted && distributionMethod !== DistributionMethod.JSON && distributionMethod !== DistributionMethod.DirectTransfer && distributionMethod !== DistributionMethod.OffChainBalances
       && (true) ? CreateClaims : EmptyStepItem,
 

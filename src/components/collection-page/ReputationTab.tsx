@@ -3,13 +3,14 @@ import { Numberify, ReviewInfo } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";
-import { addReviewForCollection, addReviewForUser } from '../../bitbadges-api/api';
+import { addReviewForCollection, addReviewForUser, deleteReview } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { DeleteOutlined } from '@ant-design/icons';
 
 
 export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchMore, hasMore }:
@@ -134,6 +135,23 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                     {new Date(Number(review.timestamp.toString())).toLocaleDateString() + ' '}
                     {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
                   </Typography.Text>
+                  {chain.connected && chain.loggedIn && (chain.address === review.from || chain.cosmosAddress === review.from) &&
+                    <DeleteOutlined className='screen-button' style={{ border: 'none', cursor: 'pointer' }}
+                      onClick={async () => {
+                        if (loading) return;
+
+                        setLoading(true);
+                        await deleteReview(review._id);
+                        if (collectionId) {
+                          await collections.fetchCollections([collectionId], true);
+                        } else if (addressOrUsername) {
+                          await accounts.fetchAccounts([addressOrUsername], true);
+                          await accounts.fetchNextForViews(addressOrUsername, ['latestReviews']);
+                        }
+                        setLoading(false);
+                      }}
+                    />
+                  }
                   <br />
                   {review.review}
                 </Col>

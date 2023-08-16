@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, InfoCircleOutlined, SwapOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
 import { Avatar, Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
-import { ApprovalTrackerIdDetails } from "bitbadgesjs-proto";
+import { ApprovalTrackerIdDetails, deepCopy } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, DistributionMethod, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -14,6 +14,9 @@ import { AddressDisplay } from "../address/AddressDisplay";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { ToolIcon, tools } from "../display/ToolIcon";
+import { NumberInput } from "../display/NumberInput";
+import { SHA256 } from "crypto-js";
+import { AddressSelect } from "../address/AddressSelect";
 
 
 //TODO: Will need to change when we allow approvalDetails len > 0
@@ -32,7 +35,7 @@ export function ClaimDisplay({
 }: {
   approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
   collectionId: bigint,
-  openModal?: (code?: string, whitelistIndex?: number) => void,
+  openModal?: (code?: string, leafIndex?: number, recipient?: string) => void,
   isCodeDisplay?: boolean
   codes?: string[]
   claimPassword?: string
@@ -57,6 +60,8 @@ export function ClaimDisplay({
   const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
   const [showAllUnclaimed, setShowAllUnclaimed] = useState<boolean>(false);
   const [currCode, setCurrCode] = useState('');
+  const [recipient, setRecipient] = useState(chain.address);
+  const [browseIdx, setBrowseIdx] = useState(0);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
@@ -168,7 +173,7 @@ export function ClaimDisplay({
   let errorMessage = '';
   let cantClaim = false;
   let notConnected = false;
-  let whitelistIndex: number | undefined = undefined;
+
   //Cases 1-5
   if (!chain.connected) {
     cantClaim = true;
@@ -195,18 +200,33 @@ export function ClaimDisplay({
     errorMessage = 'This claim was custom created by the creator with multiple challenges. This is incompatible with the BitBadges website.';
   } else if (!approvedTransfer.approvalDetails[0].predeterminedBalances ||
     approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
-    !approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useOverallNumTransfers) {
+    (!approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
+      !approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex)) {
     cantClaim = true;
     errorMessage = 'This claim was custom created by the creator with a custom order calculation method. This is incompatible with the BitBadges website.';
   } else if (!validTime) {
     cantClaim = true;
     errorMessage = 'This claim is not currently active!';
+  } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
+    cantClaim = true;
+    errorMessage = 'You are not on the whitelist for this claim!';
   }
 
-  const currentClaimAmounts = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances;
+  const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+  let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
+    claim?.useCreatorAddressAsLeaf ?
+      approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+      : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
+    : -1) ?? -1;
+  console.log(approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves);
+  console.log(leafIndex);
+  const currentClaimAmounts = deepCopy(approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances);
   const incrementIdsBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
   const incrementOwnershipTimesBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy;
-  const numIncrements = approvalTracker?.numTransfers ?? 0n;
+  const numIncrements =
+    calculationMethod.useMerkleChallengeLeafIndex ?
+      leafIndex ?? 0 :
+      approvalTracker?.numTransfers ?? 0n;
 
   for (let i = 0; i < numIncrements; i++) {
     for (const balance of currentClaimAmounts) {
@@ -222,6 +242,20 @@ export function ClaimDisplay({
     }
   }
 
+  const browseClaimAmounts = deepCopy(approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances);
+  for (let i = 0; i < browseIdx; i++) {
+    for (const balance of browseClaimAmounts) {
+      for (const badgeIdRange of balance.badgeIds) {
+        badgeIdRange.start += incrementIdsBy;
+        badgeIdRange.end += incrementIdsBy;
+      }
+
+      for (const ownershipTimeRange of balance.ownershipTimes) {
+        ownershipTimeRange.start += incrementOwnershipTimesBy;
+        ownershipTimeRange.end += incrementOwnershipTimesBy;
+      }
+    }
+  }
 
 
 
@@ -239,7 +273,7 @@ export function ClaimDisplay({
 
   </Tooltip>
   return <div className='flex-center flex-column'>
-    <Divider />
+    {/* <Divider /> */}
     <div>
       {isCodeDisplay && <Row>
         <div className="full-width">
@@ -301,29 +335,87 @@ export function ClaimDisplay({
 
               <div>
                 {!showAllUnclaimed && <>
-                  <div className="flex-center flex-column" style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 0, right: 0 }}>
-                      {switchViewIcon}
+                  {calculationMethod.useMerkleChallengeLeafIndex && <>
+                    <div className="flex-center flex-column" style={{ position: 'relative' }}>
+                      <>
+                        <>
+                          <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                            {switchViewIcon}
+                          </div>
+
+                          {/* <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                            Claim #{browseIdx + 1}
+
+                          </Typography.Text> */}
+
+                          <div className="flex-center">
+                            <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                              Claim for {claim?.useCreatorAddressAsLeaf ? "Address" : "Code"} #</Typography.Text><NumberInput
+                              value={browseIdx + 1}
+                              setValue={(val) => {
+                                setBrowseIdx(val - 1);
+                              }}
+                              // onChange={(e: any) => {
+                              //   setBrowseIdx(e.target.value);
+                              // }}
+                              min={1}
+                              max={approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers) : undefined}
+
+                            />
+                          </div>
+                          {claim?.useCreatorAddressAsLeaf &&
+                            <AddressDisplay
+                              addressOrUsername={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
+                            // size={20}
+                            />
+                          }
+                          <BalanceDisplay
+                            message={'Current Claim'}
+                            hideMessage
+                            collectionId={collectionId}
+                            balances={browseClaimAmounts}
+                          /></>
+                      </>
+
+                      {<>
+                        <br />
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Claim for Entered Code</Typography.Text>
+                        <BalanceDisplay
+                          message={'Current Claim'}
+                          hideMessage
+                          collectionId={collectionId}
+                          balances={leafIndex >= 0 ? currentClaimAmounts : []}
+                        /></>
+                      }
                     </div>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text>
+                  </>}
+                  {calculationMethod.useOverallNumTransfers && <>
+                    <div className="flex-center flex-column" style={{ position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                        {switchViewIcon}
+                      </div>
+                      <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text>
 
-                    <BalanceDisplay
-                      message={'Current Claim'}
-                      hideMessage
-                      collectionId={collectionId}
-                      balances={currentClaimAmounts}
-                    />
-                  </div>
+                      <BalanceDisplay
+                        message={'Current Claim'}
+                        hideMessage
+                        collectionId={collectionId}
+                        balances={currentClaimAmounts}
+                      />
+                    </div>
 
-                  {incrementIdsBy > 0 && <div>
-                    <br />
-                    <Row className='flex-center' >
-                      <p className='primary-text'>
-                        <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {`${incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
-                      </p>
-                    </Row>
-                    <br />
-                  </div>}
+                    {incrementIdsBy > 0 &&
+
+                      <div>
+                        <br />
+                        <Row className='flex-center' >
+                          <p className='primary-text'>
+                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {`${incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
+                          </p>
+                        </Row>
+                        <br />
+                      </div>}
+                  </>}
                   <hr />
 
 
@@ -364,17 +456,10 @@ export function ClaimDisplay({
                         <>
                           <br />
                           {!claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))
-                            ? <div>
-                              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> This is a whitelist-based claim, but you are not on the whitelist.</Typography.Text>
-                              <div className='flex-between' style={{ justifyContent: 'center' }}>
-                                <AddressDisplay
-                                  addressOrUsername={chain.address}
-                                />
-                              </div>
-                            </div> :
+                            ? <></> :
                             <div>
                               {chain.connected && <div>
-                                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> This is a whitelist-based claim, and you have been whitelisted!</Typography.Text>
+                                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> You have been whitelisted!</Typography.Text>
                               </div>}
                               {/* <div>
                                 <TransferDisplay
@@ -405,7 +490,24 @@ export function ClaimDisplay({
                     {openModal && <div className="full-width">
                       <br />
                       <br />
-                      <Button disabled={cantClaim} type='primary' onClick={() => { if (openModal) openModal(currCode, whitelistIndex) }} className='full-width flex-center' style={{ textAlign: 'center' }}>
+                      {!approvedTransfer.approvalDetails[0].requireToEqualsInitiatedBy && <>
+                        <b>Select Recipient</b>
+
+                        <AddressSelect defaultValue={chain.address} onUserSelect={(val) => {
+                          setRecipient(val);
+                        }} />
+                        <AddressDisplay
+                          addressOrUsername={recipient}
+                        />
+                        {recipient != chain.cosmosAddress && recipient != chain.address && !approvedTransfer.approvalDetails[0].overridesToApprovedIncomingTransfers && <>
+                          <InfoCircleOutlined style={{ marginRight: 4 }} />
+                          {"If selecting an address other than your own, you must obey their incoming approvals."}
+                        </>}
+
+                        <br />
+                        <br />
+                      </>}
+                      <Button disabled={cantClaim} type='primary' onClick={() => { if (openModal) openModal(currCode, leafIndex, recipient) }} className='full-width flex-center' style={{ textAlign: 'center' }}>
                         Claim
                       </Button>
 
@@ -421,9 +523,11 @@ export function ClaimDisplay({
           </div>
         </>}
       </div>
-    </Card>}
+    </Card>
+    }
 
-    {!showClaimDisplay &&
+    {
+      !showClaimDisplay &&
       <Card
         className="primary-text primary-blue-bg"
         style={{

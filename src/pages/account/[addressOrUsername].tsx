@@ -47,6 +47,8 @@ function PortfolioPage() {
     { key: 'reputation', content: 'Reviews' }
   )
 
+
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: get portfolio info');
     async function getPortfolioInfo() {
@@ -75,6 +77,7 @@ function PortfolioPage() {
     }
     getPortfolioInfo();
   }, [addressOrUsername]);
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: get num total badges ');
@@ -122,7 +125,7 @@ function PortfolioPage() {
     return <></>
   }
 
-  const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? false;
+  const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
 
   return (
     <Layout>
@@ -293,7 +296,7 @@ function PortfolioPage() {
               fetchMore={async () => {
                 await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestReviews']);
               }}
-              hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? false}
+              hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
               addressOrUsername={accountInfo?.address ?? ''}
             />
           </>
@@ -307,7 +310,7 @@ function PortfolioPage() {
               fetchMore={async () => {
                 await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestActivity']);
               }}
-              hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? false}
+              hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
             />
           </>
           )}

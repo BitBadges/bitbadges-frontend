@@ -160,7 +160,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       createTxFunction={createTxMsgTransferBadges}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
-        await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
+        // await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
       displayMsg={<div className='primary-text'>
