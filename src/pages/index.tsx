@@ -163,43 +163,43 @@ const Home: NextPage = () => {
               {
                 [
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 1n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 2n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 3n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 4n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 5n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 6n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 7n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 8n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 9n,
                   },
                   {
-                    collectionId: 32n,
+                    collectionId: 1n,
                     badgeId: 10n,
                   }
                 ].map((obj, idx) => {
