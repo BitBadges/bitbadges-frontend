@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { COSMOS_LOGO, ETH_LOGO } from '../constants';
+import { DistributionMethod } from 'bitbadgesjs-utils';
+import { tools, ToolIcon } from '../components/display/ToolIcon';
 
 
 export const LandingCard = ({ content, additionalContent }: {
@@ -355,7 +357,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Badges can be sent from users of one blockchain ecosystem to another blockchain ecosystem, such as Ethereum to Cosmos.
+                    Badges can be sent from users of one blockchain ecosystem to another blockchain ecosystem (currently supports Ethereum and Cosmos).
                   </Typography.Text>
                 </>
               }
@@ -704,6 +706,34 @@ const Home: NextPage = () => {
 
         <Divider />
 
+        <Row className='flex-center'>
+          <Col md={12} sm={24} xs={24}>
+            <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
+              Ecosystem and Integrations
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        {/* <Row className='flex-between' style={{ alignItems: 'normal' }}>
+          <Col md={24} sm={24} xs={24}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+              Through years of research, BitBadges is proud to introduce new features that have never been seen before in the blockchain space.<br /><br />
+              Check out some of our favorite innovative features of BitBadges below!
+            </Typography.Text>
+          </Col>
+        </Row> */}
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {tools.map((tool, idx) => {
+            if (tool.toolType === "Creation") return <></>
+
+            return <div style={{ margin: 8, display: 'flex' }} key={idx}>
+              <ToolIcon
+                name={tool.name}
+              />
+            </div>
+          })}
+        </div>
 
 
 
