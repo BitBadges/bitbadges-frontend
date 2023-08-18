@@ -24,13 +24,13 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
   return <Col md={6} sm={24} xs={24} style={{
     padding: 6, display: 'flex',
   }}>
-    <div>
+    <div style={{ display: 'flex' }}>
 
       <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
         style={{
           minHeight: additionalContent ? 360 : 260, borderRadius: 15,
           background: `linear-gradient(0deg, black 10%, #001529 100%)`,
-
+          display: 'flex'
         }} onClick={() => {
           if (onClick) onClick();
           else setShowMore(!showMore)
@@ -119,8 +119,8 @@ const Home: NextPage = () => {
         <div
           // className='primary-blue-bg'
           style={{
-            marginLeft: '10vw',
-            marginRight: '10vw',
+            marginLeft: '7vw',
+            marginRight: '7vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
