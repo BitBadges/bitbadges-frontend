@@ -106,7 +106,7 @@ export function BadgeAvatarDisplay({
 
 
             return badgeIds.map((badgeId, idx) => {
-              return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
+              return <div key={idx} className='flex-center flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
                 {!cardView ?
                   <BadgeAvatar
                     size={size && selectedId === badgeId ? size * 1.5 : size}

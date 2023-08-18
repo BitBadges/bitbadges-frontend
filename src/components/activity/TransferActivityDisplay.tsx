@@ -54,7 +54,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
         <div className='flex-center flex-column'>
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
         </div>
-        : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={18} />)}</>}
+        : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
     </div>
   }
 
@@ -98,15 +98,17 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                     <Row className='flex-between primary-text' style={{ textAlign: 'left' }} >
                       <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                         {getPanelHeaderAddress([activity.from])}
-                        <b style={{ marginRight: 8 }}>to</b>
+                        <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
                         {getPanelHeaderAddress(activity.to)}
                       </Col>
                       <div>{activity.method} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
                     </Row>
+
                     <Row>
                       <div
                         className='primary-text'
                         style={{
+                          marginTop: 4,
                           fontSize: 14,
                           fontWeight: 'bolder',
                           whiteSpace: 'normal'

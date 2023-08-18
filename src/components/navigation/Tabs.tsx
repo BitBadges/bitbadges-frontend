@@ -48,7 +48,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
         </Dropdown>
       );
     } else if (tab.popoverContent) {
-      return <Popover key={`${tab.key}`} content={tab.popoverContent}>{menuItem}</Popover>;
+      return <Popover key={`${tab.key}`} content={tab.popoverContent} placement='bottom'>{menuItem}</Popover>;
     } else {
       return menuItem;
     }

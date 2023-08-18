@@ -186,6 +186,7 @@ function PortfolioPage() {
               display: 'flex',
               alignItems: 'center',
               marginRight: 16,
+              marginTop: 5,
             }}>
               Group By:
 
@@ -219,6 +220,7 @@ function PortfolioPage() {
                 alignItems: 'center',
                 marginLeft: 16,
                 marginRight: 16,
+                marginTop: 5,
               }}>
               View:
 

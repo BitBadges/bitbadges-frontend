@@ -33,7 +33,7 @@ export function AddressWithBlockies({
   const address = userInfo?.address || addressOrUsername || '';
   const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
-  return <div className="flex-center flex-wrap">
+  return <div className="flex-center">
     <Tooltip
       title={getChainForAddress(address)}
       placement="bottom"

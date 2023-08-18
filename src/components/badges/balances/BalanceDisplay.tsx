@@ -91,13 +91,13 @@ export function BalanceDisplay({
       </div>} */}
     <div className="flex-evenly">
       <div className='flex-column full-width' style={{ textAlign: floatToRight ? 'right' : 'center', justifyContent: 'end' }}>
-        <div className='full-width flex-center' style={{ fontSize: 15 }}>
-          <table>
+        <div className='full-width flex-center' style={{ fontSize: 15, alignItems: 'normal' }}>
+          <table style={{ alignItems: 'normal' }}>
             {!(!balances || balances?.length === 0) &&
               <tr>
-                <td style={{ textAlign: 'center', paddingRight: 4, minWidth: 80 }}>{isMustOwnBadgesInput ? 'Min Amount' : 'Amount'}</td>
-                <td style={{ textAlign: 'center', paddingLeft: 4, minWidth: 80 }}>Badge IDs</td>
-                <td style={{ textAlign: 'center', paddingLeft: 4, minWidth: 80 }}>Times
+                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4 }}>{isMustOwnBadgesInput ? 'Min Amount' : 'Amount'}</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>IDs</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4, minWidth: 70 }}>Times
                   <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
                     <InfoCircleOutlined style={{ marginLeft: 4 }} />
                   </Tooltip>
@@ -141,9 +141,9 @@ export function BalanceDisplay({
               //     )}</>
               // }
               return <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
-                <td style={{ textAlign: 'center', paddingRight: 4 }}>x{amount.toString()}</td>
-                <td style={{ textAlign: 'center', paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                <td style={{ textAlign: 'center', paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true, showingSupplyPreview)}</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true, showingSupplyPreview)}</td>
               </tr>
             })}
             {(!balances || balances?.length === 0) && <span>None</span>}

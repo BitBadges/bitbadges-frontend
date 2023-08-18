@@ -126,7 +126,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                 }
                 timeline={collection?.managerTimeline ?? []}
               />
-            </>} labelSpan={9} valueSpan={15} />}
+            </>} labelSpan={7} valueSpan={17} />}
 
           {collection?.createdBy && <TableRow label={"Created By"} value={
             <div className='flex-between' style={{ textAlign: 'right' }}>
@@ -137,7 +137,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   addressOrUsername={collection.createdBy}
                 />
               </div>
-            </div>} labelSpan={9} valueSpan={15} />}
+            </div>} labelSpan={7} valueSpan={17} />}
 
           {<TableRow label={"Contract Address"} value={
             <>

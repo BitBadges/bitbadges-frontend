@@ -88,7 +88,7 @@ export function SetCollectionMetadataStepItem(
           <Divider />
           {addMethod === MetadataAddMethod.Manual && <>
             <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
-            <div className='flex'>
+            <div style={{ display: 'flex' }} className='flex-wrap'>
               <ToolIcon name="Sketch.io" />
               <ToolIcon name="Excalidraw" />
             </div>

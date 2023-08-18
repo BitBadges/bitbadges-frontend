@@ -181,7 +181,7 @@ export function MultiCollectionBadgeDisplay({
     return <>
       {!hidePagination && <div className="flex-center"><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} /></div>}
 
-      <div className="flex-center flex-wrap">
+      <div className="flex-center flex-wrap full-width">
         {
           badgeIdsToDisplay.map((badgeIdObj) => {
             return <>

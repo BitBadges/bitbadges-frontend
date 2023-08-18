@@ -1,4 +1,4 @@
-import { Card } from 'antd';
+import { Card, Col } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -42,76 +42,76 @@ export function BadgeCard({
 
   return (
     <>
-      <Card
-        className='primary-text primary-blue-bg'
-        style={{
-          width: 175,
-          margin: 8,
-          textAlign: 'center',
-          borderRadius: '8%',
-        }}
-        hoverable={hoverable ? hoverable : true}
-        onClick={() => {
-          router.push(`/collections/${collectionId}/${badgeId}`);
-        }}
-        cover={
-          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
-            <BadgeAvatar
-              collectionId={collectionId}
-              badgeId={badgeId}
-              size={size}
-              noHover
-            />
-          </div>
-        }
-      >
-        <div className='flex-center full-width primary-text'>
-          <Meta
-            title={<div>
-              <div className='primary-text'
-                style={{
-                  maxWidth: 165,
-                  fontSize: 20,
-                  fontWeight: 'bolder',
-                  whiteSpace: 'normal',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                }}
-              >
-                {metadata?.name}
-              </div>
-              {!hideCollectionLink &&
-                <div
-                  className='primary-text'
+      <Col md={6} sm={24} xs={24} className='flex-center' style={{ padding: 0 }}>
+        <Card
+          className='primary-text primary-blue-bg'
+          style={{
+            minWidth: 240,
+            margin: 8,
+            textAlign: 'center',
+            borderRadius: '8%',
+          }}
+          hoverable={hoverable ? hoverable : true}
+          onClick={() => {
+            router.push(`/collections/${collectionId}/${badgeId}`);
+          }}
+          cover={
+            <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+              <BadgeAvatar
+                collectionId={collectionId}
+                badgeId={badgeId}
+                size={size}
+                noHover
+              />
+            </div>
+          }
+        >
+          <div className='flex-center full-width primary-text'>
+            <Meta
+              title={<div>
+                <div className='primary-text'
                   style={{
-                    fontSize: 14,
+                    fontSize: 20,
                     fontWeight: 'bolder',
-                    whiteSpace: 'normal'
-                  }}
-                  onClick={(e) => {
-                    router.push(`/collections/${collectionId}`);
-                    e.stopPropagation();
+                    whiteSpace: 'normal',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
                   }}
                 >
-                  <a>
-                    {collectionMetadata?.name}
-                  </a>
-                </div>}
-            </div>
-            }
-            description={
-              <div
-                className='secondary-text full-width'
-                style={{
-                  alignItems: 'center',
-                  fontSize: 17,
-                  justifyContent: 'center',
-                }}
-              >
+                  {metadata?.name}
+                </div>
+                {!hideCollectionLink &&
+                  <div
+                    className='primary-text'
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 'bolder',
+                      whiteSpace: 'normal'
+                    }}
+                    onClick={(e) => {
+                      router.push(`/collections/${collectionId}`);
+                      e.stopPropagation();
+                    }}
+                  >
+                    <a>
+                      {collectionMetadata?.name}
+                    </a>
+                  </div>}
+              </div>
+              }
+              description={
+                <div
+                  className='secondary-text full-width'
+                  style={{
+                    alignItems: 'center',
+                    fontSize: 17,
+                    justifyContent: 'center',
+                  }}
+                >
 
-                {collection && <>
-                  ID #{`${badgeId}`} / {`${maxBadgeId}`}
-                  {/* <br />
+                  {collection && <>
+                    ID #{`${badgeId}`} / {`${maxBadgeId}`}
+                    {/* <br />
                   <div className='flex-center'>
                     <div>Supply: {totalSupply.toString()}
                       {isOffChainBalances &&
@@ -126,12 +126,13 @@ export function BadgeCard({
                         </Tooltip>}
                     </div>
                   </div> */}
-                </>}
-              </div>
-            }
-          />
-        </div>
-      </Card>
+                  </>}
+                </div>
+              }
+            />
+          </div>
+        </Card>
+      </Col>
     </>
   );
 }

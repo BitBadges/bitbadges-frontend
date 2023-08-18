@@ -10,7 +10,7 @@ export function WalletFooter() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '1rem 5rem',
+          padding: '1rem 2rem',
           minHeight: '20vh',
           paddingTop: '100px',
         }}

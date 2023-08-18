@@ -278,3 +278,8 @@
 {
     background-color: initial;
 }
+
+.ant-popover-inner {
+  background-color: #001529;
+  border: 1px solid gray;
+}

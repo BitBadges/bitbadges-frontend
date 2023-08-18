@@ -84,8 +84,8 @@ export function WalletHeader() {
       </div>
     </Menu.Item>
   </Menu>
-  const BrowseTabWithIcon = { key: 'browse/badges', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse/badges', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'popup-browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
@@ -247,7 +247,7 @@ export function WalletHeader() {
     onChange={async (e) => {
       setSearchValue(e.target.value);
     }}
-    style={{ marginLeft: 10, marginRight: 10 }}
+    // style={{ marginLeft: 10, marginRight: 10 }}
     className='form-input'
     // enterButton
     size='large'
@@ -278,14 +278,9 @@ export function WalletHeader() {
       // console.log('Do Nothing');
     },
     popoverContent: (
-      <div
-        style={{
-          backgroundColor: 'white',
-          width: '100%',
-        }}
-      >
+      <>
         {ExpandedSearchBar}
-      </div>
+      </>
     ),
   }
 

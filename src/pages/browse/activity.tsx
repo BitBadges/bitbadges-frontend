@@ -33,10 +33,10 @@ function BrowsePage() {
       >
         <div className='primary-blue-bg'
           style={{
-            marginLeft: '10vw',
-            marginRight: '10vw',
-            paddingLeft: '2vw',
-            paddingRight: '2vw',
+            marginLeft: '5vw',
+            marginRight: '5vw',
+            paddingLeft: '1vw',
+            paddingRight: '1vw',
             paddingTop: '20px',
           }}
         >

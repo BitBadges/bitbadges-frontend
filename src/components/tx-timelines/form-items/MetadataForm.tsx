@@ -56,7 +56,7 @@ export function MetadataForm({
 
   const [currMetadata, setCurrMetadata] = useState<Metadata<bigint>>(metadata);
 
-  console.log(isAddressMappingSelect);
+  // console.log(isAddressMappingSelect);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("MetadataForm: useEffect: collection: ", collectionId);
@@ -235,7 +235,7 @@ export function MetadataForm({
                 }}
                 className='primary-text primary-blue-bg'
               />
-              <Tooltip title='Populate the metadata of other badges with the metadata of this badge.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with the metadata of this badge.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -248,7 +248,7 @@ export function MetadataForm({
                     setFieldName('all');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             <br />
@@ -318,7 +318,7 @@ export function MetadataForm({
                 }}
                 className='primary-text primary-blue-bg'
               />
-              <Tooltip title='Populate the metadata of other badges with this title.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this title.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -331,7 +331,7 @@ export function MetadataForm({
                     setFieldName('name');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
             </div>
             {populateIsOpen && fieldName === 'name' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
@@ -432,7 +432,7 @@ export function MetadataForm({
                 ))}
               </Select>
 
-              <Tooltip title='Populate the metadata of other badges with this image.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this image.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -445,7 +445,7 @@ export function MetadataForm({
                     setFieldName('image');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
             </div>
             {populateIsOpen && fieldName === 'image' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
@@ -535,7 +535,7 @@ export function MetadataForm({
                   </Option>
                 ))}
               </Select>
-              <Tooltip title='Populate the metadata of other badges with this category.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this category.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -550,7 +550,7 @@ export function MetadataForm({
                     setFieldName('category');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             {populateIsOpen && fieldName === 'category' && <div style={{ marginTop: 8 }} className='primary-text'>
@@ -609,7 +609,7 @@ export function MetadataForm({
                                 color: PRIMARY_TEXT,
                             }}
                         /> */}
-              <Tooltip title='Populate the metadata of other badges with this description.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this description.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -622,7 +622,7 @@ export function MetadataForm({
                     setFieldName('description');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
             </div>
             {populateIsOpen && fieldName === 'description' && <div style={{ marginTop: 8 }} className='primary-text'>
               <br />
@@ -674,7 +674,7 @@ export function MetadataForm({
                 }}
                 className='primary-text primary-blue-bg'
               />
-              <Tooltip title='Populate the metadata of other badges with this website.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this website.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -687,7 +687,7 @@ export function MetadataForm({
                     setFieldName('externalUrl');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             <div style={{ fontSize: 12 }}>
@@ -822,7 +822,7 @@ export function MetadataForm({
                 </div>
 
               </div>
-              <Tooltip title='Populate the metadata of other badges with this expiration date.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this expiration date.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -835,7 +835,7 @@ export function MetadataForm({
                     setFieldName('validFrom');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             {populateIsOpen && fieldName === 'validFrom' && <div style={{ marginTop: 8 }} className='primary-text'>
@@ -889,7 +889,7 @@ export function MetadataForm({
                 }}
                 className='primary-text primary-blue-bg'
               />
-              <Tooltip title='Populate the metadata of other badges with these tags.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with these tags.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -902,7 +902,7 @@ export function MetadataForm({
                     setFieldName('tags');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             <div style={{ fontSize: 12 }}>
@@ -1025,7 +1025,7 @@ export function MetadataForm({
                   Brown
                 </Select.Option>
               </Select>
-              <Tooltip title='Populate the metadata of other badges with this border color.'>
+              {!isAddressMappingSelect && <Tooltip title='Populate the metadata of other badges with this border color.'>
                 <Avatar
                   className='screen-button'
                   src={<FontAwesomeIcon
@@ -1038,7 +1038,7 @@ export function MetadataForm({
                     setFieldName('color');
                   }}
                 />
-              </Tooltip>
+              </Tooltip>}
 
             </div>
             {populateIsOpen && fieldName === 'color' && <div style={{ marginTop: 8 }} className='primary-text'>
