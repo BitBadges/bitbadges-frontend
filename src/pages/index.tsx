@@ -6,7 +6,7 @@ import { NextPage } from 'next/types';
 import { ClockCircleOutlined, ContactsOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
@@ -54,6 +54,58 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
 const Home: NextPage = () => {
   const router = useRouter();
   const collections = useCollectionsContext();
+
+  const featuredBadges = [
+    {
+      collectionId: 1n,
+      badgeId: 1n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 2n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 3n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 4n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 5n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 6n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 7n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 8n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 9n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 10n,
+    }
+  ];
+
+  useEffect(() => {
+
+    for (const badge of featuredBadges) {
+      const { collectionId, badgeId } = badge;
+      collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
+    }
+  }, []);
+
   return (
     <Layout>
       <Content
@@ -117,51 +169,8 @@ const Home: NextPage = () => {
             <div style={{ paddingRight: 4, paddingLeft: 4 }}>
               <div className='flex-center flex-wrap full-width primary-text'>
                 {
-                  [
-                    {
-                      collectionId: 1n,
-                      badgeId: 1n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 2n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 3n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 4n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 5n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 6n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 7n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 8n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 9n,
-                    },
-                    {
-                      collectionId: 1n,
-                      badgeId: 10n,
-                    }
-                  ].map((obj, idx) => {
-                    const { collectionId, badgeId } = obj;
-                    collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
-
+                  featuredBadges.map((badge, idx) => {
+                    const { collectionId, badgeId } = badge;
                     return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
 
                       <BadgeAvatar
