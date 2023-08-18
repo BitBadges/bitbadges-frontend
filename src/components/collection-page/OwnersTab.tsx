@@ -1,4 +1,5 @@
 import { Empty, Spin } from 'antd';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
@@ -9,11 +10,10 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { getPageDetails } from '../../utils/pagination';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { TableRow } from '../display/TableRow';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
 
 export function OwnersTab({ collectionId, badgeId }: {
   collectionId: bigint;
@@ -89,6 +89,8 @@ export function OwnersTab({ collectionId, badgeId }: {
     getOwners();
   }, [collectionId, badgeId, pagination.bookmark, pagination.total, isPreview]);
 
+  const isMobile = window.innerWidth < 768;
+
   const currUserBalance = owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances ?? [];
   return (
     <InformationDisplayCard
@@ -96,16 +98,13 @@ export function OwnersTab({ collectionId, badgeId }: {
     >
       {loaded ?
         <div className='primary-text flex-center flex-column'>
-          <div className='full-width'>
+          {chain.address && <div className='full-width'>
             <h2 className='primary-text'>You</h2>
-            {chain.connected && chain.cosmosAddress ?
-              <div className='flex-between primary-text full-width' style={{ padding: 10 }}>
-                <div>
-                  <AddressDisplay
-                    addressOrUsername={chain.address}
-                    fontSize={16}
-                  />
-                </div>
+            <TableRow label={
+              <div style={{ float: isMobile ? undefined : 'left' }}>
+                <AddressDisplay addressOrUsername={chain.address} fontSize={16} />
+              </div>} value={
+
                 <div style={{ float: 'right' }}>
                   <BalanceDisplay
                     hideBadges
@@ -117,10 +116,9 @@ export function OwnersTab({ collectionId, badgeId }: {
                   />
                   <br />
                 </div>
-              </div> : <BlockinDisplay hideLogo />
-            }
+              } labelSpan={12} valueSpan={12} />
             <hr />
-          </div>
+          </div>}
 
           <h2 className='primary-text'>All Owners</h2>
           <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} />
@@ -130,8 +128,13 @@ export function OwnersTab({ collectionId, badgeId }: {
             if (idx < pageStartId - 1 || idx > pageEndId - 1) {
               return <></>
             } else {
-              return <div key={idx} className='flex-between primary-text full-width' style={{ padding: 10 }}>
-                <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
+              return <TableRow label={
+                <div style={{ float: isMobile ? undefined : 'left' }}>
+                  <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
+                </div>
+              } value={
+
+
                 <div style={{ float: 'right' }}>
                   <BalanceDisplay
                     hideBadges
@@ -141,9 +144,8 @@ export function OwnersTab({ collectionId, badgeId }: {
                     hideMessage
                     balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, owner.balances) : owner.balances}
                   />
-                  <br />
                 </div>
-              </div>
+              } labelSpan={12} valueSpan={12} />
             }
           })}
           {totalNumOwners <= 0 && <Empty //<= 2 because of Mint and Total always being there

@@ -163,10 +163,11 @@ function CollectionPage({ }: {}) {
 
                       />
                       <br />
-                      <AddressDisplay
-                        addressOrUsername={addressToCheck}
+                      {addressToCheck &&
+                        <AddressDisplay
+                          addressOrUsername={addressToCheck}
 
-                      />
+                        />}
                       <br />
                       {addressToCheck ? addressInList ? <div className='flex-center'>
                         <div className='flex-center' style={{ alignItems: 'center' }}>

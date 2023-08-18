@@ -65,7 +65,7 @@ export function TransferDisplay({
       !hideAddresses && transfer && <div className="full-width">
         <br />
         <div className="flex-center flex-wrap">
-          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
+          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
             <AddressDisplayList
               users={[transfer.from]}
               // toLength={Numberify(toLength)}
@@ -81,10 +81,10 @@ export function TransferDisplay({
                 title={'Initiated By'}
                 fontSize={15}
                 center
-              /></>}
+              /><br /></>}
           </div>
 
-          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>
+          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
             <AddressDisplayList
               users={transfer.toAddresses}
               // toLength={Numberify(toLength)}

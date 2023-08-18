@@ -22,12 +22,15 @@ function BrowsePage() {
       const browseInfo = await getBrowseCollections();
       if (!browseInfo) return;
 
+      console.log(browseInfo);
+      console.log(Object.keys(browseInfo));
+
       const updatedIds: bigint[] = [];
-      for (const category of Object.keys(browseInfo)) {
+      for (const category of Object.keys(browseInfo.collections)) {
         if (!browseInfo.collections[category]) continue;
-
+        console.log(browseInfo.collections[category]);
         for (const collection of browseInfo.collections[category]) {
-
+          console.log(collection);
           if (updatedIds.includes(collection.collectionId)) continue;
           collections.updateCollection(collection);
           updatedIds.push(collection.collectionId);
@@ -62,6 +65,7 @@ function BrowsePage() {
             fullWidth
             theme='dark'
             tabInfo={browseInfo ? Object.keys(browseInfo.collections).map(category => {
+
               return {
                 key: category,
                 label: category.charAt(0).toUpperCase() + category.slice(1),
@@ -79,7 +83,10 @@ function BrowsePage() {
             {/* <br /> */}
             <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
               <MultiCollectionBadgeDisplay
-                collectionIds={(browseInfo && browseInfo.collections[tab]?.map(collection => collection.collectionId)) ?? []}
+                collectionIds={(browseInfo && browseInfo.collections[tab]?.map(collection => {
+                  console.log(collection);
+                  return collection.collectionId
+                })) ?? []}
                 groupByCollection
                 cardView
               />

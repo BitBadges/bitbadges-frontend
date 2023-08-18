@@ -1,4 +1,4 @@
-import { SwapOutlined, UserAddOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SwapOutlined, UserAddOutlined } from "@ant-design/icons";
 import { Button, Divider, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { useState } from "react";
@@ -78,7 +78,7 @@ export function AddressListSelect({
 
     <AddressDisplayTitle
       title={"Add Addresses"}
-      icon={<Tooltip title={<>
+      icon={<><Tooltip title={<>
         {enterMethod === EnterMethod.Single && <>Batch Add</>}
         {enterMethod === EnterMethod.Batch && <>Manual Add</>}
       </>}>
@@ -86,6 +86,13 @@ export function AddressListSelect({
           EnterMethod.Batch : EnterMethod.Single
         )} style={{ cursor: 'pointer' }} />
       </Tooltip>
+        <Tooltip title={<>Reset All
+        </>}>
+          <DeleteOutlined onClick={() => setUsers([])} style={{ cursor: 'pointer', marginLeft: 4 }} />
+        </Tooltip>
+
+
+      </>
       }
     />
     {

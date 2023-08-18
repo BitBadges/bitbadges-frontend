@@ -256,19 +256,19 @@ export const PermissionIcon = (permissions: UniversalPermission[], helperMsg: st
         && !(hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes) &&
         !neverHasManager &&
         <>
-          <CheckCircleOutlined style={{ marginLeft: 4 }} />
-          {hasForbiddenTimes && <StopOutlined style={{ marginLeft: 4, }} />}
+          <CheckCircleOutlined style={{ marginLeft: 4, color: 'green' }} />
+          {hasForbiddenTimes && <StopOutlined style={{ marginLeft: 4, color: 'red' }} />}
           <ClockCircleOutlined style={{ marginLeft: 4 }} />
         </>
       }
       {
         (neverHasManager || (hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)) &&
-        <StopOutlined style={{ marginLeft: 4, }} />
+        <StopOutlined style={{ marginLeft: 4, color: 'red' }} />
       }
       {
         hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes &&
         !neverHasManager &&
-        <CheckCircleOutlined style={{ marginLeft: 4 }} />
+        <CheckCircleOutlined style={{ marginLeft: 4, color: 'green' }} />
       }
     </Popover >
   </>

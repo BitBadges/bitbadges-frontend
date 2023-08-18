@@ -59,7 +59,7 @@ export function WalletHeader() {
 
 
   const HomeTabMenu = <></>
-  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined />} />), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
   const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
@@ -84,7 +84,7 @@ export function WalletHeader() {
       </div>
     </Menu.Item>
   </Menu>
-  const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
   const BrowseTabWithText = { key: 'popup-browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
@@ -273,7 +273,7 @@ export function WalletHeader() {
 
   const CollapsedSearchIconTab = {
     key: 'search',
-    content: <Avatar src={<SearchOutlined />} />,
+    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />,
     onClick: () => {
       // console.log('Do Nothing');
     },

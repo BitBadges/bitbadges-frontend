@@ -117,7 +117,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   if (!managerVal.manager) return <>None</>
 
                   return <AddressDisplay
-                    fontSize={13}
+                    fontSize={16}
                     addressOrUsername={managerVal.manager}
                   />
                 }}
@@ -133,7 +133,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               <div></div>
               <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
                 <AddressDisplay
-                  fontSize={13}
+                  fontSize={16}
                   addressOrUsername={collection.createdBy}
                 />
               </div>

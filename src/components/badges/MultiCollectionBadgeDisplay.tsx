@@ -149,7 +149,7 @@ export function MultiCollectionBadgeDisplay({
                         collectionId={collectionId}
                         noHover
                       />
-                      <Typography.Text className="primary-text" style={{ fontSize: 40, fontWeight: 'bold', marginLeft: 10 }}>
+                      <Typography.Text className="primary-text" style={{ fontSize: 32, fontWeight: 'bold', marginLeft: 10 }}>
 
                         {collection?.cachedCollectionMetadata?.name}
                       </Typography.Text>
@@ -160,7 +160,7 @@ export function MultiCollectionBadgeDisplay({
               >
                 <BadgeAvatarDisplay
                   collectionId={collectionId}
-                  pageSize={cardView ? 3 : 10}
+                  pageSize={cardView ? 2 : 10}
                   cardView={cardView}
                   addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
                   balance={addressOrUsernameToShowBalance ? balances : undefined}
