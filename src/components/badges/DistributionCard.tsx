@@ -1,13 +1,13 @@
-import { castBalancesActionPermissionToUniversalPermission, getBalancesForId, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
+import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
+import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
+import { BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { BalanceDisplay } from "./balances/BalanceDisplay";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
-import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
-import { LinkOutlined, LockOutlined, EditOutlined } from "@ant-design/icons";
-import { Tooltip } from "antd";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
+import { BalanceDisplay } from "./balances/BalanceDisplay";
 
 export function DistributionOverview({
   collectionId,
@@ -44,6 +44,7 @@ export function DistributionOverview({
   }
 
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
+  // const lastFetchedAtBlock = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAtBlock ?? 0n
 
   return <InformationDisplayCard title={'Distribution'} span={span}>
     <>
@@ -113,6 +114,9 @@ export function DistributionOverview({
         <div>
           <>
             {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : '...'}
+            {/* {lastFetchedAtBlock ? <Tooltip title={"Fetched at block #" + lastFetchedAtBlock}>
+              <BlockOutlined style={{ marginLeft: 4 }} />
+            </Tooltip> : <></>} */}
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}

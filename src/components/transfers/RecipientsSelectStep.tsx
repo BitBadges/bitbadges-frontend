@@ -110,6 +110,6 @@ export function RecipientsSelectStep({ sender,
         <br />
       </div>
     </div>,
-    disabled: !canTransfer,
+    disabled: !canTransfer || toAddresses.length === 0,
   }
 }

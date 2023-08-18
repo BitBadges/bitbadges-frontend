@@ -141,6 +141,9 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         }, {
           viewKey: 'latestReviews',
           bookmark: '',
+        }, {
+          viewKey: 'addressMappings',
+          bookmark: '',
         }]
       }]);
       setLoggedIn(cookies.blockincookie === convertToCosmosAddress(address));

@@ -1,5 +1,5 @@
-import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Avatar, Button, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { CalendarOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Avatar, Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import MarkdownIt from 'markdown-it';
@@ -17,6 +17,7 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 import { FOREVER_DATE } from '../../../utils/dates';
 import { BadgeCard } from '../../badges/BadgeCard';
 import { UintRangesInput } from '../../badges/balances/IdRangesInput';
+import moment from 'moment';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -34,7 +35,8 @@ export function MetadataForm({
   startId,
   endId,
   toBeFrozen,
-  hideCollectionSelect
+  hideCollectionSelect,
+  isAddressMappingSelect
 }: {
   addMethod: MetadataAddMethod;
   isCollectionSelect?: boolean;
@@ -43,7 +45,7 @@ export function MetadataForm({
   toBeFrozen?: boolean;
   collectionId: bigint;
   hideCollectionSelect?: boolean;
-
+  isAddressMappingSelect?: boolean
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
@@ -53,6 +55,8 @@ export function MetadataForm({
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
 
   const [currMetadata, setCurrMetadata] = useState<Metadata<bigint>>(metadata);
+
+  console.log(isAddressMappingSelect);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("MetadataForm: useEffect: collection: ", collectionId);
@@ -96,7 +100,7 @@ export function MetadataForm({
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
-  // const [validForeverChecked, setValidForeverChecked] = useState(metadata?.validFrom && metadata?.validFrom?.length > 0 && metadata?.validFrom[0].end === FOREVER_DATE);
+  const [validForeverChecked, setValidForeverChecked] = useState((!metadata.validFrom) || (metadata.validFrom && metadata.validFrom.length === 0));
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>([
     {
       start: startId ? startId : 1n,
@@ -714,13 +718,13 @@ export function MetadataForm({
               <hr />
             </div>}
           </Form.Item>
-          {/* <Form.Item
+          <Form.Item
             label={
               <Text
                 className='primary-text'
                 strong
               >
-                Expiration Date <Tooltip title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational.'}>
+                Validity <Tooltip title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational. Could be used for subscriptions, memberships, etc.'}>
                   <InfoCircleOutlined />
                 </Tooltip>
               </Text>
@@ -728,8 +732,37 @@ export function MetadataForm({
           >
             <div className='flex-between'>
               <div className='primary-text primary-blue-bg full-width'>
-                {!validForeverChecked &&
+                {!validForeverChecked && <>
                   <DatePicker
+                    allowClear={false}
+
+                    showTime
+                    showMinute
+                    placeholder='Default: None'
+                    value={currMetadata.validFrom && currMetadata.validFrom.length > 0 ? moment(new Date(Number(currMetadata.validFrom[0].start))) : undefined}
+                    className='primary-text primary-blue-bg full-width'
+                    suffixIcon={
+                      <CalendarOutlined
+                        className='primary-text'
+                      />
+                    }
+                    onChange={(_date, dateString) => {
+                      console.log(dateString);
+                      console.log(new Date(dateString))
+                      setMetadata({
+                        ...currMetadata,
+                        validFrom: [{
+
+                          start: BigInt(new Date(dateString).valueOf()),
+                          end: currMetadata.validFrom && currMetadata.validFrom.length > 0 ? currMetadata.validFrom[0].end : FOREVER_DATE,
+                        }]
+                      });
+                    }}
+                  />
+                  <br />
+                  <br />
+                  <DatePicker
+                    allowClear={false}
                     showTime
                     showMinute
                     placeholder='Default: No Expiration Date'
@@ -746,15 +779,16 @@ export function MetadataForm({
                       setMetadata({
                         ...currMetadata,
                         validFrom: [{
-                          start: BigInt(Date.now()),
+                          start: currMetadata.validFrom && currMetadata.validFrom.length > 0 ? currMetadata.validFrom[0].start : BigInt(Date.now()),
                           end: BigInt(new Date(dateString).valueOf()),
                         }]
                       });
                     }}
                   />
+                </>
                 }
                 <div className='primary-text'>
-                  Valid Forever?
+                  Always Valid?
                   <Checkbox
                     checked={validForeverChecked}
                     style={{ marginLeft: 5 }}
@@ -762,10 +796,7 @@ export function MetadataForm({
                       if (e.target.checked) {
                         setMetadata({
                           ...currMetadata,
-                          validFrom: [{
-                            start: BigInt(Date.now()),
-                            end: FOREVER_DATE
-                          }]
+                          validFrom: []
                         });
                       } else {
                         const maxDate = new Date();
@@ -829,7 +860,7 @@ export function MetadataForm({
               <Divider />
               <hr />
             </div>}
-          </Form.Item> */}
+          </Form.Item>
 
 
 

@@ -1,5 +1,5 @@
 import { DownOutlined } from '@ant-design/icons';
-import { Divider, Empty, Layout, Select, Spin } from 'antd';
+import { Card, Divider, Empty, Layout, Select, Spin, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
@@ -9,6 +9,7 @@ import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
+import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
@@ -25,6 +26,8 @@ function PortfolioPage() {
   const router = useRouter();
   const accounts = useAccountsContext();
 
+
+
   const { addressOrUsername } = router.query;
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
 
@@ -34,6 +37,10 @@ function PortfolioPage() {
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
+  // const [showHidden, setShowHidden] = useState(false);
+  const showHidden = false;
+
+  // const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
 
   const tabInfo = [];
   if (accountInfo?.readme) {
@@ -41,7 +48,8 @@ function PortfolioPage() {
   }
 
   tabInfo.push(
-    { key: 'collected', content: 'Collected', disabled: false },
+    { key: 'collected', content: 'Badges', disabled: false },
+    { key: 'lists', content: 'Address Lists' },
     // { key: 'managing', content: 'Managing', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' }
@@ -68,15 +76,19 @@ function PortfolioPage() {
         }, {
           viewKey: 'badgesCollected',
           bookmark: ''
+        }, {
+          viewKey: 'addressMappings',
+          bookmark: '',
         }]
-      }]);
+      }], true);
+
       const fetchedAccount = fetchedAccounts[0];
       if (fetchedAccount.readme) {
         setTab('overview');
       }
     }
     getPortfolioInfo();
-  }, [addressOrUsername]);
+  }, [addressOrUsername, showHidden]);
 
 
   useEffect(() => {
@@ -126,6 +138,7 @@ function PortfolioPage() {
   }
 
   const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
+  const hasMoreAddressMappings = accountInfo?.views['addressMappings']?.pagination?.hasMore ?? true;
 
   return (
     <Layout>
@@ -167,6 +180,7 @@ function PortfolioPage() {
           </>)}
           {tab === 'collected' && (<>
             <br />
+
             <div className='primary-text primary-blue-bg' style={{
               float: 'right',
               display: 'flex',
@@ -229,6 +243,37 @@ function PortfolioPage() {
                 <Select.Option value="image">Image</Select.Option>
               </Select>
             </div>
+            {/* {isSameAccount &&
+              <div className='primary-text primary-blue-bg' style={{
+                float: 'right',
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: 16,
+                minHeight: 32,
+              }}>
+                Show Hidden:
+                <Select
+                  className="selector primary-text primary-blue-bg"
+                  value={showHidden ? 'Yes' : 'No'}
+                  placeholder=""
+                  onChange={(e: any) => {
+                    setShowHidden(e === 'Yes');
+                  }}
+                  style={{
+                    float: 'right',
+                    marginLeft: 8
+                  }}
+                  suffixIcon={
+                    <DownOutlined
+                      className='primary-text'
+                    />
+                  }
+                >
+                  <Select.Option value="Yes">Yes</Select.Option>
+                  <Select.Option value="No">No</Select.Option>
+                </Select>
+              </div>} */}
+
             <Divider />
           </>)}
 
@@ -274,6 +319,7 @@ function PortfolioPage() {
                   groupByCollection={groupByCollection}
                   pageSize={groupByCollection ? accountInfo.collected.length : numBadgesDisplayed}
                   hidePagination={true}
+                // showCustomizeButtons={isSameAccount}
                 />
               </InfiniteScroll>
 
@@ -283,6 +329,78 @@ function PortfolioPage() {
                   description={
                     <span>
                       This account has not collected any badges yet.
+                    </span>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+            </div>
+          </>)}
+
+          {tab === 'lists' && (<>
+            <div className='flex-center flex-wrap'>
+              <InfiniteScroll
+                dataLength={accountInfo.addressMappings.length}
+                next={async () => {
+                  if (!accountInfo) return;
+
+                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['badgesCollected']);
+                }}
+                hasMore={hasMoreAddressMappings}
+                loader={<div>
+                  <br />
+                  <Spin size={'large'} />
+                </div>}
+                scrollThreshold={"300px"}
+                endMessage={
+                  <></>
+                }
+                initialScrollY={0}
+                style={{ width: '100%', overflow: 'hidden' }}
+              >
+                <div className='full-width flex-center flex-wrap'>
+                  {accountInfo?.addressMappings.map((addressMapping, idx) => {
+                    return <div key={idx} style={{ margin: 16 }}>
+                      <Card
+                        className='primary-text primary-blue-bg'
+                        style={{
+                          width: 175,
+                          margin: 8,
+                          textAlign: 'center',
+                          borderRadius: '8%',
+                        }}
+                        hoverable={true}
+                        onClick={() => {
+                          router.push(`/addresses/${addressMapping.mappingId}`);
+                        }}
+                        cover={<>
+                          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+                            <BadgeAvatar
+                              collectionId={0n}
+                              metadataOverride={addressMapping.metadata}
+                              size={75}
+                            />
+                          </div>
+
+                        </>
+                        }
+                      >
+                        <Typography.Text strong className='primary-text'>
+                          {addressMapping.metadata?.name}
+                        </Typography.Text>
+                      </Card>
+
+                    </div>
+                  })}
+                </div>
+              </InfiniteScroll>
+
+              {accountInfo?.addressMappings.length === 0 && !hasMoreAddressMappings && (
+                <Empty
+                  className='primary-text'
+                  description={
+                    <span>
+                      This account is not on any lists.
                     </span>
                   }
                   image={Empty.PRESENTED_IMAGE_SIMPLE}

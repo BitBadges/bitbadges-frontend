@@ -1,7 +1,7 @@
 import { ClockCircleOutlined, CloudSyncOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Spin, Tooltip } from "antd";
 import { Balance } from "bitbadgesjs-proto";
-import { DefaultPlaceholderMetadata, getBalanceForIdAndTime, getMetadataForBadgeId } from "bitbadgesjs-utils";
+import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { FOREVER_DATE, getTimeRangesString } from "../../utils/dates";
@@ -13,7 +13,8 @@ export function BadgeAvatar({
   balances,
   showId,
   showSupplys,
-  noHover
+  noHover,
+  metadataOverride
 }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -21,13 +22,14 @@ export function BadgeAvatar({
   balances?: Balance<bigint>[],
   showId?: boolean,
   showSupplys?: boolean,
-  noHover?: boolean
+  noHover?: boolean,
+  metadataOverride?: Metadata<bigint>
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
 
   const collection = collections.collections[collectionId.toString()]
-  const metadata = badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
+  const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
   const showOwnershipTimesIcon = badgeId && balances && showSupplys ?

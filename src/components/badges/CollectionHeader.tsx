@@ -2,19 +2,20 @@ import { Col, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
-import { getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
+import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
 
 const { Text } = Typography;
 
-export function CollectionHeader({ collectionId, hideCollectionLink, badgeId }: {
+export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, metadataOverride }: {
   collectionId: bigint;
   badgeId?: bigint;
   hideCollectionLink?: boolean;
+  metadataOverride?: Metadata<bigint>
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
-  const metadata = badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
+  const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
 
   return <div className='primary-text'>
     <Row className='flex-center'>
@@ -25,6 +26,7 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId }: 
             badgeId={badgeId}
             size={200}
             noHover
+            metadataOverride={metadataOverride}
           />
           <div style={{ maxWidth: 500, textAlign: 'center' }}>
             <Text strong className='primary-text' style={{ fontSize: 30 }}>

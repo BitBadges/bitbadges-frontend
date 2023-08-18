@@ -3,20 +3,20 @@ import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
 // import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 // import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
-import { ClockCircleOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, UpOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, ContactsOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
+import { ToolIcon, tools } from '../components/display/ToolIcon';
 import { COSMOS_LOGO, ETH_LOGO } from '../constants';
-import { DistributionMethod } from 'bitbadgesjs-utils';
-import { tools, ToolIcon } from '../components/display/ToolIcon';
 
 
-export const LandingCard = ({ content, additionalContent }: {
+export const LandingCard = ({ content, additionalContent, onClick }: {
   content: JSX.Element,
-  additionalContent?: JSX.Element
+  additionalContent?: JSX.Element,
+  onClick?: () => void
 }) => {
 
   const [showMore, setShowMore] = useState<boolean>(false);
@@ -26,20 +26,24 @@ export const LandingCard = ({ content, additionalContent }: {
   }}>
     <div>
 
-      <Card hoverable className='primary-blue-bg primary-text'
+      <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
         style={{
-          minHeight: 360, borderRadius: 15,
+          minHeight: additionalContent ? 360 : 260, borderRadius: 15,
           background: `linear-gradient(0deg, black 10%, #001529 100%)`,
 
-        }} onClick={() => setShowMore(!showMore)}>
+        }} onClick={() => {
+          if (onClick) onClick();
+          else setShowMore(!showMore)
+        }}>
         <div className='landing-card' >
           {content}
           {additionalContent && showMore && additionalContent}
-          <br />
-          <br />
-          {/* {/* <Button className='screen-button' onClick={() => setShowMore(!showMore)}>{showMore ? 'Show Less' : 'Show More'}</Button> */}
+          {additionalContent && <>
+            <br />
+            <br />
+            {/* {/* <Button className='screen-button' onClick={() => setShowMore(!showMore)}>{showMore ? 'Show Less' : 'Show More'}</Button> */}
 
-          {!showMore ? <DownOutlined /> : <UpOutlined />}
+            {!showMore ? <DownOutlined /> : <UpOutlined />}</>}
         </div>
       </Card >
     </div>
@@ -75,7 +79,7 @@ const Home: NextPage = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', }}>
               <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="300px" width="300px" quality={60} />
-              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 20 }}>BitBadges</Typography.Text> */}
+              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>BitBadges</Typography.Text> */}
               <Typography.Text strong className='secondary-text' style={{ fontSize: 24 }}>Collect badges and build your digital identity!</Typography.Text>
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
@@ -84,15 +88,17 @@ const Home: NextPage = () => {
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text>
               <div className='flex'>
                 <Button
+                  size='large'
                   className='screen-button'
                   style={{ marginTop: '20px' }}
                   onClick={() => {
-                    router.push('/browse');
+                    router.push('/browse/badges');
                   }}
                 >
                   Explore
                 </Button>
                 <Button
+                  size='large'
                   className='screen-button'
                   style={{ marginTop: '20px', marginLeft: 8 }}
                   href="https://docs.bitbadges.io/overview"
@@ -107,123 +113,134 @@ const Home: NextPage = () => {
               {/* </div> */}
 
             </div>
+            <br />
+            <div style={{ paddingRight: 4, paddingLeft: 4 }}>
+              <div className='flex-center flex-wrap full-width primary-text'>
+                {
+                  [
+                    {
+                      collectionId: 1n,
+                      badgeId: 1n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 2n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 3n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 4n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 5n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 6n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 7n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 8n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 9n,
+                    },
+                    {
+                      collectionId: 1n,
+                      badgeId: 10n,
+                    }
+                  ].map((obj, idx) => {
+                    const { collectionId, badgeId } = obj;
+                    collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
+
+                    return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
+
+                      <BadgeAvatar
+                        size={75}
+                        // size={size && selectedId === badgeId ? size * 1.5 : size}
+                        collectionId={collectionId}
+                        badgeId={badgeId}
+                        showId={false}
+                        showSupplys={false}
+                      />
+
+                    </div>
+                  })
+                }
+              </div>
+            </div>
             <Divider />
             <Row className='flex-between' style={{ alignItems: 'normal' }}>
-              <Col md={6} sm={24} xs={24} style={{ padding: 10, }}>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
-                  Create
-                </Typography.Text>
+              <LandingCard
+                content={<>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
+                    Create
+                  </Typography.Text>
 
 
-                <br />
-                <br />
-                <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                  Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
-                </Typography.Text>
+                  <br />
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
+                    Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
+                  </Typography.Text></>
+                }
+              />
+              <LandingCard
+                content={<>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
+                    Distribute
+                  </Typography.Text>
+                  <br />
 
-              </Col>
-              <Col md={6} sm={24} xs={24} style={{ padding: 10, }}>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
-                  Distribute
-                </Typography.Text>
-                <br />
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
+                    Distribute your created badges to users in a variety of ways, such as whitelists, passwords, codes, emails, and QR codes.
+                  </Typography.Text>
+                </>
+                }
+              />
+              <LandingCard
+                content={<>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
+                    Display
+                  </Typography.Text>
+                  <br />
 
-                <br />
-                <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                  Distribute your created badges to users in a variety of ways, such as whitelists, passwords, codes, emails, and QR codes.
-                </Typography.Text>
-              </Col>
-              <Col md={6} sm={24} xs={24} style={{ padding: 10, }}>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
-                  Display
-                </Typography.Text>
-                <br />
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
+                    As you collect and earn more badges, your digital identity portfolio expands, and you can show it off to the world!
+                  </Typography.Text>
+                </>
+                }
+              />
 
-                <br />
-                <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                  As you collect and earn more badges, your digital identity portfolio expands, and you can show it off to the world!
-                </Typography.Text>
-              </Col>
+              <LandingCard
+                content={<>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
+                    Verify
+                  </Typography.Text>
+                  <br />
 
-              <Col md={6} sm={24} xs={24} style={{ padding: 10, }}>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 36 }}>
-                  Verify
-                </Typography.Text>
-                <br />
-
-                <br />
-                <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                  Verify ownership of badges using our verification tools, allowing you to offer gated utility like event tickets, membership benefits, or access to a website.
-                </Typography.Text>
-              </Col>
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
+                    Verify ownership of badges using our verification tools, allowing you to offer gated utility like event tickets, membership benefits, or access to a website.
+                  </Typography.Text>
+                </>
+                }
+              />
             </Row>
 
           </div>
-          <br />
-          <div style={{ paddingRight: 4, paddingLeft: 4 }}>
-            <div className='flex-center flex-wrap full-width primary-text'>
-              {
-                [
-                  {
-                    collectionId: 1n,
-                    badgeId: 1n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 2n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 3n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 4n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 5n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 6n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 7n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 8n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 9n,
-                  },
-                  {
-                    collectionId: 1n,
-                    badgeId: 10n,
-                  }
-                ].map((obj, idx) => {
-                  const { collectionId, badgeId } = obj;
-                  collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
 
-                  return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
-
-                    <BadgeAvatar
-                      size={75}
-                      // size={size && selectedId === badgeId ? size * 1.5 : size}
-                      collectionId={collectionId}
-                      badgeId={badgeId}
-                      showId={false}
-                      showSupplys={false}
-                    />
-
-                  </div>
-                })
-              }
-            </div>
-          </div>
           <br />
           <br />
 
@@ -236,7 +253,7 @@ const Home: NextPage = () => {
           >
             <Col md={11} sm={24} xs={24}>
               {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
-              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 20 }}>Team</Typography.Text> */}
+              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>Team</Typography.Text> */}
               <br />
               <div className="container">
                 <iframe
@@ -255,7 +272,7 @@ const Home: NextPage = () => {
             </Col>
             <Col md={11} sm={24} xs={24}>
               {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
-              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 20 }}>Team</Typography.Text> */}
+              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>Team</Typography.Text> */}
               <br />
               <div className="container">
                 <iframe
@@ -295,20 +312,12 @@ const Home: NextPage = () => {
         > */}
           <Divider />
           <Divider />
-          <Row className='flex-center'>
-            <Col md={12} sm={24} xs={24}>
-              <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
-                Core Ideas
-              </Typography.Text>
-            </Col>
-          </Row>
-          <br />
           <Row className='flex-between' style={{ alignItems: 'normal', }}>
 
             <LandingCard
               content={
                 <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                     Decentralized
                   </Typography.Text>
                   <br />
@@ -338,7 +347,7 @@ const Home: NextPage = () => {
             <LandingCard
               content={
                 <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                     Cross-Chain
                   </Typography.Text>
                   <br />
@@ -382,7 +391,7 @@ const Home: NextPage = () => {
             <LandingCard
               content={
                 <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                     Scalable
                   </Typography.Text>
                   <br />
@@ -408,7 +417,7 @@ const Home: NextPage = () => {
             <LandingCard
               content={
                 <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                     Rapidly Evolving
                   </Typography.Text>
                   <br />
@@ -446,7 +455,7 @@ const Home: NextPage = () => {
           <Row className='flex-between' style={{ alignItems: 'normal' }}>
             <Col md={24} sm={24} xs={24}>
               <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-                Through years of research, BitBadges is proud to introduce new features that have never been seen before in the blockchain space.<br /><br />
+                {/* Through years of research, BitBadges is proud to introduce new features that have never been seen before in the blockchain space.<br /><br /> */}
                 Check out some of our favorite innovative features of BitBadges below!
               </Typography.Text>
             </Col>
@@ -462,7 +471,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Time-Based Balances
                     </Typography.Text>
                     <br />
@@ -491,7 +500,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Fine-Grained Transferability
                     </Typography.Text>
                     <br />
@@ -517,7 +526,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Off-Chain Balances
                     </Typography.Text>
                     <br />
@@ -547,7 +556,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Incoming Approvals
                     </Typography.Text>
                     <br />
@@ -577,7 +586,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       No Smart Contracts
                     </Typography.Text>
                     <br />
@@ -609,7 +618,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Batch Transfers
                     </Typography.Text>
                     <br />
@@ -638,7 +647,7 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
                       Time-Based Details
                     </Typography.Text>
                     <br />
@@ -664,14 +673,14 @@ const Home: NextPage = () => {
               <LandingCard
                 content={
                   <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Manager Permissions
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
+                      Address Lists
                     </Typography.Text>
                     <br />
-                    <ControlOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
+                    <TeamOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Every badge collection can optionally have a manager that can have admin privileges.
+                      Create address lists to easily manage and organize users. No complexity of a token, just a simple list. These lists can be used for a variety of purposes, such as whitelists, blacklists, and more.
                     </Typography.Text>
                   </>
                 }
@@ -680,7 +689,13 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Example privileges include updating the core collection details, revoking badges, freezing users, etc. These permissions can be customized on a very fine-grained level.
+                      These lists can be stored on-chain and referenced by other collections, such as a badge collection that only allows transfers to users on a specific address list.
+                      Or, the list can be created off-chain and stored by our centralized servers completely free!
+                    </Typography.Text>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      You also have the option to create inverted lists, meaning include ALL EXCEPT the addresses on the list.
                     </Typography.Text>
                   </>
                 }

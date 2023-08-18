@@ -144,9 +144,9 @@ export function ConfirmManagerStepItem(
                   src={
                     <BlockiesAvatar
                       address={address}
-                      avatar={signedInAccount?.avatar}
-                      fontSize={150}
-                      shape='circle'
+                      avatar={signedInAccount?.profilePicUrl ?? signedInAccount?.avatar}
+                fontSize={150}
+                shape='circle'
                     />
                   }
                 />

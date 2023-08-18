@@ -1,6 +1,8 @@
 import {
+  BlockOutlined,
   GlobalOutlined,
   HomeOutlined,
+  InfoCircleOutlined,
   PlusOutlined,
   SearchOutlined,
   SwapOutlined,
@@ -21,6 +23,7 @@ import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
+import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -30,21 +33,24 @@ export function WalletHeader() {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const account = accounts.getAccount(chain.address);
+  const status = useStatusContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [_cookies, _setCookie] = useCookies(['blockincookie']);
   const [visible, setVisible] = useState<boolean>(false);
 
   const address = chain.address;
-  const avatar = account?.avatar;
+  const avatar = account?.profilePicUrl ?? account?.avatar;
 
-  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean) => {
+  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean) => {
     if (!value) return;
 
     if (isAccount && typeof value !== "string") {
       router.push('/account/' + value.address);
-    } else {
+    } else if (isCollection) {
       router.push('/collections/' + value);
+    } else {
+      router.push('/addresses/' + value);
     }
 
     setSearchValue('');
@@ -56,9 +62,30 @@ export function WalletHeader() {
   const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined />} />), subMenuOverlay: HomeTabMenu };
   const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
-  const BrowseTabMenu = <></>
-  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
+    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/badges')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Badges
+      </div>
+    </Menu.Item>
+    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/addresses')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Address Lists
+      </div>
+    </Menu.Item>
+    {/* TODO: <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Profiles
+      </div>
+    </Menu.Item> */}
+    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/activity')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Activity
+      </div>
+    </Menu.Item>
+  </Menu>
+  const BrowseTabWithIcon = { key: 'browse/badges', content: (<Avatar src={<GlobalOutlined />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse/badges', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
@@ -96,8 +123,8 @@ export function WalletHeader() {
           <AddressDisplay
             addressOrUsername={address}
             hidePortfolioLink
-
           />
+
           {account?.balance?.amount ? <>
             <br />
             {account.balance?.amount.toString()} $BADGE
@@ -140,6 +167,13 @@ export function WalletHeader() {
         </b>
 
       </p>
+
+    </div>
+    <div className='flex-center full-width primary-text' style={{ padding: '10', marginTop: 8 }}>
+      <BlockOutlined style={{ marginRight: 4 }} /> <b>Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})</b>
+      <Tooltip title="Data is provided by the BitBadges API. The API is up to date as of at least this block. ">
+        <InfoCircleOutlined style={{ marginLeft: 4 }} />
+      </Tooltip>
     </div>
 
     <hr />
@@ -205,7 +239,7 @@ export function WalletHeader() {
 
   const SearchBar = <Input
     defaultValue=""
-    placeholder="Enter an Address, Username, or Collection Name"
+    placeholder="Enter an Address, Username, List Name, or Collection Name"
     // onSearch={async (value) => {
     //   onSearch(value, true);
     // }}
@@ -223,11 +257,14 @@ export function WalletHeader() {
     <Dropdown
       open={searchValue !== ''}
       placement="bottom"
+
       overlay={
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
 
 
       }
+      overlayClassName='primary-text primary-blue-bg'
+      className='primary-blue-bg'
       trigger={['hover', 'click']}
     >
       {SearchBar}

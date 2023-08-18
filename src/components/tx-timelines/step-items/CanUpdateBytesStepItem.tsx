@@ -35,12 +35,12 @@ export function CanUpdateBalancesStepItem(
             options={[
               {
                 title: 'No',
-                message: `The balances (who owns the badge?) are permanent and can never be updated.`,
+                message: `The balances are permanently frozen and can never be updated.`,
                 isSelected: handledPermissions.canUpdateOffChainBalancesMetadata.length > 0 && collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length > 0
               },
               {
                 title: 'Yes',
-                message: `The balances (who owns the badge?) can be updated by the manager.`,
+                message: `The balances can be updated by the manager.`,
                 isSelected: handledPermissions.canUpdateOffChainBalancesMetadata.length > 0 && collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length === 0,
               },
             ]}

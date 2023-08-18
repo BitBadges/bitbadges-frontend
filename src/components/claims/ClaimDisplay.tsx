@@ -17,6 +17,7 @@ import { ToolIcon, tools } from "../display/ToolIcon";
 import { NumberInput } from "../display/NumberInput";
 import { SHA256 } from "crypto-js";
 import { AddressSelect } from "../address/AddressSelect";
+import { AddressDisplayList } from "../address/AddressDisplayList";
 
 
 //TODO: Will need to change when we allow approvalDetails len > 0
@@ -55,13 +56,34 @@ export function ClaimDisplay({
   const codeQuery = query.code as string;
   const passwordQuery = query.password as string;
 
+
   const [codePage, setCodePage] = useState(1);
 
   const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
   const [showAllUnclaimed, setShowAllUnclaimed] = useState<boolean>(false);
   const [currCode, setCurrCode] = useState('');
   const [recipient, setRecipient] = useState(chain.address);
-  const [browseIdx, setBrowseIdx] = useState(0);
+  const [browseIdx, setBrowseIdx] = useState(1);
+
+  const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
+
+  useEffect(() => {
+    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
+    const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+    let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
+      claim?.useCreatorAddressAsLeaf ?
+        approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+        : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
+      : -1) ?? -1;
+
+    const numIncrements =
+      calculationMethod.useMerkleChallengeLeafIndex ?
+        leafIndex ?? 0 :
+        approvalTracker?.numTransfers ?? 0n;
+
+    setBrowseIdx(Number(numIncrements));
+  }, [collection, approvedTransfer])
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
@@ -121,13 +143,24 @@ export function ClaimDisplay({
       fetchTrackers();
     }
   }, [collectionId, approvedTransfer, claimId, chain]);
-
-  let [, isActive] = searchUintRangesForId(BigInt(Date.now()), approvedTransfer.transferTimes);
-
   //TODO: Will need to change with more supported features
   const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
   const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === chain.cosmosAddress);
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
+  const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+  let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
+    claim?.useCreatorAddressAsLeaf ?
+      approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+      : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
+    : -1) ?? -1;
+
+  const numIncrements =
+    calculationMethod.useMerkleChallengeLeafIndex ?
+      leafIndex ?? 0 :
+      approvalTracker?.numTransfers ?? 0n;
+
+
+  let [, isActive] = searchUintRangesForId(BigInt(Date.now()), approvedTransfer.transferTimes);
 
 
   let timeStr = '';
@@ -212,21 +245,10 @@ export function ClaimDisplay({
     errorMessage = 'You are not on the whitelist for this claim!';
   }
 
-  const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
-  let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
-    claim?.useCreatorAddressAsLeaf ?
-      approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-      : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
-    : -1) ?? -1;
-  console.log(approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves);
-  console.log(leafIndex);
+
   const currentClaimAmounts = deepCopy(approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances);
   const incrementIdsBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
   const incrementOwnershipTimesBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy;
-  const numIncrements =
-    calculationMethod.useMerkleChallengeLeafIndex ?
-      leafIndex ?? 0 :
-      approvalTracker?.numTransfers ?? 0n;
 
   for (let i = 0; i < numIncrements; i++) {
     for (const balance of currentClaimAmounts) {
@@ -298,6 +320,7 @@ export function ClaimDisplay({
         <Row className='flex-center' >
           <Typography.Text strong style={{ fontSize: 30 }} className='primary-text'>{`${claim?.details?.name ? claim?.details?.name : ''}`}</Typography.Text>
         </Row>
+
 
 
         {<>
@@ -394,13 +417,29 @@ export function ClaimDisplay({
                       <div style={{ position: 'absolute', top: 0, right: 0 }}>
                         {switchViewIcon}
                       </div>
-                      <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text>
+                      {/* <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text> */}
+                      <div className="flex-center">
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                          Claim #</Typography.Text><NumberInput
+                          value={browseIdx + 1}
+                          setValue={(val) => {
+                            setBrowseIdx(val - 1);
+                          }}
+                          // onChange={(e: any) => {
+                          //   setBrowseIdx(e.target.value);
+                          // }}
+                          min={1}
+                          max={approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers) : undefined}
+
+                        /> <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginLeft: 8 }}>
+                          {browseIdx == numIncrements && "(Current Claim)"}</Typography.Text>
+                      </div>
 
                       <BalanceDisplay
                         message={'Current Claim'}
                         hideMessage
                         collectionId={collectionId}
-                        balances={currentClaimAmounts}
+                        balances={browseClaimAmounts}
                       />
                     </div>
 
@@ -410,11 +449,23 @@ export function ClaimDisplay({
                         <br />
                         <Row className='flex-center' >
                           <p className='primary-text'>
-                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claimable badge IDs increment by {`${incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
+                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claim number increments which increments the claimable badge IDs by {`${incrementIdsBy}`}. {"So if other claims are processed before yours, you will receive different badge IDs than the ones displayed."}
                           </p>
                         </Row>
                         <br />
                       </div>}
+
+                    {claim && claim.root && claim.useCreatorAddressAsLeaf &&
+                      <>
+                        <Button className="screen-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
+                        {whitelistIsVisible && <>
+                          <br />
+                          <AddressDisplayList
+                            users={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                            allExcept={false}
+                          />
+                        </>}
+                      </>}
                   </>}
                   <hr />
 

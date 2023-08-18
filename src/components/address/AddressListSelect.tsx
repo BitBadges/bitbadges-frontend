@@ -7,15 +7,18 @@ import { } from "../../constants";
 import { AddressDisplayTitle } from "./AddressDisplay";
 import { AddressDisplayList } from "./AddressDisplayList";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
+import { BLANK_USER_INFO, convertToCosmosAddress, getChainForAddress } from "bitbadgesjs-utils";
 
 export function AddressListSelect({
   users,
   setUsers,
-  invalidUsers
+  invalidUsers,
+  hideAddresses
 }: {
   users: string[],
   setUsers: (users: string[]) => void,
-  invalidUsers?: { [user: string]: string; }
+  invalidUsers?: { [user: string]: string; },
+  hideAddresses?: boolean
 }) {
   const accounts = useAccountsContext();
 
@@ -27,23 +30,36 @@ export function AddressListSelect({
 
   //For EnterMethod.Batch, set the user list when the batch add is clicked.
   async function handleAddBatchUsers() {
+    setLoading(true);
     const addressesList: string[] = batchAddAddressListInput.split('\n').filter((a) => a !== '').map(x => x.trim());
 
 
     //TODO: Should we even fetch the accounts here? We can just manually generate the accounts / convert to cosmosAddresses/
-    const accountsFetched = await accounts.fetchAccountsWithOptions(addressesList.map(x => {
-      return {
-        address: x,
-        noExternalCalls: true
+    for (const address of addressesList) {
+      if (!accounts.getAccount(address)) {
+        accounts.updateAccount({
+          ...BLANK_USER_INFO,
+          address: address,
+          cosmosAddress: convertToCosmosAddress(address),
+          chain: getChainForAddress(address),
+        })
       }
-    }));
-    setUsers([...users, ...accountsFetched.map(x => x.cosmosAddress)]);
+    }
+
+    // const accountsFetched = await accounts.fetchAccountsWithOptions(addressesList.map(x => {
+    //   return {
+    //     address: x,
+    //     noExternalCalls: true
+    //   }
+    // }));
+    setUsers([...users, ...addressesList]);
     setBatchAddAddressListInput('');
+    setLoading(false);
   }
 
   return <>
     <br />
-    {users.length > 0 && <div>
+    {users.length > 0 && !hideAddresses && <div>
       <div className='flex-center'>
         <AddressDisplayList
           users={users}
@@ -108,5 +124,4 @@ export function AddressListSelect({
       </>
     }
   </>
-
 }

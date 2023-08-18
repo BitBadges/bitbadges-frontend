@@ -19,7 +19,7 @@ export function InformationDisplayCard({
         <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>
             <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
-              <Text strong style={{ fontSize: 22 }} className="primary-text">
+              <Text strong style={{ fontSize: 22 }} className="primary-text full-width">
                 {title}
               </Text>
             </Row>

@@ -16,6 +16,7 @@ export function TransferDisplay({
   hideAddresses,
   hideBalances,
   setTransfers,
+  initiatedBy,
   deletable,
 }: {
   collectionId: bigint;
@@ -24,6 +25,7 @@ export function TransferDisplay({
   hideBalances?: boolean;
   setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
   deletable?: boolean;
+  initiatedBy?: string
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
@@ -71,6 +73,15 @@ export function TransferDisplay({
               fontSize={15}
               center
             />
+            {initiatedBy && transfer.from !== initiatedBy && <>
+              <br />
+              <AddressDisplayList
+                users={[initiatedBy]}
+                // toLength={Numberify(toLength)}
+                title={'Initiated By'}
+                fontSize={15}
+                center
+              /></>}
           </div>
 
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', margin: 20 }} className='primary-text'>

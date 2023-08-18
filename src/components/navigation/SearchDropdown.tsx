@@ -1,6 +1,6 @@
 
 import { Avatar, Menu, Spin, Typography } from 'antd';
-import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
@@ -14,7 +14,7 @@ export function SearchDropdown({
   onlyAddresses
 }: {
   searchValue: string,
-  onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean) => Promise<void>
+  onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean) => Promise<void>
   onlyAddresses?: boolean
 }) {
   const accounts = useAccountsContext();
@@ -28,6 +28,7 @@ export function SearchDropdown({
 
   const accountsResults = searchResponse?.accounts || [];
   const collectionsResults = searchResponse?.collections || [];
+  const addressMappingsResults = searchResponse?.addressMappings || [];
 
   const DELAY_MS = 500;
   useEffect(() => {
@@ -94,7 +95,7 @@ export function SearchDropdown({
       {/* {Account Results} */}
       {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
         return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
-          await onSearch(result, true);
+          await onSearch(result, true, false);
         }}>
           <div className='flex-between'>
             <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -109,6 +110,29 @@ export function SearchDropdown({
         </Menu.Item>
       })}
     </div>
+    {
+      !onlyAddresses && addressMappingsResults.length > 0 && <>
+        <hr />
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Address Lists</Typography.Text>
+        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
+          {addressMappingsResults.map((result,) => {
+            return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
+              onSearch(`${result.mappingId}`, false, false);
+            }}>
+              <div className='flex-between'>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                  {result.metadata?.name}
+                </div>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  ID: {`${getAbbreviatedAddress(result.mappingId)}`}
+                </div>
+              </div>
+            </Menu.Item>
+          })}
+        </div>
+      </>
+    }
 
     {/* Collection Results */}
     {
@@ -118,7 +142,7 @@ export function SearchDropdown({
         <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
           {collectionsResults.map((result,) => {
             return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
-              onSearch(`${result.collectionId}`, false);
+              onSearch(`${result.collectionId}`, false, true);
             }}>
               <div className='flex-between'>
                 <div className='flex-center' style={{ alignItems: 'center' }}>

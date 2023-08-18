@@ -101,7 +101,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
             size={150}
             src={
               <BlockiesAvatar
-                avatar={senderAccount?.avatar}
+                avatar={senderAccount?.profilePicUrl ?? senderAccount?.avatar}
                 address={senderAccount?.address.toLowerCase() ?? ''}
                 fontSize={150}
                 shape='circle'

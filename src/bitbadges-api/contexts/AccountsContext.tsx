@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
@@ -25,7 +25,7 @@ export type AccountsContextType = {
 
 
   //Custom fetch functions (not paginated views)
-  updateProfileInfo: (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody) => Promise<BitBadgesUserInfo<DesiredNumberType>>,
+  updateProfileInfo: (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<DesiredNumberType>) => Promise<BitBadgesUserInfo<DesiredNumberType>>,
   fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<BalanceInfo<DesiredNumberType>>,
 
 
@@ -39,6 +39,7 @@ export type AccountsContextType = {
   getAnnouncementsView: (addressOrUsername: string, viewKey: AccountViewKey) => AnnouncementInfo<DesiredNumberType>[],
   getReviewsView: (addressOrUsername: string, viewKey: AccountViewKey) => ReviewInfo<DesiredNumberType>[],
   getBalancesView: (addressOrUsername: string, viewKey: AccountViewKey) => BalanceInfo<DesiredNumberType>[],
+  getAddressMappingsView: (addressOrUsername: string, viewKey: AccountViewKey) => AddressMappingWithMetadata<DesiredNumberType>[],
 
   //Other helpers
   incrementSequence: (addressOrUsername: string) => void,
@@ -70,6 +71,7 @@ const AccountsContext = createContext<AccountsContextType>({
   getAnnouncementsView: () => [],
   getReviewsView: () => [],
   getBalancesView: () => [],
+  getAddressMappingsView: () => [],
   viewHasMore: () => false,
   updateProfileInfo: async () => { return BLANK_USER_INFO },
 });
@@ -119,11 +121,12 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
     return accountToReturn;
   }
+  const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
 
   const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
-    if (account.cosmosAddress === 'Mint' || account.cosmosAddress === "Total" || !account.cosmosAddress) return MINT_ACCOUNT;
 
-    console.log('Updating account', account, forcefulRefresh);
+    if (reservedNames.includes(account.cosmosAddress)) return MINT_ACCOUNT
+
     if (forcefulRefresh) {
       accounts[account.cosmosAddress] = undefined;
     }
@@ -132,7 +135,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     let cachedAccount = accounts[`${account.cosmosAddress}`];
 
     if (cachedAccount == undefined) {
-      console.log("undefined so setting to account", account.sequence);
       setAccountsMap(accounts => {
         return {
           ...accounts,
@@ -187,6 +189,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
         activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
         announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
+        addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
         views: newViews,
         publicKey,
         sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
@@ -199,6 +202,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
 
       // accounts[account.cosmosAddress] = newAccount;
       // if (account.username) {
@@ -209,8 +213,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
       //Only trigger a rerender if the account has changed
       if (!compareObjects(newAccount, cachedAccountCopy)) {
-        console.log("setting to account", newAccount.sequence);
-        console.log(!compareObjects(newAccount, cachedAccountCopy), newAccount, cachedAccountCopy);
         setAccountsMap(accounts => {
           return {
             ...accounts,
@@ -257,7 +259,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
   //IMPORTANT: addressOrUsername must be the user's current signed in address or username, or else, unexpected behavior may occur
   //This is necessary because AccountsContext is the outermost context and does not have access to ChainContext
-  const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody) => {
+  const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<bigint>) => {
     const account = getAccount(addressOrUsername);
     if (!account) throw new Error(`Account ${addressOrUsername} not found`);
 
@@ -296,6 +298,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }[],
     noExternalCalls?: boolean,
   }[], forcefulRefresh?: boolean) => {
+
     const batchRequestBody: GetAccountsRouteRequestBody = {
       accountsToFetch: []
     };
@@ -320,7 +323,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         const needToFetch =
           (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
           (accountToFetch.fetchBalance && cachedAccount.balance === undefined) ||
-          (accountToFetch.viewsToFetch?.length);
+          (accountToFetch.viewsToFetch?.length) ||
+          !cachedAccount.fetchedProfile
 
         if (needToFetch) {
           batchRequestBody.accountsToFetch.push({
@@ -436,6 +440,15 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }) as BalanceInfo<DesiredNumberType>[];
   }
 
+  function getAddressMappingsView(addressOrUsername: string, viewKey: AccountViewKey) {
+    const account = getAccount(addressOrUsername);
+    if (!account) return [];
+
+    return account.views[viewKey]?.ids.map(x => {
+      return account.addressMappings.find(y => y.mappingId === x);
+    }) as AddressMappingWithMetadata<DesiredNumberType>[];
+  }
+
   const incrementSequence = (addressOrUsername: string) => {
     const account = getAccount(addressOrUsername);
     if (account) {
@@ -472,6 +485,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     getActivityView,
     getBalancesView,
     getAnnouncementsView,
+    getAddressMappingsView,
     viewHasMore,
     updateProfileInfo,
   };

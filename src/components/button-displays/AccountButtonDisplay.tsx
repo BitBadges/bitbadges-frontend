@@ -1,5 +1,6 @@
 import {
   LinkOutlined,
+  SettingOutlined,
   ShareAltOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Layout, Tooltip, message } from 'antd';
@@ -8,6 +9,8 @@ import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext
 import { WEBSITE_HOSTNAME } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useRouter } from 'next/router';
 
 const { Content } = Layout;
 
@@ -16,22 +19,28 @@ export function AccountButtonDisplay({
   bio,
   profilePic,
   website,
+  hideButtons
 }: {
   addressOrUsername: string,
   bio?: string,
   profilePic?: string,
   website?: string,
+  hideButtons?: boolean
 }) {
+  const chain = useChainContext();
   const accounts = useAccountsContext();
+  const router = useRouter();
   const accountInfo = accounts.getAccount(addressOrUsername);
 
   const address = accountInfo?.address
-  const avatar = accountInfo?.avatar;
+  const avatar = accountInfo?.profilePicUrl ?? accountInfo?.avatar;
   const profilePicSrc = profilePic ? (
     profilePic
   ) : (
     <BlockiesAvatar avatar={avatar} address={address?.toLowerCase() ?? ''} fontSize={200} shape='circle' />
   );
+
+  const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
 
   // const blockScanLink = 'https://chat.blockscan.com/index?a=' + address;
   const openSeaLink = 'https://opensea.io/' + address;
@@ -43,7 +52,7 @@ export function AccountButtonDisplay({
 
   return (
     <div>
-      <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
+      {!hideButtons && <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">
@@ -141,6 +150,7 @@ export function AccountButtonDisplay({
             </Tooltip>
           </a>
         )}
+
         {/* <Tooltip title="Message this user via our in-site direct messaging system." placement="bottom">
                     <Avatar
                         size="large"
@@ -164,7 +174,23 @@ export function AccountButtonDisplay({
             <ShareAltOutlined />
           </Avatar>
         </Tooltip>
-      </div>
+        {isSameAccount && (
+          <Tooltip title="Settings" placement="bottom">
+            <Avatar
+              size="large"
+              onClick={() => {
+                router.push(
+                  `/account/${address}/settings`
+                );
+                // message.success('Copied to clipboard!');
+              }}
+              className="screen-button account-socials-button"
+            >
+              <SettingOutlined />
+            </Avatar>
+          </Tooltip>
+        )}
+      </div>}
       <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
       <Content
         className='flex-center'

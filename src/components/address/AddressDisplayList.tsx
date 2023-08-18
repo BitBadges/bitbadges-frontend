@@ -5,6 +5,8 @@ import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 import { INFINITE_LOOP_MODE } from "../../constants"
+import { deepCopy } from "bitbadgesjs-proto"
+import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext"
 
 export function AddressDisplayList({
   users,
@@ -38,52 +40,59 @@ export function AddressDisplayList({
   //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
   const [currPageStart, setCurrPageStart] = useState<number>(0); // Index of first badge to display
   const [currPageEnd, setCurrPageEnd] = useState<number>(0); // Index of last badge to display
+  const accounts = useAccountsContext();
+  let usersToDisplay = deepCopy(users);
+  usersToDisplay = usersToDisplay.filter(x => x !== 'Total');
+
+  // let allExceptMint = false;
+  // if (usersToDisplay.length == 1 && usersToDisplay[0] == 'Mint' && allExcept) {
+  //   allExceptMint = true;
+  //   usersToDisplay = [];
+  // }
+
+
+
+  if (filterMint) usersToDisplay = usersToDisplay.filter(x => x !== 'Mint');
+
+  if (allExcept) {
+    //append it at beginning
+    usersToDisplay = ['All', ...usersToDisplay];
+
+    // if (!filterMint) {
+    //   usersToDisplay.push('Mint');
+    // }
+  } else if (usersToDisplay.length == 0) {
+    usersToDisplay = ['All'];
+  }
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: address display list');
-    const currPageDetails = getPageDetails(currPage, pageSize, 0, users.length - 1);
+    const currPageDetails = getPageDetails(currPage, pageSize, 0, usersToDisplay.length - 1);
     const currPageStart = currPageDetails.start;
     const currPageEnd = currPageDetails.end;
 
     setCurrPageStart(currPageStart);
     setCurrPageEnd(currPageEnd);
-  }, [currPage, pageSize, users]);
 
+    const reservedNames = ['All', 'Mint'];
 
-  users = users.filter(x => x !== 'Total');
-
-  // let allExceptMint = false;
-  // if (users.length == 1 && users[0] == 'Mint' && allExcept) {
-  //   allExceptMint = true;
-  //   users = [];
-  // }
+    accounts.fetchAccounts(usersToDisplay.slice(currPageStart, currPageEnd + 1).filter(x => !reservedNames.includes(x)));
+  }, [currPage, pageSize, usersToDisplay]);
 
 
 
-  if (filterMint) users = users.filter(x => x !== 'Mint');
-
-  if (allExcept) {
-    //append it at beginning
-    users.unshift('All');
-
-    // if (!filterMint) {
-    //   users.push('Mint');
-    // }
-  } else if (users.length == 0) {
-    users.push('All');
-  }
 
   // const str = title
   //   ? title
   //   : allExcept
   //     ? allExceptMint
   //       ? 'All'
-  //       : users.length === 0
+  //       : usersToDisplay.length === 0
   //         ? !filterMint
   //           ? 'All + Mint'
   //           : 'All'
   //         : 'All Except'
-  //     : users.length === 1
+  //     : usersToDisplay.length === 1
   //       ? ''
   //       : 'Addresses';
 
@@ -91,14 +100,14 @@ export function AddressDisplayList({
     {!hideTitle &&
       title ? <h3 style={{ color: fontColor ?? 'white' }}>{title}</h3> : <></>
 
-      // <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : users.length == 0 ?
+      // <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : usersToDisplay.length == 0 ?
       //   !filterMint ? 'All + Mint' :
-      //     'All' : 'All Except' : users.length == 1 ? <></> : 'Addresses'} </h3>
+      //     'All' : 'All Except' : usersToDisplay.length == 1 ? <></> : 'Addresses'} </h3>
     }
-    {/* {!(allExcept && users.length == 0) && !allExceptMint && (toLength ? toLength : users.length) > 1 && <>({toLength ? toLength : users.length})</>}</h3>} */}
-    <Pagination total={users.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
+    {/* {!(allExcept && usersToDisplay.length == 0) && !allExceptMint && (toLength ? toLength : usersToDisplay.length) > 1 && <>({toLength ? toLength : usersToDisplay.length})</>}</h3>} */}
+    <Pagination total={usersToDisplay.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
 
-    {users.map((user, index) => {
+    {usersToDisplay.map((user, index) => {
       if (index < currPageStart || index > currPageEnd) return null;
 
       const allowedMessage = invalidUsers ? invalidUsers[user] : undefined;
@@ -107,10 +116,10 @@ export function AddressDisplayList({
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
           <AddressDisplay
             icon={
-              setUsers &&
+              setUsers && user != 'All' &&
               <Tooltip title={"Remove User"}>
                 <UserDeleteOutlined onClick={() => {
-                  setUsers(users.filter((_, i) => i !== index))
+                  setUsers(users.filter((x => x !== user)));
                 }} />
               </Tooltip>
             }

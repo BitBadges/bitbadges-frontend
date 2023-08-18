@@ -24,6 +24,7 @@ export function ActionsTab({
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
+  const [approveIsVisible, setApproveIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -52,16 +53,25 @@ export function ActionsTab({
     );
   };
 
-  //TODO: Only show if transferable
   if (isOnChainBalances) {
     actions.push({
       title: getTitleElem("Transfer"),
       description: getDescriptionElem(
-        "Transfer badge(s) in this collection, if approved to do so."
+        "Transfer badge(s) in this collection, if allowed."
       ),
       showModal: () => {
         setTransferIsVisible(!transferIsVisible);
       },
+    });
+
+    actions.push({
+      title: getTitleElem("Approve"),
+      description: getDescriptionElem(
+        "Update your incoming and outgoing approvals."
+      ),
+      showModal: () => {
+        setApproveIsVisible(!approveIsVisible);
+      }
     });
   }
 
@@ -160,9 +170,7 @@ export function ActionsTab({
                   }
                 />
               </Card>
-
-            })
-            }
+            })}
           </div>
           {actions.length == 0 && (
             <>

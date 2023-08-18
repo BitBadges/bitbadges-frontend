@@ -8,7 +8,6 @@ import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 import { useEffect, useState } from "react";
 
 
-//TODO: ownershipTimes logic
 export function BalanceDisplay({
   collectionId,
   balances,

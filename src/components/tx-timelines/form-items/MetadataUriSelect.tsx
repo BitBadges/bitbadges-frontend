@@ -63,13 +63,13 @@ export function MetadataUriSelect({
       collections.updateCollection({
         ...collection,
         cachedCollectionMetadata: undefined,
-        collectionMetadataTimeline: [{
+        collectionMetadataTimeline: collectionUri ? [{
           timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
           collectionMetadata: {
             uri: collectionUri,
             customData: '',
           }
-        }]
+        }] : []
       })
 
       collections.fetchAndUpdateMetadata(collectionId, {
@@ -93,14 +93,14 @@ export function MetadataUriSelect({
       collections.updateCollection({
         ...collection,
         cachedBadgeMetadata: [],
-        badgeMetadataTimeline: [{
+        badgeMetadataTimeline: badgeUri ? [{
           timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
           badgeMetadata: [{
             uri: badgeUri,
             badgeIds: [{ start: startId, end: endId }],
             customData: '',
           }]
-        }],
+        }] : [],
       })
     }, DELAY_MS)
 
@@ -157,7 +157,7 @@ export function MetadataUriSelect({
         />
         <div style={{ fontSize: 12 }}>
           <Text style={{ color: 'lightgray' }}>
-            {"\"{id}\""} can be used as a placeholder which will be replaced the unique ID of each badge.
+            {"\"{id}\""} can be used as a placeholder which will be replaced by the unique ID of each badge.
           </Text>
         </div>
       </Form.Item>

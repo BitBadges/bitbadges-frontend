@@ -94,6 +94,9 @@ export function SetBadgeMetadataStepItem(
         </>
       }</>}
     />,
-    disabled: !collection || !!err,
+    disabled: !collection || (addMethod === MetadataAddMethod.Manual && (collection.badgeMetadataTimeline.length == 0))
+      || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0) || (collection.badgeMetadataTimeline.length == 0)))
+      // || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
+      || !!err,
   }
 }

@@ -16,7 +16,6 @@ export function SetCollectionMetadataStepItem(
   setCanUpdateCollectionMetadata: (canUpdateCollectionMetadata: boolean) => void,
   existingCollectionId?: bigint,
   hideCollectionSelect?: boolean,
-  hideBadgeSelect?: boolean,
 ) {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
@@ -99,7 +98,7 @@ export function SetCollectionMetadataStepItem(
       }
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-      || (addMethod === MetadataAddMethod.UploadUrl && ((!hideCollectionSelect && collection.collectionMetadataTimeline.length == 0) || (!hideBadgeSelect && collection.badgeMetadataTimeline.length == 0)))
+      || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0) || (collection.badgeMetadataTimeline.length == 0)))
       || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
       || !!err,
   }

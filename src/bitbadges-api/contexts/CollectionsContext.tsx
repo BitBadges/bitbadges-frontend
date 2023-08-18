@@ -100,7 +100,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     return collections[`${collectionId}`];
   }
 
-  const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>, fromTxTimeline = false) => {
+  const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>) => {
     if (newCollection.managerInfo && accounts.getAccount(newCollection.managerInfo.cosmosAddress) === undefined) {
       accounts.updateAccount(newCollection.managerInfo);
     }
@@ -130,18 +130,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
 
-      if (cachedCollection && newCollection.collectionId === MSG_PREVIEW_ID && !fromTxTimeline) {
-        // TODO: 
-        // //Check to see if we are updating one of the forbidden fields for TxTimeline (see top of TxTimeline) for more info
-        // if (newCollection.nextBadgeId !== cachedCollection.nextBadgeId
-        //   || newCollection.nextMerkleChallengeTrackerId !== cachedCollection.nextMerkleChallengeTrackerId
-        //   || newCollection.unmintedSupplys.some(x => cachedCollection?.unmintedSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-        //   || newCollection.maxSupplys.some(x => cachedCollection?.maxSupplys.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-        //   || newCollection.claims.some(x => cachedCollection?.claims.find(y => JSON.stringify(x) === JSON.stringify(y)) === undefined)
-        // ) {
-        //   throw new Error("You are updating a forbidden field for preview collections. See top of TxTimeline for more information");
-        // }
-      }
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
       cachedCollection = {
         ...newCollection,
@@ -515,7 +503,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         i++;
       }
 
-      updateCollection(updatedCollection, true);
+      updateCollection(updatedCollection);
 
       return [updatedCollection];
     }

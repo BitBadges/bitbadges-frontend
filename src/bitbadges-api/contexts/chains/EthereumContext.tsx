@@ -92,6 +92,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           }, {
             viewKey: 'latestReviews',
             bookmark: '',
+          }, {
+            viewKey: 'addressMappings',
+            bookmark: '',
           }]
         }]);
         if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
@@ -146,6 +149,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           bookmark: '',
         }, {
           viewKey: 'latestReviews',
+          bookmark: '',
+        }, {
+          viewKey: 'addressMappings',
           bookmark: '',
         }]
       }]);

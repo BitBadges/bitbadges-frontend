@@ -1,10 +1,14 @@
+import { Col, Row, Typography } from "antd";
 import { AddressMapping, MustOwnBadges } from "bitbadgesjs-proto";
-import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPermissionToUniversalPermission, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
+import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPermissionToUniversalPermission, convertToCosmosAddress, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { useStatusContext } from "../../../bitbadges-api/contexts/StatusContext";
 import { FOREVER_DATE } from "../../../utils/dates";
+import { AddressDisplayList } from "../../address/AddressDisplayList";
+import { AddressListSelect } from "../../address/AddressListSelect";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
+import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { NumberInput } from "../../display/NumberInput";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { BalanceInput } from "../form-items/BalanceInput";
@@ -26,11 +30,113 @@ export function TransferabilitySelectStepItem(
 
   const [mustOwnBadges, setMustOwnBadges] = useState<MustOwnBadges<bigint>[]>([]);
   const [collectionId, setCollectionId] = useState<bigint>(1n);
+  const [frozenUsers, setFrozenUsers] = useState<string[]>([]);
+  const [clicked, setClicked] = useState<boolean>(false);
+
   const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
   useEffect(() => {
     if (!collection) return;
 
     const newApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
+
+    for (const user of frozenUsers) {
+      newApprovedTransfers.push({
+        toMappingId: "AllWithoutMint",
+        fromMappingId: convertToCosmosAddress(user),
+        initiatedByMappingId: "AllWithoutMint",
+        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
+        toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        approvalDetails: [],
+        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        allowedCombinations: [{
+          isApproved: false,
+          toMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          fromMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+
+          initiatedByMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          badgeIdsOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          ownershipTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          transferTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+        }]
+
+      });
+
+      newApprovedTransfers.push({
+        fromMappingId: "AllWithoutMint",
+        toMappingId: convertToCosmosAddress(user),
+        initiatedByMappingId: "AllWithoutMint",
+        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
+        fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        approvalDetails: [],
+        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        allowedCombinations: [{
+          isApproved: false,
+          toMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          fromMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+
+          initiatedByMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          badgeIdsOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          ownershipTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          transferTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+        }]
+
+      });
+
+    }
 
     newApprovedTransfers.push({
       fromMappingId: "AllWithoutMint",
@@ -131,7 +237,7 @@ export function TransferabilitySelectStepItem(
         timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
       }]
     });
-  }, [mustOwnBadges]);
+  }, [mustOwnBadges, frozenUsers]);
   if (!collection) return EmptyStepItem;
 
   // const approvedTransfers = collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []
@@ -294,7 +400,7 @@ export function TransferabilitySelectStepItem(
               // },
             ]}
             onSwitchChange={(idx) => {
-
+              setClicked(true);
               const newApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
 
               if (idx === 1) {
@@ -357,56 +463,97 @@ export function TransferabilitySelectStepItem(
             }}
           />
           <br />
-
-          {transferable && <div className='primary-text'>
-
-
-            <br />
+          {transferable && clicked && <>
             <div style={{ textAlign: 'center' }}>
-              <b style={{ textAlign: 'center' }}>{"Select badges that the initiator of a transfer must own at the time of transfer."}</b>
+              <Typography.Text strong className="primary-text" style={{ fontSize: 18, textAlign: 'center' }}>{"Additional Restrictions?"}</Typography.Text>
             </div>
-            <br />
-            <br />
+            <Row className='full-width primary-text' style={{ textAlign: 'center' }}>
+              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                <InformationDisplayCard
+                  title={<>Must Own Badges</>}
+                  noBorder
+                >
+                  <div className='primary-text'>
 
-            <NumberInput
 
-              title="Collection ID"
-              value={Number(collectionId)}
-              setValue={(val) => setCollectionId(BigInt(val))}
-              min={1}
-              max={Number(status.status.nextCollectionId) - 1}
-            // max={Number.MAX_SAFE_INTEGER}
-            />
-            <br />
-            <br />
-            <BalanceInput
-              isMustOwnBadgesInput
-              message="Must Own Badges"
-              hideOwnershipTimes
-              balancesToShow={mustOwnBadges.map(x => {
-                return {
-                  ...x,
-                  amount: x.amountRange.start,
-                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
-                }
-              })}
-              onAddBadges={(balance) => {
-                setMustOwnBadges([...mustOwnBadges, {
-                  collectionId: collectionId,
-                  overrideWithCurrentTime: true,
-                  amountRange: { start: balance.amount, end: balance.amount },
-                  badgeIds: balance.badgeIds,
-                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
-                }]);
-              }}
-              onRemoveAll={() => {
-                setMustOwnBadges([]);
-              }}
-              // setBalances={setBalances}
-              collectionId={collectionId}
-            />
-          </div>}
+                    <br />
+                    <div style={{ textAlign: 'center' }}>
+                      <b style={{ textAlign: 'center' }}>{"Select badges that the initiator of a transfer must own at the time of transfer."}</b>
+                    </div>
+                    <br />
+                    <br />
 
+                    <NumberInput
+
+                      title="Collection ID"
+                      value={Number(collectionId)}
+                      setValue={(val) => setCollectionId(BigInt(val))}
+                      min={1}
+                      max={Number(status.status.nextCollectionId) - 1}
+                    // max={Number.MAX_SAFE_INTEGER}
+                    />
+                    <br />
+                    <br />
+                    <BalanceInput
+                      isMustOwnBadgesInput
+                      message="Must Own Badges"
+                      hideOwnershipTimes
+                      balancesToShow={mustOwnBadges.map(x => {
+                        return {
+                          ...x,
+                          amount: x.amountRange.start,
+                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                        }
+                      })}
+                      onAddBadges={(balance) => {
+                        setMustOwnBadges([...mustOwnBadges, {
+                          collectionId: collectionId,
+                          overrideWithCurrentTime: true,
+                          amountRange: { start: balance.amount, end: balance.amount },
+                          badgeIds: balance.badgeIds,
+                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                        }]);
+                      }}
+                      onRemoveAll={() => {
+                        setMustOwnBadges([]);
+                      }}
+                      // setBalances={setBalances}
+                      collectionId={collectionId}
+                    />
+                  </div>
+                </InformationDisplayCard>
+              </Col>
+              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                <InformationDisplayCard
+                  title={<>Frozen Addresses</>}
+                  noBorder
+                >
+                  <div className='primary-text'>
+
+
+                    <br />
+                    <div style={{ textAlign: 'center' }}>
+                      <b style={{ textAlign: 'center' }}>{"Select addresses that cannot transfer."}</b>
+                    </div>
+                    <br />
+                    <AddressListSelect
+                      users={frozenUsers}
+                      setUsers={setFrozenUsers}
+                      hideAddresses
+                    />
+                    <br />
+
+                    <AddressDisplayList
+                      users={frozenUsers}
+                    />
+
+
+                  </div>
+
+                </InformationDisplayCard>
+              </Col>
+            </Row>
+          </>}
         </div >
       }
     />,

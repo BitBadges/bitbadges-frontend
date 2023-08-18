@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
 import { BadgeMetadataTimeline, CollectionMetadataTimeline, ContractAddressTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
-import { getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { Metadata, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -22,15 +22,19 @@ import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
 
 //TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
 
-export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink }: {
+export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink, metadataOverride, isAddressListDisplay, metadataUrl }: {
   collectionId: bigint,
   badgeId?: bigint,
   span?: number;
   showCollectionLink?: boolean
+  metadataOverride?: Metadata<bigint>,
+  isAddressListDisplay?: boolean,
+  metadataUrl?: string
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
-  const metadata = badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
+  const metadata = metadataOverride ? metadataOverride :
+    badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const isCollectionInfo = !badgeId;
 
@@ -44,156 +48,150 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
     balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
   }
 
-
-  // let frozenMetadata = false;
-  // if (badgeId && badgeId > 0n) {
-  //   //TODO:
-  // }
-
   return (
     <>
-
-
-
-      <InformationDisplayCard
-        title={isCollectionInfo ? <>Collection Info
-          <br />
-          <div style={{ fontSize: 14 }}>
-            {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
-          </div>
-        </> : "Badge Info"}
-        span={span}
-      >
-        {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
-        {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === MSG_PREVIEW_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
-
-        {<TableRow label={"Standards"} value={
-          <TimelineFieldWrapper
-            createNode={(timelineVal: StandardsTimeline<bigint>) => {
-              const standards = timelineVal.standards;
-              return <>
-                {standards && standards.length > 0 ? standards.map((standard) => {
-                  return <Tag key={standard} className='secondary-text primary-blue-bg' style={{ margin: 2 }}>
-                    {standard}
-                  </Tag>
-                }) : 'Default'}
-              </>
-            }}
-            emptyNode={
-              <>Default</>
-            }
-            timeline={collection?.standardsTimeline ?? []}
-          />
-        } labelSpan={9} valueSpan={15} />}
-
-
-
-
-        {<TableRow label={"Balances Type"} value={
-          <>
-            <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-              {collection?.balancesType === "Off-Chain" ?
-                <div>
-                  <>
-                    <TimelineFieldWrapper
-                      createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
-                        return <a href={timelineVal?.offChainBalancesMetadata.uri} target='_blank' rel='noreferrer'>Off-Chain</a>
-                      }}
-                      emptyNode={
-                        <>None</>
-                      }
-                      timeline={collection?.offChainBalancesMetadataTimeline ?? []}
-                    />
-                  </>
-                </div>
-                : collection?.balancesType}
-              <Tooltip color='black' title={balancesTypeInfoStr}>
-                <InfoCircleOutlined style={{ marginLeft: 8 }} />
-              </Tooltip>
+      {!isAddressListDisplay &&
+        <InformationDisplayCard
+          title={isCollectionInfo ? <>Collection Info
+            <br />
+            <div style={{ fontSize: 14 }}>
+              {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
             </div>
-          </>} labelSpan={9} valueSpan={15} />
-        }
+          </> : "Badge Info"}
+          span={span}
+        >
+          {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
+          {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === MSG_PREVIEW_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
 
-        {<TableRow label={"Manager"} value={
-          <>
+          {<TableRow label={"Standards"} value={
             <TimelineFieldWrapper
-              createNode={(managerVal: ManagerTimeline<bigint>) => {
-                if (!managerVal.manager) return <>None</>
-
-                return <AddressDisplay
-                  fontSize={13}
-                  addressOrUsername={managerVal.manager}
-                />
+              createNode={(timelineVal: StandardsTimeline<bigint>) => {
+                const standards = timelineVal.standards;
+                return <>
+                  {standards && standards.length > 0 ? standards.map((standard) => {
+                    return <Tag key={standard} className='secondary-text primary-blue-bg' style={{ margin: 2 }}>
+                      {standard}
+                    </Tag>
+                  }) : 'Default'}
+                </>
               }}
               emptyNode={
-                <>None</>
+                <>Default</>
               }
-              timeline={collection?.managerTimeline ?? []}
+              timeline={collection?.standardsTimeline ?? []}
             />
-          </>} labelSpan={9} valueSpan={15} />}
+          } labelSpan={9} valueSpan={15} />}
 
-        {collection?.createdBy && <TableRow label={"Created By"} value={
-          <div className='flex-between' style={{ textAlign: 'right' }}>
-            <div></div>
-            <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
-              <AddressDisplay
-                fontSize={13}
-                addressOrUsername={collection.createdBy}
+
+
+
+          {<TableRow label={"Balances Type"} value={
+            <>
+              <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                {collection?.balancesType === "Off-Chain" ?
+                  <div>
+                    <>
+                      <TimelineFieldWrapper
+                        createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
+                          return <a href={timelineVal?.offChainBalancesMetadata.uri} target='_blank' rel='noreferrer'>Off-Chain</a>
+                        }}
+                        emptyNode={
+                          <>None</>
+                        }
+                        timeline={collection?.offChainBalancesMetadataTimeline ?? []}
+                      />
+                    </>
+                  </div>
+                  : collection?.balancesType}
+                <Tooltip color='black' title={balancesTypeInfoStr}>
+                  <InfoCircleOutlined style={{ marginLeft: 8 }} />
+                </Tooltip>
+              </div>
+            </>} labelSpan={9} valueSpan={15} />
+          }
+
+          {<TableRow label={"Manager"} value={
+            <>
+              <TimelineFieldWrapper
+                createNode={(managerVal: ManagerTimeline<bigint>) => {
+                  if (!managerVal.manager) return <>None</>
+
+                  return <AddressDisplay
+                    fontSize={13}
+                    addressOrUsername={managerVal.manager}
+                  />
+                }}
+                emptyNode={
+                  <>None</>
+                }
+                timeline={collection?.managerTimeline ?? []}
               />
-            </div>
-          </div>} labelSpan={9} valueSpan={15} />}
+            </>} labelSpan={9} valueSpan={15} />}
 
-        {<TableRow label={"Contract Address"} value={
-          <>
-            <TimelineFieldWrapper
-              createNode={(contractVal: ContractAddressTimeline<bigint>) => {
-                return <>{contractVal.contractAddress || 'None'}</>
-              }}
-              emptyNode={
-                <>None</>
-              }
-              timeline={collection?.contractAddressTimeline ?? []}
-            />
-          </>} labelSpan={9} valueSpan={15} />}
+          {collection?.createdBy && <TableRow label={"Created By"} value={
+            <div className='flex-between' style={{ textAlign: 'right' }}>
+              <div></div>
+              <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+                <AddressDisplay
+                  fontSize={13}
+                  addressOrUsername={collection.createdBy}
+                />
+              </div>
+            </div>} labelSpan={9} valueSpan={15} />}
 
-
-        {<TableRow label={"Custom Data"} value={
-          <>
-            <TimelineFieldWrapper
-              createNode={(customDataVal: CustomDataTimeline<bigint>) => {
-                return <>{customDataVal.customData || 'None'}</>
-              }}
-              emptyNode={
-                <>None</>
-              }
-              timeline={collection?.customDataTimeline ?? []}
-            />
-          </>} labelSpan={9} valueSpan={15} />}
+          {<TableRow label={"Contract Address"} value={
+            <>
+              <TimelineFieldWrapper
+                createNode={(contractVal: ContractAddressTimeline<bigint>) => {
+                  return <>{contractVal.contractAddress || 'None'}</>
+                }}
+                emptyNode={
+                  <>None</>
+                }
+                timeline={collection?.contractAddressTimeline ?? []}
+              />
+            </>} labelSpan={9} valueSpan={15} />}
 
 
+          {<TableRow label={"Custom Data"} value={
+            <>
+              <TimelineFieldWrapper
+                createNode={(customDataVal: CustomDataTimeline<bigint>) => {
+                  return <>{customDataVal.customData || 'None'}</>
+                }}
+                emptyNode={
+                  <>None</>
+                }
+                timeline={collection?.customDataTimeline ?? []}
+              />
+            </>} labelSpan={9} valueSpan={15} />}
 
-        {<TableRow label={"Archived?"} value={
-          <>
 
-            <TimelineFieldWrapper
-              createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
-                return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
-              }}
-              emptyNode={
-                <>No</>
-              }
-              timeline={collection?.isArchivedTimeline ?? []}
-            />
-          </>} labelSpan={9} valueSpan={15} />
-        }
 
-        <DevMode obj={collection} />
-      </InformationDisplayCard>
-      <br />
+          {<TableRow label={"Archived?"} value={
+            <>
+
+              <TimelineFieldWrapper
+                createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
+                  return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
+                }}
+                emptyNode={
+                  <>No</>
+                }
+                timeline={collection?.isArchivedTimeline ?? []}
+              />
+            </>} labelSpan={9} valueSpan={15} />
+          }
+
+          <DevMode obj={collection} />
+        </InformationDisplayCard>
+      }
+      {!isAddressListDisplay && <br />}
       <InformationDisplayCard
         title={<>
           {badgeId && "Badge Metadata"}
-          {!badgeId && "Collection Metadata"}
+          {!badgeId && !isAddressListDisplay && "Collection Metadata"}
+          {isAddressListDisplay && "Metadata"}
           {
             collection && ((!badgeId && collection?.collectionMetadataTimeline.length > 1) ||
               (badgeId && collection?.badgeMetadataTimeline.length > 1)) ?
@@ -210,8 +208,24 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
         </>}
         span={span}
       >
+        {isAddressListDisplay && <TableRow label={"Metadata URL"} value={
+          <><Tooltip placement='bottom' title={metadataUrl}>
+            <a href={metadataUrl} target="_blank" rel="noreferrer">
+              View
+              <LinkOutlined style={{ marginLeft: 4 }} /></a>
+          </Tooltip>
+            {metadataUrl?.startsWith('ipfs://')
+              ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
+                <LockOutlined style={{ marginLeft: 4 }} />
+              </Tooltip> :
+              <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata may change.'>
+                <EditOutlined style={{ marginLeft: 4 }} />
+              </Tooltip>
+            }
+          </>}
+          labelSpan={9} valueSpan={15} />}
 
-        {!badgeId && <TableRow label={"Metadata URL"} value={
+        {!badgeId && !isAddressListDisplay && <TableRow label={"Metadata URL"} value={
           <div>
             <>
               <TimelineFieldWrapper
@@ -313,7 +327,12 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           }
         </div>} labelSpan={9} valueSpan={15} />}
 
-        {!!metadata?.fetchedAt && <TableRow label={"Last Updated"} value={new Date(Number(metadata.fetchedAt)).toLocaleString()} labelSpan={9} valueSpan={15} />}
+        {!!metadata?.fetchedAt && <TableRow label={"Last Updated"} value={<>{new Date(Number(metadata.fetchedAt)).toLocaleString()}
+          {/* {metadata.fetchedAtBlock ? <Tooltip title={"Fetched according to the blockchain state at block #" + metadata.fetchedAtBlock}>
+            <BlockOutlined style={{ marginLeft: 4 }} />
+          </Tooltip> : <></>} */}
+
+        </>} labelSpan={9} valueSpan={15} />}
       </InformationDisplayCard>
     </>
   );

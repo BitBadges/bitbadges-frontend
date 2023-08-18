@@ -4,7 +4,6 @@ import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import Markdown from 'react-markdown';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { ActivityTab } from '../../../components/activity/TransferActivityDisplay';
@@ -208,9 +207,7 @@ export function BadgePage({ collectionPreview }
                       >
                         <div style={{ maxHeight: 200, overflow: 'auto' }} >
                           <div className='custom-html-style primary-text' id="description">
-                            <Markdown>
-                              {reactElement}
-                            </Markdown>
+                            {reactElement}
                           </div>
                         </div>
                       </InformationDisplayCard>

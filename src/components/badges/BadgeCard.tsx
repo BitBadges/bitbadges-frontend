@@ -6,7 +6,7 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsC
 import { BadgeAvatar } from './BadgeAvatar';
 
 export function BadgeCard({
-  size = 100,
+  size = 75,
   collectionId,
   hoverable,
   badgeId,
@@ -45,7 +45,7 @@ export function BadgeCard({
       <Card
         className='primary-text primary-blue-bg'
         style={{
-          width: 230,
+          width: 175,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
@@ -70,7 +70,7 @@ export function BadgeCard({
             title={<div>
               <div className='primary-text'
                 style={{
-                  maxWidth: 200,
+                  maxWidth: 165,
                   fontSize: 20,
                   fontWeight: 'bolder',
                   whiteSpace: 'normal',

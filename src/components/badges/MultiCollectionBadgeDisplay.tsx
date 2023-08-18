@@ -1,6 +1,6 @@
 import { Modal, Tooltip, Typography } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalancesForId, getCurrentValueIdxForTimeline } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalancesForId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
@@ -12,7 +12,6 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
-import { AddressDisplay } from "../address/AddressDisplay";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -132,13 +131,10 @@ export function MultiCollectionBadgeDisplay({
               : collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
             if (balances.length === 0) return <></>;
 
-            const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
-            const currentManager = currentManagerIdx >= 0 ? collection?.managerTimeline[Number(currentManagerIdx)].manager : undefined;
+            // const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+            // const currentManager = currentManagerIdx >= 0 ? collection?.managerTimeline[Number(currentManagerIdx)].manager : undefined;
 
-            return <div key={idx} style={{ width: 350, margin: 10, display: 'flex', }}>
-              {/*
-                //TODO: Sync with CollectionDisplay
-              */}
+            return <div key={idx} style={{ minWidth: cardView ? '50%' : undefined, padding: 10, display: 'flex', }}>
               <InformationDisplayCard
 
                 noBorder
@@ -153,24 +149,18 @@ export function MultiCollectionBadgeDisplay({
                         collectionId={collectionId}
                         noHover
                       />
-                      {collection?.cachedCollectionMetadata?.name}
+                      <Typography.Text className="primary-text" style={{ fontSize: 40, fontWeight: 'bold', marginLeft: 10 }}>
+
+                        {collection?.cachedCollectionMetadata?.name}
+                      </Typography.Text>
                     </div>
 
                   </Tooltip>
-                  <div>
-                    <Typography.Text style={{ fontSize: 14 }} strong className='primary-text'>{
-                      currentManager ? "Managed By" : "Created By"
-                    }</Typography.Text>
-                  </div>
-                  <div style={{ marginBottom: 12 }}>
-                    <AddressDisplay fontSize={14} addressOrUsername={currentManager ? currentManager : collection?.createdBy ?? ''} />
-                  </div>
-
                 </>}
               >
                 <BadgeAvatarDisplay
                   collectionId={collectionId}
-                  pageSize={cardView ? 1 : 10}
+                  pageSize={cardView ? 3 : 10}
                   cardView={cardView}
                   addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
                   balance={addressOrUsernameToShowBalance ? balances : undefined}
@@ -183,7 +173,7 @@ export function MultiCollectionBadgeDisplay({
             </div>
           })
         }
-      </div>
+      </div >
     </>
 
   } else {

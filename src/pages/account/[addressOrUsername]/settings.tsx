@@ -1,16 +1,17 @@
-import { Button, Form, Input, Layout, Typography } from 'antd';
+import { Button, Divider, Form, Input, Layout, Typography } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 
-import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -49,6 +50,32 @@ export function AccountSettings() {
     signedInAccount?.readme ? signedInAccount.readme : ''
   );
 
+
+
+  // const [showAllByDefault, setShowAllByDefault] = useState<boolean>(
+  //   signedInAccount?.showAllByDefault ? signedInAccount.showAllByDefault : true
+  // );
+  const showAllByDefault = true;
+
+  // const [shownBadges, setShownBadges] = useState(
+  //   signedInAccount?.shownBadges ? signedInAccount.shownBadges : []
+  // );
+  const shownBadges: any[] = [];
+
+  // const [hiddenBadges, setHiddenBadges] = useState(
+  //   signedInAccount?.hiddenBadges ? signedInAccount.hiddenBadges : []
+  // );
+  const hiddenBadges: any[] = [];
+
+  // const [customPages, setCustomPages] = useState(
+  //   signedInAccount?.customPages ? signedInAccount.customPages : []
+  // );
+  const customPages: any[] = []
+
+  const [profilePicUrl, setProfilePicUrl] = useState(
+    signedInAccount?.profilePicUrl ? signedInAccount.profilePicUrl : ''
+  );
+
   function handleEditorChange({ text }: any) {
     setReadme(text);
     // console.log('handleEditorChange', html, text);
@@ -78,40 +105,93 @@ export function AccountSettings() {
               style={{ minHeight: '100vh', padding: 8 }}
             >
               <br />
-              <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
-                Account Settings
-              </div>
-              <br />
+              <AccountButtonDisplay
+                hideButtons
+                addressOrUsername={chain.cosmosAddress}
+                profilePic={profilePicUrl}
+              />
+              <Divider></Divider>
               <Form
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 14 }}
                 layout="horizontal"
               >
                 <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-                  {/* <Form.Item
-                    label={<>
+
+                  <Form.Item
+                    label={
                       <Text className='primary-text' strong>
-                        Name
+                        Profile Pic URL
                       </Text>
-                    </>}
+                    }
                   >
+
                     <Input
-                      defaultValue={name}
-                      value={name}
+                      defaultValue={profilePicUrl}
+                      value={profilePicUrl}
                       onChange={(e) => {
-                        setName(e.target.value);
+                        setProfilePicUrl(e.target.value);
                       }}
                       className="form-input"
                     />
+
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text
+                        className='primary-text'
+                        strong
+                      >
+                        About
+                      </Text>
+                    }
+                  >
+                    <div className='flex-between'>
+                      <MdEditor
+                        className='primary-text primary-blue-bg full-width'
+                        style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                        value={readme}
+                      />
+                    </div>
                     <Typography.Text strong className='secondary-text'>
-                      *If left blank, we will attempt to resolve your name from your native chain (ex: Ethereum Name Service for Ethereum).
+                      This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
-                    {!regex.test(name) && name.length > 0 && <Typography.Text type="danger">
-                      Name must only contain letters, numbers, underscores, and dashes.
-                    </Typography.Text>}
+                  </Form.Item>
+                  {/* <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Show All Badges By Default?
+                      </Text>
+
+                    }
+                  >
+                    <Checkbox
+                      defaultChecked={showAllByDefault}
+                      checked={showAllByDefault}
+                      onChange={(e) => {
+                        setShowAllByDefault(e.target.checked);
+                      }}
+                    />
+                    <Typography.Text strong className='secondary-text'>
+                      {' '}If checked, all owned badges will be shown on your portfolio by default. If unchecked, only badges that you have marked as shown will be shown by default.
+                    </Typography.Text>
                   </Form.Item> */}
+                  {/* {!showAllByDefault &&
+                    <Form.Item
+                      label={
+                        <Text className='primary-text' strong>
+                          Shown Badges?
+                        </Text>
+
+                      }
+                    >
+
+                      <Typography.Text strong className='secondary-text'>
+                        If checked, all badges will be shown by default. If unchecked, only badges that you have marked as shown will be shown by default.
+                      </Typography.Text>
 
 
+                    </Form.Item>} */}
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
@@ -179,27 +259,7 @@ export function AccountSettings() {
                       className="form-input"
                     />
                   </Form.Item>
-                  <Form.Item
-                    label={
-                      <Text
-                        className='primary-text'
-                        strong
-                      >
-                        About
-                      </Text>
-                    }
-                  >
-                    <div className='flex-between'>
-                      <MdEditor
-                        className='primary-text primary-blue-bg full-width'
-                        style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
-                        value={readme}
-                      />
-                    </div>
-                    <Typography.Text strong className='secondary-text'>
-                      This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
-                    </Typography.Text>
-                  </Form.Item>
+
                 </div>
               </Form>
 
@@ -219,7 +279,12 @@ export function AccountSettings() {
                         github,
                         telegram,
                         // name,
-                        readme
+                        readme,
+                        profilePicUrl,
+                        showAllByDefault,
+                        shownBadges,
+                        hiddenBadges,
+                        customPages
                       };
 
                       await updateAccountInfo(data);
@@ -233,7 +298,6 @@ export function AccountSettings() {
                   Update
                 </Button>
               </div>
-
 
             </ Content>
           }

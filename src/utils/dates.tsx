@@ -3,6 +3,8 @@ import { UintRange } from "bitbadgesjs-proto";
 
 export const FOREVER_DATE = 18446744073709551615n;
 
+export const FOREVER_THRESHOLD = 7277881234n * 1000n;
+
 export function getTimeRangesElement(validFrom?: UintRange<bigint>[], prefix = "Valid from", includeTime = false, futureOnly = false, numbersOnly?: boolean): JSX.Element {
   let strWithTime = getTimeRangesString(validFrom, prefix, true, futureOnly, numbersOnly);
   let strWithoutTime = getTimeRangesString(validFrom, prefix, false, futureOnly, numbersOnly);
@@ -24,7 +26,7 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
   const strings = validFrom.map((timeRange, idx) => {
     let str = idx == 0 ? `${prefix}` : '';
     let endTimestamp = timeRange.end;
-    let validForever = timeRange.end >= FOREVER_DATE;
+    let validForever = timeRange.end >= FOREVER_THRESHOLD;
 
     if (numbersOnly) {
       str += timeRange.start.toString() + "-" + timeRange.end.toString()

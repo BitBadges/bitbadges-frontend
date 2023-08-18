@@ -1,5 +1,5 @@
 import { Divider, Spin } from 'antd';
-import { Balance, CollectionPermissions, NumberType, deepCopy } from 'bitbadgesjs-proto';
+import { AddressMapping, Balance, CollectionPermissions, NumberType, deepCopy } from 'bitbadgesjs-proto';
 import { BLANK_USER_INFO, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -8,6 +8,7 @@ import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { FOREVER_DATE } from '../../utils/dates';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { MintType } from './step-items/ChooseBadgeTypeStepItem';
 
 export const EmptyStepItem = {
   title: '',
@@ -48,8 +49,15 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
   //TODO: abstract this better so we can have multiple distribution methods for different transfers
   distributionMethod: DistributionMethod
   setDistributionMethod: (method: DistributionMethod) => void
+
+  mintType: MintType
+  setMintType: (mintType: MintType) => void
 }
 
+export interface CreateAddressMappingMsg {
+  addressMapping: AddressMapping
+  setAddressMapping: (addressMapping: AddressMapping) => void
+}
 
 export interface NewCollection {
   handledPermissions: CollectionPermissions<bigint>
@@ -87,7 +95,7 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUpdateCollectionProps = UpdateFlags & BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg & { onFinish: (props: BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg) => void };
+export type MsgUpdateCollectionProps = CreateAddressMappingMsg & UpdateFlags & BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg & { onFinish: (props: BaseTxTimelineProps & NewCollection & CreateAndDistributeMsg<bigint> & UpdateMetadataMsg) => void };
 
 export interface BaseTxTimelineProps {
   txType: 'UpdateCollection'
@@ -117,6 +125,17 @@ export function TxTimeline({
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
   const [initialLoad, setInitialLoad] = useState(false);
+
+  const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
+
+  const [addressMapping, setAddressMapping] = useState<AddressMapping>({
+    mappingId: '',
+    addresses: [],
+    includeAddresses: true,
+    uri: '',
+    customData: '',
+    createdBy: chain.address
+  })
 
   //Update flags
   const [updateCollectionPermissions, setUpdateCollectionPermissions] = useState(true);
@@ -240,6 +259,7 @@ export function TxTimeline({
         },
         createdBy: '',
         createdBlock: 0n,
+        createdTimestamp: 0n,
 
         //Existing collection values
         ...existingCollection,
@@ -422,6 +442,11 @@ export function TxTimeline({
     setUpdateContractAddressTimeline,
     updateIsArchivedTimeline,
     setUpdateIsArchivedTimeline,
+
+    mintType,
+    setMintType,
+    addressMapping,
+    setAddressMapping,
   }
 
   if (!initialLoad) return <div className='primary-text'>

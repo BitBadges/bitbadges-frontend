@@ -59,7 +59,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
   }
 
   return (
-    <div>
+    <div className='full-width'>
       <div className='flex-center primary-text'>
         <InfiniteScroll
           dataLength={activity.length}
@@ -94,7 +94,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                 return <CollapsePanel
                   key={idx}
                   className='full-width'
-                  header={
+                  header={<>
                     <Row className='flex-between primary-text' style={{ textAlign: 'left' }} >
                       <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                         {getPanelHeaderAddress([activity.from])}
@@ -103,6 +103,25 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                       </Col>
                       <div>{activity.method} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
                     </Row>
+                    <Row>
+                      <div
+                        className='primary-text'
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 'bolder',
+                          whiteSpace: 'normal'
+                        }}
+                        onClick={(e) => {
+                          router.push(`/collections/${activity.collectionId}`);
+                          e.stopPropagation();
+                        }}
+                      >
+                        <a>
+                          {collection?.cachedCollectionMetadata?.name}
+                        </a>
+                      </div>
+                    </Row>
+                  </>
                   }
                 >
                   {
@@ -113,26 +132,12 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                           <Row>
                             <Col span={24}>
                               <h2 className='primary-text'>Transaction Type: {activity.method}</h2>
-                              <div
-                                className='primary-text'
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: 'bolder',
-                                  whiteSpace: 'normal'
-                                }}
-                                onClick={(e) => {
-                                  router.push(`/collections/${activity.collectionId}`);
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <a>
-                                  {collection?.cachedCollectionMetadata?.name}
-                                </a>
-                              </div>
+
                               {collection &&
                                 <TransferDisplay
                                   key={idx}
                                   collectionId={collectionId}
+                                  initiatedBy={activity.initiatedBy}
                                   transfers={[
                                     {
                                       from: activity.from,

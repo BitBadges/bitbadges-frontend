@@ -38,7 +38,7 @@ export const BlockinDisplay = ({
   } = useChainContext();
   const accounts = useAccountsContext();
   const account = accounts.getAccount(address);
-  const avatar = account?.avatar;
+  const avatar = account?.profilePicUrl ?? account?.avatar;
 
 
   const [_cookies, setCookie] = useCookies(['blockincookie']);
