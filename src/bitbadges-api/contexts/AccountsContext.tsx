@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
@@ -40,6 +40,7 @@ export type AccountsContextType = {
   getReviewsView: (addressOrUsername: string, viewKey: AccountViewKey) => ReviewInfo<DesiredNumberType>[],
   getBalancesView: (addressOrUsername: string, viewKey: AccountViewKey) => BalanceInfo<DesiredNumberType>[],
   getAddressMappingsView: (addressOrUsername: string, viewKey: AccountViewKey) => AddressMappingWithMetadata<DesiredNumberType>[],
+  getClaimAlertsView: (addressOrUsername: string, viewKey: AccountViewKey) => ClaimAlertInfo<DesiredNumberType>[],
 
   //Other helpers
   incrementSequence: (addressOrUsername: string) => void,
@@ -69,6 +70,7 @@ const AccountsContext = createContext<AccountsContextType>({
   setPublicKey: () => { },
   getActivityView: () => [],
   getAnnouncementsView: () => [],
+  getClaimAlertsView: () => [],
   getReviewsView: () => [],
   getBalancesView: () => [],
   getAddressMappingsView: () => [],
@@ -192,6 +194,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
         views: newViews,
         publicKey,
+        airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
         sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
         accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
         resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
@@ -449,6 +452,16 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }) as AddressMappingWithMetadata<DesiredNumberType>[];
   }
 
+  function getClaimAlertsView(addressOrUsername: string, viewKey: AccountViewKey) {
+    const account = getAccount(addressOrUsername);
+    if (!account) return [];
+
+    return account.views[viewKey]?.ids.map(x => {
+      return account.claimAlerts.find(y => y._id === x);
+    }) as ClaimAlertInfo<DesiredNumberType>[];
+  }
+
+
   const incrementSequence = (addressOrUsername: string) => {
     const account = getAccount(addressOrUsername);
     if (account) {
@@ -483,6 +496,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     setPublicKey,
     getReviewsView,
     getActivityView,
+    getClaimAlertsView,
     getBalancesView,
     getAnnouncementsView,
     getAddressMappingsView,

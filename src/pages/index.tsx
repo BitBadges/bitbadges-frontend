@@ -211,7 +211,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                    Distribute your created badges to users in a variety of ways, such as whitelists, passwords, codes, emails, and QR codes.
+                    Distribute your created badges to users in a variety of ways, such as whitelists, passwords, codes, emails, or QR codes.
                   </Typography.Text>
                 </>
                 }

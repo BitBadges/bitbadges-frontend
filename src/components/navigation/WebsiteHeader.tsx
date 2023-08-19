@@ -83,6 +83,11 @@ export function WalletHeader() {
         Activity
       </div>
     </Menu.Item>
+    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Profiles
+      </div>
+    </Menu.Item>
   </Menu>
   const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
   const BrowseTabWithText = { key: 'popup-browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
@@ -94,6 +99,7 @@ export function WalletHeader() {
   let unseenNotificationCount = 0;
   let overflowCount = 10;
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
+  const claimAlerts = account?.claimAlerts ?? [];
   for (const activity of allActivity) {
     if (account?.seenActivity && account.seenActivity < activity.timestamp) {
       unseenNotificationCount++;
@@ -103,6 +109,19 @@ export function WalletHeader() {
       }
     }
   }
+  console.log(unseenNotificationCount, claimAlerts);
+  for (const claimAlert of claimAlerts) {
+    console.log(account?.seenActivity, claimAlert.createdTimestamp);
+    if (account?.seenActivity && account.seenActivity < claimAlert.createdTimestamp) {
+      unseenNotificationCount++;
+
+      if (unseenNotificationCount > overflowCount) {
+        break;
+      }
+    }
+  }
+
+  console.log(unseenNotificationCount);
 
   // const NotificationsTabMenu = <></>
   // const NotificationsTabWithIcon = {

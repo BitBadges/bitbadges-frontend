@@ -205,6 +205,8 @@ export function MultiCollectionBadgeDisplay({
                           key={idx}
                           collectionId={badgeIdObj.collectionId}
                           badgeId={badgeId}
+                          showId={!!addressOrUsernameToShowBalance}
+                          showSupplys={!!addressOrUsernameToShowBalance}
                           balances={
                             getBalancesForId(badgeId, (accountInfo?.collected.find(collected => collected.collectionId === badgeIdObj.collectionId)?.balances) ?? [])
                           }

@@ -8,6 +8,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { ClaimAlertsTab } from '../../components/collection-page/ClaimAlertsTab';
 
 const { Content } = Layout;
 
@@ -63,15 +64,21 @@ export function Notifications() {
                     fullWidth
                     tab={tab}
                     setTab={setTab}
-                    tabInfo={[{
-                      key: 'announcements',
-                      content: 'Announcements',
-                      disabled: false
-                    }, {
-                      key: 'transferActivity',
-                      content: 'Transfer Activity',
-                      disabled: false
-                    }]}
+                    tabInfo={[
+
+                      {
+                        key: 'announcements',
+                        content: 'Announcements',
+                        disabled: false
+                      }, {
+                        key: 'claimAlerts',
+                        content: 'Claim Alerts',
+                        disabled: false
+                      }, {
+                        key: 'transferActivity',
+                        content: 'Transfer Activity',
+                        disabled: false
+                      }]}
                   />
                   <div style={{ textAlign: 'center' }}>
                     {tab === 'transferActivity' && <>
@@ -91,6 +98,15 @@ export function Notifications() {
                       }}
                       hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? true}
                     /></>}
+
+                    {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
+                      claimAlerts={signedInAccount?.claimAlerts ?? []}
+                      fetchMore={async () => {
+                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestClaimAlerts']);
+                      }}
+                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
+                    />
+                    </>}
                   </div>
                 </div>
               </Content>
