@@ -32,7 +32,7 @@ export function AddressDisplay({
 }) {
   return <>
     {title && AddressDisplayTitle({ title, icon })}
-    <div className='flex-center' style={{ paddingRight: 0 }}>
+    <div className='flex-center' style={{ paddingRight: 0,  }}>
       <AddressWithBlockies
         addressOrUsername={addressOrUsername}
         fontSize={fontSize}
@@ -41,11 +41,12 @@ export function AddressDisplay({
         hideTooltip={hideTooltip}
         overrideChain={overrideChain}
       />
-      <div className='flex-center' style={{ color: fontColor ? 'white' : undefined }} >
-        <div style={{ marginLeft: 8 }}>
-          {icon}
-        </div>
-      </div>
+      {icon &&
+        <div className='flex-center' style={{ color: fontColor ? 'white' : undefined }} >
+          <div style={{ marginLeft: 8 }}>
+            {icon}
+          </div>
+        </div>}
     </div>
   </>
 }

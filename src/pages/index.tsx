@@ -21,7 +21,7 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
 
   const [showMore, setShowMore] = useState<boolean>(false);
 
-  return <Col md={6} sm={24} xs={24} style={{
+  return <Col lg={6} md={24} sm={24} xs={24} style={{
     padding: 6, display: 'flex',
   }}>
     <div style={{ display: 'flex' }}>
@@ -30,7 +30,6 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
         style={{
           minHeight: additionalContent ? 360 : 260, borderRadius: 15,
           background: `linear-gradient(0deg, black 10%, #001529 100%)`,
-          display: 'flex'
         }} onClick={() => {
           if (onClick) onClick();
           else setShowMore(!showMore)
@@ -119,8 +118,8 @@ const Home: NextPage = () => {
         <div
           // className='primary-blue-bg'
           style={{
-            marginLeft: '7vw',
-            marginRight: '7vw',
+            marginLeft: '5vw',
+            marginRight: '5vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
@@ -364,18 +363,18 @@ const Home: NextPage = () => {
                   <div className='flex-center'>
                     <Avatar
                       src={ETH_LOGO}
-                      size={80}
+                      size={60}
                     />
                     <SwapOutlined style={{ fontSize: 40, marginRight: 16, marginLeft: 16 }} />
                     <Avatar
                       src={COSMOS_LOGO}
-                      size={80}
+                      size={60}
                     />
                   </div>
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Badges can be sent from users of one blockchain ecosystem to another blockchain ecosystem (currently supports Ethereum and Cosmos).
+                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports Ethereum and Cosmos).
                   </Typography.Text>
                 </>
               }
@@ -602,7 +601,7 @@ const Home: NextPage = () => {
                     <FileProtectOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges uses a registry architecture as opposed to individual smart contracts for each badge.
+                      BitBadges uses a registry architecture as opposed to individual smart contracts for each badge, which results in increased scalability, consistenecy, and security.
                     </Typography.Text>
                   </>
                 }

@@ -38,6 +38,8 @@ export function SearchDropdown({
 
       setLoading(true);
       setSearchResponse(undefined);
+
+
       const result = await getSearchResults(searchValue);
 
       //Update context if we have new accounts or collections

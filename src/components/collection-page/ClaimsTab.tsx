@@ -45,7 +45,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   //TODO: This is hardcoded for length == 0 for now
   for (const approvedTransfer of approvedTransfers) {
     for (const approvalDetails of approvedTransfer.approvalDetails) {
-      if (approvedTransfer.fromMappingId === "Mint") {
+      if (approvedTransfer.fromMappingId === "Mint" && approvedTransfer.initiatedByMappingId !== "Manager") {
         merkleChallenges.push(...approvalDetails.merkleChallenges);
         approvedTransfersForClaims.push(approvedTransfer);
       }

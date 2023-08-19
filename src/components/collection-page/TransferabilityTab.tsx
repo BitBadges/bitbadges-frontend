@@ -13,37 +13,37 @@ import { AddressDisplayList } from '../address/AddressDisplayList';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 
 export const getTableHeader = () => {
-  return <tr>
-    <td style={{ minWidth: 70 }}><b>
+  return <tr >
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       From
     </b></td>
-    <td style={{ minWidth: 70 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       To
     </b></td>
-    <td style={{ minWidth: 70 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Initiated By <Tooltip title="The address that initiates the transfer transaction.">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
       </Tooltip>
     </b></td>
-    <td style={{ minWidth: 70 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Transfer Times
       <Tooltip title="The times at which the transfer can take place.">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
       </Tooltip>
     </b></td>
-    <td style={{ minWidth: 70 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Badge IDs
     </b></td>
-    <td style={{ minWidth: 70 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Ownership Times
       <Tooltip title="The ownership times for the badges that are allowed to be transferred.">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
       </Tooltip>
     </b></td>
-    <td><b>
+    <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Approved?
     </b></td>
-    <td><b>
+    <td style={{ verticalAlign: 'top', minWidth: 150 }}><b>
       Other?
     </b></td>
   </tr>
@@ -126,16 +126,16 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
           <>
             <ul style={{ textAlign: 'left' }}>
               {x.approvalDetails[0].requireFromDoesNotEqualInitiatedBy && (
-                <li>From != Initiated By</li>
+                <li>From Must NOT Equal Initiated By</li>
               )}
               {x.approvalDetails[0].requireFromEqualsInitiatedBy && (
-                <li>From == Initiated By</li>
+                <li>From Must Equal Initiated By</li>
               )}
               {x.approvalDetails[0].requireToDoesNotEqualInitiatedBy && (
-                <li>To != Initiated By</li>
+                <li>To Must NOT Equal Initiated By</li>
               )}
               {x.approvalDetails[0].requireToEqualsInitiatedBy && (
-                <li>To == Initiated By</li>
+                <li>To Must Equal Initiated By</li>
               )}
               {x.fromMappingId !== "Mint" && x.approvalDetails[0].overridesFromApprovedOutgoingTransfers ? (
                 <li>Overrides From Approvals</li>

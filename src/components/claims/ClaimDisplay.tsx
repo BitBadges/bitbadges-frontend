@@ -18,6 +18,7 @@ import { NumberInput } from "../display/NumberInput";
 import { SHA256 } from "crypto-js";
 import { AddressSelect } from "../address/AddressSelect";
 import { AddressDisplayList } from "../address/AddressDisplayList";
+import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 
 
 //TODO: Will need to change when we allow approvalDetails len > 0
@@ -45,7 +46,7 @@ export function ClaimDisplay({
   const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
-
+  const accounts = useAccountsContext();
 
   const claim = approvedTransfer.approvalDetails.length > 0 && approvedTransfer.approvalDetails[0].merkleChallenges.length > 0 ?
     approvedTransfer.approvalDetails[0].merkleChallenges[0] : undefined; //TODO: Support multiple challenges per claim
@@ -93,6 +94,14 @@ export function ClaimDisplay({
       setCurrCode(passwordQuery as string);
     }
   }, []);
+
+  useEffect(() => {
+    if (
+      claim?.useCreatorAddressAsLeaf &&
+      approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx]) {
+      accounts.fetchAccounts([approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? '']);
+    }
+  }, [browseIdx, claim]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');

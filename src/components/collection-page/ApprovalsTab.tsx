@@ -182,8 +182,8 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
 
   if (!collection) return <></>;
 
-  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(defaultOutgoingIdx < 0 || defaultOutgoingIdx <= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
-  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(defaultIncomingIdx < 0 || defaultIncomingIdx <= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []

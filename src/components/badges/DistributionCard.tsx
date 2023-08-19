@@ -84,7 +84,9 @@ export function DistributionOverview({
             <TimelineFieldWrapper
               createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
                 return <><Tooltip placement='bottom' title={timelineVal.offChainBalancesMetadata.uri}>
-                  <a href={timelineVal.offChainBalancesMetadata.uri} target="_blank" rel="noreferrer">
+                  <a href={timelineVal.offChainBalancesMetadata.uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${timelineVal.offChainBalancesMetadata.uri.slice(7)}` : timelineVal.offChainBalancesMetadata.uri
+
+                  } target="_blank" rel="noreferrer">
                     View
                     <LinkOutlined style={{ marginLeft: 4 }} /></a>
                 </Tooltip>

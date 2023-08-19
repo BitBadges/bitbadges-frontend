@@ -113,7 +113,7 @@ export function Address({
   const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address && address != 'All' && address != 'All Other';
   const invalidAddress = !isValidAddress;
   return (
-    <div className='flex-center'>
+    <div style={{}}>
       <div
         style={{
           verticalAlign: 'middle',
@@ -123,21 +123,23 @@ export function Address({
       >
         <Text
           className={!showLink ? undefined : 'link-button-nav'}
-          strong
+
           onClick={!showLink ? undefined : () => {
             router.push(`/account/${address}`);
           }}
-          
+
           copyable={{
             text: address,
             tooltips: ['Copy Address', 'Copied!'],
           }}
           style={{
             color: invalidAddress ? 'red' : fontColor,
+            display: 'inline-flex',
           }}
         >
-          {userInfo ? <>{innerContent}</> : !invalidAddress ? <Spin /> : <>{displayAddress}</>}
-
+          <b>
+            {userInfo ? <>{innerContent}</> : !invalidAddress ? <Spin /> : <>{displayAddress}</>}
+          </b>
         </Text>
       </div>
     </div>

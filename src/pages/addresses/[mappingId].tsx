@@ -16,11 +16,13 @@ import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageBu
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 function CollectionPage({ }: {}) {
   const router = useRouter()
+  const accounts = useAccountsContext();
   const { mappingId } = router.query;
 
   const [mapping, setMapping] = useState<AddressMapping>();
@@ -46,6 +48,7 @@ function CollectionPage({ }: {}) {
       //   await accounts.fetchAccounts(mapping?.addresses || []);
       // }
 
+      await accounts.fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
       if (mapping.uri) {
         const metadataRes = await fetchMetadataDirectly({
           uris: [mapping.uri],
