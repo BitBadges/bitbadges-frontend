@@ -14,7 +14,7 @@ export function OrderMattersSelectStepItem(
     description: <div>
 
       <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
-        <h3 style={{ textAlign: 'center' }} className='primary-text'>Who should receive what badges?</h3>
+        {/* <h3 style={{ textAlign: 'center' }} className='primary-text'>Who should receive what badges?</h3> */}
       </div>
 
       <SwitchForm
@@ -23,12 +23,12 @@ export function OrderMattersSelectStepItem(
           setHandled(true);
         }}
         options={[{
-          title: 'Incremental',
-          message: 'First user to claim will receive the first increment of badges, second user will receive the second increment, etc.',
+          title: 'Increasing',
+          message: 'Increments will be calculated based on the number of processed claims. First user to claim will receive the first increment of badges, second user will receive the second increment, etc.',
           isSelected: !orderMatters
         }, {
           title: 'Reserved',
-          message: `According to the order of the ${distributionMethod === DistributionMethod.Whitelist ? "addresses you entered" : "codes"}, the first ${distributionMethod === DistributionMethod.Whitelist ? "address will receive" : "code will correspond to"
+          message: `According to the order of the ${distributionMethod === DistributionMethod.Whitelist ? "addresses you entered" : "codes"}, the first ${distributionMethod === DistributionMethod.Whitelist ? "address will always receive" : "code will always correspond to"
             } the first increment of badges, second to the second increment, and so on.`,
           isSelected: orderMatters
         }]}

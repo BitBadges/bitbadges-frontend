@@ -14,6 +14,7 @@ export function Address({
   hideTooltip,
   hidePortfolioLink,
   overrideChain,
+  doNotShowName
 }: {
   addressOrUsername: string;
   fontSize?: number | string;
@@ -21,6 +22,7 @@ export function Address({
   hideTooltip?: boolean;
   hidePortfolioLink?: boolean;
   overrideChain?: SupportedChain;
+  doNotShowName?: boolean;
 }) {
   const router = useRouter();
   const accounts = useAccountsContext();
@@ -34,8 +36,8 @@ export function Address({
   }
 
 
-  const addressName = userInfo?.username;
-  const resolvedName = userInfo?.resolvedName;
+  const addressName = !doNotShowName ? userInfo?.username : '';
+  const resolvedName = !doNotShowName ? userInfo?.resolvedName : '';
   let address = (overrideChain ? newAddress : userInfo?.address) || addressOrUsername || '';
   let chain = overrideChain ?? userInfo?.chain;
 
@@ -71,7 +73,8 @@ export function Address({
               }}
             >
               {`${chain} Address`}
-              {resolvedName ? <><br />{`(${resolvedName})`}</> : ''}
+              {resolvedName ? <><br />{`${resolvedName}`}</> : ''}
+
               <br />
               <br />
               {`${address}`}
@@ -80,21 +83,32 @@ export function Address({
 
               {"Other equivalent addresses include: "}
               <br />
-              {chain === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
+              {!doNotShowName && (addressName || resolvedName) && <div className='flex-center'>
+                <AddressDisplay
+                  addressOrUsername={address}
+                  hidePortfolioLink
+                  hideTooltip
+                  doNotShowName
+                />
+                <br />
+              </div>}
+              {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
                 <AddressDisplay
                   addressOrUsername={convertToCosmosAddress(address)}
                   overrideChain={SupportedChain.COSMOS}
                   hidePortfolioLink
                   hideTooltip
+                  doNotShowName
                 />
                 <br />
               </div>}
-              {chain === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
+              {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
                 <AddressDisplay
                   addressOrUsername={cosmosToEth(address)}
                   overrideChain={SupportedChain.ETH}
                   hidePortfolioLink
                   hideTooltip
+                  doNotShowName
                 />
                 <br />
               </div>}

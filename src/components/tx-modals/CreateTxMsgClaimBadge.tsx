@@ -8,6 +8,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
+import { notification } from 'antd';
 
 //TODO: support multiple challenges per claim
 //TODO: handle used claim codes
@@ -37,7 +38,7 @@ export function CreateTxMsgClaimBadgeModal(
 
   const requiresProof = (approvedTransfer?.approvalDetails[0].merkleChallenges ?? []).length > 0;
 
-  const [codeToSubmit, setCodeToSubmit] = useState<string>("");
+  const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
     leavesDetails?.leaves.map(x => {
       return leavesDetails?.isHashed ? x : SHA256(x);
@@ -46,9 +47,23 @@ export function CreateTxMsgClaimBadgeModal(
     { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
   ) : null);
 
+  // const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+
 
   const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
   // const isCodes = !isWhitelist;
+
+
+
+  useEffect(() => {
+    if (claimItem && claimItem.details?.hasPassword) {
+
+    }
+    else {
+      setPasswordCodeToSubmit(code);
+    }
+  }, [code, claimItem]);
 
   useEffect(() => {
     if (!visible) return;
@@ -61,17 +76,35 @@ export function CreateTxMsgClaimBadgeModal(
           claimItemCid = claimItem.uri.split('ipfs://')[1];
           claimItemCid = claimItemCid.split('/')[0];
         }
-        const res = await getMerkleChallengeCodeViaPassword(collectionId, claimItemCid, code);
-        setCodeToSubmit(res.code);
+        if (code) {
+          try {
+            const res = await getMerkleChallengeCodeViaPassword(collectionId, claimItemCid, code);
+            setPasswordCodeToSubmit(res.code);
+          } catch (e) {
+            setVisible(false);
+          }
+        }
       } else {
-        setCodeToSubmit(code);
+        // setPasswordCodeToSubmit(code);
+        const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(code).toString();
+
+        const proofObj = tree?.getProof(leaf, whitelistIndex !== undefined && whitelistIndex >= 0 ? whitelistIndex : undefined);
+        // console.log(whitelistIndex, proofObj);
+        const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
+
+        if (!isValidProof) {
+          notification.error({
+            message: 'Invalid code',
+            description: 'The provided code is invalid. This transaction will fail.',
+          });
+          setVisible(false);
+        }
       }
     }
     fetchCode();
   }, [claimItem, code, collectionId, visible]);
 
   useEffect(() => {
-    if (!visible) return;
 
     if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
     if (claimItem) {
@@ -82,15 +115,15 @@ export function CreateTxMsgClaimBadgeModal(
       });
       setTree(tree);
     }
-  }, [claimItem, visible]);
+  }, [claimItem]);
 
 
-  if (!collection) return <></>;
+  if (!collection || !visible) return <></>;
 
-  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(codeToSubmit).toString();
+  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
 
   const proofObj = tree?.getProof(leaf, whitelistIndex !== undefined && whitelistIndex >= 0 ? whitelistIndex : undefined);
-  console.log(whitelistIndex, proofObj);
+  // console.log(whitelistIndex, proofObj);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
 
   const txCosmosMsg: MsgTransferBadges<bigint> = {
@@ -112,17 +145,17 @@ export function CreateTxMsgClaimBadgeModal(
             onRight: proof.position === 'right'
           }
         }) : [],
-        leaf: codeToSubmit,
+        leaf: passwordCodeToSubmit,
       }] : [],
       memo: ''
     }],
   };
 
-  console.log("MSG", txCosmosMsg);
+  console.log("MSG", JSON.stringify(txCosmosMsg, null, 2));
 
   return (
     <TxModal
-      visible={visible}
+      visible={visible && (isValidProof || !requiresProof)}
       setVisible={setVisible}
       txName="Claim Badge"
       txCosmosMsg={txCosmosMsg}

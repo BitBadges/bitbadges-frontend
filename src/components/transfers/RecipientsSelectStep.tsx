@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressListSelect } from "../address/AddressListSelect";
-import { ToolIcon } from "../display/ToolIcon";
+import { ToolIcon, tools } from "../display/ToolIcon";
 
 export function RecipientsSelectStep({ sender,
   toAddresses,
@@ -105,7 +105,15 @@ export function RecipientsSelectStep({ sender,
         <Typography.Text strong className='secondary-text' style={{ fontSize: 14, textAlign: 'center' }}>Fetch addresses using one of the following tools.</Typography.Text>
         <br />
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <ToolIcon name="Sketch.io" />
+          {tools.map(x => {
+            if (x.toolType !== "Collect") return null;
+
+            return <ToolIcon
+              key={x.name}
+              name={x.name}
+            />
+          })}
+
         </div>
         <br />
       </div>

@@ -73,8 +73,9 @@
   top: 0
 }
 
-.ant-modal-content {
-    margin-bottom: 100px;
+.ant-modal {
+  padding-bottom: 100px;
+  max-height: calc(100vw - 32px);
 }
 
 .ant-modal-header {

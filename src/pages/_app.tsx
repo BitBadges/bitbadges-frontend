@@ -19,6 +19,7 @@ import { Web3Modal } from '@web3modal/react'
 import { configureChains, createClient, WagmiConfig } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { INFINITE_LOOP_MODE } from '../constants';
+import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
 
 const chains = [mainnet]
 const projectId = 'febf8d9986a2cd637fa4004338dad39b'
@@ -61,40 +62,48 @@ const App = ({ Component, pageProps }: AppProps) => {
           <EthereumContextProvider>
             <ChainContextProvider>
               <CollectionsContextProvider>
-                <StatusContextProvider>
-                  <WagmiConfig client={wagmiClient}>
-                    <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
-                      themeMode="dark"
-                    />
-                    <Layout className="layout">
-                      <WalletHeader />
-                      {myCookieValue !== 'accepted' &&
-                        <div className='primary-text primary-blue-bg'
-                          style={{
-                            textAlign: 'center',
-                            borderBottom: '1px solid white',
-                            paddingBottom: 16,
-                          }}>
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            flexWrap: 'wrap'
-                          }}>
-                            This website uses cookies to ensure you get the best experience.
-                            By continuing to use this website, you agree to our use of cookies, {" "}
-                            <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/privacy')}><a>privacy policy</a></p>, and
-                            <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/termsofservice')}><a>terms of service</a></p>.
-                          </div>
-                          <Button key="accept" type='primary' onClick={() => handleCookieResponse(true)}>
-                            Accept
-                          </Button>
-                          <br />
-                        </div>}
-                      <Component {...pageProps} />
-                      <WalletFooter />
-                    </Layout>
-                  </WagmiConfig>
-                </StatusContextProvider>
+                <BrowseContextProvider>
+                  <StatusContextProvider>
+                    <WagmiConfig client={wagmiClient}>
+                      <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
+                        themeMode="dark"
+                      />
+                      <Layout className="layout">
+                        <WalletHeader />
+
+                        <Component {...pageProps} />
+                        {myCookieValue !== 'accepted' &&
+                          <div className='primary-text primary-blue-bg'
+                            style={{
+                              textAlign: 'center',
+                              borderTop: '1px solid white',
+                              paddingBottom: 16,
+                              paddingTop: 16,
+                              position: 'fixed',
+                              bottom: 0,
+                              width: '100%',
+                              zIndex: 1000
+                            }}>
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              flexWrap: 'wrap'
+                            }}>
+                              This website uses cookies to ensure you get the best experience.
+                              By continuing to use this website, you agree to our use of cookies, {" "}
+                              <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/privacy')}><a>privacy policy</a></p>, and
+                              <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/termsofservice')}><a>terms of service</a></p>.
+                            </div>
+                            <Button key="accept" type='primary' onClick={() => handleCookieResponse(true)}>
+                              Accept
+                            </Button>
+                            <br />
+                          </div>}
+                        <WalletFooter />
+                      </Layout>
+                    </WagmiConfig>
+                  </StatusContextProvider>
+                </BrowseContextProvider>
               </CollectionsContextProvider>
             </ChainContextProvider>
           </EthereumContextProvider>

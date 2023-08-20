@@ -18,6 +18,7 @@ export function NumberInput({
     <div className='flex-between flex-column'>
       <b>{title}</b>
       <InputNumber
+        defaultValue={value}
         min={min >= 0 ? min : 1}
         max={max}
         title='Amount'

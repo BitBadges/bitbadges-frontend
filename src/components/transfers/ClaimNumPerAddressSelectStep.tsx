@@ -1,5 +1,6 @@
 import { Checkbox, Col, InputNumber, Row, Typography } from "antd";
 import { BigIntify, DistributionMethod, Numberify } from "bitbadgesjs-utils";
+import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 
 export function ClaimNumPerAddressSelectStep(
   numPerInitiatedByAddress: bigint,
@@ -19,7 +20,14 @@ export function ClaimNumPerAddressSelectStep(
   return {
     title: `Restrictions`,
     description: <>
+      <br />
+      <div className="flex-center">
+        <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
+          Additional Restrictions
+        </Typography.Text>
+      </div>
       <Row className='flex-between primary-text' style={{ minWidth: 500, textAlign: 'center', alignItems: 'normal' }} >
+
         <Col md={12} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
             Initiated By Address Restrictions
@@ -61,7 +69,26 @@ export function ClaimNumPerAddressSelectStep(
           </Typography.Text>
           <br />
           <br />
-          <Checkbox
+          <SwitchForm
+            options={[{
+              title: 'No Gifting',
+              message: 'The recipient of the claim must be the same as the address that initiated the claim.',
+              isSelected: requireToEqualsInitiatedBy,
+            },
+            {
+              title: 'Allow Gifting',
+              message: 'The recipient of the claim can be different from the address that initiated the claim.',
+              isSelected: !requireToEqualsInitiatedBy,
+            }]}
+            onSwitchChange={(option, _title) => {
+              if (option === 0) {
+                setRequireToEqualsInitiatedBy(true);
+              } else {
+                setRequireToEqualsInitiatedBy(false);
+              }
+            }}
+          />
+          {/* <Checkbox
             checked={requireToEqualsInitiatedBy}
             onChange={(e) => {
               setRequireToEqualsInitiatedBy(e.target.checked);
@@ -75,14 +102,14 @@ export function ClaimNumPerAddressSelectStep(
             <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
               Require To Address Equals Initiated By Address?
             </div>
-          </Checkbox>
+          </Checkbox> */}
           <br />
           <br />
 
           {!requireToEqualsInitiatedBy && <>
             <br />
             <div className='flex-between' style={{ flexDirection: 'column' }} >
-              <b>Max Claims Per To Address</b>
+              <b>Max Received Claims</b>
               {numPerToAddress > 0 &&
                 <InputNumber
                   min={1}

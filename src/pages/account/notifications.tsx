@@ -32,6 +32,8 @@ export function Notifications() {
     }
   }, [chain.connected, chain.loggedIn, chain.cosmosAddress]);
 
+
+  console.log(signedInAccount);
   return (
     <DisconnectedWrapper
       requireLogin

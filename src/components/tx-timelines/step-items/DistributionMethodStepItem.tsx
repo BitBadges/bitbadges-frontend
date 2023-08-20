@@ -1,12 +1,10 @@
-import { Divider, Row, Typography } from "antd";
 import { AddressMapping } from "bitbadgesjs-proto";
 import { DistributionMethod, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { useRef } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { FOREVER_DATE } from "../../../utils/dates";
-import { ToolIcon, tools } from "../../display/ToolIcon";
 import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { useRef } from "react";
 const crypto = require('crypto');
 
 export function DistributionMethodStepItem(
@@ -35,7 +33,7 @@ export function DistributionMethodStepItem(
 
   const CodesStep = {
     title: 'Codes',
-    message: `Generate secret codes or passwords that can be entered by users to claim badges. These can be distributed to users however you would like (email, social media, etc). ${!neverHasManager ? '\n\nIMPORTANT: Codes / passwords will only be viewable by the collection manager.' : 'Currently only available with a manager.'}`,
+    message: `Generate secret codes or passwords that can be entered by users to claim badges. These can be distributed to users however you would like (email, social media, etc). ${!neverHasManager ? '\n\nIMPORTANT: Codes / passwords will only ever be viewable by the current collection manager.' : 'Currently only available with a manager.'}`,
     isSelected: distributionMethod == DistributionMethod.Codes,
     disabled: neverHasManager
   }
@@ -225,7 +223,7 @@ export function DistributionMethodStepItem(
           }
         }}
       />
-      <Divider />
+      {/* <Divider />
       <Divider />
 
       <div className='flex-center flex-wrap flex-column'>
@@ -237,8 +235,7 @@ export function DistributionMethodStepItem(
 
         <br />
         <Row className='full-width'>
-          {/* Three columns */}
-          {tools.filter(x => x.distributionMethod).map(x => {
+          {tools.filter(x => x.toolType === 'Collection').map(x => {
             return <ToolIcon
               key={x.name}
               name={x.name}
@@ -248,7 +245,7 @@ export function DistributionMethodStepItem(
         </Row>
 
         <br />
-      </div>
+      </div> */}
     </div>,
     disabled: distributionMethod == DistributionMethod.None
   }

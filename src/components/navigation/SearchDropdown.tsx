@@ -74,7 +74,7 @@ export function SearchDropdown({
     <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
       {/* Current Search Value Address Helper - Matches Text Exactly */}
       {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
-        <Menu.Item className='dropdown-item' disabled={!accounts.getAccount(searchValue)} style={{ cursor: 'disabled' }} onClick={async () => {
+        <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }} onClick={async () => {
           await onSearch(searchValue, true);
         }}>
           <div className='flex-between'>

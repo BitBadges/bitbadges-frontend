@@ -1,52 +1,18 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
-import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
-import { getBrowseCollections } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useState } from 'react';
+import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BlockiesAvatar } from '../../components/address/Blockies';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { Tabs } from '../../components/navigation/Tabs';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
 const { Content } = Layout;
 
 function BrowsePage() {
-  const accounts = useAccountsContext();
-
-
-  const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
+  const browseContext = useBrowseContext();
+  const browseInfo = browseContext.browse;
   const [tab, setTab] = useState('featured');
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
-    async function getCollections() {
-      const browseInfo = await getBrowseCollections();
-      if (!browseInfo) return;
-
-      console.log(browseInfo);
-      console.log(Object.keys(browseInfo));
-
-      const updatedIds: string[] = [];
-      for (const category of Object.keys(browseInfo.profiles)) {
-        if (!browseInfo.collections[category]) continue;
-        console.log(browseInfo.collections[category]);
-        for (const profile of browseInfo.profiles[category]) {
-
-          if (updatedIds.includes(profile.cosmosAddress)) continue;
-          accounts.updateAccount({
-            ...profile,
-          });
-
-          updatedIds.push(profile.cosmosAddress);
-        }
-      }
-
-      setBrowseInfo(browseInfo);
-    }
-    getCollections();
-  }, []);
 
   return (
     <Layout>

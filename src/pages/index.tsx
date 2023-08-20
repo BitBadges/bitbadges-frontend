@@ -99,10 +99,11 @@ const Home: NextPage = () => {
 
   useEffect(() => {
 
-    for (const badge of featuredBadges) {
-      const { collectionId, badgeId } = badge;
-      collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
-    }
+    // for (const badge of featuredBadges) {
+    // const { collectionId, badgeId } = badge;
+    // collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
+    collections.fetchAndUpdateMetadata(1n, { badgeIds: [{ start: 1n, end: 10n }] })
+    // }
   }, []);
 
   return (
@@ -135,7 +136,7 @@ const Home: NextPage = () => {
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
               </Typography.Text> */}
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Note this is a beta version of BitBadges for testing purposes which is completely subsidized. Badges and profiles can optionally be migrated to mainnet once launched.</Typography.Text>
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Note this is a beta version of BitBadges for testing purposes which is completely subsidized. Badges and profiles (not $BADGE) can optionally be migrated to mainnet once launched.</Typography.Text>
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text>
               <div className='flex'>
                 <Button
@@ -728,27 +729,25 @@ const Home: NextPage = () => {
 
 
         <Divider />
-
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
             <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
-              Ecosystem and Integrations
+              Distribution Tools
             </Typography.Text>
           </Col>
         </Row>
 
-        {/* <Row className='flex-between' style={{ alignItems: 'normal' }}>
+        <Row className='flex-between' style={{ alignItems: 'normal' }}>
           <Col md={24} sm={24} xs={24}>
             <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-              Through years of research, BitBadges is proud to introduce new features that have never been seen before in the blockchain space.<br /><br />
-              Check out some of our favorite innovative features of BitBadges below!
+              Badges can be transferred directly or claimed by users via whitelists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
             </Typography.Text>
           </Col>
-        </Row> */}
+        </Row>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
           {tools.map((tool, idx) => {
-            if (tool.toolType === "Creation") return <></>
+            if (tool.toolType !== "Distribution") return <></>
 
             return <div style={{ margin: 8, display: 'flex' }} key={idx}>
               <ToolIcon
@@ -758,6 +757,42 @@ const Home: NextPage = () => {
           })}
         </div>
 
+        <Row className='flex-between' style={{ alignItems: 'normal' }}>
+          <Col md={24} sm={24} xs={24}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+              And many more!
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        <Divider />
+        <Row className='flex-center'>
+          <Col md={12} sm={24} xs={24}>
+            <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
+              Verification Tools
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        <Row className='flex-between' style={{ alignItems: 'normal' }}>
+          <Col md={24} sm={24} xs={24}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+              Use the tools below to help you authenticate your users and verify their ownership (or non-ownership) of badges!
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {tools.map((tool, idx) => {
+            if (tool.toolType !== "Verification") return <></>
+
+            return <div style={{ margin: 8, display: 'flex' }} key={idx}>
+              <ToolIcon
+                name={tool.name}
+              />
+            </div>
+          })}
+        </div>
 
 
       </Content >

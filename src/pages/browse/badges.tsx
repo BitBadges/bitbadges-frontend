@@ -1,46 +1,16 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
-import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
-import { getBrowseCollections } from '../../bitbadges-api/api';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useState } from 'react';
+import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
 import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { Tabs } from '../../components/navigation/Tabs';
 
 const { Content } = Layout;
 
 function BrowsePage() {
-  const collections = useCollectionsContext();
-
-
-  const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
+  const browseContext = useBrowseContext();
+  const browseInfo = browseContext.browse;
+  
   const [tab, setTab] = useState('latest');
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
-    async function getCollections() {
-      const browseInfo = await getBrowseCollections();
-      if (!browseInfo) return;
-
-      console.log(browseInfo);
-      console.log(Object.keys(browseInfo));
-
-      const updatedIds: bigint[] = [];
-      for (const category of Object.keys(browseInfo.collections)) {
-        if (!browseInfo.collections[category]) continue;
-        console.log(browseInfo.collections[category]);
-        for (const collection of browseInfo.collections[category]) {
-          console.log(collection);
-          if (updatedIds.includes(collection.collectionId)) continue;
-          collections.updateCollection(collection);
-          updatedIds.push(collection.collectionId);
-        }
-      }
-
-      setBrowseInfo(browseInfo);
-    }
-    getCollections();
-  }, []);
 
   return (
     <Layout>

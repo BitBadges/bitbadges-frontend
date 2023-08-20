@@ -39,7 +39,7 @@ export function SwitchForm({
               <Card
                 key={index}
                 hoverable
-                className='primary-text primary-blue-bg full-width flex-center'
+                className={option.disabled ? 'primary-text tertiary-blue-bg full-width flex-center' : 'primary-text primary-blue-bg full-width flex-center'}
                 style={{
                   margin: 8,
                   textAlign: 'center',

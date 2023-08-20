@@ -15,7 +15,6 @@ import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter'
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { BalancesInput } from '../badges/balances/BalancesInput';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
-import { ClaimsTab } from '../collection-page/ClaimsTab';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { NumberInput } from '../display/NumberInput';
@@ -26,9 +25,9 @@ import { ClaimCodesSelectStep } from './ClaimCodesSelectStep';
 import { ClaimMetadataSelectSelectStep } from './ClaimMetadataSelectStep';
 import { ClaimNumPerAddressSelectStep } from './ClaimNumPerAddressSelectStep';
 import { ClaimTimeRangeSelectStep } from './ClaimTimeRangeSelectStep';
+import { OrderMattersSelectStepItem } from './OrderMattersSelectStep';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
-import { OrderMattersSelectStepItem } from './OrderMattersSelectStep';
 
 const crypto = require('crypto');
 const { Text } = Typography;
@@ -84,6 +83,7 @@ export function TransferSelect({
   const isTransferSelect = !isClaimSelect;
   if (!isClaimSelect && !isTransferSelect) throw new Error('Must be either claims or transfers select');
 
+  const [clicked, setClicked] = useState(false);
   const [numRecipients, setNumRecipients] = useState<bigint>(0n);
   const [increment, setIncrement] = useState<bigint>(0n);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -149,7 +149,7 @@ export function TransferSelect({
     }
   }
 
-  const numActiveClaims = approvedTransfersForClaims.length;
+  // const numActiveClaims = approvedTransfersForClaims.length;
 
   const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
 
@@ -224,7 +224,7 @@ export function TransferSelect({
         expectedProofLength: 0n,
         details: claimDetails,
         useCreatorAddressAsLeaf: false,
-        useLeafIndexForTransferOrder: false,
+        useLeafIndexForTransferOrder: orderMatters,
         maxOneUsePerLeaf: true,
         uri: '',
         customData: '',
@@ -533,7 +533,7 @@ export function TransferSelect({
                 isSelected: amountSelectType === AmountSelectType.Increment,
               }]}
               onSwitchChange={(option, _title) => {
-
+                setClicked(true);
                 if (option === 0) {
                   setIncrement(0n);
                   setErrorMessage('');
@@ -548,6 +548,7 @@ export function TransferSelect({
               }}
             />
           </div>}
+
 
 
           {amountSelectType === AmountSelectType.Increment && < div >
@@ -618,7 +619,7 @@ export function TransferSelect({
       }
 
       <br />
-      {<div>
+      {numRecipients > 1 && !clicked ? <></> : <><div>
         <BalancesInput
           title={isClaimSelect ? 'Per-Claim Amount Transferred' : 'Amount Transferred'}
           balances={balances}
@@ -641,7 +642,7 @@ export function TransferSelect({
             {/* {transfers.length >= 1 && <p style={{ textAlign: 'center' }} className='secondary-text'>*These balances assum.</p>} */}
           </div>
         }
-      </div>}
+      </div></>}
     </div >,
     disabled: balances.length == 0 ||
       (!!postTransferBalances?.find((balance) => balance.amount < 0)) ||
@@ -802,7 +803,7 @@ export function TransferSelect({
       <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         <Col md={11} sm={24} xs={24} className='flex'>
           <InformationDisplayCard
-            title='Undistributed Badges'
+            title='Remaining'
             noBorder
           >
             {preTransferBalances && preTransferBalances.length > 0 && <BalanceDisplay
@@ -812,14 +813,14 @@ export function TransferSelect({
             {(!preTransferBalances || preTransferBalances.length === 0) && <Empty
               className='primary-text'
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description='No badges left to distribute.'
+              description='No badges left remaining.'
             />}
           </InformationDisplayCard>
         </Col>
 
         <Col md={11} sm={24} xs={24} className='flex'>
           <InformationDisplayCard
-            title={<>Added - {distributionMethod}</>}
+            title={<>Added {isClaimSelect ? 'Claims' : 'Transfers'}</>}
             noBorder
           >
             <>
@@ -853,8 +854,8 @@ export function TransferSelect({
                         <div className='primary-text' style={{ margin: 0, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
                             <Text strong className='primary-text'>
-                              {index + 1}) {distributionMethod} {distributionMethod === DistributionMethod.Codes ?
-                                claimItem?.password ? '(Claim Password: ' + claimItem.password + ')' : claimItem?.challengeDetails?.leavesDetails.preimages?.length + ' Codes'
+                              {index + 1}. {distributionMethod} {distributionMethod === DistributionMethod.Codes ?
+                                claimItem?.password ? '(Claim Password: ' + claimItem.password + ')' : `(${claimItem?.challengeDetails?.leavesDetails.preimages?.length + ' Codes'})`
                                 : ''} {distributionMethod === DistributionMethod.Whitelist ? '(Addresses: ' + claimItem?.challengeDetails?.numLeaves + ')' : ''}
                             </Text>
                           </div>
@@ -879,6 +880,7 @@ export function TransferSelect({
                           <ClaimDisplay
                             approvedTransfer={transfer}
                             collectionId={collectionId}
+                            noBorder
                           />
                           <Divider />
                         </div>}
@@ -905,7 +907,7 @@ export function TransferSelect({
     <div style={{ alignItems: 'center' }} className='primary-text full-width'>
       {
         !addTransferIsVisible && !hideTransferDisplay && <div>
-          {!isClaimSelect && <div>
+          {/* {!isClaimSelect && <div>
             <div className='flex-between'>
               <div></div>
               <h2 style={{ textAlign: 'center' }} className='primary-text'>Transfers Added ({convertedTransfers.length})</h2>
@@ -917,9 +919,9 @@ export function TransferSelect({
               collectionId={collectionId}
               deletable
             />
-          </div>}
+          </div>} */}
 
-          {isClaimSelect && numActiveClaims > 0 && <div>
+          {/* {isClaimSelect && numActiveClaims > 0 && <div>
             <div className='flex-between'>
               <div></div>
               <h2 style={{ textAlign: 'center' }} className='primary-text'>Claims Added ({approvedTransfersToAdd?.length})</h2>
@@ -932,9 +934,9 @@ export function TransferSelect({
             // passwords={approvedTransfersToAdd.map(x => x.password)}
             />
           </div>
-          }
+          } */}
 
-          <Divider />
+          <br />
           <br />
         </div>
       }

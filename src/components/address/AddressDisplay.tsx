@@ -19,6 +19,7 @@ export function AddressDisplay({
   hidePortfolioLink,
   hideTooltip,
   overrideChain,
+  doNotShowName
 }: {
   addressOrUsername: string;
   title?: string | ReactNode,
@@ -28,11 +29,12 @@ export function AddressDisplay({
   hideChains?: boolean
   hidePortfolioLink?: boolean
   hideTooltip?: boolean,
-  overrideChain?: SupportedChain
+  overrideChain?: SupportedChain,
+  doNotShowName?: boolean
 }) {
   return <>
     {title && AddressDisplayTitle({ title, icon })}
-    <div className='flex-center' style={{ paddingRight: 0,  }}>
+    <div className='flex-center' style={{ paddingRight: 0, }}>
       <AddressWithBlockies
         addressOrUsername={addressOrUsername}
         fontSize={fontSize}
@@ -40,6 +42,7 @@ export function AddressDisplay({
         hidePortfolioLink={hidePortfolioLink}
         hideTooltip={hideTooltip}
         overrideChain={overrideChain}
+        doNotShowName={doNotShowName}
       />
       {icon &&
         <div className='flex-center' style={{ color: fontColor ? 'white' : undefined }} >

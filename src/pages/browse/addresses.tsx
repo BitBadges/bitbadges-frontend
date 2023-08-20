@@ -1,31 +1,18 @@
 import { Card, Divider, Layout, Spin, Typography } from 'antd';
-import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { getBrowseCollections } from '../../bitbadges-api/api';
+import { useState } from 'react';
+import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { Tabs } from '../../components/navigation/Tabs';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const router = useRouter();
 
-
-  const [browseInfo, setBrowseInfo] = useState<GetBrowseCollectionsRouteSuccessResponse<bigint>>();
+  const browseContext = useBrowseContext();
+  const browseInfo = browseContext.browse;
   const [tab, setTab] = useState('latest');
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
-    async function getCollections() {
-      const browseInfo = await getBrowseCollections();
-      if (!browseInfo) return;
-
-      setBrowseInfo(browseInfo);
-    }
-    getCollections();
-  }, []);
 
   return (
     <Layout>

@@ -135,7 +135,7 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
+  const UserTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
     <div className='flex-center primary-text primary-blue-bg' style={{ marginTop: 10 }}>
       <p>
         <b>{address ? <div className='primary-text'>

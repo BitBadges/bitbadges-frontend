@@ -145,6 +145,9 @@ export function TxModal(
         setSimulated(true);
         setAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
         setRecommendedAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
+        notification.success({
+          message: 'Transaction Simulation Successful',
+        });
       } catch (e: any) {
         if (e?.response?.data?.message) {
           setError(e.response.data.message);
@@ -192,7 +195,7 @@ export function TxModal(
       const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
       const gasUsed = simulatedTx.gas_info.gas_used;
       console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
-      
+
 
       //Get public key (if not already stored)
       const publicKey = await chain.getPublicKey(chain.cosmosAddress);
@@ -308,7 +311,7 @@ export function TxModal(
 
         <div style={{ textAlign: 'center' }} className='primary-text'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-            This transaction is to be signed by the following address:
+            This transaction is to be signed by:
           </Typography.Text>
         </div>
         <br />

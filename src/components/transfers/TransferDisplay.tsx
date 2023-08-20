@@ -102,7 +102,7 @@ export function TransferDisplay({
         </div>
       </div>
     }
-    {deletable && setTransfers && <div style={{ textAlign: 'center' }}>
+    {deletable && setTransfers && transfers.length > 0 && <div style={{ textAlign: 'center' }}>
       <br />
       <Avatar
         className='screen-button'

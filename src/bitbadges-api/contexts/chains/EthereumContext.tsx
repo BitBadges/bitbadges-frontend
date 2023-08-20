@@ -84,6 +84,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           loggedIn = signedInRes.signedIn;
         }
 
+        console.log("Logged in", loggedIn);
         const viewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
           viewKey: 'badgesCollected',
           bookmark: '',

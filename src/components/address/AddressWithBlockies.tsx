@@ -11,14 +11,16 @@ export function AddressWithBlockies({
   fontColor,
   hideTooltip,
   hidePortfolioLink,
-  overrideChain
+  overrideChain,
+  doNotShowName
 }: {
   addressOrUsername: string;
   fontSize?: number,
   fontColor?: string,
   hidePortfolioLink?: boolean
   hideTooltip?: boolean,
-  overrideChain?: SupportedChain
+  overrideChain?: SupportedChain,
+  doNotShowName?: boolean
 }) {
   const accounts = useAccountsContext();
 
@@ -26,7 +28,8 @@ export function AddressWithBlockies({
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo(fetchedAccount, BigIntify) : undefined; //deep copy
 
   if (userInfo?.chain === SupportedChain.UNKNOWN && overrideChain) {
-    throw new Error(`Cannot call overrideChain with UNKNOWN chain`);
+    overrideChain = undefined;
+    // throw new Error(`Cannot call overrideChain with UNKNOWN chain`);
   }
 
 
@@ -52,6 +55,7 @@ export function AddressWithBlockies({
       hidePortfolioLink={hidePortfolioLink}
       hideTooltip={hideTooltip}
       overrideChain={overrideChain}
+      doNotShowName={doNotShowName}
     />
   </div >
 }

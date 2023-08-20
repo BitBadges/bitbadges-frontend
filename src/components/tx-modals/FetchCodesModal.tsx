@@ -35,13 +35,14 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
       open={visible}
 
       style={{
-        paddingLeft: '12px',
-        paddingRight: '0px',
-        paddingTop: '0px',
-        paddingBottom: '0px',
-        borderBottom: '0px',
+        // paddingLeft: '12px',
+        // paddingRight: '0px',
+        // paddingTop: '0px',
+        // paddingBottom: '0px',
+        // borderBottom: '0px',
       }}
       width={'90%'}
+
       footer={null}
       closeIcon={<div className='primary-text primary-blue-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{

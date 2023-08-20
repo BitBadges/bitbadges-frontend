@@ -13,6 +13,7 @@ import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsCont
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { SupportedChain } from 'bitbadgesjs-utils';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -76,6 +77,12 @@ export function AccountSettings() {
     signedInAccount?.profilePicUrl ? signedInAccount.profilePicUrl : ''
   );
 
+  const [
+    username, setUsername
+  ] = useState(
+    signedInAccount?.username ? signedInAccount.username : ''
+  );
+
   function handleEditorChange({ text }: any) {
     setReadme(text);
     // console.log('handleEditorChange', html, text);
@@ -90,6 +97,8 @@ export function AccountSettings() {
     setGithub(signedInAccount.github ? signedInAccount.github : '');
     setTelegram(signedInAccount.telegram ? signedInAccount.telegram : '');
     setReadme(signedInAccount.readme ? signedInAccount.readme : '');
+    setProfilePicUrl(signedInAccount.profilePicUrl ? signedInAccount.profilePicUrl : '');
+    setUsername(signedInAccount.username ? signedInAccount.username : '');
   }, [signedInAccount]);
 
   return (
@@ -121,6 +130,24 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
+                        Username
+                      </Text>
+                    }
+                  >
+
+                    <Input
+                      defaultValue={username}
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                      }}
+                      className="form-input"
+                    />
+
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
                         Profile Pic URL
                       </Text>
                     }
@@ -134,8 +161,12 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
-
+                    {chain.chain === SupportedChain.ETH &&
+                      <Typography.Text strong className='secondary-text'>
+                        If username or profile pic URL is not specified, we will display your ENS name / avatar.
+                      </Typography.Text>}
                   </Form.Item>
+
                   <Form.Item
                     label={
                       <Text
@@ -284,7 +315,8 @@ export function AccountSettings() {
                         showAllByDefault,
                         shownBadges,
                         hiddenBadges,
-                        customPages
+                        customPages,
+                        username
                       };
 
                       await updateAccountInfo(data);

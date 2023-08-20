@@ -380,6 +380,7 @@ export function TransferabilitySelectStepItem(
             </div>}
 
           <SwitchForm
+            noSelectUntilClick
             options={[
               {
                 title: 'Non-Transferable',
@@ -467,11 +468,12 @@ export function TransferabilitySelectStepItem(
             <div style={{ textAlign: 'center' }}>
               <Typography.Text strong className="primary-text" style={{ fontSize: 18, textAlign: 'center' }}>{"Additional Restrictions?"}</Typography.Text>
             </div>
+            <br />
             <Row className='full-width primary-text' style={{ textAlign: 'center' }}>
-              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 10, paddingRight: 10, }}>
                 <InformationDisplayCard
                   title={<>Must Own Badges</>}
-                  noBorder
+                // noBorder
                 >
                   <div className='primary-text'>
 
@@ -523,10 +525,10 @@ export function TransferabilitySelectStepItem(
                   </div>
                 </InformationDisplayCard>
               </Col>
-              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+              <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 10, paddingRight: 10, }}>
                 <InformationDisplayCard
                   title={<>Frozen Addresses</>}
-                  noBorder
+                // noBorder
                 >
                   <div className='primary-text'>
 

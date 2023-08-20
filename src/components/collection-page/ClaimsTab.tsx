@@ -1,16 +1,16 @@
 import { Button, Divider, Empty } from 'antd';
-import { CodesAndPasswords, Numberify, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -28,12 +28,12 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const [currPage, setCurrPage] = useState<number>(1);
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
-  const [recipient, setRecipient] = useState<string>("");
+  const [recipient, setRecipient] = useState<string>(chain.address);
 
   const collection = collections.collections[collectionId.toString()]
 
   const approvedTransfersForClaims = [];
-  const merkleChallenges = [];
+  const merkleChallenges: MerkleChallengeWithDetails<bigint>[] = [];
 
 
   const approvedTransfers = [];
@@ -63,7 +63,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
     if (query.claimId && typeof query.claimId === 'string') {
-      setCurrPage(Numberify(query.claimId));
+      const idx = merkleChallenges.findIndex((x) => x.challengeId === query.claimId);
+      if (idx >= 0) setCurrPage(idx + 1);
     }
   }, [query.claimId]);
 
@@ -93,19 +94,24 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       }}>
 
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} showOnSinglePage />
-
+      <br />
       <div className='flex-center'>
         {approvedTransfersForClaims[currPage - 1] &&
           <>
             <ClaimDisplay
               collectionId={collectionId}
               approvedTransfer={approvedTransfersForClaims[currPage - 1]}
-              openModal={(code, whitelistIndex, recipient) => {
+              openModal={(_x: any, leafIndex?: number) => {
+
+                setWhitelistIndex(leafIndex);
                 setModalVisible(true);
-                setCode(code ? code : "");
-                setWhitelistIndex(whitelistIndex);
-                setRecipient(recipient ? recipient : chain.cosmosAddress);
               }}
+              code={code}
+              setCode={setCode}
+              recipient={recipient}
+              setRecipient={setRecipient}
+              // leafIndex={whitelistIndex}
+              // setLeafIndex={setWhitelistIndex}
               isCodeDisplay={codesAndPasswords ? true : false}
               codes={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.codes : []}
               claimPassword={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.password : ""}

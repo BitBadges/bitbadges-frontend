@@ -104,7 +104,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
-  const [chainId, setChainId] = useState<string>('Mainnet');
+  const [chainId, setChainId] = useState<string>('bitbadges_1-1');
   const [signer, setSigner] = useState<SigningStargateClient>();
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
@@ -159,17 +159,17 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       alert("You need to install Keplr")
       return
     }
-
+    console.log('test')
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
-
+    console.log('tet2')
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
       `http://${HOSTNAME}:26657`,
       offlineSigner,
     )
-
+    console.log('tet3')
     const account: AccountData = (await offlineSigner.getAccounts())[0]
-
+    console.log('tet4')
     setSigner(signingClient);
     setConnected(true);
     setAddress(account.address);

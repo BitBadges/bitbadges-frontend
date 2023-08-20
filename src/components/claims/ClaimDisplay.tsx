@@ -1,24 +1,24 @@
-import { ClockCircleOutlined, InfoCircleOutlined, SwapOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
-import { Avatar, Button, Card, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
+import { ClockCircleOutlined, GiftOutlined, InfoCircleOutlined, SwapOutlined, WarningOutlined } from "@ant-design/icons";
+import { Avatar, Button, Card, Checkbox, Divider, Empty, Input, Pagination, Row, Tooltip, Typography } from "antd";
 import { ApprovalTrackerIdDetails, deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovedTransferWithDetails, DistributionMethod, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
+import { CollectionApprovedTransferWithDetails, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
+import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
+import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { INFINITE_LOOP_MODE, WEBSITE_HOSTNAME } from "../../constants";
 import { getTimeRangesElement, getTimeRangesString } from "../../utils/dates";
-import { downloadJson } from "../../utils/downloadJson";
+import { downloadJson, downloadTxt } from "../../utils/downloadJson";
 import { AddressDisplay } from "../address/AddressDisplay";
+import { AddressDisplayList } from "../address/AddressDisplayList";
+import { AddressSelect } from "../address/AddressSelect";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
-import { ToolIcon, tools } from "../display/ToolIcon";
 import { NumberInput } from "../display/NumberInput";
-import { SHA256 } from "crypto-js";
-import { AddressSelect } from "../address/AddressSelect";
-import { AddressDisplayList } from "../address/AddressDisplayList";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { ToolIcon, tools } from "../display/ToolIcon";
 
 
 //TODO: Will need to change when we allow approvalDetails len > 0
@@ -33,7 +33,12 @@ export function ClaimDisplay({
   openModal,
   isCodeDisplay,
   codes,
-  claimPassword
+  claimPassword,
+  code,
+  setCode,
+  recipient,
+  setRecipient,
+  noBorder
 }: {
   approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
   collectionId: bigint,
@@ -41,6 +46,11 @@ export function ClaimDisplay({
   isCodeDisplay?: boolean
   codes?: string[]
   claimPassword?: string
+  code?: string
+  setCode?: (code: string) => void
+  recipient?: string
+  setRecipient?: (recipient: string) => void
+  noBorder?: boolean
 }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -62,11 +72,11 @@ export function ClaimDisplay({
 
   const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
   const [showAllUnclaimed, setShowAllUnclaimed] = useState<boolean>(false);
-  const [currCode, setCurrCode] = useState('');
-  const [recipient, setRecipient] = useState(chain.address);
   const [browseIdx, setBrowseIdx] = useState(1);
+  const [giftClaim, setGiftClaim] = useState(false);
 
   const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
+
 
   useEffect(() => {
     const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
@@ -74,24 +84,41 @@ export function ClaimDisplay({
     let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
       claim?.useCreatorAddressAsLeaf ?
         approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-        : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
+        : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
       : -1) ?? -1;
 
     const numIncrements =
       calculationMethod.useMerkleChallengeLeafIndex ?
-        leafIndex ?? 0 :
+        leafIndex >= 0 ? leafIndex : 0 :
         approvalTracker?.numTransfers ?? 0n;
 
     setBrowseIdx(Number(numIncrements));
-  }, [collection, approvedTransfer])
+  }, [])
+
+  useEffect(() => {
+    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
+    const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+    let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
+      claim?.useCreatorAddressAsLeaf ?
+        approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+        : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+      : -1) ?? -1;
+
+    const numIncrements =
+      calculationMethod.useMerkleChallengeLeafIndex ?
+        leafIndex >= 0 ? leafIndex : 0 :
+        approvalTracker?.numTransfers ?? 0n;
+
+    setBrowseIdx(Number(numIncrements));
+  }, [code])
 
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
     if (codeQuery) {
-      setCurrCode(codeQuery as string);
+      if (setCode) setCode(codeQuery as string);
     } else if (passwordQuery) {
-      setCurrCode(passwordQuery as string);
+      if (setCode) setCode(passwordQuery as string);
     }
   }, []);
 
@@ -106,9 +133,9 @@ export function ClaimDisplay({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
     if (codeQuery) {
-      setCurrCode(codeQuery as string);
+      if (setCode) setCode(codeQuery as string);
     } else if (passwordQuery) {
-      setCurrCode(passwordQuery as string);
+      if (setCode) setCode(passwordQuery as string);
     }
   }, [codeQuery, passwordQuery]);
 
@@ -160,7 +187,7 @@ export function ClaimDisplay({
   let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
     claim?.useCreatorAddressAsLeaf ?
       approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-      : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(currCode).toString())
+      : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
     : -1) ?? -1;
 
   const numIncrements =
@@ -208,8 +235,6 @@ export function ClaimDisplay({
   //3. Only one claim per address and user has already claimed
   //4. Only one claim per code and code has been used
   //5. Could not fetch claim data when it was created (most likely due to not being created through BitBadges website and being incompatible)
-
-
   const [, validTime] = searchUintRangesForId(BigInt(Date.now()), approvedTransfer.transferTimes);
 
   let errorMessage = '';
@@ -229,7 +254,7 @@ export function ClaimDisplay({
     cantClaim = true;
     errorMessage = 'You have exceeded the maximum number of times you can claim!';
   }
-  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(currCode).toString())) {
+  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(code).toString())) {
   //   cantClaim = true;
   //   errorMessage = 'This code has already been used!';
   // } 
@@ -320,8 +345,9 @@ export function ClaimDisplay({
       style={{
         maxWidth: 500,
         // margin: 8,
+        border: noBorder ? 'none' : undefined,
         textAlign: 'center',
-        border: 'none',
+        borderRadius: 8,
       }}
 
     >
@@ -336,7 +362,7 @@ export function ClaimDisplay({
 
           <div>
             <Row className='flex-center' >
-              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> <ClockCircleOutlined /> {isActive ? getTimeRangesElement(approvedTransfer.transferTimes, '', true)
+              <Typography.Text strong className='primary-text'> <ClockCircleOutlined /> {isActive ? getTimeRangesElement(approvedTransfer.transferTimes, '', true)
                 : timeStr}</Typography.Text>
             </Row>
 
@@ -395,11 +421,13 @@ export function ClaimDisplay({
 
                             />
                           </div>
-                          {claim?.useCreatorAddressAsLeaf &&
+                          {claim?.useCreatorAddressAsLeaf && <>
                             <AddressDisplay
                               addressOrUsername={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
                             // size={20}
                             />
+                            <br />
+                          </>
                           }
                           <BalanceDisplay
                             message={'Current Claim'}
@@ -409,16 +437,21 @@ export function ClaimDisplay({
                           /></>
                       </>
 
-                      {<>
-                        <br />
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Claim for Entered Code</Typography.Text>
-                        <BalanceDisplay
-                          message={'Current Claim'}
-                          hideMessage
-                          collectionId={collectionId}
-                          balances={leafIndex >= 0 ? currentClaimAmounts : []}
-                        /></>
-                      }
+
+                      <br />
+                      {claim && claim.root && claim.useCreatorAddressAsLeaf &&
+                        <>
+                          <Button className="screen-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
+                          <br />
+                          {whitelistIsVisible && <>
+
+                            <AddressDisplayList
+                              users={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                              allExcept={false}
+                            />
+                            <br />
+                          </>}
+                        </>}
                     </div>
                   </>}
                   {calculationMethod.useOverallNumTransfers && <>
@@ -467,16 +500,18 @@ export function ClaimDisplay({
                     {claim && claim.root && claim.useCreatorAddressAsLeaf &&
                       <>
                         <Button className="screen-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
+                        <br />
+                        <br />
                         {whitelistIsVisible && <>
-                          <br />
+
                           <AddressDisplayList
                             users={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
                             allExcept={false}
                           />
+                          <br />
                         </>}
                       </>}
                   </>}
-                  <hr />
 
 
                   <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
@@ -493,16 +528,16 @@ export function ClaimDisplay({
                         <BlockinDisplay hideLogo hideLogin />
                       </div>
                     </> : <>
-                      {claim && claim.root && !claim.useCreatorAddressAsLeaf &&
+                      {claim && claim.root && !claim.useCreatorAddressAsLeaf && !errorMessage && setCode &&
                         <>
                           <br />
                           <br />
-                          <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</Typography.Text>
+                          <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</Typography.Text>
                           <Input
                             placeholder={`Enter ${claim.details?.hasPassword ? 'Password' : 'Code'}`}
-                            value={currCode}
-                            onChange={(e: any) => {
-                              setCurrCode(e.target.value);
+                            value={code}
+                            onInput={(e: any) => {
+                              if (setCode) setCode(e.target.value);
                             }}
                             className="primary-text primary-blue-bg"
                             style={{
@@ -512,6 +547,19 @@ export function ClaimDisplay({
                         </>
                       }
 
+                      {claim?.useCreatorAddressAsLeaf || !calculationMethod.useMerkleChallengeLeafIndex || !code ? <></> : <>
+                        {/* <hr /> */}
+                        <br />
+                        <br />
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Claim for Entered Code</Typography.Text>
+                        <BalanceDisplay
+                          message={'Current Claim'}
+                          hideMessage
+                          collectionId={collectionId}
+                          balances={leafIndex >= 0 ? currentClaimAmounts : []}
+                        /></>
+                      }
+
                       {claim && claim.root && claim.useCreatorAddressAsLeaf &&
                         <>
                           <br />
@@ -519,7 +567,7 @@ export function ClaimDisplay({
                             ? <></> :
                             <div>
                               {chain.connected && <div>
-                                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> You have been whitelisted!</Typography.Text>
+                                <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> You have been whitelisted!</Typography.Text>
                               </div>}
                               {/* <div>
                                 <TransferDisplay
@@ -547,17 +595,32 @@ export function ClaimDisplay({
                         </>
                       }
                     </>}
-                    {openModal && <div className="full-width">
+                    {openModal && !errorMessage && <div className="full-width">
                       <br />
                       <br />
-                      {!approvedTransfer.approvalDetails[0].requireToEqualsInitiatedBy && <>
+
+                      {!approvedTransfer.approvalDetails[0].requireToEqualsInitiatedBy && giftClaim && <>
+                        <Checkbox
+                          checked={giftClaim}
+                          onChange={(e) => {
+                            setGiftClaim(e.target.checked);
+                          }}
+                        >
+                          <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+
+                            Gift Claim
+                            <GiftOutlined style={{ marginLeft: 4 }} />
+                          </Typography.Text>
+                        </Checkbox>
+                        <br />
+                        <br />
                         <b>Select Recipient</b>
 
                         <AddressSelect defaultValue={chain.address} onUserSelect={(val) => {
-                          setRecipient(val);
+                          if (setRecipient) setRecipient(val);
                         }} />
                         <AddressDisplay
-                          addressOrUsername={recipient}
+                          addressOrUsername={recipient ?? ''}
                         />
                         {recipient != chain.cosmosAddress && recipient != chain.address && !approvedTransfer.approvalDetails[0].overridesToApprovedIncomingTransfers && <>
                           <InfoCircleOutlined style={{ marginRight: 4 }} />
@@ -567,15 +630,17 @@ export function ClaimDisplay({
                         <br />
                         <br />
                       </>}
-                      <Button disabled={cantClaim} type='primary' onClick={() => { if (openModal) openModal(currCode, leafIndex, recipient) }} className='full-width flex-center' style={{ textAlign: 'center' }}>
+                      <Button disabled={cantClaim} type='primary' onClick={() => { if (openModal) openModal(code, leafIndex, recipient) }} className='full-width flex-center' style={{ textAlign: 'center' }}>
                         Claim
                       </Button>
 
+                      {numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
+                        <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
+                      </div>}
+
                     </div>}
 
-                    {numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
-                      <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
-                    </div>}
+
                   </div>
                 </>}
               </div>
@@ -610,16 +675,20 @@ export function ClaimDisplay({
 
               {!claim?.details?.hasPassword && codes && codes.length > 0 && <>
                 <div>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 1: Copy / Download Codes</Typography.Text>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Step 1: Fetch Codes</Typography.Text>
+                  <br />
+                  <br />
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Option 1: Copy / Download Codes</Typography.Text>
                   <br />
                   <div style={{ textAlign: 'center' }}>
                     <div>
+                      Download a{' '}
                       <button
                         style={{
                           backgroundColor: 'inherit',
                         }}
                         onClick={() => {
-                          alert('Downloaded codes to a file!\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
+                          alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                           const today = new Date();
 
                           const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -627,34 +696,49 @@ export function ClaimDisplay({
 
                           downloadJson({
                             prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
-                            codes
+                            codes,
+                            codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x)
                           }, `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
                         }}
                         className="opacity link-button primary-text"
                       >
-                        Download a JSON file
+                        JSON file
                       </button>
-                    </div>
-                    <div>
+                      {' '}or a text file of the{' '}
                       <button
                         style={{
                           backgroundColor: 'inherit',
                         }}
                         onClick={() => {
-                          alert('Downloaded codes to a file!\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
+                          alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                           const today = new Date();
 
                           const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                           const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
-                          downloadJson({
-                            prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
-                            codes
-                          }, `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
+                          downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.txt`);
                         }}
                         className="opacity link-button primary-text"
                       >
-                        Download a text (.txt) file
+                        codes
+                      </button>
+                      {' or '}
+                      <button
+                        style={{
+                          backgroundColor: 'inherit',
+                        }}
+                        onClick={() => {
+                          alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
+                          const today = new Date();
+
+                          const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                          const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                          downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.txt`);
+                        }}
+                        className="opacity link-button primary-text"
+                      >
+                        URLs
                       </button>
                     </div>
                     <div>
@@ -665,45 +749,35 @@ export function ClaimDisplay({
                         </Typography.Text>
                         {" "}
                         to copy the codes to your clipboard.
-
                       </div>
-                      <Divider />
+                      <div>
+                        Click here
+                        <Typography.Text copyable={{
+                          text: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x).join('\n')
+                        }} className='primary-text' style={{ fontSize: 16 }}>
+                          {" "}
+                        </Typography.Text>
+                        {" "}
+                        to copy the URLs to your clipboard.
+                      </div>
+
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 2: Use a Distribution Tool</Typography.Text>
-                  <br />
-                  <div>
-                    <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
-                    {"Tools marked with a "} <TeamOutlined style={{ marginLeft: 10, marginRight: 10 }} />{"are community built. Use at your own risk."}
-                  </div>
-                  <br />
-                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
-                    {tools.map((tool, idx) => {
-                      if (tool.distributionMethod !== DistributionMethod.Codes) return <></>
-
-                      return <div style={{ margin: 8 }} key={idx}>
-                        <ToolIcon
-                          name={tool.name}
-                        />
-                      </div>
-                    })}
+                    <div>
+                      Use a service like <a href="https://qrexplore.com/generate/" target="_blank" rel="noopener noreferrer">this QR code generator</a> to generate QR codes in batch for each unique URL.
+                    </div>
                   </div>
                   <Divider />
                 </div>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Option 3: Manually Distribute Individual Codes</Typography.Text>
+
+                <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Option 2: Fetch Individual Codes</Typography.Text>
 
                 <br />
               </>
               }
               {claimPassword && <div>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Password: {claimPassword}</Typography.Text>
+                <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Password: {claimPassword}</Typography.Text>
               </div>}
-              <Typography.Text className='secondary-text'>
-                There are three ways you can distribute this {printStr}: manually, by URL, or by QR code.
-              </Typography.Text>
-              <Divider />
+              <br />
               <Pagination
                 className='primary-text'
                 current={codePage}
@@ -712,30 +786,32 @@ export function ClaimDisplay({
                 onChange={(page) => {
                   setCodePage(page);
                 }}
-                size='small'
+                // size='small'
                 showSizeChanger={false}
               />
-
-              {claim && !claim.details?.hasPassword && codes && <Typography.Text strong className='secondary-text'>
+              <br />
+              {claim && !claim.details?.hasPassword && claim.maxOneUsePerLeaf && codes && <Typography.Text strong className='secondary-text'>
                 <InfoCircleOutlined /> Note that this code can only be used once.
                 <br />
                 Current Status: {
-                  challengeTracker && challengeTracker.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
+                  challengeTracker && (challengeTracker.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ?? -1) >= 0 ? <span style={{ color: 'red' }}>USED</span> : <span style={{ color: 'green' }}>UNUSED</span>
                 }
               </Typography.Text>}
 
-              <Divider />
-              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> Manual</Typography.Text>
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Manual</Typography.Text>
               <br />
               <Typography.Text strong copyable className='primary-text' style={{ fontSize: 16 }}>
                 {claim && claim.details?.hasPassword ? claimPassword : codes ? codes[codePage - 1] : ''}
               </Typography.Text>
               <br />
               <Typography.Text className='secondary-text'>
-                The {printStr} can be manually distributed, and the users can enter it on the claim page.
+                Users can directly enter this {printStr} on the claim page.
               </Typography.Text>
-              <Divider />
-              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> URL</Typography.Text>
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> URL</Typography.Text>
               <br />
               <Typography.Link strong copyable style={{ fontSize: 14 }}>
                 {`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`}
@@ -745,8 +821,9 @@ export function ClaimDisplay({
               <Typography.Text className='secondary-text'>
                 When a user navigates to the above URL, the {printStr} will be automatically inputted.
               </Typography.Text>
-              <Divider />
-              <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}> QR Code</Typography.Text>
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> QR Code</Typography.Text>
               <br />
               <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`} />
               <br />
@@ -756,6 +833,34 @@ export function ClaimDisplay({
               </Typography.Text>
             </div>
           </Row>
+          <div>
+            <Divider />
+            <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Step 2: Distribute</Typography.Text>
+            <br />
+            <br />
+            <div>
+              {"Once you have the codes downloaded and ready to distribute, you can distribute them according to your preferred method. You may find some of the tools below helpful."}
+            </div>
+            <div>
+              <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
+              {"Some of these are third-party tools. Use at your own risk."}
+            </div>
+            <br />
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {tools.map((tool, idx) => {
+                if (tool.toolType !== "Distribution" || tool.native) return <></>
+
+                return <div style={{
+                  margin: 8, display: 'flex'
+                }} key={idx}>
+                  <ToolIcon
+                    name={tool.name
+                    }
+                  />
+                </div>
+              })}
+            </div>
+          </div>
           {claim && !claim.details?.hasPassword && (!codes || codes.length === 0) &&
             <Empty
               description={<span className='primary-text'>There are no {printStr}s for this claim.</span>}
