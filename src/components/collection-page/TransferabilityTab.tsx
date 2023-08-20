@@ -43,7 +43,7 @@ export const getTableHeader = () => {
     <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       Approved?
     </b></td>
-    <td style={{ verticalAlign: 'top', minWidth: 150 }}><b>
+    <td style={{ verticalAlign: 'top', minWidth: 250 }}><b>
       Other?
     </b></td>
   </tr>
