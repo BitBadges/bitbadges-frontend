@@ -344,6 +344,7 @@ export function ClaimDisplay({
       className="primary-text primary-blue-bg"
       style={{
         maxWidth: 500,
+        minWidth: 250,
         // margin: 8,
         border: noBorder ? 'none' : undefined,
         textAlign: 'center',
@@ -355,8 +356,6 @@ export function ClaimDisplay({
         <Row className='flex-center' >
           <Typography.Text strong style={{ fontSize: 30 }} className='primary-text'>{`${claim?.details?.name ? claim?.details?.name : ''}`}</Typography.Text>
         </Row>
-
-
 
         {<>
 
@@ -374,11 +373,13 @@ export function ClaimDisplay({
               </Row>}
             <br />
 
-            {showAllUnclaimed && <>  <div className="flex-center flex-column" style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, right: 0 }}>
-                {switchViewIcon}
-              </div>
-              <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>All Unclaimed</Typography.Text>
+            {(showAllUnclaimed || undistributedBalances.length == 0) && <>  <div className="flex-center flex-column" style={{ position: 'relative' }}>
+              {undistributedBalances.length != 0 && <>
+                <div style={{ position: 'absolute', top: 0, right: -20 }}>
+                  {switchViewIcon}
+                </div>
+              </>}
+              <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Unclaimed</Typography.Text>
               <BalanceDisplay
                 // messageSize={20}
                 hideMessage
@@ -389,15 +390,15 @@ export function ClaimDisplay({
 
             </div>
             </>}
-            {undistributedBalances.length > 0 && <>
+            {<>
 
               <div>
-                {!showAllUnclaimed && <>
+                {!(showAllUnclaimed || undistributedBalances.length == 0) && <>
                   {calculationMethod.useMerkleChallengeLeafIndex && <>
                     <div className="flex-center flex-column" style={{ position: 'relative' }}>
                       <>
                         <>
-                          <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                          <div style={{ position: 'absolute', top: 0, right: -20 }}>
                             {switchViewIcon}
                           </div>
 
@@ -456,7 +457,7 @@ export function ClaimDisplay({
                   </>}
                   {calculationMethod.useOverallNumTransfers && <>
                     <div className="flex-center flex-column" style={{ position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                      <div style={{ position: 'absolute', top: 0, right: -20 }}>
                         {switchViewIcon}
                       </div>
                       {/* <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text> */}
@@ -473,9 +474,11 @@ export function ClaimDisplay({
                           min={1}
                           max={approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers) : undefined}
 
-                        /> <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginLeft: 8 }}>
-                          {browseIdx == numIncrements && "(Current Claim)"}</Typography.Text>
+                        />
                       </div>
+                      {/* <br /> */}
+                      <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginLeft: 8 }}>
+                        {browseIdx == numIncrements && <>{"Current Claim"}<br /><br /></>}</Typography.Text>
 
                       <BalanceDisplay
                         message={'Current Claim'}

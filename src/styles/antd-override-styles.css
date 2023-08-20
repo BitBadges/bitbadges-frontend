@@ -75,13 +75,20 @@
 
 .ant-modal {
   padding-bottom: 100px;
-  max-height: calc(100vw - 32px);
+  
+}
+
+.ant-modal-mask {
+  min-height: 1000px;
 }
 
 .ant-modal-header {
     background-color: #001529;
     color: white;
     border: none;
+}
+.ant-modal-content {
+  margin-bottom: 100px;
 }
 
 .ant-steps-navigation {

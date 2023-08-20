@@ -163,7 +163,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
           />
           <Divider />
         </div>}
-        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && <div>
+        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && merkleChallenges.length > 0 && <div>
           {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
         </div>}
       </div>

@@ -306,7 +306,7 @@ export function WalletHeader() {
   //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
   return (
     <>
-      <Header className="App-header">
+      <Header className="App-header "       >
         <div onClick={() => router.push('/')}>
           <div className="navbar-super-collapsed">
             <Image

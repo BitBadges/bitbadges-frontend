@@ -5,7 +5,7 @@ const nextConfig = {
         // Will be available on both server and client
         HOSTNAME:
             process.env.BITBADGES_IO === 'true'
-                ? 'api.bitbadges.io'
+                ? 'bitbadges.io'
                 : 'localhost',
         BACKEND_PORT: process.env.BACKEND_PORT ? process.env.BACKEND_PORT : '',
         MAINNET: process.env.MAINNET === 'true' ? true : false,

@@ -111,6 +111,13 @@ code {
     font-size: calc(10px + 2vmin);
     color: white;
     padding: 0;
+    /* border-bottom: 1px solid lightgray; */
+    z-index: 1000;
+    /* margin-bottom: 50px; */
+    /* position: fixed;
+    /* top: 0; */
+    /* width: 100%; */
+
   }
 
   .App-title {
@@ -143,6 +150,12 @@ code {
         }
 
         .App-header {
+            position: sticky !important;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            display: flex;
+            align-items: center;
             justify-content: center;
         }
     }

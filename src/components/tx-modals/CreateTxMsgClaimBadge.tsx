@@ -84,7 +84,7 @@ export function CreateTxMsgClaimBadgeModal(
             setVisible(false);
           }
         }
-      } else {
+      } else if (claimItem) {
         // setPasswordCodeToSubmit(code);
         const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(code).toString();
 
