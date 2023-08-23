@@ -313,7 +313,11 @@ export function TxTimeline({
 
 
     //TODO: Do with approvals trackers too? With balance docs?
+    console.log(deepCopy(existingCollection?.owners ?? []));
+    console.log(deepCopy(badgesToCreate))
     const newOwnersArr = incrementMintAndTotalBalances(0n, existingCollection?.owners ?? [], badgesToCreate);
+    console.log(deepCopy(newOwnersArr));
+
 
     //If we have created any new badges since the last iteration, add placeholder metadata
     //Else, if we have deleted any badges since the last iteration, remove the corresponding metadata;

@@ -1,17 +1,17 @@
-import { Avatar, InputNumber, Tooltip, Typography, notification } from "antd";
+import { Avatar, Spin, Typography, notification } from "antd";
+import { BigIntify } from "bitbadgesjs-proto";
+import { SupportedChain } from "bitbadgesjs-utils";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
 import { useEffect, useState } from "react";
-import { getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
+import { useCookies } from 'react-cookie';
+import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
+import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
+import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
-import { useCookies } from 'react-cookie';
-import { SupportedChain } from "bitbadgesjs-utils";
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
-import { INFINITE_LOOP_MODE } from "../../constants";
 
 const { Text } = Typography;
 
@@ -31,7 +31,7 @@ export const BlockinDisplay = ({
     disconnect,
     signChallenge,
     selectedChainInfo,
-    displayedResources,
+
     chain,
     setChain,
     connected,
@@ -42,9 +42,9 @@ export const BlockinDisplay = ({
 
 
   const [_cookies, setCookie] = useCookies(['blockincookie']);
-  const [hours, setHours] = useState<number>(24);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [challengeParams, setChallengeParams] = useState<ChallengeParams>({
+  const [challengeParams, setChallengeParams] = useState<ChallengeParams<DesiredNumberType>>({
     domain: 'https://blockin.com',
     statement: 'Sign in to this website via Blockin. You will remain signed in until you terminate your browser session.',
     address: address ? address : 'Default Address',
@@ -58,54 +58,61 @@ export const BlockinDisplay = ({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: blockin display');
     async function updateChallengeParams() {
-      if (address && connected) {
-        const res = await getSignInChallenge({ chain, address, hours });
+      if (address) {
+        const res = await getSignInChallenge({ chain, address });
         setChallengeParams(res.params);
       }
     }
 
-    if (connected && address) {
+    if (address) {
       updateChallengeParams();
     }
-  }, [address, connected, hours, chain]);
+  }, [address, chain]);
 
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
     return response;
   }
 
-  const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, _challengeObj?: ChallengeParams) => {
-    const verificationResponse = await verifySignIn({ chain, originalBytes, signatureBytes });
+  const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, _challengeObj?: ChallengeParams<DesiredNumberType>) => {
 
-    /**
-     * At this point, the user has been verified by your backend and Blockin. Here, you will do anything needed
-     * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
-     * anything else that needs to be updated.
-     */
-    setLoggedIn(true);
-    setCookie('blockincookie', cosmosAddress, { path: '/', expires: new Date(Date.now() + 1000 * 60 * 60 * hours) });
-    return {
-      success: true, message: `${verificationResponse.successMessage}`
+    try {
+      const verificationResponse = await verifySignIn({ chain, originalBytes, signatureBytes });
+
+
+      /**
+       * At this point, the user has been verified by your backend and Blockin. Here, you will do anything needed
+       * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
+       * anything else that needs to be updated.
+       */
+      setLoggedIn(true);
+      setCookie('blockincookie', cosmosAddress, { path: '/', expires: _challengeObj?.expirationDate ? new Date(_challengeObj.expirationDate) : undefined });
+      return {
+        success: true, message: `${verificationResponse.successMessage}`
+      }
+    } catch (e: any) {
+      if (e.response.data) throw new Error(e.response.data.message);
+      throw new Error(e.message);
     }
   }
 
   const signAndVerifyChallenge = async (challenge: string) => {
-    //TODO: This regenerates a new request right before user signs it (thus updating nonce and expiration date). Should use the exact cached version the user sees. Probably have to work within Blockin to do that.
-    const res = await getSignInChallenge({ chain, address, hours });
-    setChallengeParams(res.params);
 
+    setLoading(true);
 
-    const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(res.blockinMessage);
+    const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(challenge);
     //Check if error in challenge signature
     if (!signChallengeResponse.originalBytes || !signChallengeResponse.signatureBytes) {
       return { success: false, message: `${signChallengeResponse.message}` };
     }
-
+    console.log(challenge);
     const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
       signChallengeResponse.originalBytes,
       signChallengeResponse.signatureBytes,
-      constructChallengeObjectFromString(challenge)
+      constructChallengeObjectFromString(challenge, BigIntify)
     );
+
+    setLoading(false);
 
     return verifyChallengeResponse;
   }
@@ -122,7 +129,7 @@ export const BlockinDisplay = ({
   const logout = async () => {
     setLoggedIn(false);
     await signOut();
-    const res = await getSignInChallenge({ chain, address, hours });
+    const res = await getSignInChallenge({ chain, address });
     setChallengeParams(res.params);
   }
 
@@ -142,8 +149,9 @@ export const BlockinDisplay = ({
               })
             }
           }}
-          buttonStyle={{ minWidth: 100 }}
-          modalStyle={{ color: `black` }}
+
+          buttonStyle={{ minWidth: 90, }}
+          modalStyle={{ color: `black`, backgroundColor: `white` }}
           disconnect={async () => {
             disconnect()
           }}
@@ -169,14 +177,76 @@ export const BlockinDisplay = ({
 
           }}
           selectedChainName={chain}
-          displayedResources={displayedResources}
+          // displayedResources={displayedResources}
+          // displayedResources={[{
+          //   uri: "X-ALGO-USDT",
+          //   name: "USDT",
+          //   description: "Tether USD on Algorand",
+          //   // image?: string;
+          //   frozen: true,
+          //   defaultSelected: true,
+          // }
+          // ]}
+          displayedAssets={[
+            // {
+            //   collectionId: 2,
+            //   chain: 'BitBadges',
+            //   assetIds: [{ start: 1, end: 10 }],
+            //   mustOwnAmounts: { start: 0, end: 0 },
+            //   // ownershipTimes: [{ start: 1, end: 10000 }],
+            //   name: 'General Access',
+            //   description: 'Gain general access to this website. You will not be allowed access if you own a scammer or spammer badge.',
+            //   frozen: true,
+            //   defaultSelected: true,
+            //   // additionalCriteria: "HELLO!",
+            //   additionalDisplay: <div>
+            //     <BadgeAvatarDisplay
+            //       collectionId={2n}
+            //       badgeIds={[{ start: 1n, end: 10n }]}
+            //     // showIds
+
+            //     /></div>
+
+            // },
+            // {
+            //   collectionId: 11,
+            //   chain: 'BitBadges',
+            //   assetIds: [{ start: 1, end: 10 }],
+            //   mustOwnAmounts: { start: 1, end: 10000 },
+            //   // ownershipTimes: [{ start: 1, end: 10000 }],
+            //   name: 'Premium Features',
+            //   description: 'Gain access to premium features on this website.  Restricted to people who own the membership badge.',
+            //   frozen: false,
+            //   defaultSelected: false,
+            //   // additionalCriteria: "HELLO!",
+            //   additionalDisplay: <div>
+            //     <BadgeAvatarDisplay
+            //       collectionId={11n}
+            //       badgeIds={[{ start: 1n, end: 100n }]}
+            //       lightTheme
+            //     // showIds
+
+            //     /></div>
+
+            // },
+
+          ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
           canAddCustomAssets={false}
+          customAddHelpDisplay={<>
+            {loading && <Spin size='large' />}
+          </>}
+          hideConnectVsSignInHelper={hideLogin}
+          allowTimeSelect
+          maxTimeInFuture={168 * 60 * 60 * 1000}
+        // customDisplay={<>
+        //   {loading && <Spin size='large' />}
+        // </>}
         />
       }
 
-    </div>
-    {!hideLogin && <>
+    </div >
+    {/* {!hideLogin && <>
       <div className='flex-center' style={{ color: 'black', alignItems: 'center', marginTop: 4 }}>
         <Typography.Text className='secondary-text'>
           Remember my sign-in for
@@ -195,58 +265,40 @@ export const BlockinDisplay = ({
           hours
         </Typography.Text>
       </div>
-      <br />
-      <div className='flex-center' style={{ color: 'black' }}>
-        <Typography.Text className='secondary-text'>
-          <Tooltip placement="bottom" color="black" title={<>
-            {"What is the difference between connecting and signing in?"}
-            <br />
-            <br />
-            {"Connecting is simply providing us with what your public address is so that we can fetch and display your PUBLIC information, such as your badge balances. This also allows lets us know what address to prompt you to sign transactions with."}
-            <br />
-            <br />
-            {"Signing in lets you prove your identity (that you are the owner of the address) to our website, similar to a password. This allows you to access PRIVATE features for our website that are only available to authenticated users, such as customizing your profile."}
-            <br />
-            <br />
-            {"Note certain features may require both connecting and signing in."}
-          </>}
-          >
-            <InfoCircleOutlined /> Hover to learn more
-          </Tooltip>
-        </Typography.Text>
-      </div>
-    </>}
-    {!hideLogo && <>
-      <div>
-        {!(hideLogo && !connected) &&
-          <Avatar
-            size={200}
-            src={
-              connected ? <BlockiesAvatar
-                avatar={avatar}
-                address={address.toLowerCase()}
-                fontSize={200}
-                shape={'circle'}
-              /> :
-                <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'180px'} width={'180px'} quality={100} />
-            }
-            style={{ marginTop: 40 }}
-          />
-        }
-      </div>
-      <div className='flex-center'> {connected &&
-        <AddressDisplay
-          addressOrUsername={address}
-          fontSize={24}
-        />}
-      </div>
-      <div> {connected && <Text
-        strong
-        className="primary-text"
-        style={{ fontSize: 20 }}
-      >
-        {loggedIn ? 'Signed In' : 'Not Signed In'}
-      </Text>}</div>
-    </>}
+    </>} */}
+    {
+      !hideLogo && <>
+        <div>
+          {!(hideLogo && !connected) &&
+            <Avatar
+              size={200}
+              src={
+                connected ? <BlockiesAvatar
+                  avatar={avatar}
+                  address={address.toLowerCase()}
+                  fontSize={200}
+                  shape={'circle'}
+                /> :
+                  <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={'180px'} width={'180px'} quality={100} />
+              }
+              style={{ marginTop: 40 }}
+            />
+          }
+        </div>
+        <div className='flex-center'> {connected &&
+          <AddressDisplay
+            addressOrUsername={address}
+            fontSize={24}
+          />}
+        </div>
+        <div> {connected && <Text
+          strong
+          className="primary-text"
+          style={{ fontSize: 20 }}
+        >
+          {loggedIn ? 'Signed In' : 'Not Signed In'}
+        </Text>}</div>
+      </>
+    }
   </>;
 }

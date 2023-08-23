@@ -5,7 +5,7 @@ import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
-import { PresetResource, SupportedChainMetadata } from 'blockin';
+import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -115,7 +115,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     logo: COSMOS_LOGO,
     abbreviation: 'COSM'
   };
-  const displayedResources: PresetResource[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
+  const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
 
   //If you would like to support this, you can call this with a useEffect every time connected or address is updated
   const ownedAssetIds: string[] = [];

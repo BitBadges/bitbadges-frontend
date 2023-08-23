@@ -346,7 +346,7 @@ function PortfolioPage() {
                 next={async () => {
                   if (!accountInfo) return;
 
-                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['badgesCollected']);
+                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['addressMappings']);
                 }}
                 hasMore={hasMoreAddressMappings}
                 loader={<div>

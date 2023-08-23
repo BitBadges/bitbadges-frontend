@@ -26,13 +26,13 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
   const strings = validFrom.map((timeRange, idx) => {
     let str = idx == 0 ? `${prefix}` : '';
     let endTimestamp = timeRange.end;
-    let validForever = timeRange.end >= FOREVER_THRESHOLD;
+    let validForever = timeRange.end >= FOREVER_DATE;
 
     if (numbersOnly) {
       str += timeRange.start.toString() + "-" + timeRange.end.toString()
       return str;
     }
-
+    console.log(timeRange.end);
     if (validForever && timeRange.start === 1n) {
       return "All Times";
     }

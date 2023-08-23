@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { SupportedChain } from 'bitbadgesjs-utils';
-import { PresetResource, SupportedChainMetadata } from 'blockin';
+import { PresetUri, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
@@ -40,7 +40,7 @@ export type ChainSpecificContextType = {
   signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
   signTxn: (txn: object, simulate: boolean) => Promise<any>,
   getPublicKey: (cosmosAddress: string) => Promise<string>,
-  displayedResources: PresetResource[],
+  displayedResources: PresetUri[],
   selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
   ownedAssetIds: string[],
 }

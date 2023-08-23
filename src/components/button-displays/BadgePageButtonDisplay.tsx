@@ -1,6 +1,8 @@
 import {
+  CopyOutlined,
   LinkOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  TwitterOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Tooltip, message } from 'antd';
 
@@ -27,20 +29,50 @@ export function BadgeButtonDisplay({
             </Tooltip>
           </a>
         )}
-        <Tooltip title="Share (Copy Link)" placement="bottom">
+
+        <Tooltip title={<>
+          <div style={{ textAlign: 'center' }}>
+            <b>Share</b>
+            <Tooltip title="Copy Link" placement="left">
+              <Avatar
+                size="large"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    window.location.href
+                  );
+                  message.success('Copied to clipboard!');
+                }}
+                className="screen-button account-socials-button"
+              >
+                <CopyOutlined />
+              </Avatar>
+            </Tooltip>
+            <Tooltip title="Share on Twitter" placement="left">
+              <Avatar
+                size="large"
+                onClick={() => {
+                  const shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                    window.location.href
+                  )}`;
+
+                  window.open(shareUrl, '_blank');
+                }}
+                className="screen-button account-socials-button"
+              >
+                <TwitterOutlined />
+              </Avatar>
+            </Tooltip>
+          </div>
+        </>} placement="bottom">
           <Avatar
             size="large"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                window.location.href
-              );
-              message.success('Copied to clipboard!');
-            }}
             className="screen-button account-socials-button"
           >
             <ShareAltOutlined />
           </Avatar>
         </Tooltip>
+
+
       </div>
     </div>
   );

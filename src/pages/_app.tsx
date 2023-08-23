@@ -67,6 +67,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <WagmiConfig client={wagmiClient}>
                       <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
                         themeMode="dark"
+                        
                       />
                       <Layout className="layout">
                         <WalletHeader />
@@ -82,7 +83,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                               position: 'fixed',
                               bottom: 0,
                               width: '100%',
-                              zIndex: 1000
+                              zIndex: 200
                             }}>
                             <div style={{
                               display: 'flex',

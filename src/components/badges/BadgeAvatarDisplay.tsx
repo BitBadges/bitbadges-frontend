@@ -23,7 +23,8 @@ export function BadgeAvatarDisplay({
   cardView,
   hideCollectionLink,
   fetchDirectly,
-  showOnSinglePage
+  showOnSinglePage,
+  lightTheme
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
@@ -39,6 +40,7 @@ export function BadgeAvatarDisplay({
   hideCollectionLink?: boolean;
   fetchDirectly?: boolean;
   showOnSinglePage?: boolean;
+  lightTheme?: boolean;
 }) {
 
   const collections = useCollectionsContext();
@@ -91,7 +93,7 @@ export function BadgeAvatarDisplay({
   }, [badgeIds, currPage, pageSize, fetchDirectly, addressOrUsernameToShowBalance]);
 
   return <div style={{ maxWidth: maxWidth }}>
-    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} />
+    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme} />
 
     <>
       <div className='flex-center flex-wrap full-width primary-text'>

@@ -1,6 +1,6 @@
 import { Divider } from "antd";
 import { Balance } from "bitbadgesjs-proto";
-import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, checkBalancesActionPermission } from "bitbadgesjs-utils";
+import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, checkBalancesActionPermission, deepCopyBalances } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
@@ -43,7 +43,8 @@ export function BadgeSupplySelectStepItem(
       <BalanceInput
         balancesToShow={balancesToShow}
         onAddBadges={(balance) => {
-          setBadgesToCreate([...badgesToCreate, balance]);
+          setBadgesToCreate(deepCopyBalances([...badgesToCreate, balance]));
+          console.log(deepCopyBalances([...badgesToCreate, balance]));
         }}
         onRemoveAll={() => {
           setBadgesToCreate([]);

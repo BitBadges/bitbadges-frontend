@@ -380,7 +380,7 @@ export function TransferabilitySelectStepItem(
             </div>}
 
           <SwitchForm
-            noSelectUntilClick
+            // noSelectUntilClick
             options={[
               {
                 title: 'Non-Transferable',

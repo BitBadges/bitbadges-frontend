@@ -136,7 +136,8 @@ const Home: NextPage = () => {
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
               </Typography.Text> */}
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Note this is a beta version of BitBadges for testing purposes which is completely subsidized. Badges and profiles (not $BADGE) can optionally be migrated to mainnet once launched.</Typography.Text>
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles (not $BADGE) can optionally be migrated to mainnet once launched.</Typography.Text>
+              <br />
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text>
               <div className='flex'>
                 <Button
@@ -149,6 +150,7 @@ const Home: NextPage = () => {
                 >
                   Explore
                 </Button>
+
                 <Button
                   size='large'
                   className='screen-button'
@@ -157,6 +159,15 @@ const Home: NextPage = () => {
                   target='_blank'
                 >
                   Learn More
+                </Button>
+                <Button
+                  size='large'
+                  className='screen-button'
+                  style={{ marginTop: '20px', marginLeft: 8 }}
+                  href="https://discord.com/invite/TJMaEd9bar"
+                  target='_blank'
+                >
+                  Feedback?
                 </Button>
               </div>
               <br />
@@ -343,7 +354,7 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    BitBadges is also committed to decentralization in other ways, such as not being backed by any venture capital and having a community-driven, open-source ecosystem.
+                    BitBadges is also committed to decentralization in other ways, such as the protocol being governed by the $BADGE token and having a community-driven, open-source ecosystem.
                   </Typography.Text>
                   {/* <br />
                   <br />

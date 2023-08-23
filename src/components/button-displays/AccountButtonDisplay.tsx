@@ -1,16 +1,17 @@
 import {
+  CopyOutlined,
   LinkOutlined,
   SettingOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  TwitterOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Layout, Tooltip, message } from 'antd';
 import { SupportedChain } from 'bitbadgesjs-utils';
+import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { WEBSITE_HOSTNAME } from '../../constants';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useRouter } from 'next/router';
 
 const { Content } = Layout;
 
@@ -151,29 +152,50 @@ export function AccountButtonDisplay({
           </a>
         )}
 
-        {/* <Tooltip title="Message this user via our in-site direct messaging system." placement="bottom">
-                    <Avatar
-                        size="large"
-                        onClick={() => { }}
-                        className="screen-button account-socials-button"
-                    >
-                        <MailOutlined />
-                    </Avatar>
-                </Tooltip> */}
-        <Tooltip title="Share (Copy Link)" placement="bottom">
+        <Tooltip title={<>
+          <div style={{ textAlign: 'center' }}>
+            <b>Share</b>
+            <Tooltip title="Copy Link" placement="left">
+              <Avatar
+                size="large"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    window.location.href
+                  );
+                  message.success('Copied to clipboard!');
+                }}
+                className="screen-button account-socials-button"
+              >
+                <CopyOutlined />
+              </Avatar>
+            </Tooltip>
+            <Tooltip title="Share on Twitter" placement="left">
+              <Avatar
+                size="large"
+                onClick={() => {
+                  const tweetMessage = `Check out ${isSameAccount ? 'my' : addressOrUsername + "\'s"} profile on BitBadges!\n\n`;
+
+                  const shareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(
+                    window.location.href
+                  )}`;
+
+                  window.open(shareUrl, '_blank');
+                }}
+                className="screen-button account-socials-button"
+              >
+                <TwitterOutlined />
+              </Avatar>
+            </Tooltip>
+          </div>
+        </>} placement="bottom">
           <Avatar
             size="large"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                `https://${WEBSITE_HOSTNAME}/account/${address}`
-              );
-              message.success('Copied to clipboard!');
-            }}
             className="screen-button account-socials-button"
           >
             <ShareAltOutlined />
           </Avatar>
         </Tooltip>
+
         {isSameAccount && (
           <Tooltip title="Settings" placement="bottom">
             <Avatar

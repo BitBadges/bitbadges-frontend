@@ -55,7 +55,7 @@ export function OverviewTab({
         justifyContent: 'space-between',
       }}
     >
-      <Col md={24} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4}}>
+      <Col md={24} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
         {collectionMetadata?.description && <>
           <InformationDisplayCard
             title={<>About</>}
@@ -75,48 +75,6 @@ export function OverviewTab({
           collectionId={collectionId}
           span={24}
         />
-        {/* {!isOffChainBalances && <>
-          <br />
-          <InformationDisplayCard
-            title={<>
-              Transferability
-              <Tooltip title="Which badge owners can transfer to which badge owners?">
-                <InfoCircleOutlined style={{ marginLeft: 4 }} />
-              </Tooltip>
-              {!collection.permissions.CanUpdateAllowed ?
-                <Tooltip title="The transferability is frozen and can never be changed.">
-                  <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
-                </Tooltip> :
-                <Tooltip title="Note that the manager can change the transferability.">
-                  <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faUserPen} />
-
-                </Tooltip>
-              }
-            </>}
-          >
-            <div style={{ margin: 8 }}>
-              {
-                isTransferable ? <Typography.Text className='primary-text' style={{ fontSize: 20 }}>Transferable</Typography.Text> : <>
-                  {isNonTransferable ? <Typography.Text className='primary-text' style={{ fontSize: 20 }}>Non-Transferable</Typography.Text>
-                    : <>{
-                      collection.allowedTransfers.map((transfer) => {
-                        return <>
-                          The addresses {transfer.from.addresses.map((range, index) => {
-                            return <span key={index}>{index > 0 && ','} {range}</span>
-                          })} {transfer.from.managerOptions === 1n ? '(including the manager)' : transfer.from.managerOptions === 2n ? '(excluding the manager)' : ''} cannot
-                          transfer to the addresses with account IDs {transfer.to.addresses.map((range, index) => {
-                            return <span key={index}>{index > 0 && ','} {range}</span>
-                          })} {transfer.to.managerOptions === 1n ? '(including the manager)' : transfer.to.managerOptions === 2n ? '(excluding the manager)' : ''}.
-                          <br />
-                        </>
-                      })
-                    }</>
-                  }
-                </>
-              }
-            </div>
-          </InformationDisplayCard>
-        </>} */}
         <br />
         <PermissionsOverview
           collectionId={collectionId}

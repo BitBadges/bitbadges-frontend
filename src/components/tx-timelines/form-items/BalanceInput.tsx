@@ -1,11 +1,13 @@
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Avatar, Button, DatePicker, Divider, Steps, Tooltip } from 'antd';
-import { Balance } from 'bitbadgesjs-proto';
+import { Balance, deepCopy } from 'bitbadgesjs-proto';
 import moment from 'moment';
 import { useState } from 'react';
+import { FOREVER_DATE, getTimeRangesElement } from '../../../utils/dates';
 import { BalanceDisplay } from '../../badges/balances/BalanceDisplay';
 import { UintRangesInput } from '../../badges/balances/IdRangesInput';
 import { NumberInput } from '../../display/NumberInput';
+import { SwitchForm } from './SwitchForm';
 const { Step } = Steps;
 
 export function BalanceInput({
@@ -36,9 +38,11 @@ export function BalanceInput({
     setCurrentStep(value);
   };
 
-  //Top of the hour even :00:00
+  const [defaultBalancesToShow] = useState<Balance<bigint>[]>(balancesToShow);
+
+  // //Top of the hour even :00:00
   const currTimeNextHour = new Date();
-  currTimeNextHour.setHours(currTimeNextHour.getHours() + 1);
+  currTimeNextHour.setHours(currTimeNextHour.getHours());
   currTimeNextHour.setMinutes(0);
   currTimeNextHour.setSeconds(0);
   currTimeNextHour.setMilliseconds(0);
@@ -46,7 +50,7 @@ export function BalanceInput({
   const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 1n,
     badgeIds: [],
-    ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365 * 1) }],
+    ownershipTimes: [{ start: BigInt(1n), end: FOREVER_DATE }],
   });
 
   const AddBadgesButton = <>
@@ -55,7 +59,7 @@ export function BalanceInput({
       type="primary"
       disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0}
       onClick={() => {
-        onAddBadges(currentSupply);
+        onAddBadges(deepCopy(currentSupply));
 
         setCurrentSupply({
           amount: 1n,
@@ -146,6 +150,9 @@ export function BalanceInput({
 
             </Steps>
             {currentStep === 0 && <div>
+
+
+
               <UintRangesInput
                 uintRanges={currentSupply.badgeIds}
                 setUintRanges={(uintRanges) => {
@@ -177,51 +184,134 @@ export function BalanceInput({
               <>
 
                 <div>
+                  <SwitchForm
+                    options={[{
+                      title: "Custom",
+                      message: message == "Circulating Supplys" ? "Badges can be owned only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.",
+                      isSelected: !(currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE),
+                    },
+                    {
+                      title: "All Times",
+                      message: message == "Circulating Supplys" ? "Badges can be owned at all times." : "Ownership of the selected badges is to be transferred for all times.",
+                      isSelected: currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE,
 
-                  <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
-                    <h3 style={{ textAlign: 'center' }} className='primary-text'>When can the badges be owned (circulating)?</h3>
-                  </div>
-
-                  <b>Start Time</b>
-                  <DatePicker
-                    showMinute
-                    showTime
-                    placeholder='Start Date'
-                    value={currentSupply.ownershipTimes[0].start ? moment(new Date(Number(currentSupply.ownershipTimes[0].start))) : null}
-                    className='primary-text primary-blue-bg full-width'
-                    onChange={(_date, dateString) => {
-                      if (new Date(dateString).valueOf() > new Date(Number(currentSupply.ownershipTimes[0].end)).valueOf()) {
-                        alert('Start time must be before end time.');
-                        return;
+                    },]}
+                    onSwitchChange={(value) => {
+                      if (value === 1) {
+                        setCurrentSupply({
+                          ...currentSupply,
+                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                        });
+                      } else {
+                        setCurrentSupply({
+                          ...currentSupply,
+                          ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365 * 1) }],
+                        });
                       }
-
-                      setCurrentSupply({
-                        ...currentSupply,
-                        ownershipTimes: [{ ...currentSupply.ownershipTimes[0], start: BigInt(new Date(dateString).valueOf()) }],
-                      });
                     }}
                   />
-                  <br />
-                  <br />
-                  <b>End Time</b>
-                  <DatePicker
-                    showMinute
-                    showTime
-                    placeholder='End Date'
-                    value={currentSupply.ownershipTimes[0].end ? moment(new Date(Number(currentSupply.ownershipTimes[0].end))) : null}
-                    className='primary-text primary-blue-bg full-width'
-                    onChange={(_date, dateString) => {
-                      if (new Date(dateString).valueOf() < new Date(Number(currentSupply.ownershipTimes[0].start)).valueOf()) {
-                        alert('End time must be after start time.');
-                        return;
-                      }
 
-                      setCurrentSupply({
-                        ...currentSupply,
-                        ownershipTimes: [{ ...currentSupply.ownershipTimes[0], end: BigInt(new Date(dateString).valueOf()) }],
-                      });
-                    }}
-                  />
+                  {currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE ? <></> : <>
+
+                    <b>Suggested Time Ranges</b>
+                    <br />
+                    <div className='flex'>
+                      <Button
+                        className='screen-button'
+                        style={{ marginLeft: 4, marginRight: 4 }}
+                        onClick={() => {
+                          setCurrentSupply({
+                            ...currentSupply,
+                            ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24) }],
+                          });
+                        }}
+                      >
+                        +1 Day
+                      </Button>
+                      <Button
+                        className='screen-button'
+                        style={{ marginLeft: 4, marginRight: 4 }}
+                        onClick={() => {
+                          setCurrentSupply({
+                            ...currentSupply,
+                            ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 7) }],
+                          });
+                        }}
+                      >
+                        +1 Week
+                      </Button>
+                      <Button
+                        className='screen-button'
+                        style={{ marginLeft: 4, marginRight: 4 }}
+                        onClick={() => {
+                          setCurrentSupply({
+                            ...currentSupply,
+                            ownershipTimes: [{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365) }],
+                          });
+                        }}
+                      >
+                        +1 Year
+                      </Button>
+                      {defaultBalancesToShow.map(x => {
+                        return <>
+
+                          <Button
+                            className='screen-button'
+                            style={{ marginLeft: 4, marginRight: 4 }}
+                            onClick={() => {
+                              setCurrentSupply({
+                                ...currentSupply,
+                                ownershipTimes: deepCopy(x.ownershipTimes),
+                              });
+                            }}
+                          >
+                            {getTimeRangesElement(x.ownershipTimes, '', true, false)}
+                          </Button>
+                        </>
+                      })}
+                    </div><br />
+
+                    <b>Start Time</b>
+                    <DatePicker
+                      showMinute
+                      showTime
+                      placeholder='Start Date'
+                      value={currentSupply.ownershipTimes[0].start ? moment(new Date(Number(currentSupply.ownershipTimes[0].start))) : null}
+                      className='primary-text primary-blue-bg full-width'
+                      onChange={(_date, dateString) => {
+                        if (new Date(dateString).valueOf() > new Date(Number(currentSupply.ownershipTimes[0].end)).valueOf()) {
+                          alert('Start time must be before end time.');
+                          return;
+                        }
+
+                        setCurrentSupply({
+                          ...currentSupply,
+                          ownershipTimes: [{ ...currentSupply.ownershipTimes[0], start: BigInt(new Date(dateString).valueOf()) }],
+                        });
+                      }}
+                    />
+                    <br />
+                    <br />
+                    <b>End Time</b>
+                    <DatePicker
+                      showMinute
+                      showTime
+                      placeholder='End Date'
+                      value={currentSupply.ownershipTimes[0].end ? moment(new Date(Number(currentSupply.ownershipTimes[0].end))) : null}
+                      className='primary-text primary-blue-bg full-width'
+                      onChange={(_date, dateString) => {
+                        if (new Date(dateString).valueOf() < new Date(Number(currentSupply.ownershipTimes[0].start)).valueOf()) {
+                          alert('End time must be after start time.');
+                          return;
+                        }
+
+                        setCurrentSupply({
+                          ...currentSupply,
+                          ownershipTimes: [{ ...currentSupply.ownershipTimes[0], end: BigInt(new Date(dateString).valueOf()) }],
+                        });
+                      }}
+                    />
+                  </>}
                 </div>
 
                 {AddBadgesButton}

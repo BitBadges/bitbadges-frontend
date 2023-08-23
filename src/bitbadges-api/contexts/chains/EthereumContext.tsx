@@ -1,5 +1,5 @@
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
-import { PresetResource } from 'blockin';
+import { PresetUri } from 'blockin';
 import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import Web3Modal from "web3modal";
@@ -126,7 +126,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
 
   const selectedChainInfo = {};
-  const displayedResources: PresetResource[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
+  const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
 
   //If you would like to support this, you can call this with a useEffect every time connected or address is updated
   const ownedAssetIds: string[] = [];

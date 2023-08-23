@@ -143,25 +143,25 @@
     background-color: #192c3e;
 }
 
-.ant-pagination-item {
+.dark .ant-pagination-item {
     background-color: #001529;
     color: white;
 }
 
-.ant-pagination-item a {
+.dark .ant-pagination-item a {
     color: white;
 }
 
-.ant-pagination-prev {
+.dark .ant-pagination-prev {
     background-color: #001529;
     color: white;
 }
-.ant-pagination-prev .ant-pagination-item-link, .ant-pagination-next .ant-pagination-item-link {
+.dark .ant-pagination-prev .ant-pagination-item-link, .dark  .ant-pagination-next .ant-pagination-item-link {
     background-color: #001529;
     color: white;
 }
 
-.ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis, .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis
+.dark .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis, .dark .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis
 {
     background-color: #001529;
     color: white;

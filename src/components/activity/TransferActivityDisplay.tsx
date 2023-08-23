@@ -133,7 +133,30 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                         <div key={idx} className='primary-text'>
                           <Row>
                             <Col span={24}>
-                              <h2 className='primary-text'>Transaction Type: {activity.method}</h2>
+                              <div className='flex-center flex-column'>
+                                <h2 className='primary-text'>Transaction Type: {activity.method}</h2>
+                                {/* 
+                                TODO:
+                                <Tooltip title="Share on Twitter" placement="left">
+                                  <Avatar
+                                    size="large"
+                                    onClick={() => {
+                                      const fromAccount = accounts.getAccount(activity.from);
+                                      const toAccounts = activity.to.map(a => accounts.getAccount(a));
+                                      const tweetMessage = `${accounts.getAccount(activity.from).} just ${activity.method.toLowerCase()} ${activity.to.length} address${activity.to.length > 1 ? 'es' : ''} on BitBadges!`;
+
+                                      const shareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(
+                                        window.location.href
+                                      )}`;
+
+                                      window.open(shareUrl, '_blank');
+                                    }}
+                                    className="screen-button account-socials-button"
+                                  >
+                                    <ShareAltOutlined />
+                                  </Avatar>
+                                </Tooltip> */}
+                              </div>
 
                               {collection &&
                                 <TransferDisplay

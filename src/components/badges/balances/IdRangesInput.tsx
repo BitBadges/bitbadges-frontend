@@ -85,7 +85,7 @@ export function UintRangesInput({
           style={{ marginTop: 16, textAlign: 'center' }}
           className="primary-text primary-blue-bg"
           value={inputStr}
-          placeholder="Enter Badge IDs: 1-10, 20-30, 40-50, ...."
+          placeholder="Enter Badge IDs or Ranges: 1, 2-10, 11, 20-30, 40-50, ...."
           onChange={(e) => {
             setInputStr(e.target.value);
             try {
@@ -94,7 +94,12 @@ export function UintRangesInput({
               const splitSliderValues = e.target.value.split(', ');
               for (const sliderValue of splitSliderValues) {
                 if (sliderValue.split('-').length !== 2) {
-                  continue;
+                  if (sliderValue.split('-').length === 1 && BigInt(sliderValue.split('-')[0]) > 0) {
+
+                    sliderValues.push([BigInt(sliderValue.split('-')[0]), BigInt(sliderValue.split('-')[0])]);
+                  } else {
+                    continue;
+                  }
                 } else {
 
                   if (sliderValue.split('-')[0] === '' || sliderValue.split('-')[1] === '') {
@@ -182,9 +187,11 @@ export function UintRangesInput({
             <div className='flex' >
               <Tooltip title="Delete Range" placement='bottom'>
                 <DeleteOutlined
+                  className='screen-button'
                   style={{
                     fontSize: 24, marginLeft: 20, marginTop: 16,
                     cursor: 'pointer',
+                    border: 'none'
                   }}
                   onClick={() => {
 
@@ -210,7 +217,9 @@ export function UintRangesInput({
             style={{
               fontSize: 24, marginLeft: 20, marginTop: 16,
               cursor: 'pointer',
+              border: 'none'
             }}
+            className='screen-button'
             onClick={() => {
               setNumRanges(numRanges + 1)
 
@@ -247,10 +256,11 @@ export function UintRangesInput({
         overlaps &&
         <div style={{ color: 'red', textAlign: 'center' }}>
           <b>Overlapping ranges are not allowed.</b>
+          <Divider />
         </div>
       }
 
-      <Divider />
+
     </>}
     <br />
     <div className='flex-center'>

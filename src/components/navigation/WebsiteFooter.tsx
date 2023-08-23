@@ -13,12 +13,13 @@ export function WalletFooter() {
           padding: '1rem 2rem',
           minHeight: '20vh',
           paddingTop: '100px',
+
         }}
       >
 
-        <footer id="footer" className="dark full-width">
+        <footer id="footer" className="dark full-width" >
           <div className="footer-wrap">
-            <Row className='flex-center' style={{ width: '100%', alignItems: 'normal' }}>
+            <Row className='flex-center' style={{ width: '100%', alignItems: 'normal', borderTop: '1px solid gray', paddingTop: 20 }}>
               <FooterButtonDisplay />
               <Col md={6} sm={24} xs={24}>
                 <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
@@ -35,7 +36,7 @@ export function WalletFooter() {
                   </div>
                   <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
                     <div>
-                      <a target="_blank" rel="noreferrer" href="https://github.com/bitbadges/projects">
+                      <a target="_blank" rel="noreferrer" href="https://github.com/orgs/BitBadges/projects">
                         Project Board
                       </a>
                     </div>

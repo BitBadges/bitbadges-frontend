@@ -63,6 +63,11 @@ export function WalletHeader() {
   const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
+    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+        Profiles
+      </div>
+    </Menu.Item>
     <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/badges')}>
       <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
         Badges
@@ -73,21 +78,12 @@ export function WalletHeader() {
         Address Lists
       </div>
     </Menu.Item>
-    {/* TODO: <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Profiles
-      </div>
-    </Menu.Item> */}
     <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/activity')}>
       <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
         Activity
       </div>
     </Menu.Item>
-    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Profiles
-      </div>
-    </Menu.Item>
+
   </Menu>
   const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
   const BrowseTabWithText = { key: 'popup-browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
@@ -306,7 +302,7 @@ export function WalletHeader() {
   //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
   return (
     <>
-      <Header className="App-header "       >
+      <Header className="App-header " style={{ zIndex: 49 }} >
         <div onClick={() => router.push('/')}>
           <div className="navbar-super-collapsed">
             <Image

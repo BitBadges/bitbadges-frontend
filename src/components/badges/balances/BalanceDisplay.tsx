@@ -46,7 +46,7 @@ export function BalanceDisplay({
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
 
   useEffect(() => {
-    const allBalances = isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
+    const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
       {
         from: '',
         merkleProofs: [],
