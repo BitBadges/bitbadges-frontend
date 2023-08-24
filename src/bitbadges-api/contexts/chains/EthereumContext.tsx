@@ -122,7 +122,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     setDetails();
-  }, [web3AccountContext.address, cookies.blockincookie, loggedIn])
+  }, [web3AccountContext.address, cookies.blockincookie])
 
 
   const selectedChainInfo = {};
