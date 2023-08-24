@@ -409,7 +409,7 @@ export function ClaimDisplay({
 
                           <div className="flex-center">
                             <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                              Claim for {claim?.useCreatorAddressAsLeaf ? "Address" : "Code"} #</Typography.Text><NumberInput
+                              {claim?.useCreatorAddressAsLeaf ? "Claim" : "Code"} #</Typography.Text><NumberInput
                               value={browseIdx + 1}
                               setValue={(val) => {
                                 setBrowseIdx(val - 1);

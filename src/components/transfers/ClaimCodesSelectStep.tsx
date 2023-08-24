@@ -20,7 +20,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
     return {
       title: `Num Claims (${numCodes})`,
       description: < div className='flex-center'>
-        <div style={{ minWidth: 500 }} >
+        <div style={{ minWidth: 320 }} >
           <br />
           <div className='flex-between' style={{ flexDirection: 'column' }} >
 
@@ -42,7 +42,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
     return {
       title: `${codeType === CodeType.Reusable ? 'Uses' : 'Codes'} (${numCodes})`,
       description: <div className="flex-center">
-        <div style={{ minWidth: 500 }} >
+        <div style={{ minWidth: 320 }} >
           <br />
           <div className='flex-between' style={{ flexDirection: 'column' }} >
             {distributionMethod === DistributionMethod.Codes && <div>

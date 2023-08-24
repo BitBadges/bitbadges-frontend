@@ -1,6 +1,5 @@
-import { DatePicker } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import moment from "moment";
+import { DateRangeInput } from "../tx-timelines/form-items/DateRangeInput";
 
 export function ClaimTimeRangeSelectStep(
   timeRange: UintRange<bigint>,
@@ -14,34 +13,10 @@ export function ClaimTimeRangeSelectStep(
         <h3 style={{ textAlign: 'center' }} className='primary-text'>When can the recipients claim?</h3>
       </div>
 
-      <b>Start Time</b>
-      <DatePicker
-        showMinute
-        showTime
-        placeholder='Start Date'
-        value={timeRange.start ? moment(new Date(Number(timeRange.start))) : null}
-        className='primary-text primary-blue-bg full-width'
-        onChange={(_date, dateString) => {
-          setTimeRange({
-            ...timeRange,
-            start: BigInt(new Date(dateString).valueOf()),
-          });
-        }}
-      />
-      <br />
-      <br />
-      <b>End Time</b>
-      <DatePicker
-        showMinute
-        showTime
-        placeholder='End Date'
-        value={timeRange.end ? moment(new Date(Number(timeRange.end))) : null}
-        className='primary-text primary-blue-bg full-width'
-        onChange={(_date, dateString) => {
-          setTimeRange({
-            ...timeRange,
-            end: BigInt(new Date(dateString).valueOf()),
-          });
+      <DateRangeInput
+        timeRanges={[timeRange]}
+        setTimeRanges={(timeRanges) => {
+          setTimeRange(timeRanges[0]);
         }}
       />
     </div>,

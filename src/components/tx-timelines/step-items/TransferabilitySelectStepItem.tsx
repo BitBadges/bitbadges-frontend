@@ -525,6 +525,7 @@ export function TransferabilitySelectStepItem(
                   </div>
                 </InformationDisplayCard>
               </Col>
+              <Col md={0} xs={24} style={{ height: 30 }} />
               <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 10, paddingRight: 10, }}>
                 <InformationDisplayCard
                   title={<>Frozen Addresses</>}

@@ -91,7 +91,7 @@ export function UintRangesInput({
             try {
               let sliderValues: [bigint, bigint][] = [];
 
-              const splitSliderValues = e.target.value.split(', ');
+              const splitSliderValues = e.target.value.split(',').map(x => x.trim()).filter(x => x !== '');
               for (const sliderValue of splitSliderValues) {
                 if (sliderValue.split('-').length !== 2) {
                   if (sliderValue.split('-').length === 1 && BigInt(sliderValue.split('-')[0]) > 0) {

@@ -115,7 +115,7 @@ export function Address({
             </div>
       }
       overlayStyle={{
-        minWidth: 360
+        minWidth: 320
       }}
     >
       {displayAddress}

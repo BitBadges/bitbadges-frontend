@@ -26,7 +26,7 @@ export function ClaimNumPerAddressSelectStep(
           Additional Restrictions
         </Typography.Text>
       </div>
-      <Row className='flex-between primary-text' style={{ minWidth: 500, textAlign: 'center', alignItems: 'normal' }} >
+      <Row className='flex-between primary-text' style={{ minWidth: 320, textAlign: 'center', alignItems: 'normal' }} >
 
         <Col md={12} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
@@ -63,6 +63,7 @@ export function ClaimNumPerAddressSelectStep(
             {distributionMethod === DistributionMethod.Whitelist ? 'Each unique address on the whitelist can successfully claim ' + (numPerInitiatedByAddress === 0n ? 'an unlimited amount of times  (i.e. if there are claimable badges left).' : `a maximum of ${numPerInitiatedByAddress} time(s).`) : ''}
           </Typography.Text>
         </Col>
+        <Col md={0} xs={24} style={{ height: 30 }} />
         <Col md={12} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text strong className="primary-text" style={{ textAlign: 'center', fontSize: 18 }}>
             Recipient (To Address) Restrictions
