@@ -87,6 +87,7 @@ export function UpdateCollectionTimeline({
   const setMintType = txTimelineProps.setMintType;
   const addressMapping = txTimelineProps.addressMapping;
   const setAddressMapping = txTimelineProps.setAddressMapping;
+  const isUpdateAddressMapping = txTimelineProps.isUpdateAddressMapping;
 
 
 
@@ -124,8 +125,11 @@ export function UpdateCollectionTimeline({
   const CreateAddressMappingStep = CreateAddressMappingStepItem(txTimelineProps);
   const items: TimelineItem[] = [
 
-    existingCollectionId && existingCollectionId > 0n ? EmptyStepItem : ChooseBadgeType
+    (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem :
+
+      ChooseBadgeType
   ];
+  
   if (mintType === MintType.BitBadge) {
     if (existingCollectionId && existingCollectionId > 0n) {
       // items.push(ExistingWarningStepItem());

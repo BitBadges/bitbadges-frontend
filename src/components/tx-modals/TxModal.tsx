@@ -135,6 +135,8 @@ export function TxModal(
           },
           memo: '',
         }, cosmosMsg);
+
+        console.log(unsignedTxSimulated);
         const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
         const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
         console.log(simulatedTx);
@@ -293,7 +295,7 @@ export function TxModal(
   };
 
   const finalStep = {
-    title: <>Sign and Submit Transaction</>,
+    title: <>Submit</>,
     description: <div>
       {currentStep === (msgSteps ?? []).length && <div>
 

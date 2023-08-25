@@ -75,7 +75,7 @@ export function WalletHeader() {
     </Menu.Item>
     <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/addresses')}>
       <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Address Lists
+        Lists
       </div>
     </Menu.Item>
     <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/activity')}>

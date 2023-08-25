@@ -386,7 +386,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports Ethereum and Cosmos).
+                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports Ethereum and Cosmos with Bitcoin under development).
                   </Typography.Text>
                 </>
               }

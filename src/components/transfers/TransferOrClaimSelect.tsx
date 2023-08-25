@@ -62,6 +62,8 @@ export function TransferSelect({
   hideTransferDisplay,
   approvedTransfersToAdd,
   setApprovedTransfersToAdd,
+  hideRemaining,
+  isApprovalSelect
 }: {
   transfers?: (TransferWithIncrements<bigint>)[],
   setTransfers?: (transfers: (TransferWithIncrements<bigint>)[]) => void;
@@ -73,6 +75,8 @@ export function TransferSelect({
   distributionMethod: DistributionMethod;
   originalSenderBalances: Balance<bigint>[];
   plusButton?: boolean;
+  hideRemaining?: boolean;
+  isApprovalSelect?: boolean;
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
@@ -470,7 +474,9 @@ export function TransferSelect({
   const steps: StepProps[] = [];
 
   //Add first step (calculating number of recipients and who the recipients are in the case of a typical transfer)
-  if (distributionMethod === DistributionMethod.Codes) {
+  if (isApprovalSelect) {
+
+  } else if (distributionMethod === DistributionMethod.Codes) {
     steps.push(ClaimCodesSelectStep(distributionMethod, setNumRecipients, claimPassword, setClaimPassword));
   } else if (distributionMethod === DistributionMethod.FirstComeFirstServe) {
     steps.push(ClaimCodesSelectStep(distributionMethod, setNumRecipients));
@@ -682,18 +688,20 @@ export function TransferSelect({
   steps.push({
     title: 'Confirm',
     description: <div className='flex-center flex-column'>
-      {isClaimSelect ? <div>
-        <ClaimDisplay
-          approvedTransfer={approvedTransferToAdd}
-          collectionId={collectionId}
-        />
-      </div> :
-        <TransferDisplay
-          transfers={transfersToAdd}
-          collectionId={collectionId}
-        // hideBalances
-        />
-      }
+      {!isApprovalSelect && <div>
+        {isClaimSelect ? <div>
+          <ClaimDisplay
+            approvedTransfer={approvedTransferToAdd}
+            collectionId={collectionId}
+          />
+        </div> :
+          <TransferDisplay
+            transfers={transfersToAdd}
+            collectionId={collectionId}
+          // hideBalances
+          />
+        }
+      </div>}
       <br />
       <Button type='primary'
         className='full-width'
@@ -800,7 +808,8 @@ export function TransferSelect({
   return <>
 
     <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
-      <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
+
+      {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         <Col md={11} sm={24} xs={24} className='flex'>
           <InformationDisplayCard
             title='Remaining'
@@ -900,7 +909,7 @@ export function TransferSelect({
             </>
           </InformationDisplayCard>
         </Col>
-      </Row>
+      </Row>}
 
     </div >
     <br />

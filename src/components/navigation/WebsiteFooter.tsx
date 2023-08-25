@@ -34,13 +34,7 @@ export function WalletFooter() {
                       Documentation
                     </a>
                   </div>
-                  <div className="footer-center primary-text" style={{ textAlign: 'center' }}>
-                    <div>
-                      <a target="_blank" rel="noreferrer" href="https://github.com/orgs/BitBadges/projects">
-                        Project Board
-                      </a>
-                    </div>
-                  </div>
+
                 </div>
                 <br />
               </Col>

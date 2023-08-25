@@ -49,7 +49,7 @@ function PortfolioPage() {
 
   tabInfo.push(
     { key: 'collected', content: 'Badges', disabled: false },
-    { key: 'lists', content: 'Address Lists' },
+    { key: 'lists', content: 'Lists' },
     // { key: 'managing', content: 'Managing', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' }

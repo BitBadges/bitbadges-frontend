@@ -19,7 +19,7 @@ export function ChooseBadgeTypeStepItem(
         options={[
           {
             title: 'Address List',
-            message: <> Create a simple list of addresses. Can be stored on-chain or off-chain. No tokens or balances. <br /><br />IMPORTANT: Address lists are permanent and non-editable. If you need to add or remove addresses, consider creating a badge. </>,
+            message: <> Create a simple list of addresses. Can be stored on-chain or off-chain. No tokens or balances.</>,
             isSelected: mintType === MintType.AddressList
           },
           {

@@ -9,6 +9,7 @@ import { FOREVER_DATE } from '../../utils/dates';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { MintType } from './step-items/ChooseBadgeTypeStepItem';
+import { getAddressMappings } from '../../bitbadges-api/api';
 
 export const EmptyStepItem = {
   title: '',
@@ -57,6 +58,7 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
 export interface CreateAddressMappingMsg {
   addressMapping: AddressMapping
   setAddressMapping: (addressMapping: AddressMapping) => void
+  isUpdateAddressMapping?: boolean
 }
 
 export interface NewCollection {
@@ -107,12 +109,14 @@ export function TxTimeline({
   txType,
   collectionId,
   onFinish,
-  isModal
+  isModal,
+  addressMappingId,
 }: {
   txType: 'UpdateCollection'
   collectionId?: bigint,
   onFinish?: ((props: MsgUpdateCollectionProps) => void),
-  isModal?: boolean
+  isModal?: boolean,
+  addressMappingId?: string,
 }) {
   const collections = useCollectionsContext();
   const chain = useChainContext();
@@ -137,6 +141,8 @@ export function TxTimeline({
     createdBy: chain.address
   })
 
+
+
   //Update flags
   const [updateCollectionPermissions, setUpdateCollectionPermissions] = useState(true);
   const [updateManagerTimeline, setUpdateManagerTimeline] = useState(true);
@@ -150,7 +156,17 @@ export function TxTimeline({
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
 
-
+  useEffect(() => {
+    async function getAddressMapping() {
+      if (!addressMappingId) return;
+      const res = await getAddressMappings({ mappingIds: [addressMappingId] });
+      if (res) {
+        setAddressMapping(res.addressMappings[0]);
+        setMintType(MintType.AddressList);
+      }
+    }
+    getAddressMapping();
+  }, [addressMappingId]);
 
   //Only upon first load, we fetch the collection from the server if it exists
   //Set default values for the collection if it doesn't exist or populate with exsitng values if it does
@@ -446,6 +462,7 @@ export function TxTimeline({
     setUpdateContractAddressTimeline,
     updateIsArchivedTimeline,
     setUpdateIsArchivedTimeline,
+    isUpdateAddressMapping: addressMappingId ? true : false,
 
     mintType,
     setMintType,

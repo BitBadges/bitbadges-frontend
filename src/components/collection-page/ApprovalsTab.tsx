@@ -1,21 +1,33 @@
 import { DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Select, Tooltip, Typography } from 'antd';
-import { ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentValueIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers } from 'bitbadgesjs-utils';
+import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
+import { UserApprovedIncomingTransferTimelineWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentValueIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { getTimeRangesElement } from '../../utils/dates';
+import { FOREVER_DATE, getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { Tabs } from '../navigation/Tabs';
+import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityTab';
 
-export function UserApprovalsTab({ collectionId, badgeId }: {
+export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
+  userApprovedIncomingTransfers, userApprovedOutgoingTransfers,
+  setUserApprovedIncomingTransfers,
+  // setUserApprovedOutgoingTransfers
+
+}: {
   collectionId: bigint,
   badgeId?: bigint,
+  isIncomingApprovalEdit?: boolean,
+  isOutgoingApprovalEdit?: boolean,
+  userApprovedIncomingTransfers?: UserApprovedIncomingTransferTimelineWithDetails<bigint>[],
+  userApprovedOutgoingTransfers?: UserApprovedOutgoingTransferTimelineWithDetails<bigint>[],
+  setUserApprovedIncomingTransfers?: (approvedIncomingTransfers: UserApprovedIncomingTransferTimelineWithDetails<bigint>[]) => void,
+  // setUserApprovedOutgoingTransfers?: (approvedOutgoingTransfers: UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]) => void,
 }) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
@@ -24,11 +36,15 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
   const accounts = useAccountsContext();
   const [address, setAddress] = useState<string>(chain.address);
 
-  const [tab, setTab] = useState<string>('outgoing');
+  const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
 
   const approverAccount = address ? accounts.getAccount(address) : undefined;
-  const approvedOutgoingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
-  const approvedIncomingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
+  const approvedOutgoingTransfersTimeline =
+    userApprovedOutgoingTransfers ? userApprovedOutgoingTransfers :
+      collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
+  const approvedIncomingTransfersTimeline =
+    userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
+      collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
 
   const currOutgoingTransferabilityIdx = getCurrentValueIdxForTimeline(approvedOutgoingTransfersTimeline);
   const currIncomingTransferabilityIdx = getCurrentValueIdxForTimeline(approvedIncomingTransfersTimeline);
@@ -36,6 +52,7 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
 
   const [defaultOutgoingIdx, setDefaultOutgoingIdx] = useState<number>(Number(currOutgoingTransferabilityIdx));
   const [defaultIncomingIdx, setDefaultIncomingIdx] = useState<number>(Number(currIncomingTransferabilityIdx));
+  // const [approvedIncomingUsers, setApprovedIncomingUsers] = useState<string[]>([]);
 
   // const [showAllPossible, setShowAllPossible] = useState<boolean>(true);
   const showAllPossible = true;
@@ -182,44 +199,49 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
 
   if (!collection) return <></>;
 
-  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
-  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(appendDefaultForOutgoing(
+    defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(appendDefaultForIncoming(
+    defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []
 
 
-  return (
+  return (<>
     <div className='primary-text'>
-      <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
-      <AddressDisplay
-        addressOrUsername={address}
-        fontSize={16}
-      />
-      <AddressSelect
-        defaultValue={chain.address}
-        onUserSelect={(value) => {
-          setAddress(value);
-        }}
+      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
+        <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
+        <AddressDisplay
+          addressOrUsername={address}
+          fontSize={16}
+        />
+        <AddressSelect
+          defaultValue={chain.address}
+          onUserSelect={(value) => {
+            setAddress(value);
+          }}
 
-      />
-      <br />
-      <Tabs
-        fullWidth
-        tab={tab}
-        theme='dark'
-        setTab={setTab}
-        tabInfo={[
-          {
-            key: 'outgoing',
-            content: <>Outgoing Approvals</>
-          },
-          {
-            key: 'incoming',
-            content: <>Incoming Approvals</>
-          },
-        ]}
-      />
+        />
+        <br />
+      </>}
+      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
+        <Tabs
+          fullWidth
+          tab={tab}
+          theme='dark'
+          setTab={setTab}
+          tabInfo={[
+            {
+              key: 'outgoing',
+              content: <>Outgoing Approvals</>
+            },
+            {
+              key: 'incoming',
+              content: <>Incoming Approvals</>
+            },
+          ]}
+        /></>}
       {tab === 'outgoing' && <>
         {/* <br /> */}
         <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
@@ -347,15 +369,105 @@ export function UserApprovalsTab({ collectionId, badgeId }: {
           </table>
         </div>
       </>}
-      <Divider />
-      <p>
-        <InfoCircleOutlined />{' '}Approvals are broken down into multiple criteria: who can send? who can receive? etc.
-        Each row represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
-      </p>
-      <br />
-      <p>
-        <InfoCircleOutlined />{' '} Note that approvals can be overriden by the collection-level transferability (if set).
-      </p>
+    </div>
+    <div className='primary-text'>
+      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>      <Divider />
+        <p>
+          <InfoCircleOutlined />{' '}Approvals are broken down into multiple criteria: who can send? who can receive? etc.
+          Each row represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
+        </p>
+        <br />
+        <p>
+          <InfoCircleOutlined />{' '} Note that approvals can be overriden by the collection-level transferability (if set).
+        </p>
+      </>}
+      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
+
+      {/* {isIncomingApprovalEdit && tab === 'outgoing' && <>
+        <ApprovalSelect
+          plusButton
+          hideTransferDisplay
+          hideRemaining
+          sender={chain.cosmosAddress}
+
+          distributionMethod={DistributionMethod.FirstComeFirstServe}
+          collectionId={collectionId}
+          originalSenderBalances={collection.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances ?? []}
+          approvedTransfersToAdd={approvedTransfersToAdd}
+
+          setApprovedTransfersToAdd={(value) => {
+            setApprovedTransfersToAdd(value);
+
+            console.log(value);
+
+            setUserApprovedOutgoingTransfers?.([{
+              ...approvedOutgoingTransfersTimeline[0],
+              approvedOutgoingTransfers: [...value.map(x => castFromCollectionTransferToOutgoingTransfer(x))]
+            }])
+
+            console.log([...value.map(x => castFromCollectionTransferToOutgoingTransfer(x))]);
+          }}
+        />
+
+      </>} */}
+
+      {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
+        options={[
+          {
+            title: 'Approve All',
+            message: 'Approve any incoming transfer for this collection.',
+            isSelected: (userApprovedIncomingTransfers ?? [])?.length > 0,
+          },
+          {
+            title: 'Must Initiate',
+            message: 'Only approve incoming transfers that were initiated by you.',
+            isSelected: userApprovedIncomingTransfers?.length === 0,
+          }
+        ]
+        }
+        onSwitchChange={(value) => {
+          if (value === 0) {
+            setUserApprovedIncomingTransfers?.([
+              {
+                timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                approvedIncomingTransfers: [{
+                  fromMappingId: "AllWithMint",
+                  fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+                  initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+                  initiatedByMappingId: "AllWithMint",
+                  transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+                  badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                  allowedCombinations: [{
+                    isApproved: true,
+                    initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                    fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                    badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+                    ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                  }],
+                  approvalDetails: []
+                }]
+              }
+            ]);
+
+          } else if (value === 1) {
+            setUserApprovedIncomingTransfers?.([]);
+          }
+        }}
+      />
+        {/* 
+        TODO: Add speicifc users
+        
+        {userApprovedIncomingTransfers?.length === 1 && <>
+          <Divider />
+          <AddressListSelect
+            users={approvedIncomingUsers}
+            setUsers={setApprovedIncomingUsers}
+          />
+        </>} */}
+      </>}
     </div >
+  </>
   );
 }

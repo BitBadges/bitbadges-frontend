@@ -67,7 +67,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <WagmiConfig client={wagmiClient}>
                       <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
                         themeMode="dark"
-                        
+
                       />
                       <Layout className="layout">
                         <WalletHeader />
@@ -92,11 +92,11 @@ const App = ({ Component, pageProps }: AppProps) => {
                             }}>
                               This website uses cookies to ensure you get the best experience.
                               By continuing to use this website, you agree to our use of cookies, {" "}
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/privacy')}><a>privacy policy</a></p>, and
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('/policies/termsofservice')}><a>terms of service</a></p>.
+                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a>privacy policy</a></p>, and
+                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a>terms of service</a></p>.
                             </div>
-                            <Button key="accept" type='primary' onClick={() => handleCookieResponse(true)}>
-                              Accept
+                            <Button key="accept" className='screen-button' onClick={() => handleCookieResponse(true)}>
+                              Close
                             </Button>
                             <br />
                           </div>}

@@ -140,7 +140,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               </div>
             </div>} labelSpan={7} valueSpan={17} />}
 
-          {<TableRow label={"Contract Address"} value={
+          {(collection?.contractAddressTimeline ?? []).length > 0 && <TableRow label={"Contract Address"} value={
             <>
               <TimelineFieldWrapper
                 createNode={(contractVal: ContractAddressTimeline<bigint>) => {
@@ -154,7 +154,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
             </>} labelSpan={9} valueSpan={15} />}
 
 
-          {<TableRow label={"Custom Data"} value={
+          {(collection?.customDataTimeline ?? []).length > 0 && <TableRow label={"Custom Data"} value={
             <>
               <TimelineFieldWrapper
                 createNode={(customDataVal: CustomDataTimeline<bigint>) => {
@@ -169,7 +169,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
 
 
 
-          {<TableRow label={"Archived?"} value={
+          {(collection?.isArchivedTimeline ?? []).length > 0 && <TableRow label={"Archived"} value={
             <>
 
               <TimelineFieldWrapper

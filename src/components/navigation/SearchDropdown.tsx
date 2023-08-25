@@ -115,9 +115,12 @@ export function SearchDropdown({
     {
       !onlyAddresses && addressMappingsResults.length > 0 && <>
         <hr />
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Address Lists</Typography.Text>
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
         <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
           {addressMappingsResults.map((result,) => {
+            const mappingId = result.mappingId.startsWith('off-chain_') ? result.mappingId.replace('off-chain_', '') : result.mappingId;
+            const isOffChain = result.mappingId.startsWith('off-chain_');
+
             return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
               onSearch(`${result.mappingId}`, false, false);
             }}>
@@ -127,7 +130,7 @@ export function SearchDropdown({
                   {result.metadata?.name}
                 </div>
                 <div className='flex-center' style={{ alignItems: 'center' }}>
-                  ID: {`${getAbbreviatedAddress(result.mappingId)}`}
+                  ID: {`${getAbbreviatedAddress(mappingId)}`} {isOffChain && '(Off-Chain)'}
                 </div>
               </div>
             </Menu.Item>

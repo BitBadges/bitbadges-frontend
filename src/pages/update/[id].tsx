@@ -1,9 +1,9 @@
 import { Layout } from 'antd';
-import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
-import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 // import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
 import { useRouter } from 'next/router';
-import { TxTimeline } from '../../../components/tx-timelines/TxTimeline';
+import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
+import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
+import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 
 const { Content } = Layout;
 
@@ -41,7 +41,13 @@ function Update() {
                     paddingTop: '20px',
                   }}
                 >
-                  <TxTimeline collectionId={BigInt(id as string)} txType='UpdateCollection' isModal={false} />
+                  <TxTimeline
+                    addressMappingId={
+                      (id as string).startsWith('off-chain_') ? id as string : undefined
+                    }
+                    collectionId={
+                      !(id as string).startsWith('off-chain_') ? BigInt(id as string) : undefined
+                    } txType='UpdateCollection' isModal={false} />
 
                 </div>
               </Content>

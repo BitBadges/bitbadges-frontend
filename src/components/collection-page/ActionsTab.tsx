@@ -8,6 +8,8 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
+import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
 
 export function ActionsTab({
   collectionId,
@@ -25,6 +27,7 @@ export function ActionsTab({
   const [transferIsVisible, setTransferIsVisible] = useState(false);
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
   const [approveIsVisible, setApproveIsVisible] = useState(false);
+  const [outgoingApproveIsVisible, setOutgoingApproveIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -65,12 +68,22 @@ export function ActionsTab({
     });
 
     actions.push({
-      title: getTitleElem("Approve"),
+      title: getTitleElem("Edit Incoming Approvals"),
       description: getDescriptionElem(
-        "Update your incoming and outgoing approvals."
+        "Update your incoming approvals."
       ),
       showModal: () => {
         setApproveIsVisible(!approveIsVisible);
+      }
+    });
+
+    actions.push({
+      title: getTitleElem("Edit Outgoing Approvals"),
+      description: getDescriptionElem(
+        "Update your outgoing approvals."
+      ),
+      showModal: () => {
+        setOutgoingApproveIsVisible(!outgoingApproveIsVisible);
       }
     });
   }
@@ -98,7 +111,7 @@ export function ActionsTab({
         "Update the details of this collection."
       ),
       showModal: () => {
-        router.push('/collections/update/' + collectionId);
+        router.push('/update/' + collectionId);
       },
     });
 
@@ -189,10 +202,24 @@ export function ActionsTab({
               collectionId={collectionId}
             />}
 
+          {approveIsVisible &&
+            <CreateTxMsgUpdateUserApprovedIncomingTransfersModal
+              visible={approveIsVisible}
+              setVisible={setApproveIsVisible}
+              collectionId={collectionId}
+            />}
+
           {deleteIsVisible &&
             <CreateTxMsgDeleteCollectionModal
               visible={deleteIsVisible}
               setVisible={setDeleteIsVisible}
+              collectionId={collectionId}
+            />}
+
+          {outgoingApproveIsVisible &&
+            <CreateTxMsgUpdateUserApprovedOutgoingTransfersModal
+              visible={outgoingApproveIsVisible}
+              setVisible={setOutgoingApproveIsVisible}
               collectionId={collectionId}
             />}
         </div >

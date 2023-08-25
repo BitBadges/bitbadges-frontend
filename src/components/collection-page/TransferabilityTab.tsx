@@ -140,7 +140,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
               {x.fromMappingId !== "Mint" && x.approvalDetails[0].overridesFromApprovedOutgoingTransfers ? (
                 <li>Overrides From Approvals</li>
               ) : (
-                x.fromMappingId !== "Mint" && <li>Must Satisfy Outgoing Approvals of From Address</li>
+                x.fromMappingId !== "Mint" && <li>Must Satisfy Outgoing Approvals</li>
               )}
               {x.fromMappingId === "Mint" && !x.approvalDetails[0].overridesFromApprovedOutgoingTransfers && (
                 <>
@@ -152,9 +152,9 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
               {x.approvalDetails[0].overridesToApprovedIncomingTransfers ? (
                 <li>Overrides To Approvals</li>
               ) : (
-                <li>Must Satisfy Incoming Approvals of To Address</li>
+                <li>Must Satisfy Incoming Approvals</li>
               )}
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-between primary-blue-bg primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-between primary-blue-bg primary-text'>
                 <div>
                   {x.approvalDetails && x.approvalDetails.length > 0 && x.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                     <BalanceDisplay
@@ -210,7 +210,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   </>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={
                 x.approvalDetails[0].mustOwnBadges?.length > 0 &&
                 <div className='flex-center flex-column primary-text'>
                   <BalanceDisplay
@@ -243,7 +243,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Must Own Specific Badges to Transfer</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].approvalAmounts.overallApprovalAmount > 0
                   && (
@@ -280,7 +280,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Overall Approval Amount (All Users)</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].approvalAmounts.perToAddressApprovalAmount > 0
                   && (
@@ -317,7 +317,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Per To Address Approval Amounts</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].approvalAmounts.perFromAddressApprovalAmount > 0
                   && (
@@ -354,7 +354,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Per From Address Approval Amounts</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].approvalAmounts.perInitiatedByAddressApprovalAmount > 0
                   && (
@@ -391,7 +391,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Per Initiated By Address Approval Amounts</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 {x.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0 && (
                   <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalId === x.approvalDetails[0].approvalId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
@@ -403,7 +403,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Overall Max Transfers (All Users): {x.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 <div>Showing results for:</div>
 
@@ -419,7 +419,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Max Transfers per To Address: {x.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 <div>Showing results for:</div>
 
@@ -435,7 +435,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                   <li>Max Transfers per From Address: {x.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>
                 )}
               </Popover>
-              <Popover overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
                 {DEV_MODE && <li>Approvals Tracker ID: {x.approvalDetails[0].approvalId}</li>}
                 <div>Showing results for:</div>
 

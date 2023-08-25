@@ -1,5 +1,6 @@
 import {
   CopyOutlined,
+  FlagOutlined,
   LinkOutlined,
   ShareAltOutlined,
   TwitterOutlined
@@ -69,6 +70,20 @@ export function BadgeButtonDisplay({
             className="screen-button account-socials-button"
           >
             <ShareAltOutlined />
+          </Avatar>
+        </Tooltip>
+        <Tooltip title={<>
+          Report
+        </>} placement="bottom">
+          <Avatar
+            size="large"
+            className="screen-button account-socials-button"
+            onClick={() => {
+              //send email
+              window.open('mailto:andrew@bitbadges.org');
+            }}
+          >
+            <FlagOutlined />
           </Avatar>
         </Tooltip>
 
