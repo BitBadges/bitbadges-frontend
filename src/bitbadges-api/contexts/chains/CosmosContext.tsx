@@ -7,12 +7,12 @@ import { createTxRaw } from 'bitbadgesjs-proto';
 import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
-import { Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
+import { checkIfSignedIn } from "../../api";
 import { useAccountsContext } from '../AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
-import { checkIfSignedIn } from "../../api";
 declare global {
   interface Window extends KeplrWindow { }
 }
