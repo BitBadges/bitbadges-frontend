@@ -1,6 +1,6 @@
 import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
@@ -55,9 +55,9 @@ export function CanManagerBeTransferredStepItem(
                 ...collection.collectionPermissions,
                 canUpdateManager: idx === 0 ? [{
                   defaultValues: {
-                    timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     permittedTimes: [],
-                    forbiddenTimes: [{ start: 1n, end: FOREVER_DATE }],
+                    forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   },
                   combinations: [{
                     permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },

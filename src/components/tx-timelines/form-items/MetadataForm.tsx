@@ -14,7 +14,7 @@ import { UintRange } from 'bitbadgesjs-proto';
 import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../../constants';
-import { FOREVER_DATE } from '../../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { BadgeCard } from '../../badges/BadgeCard';
 import { UintRangesInput } from '../../badges/balances/IdRangesInput';
 import moment from 'moment';
@@ -104,7 +104,7 @@ export function MetadataForm({
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>([
     {
       start: startId ? startId : 1n,
-      end: endId ? endId : FOREVER_DATE
+      end: endId ? endId : GO_MAX_UINT_64
     }
   ]);
 
@@ -225,7 +225,7 @@ export function MetadataForm({
             <div className='primary-text flex-center' >
 
               <div><b>Setting Metadata for Badge ID:{' '}</b></div>
-              <InputNumber min={Numberify((startId ? startId : 1n).toString())} max={Numberify((endId ? endId : FOREVER_DATE).toString())}
+              <InputNumber min={Numberify((startId ? startId : 1n).toString())} max={Numberify((endId ? endId : GO_MAX_UINT_64).toString())}
                 value={Numberify(badgeId.toString())}
                 onChange={(e) => {
                   if (e && e > 0 && setBadgeId) setBadgeId(BigInt(e));
@@ -268,7 +268,7 @@ export function MetadataForm({
                 <br />
                 <UintRangesInput
                   minimum={startId ? startId : 1n}
-                  maximum={endId ? endId : FOREVER_DATE}
+                  maximum={endId ? endId : GO_MAX_UINT_64}
                   setUintRanges={setUintRanges}
                   collectionId={collectionId}
                 />
@@ -319,7 +319,7 @@ export function MetadataForm({
                 <br />
                 <UintRangesInput
                   minimum={startId ? startId : 1n}
-                  maximum={endId ? endId : FOREVER_DATE}
+                  maximum={endId ? endId : GO_MAX_UINT_64}
                   setUintRanges={setUintRanges}
                   collectionId={collectionId}
                 />
@@ -388,7 +388,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -502,7 +502,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -613,7 +613,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -689,7 +689,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -765,7 +765,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -823,7 +823,7 @@ export function MetadataForm({
                         validFrom: [{
 
                           start: BigInt(new Date(dateString).valueOf()),
-                          end: currMetadata.validFrom && currMetadata.validFrom.length > 0 ? currMetadata.validFrom[0].end : FOREVER_DATE,
+                          end: currMetadata.validFrom && currMetadata.validFrom.length > 0 ? currMetadata.validFrom[0].end : GO_MAX_UINT_64,
                         }]
                       });
                     }}
@@ -913,7 +913,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -1000,7 +1000,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -1126,7 +1126,7 @@ export function MetadataForm({
               <br />
               <UintRangesInput
                 minimum={startId ? startId : 1n}
-                maximum={endId ? endId : FOREVER_DATE}
+                maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />

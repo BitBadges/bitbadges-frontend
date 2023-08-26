@@ -3,7 +3,7 @@ import { Empty, Tooltip } from "antd";
 import { Balance, BigIntify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
-import { FOREVER_DATE, getTimeRangesElement } from "../../../utils/dates";
+import { GO_MAX_UINT_64, getTimeRangesElement } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
 import { useEffect, useState } from "react";
 
@@ -63,7 +63,7 @@ export function BalanceDisplay({
         incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
         incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
       }
-    ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: FOREVER_DATE }] } });
+    ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
 
     const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
       return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));

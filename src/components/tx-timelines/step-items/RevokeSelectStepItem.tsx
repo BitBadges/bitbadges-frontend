@@ -1,7 +1,7 @@
 import { AddressMapping } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 
@@ -73,8 +73,8 @@ export function RevokeSelectStepItem(
               fromMappingId: "AllWithoutMint",
               toMappingId: "AllWithoutMint",
               initiatedByMappingId: "Manager",
-              badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-              ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
               fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
               initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
@@ -118,7 +118,7 @@ export function RevokeSelectStepItem(
                   perToAddressMaxNumTransfers: 0n,
                 },
               }],
-              transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               allowedCombinations: [{
                 isApproved: true,
                 toMappingOptions: {
@@ -160,7 +160,7 @@ export function RevokeSelectStepItem(
               ...collection,
               collectionApprovedTransfersTimeline: [{
                 collectionApprovedTransfers: [...mintTransfers, ...transfersToAdd, ...nonMintTransfers],
-                timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               }]
             });
           }}

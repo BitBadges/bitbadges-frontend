@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
-import { FOREVER_DATE } from '../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { MintType } from './step-items/ChooseBadgeTypeStepItem';
@@ -199,7 +199,7 @@ export function TxTimeline({
         approvalsTrackers: [],
         managerTimeline: [{
           manager: chain.cosmosAddress,
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }],
         managerInfo: BLANK_USER_INFO,
         cachedBadgeMetadata: [
@@ -244,7 +244,7 @@ export function TxTimeline({
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],
-        //   timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+        //   timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         // }], TODO:
         standardsTimeline: [],
         balancesType: "Standard",

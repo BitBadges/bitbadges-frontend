@@ -2,7 +2,7 @@ import { AddressMapping } from "bitbadgesjs-proto";
 import { DistributionMethod, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useRef } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 const crypto = require('crypto');
@@ -160,9 +160,9 @@ export function DistributionMethodStepItem(
                     initiatedByMapping: getReservedAddressMapping('Manager', manager) as AddressMapping,
                     fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
                     toMapping: getReservedAddressMapping('AllWithMint', '') as AddressMapping,
-                    transferTimes: [{ start: 1n, end: FOREVER_DATE }],
-                    ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
-                    badgeIds: [{ start: 1n, end: FOREVER_DATE }],
+                    transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                    badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     allowedCombinations: [{
                       initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
                       fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
@@ -217,7 +217,7 @@ export function DistributionMethodStepItem(
 
                   },
                   ...existingNonMint],
-                timelineTimes: [{ start: 1n, end: FOREVER_DATE }]
+                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
               }]
             });
           }

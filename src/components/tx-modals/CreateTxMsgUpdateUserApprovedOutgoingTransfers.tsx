@@ -8,7 +8,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { FOREVER_DATE } from '../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
@@ -59,15 +59,15 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
 
   const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
   const newApprovedOutgoingTransfers = [{
-    timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     approvedOutgoingTransfers: [
 
       ...(allInOne ? [{
-        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         toMappingId: "AllWithMint",
         initiatedByMappingId: convertToCosmosAddress(approvee),
-        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
         initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
         approvalDetails: [
@@ -142,7 +142,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
           ownershipTimes: [...x.ownershipTimes],
           toMappingId: "AllWithMint",
           initiatedByMappingId: convertToCosmosAddress(approvee),
-          transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
           initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
           approvalDetails: [
@@ -214,11 +214,11 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         }
       })]),
       {
-        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         toMappingId: "AllWithMint",
         initiatedByMappingId: convertToCosmosAddress(approvee),
-        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
         initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
         approvalDetails: [],

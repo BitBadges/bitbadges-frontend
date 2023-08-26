@@ -1,7 +1,7 @@
 import { Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 
-export const FOREVER_DATE = 18446744073709551615n;
+export const GO_MAX_UINT_64 = 18446744073709551615n;
 
 export const FOREVER_THRESHOLD = 7277881234n * 1000n;
 
@@ -26,7 +26,7 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
   const strings = validFrom.map((timeRange, idx) => {
     let str = idx == 0 ? `${prefix}` : '';
     let endTimestamp = timeRange.end;
-    let validForever = timeRange.end >= FOREVER_DATE;
+    let validForever = timeRange.end >= GO_MAX_UINT_64;
 
     if (numbersOnly) {
       str += timeRange.start.toString() + "-" + timeRange.end.toString()

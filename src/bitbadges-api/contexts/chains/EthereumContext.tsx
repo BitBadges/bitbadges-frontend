@@ -3,7 +3,6 @@ import { PresetUri } from 'blockin';
 import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import Web3Modal from "web3modal";
-// import { EIP712_BITBADGES_DOMAIN } from '../../api/eip712Types';
 import { Secp256k1 } from '@cosmjs/crypto';
 import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi/core";
 import { useWeb3Modal } from "@web3modal/react";
@@ -67,7 +66,22 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const { open } = useWeb3Modal();
   const web3AccountContext = useAccount();
 
-
+  const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
+    viewKey: 'badgesCollected',
+    bookmark: '',
+  }, {
+    viewKey: 'latestActivity',
+    bookmark: '',
+  }, {
+    viewKey: 'latestAnnouncements',
+    bookmark: '',
+  }, {
+    viewKey: 'latestReviews',
+    bookmark: '',
+  }, {
+    viewKey: 'addressMappings',
+    bookmark: '',
+  }]
 
   useEffect(() => {
     async function setDetails() {
@@ -83,24 +97,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
         }
-
-        console.log("Logged in", loggedIn);
-        const viewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
-          viewKey: 'badgesCollected',
-          bookmark: '',
-        }, {
-          viewKey: 'latestActivity',
-          bookmark: '',
-        }, {
-          viewKey: 'latestAnnouncements',
-          bookmark: '',
-        }, {
-          viewKey: 'latestReviews',
-          bookmark: '',
-        }, {
-          viewKey: 'addressMappings',
-          bookmark: '',
-        }]
+        const viewsToFetch = DefaultViewsToFetch.slice();
 
         if (loggedIn) {
           viewsToFetch.push({
@@ -149,22 +146,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         loggedIn = signedInRes.signedIn;
       }
 
-      const viewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
-        viewKey: 'badgesCollected',
-        bookmark: '',
-      }, {
-        viewKey: 'latestActivity',
-        bookmark: '',
-      }, {
-        viewKey: 'latestAnnouncements',
-        bookmark: '',
-      }, {
-        viewKey: 'latestReviews',
-        bookmark: '',
-      }, {
-        viewKey: 'addressMappings',
-        bookmark: '',
-      }]
+      const viewsToFetch = DefaultViewsToFetch.slice();
 
       if (loggedIn) {
         viewsToFetch.push({

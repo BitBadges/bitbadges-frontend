@@ -5,7 +5,7 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { useEffect, useState } from "react";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 
 const { Text } = Typography
@@ -31,7 +31,7 @@ export function OffChainBalancesStorageSelectStepItem() {
       collections.updateCollection({
         ...collection,
         offChainBalancesMetadataTimeline: [{
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
             uri: uri,
             customData: ''
@@ -83,7 +83,7 @@ export function OffChainBalancesStorageSelectStepItem() {
             collections.updateCollection({
               ...collection,
               offChainBalancesMetadataTimeline: [{
-                timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                 offChainBalancesMetadata: {
                   uri: uri,
                   customData: ''

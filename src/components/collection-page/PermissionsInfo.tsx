@@ -3,7 +3,7 @@ import { Popover } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE, getTimeRangesElement } from "../../utils/dates";
+import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
@@ -106,7 +106,7 @@ export function getPermissionDataSource(permissions: UniversalPermission[], used
 
   //Neutral times = not explicitly permitted and not explicitly forbidden
   for (const match of firstMatchDetails) {
-    let neutralTimeRanges = [{ start: 1n, end: FOREVER_DATE }];
+    let neutralTimeRanges = [{ start: 1n, end: GO_MAX_UINT_64 }];
 
     const [remaining, _] = removeUintRangeFromUintRange(match.forbiddenTimes, neutralTimeRanges)
     neutralTimeRanges = remaining;

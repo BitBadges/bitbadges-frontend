@@ -5,7 +5,7 @@ import { DevMode } from '../../common/DevMode';
 import { MSG_PREVIEW_ID } from '../TxTimeline';
 import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
 import { useEffect } from 'react';
-import { FOREVER_DATE } from '../../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
 //TODO: Create claims - Select type (codes vs direct transfers vs whitelist vs anyone) dynamically instead of hardcoding to jusst one distributionMethod
@@ -49,7 +49,7 @@ export function CreateClaims({
       ...collection,
       collectionApprovedTransfersTimeline: [{
         collectionApprovedTransfers: [...existingFromMint, ...approvedTransfersToAdd, ...existingNonMint],
-        timelineTimes: [{ start: 1n, end: FOREVER_DATE }]
+        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
       }]
     });
 

@@ -2,7 +2,7 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Avatar, Button, Divider, Steps, Tooltip } from 'antd';
 import { Balance, deepCopy } from 'bitbadgesjs-proto';
 import { useState } from 'react';
-import { FOREVER_DATE } from '../../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { BalanceDisplay } from '../../badges/balances/BalanceDisplay';
 import { UintRangesInput } from '../../badges/balances/IdRangesInput';
 import { NumberInput } from '../../display/NumberInput';
@@ -50,7 +50,7 @@ export function BalanceInput({
   const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 1n,
     badgeIds: [],
-    ownershipTimes: [{ start: BigInt(1n), end: FOREVER_DATE }],
+    ownershipTimes: [{ start: BigInt(1n), end: GO_MAX_UINT_64 }],
   });
 
   const AddBadgesButton = <>
@@ -188,19 +188,19 @@ export function BalanceInput({
                     options={[{
                       title: "Custom",
                       message: message == "Circulating Supplys" ? "Badges can be owned only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.",
-                      isSelected: !(currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE),
+                      isSelected: !(currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64),
                     },
                     {
                       title: "All Times",
                       message: message == "Circulating Supplys" ? "Badges can be owned at all times." : "Ownership of the selected badges is to be transferred for all times.",
-                      isSelected: currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE,
+                      isSelected: currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64,
 
                     },]}
                     onSwitchChange={(value) => {
                       if (value === 1) {
                         setCurrentSupply({
                           ...currentSupply,
-                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         });
                       } else {
                         setCurrentSupply({
@@ -211,7 +211,7 @@ export function BalanceInput({
                     }}
                   />
                   <br />
-                  {currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === FOREVER_DATE ? <></> : <>
+                  {currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64 ? <></> : <>
 
                     <DateRangeInput
                       timeRanges={currentSupply.ownershipTimes}

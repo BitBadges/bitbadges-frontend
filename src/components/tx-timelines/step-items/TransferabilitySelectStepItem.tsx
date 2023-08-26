@@ -4,7 +4,7 @@ import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPerm
 import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { useStatusContext } from "../../../bitbadges-api/contexts/StatusContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplayList } from "../../address/AddressDisplayList";
 import { AddressListSelect } from "../../address/AddressListSelect";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
@@ -44,13 +44,13 @@ export function TransferabilitySelectStepItem(
         toMappingId: "AllWithoutMint",
         fromMappingId: convertToCosmosAddress(user),
         initiatedByMappingId: "AllWithoutMint",
-        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
         toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         approvalDetails: [],
-        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         allowedCombinations: [{
           isApproved: false,
           toMappingOptions: {
@@ -92,13 +92,13 @@ export function TransferabilitySelectStepItem(
         fromMappingId: "AllWithoutMint",
         toMappingId: convertToCosmosAddress(user),
         initiatedByMappingId: "AllWithoutMint",
-        badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-        ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
         fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         approvalDetails: [],
-        transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         allowedCombinations: [{
           isApproved: false,
           toMappingOptions: {
@@ -142,8 +142,8 @@ export function TransferabilitySelectStepItem(
       fromMappingId: "AllWithoutMint",
       toMappingId: "AllWithoutMint",
       initiatedByMappingId: "AllWithoutMint",
-      badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-      ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
       fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
       initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
@@ -192,7 +192,7 @@ export function TransferabilitySelectStepItem(
         }]
 
         : [], //no restrictions
-      transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       allowedCombinations: [{
         isApproved: true,
         toMappingOptions: {
@@ -234,7 +234,7 @@ export function TransferabilitySelectStepItem(
       ...collection,
       collectionApprovedTransfersTimeline: [{
         collectionApprovedTransfers: newApprovedTransfers,
-        timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       }]
     });
   }, [mustOwnBadges, frozenUsers]);
@@ -262,7 +262,7 @@ export function TransferabilitySelectStepItem(
   //   console.log(newMetadata, existingTranferability);
   //   if (JSON.stringify(existingTranferability) !== JSON.stringify(newMetadata)) {
   //     details.push({
-  //       timelineTime: { start: 1n, end: FOREVER_DATE },
+  //       timelineTime: { start: 1n, end: GO_MAX_UINT_64 },
 
   //       badgeId: { start: -1n, end: -1n },
   //       ownershipTime: { start: -1n, end: -1n },
@@ -409,13 +409,13 @@ export function TransferabilitySelectStepItem(
                   fromMappingId: "AllWithoutMint",
                   toMappingId: "AllWithoutMint",
                   initiatedByMappingId: "AllWithoutMint",
-                  badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-                  ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                  badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
                   fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
                   initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
                   approvalDetails: [], //no restrictions
-                  transferTimes: [{ start: 1n, end: FOREVER_DATE }],
+                  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   allowedCombinations: [{
                     isApproved: true,
                     toMappingOptions: {
@@ -458,7 +458,7 @@ export function TransferabilitySelectStepItem(
                 ...collection,
                 collectionApprovedTransfersTimeline: [{
                   collectionApprovedTransfers: newApprovedTransfers,
-                  timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                  timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                 }]
               });
             }}
@@ -504,7 +504,7 @@ export function TransferabilitySelectStepItem(
                         return {
                           ...x,
                           amount: x.amountRange.start,
-                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         }
                       })}
                       onAddBadges={(balance) => {
@@ -513,7 +513,7 @@ export function TransferabilitySelectStepItem(
                           overrideWithCurrentTime: true,
                           amountRange: { start: balance.amount, end: balance.amount },
                           badgeIds: balance.badgeIds,
-                          ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         }]);
                       }}
                       onRemoveAll={() => {

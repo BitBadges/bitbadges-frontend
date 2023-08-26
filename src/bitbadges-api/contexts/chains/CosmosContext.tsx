@@ -4,7 +4,7 @@ import {
 import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react';
@@ -12,8 +12,7 @@ import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
-
-
+import { checkIfSignedIn } from "../../api";
 declare global {
   interface Window extends KeplrWindow { }
 }
@@ -79,7 +78,7 @@ export const CosmosContext = createContext<CosmosContextType>({
   setCosmosAddress: () => { },
   connect: async () => { },
   disconnect: async () => { },
-  chainId: 'Mainnet',
+  chainId: 'bitbadges_1-1',
   setChainId: () => { },
   signChallenge: async () => { return {} },
   getPublicKey: async () => { return '' },
@@ -100,7 +99,6 @@ type Props = {
 
 export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const accountsContext = useAccountsContext();
-  const accountsContextRef = useRef(accountsContext);
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
@@ -121,15 +119,19 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const ownedAssetIds: string[] = [];
 
   useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: cosmosContext');
-    if (address) {
-      setAddress(address);
-      setCosmosAddress(convertToCosmosAddress(address));
-      accountsContextRef.current.fetchAccountsWithOptions([{
-        address: address,
-        fetchSequence: true,
-        fetchBalance: true,
-        viewsToFetch: [{
+    async function fetchDetails() {
+      if (INFINITE_LOOP_MODE) console.log('useEffect: cosmosContext');
+      if (address) {
+        setAddress(address);
+        setCosmosAddress(convertToCosmosAddress(address));
+
+        let loggedIn = false;
+        if (cookies.blockincookie === convertToCosmosAddress(address)) {
+          const signedInRes = await checkIfSignedIn({});
+          setLoggedIn(signedInRes.signedIn);
+          loggedIn = signedInRes.signedIn;
+        }
+        const viewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
           viewKey: 'badgesCollected',
           bookmark: '',
         }, {
@@ -145,31 +147,42 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           viewKey: 'addressMappings',
           bookmark: '',
         }]
-      }]);
-      setLoggedIn(cookies.blockincookie === convertToCosmosAddress(address));
-      setConnected(true);
-    } else {
-      setConnected(false);
+
+        if (loggedIn) {
+          viewsToFetch.push({
+            viewKey: 'latestClaimAlerts',
+            bookmark: '',
+          })
+        }
+
+        accountsContext.fetchAccountsWithOptions([{
+          address: address,
+          fetchSequence: true,
+          fetchBalance: true,
+          viewsToFetch: viewsToFetch
+        }]);
+        setLoggedIn(cookies.blockincookie === convertToCosmosAddress(address));
+        setConnected(true);
+      } else {
+        setConnected(false);
+      }
     }
+    fetchDetails();
   }, [address, cookies.blockincookie])
 
   const connect = async () => {
     const { keplr } = window
     if (!keplr || !window || !window.getOfflineSigner) {
-      alert("You need to install Keplr")
+      alert("Please install Keplr to continue with Cosmos")
       return
     }
-    console.log('test')
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
-    console.log('tet2')
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
       `http://${HOSTNAME}:26657`,
       offlineSigner,
     )
-    console.log('tet3')
     const account: AccountData = (await offlineSigner.getAccounts())[0]
-    console.log('tet4')
     setSigner(signingClient);
     setConnected(true);
     setAddress(account.address);

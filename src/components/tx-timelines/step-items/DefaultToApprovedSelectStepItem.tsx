@@ -1,7 +1,7 @@
 import { AddressMapping } from "bitbadgesjs-proto";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 
@@ -40,9 +40,9 @@ export function DefaultToApprovedSelectStepItem(
                 fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
                 initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
                 initiatedByMappingId: "AllWithMint",
-                transferTimes: [{ start: 1n, end: FOREVER_DATE }],
-                badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-                ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                 allowedCombinations: [{
                   isApproved: true,
                   initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
@@ -53,7 +53,7 @@ export function DefaultToApprovedSelectStepItem(
                 }],
                 approvalDetails: []
               }],
-              timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }] : [],
           });
         }}

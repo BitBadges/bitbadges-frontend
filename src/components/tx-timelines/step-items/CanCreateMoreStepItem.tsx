@@ -1,6 +1,6 @@
 import { BalancesActionPermission, CollectionPermissions } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
@@ -20,10 +20,10 @@ const DefaultCombinations = [{
 
 const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
   defaultValues: {
-    badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-    ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+    badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     permittedTimes: [],
-    forbiddenTimes: [{ start: 1n, end: FOREVER_DATE }],
+    forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   },
   combinations: DefaultCombinations
 }
@@ -97,7 +97,7 @@ export function CanCreateMoreStepItem(
               }] : idx === 2 ? [{
                 defaultValues: {
                   ...AlwaysLockedPermission.defaultValues,
-                  badgeIds: [{ start: maxBadgeId + 1n, end: FOREVER_DATE }],
+                  badgeIds: [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
                 },
                 combinations: DefaultCombinations
               }] : [];

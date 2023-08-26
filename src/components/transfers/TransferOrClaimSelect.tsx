@@ -10,7 +10,7 @@ import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { FOREVER_DATE } from '../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { BalancesInput } from '../badges/balances/BalancesInput';
@@ -166,7 +166,7 @@ export function TransferSelect({
     initiatedByMappingId: "AllWithMint",
     initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
     transferTimes: [claimTimeRange],
-    ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: balances.map(x => x.badgeIds).flat(),
     allowedCombinations: [{
       initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },

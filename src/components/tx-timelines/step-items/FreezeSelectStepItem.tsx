@@ -2,7 +2,7 @@ import { AddressMapping, CollectionApprovedTransferPermission, CollectionPermiss
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
@@ -64,13 +64,13 @@ export function FreezeSelectStepItem(
                       toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
                       fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
                       initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                      timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
-                      transferTimes: [{ start: 1n, end: FOREVER_DATE }],
-                      badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-                      ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                      timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 
                       permittedTimes: [],
-                      forbiddenTimes: [{ start: 1n, end: FOREVER_DATE }],
+                      forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     },
                     combinations: [{
                       initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
@@ -92,13 +92,13 @@ export function FreezeSelectStepItem(
                       toMapping: getReservedAddressMapping("Mint", "") as AddressMapping,
                       fromMapping: getReservedAddressMapping("Mint", "") as AddressMapping,
                       initiatedByMapping: getReservedAddressMapping("Mint", "") as AddressMapping,
-                      timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
-                      transferTimes: [{ start: 1n, end: FOREVER_DATE }],
-                      badgeIds: [{ start: 1n, end: FOREVER_DATE }],
-                      ownershipTimes: [{ start: 1n, end: FOREVER_DATE }],
+                      timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 
                       permittedTimes: [],
-                      forbiddenTimes: [{ start: 1n, end: FOREVER_DATE }],
+                      forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     },
                     combinations: [{
                       initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },

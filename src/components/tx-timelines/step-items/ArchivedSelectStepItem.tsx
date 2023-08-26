@@ -1,7 +1,7 @@
 import { Divider } from "antd";
 import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, validateIsArchivedUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -104,7 +104,7 @@ export function IsArchivedSelectStepItem(
                     collections.updateCollection({
                       ...collection,
                       isArchivedTimeline: [{
-                        timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         isArchived: true,
                       }],
                     })

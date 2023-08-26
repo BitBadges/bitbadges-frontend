@@ -2,7 +2,7 @@ import { Form, Input, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../../constants";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 
@@ -64,7 +64,7 @@ export function MetadataUriSelect({
         ...collection,
         cachedCollectionMetadata: undefined,
         collectionMetadataTimeline: collectionUri ? [{
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           collectionMetadata: {
             uri: collectionUri,
             customData: '',
@@ -94,7 +94,7 @@ export function MetadataUriSelect({
         ...collection,
         cachedBadgeMetadata: [],
         badgeMetadataTimeline: badgeUri ? [{
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           badgeMetadata: [{
             uri: badgeUri,
             badgeIds: [{ start: startId, end: endId }],

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE } from "../../../utils/dates";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
@@ -117,7 +117,7 @@ export function ConfirmManagerStepItem(
                       ...collection,
                       managerTimeline: [{
                         manager: convertToCosmosAddress(address),
-                        timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                       }],
                     })
                   }
@@ -145,8 +145,8 @@ export function ConfirmManagerStepItem(
                     <BlockiesAvatar
                       address={address}
                       avatar={signedInAccount?.profilePicUrl ?? signedInAccount?.avatar}
-                fontSize={150}
-                shape='circle'
+                      fontSize={150}
+                      shape='circle'
                     />
                   }
                 />
@@ -166,7 +166,7 @@ export function ConfirmManagerStepItem(
                         ...collection,
                         managerTimeline: [{
                           manager: convertToCosmosAddress(address),
-                          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+                          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         }],
                       })
                     }

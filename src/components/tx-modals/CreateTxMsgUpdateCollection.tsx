@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { addBalancesToIpfs, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { FOREVER_DATE } from '../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, TxTimeline } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
 
@@ -144,7 +144,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
         if (txState.updateCollectionMetadataTimeline) {
           collectionMetadataTimeline = [{
-            timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             collectionMetadata: {
               uri: 'ipfs://' + res.collectionMetadataResult?.cid,
               customData: '',
@@ -156,7 +156,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
         if (txState.updateBadgeMetadataTimeline) {
           badgeMetadataTimeline = [{
-            timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             badgeMetadata: []
           }]
 
@@ -244,7 +244,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
         let res = await addBalancesToIpfs({ balances: balanceMap });
         offChainBalancesMetadataTimeline = [{
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
             uri: 'ipfs://' + res.result.cid,
             customData: '',
@@ -252,7 +252,7 @@ export function CreateTxMsgUpdateCollectionModal(
         }];
       } else {
         offChainBalancesMetadataTimeline = [{
-          timelineTimes: [{ start: 1n, end: FOREVER_DATE }],
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
             uri: 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
             customData: '',

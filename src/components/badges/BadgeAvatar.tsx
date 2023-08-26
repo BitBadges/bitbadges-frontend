@@ -4,7 +4,7 @@ import { Balance } from "bitbadgesjs-proto";
 import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { FOREVER_DATE, getTimeRangesString } from "../../utils/dates";
+import { GO_MAX_UINT_64, getTimeRangesString } from "../../utils/dates";
 
 export function BadgeAvatar({
   collectionId,
@@ -33,7 +33,7 @@ export function BadgeAvatar({
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
   const showOwnershipTimesIcon = badgeId && balances && showSupplys ?
-    JSON.stringify(balances) !== JSON.stringify([{ start: 1n, end: FOREVER_DATE }])
+    JSON.stringify(balances) !== JSON.stringify([{ start: 1n, end: GO_MAX_UINT_64 }])
     : false;
 
   const avatar = <Avatar
