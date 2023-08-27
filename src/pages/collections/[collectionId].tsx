@@ -16,6 +16,7 @@ import { TransferabilityTab } from '../../components/collection-page/Transferabi
 import { Tabs } from '../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 const { Content } = Layout;
 
@@ -26,6 +27,7 @@ function CollectionPage({
 }) {
   const router = useRouter()
   const collections = useCollectionsContext();
+  const accounts = useAccountsContext();
 
   const { collectionId, badgeId, password, code, claimsTab } = router.query;
   const isPreview = collectionPreview ? true : false;
@@ -73,6 +75,8 @@ function CollectionPage({
         const collectionsRes = await collections.fetchCollections([collectionIdNumber]);
         const currCollection = collectionsRes[0];
 
+        const managers = currCollection.managerTimeline.map(x => x.manager).filter(x => x);
+        accounts.fetchAccounts([currCollection.createdBy, ...managers]);
 
         if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({

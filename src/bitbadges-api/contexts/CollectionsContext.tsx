@@ -101,10 +101,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>) => {
-    if (newCollection.managerInfo && accounts.getAccount(newCollection.managerInfo.cosmosAddress) === undefined) {
-      accounts.updateAccount(newCollection.managerInfo);
-    }
-
     let cachedCollection = collections[`${newCollection.collectionId}`];
     // let cachedCollection = deepCopy(collections[`${newCollection.collectionId}`]);
     const cachedCollectionCopy = deepCopy(cachedCollection);
@@ -433,15 +429,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     const res = await getCollections(batchRequestBody);
     console.log("collection res", res);
     //Update collections map
-    const accountsToFetch = [];
     for (let i = 0; i < res.collections.length; i++) {
       collections[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
-      if (!accounts.getAccount(res.collections[i].createdBy)) {
-        accountsToFetch.push(res.collections[i].createdBy)
-      }
     }
-
-    if (accountsToFetch.length > 0) await accounts.fetchAccounts(accountsToFetch);
 
 
 

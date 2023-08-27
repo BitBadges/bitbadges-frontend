@@ -10,6 +10,7 @@ import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransfer
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
 import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
+import { getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
 
 export function ActionsTab({
   collectionId,
@@ -36,7 +37,8 @@ export function ActionsTab({
     disabled?: boolean
   }[] = [];
 
-  const isManager = collection && collection.managerInfo.cosmosAddress === chain.cosmosAddress;
+  const managerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+  const isManager = managerIdx >= 0 && collection && collection.managerTimeline[Number(managerIdx)].manager === chain.cosmosAddress;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
 

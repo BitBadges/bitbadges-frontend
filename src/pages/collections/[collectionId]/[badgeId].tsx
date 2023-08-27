@@ -20,6 +20,7 @@ import { InformationDisplayCard } from '../../../components/display/InformationD
 import { Tabs } from '../../../components/navigation/Tabs';
 import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -31,6 +32,7 @@ export function BadgePage({ collectionPreview }
   }) {
   const router = useRouter()
   const collections = useCollectionsContext();
+  const accounts = useAccountsContext();
 
 
   const [tab, setTab] = useState('overview');
@@ -58,6 +60,12 @@ export function BadgePage({ collectionPreview }
       collections.fetchAndUpdateMetadata(collectionIdNumber, { badgeIds: [{ start: badgeIdNumber, end: badgeIdNumber }] });
     }
   }, [collectionIdNumber, isPreview]);
+
+  useEffect(() => {
+    if (isPreview || !collection) return;
+    const managers = collection.managerTimeline.map(x => x.manager).filter(x => x);
+    accounts.fetchAccounts([collection.createdBy, ...managers]);
+  }, [collection, isPreview]);
 
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 

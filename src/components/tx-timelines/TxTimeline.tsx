@@ -1,15 +1,16 @@
 import { Divider, Spin } from 'antd';
 import { AddressMapping, Balance, CollectionPermissions, NumberType, deepCopy } from 'bitbadgesjs-proto';
-import { BLANK_USER_INFO, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
+import { getAddressMappings } from '../../bitbadges-api/api';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { MintType } from './step-items/ChooseBadgeTypeStepItem';
-import { getAddressMappings } from '../../bitbadges-api/api';
 
 export const EmptyStepItem = {
   title: '',
@@ -120,6 +121,7 @@ export function TxTimeline({
 }) {
   const collections = useCollectionsContext();
   const chain = useChainContext();
+  const accounts = useAccountsContext();
 
 
   const existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
@@ -190,6 +192,8 @@ export function TxTimeline({
           existingCollection.cachedBadgeMetadata = res[0].cachedBadgeMetadata;
           existingCollection.cachedCollectionMetadata = res[0].cachedCollectionMetadata;
         }
+
+        await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
       }
 
       collections.updateCollection({
@@ -201,7 +205,6 @@ export function TxTimeline({
           manager: chain.cosmosAddress,
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }],
-        managerInfo: BLANK_USER_INFO,
         cachedBadgeMetadata: [
           {
             metadata: DefaultPlaceholderMetadata,

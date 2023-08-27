@@ -3,7 +3,7 @@ import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -46,7 +46,6 @@ export function TxModal(
   const accounts = useAccountsContext();
   const router = useRouter();
   const statusContext = useStatusContext();
-  const statusRef = useRef(statusContext);
 
   const [checked, setChecked] = useState(false);
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
@@ -166,9 +165,10 @@ export function TxModal(
   ]);
 
   useEffect(() => {
+    if (!visible) return
     if (INFINITE_LOOP_MODE) console.log('useEffect: status');
-    statusRef.current.updateStatus();
-  }, []);
+    statusContext.updateStatus();
+  }, [visible]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);

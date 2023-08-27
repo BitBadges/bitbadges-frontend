@@ -1,7 +1,7 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Card, Divider, Empty, Layout, Select, Spin, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -31,7 +31,9 @@ function PortfolioPage() {
   const { addressOrUsername } = router.query;
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
 
-  const [tab, setTab] = useState('collected');
+  const [tab, setTab] = useState(
+    accountInfo?.readme ? 'overview' :
+      'collected');
   const [cardView, setCardView] = useState(false);
   const [groupByCollection, setGroupByCollection] = useState(true);
 
@@ -63,32 +65,15 @@ function PortfolioPage() {
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
-      console.log("addressOrUsername", addressOrUsername);
-      const fetchedAccounts = await accounts.fetchAccountsWithOptions([{
-        address: isAddressValid(addressOrUsername as string) ? addressOrUsername as string : undefined,
-        username: isAddressValid(addressOrUsername as string) ? undefined : addressOrUsername as string,
-        viewsToFetch: [{
-          viewKey: 'latestActivity',
-          bookmark: ''
-        }, {
-          viewKey: 'latestReviews',
-          bookmark: ''
-        }, {
-          viewKey: 'badgesCollected',
-          bookmark: ''
-        }, {
-          viewKey: 'addressMappings',
-          bookmark: '',
-        }]
-      }], true);
-
-      const fetchedAccount = fetchedAccounts[0];
+      const fetchedAccount = await accounts.fetchNextForViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings']);
       if (fetchedAccount.readme) {
         setTab('overview');
       }
     }
     getPortfolioInfo();
   }, [addressOrUsername, showHidden]);
+
+
 
 
   useEffect(() => {

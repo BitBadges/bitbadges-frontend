@@ -303,6 +303,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     noExternalCalls?: boolean,
   }[], forcefulRefresh?: boolean) => {
 
+
     const batchRequestBody: GetAccountsRouteRequestBody = {
       accountsToFetch: []
     };
@@ -310,7 +311,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     //Iterate through and see which accounts + info we actually need to fetch versus which we already have
     for (const accountToFetch of accountsToFetch) {
       // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
-
+      accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
+      // console.log(accountToFetch.viewsToFetch);
 
       const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
       if (cachedAccount === undefined) {
@@ -323,6 +325,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           noExternalCalls: accountToFetch.noExternalCalls,
         });
       } else {
+        accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => {
+          const currPagination = cachedAccount.views[x.viewKey]?.pagination;
+          if (!currPagination) return true;
+          else return currPagination.hasMore
+        });
         //Check if we need to fetch
         const needToFetch =
           (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
@@ -398,9 +405,14 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
       username: isAddressValid(addressOrUsername) ? undefined : addressOrUsername,
       viewsToFetch: viewKeys.map(x => {
-        return {
+        const currPagination = getAccount(addressOrUsername)?.views[x]?.pagination;
+        if (!currPagination) return {
           viewKey: x,
-          bookmark: getAccount(addressOrUsername)?.views[x]?.pagination?.bookmark || ''
+          bookmark: ''
+        };
+        else return {
+          viewKey: x,
+          bookmark: getAccount(addressOrUsername)?.views[x]?.pagination.hasMore ? getAccount(addressOrUsername)?.views[x]?.pagination?.bookmark || '' : 'nil'
         }
       })
     }]);
