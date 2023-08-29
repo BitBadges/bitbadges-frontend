@@ -58,7 +58,7 @@ function CollectionPage({ }: {}) {
     );
   };
 
-  if ((mappingId as string)?.startsWith('off-chain_')) {
+  if ((mappingId as string)?.indexOf('_') >= 0) {
     actions.push({
       title: getTitleElem("Update"),
       description: getDescriptionElem(
@@ -181,7 +181,7 @@ function CollectionPage({ }: {}) {
                     <InformationDisplayCard
                       title="Info"
                     >
-                      {mapping?.mappingId && mapping.mappingId.indexOf('off-chain_') < 0 && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
+                      {mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
                       {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
                       {mapping?.createdBy && <TableRow label={"Created By"} value={
                         <div className='flex-between' style={{ textAlign: 'right' }}>
@@ -195,7 +195,7 @@ function CollectionPage({ }: {}) {
                         </div>
                       } labelSpan={9} valueSpan={15} />}
                       <TableRow label={"Storage"} value={
-                        mapping?.mappingId && mapping.mappingId.indexOf('off-chain_') < 0 ?
+                        mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
 
                           "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                     </InformationDisplayCard>

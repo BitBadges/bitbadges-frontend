@@ -1,7 +1,7 @@
 import { EditOutlined, FieldTimeOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { TimelineItem } from 'bitbadgesjs-proto';
-import { getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
 import { getTimeRangesElement } from '../../utils/dates';
 
 export function TimelineTimesIcon<T extends TimelineItem<bigint>>({ timeline, createNode }: { timeline: T[], createNode: (val: T) => JSX.Element }) {
@@ -38,7 +38,7 @@ export function TimelineTimesIcon<T extends TimelineItem<bigint>>({ timeline, cr
 
 export function TimelineFieldWrapper<T extends TimelineItem<bigint>>({ createNode, timeline, emptyNode }: { createNode: (val: T) => JSX.Element, timeline: T[], emptyNode: JSX.Element }) {
   let defaultIdx = -1;
-  const managerIdx = getCurrentValueIdxForTimeline(timeline);
+  const managerIdx = getCurrentIdxForTimeline(timeline);
   if (managerIdx >= 0) defaultIdx = Number(managerIdx);
 
   const timelineTimes = timeline.map(x => x.timelineTimes).flat();

@@ -105,7 +105,17 @@ export function WalletHeader() {
       }
     }
   }
-  console.log(unseenNotificationCount, claimAlerts);
+
+  for (const addressMapping of account?.addressMappings ?? []) {
+    if (account?.seenActivity && account.seenActivity < addressMapping.lastUpdated) {
+      unseenNotificationCount++;
+
+      if (unseenNotificationCount > overflowCount) {
+        break;
+      }
+    }
+  }
+
   for (const claimAlert of claimAlerts) {
     console.log(account?.seenActivity, claimAlert.createdTimestamp);
     if (account?.seenActivity && account.seenActivity < claimAlert.createdTimestamp) {

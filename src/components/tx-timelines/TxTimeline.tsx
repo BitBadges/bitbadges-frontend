@@ -315,6 +315,7 @@ export function TxTimeline({
     const _simulatedCollection = collections.collections[0n.toString()];
 
 
+    console.log("UPDATING");
 
     if (!_simulatedCollection) return;
 

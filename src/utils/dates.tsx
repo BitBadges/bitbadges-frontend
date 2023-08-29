@@ -32,7 +32,7 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
       str += timeRange.start.toString() + "-" + timeRange.end.toString()
       return str;
     }
-    console.log(timeRange.end);
+
     if (validForever && timeRange.start === 1n) {
       return "All Times";
     }

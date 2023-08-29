@@ -1,5 +1,5 @@
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AnnouncementInfo, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -46,8 +46,9 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
     if (hasMore) fetchMore();
   }, [hasMore, fetchMore])
 
-  const managerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
-  const isManager = collection && collectionId && chain.cosmosAddress === collection.managerTimeline[Number(managerIdx)].manager && chain.loggedIn
+  const managerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
+
+  const isManager = managerIdx >= 0 && collection && collectionId && chain.cosmosAddress === collection.managerTimeline[Number(managerIdx)].manager && chain.loggedIn
 
   return (
     <>

@@ -2,11 +2,10 @@ import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, Warnin
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, getBalancesAfterTransfers, getCurrentValueIdxForTimeline, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getCurrentIdxForTimeline, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -80,7 +79,6 @@ export function TransferSelect({
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
-  const accounts = useAccountsContext();
   const doNotUseTransferWithIncrements = distributionMethod === DistributionMethod.DirectTransfer ? true : false;
 
   const isClaimSelect = distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.FirstComeFirstServe || distributionMethod === DistributionMethod.Whitelist ? true : false;
@@ -139,7 +137,7 @@ export function TransferSelect({
 
 
   const currentApprovedTransfers = [];
-  const currIdx = getCurrentValueIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
+  const currIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
   if (collection?.collectionApprovedTransfersTimeline && currIdx >= 0) {
     currentApprovedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
   }
@@ -728,7 +726,7 @@ export function TransferSelect({
             //   }
             // })
             // console.log("Setting claim balances");
-            setBalances([]);
+
 
             //Previously we just set challenges and challengeDetails to []
             //Set them here
@@ -758,10 +756,7 @@ export function TransferSelect({
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.password = claimPassword;
               approvedTransferToAdd.approvalDetails[0].merkleChallenges[0].details.challengeDetails.hasPassword = claimPassword ? true : false;
             } else if (distributionMethod === DistributionMethod.Whitelist) {
-              const accountsFetched = await accounts.fetchAccounts(toAddresses);
-              for (let i = 0; i < toAddresses.length; i++) {
-                addresses.push(accountsFetched[i].cosmosAddress);
-              }
+              addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
 
               const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
               const addressesRoot = addressesTree.getRoot().toString('hex');
@@ -784,6 +779,9 @@ export function TransferSelect({
               approvedTransferToAdd.approvalDetails[0].merkleChallenges = [];
             }
 
+            approvedTransferToAdd.balances = getAllBalancesToBeTransferred(transfersToAdd);
+
+
             setApprovedTransfersToAdd([...approvedTransfersToAdd, approvedTransferToAdd]);
           }
           setNumRecipients(0n);
@@ -792,6 +790,7 @@ export function TransferSelect({
           setIncrement(0n);
           setAddTransferIsVisible(false);
           setCurrentStep(0);
+          setBalances([]);
 
         }}>
         Add Transfer(s)
@@ -918,6 +917,7 @@ export function TransferSelect({
         !addTransferIsVisible && !hideTransferDisplay && <div>
           {/* {!isClaimSelect && <div>
             <div className='flex-between'>
+
               <div></div>
               <h2 style={{ textAlign: 'center' }} className='primary-text'>Transfers Added ({convertedTransfers.length})</h2>
               <div></div>

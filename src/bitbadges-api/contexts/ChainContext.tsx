@@ -43,6 +43,9 @@ export type ChainSpecificContextType = {
   displayedResources: PresetUri[],
   selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
   ownedAssetIds: string[],
+
+  lastSeenActivity: number,
+  setLastSeenActivity: Dispatch<SetStateAction<number>>,
 }
 
 const ChainContext = createContext<ChainContextType>({
@@ -66,6 +69,9 @@ const ChainContext = createContext<ChainContextType>({
   selectedChainInfo: {},
   chain: SupportedChain.ETH,
   setChain: () => { },
+
+  lastSeenActivity: 0,
+  setLastSeenActivity: () => { },
 });
 
 type Props = {

@@ -173,7 +173,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         if (!val) continue;
 
         newViews[key] = {
-          ids: [...(newViews[key]?.ids || []), ...(val.ids || [])],
+          ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
@@ -192,6 +192,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
         announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
         addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
+        claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
         views: newViews,
         publicKey,
         airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
@@ -378,17 +379,16 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       accountsToReturn.push(account);
     }
 
+    console.log(accountsToReturn);
 
 
-    // for (const account of accountsToFetch) {
-    //   if (account.address) {
-    //     const cachedAccount = accounts[convertToCosmosAddress(account.address)];
-    //     accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-    //   } else {
-    //     const cachedAccount = accounts[cosmosAddressesByUsernames[account.username || '']];
-    //     accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-    //   }
-    // }
+    for (const account of accountsToFetch) {
+      const fetchedAccount = getAccount(account.address || account.username || '', forcefulRefresh);
+      if (accountsToReturn.find(x => x.cosmosAddress === fetchedAccount?.cosmosAddress)) continue;
+      else {
+        accountsToReturn.push(fetchedAccount ? fetchedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
+      }
+    }
 
     return accountsToReturn;
   }

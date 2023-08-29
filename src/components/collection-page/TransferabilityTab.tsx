@@ -1,7 +1,7 @@
 import { CheckCircleOutlined, DownOutlined, FieldTimeOutlined, InfoCircleOutlined, StopOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, Popover, Select, Tooltip, Typography } from 'antd';
 import { ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { CollectionApprovedTransferWithDetails, getCurrentValueIdxForTimeline, getFirstMatchForCollectionApprovedTransfers, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { CollectionApprovedTransferWithDetails, getCurrentIdxForTimeline, getFirstMatchForCollectionApprovedTransfers, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
@@ -476,7 +476,7 @@ export function TransferabilityTab({ collectionId, badgeId, setTab }: {
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
-  const currTransferabilityIdx = getCurrentValueIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
+  const currTransferabilityIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
   const [defaultIdx, setDefaultIdx] = useState<number>(Number(currTransferabilityIdx));
   const chain = useChainContext();
 
@@ -485,7 +485,7 @@ export function TransferabilityTab({ collectionId, badgeId, setTab }: {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers b');
     if (collectionId > 0) {
       async function fetchTrackers() {
-        const idx = getCurrentValueIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
+        const idx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
         const defaultIdx = idx < 0 ? 0 : idx;
 
         if (collection && collection?.collectionApprovedTransfersTimeline.length > 0) {

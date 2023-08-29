@@ -33,7 +33,7 @@ export function BadgeAvatar({
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
   const showOwnershipTimesIcon = badgeId && balances && showSupplys ?
-    JSON.stringify(balances) !== JSON.stringify([{ start: 1n, end: GO_MAX_UINT_64 }])
+    balances.some(x => x.ownershipTimes.length > 0 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64)
     : false;
 
   const avatar = <Avatar

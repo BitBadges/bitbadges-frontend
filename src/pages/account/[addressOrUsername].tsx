@@ -1,7 +1,7 @@
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Card, Divider, Empty, Layout, Select, Spin, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -17,6 +17,7 @@ import { DevMode } from '../../components/common/DevMode';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { AddressDisplay } from '../../components/address/AddressDisplay';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -39,6 +40,8 @@ function PortfolioPage() {
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
+
+  const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
   // const [showHidden, setShowHidden] = useState(false);
   const showHidden = false;
 
@@ -65,7 +68,7 @@ function PortfolioPage() {
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
-      const fetchedAccount = await accounts.fetchNextForViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings']);
+      const fetchedAccount = await accounts.fetchNextForViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings', 'explicitlyIncludedAddressMappings', 'explicitlyExcludedAddressMappings']);
       if (fetchedAccount.readme) {
         setTab('overview');
       }
@@ -118,12 +121,25 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
+
+  const listsView = accounts.getAddressMappingsView(accountInfo?.cosmosAddress ?? '', listsTab) ?? [];
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: list view created by');
+
+    const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
+    accounts.fetchAccounts([...new Set(createdBys)]);
+  }, [listsView]);
+
   if (!accountInfo) {
     return <></>
   }
 
   const collectedHasMore = accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
-  const hasMoreAddressMappings = accountInfo?.views['addressMappings']?.pagination?.hasMore ?? true;
+  const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
+
+
+
+
 
   return (
     <Layout>
@@ -325,13 +341,63 @@ function PortfolioPage() {
           </>)}
 
           {tab === 'lists' && (<>
+            <br />
+            <div className='primary-text primary-blue-bg'
+              style={{
+                float: 'right',
+                display: 'flex',
+                alignItems: 'center',
+                marginLeft: 16,
+                marginRight: 16,
+                marginTop: 5,
+                textAlign: 'right'
+              }}>
+              View:
+
+              <Select
+                className="selector primary-text primary-blue-bg"
+                value={listsTab}
+                placeholder="Default: None"
+                onChange={(e: any) => {
+                  setListsTab(e)
+                }}
+                style={{
+                  float: 'right',
+                  marginLeft: 8,
+
+                }}
+                dropdownStyle={{
+                  minWidth: 150
+                }}
+                placement='bottomRight'
+                suffixIcon={
+                  <DownOutlined
+                    className='primary-text'
+                  />
+                }
+              >
+                <Select.Option value="addressMappings">All</Select.Option>
+                <Select.Option value="explicitlyIncludedAddressMappings" >Explicitly Included</Select.Option>
+                <Select.Option value="explicitlyExcludedAddressMappings">Explicitly Excluded</Select.Option>
+
+              </Select>
+            </div>
+            <Divider />
+            <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
+              <InfoCircleOutlined style={{ marginRight: 8 }} />
+              Soft included / excluded means that the address is in the list, but the address was not explicitly added to the list.
+              <br />
+              <br />
+              For example, abc.eth would be soft included in the following list: all addresses except xyz.eth.
+            </div>
+            <br />
             <div className='flex-center flex-wrap'>
               <InfiniteScroll
-                dataLength={accountInfo.addressMappings.length}
+                dataLength={listsView.length}
                 next={async () => {
                   if (!accountInfo) return;
 
-                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['addressMappings']);
+                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, [`${listsTab}`]);
                 }}
                 hasMore={hasMoreAddressMappings}
                 loader={<div>
@@ -346,15 +412,16 @@ function PortfolioPage() {
                 style={{ width: '100%', overflow: 'hidden' }}
               >
                 <div className='full-width flex-center flex-wrap'>
-                  {accountInfo?.addressMappings.map((addressMapping, idx) => {
+                  {listsView.map((addressMapping, idx) => {
+                    const explicitly = addressMapping.addresses.includes(accountInfo.address) || addressMapping.addresses.includes(accountInfo.cosmosAddress);
                     return <div key={idx} style={{ margin: 16 }}>
                       <Card
                         className='primary-text primary-blue-bg'
                         style={{
-                          width: 175,
+                          width: 225,
                           margin: 8,
                           textAlign: 'center',
-                          borderRadius: '8%',
+                          borderRadius: '4%',
                         }}
                         hoverable={true}
                         onClick={() => {
@@ -368,13 +435,41 @@ function PortfolioPage() {
                               size={75}
                             />
                           </div>
-
-                        </>
-                        }
+                        </>}
                       >
                         <Typography.Text strong className='primary-text'>
                           {addressMapping.metadata?.name}
                         </Typography.Text>
+                        <br />
+                        <br />
+                        {addressMapping.includeAddresses ?
+                          <Typography.Text strong className='primary-text' style={{ color: 'green' }}>
+                            {explicitly ? '' : 'SOFT'} INCLUDED
+                          </Typography.Text>
+                          :
+                          <Typography.Text strong className='primary-text' style={{ color: 'red' }}>
+                            {explicitly ? '' : 'SOFT'} EXCLUDED
+                          </Typography.Text>
+                        }
+
+                        {addressMapping.createdBy && <>
+                          <br />
+                          <br />
+                          <b>Created By</b>
+
+                          <AddressDisplay
+                            addressOrUsername={addressMapping.createdBy}
+                            fontSize={13}
+                          />
+                        </>
+                        }
+                        {addressMapping.lastUpdated > 0n && <>
+                          <br />
+                          <b>Last Updated</b>
+                          <br />
+                          {new Date(Number(addressMapping.lastUpdated)).toLocaleString()}
+                        </>
+                        }
                       </Card>
 
                     </div>
@@ -382,12 +477,12 @@ function PortfolioPage() {
                 </div>
               </InfiniteScroll>
 
-              {accountInfo?.addressMappings.length === 0 && !hasMoreAddressMappings && (
+              {listsView.length === 0 && !hasMoreAddressMappings && (
                 <Empty
                   className='primary-text'
                   description={
                     <span>
-                      This account is not on any lists.
+                      No lists found.
                     </span>
                   }
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -411,7 +506,7 @@ function PortfolioPage() {
           {tab === 'activity' && (<>
             <br />
             <ActivityTab
-              activity={accountInfo?.activity ?? []}
+              activity={accounts.getActivityView(accountInfo?.cosmosAddress ?? '', 'latestActivity') ?? []}
               fetchMore={async () => {
                 await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestActivity']);
               }}

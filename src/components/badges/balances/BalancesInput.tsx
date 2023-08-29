@@ -5,11 +5,13 @@ import { Numberify } from 'bitbadgesjs-utils';
 export function BalancesInput({
   balances,
   setBalances,
-  title
+  title,
+  numRecipients,
 }: {
   balances: Balance<bigint>[],
   setBalances: (balances: Balance<bigint>[]) => void,
-  title?: string
+  title?: string,
+  numRecipients?: bigint
 }) {
   return <NumberInput
     min={1}
@@ -29,7 +31,7 @@ export function BalancesInput({
           {
             badgeIds: balances[0]?.badgeIds || [],
             ownershipTimes: balances[0]?.ownershipTimes || [],
-            amount: BigInt(value),
+            amount: BigInt(value) * (numRecipients || 1n),
           }
         ]);
       }

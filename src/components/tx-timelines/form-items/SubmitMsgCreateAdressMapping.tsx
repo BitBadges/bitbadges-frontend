@@ -6,12 +6,14 @@ import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMs
 import { MSG_PREVIEW_ID, MsgUpdateCollectionProps } from '../TxTimeline';
 import { SwitchForm } from './SwitchForm';
 import { useRouter } from 'next/router';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 export function SubmitMsgCreateAddressMapping({
   txState,
 }: {
   txState: MsgUpdateCollectionProps
 }) {
+  const chain = useChainContext();
   const addressMapping = txState.addressMapping;
   const setAddressMapping = txState.setAddressMapping;
   const isUpdateAddressMapping = txState.isUpdateAddressMapping;
@@ -98,7 +100,8 @@ export function SubmitMsgCreateAddressMapping({
           });
 
           const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
-          const mappingId = onChainStorage ? addressMapping.mappingId : "off-chain_" + addressMapping.mappingId;
+          const mappingId = onChainStorage ? addressMapping.mappingId : chain.cosmosAddress + "_" + addressMapping.mappingId;
+          console.log(mappingId);
           await updateAddressMappings({
             addressMappings: [{
               ...addressMapping,
@@ -106,6 +109,8 @@ export function SubmitMsgCreateAddressMapping({
               uri: metadataUrl,
             }],
           });
+
+
 
           router.push(`/addresses/${mappingId}`);
 

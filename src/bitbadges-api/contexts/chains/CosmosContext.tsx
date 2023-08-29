@@ -90,6 +90,8 @@ export const CosmosContext = createContext<CosmosContextType>({
   setConnected: () => { },
   loggedIn: false,
   setLoggedIn: () => { },
+  lastSeenActivity: 0,
+  setLastSeenActivity: () => { },
 })
 
 
@@ -107,6 +109,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
 
   const selectedChainInfo: SupportedChainMetadata = {
     name: 'Cosmos',
@@ -146,13 +149,30 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         }, {
           viewKey: 'addressMappings',
           bookmark: '',
-        }]
+        },
+        {
+          viewKey: 'explicitlyIncludedAddressMappings',
+          bookmark: ''
+        },
+        {
+          viewKey: 'explicitlyExcludedAddressMappings',
+          bookmark: ''
+        },
+
+
+        ]
 
         if (loggedIn) {
           viewsToFetch.push({
             viewKey: 'latestClaimAlerts',
             bookmark: '',
-          })
+          },
+            {
+              viewKey: 'latestAddressMappings',
+              bookmark: ''
+            }
+          )
+          setLastSeenActivity(Date.now());
         }
 
         accountsContext.fetchAccountsWithOptions([{
@@ -303,6 +323,8 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     setCosmosAddress,
     loggedIn,
     setLoggedIn,
+    lastSeenActivity,
+    setLastSeenActivity,
   };
 
 

@@ -1,7 +1,7 @@
 import { DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Select, Tooltip, Typography } from 'antd';
 import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { UserApprovedIncomingTransferTimelineWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentValueIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { UserApprovedIncomingTransferTimelineWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -46,8 +46,8 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
     userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
       collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
 
-  const currOutgoingTransferabilityIdx = getCurrentValueIdxForTimeline(approvedOutgoingTransfersTimeline);
-  const currIncomingTransferabilityIdx = getCurrentValueIdxForTimeline(approvedIncomingTransfersTimeline);
+  const currOutgoingTransferabilityIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
+  const currIncomingTransferabilityIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
 
 
   const [defaultOutgoingIdx, setDefaultOutgoingIdx] = useState<number>(Number(currOutgoingTransferabilityIdx));
@@ -65,8 +65,8 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
       const approvedOutgoingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
       const approvedIncomingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
 
-      setDefaultIncomingIdx(Number(getCurrentValueIdxForTimeline(approvedIncomingTransfersTimeline)));
-      setDefaultOutgoingIdx(Number(getCurrentValueIdxForTimeline(approvedOutgoingTransfersTimeline)));
+      setDefaultIncomingIdx(Number(getCurrentIdxForTimeline(approvedIncomingTransfersTimeline)));
+      setDefaultOutgoingIdx(Number(getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline)));
     }
   }, [collectionId, approvedIncomingTransfersTimeline, approvedOutgoingTransfersTimeline]);
 
@@ -74,7 +74,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers a');
     if (collectionId > 0) {
       async function fetchTrackers() {
-        const outgoingIdx = getCurrentValueIdxForTimeline(approvedOutgoingTransfersTimeline);
+        const outgoingIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
         const defaultOutgoingIdx = outgoingIdx < 0 ? 0 : outgoingIdx;
 
         if (collection && approvedOutgoingTransfersTimeline.length > 0) {
@@ -134,7 +134,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
         }
 
 
-        const incomingIdx = getCurrentValueIdxForTimeline(approvedIncomingTransfersTimeline);
+        const incomingIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
         const defaultIncomingIdx = incomingIdx < 0 ? 0 : incomingIdx;
 
         if (collection && approvedIncomingTransfersTimeline.length > 0) {

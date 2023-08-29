@@ -62,7 +62,7 @@ function CollectionPage({
       { key: 'badges', content: 'Badges', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
-      // { key: 'activity', content: 'Activity', disabled: false },
+      { key: 'activity', content: 'Activity', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
     )
   }
@@ -193,7 +193,7 @@ function CollectionPage({
 
             {tab === 'activity' && !isPreview && collection && (
               <ActivityTab
-                activity={collection.activity}
+                activity={collections.getActivityView(collectionIdNumber, 'latestActivity') ?? []}
                 fetchMore={async () => {
                   await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
                 }}
@@ -203,7 +203,8 @@ function CollectionPage({
 
             {tab === 'announcements' && !isPreview && collection && (
               <>
-                <AnnouncementsTab announcements={collection.announcements} collectionId={collectionIdNumber}
+                <AnnouncementsTab announcements={collections.getAnnouncementsView(collectionIdNumber, 'latestAnnouncements') ?? []}
+                  collectionId={collectionIdNumber}
                   fetchMore={async () => {
                     await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
                   }}

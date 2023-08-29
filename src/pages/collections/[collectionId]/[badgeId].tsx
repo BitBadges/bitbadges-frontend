@@ -84,7 +84,7 @@ export function BadgePage({ collectionPreview }
       { key: 'overview', content: 'Overview' },
       // { key: 'collection', content: 'Collection' },
       // { key: 'claims', content: 'Claims' },
-      // { key: 'activity', content: 'Activity' },
+      { key: 'activity', content: 'Activity' },
       { key: 'actions', content: 'Actions' },
     );
   }

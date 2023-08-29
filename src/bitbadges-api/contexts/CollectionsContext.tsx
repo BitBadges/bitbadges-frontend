@@ -117,13 +117,14 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         if (!val) continue;
 
         newViews[key] = {
-          ids: [...(newViews[key]?.ids || []), ...(val.ids || [])],
+          ids: [...(newViews[key]?.ids || []), ...(val?.ids || []),],
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
           },
           type: val.type
         }
+        console.log("newViews[key]", newViews[key])
       }
 
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.

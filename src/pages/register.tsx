@@ -1,4 +1,4 @@
-import { Button, Layout, Typography } from 'antd';
+import { Button, Layout, Typography, notification } from 'antd';
 import { useState } from 'react';
 import { getTokensFromFaucet } from '../bitbadges-api/api';
 import { DisconnectedWrapper } from '../components/wrappers/DisconnectedWrapper';
@@ -46,6 +46,12 @@ function RegisterScreen({ message }: { message?: string }) {
                   onClick={async () => {
                     setLoading(true)
                     const res = await getTokensFromFaucet();
+                    notification.success({
+                      message: "Success! You have received 1000 $BADGE Tokens from the faucet.",
+                      description: "We now just have to wait for the BitBadges databases to catch up.",
+                    });
+
+
                     const height = res.height;
                     let currStatus = status.status;
                     while (currStatus.block.height <= height) {
@@ -55,6 +61,10 @@ function RegisterScreen({ message }: { message?: string }) {
                     }
 
                     await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
+
+                    notification.success({
+                      message: "Success! Airdrop claimed successfully.",
+                    });
 
                     setLoading(false);
                   }}

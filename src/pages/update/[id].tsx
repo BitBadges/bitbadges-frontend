@@ -43,10 +43,10 @@ function Update() {
                 >
                   <TxTimeline
                     addressMappingId={
-                      (id as string).startsWith('off-chain_') ? id as string : undefined
+                      (id as string).indexOf("_") >= 0 ? id as string : undefined
                     }
                     collectionId={
-                      !(id as string).startsWith('off-chain_') ? BigInt(id as string) : undefined
+                      !((id as string).indexOf("_") >= 0) ? BigInt(id as string) : undefined
                     } txType='UpdateCollection' isModal={false} />
 
                 </div>

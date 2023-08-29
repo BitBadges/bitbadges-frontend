@@ -6,15 +6,28 @@ export function InformationDisplayCard({
   title,
   children,
   span,
-  noBorder
+  noBorder,
+  xs,
+  sm,
+  md,
+  style,
+  lg,
 }: {
   title: string | React.ReactNode
   children?: React.ReactNode
   span?: number,
   noBorder?: boolean
+  xs?: number,
+  sm?: number,
+  md?: number,
+  lg?: number,
+  style?: React.CSSProperties
 }) {
   return (
-    <Col span={span ? span : 24} style={{ padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
+    <Col
+
+      xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
+      span={span ? span : undefined} style={{ ...style, padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
       <div className="primary-text">
         <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>

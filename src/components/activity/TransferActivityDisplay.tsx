@@ -37,7 +37,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
     async function getActivity() {
       if (!activity) return;
 
-      const accountsToFetch = activity.map(a => { return [...new Set([a.from, ...a.to])].filter(a => a !== 'Mint') }).flat();
+      const accountsToFetch = activity.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat();
       const collectionsToFetch = activity.map(a => a.collectionId);
 
       await collections.fetchCollections(collectionsToFetch);
@@ -98,8 +98,11 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                   header={<>
                     <Row className='flex-between primary-text' style={{ textAlign: 'left' }} >
                       <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {getPanelHeaderAddress([activity.from])}
-                        <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
+                        {collection?.balancesType === 'Standard' ? <>
+                          {getPanelHeaderAddress([activity.from])}
+                          <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
+                        </> : <Typography.Text className='primary-text' strong style={{ fontSize: 20, marginRight: 4 }}>Balances Update:{' '}</Typography.Text>}
+
                         {getPanelHeaderAddress(activity.to)}
                       </Col>
                       <div>{activity.method} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>

@@ -17,7 +17,7 @@ export function BadgeSupplySelectStepItem(
   const balancesToShow = collection?.owners.find(x => x.cosmosAddress === "Total")?.balances || []
 
   const err = existingCollection ? checkBalancesActionPermission(badgesToCreate, existingCollection.collectionPermissions.canCreateMoreBadges) : undefined;
-
+  console.log(balancesToShow);
   return {
     title: `Add Badges`,
     description: existingCollectionId ? <> {`Current Permission - Can Create More Badges?: `}
@@ -44,7 +44,7 @@ export function BadgeSupplySelectStepItem(
         balancesToShow={balancesToShow}
         onAddBadges={(balance) => {
           setBadgesToCreate(deepCopyBalances([...badgesToCreate, balance]));
-          console.log(deepCopyBalances([...badgesToCreate, balance]));
+          // console.log(deepCopyBalances([...badgesToCreate, balance]));
         }}
         onRemoveAll={() => {
           setBadgesToCreate([]);

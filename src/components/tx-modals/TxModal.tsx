@@ -109,7 +109,6 @@ export function TxModal(
     async function simulate() {
       try {
         if (!signedInAccount) return;
-        // const status = await statusRef.current.updateStatus();
 
 
         let cosmosMsg = txCosmosMsg;
@@ -245,7 +244,10 @@ export function TxModal(
 
       console.log("TX:", msgResponse.tx_response);
 
-
+      notification.success({
+        message: 'Transaction Broadcasted',
+        description: `We are now waiting for the transaction to be included on the blockchain and our servers to process that block.`,
+      });
       //Wait for transaction to be included in block and indexer to process that block
       let currIndexerHeight = 0n;
       while (currIndexerHeight < Numberify(msgResponse.tx_response.height)) {
@@ -268,12 +270,11 @@ export function TxModal(
         }
       }
 
-      setTransactionStatus(TransactionStatus.None);
-
       notification.success({
-        message: 'Transaction Successful',
-        description: `Tx Hash: ${msgResponse.tx_response.txhash}`,
+        message: 'Transaction Successful!',
       });
+
+      setTransactionStatus(TransactionStatus.None);
     } catch (err: any) {
       console.error(err);
       setError(err.message);

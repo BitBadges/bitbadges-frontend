@@ -131,7 +131,7 @@ export function MultiCollectionBadgeDisplay({
               : collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
             if (balances.length === 0) return <></>;
 
-            // const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+            // const currentManagerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
             // const currentManager = currentManagerIdx >= 0 ? collection?.managerTimeline[Number(currentManagerIdx)].manager : undefined;
 
             return <div key={idx} style={{ minWidth: cardView ? '50%' : undefined, padding: 10, display: 'flex', }}>

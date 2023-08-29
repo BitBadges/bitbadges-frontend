@@ -1,5 +1,5 @@
 import { Button, Divider, Empty } from 'antd';
-import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentValueIdxForTimeline } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -37,7 +37,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
 
 
   const approvedTransfers = [];
-  const currIdx = getCurrentValueIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
+  const currIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
   if (collection?.collectionApprovedTransfersTimeline && currIdx >= 0) {
     approvedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
   }
@@ -77,7 +77,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     image={Empty.PRESENTED_IMAGE_SIMPLE}
   />
 
-  const currentManagerIdx = getCurrentValueIdxForTimeline(collection?.managerTimeline ?? []);
+  const currentManagerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
   const currentManager = collection?.managerTimeline && currentManagerIdx >= 0 ? collection.managerTimeline[Number(currentManagerIdx)].manager : '';
 
   //Get IPFS cid and path

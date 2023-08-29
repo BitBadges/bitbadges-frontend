@@ -46,8 +46,8 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       const updatedAccounts: string[] = [];
       for (const category of Object.keys(browseInfo.profiles)) {
-        if (!browseInfo.collections[category]) continue;
-        console.log(browseInfo.collections[category]);
+        if (!browseInfo.profiles[category]) continue;
+        console.log(browseInfo.profiles[category]);
         for (const profile of browseInfo.profiles[category]) {
 
           if (updatedAccounts.includes(profile.cosmosAddress)) continue;

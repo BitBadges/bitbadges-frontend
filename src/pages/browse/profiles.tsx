@@ -53,34 +53,38 @@ function BrowsePage() {
           {!browseInfo && <Spin size='large' />}
           <div className='full-width'>
             {/* <br /> */}
-            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', width: '100%' }}>
               {browseInfo && browseInfo.profiles[tab]?.map((profile, idx) => {
-                return <div key={idx} style={{ marginTop: 16, width: '100%' }}>
-                  <InformationDisplayCard
-                    title={<>
-                      <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
-                        <BlockiesAvatar shape='circle' fontSize={150} address={profile.address} avatar={profile.profilePicUrl ? profile.profilePicUrl : profile.avatar ? profile.avatar : undefined} />
-                      </div>
+                return <>
+                  <>
+                    <InformationDisplayCard
+                      key={idx}
+                      md={11} sm={24} xs={24}
+                      style={{ margin: 8 }}
+                      title={<>
+                        <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+                          <BlockiesAvatar shape='circle' fontSize={150} address={profile.address} avatar={profile.profilePicUrl ? profile.profilePicUrl : profile.avatar ? profile.avatar : undefined} />
+                        </div>
 
-                      <AddressDisplay
-                        addressOrUsername={profile.address}
-                        fontSize={16}
+                        <AddressDisplay
+                          addressOrUsername={profile.address}
+                          fontSize={16}
+                        />
+                        <br />
+                      </>}
+                    >
+                      <MultiCollectionBadgeDisplay
+                        collectionIds={profile.collected.map(collected => collected.collectionId)}
+                        addressOrUsernameToShowBalance={profile.address}
+                      // size={75}
                       />
-                      <br />
-                    </>}
-                  >
-                    <MultiCollectionBadgeDisplay
-                      collectionIds={profile.collected.map(collected => collected.collectionId)}
-                      addressOrUsernameToShowBalance={profile.address}
-                    // size={75}
-                    />
 
 
 
-                  </InformationDisplayCard>
+                    </InformationDisplayCard>
+                  </>
 
-
-                </div>
+                </>
               })}
             </div>
           </div>

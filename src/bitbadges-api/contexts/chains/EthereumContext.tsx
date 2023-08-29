@@ -46,6 +46,8 @@ export const EthereumContext = createContext<EthereumContextType>({
   setSigner: () => { },
   loggedIn: false,
   setLoggedIn: () => { },
+  lastSeenActivity: 0,
+  setLastSeenActivity: () => { },
 })
 
 type Props = {
@@ -63,6 +65,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
   const { open } = useWeb3Modal();
   const web3AccountContext = useAccount();
 
@@ -81,6 +84,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   }, {
     viewKey: 'addressMappings',
     bookmark: '',
+  }, {
+    viewKey: 'explicitlyIncludedAddressMappings',
+    bookmark: ''
+  },
+  {
+    viewKey: 'explicitlyExcludedAddressMappings',
+    bookmark: ''
   }]
 
   useEffect(() => {
@@ -103,7 +113,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           viewsToFetch.push({
             viewKey: 'latestClaimAlerts',
             bookmark: '',
+          }, {
+            viewKey: 'latestAddressMappings',
+            bookmark: ''
           })
+          setLastSeenActivity(Date.now());
         }
 
         accountsContext.fetchAccountsWithOptions([{
@@ -152,7 +166,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         viewsToFetch.push({
           viewKey: 'latestClaimAlerts',
           bookmark: '',
+        }, {
+          viewKey: 'latestAddressMappings',
+          bookmark: ''
         })
+        setLastSeenActivity(Date.now());
       }
 
 
@@ -278,7 +296,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setSigner,
     getPublicKey,
     loggedIn,
-    setLoggedIn
+    setLoggedIn,
+    lastSeenActivity,
+    setLastSeenActivity
   };
 
 

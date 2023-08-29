@@ -9,10 +9,12 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
+import { searchUintRangesForId } from 'bitbadgesjs-utils';
 
 
-export function BalanceOverview({ collectionId }: {
+export function BalanceOverview({ collectionId, badgeId }: {
   collectionId: bigint;
+  badgeId?: bigint
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
@@ -93,7 +95,21 @@ export function BalanceOverview({ collectionId }: {
         currBalances && !isPreview && <div>
           <BalanceDisplay
             collectionId={collectionId}
-            balances={currBalances}
+            balances={currBalances.map(x => {
+              if (!badgeId) return x;
+
+              const filteredBadgeIds = [];
+              const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
+              if (found) {
+                filteredBadgeIds.push({ start: badgeId, end: badgeId });
+              }
+
+
+              return {
+                ...x,
+                badgeIds: filteredBadgeIds
+              }
+            })}
           />
         </div>
       }

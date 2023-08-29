@@ -118,8 +118,8 @@ export function SearchDropdown({
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
         <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
           {addressMappingsResults.map((result,) => {
-            const mappingId = result.mappingId.startsWith('off-chain_') ? result.mappingId.replace('off-chain_', '') : result.mappingId;
-            const isOffChain = result.mappingId.startsWith('off-chain_');
+            const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
+            const isOffChain = result.mappingId.indexOf("_") >= 0;
 
             return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
               onSearch(`${result.mappingId}`, false, false);
