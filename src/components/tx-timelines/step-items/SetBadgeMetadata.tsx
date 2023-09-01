@@ -21,6 +21,8 @@ export function SetBadgeMetadataStepItem(
 
   const err = existingCollection && collection ? validateBadgeMetadataUpdate(existingCollection.badgeMetadataTimeline, collection.badgeMetadataTimeline, existingCollection.collectionPermissions.canUpdateBadgeMetadata) : undefined;
 
+
+  console.log("RERENDER 12120")
   return {
     title: 'Set Badge Metadata',
     // description: '',

@@ -154,10 +154,11 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }).filter(x => x !== undefined) as any);
 
-
-
+      console.log(cachedCollectionCopy, cachedCollection);
+      console.log(compareObjects(cachedCollectionCopy, cachedCollection));
       //Only update if anything has changed
       if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
+        console.log("Updating collection", cachedCollection);
         setCollections(collections => {
           return {
             ...collections,
@@ -486,7 +487,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionId, metadataToFetch);
       const hasInvalidUris = prunedMetadataToFetch.uris?.some(x => Joi.string().uri().validate(x).error);
       if (hasInvalidUris) {
-        let i = 0;
         for (const uri of prunedMetadataToFetch.uris || []) {
 
           const { badgeMetadata } = getCurrentMetadata(updatedCollection);
@@ -497,8 +497,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
             const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
             updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
           }
-
-          i++;
         }
       } else {
         const metadataResponses = await fetchMetadataDirectly({ uris: prunedMetadataToFetch.uris || [] });

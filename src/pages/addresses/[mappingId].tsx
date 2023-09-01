@@ -6,7 +6,7 @@ import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { deleteAddressMappings, fetchMetadataDirectly, getAddressMappings } from '../../bitbadges-api/api';
+import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
 import { AddressSelect } from '../../components/address/AddressSelect';

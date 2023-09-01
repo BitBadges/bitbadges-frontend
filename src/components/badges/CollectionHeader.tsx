@@ -16,6 +16,7 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
+  const collectionMetadata = collection?.cachedCollectionMetadata;
 
   return <div className='primary-text'>
     <Row className='flex-center'>
@@ -36,7 +37,7 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
               <Text strong className='primary-text' style={{ fontSize: 16 }}>
                 <a onClick={() => {
                   router.push(`/collections/${collectionId}`)
-                }}>{metadata?.name}</a>
+                }}>{collectionMetadata?.name}</a>
               </Text></>
             }
           </div>

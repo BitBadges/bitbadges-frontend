@@ -1,5 +1,5 @@
 import { DownOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Card, Divider, Empty, Layout, Select, Spin, Typography } from 'antd';
+import { Divider, Empty, Layout, Select, Spin } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
 import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
@@ -8,17 +8,15 @@ import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
-import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
+import { AddressListCard } from '../../components/badges/AddressListCard';
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { DevMode } from '../../components/common/DevMode';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { AddressDisplay } from '../../components/address/AddressDisplay';
-import { AddressListCard } from '../../components/badges/AddressListCard';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -290,7 +288,7 @@ function PortfolioPage() {
                   addressOrUsernameToShowBalance={accountInfo.address}
                   cardView={cardView}
                   groupByCollection={groupByCollection}
-                  pageSize={groupByCollection ? accountInfo.collected.length : numBadgesDisplayed}
+                  defaultPageSize={groupByCollection ? accountInfo.collected.length : numBadgesDisplayed}
                   hidePagination={true}
                 // showCustomizeButtons={isSameAccount}
                 />

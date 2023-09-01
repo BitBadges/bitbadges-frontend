@@ -58,7 +58,7 @@ export function BadgeAvatarDisplay({
   const [pageSize, setPageSize] = useState<number>(defaultPageSize); //Number of badges to display per page
 
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
-
+  console.log("RERENDER")
 
   useEffect(() => {
     let newPageSize = pageSize;
@@ -160,7 +160,7 @@ export function BadgeAvatarDisplay({
   }, [badgeIds, currPage, divRef.current, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
 
   //Calculate pageSize based on the width of this componetnt
-  
+
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme} />
 

@@ -1,16 +1,13 @@
-import { Card, Divider, Layout, Spin, Typography } from 'antd';
-import { useRouter } from 'next/router';
+import { Divider, Layout, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
-import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
-import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
-import { Tabs } from '../../components/navigation/Tabs';
-import { AddressListCard } from '../../components/badges/AddressListCard';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
+import { AddressListCard } from '../../components/badges/AddressListCard';
+import { Tabs } from '../../components/navigation/Tabs';
 
 const { Content } = Layout;
 
 function BrowsePage() {
-  const router = useRouter();
   const accounts = useAccountsContext();
 
   const browseContext = useBrowseContext();

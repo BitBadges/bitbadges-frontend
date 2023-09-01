@@ -1,14 +1,12 @@
-import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanUpdateBalancesStepItem(
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
@@ -36,20 +34,15 @@ export function CanUpdateBalancesStepItem(
               {
                 title: 'No',
                 message: `The balances are permanently frozen and can never be updated.`,
-                isSelected: handledPermissions.canUpdateOffChainBalancesMetadata.length > 0 && collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length > 0
+                isSelected:  collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length > 0
               },
               {
                 title: 'Yes',
                 message: `The balances can be updated by the manager.`,
-                isSelected: handledPermissions.canUpdateOffChainBalancesMetadata.length > 0 && collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length === 0,
+                isSelected:  collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length === 0,
               },
             ]}
             onSwitchChange={(idx) => {
-              setHandledPermissions({
-                ...handledPermissions,
-                canUpdateOffChainBalancesMetadata: [{} as TimedUpdatePermission<bigint>]
-              });
-
               collections.updateCollection({
                 ...collection,
                 collectionPermissions: {
@@ -73,6 +66,6 @@ export function CanUpdateBalancesStepItem(
           />
         }
       />,
-    disabled: handledPermissions.canUpdateOffChainBalancesMetadata.length === 0 || !!err,
+    disabled:  !!err,
   }
 }

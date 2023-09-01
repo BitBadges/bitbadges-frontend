@@ -47,8 +47,6 @@ export function UpdateCollectionTimeline({
   const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>([]);
 
   //TODO: Eventually we should refactor this bc txTimelineContext is now a context so we don't need to pass it in as a prop
-  const handledPermissions = txTimelineContext.handledPermissions;
-  const setHandledPermissions = txTimelineContext.setHandledPermissions;
   const addMethod = txTimelineContext.addMethod;
   const setAddMethod = txTimelineContext.setAddMethod;
   const distributionMethod = txTimelineContext.distributionMethod;
@@ -84,11 +82,11 @@ export function UpdateCollectionTimeline({
   const ChooseBadgeType = ChooseBadgeTypeStepItem(mintType, setMintType);
   const ConfirmManager = ConfirmManagerStepItem(updateManagerTimeline, setUpdateManagerTimeline, existingCollectionId);
   const BadgeSupplySelectStep = BadgeSupplySelectStepItem(badgesToCreate, setBadgesToCreate, existingCollectionId);
-  const FreezeSelectStep = FreezeSelectStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
-  const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
+  const FreezeSelectStep = FreezeSelectStepItem(existingCollectionId);
+  const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem(existingCollectionId);
   const MetadataStorageSelectStep = MetadataStorageSelectStepItem(addMethod, setAddMethod);
-  const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(handledPermissions, setHandledPermissions, addMethod, true, existingCollectionId);
-  const UpdatableBadgeMetadataSelectStep = UpdatableMetadataSelectStepItem(handledPermissions, setHandledPermissions, addMethod, false, existingCollectionId);
+  const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(addMethod, true, existingCollectionId);
+  const UpdatableBadgeMetadataSelectStep = UpdatableMetadataSelectStepItem(addMethod, false, existingCollectionId);
 
   const SetAddressMappingMetadataStep = SetAddressMappingMetadataStepItem();
 
@@ -97,19 +95,19 @@ export function UpdateCollectionTimeline({
   const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, existingCollectionId);
   const CreateClaims = CreateClaimsStepItem(approvedTransfersToAdd, setApprovedTransfersToAdd, transfers, setTransfers, distributionMethod, existingCollectionId);
   const CreateCollectionStep = CreateCollectionStepItem(existingCollectionId);
-  const CanCreateMoreStep = CanCreateMoreStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
-  const CanDeleteStep = CanDeleteStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
+  const CanCreateMoreStep = CanCreateMoreStepItem(existingCollectionId);
+  const CanDeleteStep = CanDeleteStepItem(existingCollectionId);
   const CollectionPreviewStep = PreviewCollectionStepItem();
   const MetadataTooLargeStep = MetadataTooBigStepItem(metadataSize);
   const TransferabilityStep = TransferabilitySelectStepItem(updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers, existingCollectionId);
   const IsArchivedSelectStep = IsArchivedSelectStepItem(updateIsArchivedTimeline, setUpdateIsArchivedTimeline, existingCollectionId);
-  const CanArchiveCollectionStep = CanArchiveCollectionStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
+  const CanArchiveCollectionStep = CanArchiveCollectionStepItem(existingCollectionId);
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem(existingCollectionId);
   const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, existingCollectionId);
   const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
 
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
-  const CanUpdateBytesStep = CanUpdateBalancesStepItem(handledPermissions, setHandledPermissions);
+  const CanUpdateBytesStep = CanUpdateBalancesStepItem();
   const AddressMappingSelectItem = AddressMappingSelectStepItem(addressMapping, setAddressMapping);
   const CreateAddressMappingStep = CreateAddressMappingStepItem();
   const items: TimelineItem[] = [

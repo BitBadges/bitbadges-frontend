@@ -135,7 +135,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
           (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedOutgoingTransfers as UserApprovedOutgoingTransferWithDetails<bigint>[]
           : (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedIncomingTransfers as UserApprovedIncomingTransferWithDetails<bigint>[];
 
-        const approvedTransfers = approvedTransfersCasted.filter(x => x.approvalDetails.length > 0)
+        const approvedTransfers = (approvedTransfersCasted as UserApprovedIncomingTransferWithDetails<bigint>[]).filter(x => x.approvalDetails.length > 0)
 
         const approvalsIdsToFetch = approvedTransfers.flatMap(approvedTransfer => {
           const approvalId = approvedTransfer.approvalDetails[0].approvalId;

@@ -1,15 +1,13 @@
-import { CollectionPermissions, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from "bitbadgesjs-proto";
 import { MetadataAddMethod } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function UpdatableMetadataSelectStepItem(
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   addMethod: MetadataAddMethod,
   collectionMetadataUpdate: boolean,
   existingCollectionId?: bigint,
@@ -25,16 +23,16 @@ export function UpdatableMetadataSelectStepItem(
   options.push({
     title: 'No',
     message: `${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the metadata (i.e. the self-hosted ones provided by you)' : 'The metadata'} will be frozen and cannot be updated after this transaction.`,
-    isSelected: collectionMetadataUpdate ? handledPermissions.canUpdateCollectionMetadata.length > 0 && collection?.collectionPermissions.canUpdateCollectionMetadata.length > 0 :
-      handledPermissions.canUpdateBadgeMetadata.length > 0 && collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0
+    isSelected: collectionMetadataUpdate ? collection?.collectionPermissions.canUpdateCollectionMetadata.length > 0 :
+      collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0
 
   })
 
   options.push({
     title: 'Yes',
     message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can be updated.`}</div>,
-    isSelected: !collectionMetadataUpdate ? handledPermissions.canUpdateBadgeMetadata.length > 0 && collection?.collectionPermissions.canUpdateBadgeMetadata.length === 0 :
-      handledPermissions.canUpdateCollectionMetadata.length > 0 && collection?.collectionPermissions.canUpdateCollectionMetadata.length === 0,
+    isSelected: !collectionMetadataUpdate ? collection?.collectionPermissions.canUpdateBadgeMetadata.length === 0 :
+      collection?.collectionPermissions.canUpdateCollectionMetadata.length === 0,
   });
 
   let description = `Following this transaction, do you want to be able to update the metadata for ${collectionMetadataUpdate ? 'the collection' : 'badges'}? This includes the name, description, image, and other metadata. See full list `
@@ -54,11 +52,6 @@ export function UpdatableMetadataSelectStepItem(
           options={options}
           onSwitchChange={(_idx, title) => {
             if (collectionMetadataUpdate) {
-
-              setHandledPermissions({
-                ...handledPermissions,
-                canUpdateCollectionMetadata: [{} as TimedUpdatePermission<bigint>]
-              });
 
               if (title === "Yes") {
                 collections.updateCollection({
@@ -93,10 +86,6 @@ export function UpdatableMetadataSelectStepItem(
               }
             } else {
 
-              setHandledPermissions({
-                ...handledPermissions,
-                canUpdateBadgeMetadata: [{} as TimedUpdateWithBadgeIdsPermission<bigint>]
-              });
 
               if (title === "Yes") {
                 collections.updateCollection({
@@ -136,6 +125,6 @@ export function UpdatableMetadataSelectStepItem(
         />
       }
     />,
-    disabled: !!err || (!collectionMetadataUpdate ? handledPermissions.canUpdateBadgeMetadata.length === 0 : handledPermissions.canUpdateCollectionMetadata.length === 0),
+    disabled: !!err
   }
 }

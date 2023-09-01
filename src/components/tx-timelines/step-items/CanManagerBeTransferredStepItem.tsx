@@ -1,14 +1,12 @@
-import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanManagerBeTransferredStepItem(
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
@@ -44,10 +42,6 @@ export function CanManagerBeTransferredStepItem(
             }
           ]}
           onSwitchChange={(idx) => {
-            setHandledPermissions({
-              ...handledPermissions,
-              canUpdateManager: [{} as TimedUpdatePermission<bigint>]
-            });
 
             collections.updateCollection({
               ...collection,

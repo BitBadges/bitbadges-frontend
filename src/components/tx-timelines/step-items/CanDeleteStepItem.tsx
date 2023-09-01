@@ -1,14 +1,12 @@
-import { ActionPermission, CollectionPermissions } from "bitbadgesjs-proto";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanDeleteStepItem(
 
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
@@ -35,19 +33,15 @@ export function CanDeleteStepItem(
             {
               title: 'No',
               message: `Moving forward, the collection can never be deleted by the manager. This permission can not be updated. It will be frozen forever.`,
-              isSelected: handledPermissions.canDeleteCollection.length > 0 && collection.collectionPermissions.canDeleteCollection.length > 0
+              isSelected: collection.collectionPermissions.canDeleteCollection.length > 0
             },
             {
               title: 'Yes',
               message: `The collection can be deleted by the manager. This permission can be disabled at any time by the manager, if desired.`,
-              isSelected: handledPermissions.canDeleteCollection.length > 0 && collection.collectionPermissions.canDeleteCollection.length === 0,
+              isSelected: collection.collectionPermissions.canDeleteCollection.length === 0,
             },
           ]}
           onSwitchChange={(idx) => {
-            setHandledPermissions({
-              ...handledPermissions,
-              canDeleteCollection: [{} as ActionPermission<bigint>]
-            });
 
             collections.updateCollection({
               ...collection,
@@ -70,6 +64,6 @@ export function CanDeleteStepItem(
         />
       }
     />,
-    disabled: handledPermissions.canDeleteCollection.length == 0 || !!err,
+    disabled: !!err,
   }
 }

@@ -62,37 +62,6 @@ export function TransferabilitySelectStepItem(
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           allowedCombinations: [{
             isApproved: false,
-            toMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            fromMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-
-            initiatedByMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            badgeIdsOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            ownershipTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            transferTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
           }]
 
         });
@@ -110,37 +79,6 @@ export function TransferabilitySelectStepItem(
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           allowedCombinations: [{
             isApproved: false,
-            toMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            fromMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-
-            initiatedByMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            badgeIdsOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            ownershipTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            transferTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
           }]
 
         });
@@ -204,37 +142,7 @@ export function TransferabilitySelectStepItem(
         transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         allowedCombinations: [{
           isApproved: true,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          fromMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
 
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          badgeIdsOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          transferTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
         }]
 
       });
@@ -329,37 +237,7 @@ export function TransferabilitySelectStepItem(
                   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   allowedCombinations: [{
                     isApproved: true,
-                    toMappingOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
-                    fromMappingOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
 
-                    initiatedByMappingOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
-                    badgeIdsOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
-                    ownershipTimesOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
-                    transferTimesOptions: {
-                      invertDefault: false,
-                      allValues: false,
-                      noValues: false
-                    },
                   }]
 
                 });

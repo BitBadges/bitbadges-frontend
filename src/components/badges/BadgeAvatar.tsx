@@ -89,11 +89,14 @@ export function BadgeAvatar({
             <Tooltip color='black' title={
               <div>
                 {
-                  balances.map(x => {
+                  balances.map((x, idx) => {
                     return <>
+                      {idx > 0 && <br />}
+
+                      {idx > 0 && <br />}
+
                       x{x.amount.toString()} from {getTimeRangesString(x.ownershipTimes, '', true)}
-                      <br />
-                      <br/>
+
                     </>
                   })
                 }

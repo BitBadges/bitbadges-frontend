@@ -91,7 +91,7 @@ export function MetadataForm({
     if (!collection) return;
 
     if (key === 'all') {
-      collection.cachedBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata,
+      const badgeMetadata = updateBadgeMetadata(deepCopy(collection.cachedBadgeMetadata),
         {
           badgeIds,
           metadata: currMetadata,
@@ -101,18 +101,19 @@ export function MetadataForm({
 
       collections.updateCollection({
         ...collection,
-        cachedBadgeMetadata: collection.cachedBadgeMetadata,
+        cachedBadgeMetadata: badgeMetadata,
       })
 
       return
     }
 
-    const badgeMetadata = collection.cachedBadgeMetadata;
+    const badgeMetadata = deepCopy(collection.cachedBadgeMetadata);
     const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
-    collections.updateCollection({
-      ...collection,
-      cachedBadgeMetadata: newBadgeMetadata,
-    })
+    collections.updateCollection(
+      deepCopy({
+        ...collection,
+        cachedBadgeMetadata: newBadgeMetadata,
+      }))
   }
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
@@ -277,6 +278,11 @@ export function MetadataForm({
                 collectionId={collectionId}
                 size={75}
               />
+              {/* <BadgeCard
+                badgeId={badgeId + 1n}
+                collectionId={collectionId}
+                size={75}
+              /> */}
             </div>
             <div>
               {populateIsOpen && fieldName === 'all' && <div style={{ marginTop: 8 }} className='primary-text'>

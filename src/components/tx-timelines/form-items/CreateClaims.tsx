@@ -1,13 +1,13 @@
-import { Balance, convertBalance } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, TransferWithIncrements } from 'bitbadgesjs-utils';
+import { Balance } from 'bitbadgesjs-proto';
+import { CollectionApprovedTransferWithDetails, DistributionMethod, TransferWithIncrements } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { DevMode } from '../../common/DevMode';
 
-import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
 import { useEffect } from 'react';
-import { GO_MAX_UINT_64 } from '../../../utils/dates';
-import { INFINITE_LOOP_MODE } from '../../../constants';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { INFINITE_LOOP_MODE } from '../../../constants';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
+import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
 
 //TODO: Create claims - Select type (codes vs direct transfers vs whitelist vs anyone) dynamically instead of hardcoding to jusst one distributionMethod
 //Also rename from CreateClaims to something more generic. Use this as 
@@ -32,7 +32,7 @@ export function CreateClaims({
 
 
   //This is the main useEffect where we update the collection with the new approved transfers
-  
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
     if (!collection || distributionMethod === DistributionMethod.OffChainBalances) return;

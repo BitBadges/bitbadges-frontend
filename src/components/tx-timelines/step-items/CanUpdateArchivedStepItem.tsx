@@ -1,14 +1,12 @@
-import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanArchiveCollectionStepItem(
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
@@ -35,19 +33,15 @@ export function CanArchiveCollectionStepItem(
             {
               title: 'No',
               message: `Moving forward, the manager will never be able to archive or unarchive the collection.`,
-              isSelected: handledPermissions.canArchiveCollection.length > 0 && collection?.collectionPermissions.canArchiveCollection.length > 0
+              isSelected: collection?.collectionPermissions.canArchiveCollection.length > 0
             },
             {
               title: 'Yes',
               message: `The manager will be able to archive or unarchive the collection, if desired.`,
-              isSelected: handledPermissions.canArchiveCollection.length > 0 && collection?.collectionPermissions.canArchiveCollection.length === 0,
+              isSelected: collection?.collectionPermissions.canArchiveCollection.length === 0,
             }
           ]}
           onSwitchChange={(idx) => {
-            setHandledPermissions({
-              ...handledPermissions,
-              canArchiveCollection: [{} as TimedUpdatePermission<bigint>]
-            });
 
             collections.updateCollection({
               ...collection,
@@ -73,7 +67,7 @@ export function CanArchiveCollectionStepItem(
       }
     />
     ,
-    disabled: handledPermissions.canArchiveCollection.length === 0 || !!err,
+    disabled: !!err,
 
   }
 }

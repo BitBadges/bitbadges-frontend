@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AddressMapping, Balance, CollectionPermissions, deepCopy } from 'bitbadgesjs-proto';
-import { DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
+import { DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -64,11 +64,6 @@ export interface CreateAddressMappingMsg {
   isUpdateAddressMapping?: boolean
 }
 
-export interface NewCollection {
-  handledPermissions: CollectionPermissions<bigint>
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void
-}
-
 export interface UpdateMetadataMsg {
   addMethod: MetadataAddMethod
   setAddMethod: (method: MetadataAddMethod) => void
@@ -100,7 +95,7 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg & NewCollection & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
+export type MsgUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
 
 export interface BaseTxTimelineProps {
   txType: 'UpdateCollection'
@@ -177,21 +172,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
     createdBy: '',
   },
   setAddressMapping: () => { },
-  handledPermissions: {
-    canArchiveCollection: [],
-    canCreateMoreBadges: [],
-    canDeleteCollection: [],
-    canUpdateBadgeMetadata: [],
-    canUpdateCollectionApprovedTransfers: [],
-    canUpdateCollectionMetadata: [],
-    canUpdateContractAddress: [],
-    canUpdateCustomData: [],
-    canUpdateInheritedBalances: [],
-    canUpdateManager: [],
-    canUpdateOffChainBalancesMetadata: [],
-    canUpdateStandards: [],
-  },
-  setHandledPermissions: () => { },
 
   addMethod: MetadataAddMethod.None,
   setAddMethod: () => { },
@@ -247,23 +227,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
-  //We use this to keep track of which permissions we have handled so we can properly disable the next buttons
-  const [handledPermissions, setHandledPermissions] = useState<CollectionPermissions<bigint>>({
-    canArchiveCollection: [],
-    canCreateMoreBadges: [],
-    canDeleteCollection: [],
-    canUpdateBadgeMetadata: [],
-    canUpdateCollectionApprovedTransfers: [],
-    canUpdateCollectionMetadata: [],
-    canUpdateContractAddress: [],
-    canUpdateCustomData: [],
-    canUpdateInheritedBalances: [],
-    canUpdateManager: [],
-    canUpdateOffChainBalancesMetadata: [],
-    canUpdateStandards: [],
-  });
-
-
 
   //Update flags
   const [updateCollectionPermissions, setUpdateCollectionPermissions] = useState(true);
@@ -307,21 +270,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
-
-    setHandledPermissions({
-      canArchiveCollection: [],
-      canCreateMoreBadges: [],
-      canDeleteCollection: [],
-      canUpdateBadgeMetadata: [],
-      canUpdateCollectionApprovedTransfers: [],
-      canUpdateCollectionMetadata: [],
-      canUpdateContractAddress: [],
-      canUpdateCustomData: [],
-      canUpdateInheritedBalances: [],
-      canUpdateManager: [],
-      canUpdateOffChainBalancesMetadata: [],
-      canUpdateStandards: [],
-    });
   }
 
   //Initial fetch of the address mapping we are updating if it exists
@@ -591,8 +539,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setAddMethod,
     distributionMethod,
     setDistributionMethod,
-    handledPermissions,
-    setHandledPermissions,
     metadataSize: size,
     existingCollectionId: existingCollectionId,
 

@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BadgeAvatar } from './BadgeAvatar';
-import { useEffect } from 'react';
 
 export function AddressListCard({
   addressMapping,

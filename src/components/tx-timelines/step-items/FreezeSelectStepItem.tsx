@@ -1,16 +1,15 @@
-import { AddressMapping, CollectionApprovedTransferPermission, CollectionPermissions } from "bitbadgesjs-proto";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { AddressMapping } from "bitbadgesjs-proto";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
-import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 export function FreezeSelectStepItem(
-  handledPermissions: CollectionPermissions<bigint>,
-  setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
+
   existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
@@ -38,19 +37,15 @@ export function FreezeSelectStepItem(
               {
                 title: 'No',
                 message: `The manager cannot edit the collection-level transferability. What was selected in the previous steps will be permanently frozen. If you select this option, make sure all badges can be minted and distributed as intended with the current settings because they cannot be edited.`,
-                isSelected: handledPermissions.canUpdateCollectionApprovedTransfers.length > 0 && collection.collectionPermissions.canUpdateCollectionApprovedTransfers.length > 0
+                isSelected: collection.collectionPermissions.canUpdateCollectionApprovedTransfers.length > 0
               },
               {
                 title: 'Yes',
                 message: `The manager will be able to edit the collection-level transferability. This permission can be disabled in the future.`,
-                isSelected: handledPermissions.canUpdateCollectionApprovedTransfers.length > 0 && collection.collectionPermissions.canUpdateCollectionApprovedTransfers.length === 0
+                isSelected: collection.collectionPermissions.canUpdateCollectionApprovedTransfers.length === 0
               },
             ]}
             onSwitchChange={(idx) => {
-              setHandledPermissions({
-                ...handledPermissions,
-                canUpdateCollectionApprovedTransfers: [{} as CollectionApprovedTransferPermission<bigint>]
-              });
 
               collections.updateCollection({
                 ...collection,
@@ -120,6 +115,6 @@ export function FreezeSelectStepItem(
         }
       />
     ,
-    disabled: handledPermissions.canUpdateCollectionApprovedTransfers.length == 0 || !!err,
+    disabled: !!err,
   }
 }

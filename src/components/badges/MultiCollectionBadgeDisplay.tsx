@@ -34,7 +34,6 @@ export function MultiCollectionBadgeDisplay({
 
 }) {
   const divRef = useRef<HTMLDivElement>(null);
-  const collectionGroupDivRef = useRef<HTMLDivElement>(null);
 
   const accountsContext = useAccountsContext();
   const collections = useCollectionsContext();
