@@ -30,7 +30,7 @@ export function SearchDropdown({
   const collectionsResults = searchResponse?.collections || [];
   const addressMappingsResults = searchResponse?.addressMappings || [];
 
-  const DELAY_MS = 500;
+  const DELAY_MS = 250;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: search dropdown, search value changed ');
     const delayDebounceFn = setTimeout(async () => {
@@ -43,9 +43,7 @@ export function SearchDropdown({
       const result = await getSearchResults(searchValue);
 
       //Update context if we have new accounts or collections
-      for (const account of result.accounts) {
-        accounts.updateAccount(account);
-      }
+      accounts.updateAccounts(result.accounts);
 
       for (const collection of result.collections) {
         collections.updateCollection(collection);
@@ -71,7 +69,7 @@ export function SearchDropdown({
   }} theme='dark' style={{ border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
 
     <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
-    <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
+    <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
       {/* Current Search Value Address Helper - Matches Text Exactly */}
       {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
         <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }} onClick={async () => {
@@ -112,11 +110,36 @@ export function SearchDropdown({
         </Menu.Item>
       })}
     </div>
+    {/* Collection Results */}
+    {
+      !onlyAddresses && collectionsResults.length > 0 && <>
+        <hr />
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+          {collectionsResults.map((result,) => {
+            return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
+              onSearch(`${result.collectionId}`, false, true);
+            }}>
+              <div className='flex-between'>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                  {result.cachedCollectionMetadata?.name}
+                </div>
+                <div className='flex-center' style={{ alignItems: 'center' }}>
+                  ID: {`${result.collectionId}`}
+                </div>
+              </div>
+            </Menu.Item>
+          })}
+        </div>
+      </>
+    }
+
     {
       !onlyAddresses && addressMappingsResults.length > 0 && <>
         <hr />
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
-        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
+        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {addressMappingsResults.map((result,) => {
             const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
             const isOffChain = result.mappingId.indexOf("_") >= 0;
@@ -139,29 +162,6 @@ export function SearchDropdown({
       </>
     }
 
-    {/* Collection Results */}
-    {
-      !onlyAddresses && collectionsResults.length > 0 && <>
-        <hr />
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
-        <div className='primary-text primary-blue-bg' style={{ overflowY: 'auto', maxHeight: 500 }}>
-          {collectionsResults.map((result,) => {
-            return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
-              onSearch(`${result.collectionId}`, false, true);
-            }}>
-              <div className='flex-between'>
-                <div className='flex-center' style={{ alignItems: 'center' }}>
-                  <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
-                  {result.cachedCollectionMetadata?.name}
-                </div>
-                <div className='flex-center' style={{ alignItems: 'center' }}>
-                  ID: {`${result.collectionId}`}
-                </div>
-              </div>
-            </Menu.Item>
-          })}
-        </div>
-      </>
-    }
+
   </Menu >
 }

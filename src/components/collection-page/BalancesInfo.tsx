@@ -8,8 +8,8 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 import { searchUintRangesForId } from 'bitbadgesjs-utils';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 
 export function BalanceOverview({ collectionId, badgeId }: {
@@ -27,7 +27,6 @@ export function BalanceOverview({ collectionId, badgeId }: {
 
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(signedInAccount?.username || signedInAccount?.address || '');
-  // const [lastFetchedAt, setLastFetchedAt] = useState<bigint>(0n);
 
   const DELAY_MS = 500;
 
@@ -45,17 +44,14 @@ export function BalanceOverview({ collectionId, badgeId }: {
 
         if (accountHasBalance) {
           setCurrBalances(accountHasBalance.balances);
-          // setLastFetchedAt(accountHasBalance.fetchedAt ?? 0n);
           return;
         } else if (collectionHasBalance) {
           setCurrBalances(collectionHasBalance.balances);
-          // setLastFetchedAt(collectionHasBalance.fetchedAt ?? 0n);
           return;
         }
 
         const balance = await collections.fetchBalanceForUser(collectionId, addressOrUsername);
         setCurrBalances(balance.balances);
-        // setLastFetchedAt(balance.fetchedAt ?? 0n);
         return;
       } catch (e) { }
 
@@ -97,13 +93,12 @@ export function BalanceOverview({ collectionId, badgeId }: {
             collectionId={collectionId}
             balances={currBalances.map(x => {
               if (!badgeId) return x;
-
+            
               const filteredBadgeIds = [];
               const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
               if (found) {
                 filteredBadgeIds.push({ start: badgeId, end: badgeId });
               }
-
 
               return {
                 ...x,

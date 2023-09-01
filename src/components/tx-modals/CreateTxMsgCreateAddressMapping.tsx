@@ -6,7 +6,7 @@ import React from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { MSG_PREVIEW_ID, MsgUpdateCollectionProps } from '../tx-timelines/TxTimeline';
+import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { TxModal } from './TxModal';
 
 export function CreateTxMsgCreateAddressMappingModal(
@@ -22,6 +22,8 @@ export function CreateTxMsgCreateAddressMappingModal(
   const collections = useCollectionsContext();
   const collection = collections.collections[`${MSG_PREVIEW_ID}`];
 
+  const txTimelineContext = useTxTimelineContext();
+
   const msg: MsgCreateAddressMappings = {
     creator: chain.cosmosAddress,
     addressMappings: inheritedTxState?.addressMapping ? [{
@@ -36,7 +38,7 @@ export function CreateTxMsgCreateAddressMappingModal(
     let uri = '';
     //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
     if (simulate) {
-      uri = 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB';
+      uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
     } else {
       let res = await addMetadataToIpfs({
         collectionMetadata: inheritedTxState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
@@ -79,12 +81,9 @@ export function CreateTxMsgCreateAddressMappingModal(
 
         notification.success({ message: 'Created successfully!' });
         router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
-        // if (collectionId && collectionId > 0n) {
-        //   await collections.fetchCollections([collectionId], true);
-        //   
-        // } else {
-        //   //navigating to a new collection page is handled in TxModal
-        // }
+
+
+        txTimelineContext.resetState();
       }}
       requireRegistration
     >

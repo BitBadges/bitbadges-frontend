@@ -17,8 +17,6 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
   const collections = useCollectionsContext();
 
   const [newApprovedIncomingTransfers, setNewApprovedIncomingTransfers] = useState<UserApprovedIncomingTransferTimelineWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.approvedIncomingTransfersTimeline ?? []);
-  // const [newApprovedOutgoingTransfers, setNewApprovedOutgoingTransfers] = useState<UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? []);
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: approvee balance ');
@@ -54,10 +52,6 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
             setNewApprovedIncomingTransfers(newApprovals);
           }}
           userApprovedIncomingTransfers={newApprovedIncomingTransfers}
-        // setUserApprovedOutgoingTransfers={async (newApprovals) => {
-        //   setNewApprovedOutgoingTransfers(newApprovals);
-        // }}
-        // userApprovedOutgoingTransfers={newApprovedOutgoingTransfers}
         />
         <br />
       </div>

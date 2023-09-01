@@ -53,9 +53,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
-    for (const transfer of transfers) {
-      accounts.fetchAccounts(transfer.toAddresses);
-    }
+    accounts.fetchAccounts(transfers.map(x => x.toAddresses).flat());
   }, [transfers]);
 
   const convertedTransfers = transfers.map(x => {

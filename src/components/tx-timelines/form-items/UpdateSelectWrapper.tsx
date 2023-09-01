@@ -18,8 +18,6 @@ export function UpdateSelectWrapper({
     <>
       <div className='primary-text flex-center flex-column' >
         <div style={{ alignItems: 'center' }}>
-
-
           <br />
           <Checkbox
             checked={updateFlag}

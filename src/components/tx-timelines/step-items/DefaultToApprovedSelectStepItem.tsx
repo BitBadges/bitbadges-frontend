@@ -2,7 +2,7 @@ import { AddressMapping } from "bitbadgesjs-proto";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function DefaultToApprovedSelectStepItem(
@@ -27,7 +27,7 @@ export function DefaultToApprovedSelectStepItem(
           },
           {
             title: 'Opt-In Only',
-            message: 'For all users, by default, users must be the initiator of the transfer (to must equal initiated by) or first explicitly approve the transfer in their approvals. Transferring to this user forcefully without prior approval will fail (including mints).',
+            message: 'For all users, by default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
             isSelected: collection.defaultUserApprovedIncomingTransfersTimeline.length === 0
           },
         ]}

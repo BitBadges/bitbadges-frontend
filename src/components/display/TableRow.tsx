@@ -12,11 +12,6 @@ export function TableRow({
   labelSpan?: number,
   valueSpan?: number
 }) {
-  //media query if > 450 px
-  // let isMobile = false;
-  // if (typeof window !== 'undefined') {
-  //   isMobile = window.innerWidth < 450;
-  // }
 
   return <><Row style={{ alignItems: 'normal' }} className="full-width">
     <Col xs={0} sm={0} md={labelSpan ? labelSpan : 16} lg={labelSpan ? labelSpan : 16} style={{ textAlign: 'left', paddingLeft: 10 }}>

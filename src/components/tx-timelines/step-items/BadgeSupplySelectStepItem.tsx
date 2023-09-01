@@ -4,7 +4,7 @@ import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniver
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
-import { BalanceInput } from "../form-items/BalanceInput";
+import { BalanceInput } from "../../inputs/BalanceInput";
 
 export function BadgeSupplySelectStepItem(
   badgesToCreate: Balance<bigint>[],

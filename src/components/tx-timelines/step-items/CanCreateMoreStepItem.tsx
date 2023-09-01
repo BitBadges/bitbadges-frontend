@@ -1,21 +1,22 @@
 import { BalancesActionPermission, CollectionPermissions } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { useState } from "react";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
+import { DevMode } from "../../common/DevMode";
 
 //TODO: Differentiate between always permitted and permitted but updatable
 //TODO: What if they custom implemented a permission
 //TODO: Advanced option
 
 const DefaultCombinations = [{
-  badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-  ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-  permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-  forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+  // badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+  // ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+  // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+  // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
 }]
 
 const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
@@ -54,9 +55,9 @@ export function CanCreateMoreStepItem(
       setErr={setErr}
       permissionName="canCreateMoreBadges"
       existingCollectionId={existingCollectionId}
-      node={
+      node={<>
         <SwitchForm
-          noSelectUntilClick
+          // noSelectUntilClick
           options={[
             {
               title: 'No',
@@ -112,6 +113,8 @@ export function CanCreateMoreStepItem(
           }}
           helperMessage=""
         />
+        <DevMode obj={collection.collectionPermissions.canCreateMoreBadges} />
+      </>
       }
     />,
     disabled: handledPermissions.canCreateMoreBadges.length == 0 || !!err,

@@ -1,6 +1,7 @@
 import { Balance } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, DistributionMethod, TransferWithIncrements } from "bitbadgesjs-utils";
 import { CreateClaims } from "../form-items/CreateClaims";
+
 export function CreateClaimsStepItem(
   approvedTransfers: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[],
   setApprovedTransfers: (transfers: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]) => void,
@@ -8,7 +9,6 @@ export function CreateClaimsStepItem(
   setTransfers: (transfers: TransferWithIncrements<bigint>[]) => void,
   distributionMethod: DistributionMethod,
   existingCollectionId?: bigint,
-  balancesToDistribute?: Balance<bigint>[],
 ) {
   return {
     title: `Distribution - ${distributionMethod}`,
@@ -17,7 +17,6 @@ export function CreateClaimsStepItem(
       approvedTransfersToAdd={approvedTransfers}
       setApprovedTransfersToAdd={setApprovedTransfers}
       distributionMethod={distributionMethod}
-      balancesToDistribute={balancesToDistribute}
       transfers={transfers}
       setTransfers={setTransfers}
       existingCollectionId={existingCollectionId}

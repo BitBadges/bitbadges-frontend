@@ -2,12 +2,12 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Avatar, Button, Divider, Steps, Tooltip } from 'antd';
 import { Balance, deepCopy } from 'bitbadgesjs-proto';
 import { useState } from 'react';
-import { GO_MAX_UINT_64 } from '../../../utils/dates';
-import { BalanceDisplay } from '../../badges/balances/BalanceDisplay';
-import { UintRangesInput } from '../../badges/balances/IdRangesInput';
-import { NumberInput } from '../../display/NumberInput';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BadgeIdRangesInput } from './BadgeIdRangesInput';
+import { NumberInput } from './NumberInput';
 import { DateRangeInput } from './DateRangeInput';
-import { SwitchForm } from './SwitchForm';
+import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 const { Step } = Steps;
 
 export function BalanceInput({
@@ -89,7 +89,7 @@ export function BalanceInput({
     {<div className='flex-center'>
       <Tooltip placement='bottom' title={!selectIsVisible ? 'Add More Badges' : 'Hide'}>
         <Avatar
-          className='screen-button'
+          className='styled-button'
           onClick={() => setSelectIsVisible(!selectIsVisible)}
           // src={ }
           style={{
@@ -104,7 +104,7 @@ export function BalanceInput({
 
       <Tooltip placement='bottom' title={'Remove All Added Badges'}>
         <Avatar
-          className='screen-button'
+          className='styled-button'
           onClick={() => onRemoveAll()}
           style={{
             cursor: 'pointer',
@@ -149,11 +149,11 @@ export function BalanceInput({
 
 
             </Steps>
-            {currentStep === 0 && <div>
+            {currentStep === 0 && <div className='full-width'>
 
 
 
-              <UintRangesInput
+              <BadgeIdRangesInput
                 uintRanges={currentSupply.badgeIds}
                 setUintRanges={(uintRanges) => {
                   setCurrentSupply({ ...currentSupply, badgeIds: uintRanges });
@@ -169,7 +169,7 @@ export function BalanceInput({
             {currentStep === 1 && <div>
               <br />
               <NumberInput
-                title={'Select Amount to Add'}
+                title={'Select Amount'}
                 value={Number(currentSupply.amount)}
                 setValue={(value) => {
                   setCurrentSupply({ ...currentSupply, amount: BigInt(value) });

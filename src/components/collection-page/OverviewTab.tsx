@@ -41,6 +41,7 @@ export function OverviewTab({
             addressOrUsernameToShowBalance={addressOrUsername}
             badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={'100%'}
+            doNotAdaptToWidth
           />
         </InformationDisplayCard>
       </div>

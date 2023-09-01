@@ -1,16 +1,16 @@
 import { Button, Divider, Empty } from 'antd';
-import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -35,12 +35,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const approvedTransfersForClaims = [];
   const merkleChallenges: MerkleChallengeWithDetails<bigint>[] = [];
 
-
-  const approvedTransfers = [];
-  const currIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
-  if (collection?.collectionApprovedTransfersTimeline && currIdx >= 0) {
-    approvedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
-  }
+  const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? "";
+  const approvedTransfers = getCurrentValueForTimeline(collection?.collectionApprovedTransfersTimeline ?? [])?.collectionApprovedTransfers ?? [];
 
   //TODO: This is hardcoded for length == 0 for now
   for (const approvedTransfer of approvedTransfers) {
@@ -76,10 +72,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     }
     image={Empty.PRESENTED_IMAGE_SIMPLE}
   />
-
-  const currentManagerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
-  const currentManager = collection?.managerTimeline && currentManagerIdx >= 0 ? collection.managerTimeline[Number(currentManagerIdx)].manager : '';
-
+  
   //Get IPFS cid and path
   let currClaimCid = '';
   if (claimItem?.uri.startsWith('ipfs://')) {
@@ -102,7 +95,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
               collectionId={collectionId}
               approvedTransfer={approvedTransfersForClaims[currPage - 1]}
               openModal={(_x: any, leafIndex?: number) => {
-
                 setWhitelistIndex(leafIndex);
                 setModalVisible(true);
               }}
@@ -110,8 +102,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
               setCode={setCode}
               recipient={recipient}
               setRecipient={setRecipient}
-              // leafIndex={whitelistIndex}
-              // setLeafIndex={setWhitelistIndex}
               isCodeDisplay={codesAndPasswords ? true : false}
               codes={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.codes : []}
               claimPassword={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.password : ""}
@@ -142,12 +132,11 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       <Divider />
       <div className='flex-center'>
 
-        {/* TODO: Only show if code/password claim */}
         {!isModal && currentManager === chain.cosmosAddress && numMerkleChallenges > 0 && <div>
           {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
           <br />
           <Button
-            className='screen-button primary-blue-bg'
+            className='styled-button primary-blue-bg'
             style={{ marginTop: '12px' }}
             onClick={() => {
               setFetchCodesModalIsVisible(true);

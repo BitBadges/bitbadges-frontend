@@ -136,7 +136,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                     {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
                   </Typography.Text>
                   {chain.connected && chain.loggedIn && (chain.address === review.from || chain.cosmosAddress === review.from) &&
-                    <DeleteOutlined className='screen-button' style={{ border: 'none', cursor: 'pointer' }}
+                    <DeleteOutlined className='styled-button' style={{ border: 'none', cursor: 'pointer' }}
                       onClick={async () => {
                         if (loading) return;
 

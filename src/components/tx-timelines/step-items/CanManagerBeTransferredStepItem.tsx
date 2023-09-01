@@ -1,7 +1,7 @@
 import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
@@ -35,12 +35,12 @@ export function CanManagerBeTransferredStepItem(
             {
               title: 'No',
               message: `The role of the manager cannot be transferred to another address.`,
-              isSelected: handledPermissions.canUpdateManager.length > 0 && collection?.collectionPermissions.canUpdateManager.length > 0
+              isSelected: collection?.collectionPermissions.canUpdateManager.length > 0
             },
             {
               title: 'Yes',
               message: `The role of the manager can be transferred to another address.`,
-              isSelected: handledPermissions.canUpdateManager.length > 0 && collection?.collectionPermissions.canUpdateManager.length === 0,
+              isSelected: collection?.collectionPermissions.canUpdateManager.length === 0,
             }
           ]}
           onSwitchChange={(idx) => {
@@ -60,9 +60,9 @@ export function CanManagerBeTransferredStepItem(
                     forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   },
                   combinations: [{
-                    permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                   }]
                 }] : []
               }
@@ -73,7 +73,7 @@ export function CanManagerBeTransferredStepItem(
       }
     />
     ,
-    disabled: handledPermissions.canUpdateManager.length === 0 || !!err,
+    disabled: !!err,
 
   }
 }

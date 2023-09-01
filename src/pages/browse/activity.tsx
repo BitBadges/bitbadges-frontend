@@ -1,11 +1,10 @@
 import { Divider, Layout, Spin } from 'antd';
 import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
-import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 
 const { Content } = Layout;
 
 function BrowsePage() {
-
   const browseContext = useBrowseContext();
   const browseInfo = browseContext.browse;
 
@@ -27,26 +26,7 @@ function BrowsePage() {
             paddingTop: '20px',
           }}
         >
-          {/* antd tabs */}
-          {/* <Tabs
-            fullWidth
-            theme='dark'
-            tabInfo={browseInfo ? Object.keys(browseInfo.collections).map(category => {
-              return {
-                key: category,
-                label: category.charAt(0).toUpperCase() + category.slice(1),
-                content: <Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </Typography.Text>
-              }
-            }) : []}
-            setTab={setTab}
-            tab={tab}
-          /> */}
-
           {!browseInfo && <Spin size='large' />}
-
-          {/* <br /> */}
           <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
             <ActivityTab
               activity={browseInfo?.activity ?? []}

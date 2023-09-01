@@ -1,8 +1,6 @@
 import { Avatar, Button, Card, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { NextPage } from 'next/types';
-// import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-// import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
 import { ClockCircleOutlined, ContactsOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -28,7 +26,7 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
 
       <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
         style={{
-          minHeight: additionalContent ? 360 : 260, borderRadius: 15,
+          height: showMore ? undefined : additionalContent ? 360 : 260, borderRadius: 15,
           background: `linear-gradient(0deg, black 10%, #001529 100%)`,
         }} onClick={() => {
           if (onClick) onClick();
@@ -40,7 +38,7 @@ export const LandingCard = ({ content, additionalContent, onClick }: {
           {additionalContent && <>
             <br />
             <br />
-            {/* {/* <Button className='screen-button' onClick={() => setShowMore(!showMore)}>{showMore ? 'Show Less' : 'Show More'}</Button> */}
+            {/* {/* <Button className='styled-button' onClick={() => setShowMore(!showMore)}>{showMore ? 'Show Less' : 'Show More'}</Button> */}
 
             {!showMore ? <DownOutlined /> : <UpOutlined />}</>}
         </div>
@@ -98,12 +96,14 @@ const Home: NextPage = () => {
   ];
 
   useEffect(() => {
-
-    // for (const badge of featuredBadges) {
-    // const { collectionId, badgeId } = badge;
-    // collections.fetchAndUpdateMetadata(collectionId, { badgeIds: [{ start: badgeId, end: badgeId }] })
-    collections.fetchAndUpdateMetadata(1n, { badgeIds: [{ start: 1n, end: 10n }] })
-    // }
+    collections.batchFetchAndUpdateMetadata(featuredBadges.map(b => {
+      return {
+        collectionId: b.collectionId,
+        metadataToFetch: {
+          badgeIds: [{ start: b.badgeId, end: b.badgeId }]
+        }
+      }
+    }));
   }, []);
 
   return (
@@ -119,8 +119,8 @@ const Home: NextPage = () => {
         <div
           // className='primary-blue-bg'
           style={{
-            marginLeft: '5vw',
-            marginRight: '5vw',
+            marginLeft: '2vw',
+            marginRight: '2vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
@@ -142,7 +142,7 @@ const Home: NextPage = () => {
               <div className='flex'>
                 <Button
                   size='large'
-                  className='screen-button'
+                  className='styled-button'
                   style={{ marginTop: '20px' }}
                   onClick={() => {
                     router.push('/browse/badges');
@@ -153,7 +153,7 @@ const Home: NextPage = () => {
 
                 <Button
                   size='large'
-                  className='screen-button'
+                  className='styled-button'
                   style={{ marginTop: '20px', marginLeft: 8 }}
                   href="https://docs.bitbadges.io/overview"
                   target='_blank'
@@ -162,7 +162,7 @@ const Home: NextPage = () => {
                 </Button>
                 <Button
                   size='large'
-                  className='screen-button'
+                  className='styled-button'
                   style={{ marginTop: '20px', marginLeft: 8 }}
                   href="https://discord.com/invite/TJMaEd9bar"
                   target='_blank'
@@ -386,7 +386,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports the Ethereum and Cosmos ecosystems with Bitcoin and Solana planned next).
+                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports Ethereum and Cosmos with Bitcoin and Solana planned next).
                   </Typography.Text>
                 </>
               }
@@ -395,7 +395,7 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Existing products are limited to only one. This is a major limitation because to support all of a potential userbase, a product must support all of the blockchains that its users use.
+                    Existing solutions are limited to only one ecosystem at a time. This is a major limitation because to support all of a potential userbase, a product must support all of the blockchains that its users use.
                   </Typography.Text>
                   <br />
                   <br />
@@ -445,7 +445,7 @@ const Home: NextPage = () => {
                   <br />
 
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    BitBadges aims to evolve with the times and continuously add new features to meet the needs of the community.
+                    BitBadges will evolve with the times and continuously add new features to meet the needs of the community.
                   </Typography.Text>
                 </>
               }
@@ -453,8 +453,10 @@ const Home: NextPage = () => {
                 <>
                   <br />
                   <br />
+
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    New research and devlopment in the blockchain space is happening at a rapid pace, but existing products are stuck using the same rigid interface.
+                    Existing products are stuck using the same rigid interface that cannot evolve easily. New research and devlopment in the blockchain space is happening at a rapid pace.
+                    BitBadges is designed to add new features on the fly.
                   </Typography.Text>
                 </>
               }
@@ -492,7 +494,36 @@ const Home: NextPage = () => {
                 content={
                   <>
                     <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
-                      Time-Based Balances
+                      Address Lists
+                    </Typography.Text>
+                    <br />
+                    <TeamOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      Create address lists to easily manage and organize users. No complexity of a token, just a simple list. These lists can be used for a variety of purposes, such as whitelists, blacklists, and more.
+                    </Typography.Text>
+                  </>
+                }
+                additionalContent={
+                  <>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      These lists can be stored on-chain or off-chain.
+                    </Typography.Text>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      Lists are invertible meaning you can natively make a list that includes ALL EXCEPT some specified addresses.
+                    </Typography.Text>
+                  </>
+                }
+              />
+              <LandingCard
+                content={
+                  <>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
+                      Time-Based Accounting
                     </Typography.Text>
                     <br />
                     <Avatar
@@ -517,37 +548,13 @@ const Home: NextPage = () => {
                 }
               />
 
-              <LandingCard
-                content={
-                  <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
-                      Fine-Grained Transferability
-                    </Typography.Text>
-                    <br />
-                    <FormOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Instead of badges being simply transferable or non-transferable, BitBadges supports a wide range of transferability options.
-                    </Typography.Text>
-                  </>
-                }
-                additionalContent={
-                  <>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      For example, badges can be revokable, freezable, transferable only once, transferable only to a specific user, or transferable only to a specific user for a specific time period. Or, any combination of these options.
-                    </Typography.Text>
 
-                  </>
-                }
-              />
 
               <LandingCard
                 content={
                   <>
                     <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
-                      Off-Chain Balances
+                      Balance Types
                     </Typography.Text>
                     <br />
                     <DatabaseOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
@@ -583,7 +590,7 @@ const Home: NextPage = () => {
                     <ContactsOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Users can approve or reject incoming transfers. This allows control over which badges they receive, from who, and how many.
+                      In addition to standard outgoing approvals, BitBadges also supports incoming approvals. This allows users to control which badges they receive, from who, and how many.
                     </Typography.Text>
                   </>
                 }
@@ -622,12 +629,18 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      The existing model of individual smart contracts often results in many vulnerabilities and is not scalable. With the registry architecture, the same code is reused for all badges, making it easier to maintain, upgrade, and become more battle-tested over time.
+                      The existing model of individual smart contracts often results in many vulnerabilities and is not scalable.
                     </Typography.Text>
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      We do want to note that we support smart contracts for implementing unsupported functionality, but they are not required to use the core functionality and should not be needed for most badges.
+
+                      With the registry architecture, the same code is reused for all badges, making it more consistent plus easier to maintain, upgrade, and become more battle-tested over time.
+                    </Typography.Text>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      We do support smart contracts for implementing unsupported functionality, but they are optional and should not be needed for most badges.
                     </Typography.Text>
                   </>
                 }
@@ -658,7 +671,7 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      This is a major improvement over existing products that require processing each badge transfer separately.
+                      This is a major improvement over existing products that require processing each individual badge transfer separately.
                     </Typography.Text>
                   </>
                 }
@@ -689,18 +702,17 @@ const Home: NextPage = () => {
                   </>
                 }
               />
-
               <LandingCard
                 content={
                   <>
                     <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
-                      Address Lists
+                      Fine-Grained Transferability
                     </Typography.Text>
                     <br />
-                    <TeamOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
+                    <FormOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Create address lists to easily manage and organize users. No complexity of a token, just a simple list. These lists can be used for a variety of purposes, such as whitelists, blacklists, and more.
+                      Instead of badges being simply transferable or non-transferable, BitBadges supports a wide range of transferability options.
                     </Typography.Text>
                   </>
                 }
@@ -709,17 +721,13 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      These lists can be stored on-chain and referenced by other collections, such as a badge collection that only allows transfers to users on a specific address list.
-                      Or, the list can be created off-chain and stored by our centralized servers completely free!
+                      For example, badges can be revokable, freezable, transferable only by users who own a different badge, transferable only once, transferable only to a specific user, or transferable only to a specific user for a specific time period. Or, any combination of these options!
                     </Typography.Text>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      You also have the option to create inverted lists, meaning include ALL EXCEPT the addresses on the list.
-                    </Typography.Text>
+
                   </>
                 }
               />
+
             </>
 
           </Row>
@@ -743,7 +751,7 @@ const Home: NextPage = () => {
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
             <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
-              Distribution Tools
+              Distribution Methods
             </Typography.Text>
           </Col>
         </Row>

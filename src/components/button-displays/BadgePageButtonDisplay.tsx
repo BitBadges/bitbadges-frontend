@@ -23,7 +23,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <LinkOutlined />
               </Avatar>
@@ -43,7 +43,7 @@ export function BadgeButtonDisplay({
                   );
                   message.success('Copied to clipboard!');
                 }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <CopyOutlined />
               </Avatar>
@@ -58,7 +58,7 @@ export function BadgeButtonDisplay({
 
                   window.open(shareUrl, '_blank');
                 }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <TwitterOutlined />
               </Avatar>
@@ -67,7 +67,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="screen-button account-socials-button"
+            className="styled-button account-socials-button"
           >
             <ShareAltOutlined />
           </Avatar>
@@ -77,7 +77,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="screen-button account-socials-button"
+            className="styled-button account-socials-button"
             onClick={() => {
               //send email
               window.open('mailto:andrew@bitbadges.org');

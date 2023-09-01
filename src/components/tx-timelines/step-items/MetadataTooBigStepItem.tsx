@@ -1,5 +1,5 @@
 import { Divider, Typography } from "antd"
-import { EmptyStepItem } from "../TxTimeline"
+import { EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
 export const MetadataTooBigStepItem = (
   size: number
@@ -16,7 +16,7 @@ export const MetadataTooBigStepItem = (
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
   }
 
-
+  //10 MB is too big. It will fail bc req is too big for API.
   return size > 1048576 * 10 ? {
     title: 'Metadata Too Large',
     description: ``,

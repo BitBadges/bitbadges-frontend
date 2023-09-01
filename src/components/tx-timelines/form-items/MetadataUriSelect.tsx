@@ -5,6 +5,7 @@ import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
+import { DevMode } from "../../common/DevMode";
 
 const { Text } = Typography;
 
@@ -49,8 +50,6 @@ export function MetadataUriSelect({
         // badgeIds: [{ start: startId, end: endId }],
       }, true)
     }
-
-
   }, [collectionId])
 
 
@@ -92,7 +91,7 @@ export function MetadataUriSelect({
 
       collections.updateCollection({
         ...collection,
-        cachedBadgeMetadata: [],
+        // cachedBadgeMetadata: [],
         badgeMetadataTimeline: badgeUri ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           badgeMetadata: [{
@@ -102,6 +101,12 @@ export function MetadataUriSelect({
           }]
         }] : [],
       })
+
+
+      // collections.fetchAndUpdateMetadata(collectionId, {
+      //   badgeIds: [{ start: startId, end: endId }],
+
+      // }, true)
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
@@ -171,11 +176,14 @@ export function MetadataUriSelect({
             collectionId={collectionId}
             showIds
             fetchDirectly
-
-
           />
         </div>
       }
+
+      <DevMode obj={collection?.badgeMetadataTimeline} />
+      <DevMode obj={collection?.cachedBadgeMetadata ?? []} />
+      <DevMode obj={collection?.cachedCollectionMetadata} />
+      <DevMode obj={collection?.collectionMetadataTimeline} />
     </>}
   </>
 }

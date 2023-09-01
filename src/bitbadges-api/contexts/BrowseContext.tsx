@@ -27,74 +27,59 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
   const collections = useCollectionsContext();
   const accounts = useAccountsContext();
 
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: browse page, get collections ');
-    async function getCollections() {
-      const browseInfo = await getBrowseCollections();
-      if (!browseInfo) return;
-      const updatedIds: bigint[] = [];
-      for (const category of Object.keys(browseInfo.collections)) {
-        if (!browseInfo.collections[category]) continue;
-        console.log(browseInfo.collections[category]);
-        for (const collection of browseInfo.collections[category]) {
-          console.log(collection);
-          if (updatedIds.includes(collection.collectionId)) continue;
+  async function updateCollectionsAndAccounts(browseInfo: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>) {
+    const updatedIds = new Set();
+    const updatedAccounts = new Set();
+
+    for (const category of Object.keys(browseInfo.collections)) {
+      if (!browseInfo.collections[category]) continue;
+
+      for (const collection of browseInfo.collections[category]) {
+        if (!updatedIds.has(collection.collectionId)) {
           collections.updateCollection(collection);
-          updatedIds.push(collection.collectionId);
+          updatedIds.add(collection.collectionId);
         }
       }
+    }
 
-      const updatedAccounts: string[] = [];
-      for (const category of Object.keys(browseInfo.profiles)) {
-        if (!browseInfo.profiles[category]) continue;
-        console.log(browseInfo.profiles[category]);
-        for (const profile of browseInfo.profiles[category]) {
+    console.log('browseInfo.profiles: ', browseInfo.profiles);
+    for (const category of Object.keys(browseInfo.profiles)) {
+      if (!browseInfo.profiles[category]) continue;
 
-          if (updatedAccounts.includes(profile.cosmosAddress)) continue;
+      for (const profile of browseInfo.profiles[category]) {
+        if (!updatedAccounts.has(profile.cosmosAddress)) {
           accounts.updateAccount({
             ...profile,
           });
-
-          updatedAccounts.push(profile.cosmosAddress);
+          updatedAccounts.add(profile.cosmosAddress);
         }
       }
-      setBrowse(browseInfo);
     }
-    getCollections();
-  }, []);
 
-  const updateBrowse = async () => {
+    
+  }
+
+  async function getCollectionsAndUpdateBrowse() {
     const browseInfo = await getBrowseCollections();
-    if (!browseInfo) return undefined;
+
+    await updateCollectionsAndAccounts(browseInfo);
     setBrowse(browseInfo);
-    const updatedIds: bigint[] = [];
-    for (const category of Object.keys(browseInfo.collections)) {
-      if (!browseInfo.collections[category]) continue;
-      for (const collection of browseInfo.collections[category]) {
-        console.log(collection);
-        if (updatedIds.includes(collection.collectionId)) continue;
-        collections.updateCollection(collection);
-        updatedIds.push(collection.collectionId);
-      }
-    }
 
-    const updatedAccounts: string[] = [];
-    for (const category of Object.keys(browseInfo.profiles)) {
-      if (!browseInfo.collections[category]) continue;
-      console.log(browseInfo.collections[category]);
-      for (const profile of browseInfo.profiles[category]) {
-
-        if (updatedAccounts.includes(profile.cosmosAddress)) continue;
-        accounts.updateAccount({
-          ...profile,
-        });
-
-        updatedAccounts.push(profile.cosmosAddress);
-      }
-    }
-    setBrowse(browseInfo);
     return browseInfo;
   }
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) {
+      console.log('useEffect: browse page, get collections');
+    }
+    getCollectionsAndUpdateBrowse();
+  }, []);
+
+
+  const updateBrowse = async () => {
+    const browseInfo = await getCollectionsAndUpdateBrowse();
+    return browseInfo;
+  };
 
   const browseContext: BrowseContextType = {
     browse,

@@ -1,14 +1,12 @@
-import { Card, Empty, Layout, Spin, Typography } from 'antd';
-import router from 'next/router';
+import { Empty, Layout, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
-import { AddressDisplay } from '../../components/address/AddressDisplay';
-import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
+import { AddressListCard } from '../../components/badges/AddressListCard';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { ClaimAlertsTab } from '../../components/collection-page/ClaimAlertsTab';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
@@ -45,7 +43,6 @@ export function Notifications() {
   useEffect(() => {
     const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
     accounts.fetchAccounts([...new Set(createdBys)]);
-
   }, [listsView]);
 
   return (
@@ -154,67 +151,11 @@ export function Notifications() {
                         >
                           <div className='full-width flex-center flex-wrap'>
                             {listsView.map((addressMapping, idx) => {
-                              const explicitly = addressMapping.addresses.includes(chain.address) ||
-                                addressMapping.addresses.includes(chain.cosmosAddress);
-                              return <div key={idx} style={{ margin: 16 }}>
-                                <Card
-                                  className='primary-text primary-blue-bg'
-                                  style={{
-                                    width: 225,
-                                    margin: 8,
-                                    textAlign: 'center',
-                                    borderRadius: '4%',
-                                  }}
-                                  hoverable={true}
-                                  onClick={() => {
-                                    router.push(`/addresses/${addressMapping.mappingId}`);
-                                  }}
-                                  cover={<>
-                                    <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
-                                      <BadgeAvatar
-                                        collectionId={0n}
-                                        metadataOverride={addressMapping.metadata}
-                                        size={75}
-                                      />
-                                    </div>
-                                  </>}
-                                >
-                                  <Typography.Text strong className='primary-text'>
-                                    {addressMapping.metadata?.name}
-                                  </Typography.Text>
-                                  <br />
-                                  <br />
-                                  {addressMapping.includeAddresses ?
-                                    <Typography.Text strong className='primary-text' style={{ color: 'green' }}>
-                                      {explicitly ? '' : 'SOFT'} INCLUDED
-                                    </Typography.Text>
-                                    :
-                                    <Typography.Text strong className='primary-text' style={{ color: 'red' }}>
-                                      {explicitly ? '' : 'SOFT'} EXCLUDED
-                                    </Typography.Text>
-                                  }
-
-                                  {addressMapping.createdBy && <>
-                                    <br />
-                                    <br />
-                                    <b>Created By</b>
-
-                                    <AddressDisplay
-                                      addressOrUsername={addressMapping.createdBy}
-                                      fontSize={13}
-                                    />
-                                  </>
-                                  }
-                                  {addressMapping.lastUpdated > 0n && <>
-                                    <br />
-                                    <b>Last Updated</b>
-                                    <br />
-                                    {new Date(Number(addressMapping.lastUpdated)).toLocaleString()}
-                                  </>
-                                  }
-                                </Card>
-
-                              </div>
+                              return <AddressListCard
+                                key={idx}
+                                addressMapping={addressMapping}
+                                addressOrUsername={signedInAccount?.address ?? ''}
+                              />
                             })}
                           </div>
                         </InfiniteScroll>

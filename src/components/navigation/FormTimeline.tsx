@@ -15,12 +15,16 @@ export interface TimelineItem {
 
 export function FormTimeline({
   items,
-  onFinish
+  onFinish,
+  formStepNum,
+  setFormStepNum,
 }: {
+  formStepNum: number
+  setFormStepNum: (newStepNum: number) => void
   items: TimelineItem[]
   onFinish?: () => void
 }) {
-  const [formStepNum, setFormStepNum] = useState(1);
+  
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
   const filteredItems = items.filter((item) => !item.doNotDisplay);

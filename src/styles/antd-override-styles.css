@@ -185,6 +185,12 @@
     color: white !important;
 }
 
+.rc-md-editor .editor-container .sec-html {
+  background-color: #001529 !important;
+  color: white !important;
+}
+
+
 .custom-html-style h1, 
 .custom-html-style h2,
 .custom-html-style h3,

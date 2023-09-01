@@ -92,6 +92,7 @@ export function WalletHeader() {
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
   const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
+  //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
   let overflowCount = 10;
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
@@ -117,7 +118,6 @@ export function WalletHeader() {
   }
 
   for (const claimAlert of claimAlerts) {
-    console.log(account?.seenActivity, claimAlert.createdTimestamp);
     if (account?.seenActivity && account.seenActivity < claimAlert.createdTimestamp) {
       unseenNotificationCount++;
 
@@ -127,16 +127,6 @@ export function WalletHeader() {
     }
   }
 
-  console.log(unseenNotificationCount);
-
-  // const NotificationsTabMenu = <></>
-  // const NotificationsTabWithIcon = {
-  //   key: 'account/notifications', content: (
-  //     <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
-  //       <BellOutlined style={{ fontSize: 22, fontWeight: 'bold', textAlign: 'center' }} className='primary-text' />
-  //     </Badge>
-  //   ), subMenuOverlay: NotificationsTabMenu
-  // };
 
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
@@ -175,7 +165,7 @@ export function WalletHeader() {
                   }}
                   size="large"
                   onClick={disabled ? () => { } : () => { setVisible(true) }}
-                  className="screen-button"
+                  className="styled-button"
                 >
                   <SwapOutlined />
                 </Avatar>
@@ -196,7 +186,7 @@ export function WalletHeader() {
     </div>
     <div className='flex-center full-width primary-text' style={{ padding: '10', marginTop: 8 }}>
       <BlockOutlined style={{ marginRight: 4 }} /> <b>Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})</b>
-      <Tooltip title="Data is provided by the BitBadges API. The API is up to date as of at least this block. ">
+      <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
       </Tooltip>
     </div>

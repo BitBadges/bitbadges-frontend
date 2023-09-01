@@ -2,7 +2,7 @@ import { AddressMapping } from "bitbadgesjs-proto";
 import { CollectionApprovedTransferWithDetails, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function RevokeSelectStepItem(
@@ -48,12 +48,12 @@ export function RevokeSelectStepItem(
           options={[
             {
               title: 'Non-Revokable',
-              message: `Badges will be non-transferable.`,
+              message: `Badges will be non-revokable.`,
               isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") === undefined
             },
             {
               title: 'Revokable',
-              message: `Badges will be transferable.`,
+              message: `Badges will be revokable.`,
               isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") !== undefined
             },
             // {

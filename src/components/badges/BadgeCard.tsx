@@ -4,6 +4,7 @@ import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 
 export function BadgeCard({
   size = 75,
@@ -24,29 +25,18 @@ export function BadgeCard({
 
 
   //Calculate total, undistributed, claimable, and distributed supplys
-  const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
   const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
   const collectionMetadata = collection?.cachedCollectionMetadata;
+  const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
 
-
-
-  let maxBadgeId = 0n;
-  for (const balance of totalSupplyBalance) {
-    for (const badgeIdRange of balance.badgeIds) {
-      if (badgeIdRange.end > maxBadgeId) {
-        maxBadgeId = badgeIdRange.end;
-      }
-    }
-  }
 
 
   return (
     <>
-      {/* <Col md={6} sm={24} xs={24} className='flex-center' style={{ padding: 0 }}> */}
       <Card
         className='primary-text primary-blue-bg'
         style={{
-          minWidth: 240,
+          minWidth: 200,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
@@ -111,28 +101,12 @@ export function BadgeCard({
 
                 {collection && <>
                   ID #{`${badgeId}`} / {`${maxBadgeId}`}
-                  {/* <br />
-                  <div className='flex-center'>
-                    <div>Supply: {totalSupply.toString()}
-                      {isOffChainBalances &&
-                        <Tooltip
-                          title={<>
-                            <>Unminted: {undistributedSupply}</>
-                            <br />
-                            <>Minted + Claimable: {distributedSupply}</>
-                          </>}
-                          placement='bottom'>
-                          <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                        </Tooltip>}
-                    </div>
-                  </div> */}
                 </>}
               </div>
             }
           />
         </div>
       </Card>
-      {/* </Col> */}
     </>
   );
 }

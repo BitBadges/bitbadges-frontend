@@ -1,5 +1,6 @@
+import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AnnouncementInfo, getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -9,7 +10,6 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { DeleteOutlined } from '@ant-design/icons';
 
 export function AnnouncementsTab({ announcements, collectionId, hideCollection, fetchMore, hasMore }: {
   announcements: AnnouncementInfo<bigint>[],
@@ -46,9 +46,9 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
     if (hasMore) fetchMore();
   }, [hasMore, fetchMore])
 
-  const managerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
+  const manager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager;
 
-  const isManager = managerIdx >= 0 && collection && collectionId && chain.cosmosAddress === collection.managerTimeline[Number(managerIdx)].manager && chain.loggedIn
+  const isManager = manager && collection && collectionId && chain.cosmosAddress === manager && chain.loggedIn
 
   return (
     <>
@@ -133,7 +133,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
                     {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
                   </Typography.Text>
                   {chain.connected && chain.loggedIn && (chain.address === announcement.from || chain.cosmosAddress === announcement.from) &&
-                    <DeleteOutlined className='screen-button' style={{ border: 'none', cursor: 'pointer' }}
+                    <DeleteOutlined className='styled-button' style={{ border: 'none', cursor: 'pointer' }}
                       onClick={async () => {
                         if (loading) return;
 

@@ -18,8 +18,8 @@ export function MetadataStorageSelectStepItem(
           isSelected: addMethod === MetadataAddMethod.UploadUrl,
         },
         {
-          title: 'Outsourced',
-          message: <div>{`Enter your metadata directly into this form, and we handle the metadata storage for you! This is done in a decentralized manner using IPFS.`}
+          title: 'Manual',
+          message: <div>{`Enter your metadata directly into this form, and we handle the metadata storage for you in a decentralized manner using IPFS.`}
             <Tooltip
               placement='bottom'
               title={`IPFS, or Interplanetary File System, is a way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}

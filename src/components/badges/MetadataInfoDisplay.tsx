@@ -16,8 +16,8 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
-import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 
 //TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
@@ -140,48 +140,54 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               </div>
             </div>} labelSpan={7} valueSpan={17} />}
 
-          {(collection?.contractAddressTimeline ?? []).length > 0 && <TableRow label={"Contract Address"} value={
-            <>
-              <TimelineFieldWrapper
-                createNode={(contractVal: ContractAddressTimeline<bigint>) => {
-                  return <>{contractVal.contractAddress || 'None'}</>
-                }}
-                emptyNode={
-                  <>None</>
-                }
-                timeline={collection?.contractAddressTimeline ?? []}
-              />
-            </>} labelSpan={9} valueSpan={15} />}
+          {(collection?.contractAddressTimeline ?? []).length > 0 &&
+            collection?.contractAddressTimeline.some(x => x.contractAddress) &&
+            <TableRow label={"Contract Address"} value={
+              <>
+                <TimelineFieldWrapper
+                  createNode={(contractVal: ContractAddressTimeline<bigint>) => {
+                    return <>{contractVal.contractAddress || 'None'}</>
+                  }}
+                  emptyNode={
+                    <>None</>
+                  }
+                  timeline={collection?.contractAddressTimeline ?? []}
+                />
+              </>} labelSpan={9} valueSpan={15} />}
 
 
-          {(collection?.customDataTimeline ?? []).length > 0 && <TableRow label={"Custom Data"} value={
-            <>
-              <TimelineFieldWrapper
-                createNode={(customDataVal: CustomDataTimeline<bigint>) => {
-                  return <>{customDataVal.customData || 'None'}</>
-                }}
-                emptyNode={
-                  <>None</>
-                }
-                timeline={collection?.customDataTimeline ?? []}
-              />
-            </>} labelSpan={9} valueSpan={15} />}
+          {(collection?.customDataTimeline ?? []).length > 0 &&
+            collection?.customDataTimeline.some(x => x.customData) &&
+            <TableRow label={"Custom Data"} value={
+              <>
+                <TimelineFieldWrapper
+                  createNode={(customDataVal: CustomDataTimeline<bigint>) => {
+                    return <>{customDataVal.customData || 'None'}</>
+                  }}
+                  emptyNode={
+                    <>None</>
+                  }
+                  timeline={collection?.customDataTimeline ?? []}
+                />
+              </>} labelSpan={9} valueSpan={15} />}
 
 
 
-          {(collection?.isArchivedTimeline ?? []).length > 0 && <TableRow label={"Archived"} value={
-            <>
+          {(collection?.isArchivedTimeline ?? []).length > 0
 
-              <TimelineFieldWrapper
-                createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
-                  return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
-                }}
-                emptyNode={
-                  <>No</>
-                }
-                timeline={collection?.isArchivedTimeline ?? []}
-              />
-            </>} labelSpan={9} valueSpan={15} />
+            && <TableRow label={"Archived"} value={
+              <>
+
+                <TimelineFieldWrapper
+                  createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
+                    return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
+                  }}
+                  emptyNode={
+                    <>No</>
+                  }
+                  timeline={collection?.isArchivedTimeline ?? []}
+                />
+              </>} labelSpan={9} valueSpan={15} />
           }
 
           <DevMode obj={collection} />
@@ -199,12 +205,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               <Tooltip color='black' title="Note this metadata is set to have different values at different times. See the Metadata URL.">
                 <FieldTimeOutlined style={{ marginLeft: 4 }} />
               </Tooltip> : <> </>
-            // frozenMetadata ? <Tooltip color='black' title="This metad">
-            //   <LockOutlined style={{ marginLeft: 4 }} />
-            // </Tooltip> : <Tooltip color='black' title="This metadata may be changed.">
-            //   <EditOutlined style={{ marginLeft: 4 }} />
-            // </Tooltip>
-
           }
         </>}
         span={span}
@@ -221,7 +221,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
                 <LockOutlined style={{ marginLeft: 4 }} />
               </Tooltip> :
-              <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata may change.'>
+              <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata is free to be changed by whoever controls the URL.'>
                 <EditOutlined style={{ marginLeft: 4 }} />
               </Tooltip>
             }
@@ -243,7 +243,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                       ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
                         <LockOutlined style={{ marginLeft: 4 }} />
                       </Tooltip> :
-                      <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata may change.'>
+                      <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata is free to be changed by whoever controls the URL.'>
                         <EditOutlined style={{ marginLeft: 4 }} />
                       </Tooltip>
                     }

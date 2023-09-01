@@ -28,7 +28,7 @@ async function handleApiError(error: any): Promise<void> {
   } else {
     notification.error({
       message: "Oops! We ran into an error!",
-      description: error.message ? error.message : "Unknown error",
+      description: error.message ? error.message : "Unknown error: " + error,
     });
   }
 
@@ -380,7 +380,7 @@ export async function fetchMetadataDirectly(requestBody: FetchMetadataDirectlyRo
   try {
     const error = requestBody.uris.find(uri => Joi.string().uri().required().validate(uri).error);
     if (error) {
-      throw new Error(`Invalid URIs`);
+      throw `Invalid URIs`;
     }
 
     const response = await axios.post<FetchMetadataDirectlyRouteSuccessResponse<string>>(`${BACKEND_URL}${FetchMetadataDirectlyRoute()}`, requestBody);

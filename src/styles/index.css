@@ -185,40 +185,40 @@ code {
     background: rgba(255, 255, 255, 0.3);
   }
 
-  .screen-button {
+  .styled-button {
       background: #001529 !important;
       /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
       border: 1px solid white;
       color: white;
   }
 
-  .screen-button:hover {
+  .styled-button:hover {
     color: #1890ff;
     border: 1px solid #1890ff;
     background: initial;
 }
 
-.screen-button-normal {
+.styled-button-normal {
     background: inherit;
     /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
     border: 1px solid black;
     color: black;
 }
 
-.screen-button-normal:hover {
+.styled-button-normal:hover {
   color: #1890ff;
   border: 1px solid #1890ff;
   background: initial;
 }
 
-.screen-button-modal {
+.styled-button-modal {
     background: inherit;
     transition: background 0.3s, border-color 0.3s, color 0.3s;
     border: 1px solid;
     color: inherit;
 }
 
-.screen-button-modal:hover {
+.styled-button-modal:hover {
     color: #1890ff;
     border: 1px solid #1890ff;
     background: initial;

@@ -140,7 +140,6 @@ export const PermissionIcon = (permissions: UniversalPermission[], helperMsg: st
 
   const { columns, dataSource, hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getPermissionDataSource(permissions, usedFlags, neverHasManager, badgeId);
 
-
   return <>
     <Popover color='black' className="primary-text" content={<div style={{ textAlign: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', backgroundColor: 'black', color: 'white' }}>
       {
@@ -148,7 +147,7 @@ export const PermissionIcon = (permissions: UniversalPermission[], helperMsg: st
           {`There is and will never be a manager for this collection, so this permission can never be executed.`}
         </p> :
           !hasPermittedTimes && !hasForbiddenTimes && hasNeutralTimes ? <p>
-            {`This permission currently is permitted for all times and values. However, it is not frozen, meaning it could be updated to be 1) permanently forbidden or 2) permanently allowed.`}
+            {`This permission currently is permitted for all times and values. However, it is not frozen, meaning it could be updated in the future. It can also be frozen to be either permanently allowed or disallowed.`}
           </p> :
             hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes ? <p>
               {`This permission is currently forbidden for all times and values. It is also frozen, so it will always remain forbidden.`}
@@ -262,14 +261,17 @@ export const PermissionIcon = (permissions: UniversalPermission[], helperMsg: st
         </>
       }
       {
-        (neverHasManager || (hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)) &&
-        <StopOutlined style={{ marginLeft: 4, color: 'red' }} />
+        (neverHasManager || (hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)) && <>
+          <StopOutlined style={{ marginLeft: 4, color: 'red' }} />
+          <ClockCircleOutlined style={{ marginLeft: 4, color: 'red' }} />
+        </>
       }
       {
         hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes &&
-        !neverHasManager &&
-        <CheckCircleOutlined style={{ marginLeft: 4, color: 'green' }} />
-      }
+        !neverHasManager && <>
+          <CheckCircleOutlined style={{ marginLeft: 4, color: 'green' }} />
+          <ClockCircleOutlined style={{ marginLeft: 4, color: 'green' }} />
+        </>}
     </Popover >
   </>
 }

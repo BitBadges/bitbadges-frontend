@@ -2,11 +2,12 @@ import { Balance, convertBalance } from 'bitbadgesjs-proto';
 import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, TransferWithIncrements } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { DevMode } from '../../common/DevMode';
-import { MSG_PREVIEW_ID } from '../TxTimeline';
+
 import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
 import { useEffect } from 'react';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 //TODO: Create claims - Select type (codes vs direct transfers vs whitelist vs anyone) dynamically instead of hardcoding to jusst one distributionMethod
 //Also rename from CreateClaims to something more generic. Use this as 
@@ -16,8 +17,7 @@ export function CreateClaims({
   setTransfers,
   approvedTransfersToAdd,
   setApprovedTransfersToAdd,
-  existingCollectionId,
-  balancesToDistribute
+  existingCollectionId
 }: {
   distributionMethod: DistributionMethod;
   transfers: TransferWithIncrements<bigint>[];
@@ -25,14 +25,14 @@ export function CreateClaims({
   approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[];
   setApprovedTransfersToAdd: (transfers: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]) => void;
   existingCollectionId?: bigint;
-  balancesToDistribute?: Balance<bigint>[];
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
 
-
+  //This is the main useEffect where we update the collection with the new approved transfers
+  
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
     if (!collection || distributionMethod === DistributionMethod.OffChainBalances) return;
@@ -52,17 +52,14 @@ export function CreateClaims({
         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
       }]
     });
-
   }, [approvedTransfersToAdd, existingCollection, distributionMethod]);
 
   //We can either specify specific badges to distribute or distribute the whole collection if blank
-  const originalSenderBalances = balancesToDistribute ? balancesToDistribute.map(x => convertBalance(x, BigIntify))
-    : distributionMethod === DistributionMethod.OffChainBalances ? collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances || []
-      : collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances || [];
+  const originalSenderBalances = distributionMethod === DistributionMethod.OffChainBalances ?
+    collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances || []
+    : collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances || [];
 
   //TODO: Make this more dynamic
-
-
   return <div style={{ justifyContent: 'center', width: '100%' }}>
     <br />
     <div>

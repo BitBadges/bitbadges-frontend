@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { ActivityTab } from '../../../components/activity/TransferActivityDisplay';
+import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { DistributionOverview } from '../../../components/badges/DistributionCard';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
@@ -18,9 +18,9 @@ import { PermissionsOverview } from '../../../components/collection-page/Permiss
 import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
-import { MSG_PREVIEW_ID } from '../../../components/tx-timelines/TxTimeline';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
+import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -73,7 +73,6 @@ export function BadgePage({ collectionPreview }
   if (!isOffChainBalances) {
     tabInfo.push(
       { key: 'overview', content: 'Overview' },
-      // { key: 'collection', content: 'Collection' },
       { key: 'transferability', content: 'Transferability' },
       { key: 'claims', content: 'Claims' },
       { key: 'activity', content: 'Activity' },
@@ -82,18 +81,10 @@ export function BadgePage({ collectionPreview }
   } else {
     tabInfo.push(
       { key: 'overview', content: 'Overview' },
-      // { key: 'collection', content: 'Collection' },
-      // { key: 'claims', content: 'Claims' },
       { key: 'activity', content: 'Activity' },
       { key: 'actions', content: 'Actions' },
     );
   }
-
-  // const isNonTransferable = !collection?.allowedTransfers?.length;
-  // const isTransferable = collection?.allowedTransfers?.length === 1
-  //   && JSON.stringify(collection?.allowedTransfers[0].to) === JSON.stringify(AllAddressesTransferMapping.to)
-  //   && JSON.stringify(collection?.allowedTransfers[0].from) === JSON.stringify(AllAddressesTransferMapping.from);
-
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
@@ -137,7 +128,7 @@ export function BadgePage({ collectionPreview }
             />
           </>}
           {tab === 'transferability' && (
-            <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} badgeId={badgeIdNumber} />
+            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
           )}
 
 
@@ -155,49 +146,6 @@ export function BadgePage({ collectionPreview }
                       span={24}
                     />
                     <br />
-                    {/* {!isOffChainBalances && <>
-                      <InformationDisplayCard
-                        title={<>
-                          Transferability
-                          <Tooltip title="Which badge owners can transfer to which badge owners?">
-                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                          </Tooltip>
-                          {!collection?.collectionPermissions.CanUpdateAllowed ?
-                            <Tooltip title="The transferability is frozen and can never be changed.">
-                              <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faSnowflake} />
-                            </Tooltip> :
-                            <Tooltip title="Note that the manager can change the transferability.">
-                              <FontAwesomeIcon style={{ marginLeft: 4 }} icon={faUserPen} />
-                            </Tooltip>
-                          }
-                        </>
-                        }
-                      >
-                        <div style={{ margin: 8 }}>
-                          {
-                            isTransferable ? <Typography.Text style={{ fontSize: 20 }} className='primary-text'>Transferable</Typography.Text> : <>
-                              {isNonTransferable ? <Typography.Text style={{ fontSize: 20 }} className='primary-text'>Non-Transferable</Typography.Text>
-                                : <>                                        {
-                                  collection?.allowedTransfers.map((transfer) => {
-                                    return <>
-                                      The addresses with account IDs {transfer.from.addresses.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range}</span>
-                                      })} {transfer.from.managerOptions === 1n ? '(including the manager)' : transfer.from.managerOptions === 2n ? '(excluding the manager)' : ''} cannot
-                                      transfer to the addresses with account IDs {transfer.to.addresses.map((range, index) => {
-                                        return <span key={index}>{index > 0 && ','} {range}</span>
-                                      })} {transfer.to.managerOptions === 1n ? '(including the manager)' : transfer.to.managerOptions === 2n ? '(excluding the manager)' : ''}.
-                                      <br />
-                                    </>
-                                  })
-                                }
-                                </>
-                              }
-                            </>
-                          }
-                        </div>
-                      </InformationDisplayCard>
-                      <br />
-                    </>} */}
                     {collection &&
                       <PermissionsOverview
                         collectionId={collectionIdNumber}

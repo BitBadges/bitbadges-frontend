@@ -2,7 +2,8 @@ import { Checkbox, Divider } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
 import { CollectionApprovedTransferPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../TxTimeline';
+import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+
 
 export function PermissionUpdateSelectWrapper({
   checked,
@@ -101,7 +102,7 @@ export function PermissionUpdateSelectWrapper({
             <div style={{ color: 'red', textAlign: 'center' }}>
               <b>Error: </b>{err.message}
               <br />
-              <p>Please resolve this error before continuing. This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
+              <p>Please resolve this error before continuing. This error may have happened because this collection previously used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
 
               <Divider />
             </div></>}

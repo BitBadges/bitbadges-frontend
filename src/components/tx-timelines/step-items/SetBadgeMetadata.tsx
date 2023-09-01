@@ -5,7 +5,7 @@ import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { PermissionIcon, } from "../../collection-page/PermissionsInfo";
 import { ToolIcon } from "../../display/ToolIcon";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
@@ -57,9 +57,9 @@ export function SetBadgeMetadataStepItem(
               <Divider />
             </div>}
           {addMethod != MetadataAddMethod.UploadUrl && <>
-            <div className='flex-center'>
+            <div className='flex-center full-width'>
 
-              <div style={{ maxWidth: 700 }} className='primary-text'>
+              <div className='primary-text full-width'>
                 <BadgeAvatarDisplay
                   collectionId={MSG_PREVIEW_ID}
                   badgeIds={[
@@ -68,7 +68,6 @@ export function SetBadgeMetadataStepItem(
                       end: collection ? getTotalNumberOfBadges(collection) : 1n
                     }
                   ]}
-                  size={50}
                   showIds={true}
                 />
               </div>

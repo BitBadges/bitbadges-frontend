@@ -12,12 +12,8 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
   fetchMore: () => void,
   hasMore: boolean
 }) {
-
   const collections = useCollectionsContext();
-
-
   const router = useRouter();
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
@@ -25,7 +21,6 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
     collections.fetchCollections(collectionsToFetch);
 
     if (INFINITE_LOOP_MODE) console.log('AnnouncementsTab useEffect', { collectionsToFetch });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claimAlerts]);
 
   useEffect(() => {
@@ -35,7 +30,6 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
 
   return (
     <>
-
       {claimAlerts.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No Alerts"
@@ -57,7 +51,6 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
         {claimAlerts.sort(
           (a, b) => Number(b.createdTimestamp) - Number(a.createdTimestamp)
         ).map((claimAlert, index) => {
-          // if (index < currPageStart || index > currPageEnd) return <></>;
 
           const collectionToDisplay = collections.collections[claimAlert.collectionId.toString()];
           return (

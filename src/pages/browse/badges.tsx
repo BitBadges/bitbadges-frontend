@@ -1,16 +1,18 @@
-import { Divider, Layout, Spin, Typography } from 'antd';
+import { Divider, Layout, Select, Spin, Typography } from 'antd';
 import { useState } from 'react';
 import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
-import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
+import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
 import { Tabs } from '../../components/navigation/Tabs';
+import { DownOutlined } from '@ant-design/icons';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const browseContext = useBrowseContext();
   const browseInfo = browseContext.browse;
-  
+
   const [tab, setTab] = useState('latest');
+  const [cardView, setCardView] = useState(false);
 
   return (
     <Layout>
@@ -48,20 +50,58 @@ function BrowsePage() {
             tab={tab}
           />
 
-          {!browseInfo && <Spin size='large' />}
-          <div>
-            {/* <br /> */}
-            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <MultiCollectionBadgeDisplay
-                collectionIds={(browseInfo && browseInfo.collections[tab]?.map(collection => {
-                  console.log(collection);
-                  return collection.collectionId
-                })) ?? []}
-                groupByCollection
-                cardView
-              />
+          {!browseInfo ? <Spin size='large' /> : <>
+            <br />
+
+            <div className='primary-text primary-blue-bg'
+              style={{
+                float: 'right',
+                display: 'flex',
+                alignItems: 'center',
+                marginLeft: 16,
+                marginRight: 16,
+                marginTop: 5,
+              }}>
+              View:
+
+              <Select
+                className="selector primary-text primary-blue-bg"
+                value={cardView ? 'card' : 'image'}
+                placeholder="Default: None"
+                onChange={(e: any) => {
+                  setCardView(e === 'card');
+                }}
+                style={{
+                  float: 'right',
+                  marginLeft: 8
+                }}
+                suffixIcon={
+                  <DownOutlined
+                    className='primary-text'
+                  />
+                }
+              >
+                <Select.Option value="card">Card</Select.Option>
+                <Select.Option value="image">Image</Select.Option>
+              </Select>
             </div>
-          </div>
+
+            <Divider />
+            <div>
+              {/* <br /> */}
+              <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <MultiCollectionBadgeDisplay
+                  collectionIds={(browseInfo && browseInfo.collections[tab]?.map(collection => {
+                    console.log(collection);
+                    return collection.collectionId
+                  })) ?? []}
+                  groupByCollection
+                  cardView={cardView}
+                />
+              </div>
+            </div>
+
+          </>}
         </div>
 
         <Divider />

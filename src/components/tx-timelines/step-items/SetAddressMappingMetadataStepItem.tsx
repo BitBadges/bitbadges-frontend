@@ -4,7 +4,7 @@ import { MetadataForm } from "../form-items/MetadataForm";
 
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { ToolIcon } from "../../display/ToolIcon";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 export function SetAddressMappingMetadataStepItem() {
 

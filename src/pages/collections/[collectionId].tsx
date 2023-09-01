@@ -2,7 +2,7 @@ import { Divider, Empty, Layout, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -14,9 +14,9 @@ import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { Tabs } from '../../components/navigation/Tabs';
-import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Content } = Layout;
 
@@ -56,7 +56,7 @@ function CollectionPage({
       { key: 'actions', content: 'Actions', disabled: false },
     )
   } else {
-    // EXPERIMENTAL STANDARD
+
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
@@ -76,7 +76,7 @@ function CollectionPage({
         const currCollection = collectionsRes[0];
 
         const managers = currCollection.managerTimeline.map(x => x.manager).filter(x => x);
-        accounts.fetchAccounts([currCollection.createdBy, ...managers]);
+        accounts.fetchAccounts([...new Set([currCollection.createdBy, ...managers])])
 
         if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
           notification.warn({
@@ -101,19 +101,6 @@ function CollectionPage({
     if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to claims');
     if (code || password || claimsTab) setTab('claims');
   }, [code, password, claimsTab])
-
-  // Get user's badge balance
-  // useEffect(() => {
-  //   if (INFINITE_LOOP_MODE) console.log('useEffect: get badge balance by address from api ');
-  //   if (isPreview) return;
-  //   async function getBadgeBalanceByAddressFromApi() {
-  //     if (isPreview) return;
-  //     if (collectionIdNumber > 0 && chain.address) {
-  //       await collections.fetchBalanceForUser(collectionIdNumber, chain.address);
-  //     }
-  //   }
-  //   getBadgeBalanceByAddressFromApi();
-  // }, [collectionIdNumber, chain.address, isPreview]);
 
   return (
     <Layout>
@@ -151,7 +138,7 @@ function CollectionPage({
               <BadgesTab collectionId={collectionIdNumber} />
             )}
             {tab === 'transferability' && (
-              <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} />
+              <TransferabilityTab collectionId={collectionIdNumber} />
             )}
 
             {tab === 'approvals' && (

@@ -12,6 +12,9 @@ export function InformationDisplayCard({
   md,
   style,
   lg,
+  xl,
+  xxl,
+
 }: {
   title: string | React.ReactNode
   children?: React.ReactNode
@@ -21,11 +24,13 @@ export function InformationDisplayCard({
   sm?: number,
   md?: number,
   lg?: number,
+  xl?: number,
+  xxl?: number,
   style?: React.CSSProperties
 }) {
   return (
     <Col
-
+      xl={xl ? xl : undefined} xxl={xxl ? xxl : undefined}
       xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
       span={span ? span : undefined} style={{ ...style, padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
       <div className="primary-text">

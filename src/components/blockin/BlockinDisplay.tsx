@@ -105,7 +105,6 @@ export const BlockinDisplay = ({
     if (!signChallengeResponse.originalBytes || !signChallengeResponse.signatureBytes) {
       return { success: false, message: `${signChallengeResponse.message}` };
     }
-    console.log(challenge);
     const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
       signChallengeResponse.originalBytes,
       signChallengeResponse.signatureBytes,
@@ -129,6 +128,7 @@ export const BlockinDisplay = ({
   const logout = async () => {
     setLoggedIn(false);
     await signOut();
+    setCookie('blockincookie', '', { path: '/' });
     const res = await getSignInChallenge({ chain, address });
     setChallengeParams(res.params);
   }
@@ -177,16 +177,6 @@ export const BlockinDisplay = ({
 
           }}
           selectedChainName={chain}
-          // displayedResources={displayedResources}
-          // displayedResources={[{
-          //   uri: "X-ALGO-USDT",
-          //   name: "USDT",
-          //   description: "Tether USD on Algorand",
-          //   // image?: string;
-          //   frozen: true,
-          //   defaultSelected: true,
-          // }
-          // ]}
           displayedAssets={[
             // {
             //   collectionId: 2,
@@ -239,33 +229,10 @@ export const BlockinDisplay = ({
           hideConnectVsSignInHelper={hideLogin}
           allowTimeSelect
           maxTimeInFuture={168 * 60 * 60 * 1000}
-        // customDisplay={<>
-        //   {loading && <Spin size='large' />}
-        // </>}
         />
       }
 
     </div >
-    {/* {!hideLogin && <>
-      <div className='flex-center' style={{ color: 'black', alignItems: 'center', marginTop: 4 }}>
-        <Typography.Text className='secondary-text'>
-          Remember my sign-in for
-        </Typography.Text>
-        <InputNumber
-          value={hours}
-          onChange={(value) => {
-            setHours(value);
-          }}
-          min={1}
-          max={168}
-          className='primary-text primary-blue-bg'
-          style={{ width: 70, marginLeft: 10, marginRight: 10 }}
-        />
-        <Typography.Text className='secondary-text'>
-          hours
-        </Typography.Text>
-      </div>
-    </>} */}
     {
       !hideLogo && <>
         <div>

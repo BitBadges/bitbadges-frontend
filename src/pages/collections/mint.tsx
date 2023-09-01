@@ -2,7 +2,8 @@ import React from 'react';
 import { Layout } from 'antd';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { TxTimeline, MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
+import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Content } = Layout;
 
@@ -33,11 +34,6 @@ function Mint() {
                   }}
                 >
                   <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' isModal={false} />
-                  {/* <CreateTxMsgUpdateCollectionModal
-                    visible={true}
-                    setVisible={() => { }}
-                    collectionId={0n}
-                  /> */}
                 </div>
               </Content>
             </Layout>

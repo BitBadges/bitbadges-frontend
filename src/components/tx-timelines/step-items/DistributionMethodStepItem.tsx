@@ -3,8 +3,8 @@ import { DistributionMethod, getReservedAddressMapping } from "bitbadgesjs-utils
 import { useRef } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 const crypto = require('crypto');
 
 export function DistributionMethodStepItem(
@@ -96,8 +96,9 @@ export function DistributionMethodStepItem(
   if (!hideUnminted) {
     options.push({
       title: 'Unminted',
-      message: 'Do nothing now. Leave the distribution of badges for a later time.',
+      message: 'Do nothing now.' + (neverHasManager && (collection?.owners.find(x => x.cosmosAddress === "Mint")?.balances ?? []).length > 0 ? ' IMPORTANT: You have selected to have no manager for this collection, but there are current badges that are unminted and undistributed. These badges will be permanently frozen and unable to be distributed if this option is selected.' : ''),
       isSelected: distributionMethod == DistributionMethod.Unminted,
+      // disabled: neverHasManager
     })
   }
 
@@ -223,29 +224,6 @@ export function DistributionMethodStepItem(
           }
         }}
       />
-      {/* <Divider />
-      <Divider />
-
-      <div className='flex-center flex-wrap flex-column'>
-        <Typography.Text strong className='primary-text' style={{ fontSize: 20, textAlign: 'center' }}>Distribution Tools</Typography.Text>
-        <Typography.Text strong className='secondary-text' style={{ fontSize: 14, textAlign: 'center' }}>
-          Below is a list of compatible tools to help you distribute badges according to your preferred method.
-          Please follow instructions to ensure that your badges are distributed correctly.
-        </Typography.Text>
-
-        <br />
-        <Row className='full-width'>
-          {tools.filter(x => x.toolType === 'Collection').map(x => {
-            return <ToolIcon
-              key={x.name}
-              name={x.name}
-            />
-          })}
-
-        </Row>
-
-        <br />
-      </div> */}
     </div>,
     disabled: distributionMethod == DistributionMethod.None
   }

@@ -1,18 +1,35 @@
 import { Card, Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBrowseContext } from '../../bitbadges-api/contexts/BrowseContext';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { Tabs } from '../../components/navigation/Tabs';
+import { AddressListCard } from '../../components/badges/AddressListCard';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const router = useRouter();
+  const accounts = useAccountsContext();
 
   const browseContext = useBrowseContext();
   const browseInfo = browseContext.browse;
   const [tab, setTab] = useState('latest');
+
+  useEffect(() => {
+    const accountsToFetch = browseInfo?.addressMappings[tab]?.map(addressMapping => addressMapping.createdBy) || [];
+    if (accountsToFetch.length > 0) {
+      accounts.fetchAccounts(accountsToFetch);
+    }
+  }, []);
+
+  useEffect(() => {
+    const accountsToFetch = browseInfo?.addressMappings[tab]?.map(addressMapping => addressMapping.createdBy) || [];
+    if (accountsToFetch.length > 0) {
+      accounts.fetchAccounts(accountsToFetch);
+    }
+  }, [tab]);
 
   return (
     <Layout>
@@ -54,37 +71,10 @@ function BrowsePage() {
             {/* <br /> */}
             <div className='full-width flex-center flex-wrap'>
               {browseInfo?.addressMappings[tab]?.map((addressMapping, idx) => {
-                return <div key={idx} style={{ margin: 16 }}>
-                  <Card
-                    className='primary-text primary-blue-bg'
-                    style={{
-                      width: 175,
-                      margin: 8,
-                      textAlign: 'center',
-                      borderRadius: '8%',
-                    }}
-                    hoverable={true}
-                    onClick={() => {
-                      router.push(`/addresses/${addressMapping.mappingId}`);
-                    }}
-                    cover={<>
-                      <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
-                        <BadgeAvatar
-                          collectionId={0n}
-                          metadataOverride={addressMapping.metadata}
-                          size={75}
-                        />
-                      </div>
-
-                    </>
-                    }
-                  >
-                    <Typography.Text strong className='primary-text'>
-                      {addressMapping.metadata?.name}
-                    </Typography.Text>
-                  </Card>
-
-                </div>
+                return <AddressListCard
+                  addressMapping={addressMapping}
+                  key={idx}
+                />
               })}
             </div>
           </div>

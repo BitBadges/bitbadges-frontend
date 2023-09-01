@@ -9,9 +9,9 @@ import { AddressDisplayList } from "../../address/AddressDisplayList";
 import { AddressListSelect } from "../../address/AddressListSelect";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
-import { NumberInput } from "../../display/NumberInput";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
-import { BalanceInput } from "../form-items/BalanceInput";
+import { NumberInput } from "../../inputs/NumberInput";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { BalanceInput } from "../../inputs/BalanceInput";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
@@ -32,319 +32,230 @@ export function TransferabilitySelectStepItem(
   const [collectionId, setCollectionId] = useState<bigint>(1n);
   const [frozenUsers, setFrozenUsers] = useState<string[]>([]);
   const [clicked, setClicked] = useState<boolean>(false);
-
-  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
-  useEffect(() => {
-    if (!collection) return;
-
-    const newApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
-
-    for (const user of frozenUsers) {
-      newApprovedTransfers.push({
-        toMappingId: "AllWithoutMint",
-        fromMappingId: convertToCosmosAddress(user),
-        initiatedByMappingId: "AllWithoutMint",
-        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
-        toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        approvalDetails: [],
-        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        allowedCombinations: [{
-          isApproved: false,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          fromMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          badgeIdsOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          transferTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-        }]
-
-      });
-
-      newApprovedTransfers.push({
-        fromMappingId: "AllWithoutMint",
-        toMappingId: convertToCosmosAddress(user),
-        initiatedByMappingId: "AllWithoutMint",
-        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
-        fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        approvalDetails: [],
-        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        allowedCombinations: [{
-          isApproved: false,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          fromMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          badgeIdsOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          transferTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-        }]
-
-      });
-
-    }
-
-    newApprovedTransfers.push({
-      fromMappingId: "AllWithoutMint",
-      toMappingId: "AllWithoutMint",
-      initiatedByMappingId: "AllWithoutMint",
-      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-      fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-      initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-      approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
-        [{
-          approvalId: approvalId.current,
-          uri: '',
-          customData: '',
-          mustOwnBadges: mustOwnBadges,
-          approvalAmounts: {
-            overallApprovalAmount: 0n,
-            perFromAddressApprovalAmount: 0n,
-            perToAddressApprovalAmount: 0n,
-            perInitiatedByAddressApprovalAmount: 0n,
-          },
-          maxNumTransfers: {
-            overallMaxNumTransfers: 0n,
-            perFromAddressMaxNumTransfers: 0n,
-            perToAddressMaxNumTransfers: 0n,
-            perInitiatedByAddressMaxNumTransfers: 0n,
-          },
-          predeterminedBalances: {
-            manualBalances: [],
-            incrementedBalances: {
-              startBalances: [],
-              incrementBadgeIdsBy: 0n,
-              incrementOwnershipTimesBy: 0n,
-            },
-            orderCalculationMethod: {
-              useMerkleChallengeLeafIndex: false,
-              useOverallNumTransfers: false,
-              usePerFromAddressNumTransfers: false,
-              usePerInitiatedByAddressNumTransfers: false,
-              usePerToAddressNumTransfers: false,
-            },
-          },
-          merkleChallenges: [], //handled later
-          requireToEqualsInitiatedBy: false,
-          requireFromEqualsInitiatedBy: false,
-          requireToDoesNotEqualInitiatedBy: false,
-          requireFromDoesNotEqualInitiatedBy: false,
-
-
-          overridesToApprovedIncomingTransfers: false,
-          overridesFromApprovedOutgoingTransfers: false,
-        }]
-
-        : [], //no restrictions
-      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      allowedCombinations: [{
-        isApproved: true,
-        toMappingOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-        fromMappingOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-
-        initiatedByMappingOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-        badgeIdsOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-        ownershipTimesOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-        transferTimesOptions: {
-          invertDefault: false,
-          allValues: false,
-          noValues: false
-        },
-      }]
-
-    });
-
-    collections.updateCollection({
-      ...collection,
-      collectionApprovedTransfersTimeline: [{
-        collectionApprovedTransfers: newApprovedTransfers,
-        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      }]
-    });
-  }, [mustOwnBadges, frozenUsers]);
-  if (!collection) return EmptyStepItem;
-
   // const approvedTransfers = collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []
   // const lastElement = approvedTransfers.length > 0 ? approvedTransfers[approvedTransfers.length - 1] : undefined;
 
   //Hardcoded and naive
   const filteredApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
 
-
   const transferableLength = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).length - filteredApprovedTransfers.length;
   const transferable = transferableLength > 0;
 
+  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  useEffect(() => {
+    if (!collection || !clicked) return;
+
+    if (transferable) {
+      const newApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
+
+      for (const user of frozenUsers) {
+        newApprovedTransfers.push({
+          toMappingId: "AllWithoutMint",
+          fromMappingId: convertToCosmosAddress(user),
+          initiatedByMappingId: "AllWithoutMint",
+          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
+          toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+          initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+          approvalDetails: [],
+          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          allowedCombinations: [{
+            isApproved: false,
+            toMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            fromMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+
+            initiatedByMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            badgeIdsOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            ownershipTimesOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            transferTimesOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+          }]
+
+        });
+
+        newApprovedTransfers.push({
+          fromMappingId: "AllWithoutMint",
+          toMappingId: convertToCosmosAddress(user),
+          initiatedByMappingId: "AllWithoutMint",
+          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
+          fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+          initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+          approvalDetails: [],
+          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          allowedCombinations: [{
+            isApproved: false,
+            toMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            fromMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+
+            initiatedByMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            badgeIdsOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            ownershipTimesOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            transferTimesOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+          }]
+
+        });
+
+      }
+
+      newApprovedTransfers.push({
+        fromMappingId: "AllWithoutMint",
+        toMappingId: "AllWithoutMint",
+        initiatedByMappingId: "AllWithoutMint",
+        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
+          [{
+            approvalId: approvalId.current,
+            uri: '',
+            customData: '',
+            mustOwnBadges: mustOwnBadges,
+            approvalAmounts: {
+              overallApprovalAmount: 0n,
+              perFromAddressApprovalAmount: 0n,
+              perToAddressApprovalAmount: 0n,
+              perInitiatedByAddressApprovalAmount: 0n,
+            },
+            maxNumTransfers: {
+              overallMaxNumTransfers: 0n,
+              perFromAddressMaxNumTransfers: 0n,
+              perToAddressMaxNumTransfers: 0n,
+              perInitiatedByAddressMaxNumTransfers: 0n,
+            },
+            predeterminedBalances: {
+              manualBalances: [],
+              incrementedBalances: {
+                startBalances: [],
+                incrementBadgeIdsBy: 0n,
+                incrementOwnershipTimesBy: 0n,
+              },
+              orderCalculationMethod: {
+                useMerkleChallengeLeafIndex: false,
+                useOverallNumTransfers: false,
+                usePerFromAddressNumTransfers: false,
+                usePerInitiatedByAddressNumTransfers: false,
+                usePerToAddressNumTransfers: false,
+              },
+            },
+            merkleChallenges: [], //handled later
+            requireToEqualsInitiatedBy: false,
+            requireFromEqualsInitiatedBy: false,
+            requireToDoesNotEqualInitiatedBy: false,
+            requireFromDoesNotEqualInitiatedBy: false,
+
+
+            overridesToApprovedIncomingTransfers: false,
+            overridesFromApprovedOutgoingTransfers: false,
+          }]
+
+          : [], //no restrictions
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        allowedCombinations: [{
+          isApproved: true,
+          toMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          fromMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+
+          initiatedByMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          badgeIdsOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          ownershipTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          transferTimesOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+        }]
+
+      });
+
+
+      collections.updateCollection({
+        ...collection,
+        collectionApprovedTransfersTimeline: [{
+          collectionApprovedTransfers: newApprovedTransfers,
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        }]
+      });
+    }
+  }, [mustOwnBadges, frozenUsers]);
+  if (!collection) return EmptyStepItem;
+
+
+
+
 
   const err = existingCollection ? validateCollectionApprovedTransfersUpdate(existingCollection.collectionApprovedTransfersTimeline, collection.collectionApprovedTransfersTimeline, existingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers) : undefined;
-
-  // let details: UniversalPermissionDetails[] = [];
-  // //Currently hardcoded and programmed to only handle [] or [value forever]; no custom 
-  // if (collection) {
-
-  //   const existingTranferability: CollectionApprovedTransferTimelineWithDetails<bigint>[] = [];
-  //   const newMetadata = collection.collectionApprovedTransfersTimeline;
-  //   console.log(newMetadata, existingTranferability);
-  //   if (JSON.stringify(existingTranferability) !== JSON.stringify(newMetadata)) {
-  //     details.push({
-  //       timelineTime: { start: 1n, end: GO_MAX_UINT_64 },
-
-  //       badgeId: { start: -1n, end: -1n },
-  //       ownershipTime: { start: -1n, end: -1n },
-  //       transferTime: { start: -1n, end: -1n },
-  //       toMapping: { mappingId: 'AllWithMint', addresses: [], includeAddresses: false, uri: '', customData: '' },
-  //       fromMapping: { mappingId: 'AllWithMint', addresses: [], includeAddresses: false, uri: '', customData: '' },
-  //       initiatedByMapping: { mappingId: 'AllWithMint', addresses: [], includeAddresses: false, uri: '', customData: '' },
-  //       permittedTimes: [],
-  //       forbiddenTimes: [],
-  //       arbitraryValue: undefined
-  //     });
-  //   } else {
-  //     equalsExisting = true;
-  //   }
-  // }
-
-  // const permissions: CollectionApprovedTransferPermissionWithDetails<bigint>[] = [{
-  //   defaultValues: {
-  //     timelineTimes: [],
-  //     ownershipTimes: [],
-  //     transferTimes: [],
-  //     fromMappingId: 'All',
-  //     toMappingId: 'All',
-  //     initiatedByMappingId: 'All',
-  //     fromMapping: getReservedAddressMapping("All", '') as AddressMapping,
-  //     toMapping: getReservedAddressMapping("All", '') as AddressMapping,
-  //     initiatedByMapping: getReservedAddressMapping("All", '') as AddressMapping,
-  //     forbiddenTimes: [],
-  //     permittedTimes: [],
-  //     badgeIds: [],
-  //   },
-  //   combinations: [{
-  //     badgeIdsOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     timelineTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     forbiddenTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     permittedTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: false,
-  //       noValues: false,
-  //     },
-  //     fromMappingOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     toMappingOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     initiatedByMappingOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     transferTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     ownershipTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //   }]
-  // }];
-
-  // const err = details.length > 0 ? checkCollectionApprovedTransferPermission(details, permissions) : undefined;
-
 
   return {
     title: `Select Transferability`,

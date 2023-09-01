@@ -1,6 +1,6 @@
 import { Avatar, Divider } from "antd";
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, validateManagerUpdate } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
@@ -9,9 +9,11 @@ import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { MSG_PREVIEW_ID, EmptyStepItem, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { DevMode } from "../../common/DevMode";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 
 export function ConfirmManagerStepItem(
   canUpdateManager: boolean,
@@ -21,41 +23,32 @@ export function ConfirmManagerStepItem(
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
+  const txTimelineContext = useTxTimelineContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
   const signedInAccount = accounts.getAccount(chain.address);
-  const [address, setAddress] = useState<string>(signedInAccount?.address || '');
-  const [hasManager, setHasManager] = useState<boolean>(true);
+  const [address, setAddress] = useState<string>(currentManager || signedInAccount?.address || '');
+  const hasManager = txTimelineContext.updateManagerTimeline;
 
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
+    if (!collection || !hasManager) return;
+
+    collections.updateCollection({
+      ...collection,
+      managerTimeline: [{
+        manager: convertToCosmosAddress(address),
+        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+      }],
+    })
+  }, [address, hasManager])
+
   if (!collection) return EmptyStepItem;
-  // const permissions: TimedUpdatePermission<bigint>[] = [{
-  //   defaultValues: {
-  //     timelineTimes: [],
-  //     forbiddenTimes: [],
-  //     permittedTimes: [],
-  //   },
-  //   combinations: [{
-  //     timelineTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     forbiddenTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     permittedTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: false,
-  //       noValues: false,
-  //     },
-  //   }]
-  // }];
   const err = existingCollection ? validateManagerUpdate(existingCollection.managerTimeline, collection.managerTimeline, existingCollection.collectionPermissions.canUpdateManager) : undefined;
 
-  // const err = validateManagerUpdate(existingCollection?.managerTimeline ?? [], collection.managerTimeline, permissions);
+
 
 
 
@@ -106,7 +99,7 @@ export function ConfirmManagerStepItem(
 
               <SwitchForm
                 onSwitchChange={(idx) => {
-                  setHasManager(idx == 1);
+                  txTimelineContext.setUpdateManagerTimeline(idx == 1);
                   if (idx == 0) {
                     collections.updateCollection({
                       ...collection,
@@ -121,17 +114,15 @@ export function ConfirmManagerStepItem(
                       }],
                     })
                   }
-
-
                 }}
                 options={[{
                   title: 'No Manager',
-                  message: 'Do not have a manager for this collection. No admin privileges will be available to you. The collection details will be final and frozen after this transaction is processed.',
+                  message: 'Do not have a manager for this collection. No admin privileges will ever be available for this collection.',
                   isSelected: !hasManager,
                 },
                 {
                   title: 'Manager',
-                  message: 'Specify a manager for this collection.',
+                  message: 'Specify a manager for this collection that can execute admin privileges.',
                   isSelected: hasManager,
                 },
                 ]}
@@ -143,8 +134,8 @@ export function ConfirmManagerStepItem(
                   size={150}
                   src={
                     <BlockiesAvatar
-                      address={address}
-                      avatar={signedInAccount?.profilePicUrl ?? signedInAccount?.avatar}
+                      address={accounts.getAccount(currentManager)?.address ?? ''}
+                      avatar={accounts.getAccount(currentManager)?.profilePicUrl ?? accounts.getAccount(currentManager)?.avatar}
                       fontSize={150}
                       shape='circle'
                     />
@@ -152,7 +143,7 @@ export function ConfirmManagerStepItem(
                 />
 
                 <AddressDisplay
-                  addressOrUsername={address}
+                  addressOrUsername={currentManager}
                   hidePortfolioLink
                 />
                 <Divider />
@@ -169,14 +160,13 @@ export function ConfirmManagerStepItem(
                           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         }],
                       })
-                    }
-                    }
+                    }}
                   />
                 </div>
               </div>
               }
             </div>
-
+            <DevMode obj={collection.managerTimeline} />
           </div >
         }
       />

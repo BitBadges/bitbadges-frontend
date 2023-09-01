@@ -36,6 +36,7 @@ export function ActionsTab({
     showModal: () => void,
     disabled?: boolean
   }[] = [];
+  
 
   const managerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
   const isManager = managerIdx >= 0 && collection && collection.managerTimeline[Number(managerIdx)].manager === chain.cosmosAddress;

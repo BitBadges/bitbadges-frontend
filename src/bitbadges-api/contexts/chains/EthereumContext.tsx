@@ -1,15 +1,15 @@
-import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
-import { PresetUri } from 'blockin';
-import { ethers } from 'ethers';
-import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
-import Web3Modal from "web3modal";
 import { Secp256k1 } from '@cosmjs/crypto';
 import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi/core";
 import { useWeb3Modal } from "@web3modal/react";
 import { notification } from 'antd';
+import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
 import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { PresetUri } from 'blockin';
+import { ethers } from 'ethers';
+import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
+import Web3Modal from "web3modal";
 import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { useAccountsContext } from '../AccountsContext';
@@ -97,39 +97,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     async function setDetails() {
       if (INFINITE_LOOP_MODE) console.log('useEffect: ethereumContext');
       if (web3AccountContext.address) {
-        setAddress(web3AccountContext.address);
-        setCosmosAddress(convertToCosmosAddress(web3AccountContext.address));
-
-
-        let loggedIn = false;
-        if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
-          const signedInRes = await checkIfSignedIn({});
-          setLoggedIn(signedInRes.signedIn);
-          loggedIn = signedInRes.signedIn;
-        }
-        const viewsToFetch = DefaultViewsToFetch.slice();
-
-        if (loggedIn) {
-          viewsToFetch.push({
-            viewKey: 'latestClaimAlerts',
-            bookmark: '',
-          }, {
-            viewKey: 'latestAddressMappings',
-            bookmark: ''
-          })
-          setLastSeenActivity(Date.now());
-        }
-
-        accountsContext.fetchAccountsWithOptions([{
-          address: web3AccountContext.address,
-          fetchSequence: true,
-          fetchBalance: true,
-          viewsToFetch: viewsToFetch
-        }]);
-        setConnected(true);
-      } else {
-        setConnected(false);
+        connect();
       }
+
     }
 
     setDetails();
@@ -144,20 +114,28 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
   const connect = async () => {
     if (!web3AccountContext.address) {
+      setConnected(false);
       try {
         await open();
       } catch (e) {
         notification.error({
           message: 'Error connecting to wallet',
-          description: 'Make sure you have a compatible Ethereum wallet installed (e.g. MetaMask) and that you are signed in to it.',
+          description: 'Make sure you have a compatible Ethereum wallet installed (such as MetaMask) and that you are signed in to it.',
         })
       }
     } else if (web3AccountContext.address) {
       let loggedIn = false;
+
+      setAddress(web3AccountContext.address);
+      setCosmosAddress(convertToCosmosAddress(web3AccountContext.address));
+      setConnected(true);
+
       if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
         const signedInRes = await checkIfSignedIn({});
         setLoggedIn(signedInRes.signedIn);
         loggedIn = signedInRes.signedIn;
+      } else {
+        setLoggedIn(false);
       }
 
       const viewsToFetch = DefaultViewsToFetch.slice();

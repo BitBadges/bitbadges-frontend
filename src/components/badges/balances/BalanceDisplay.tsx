@@ -41,7 +41,7 @@ export function BalanceDisplay({
   isMustOwnBadgesInput?: boolean
 }) {
 
-
+  console.log(balances);
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
 
@@ -64,6 +64,8 @@ export function BalanceDisplay({
         incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
       }
     ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
+    console.log(allBalances);
+
 
     const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
       return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
@@ -75,21 +77,13 @@ export function BalanceDisplay({
 
 
 
-  return <div className="flex-center flex-column">
+  return <div className="flex-center flex-column full-width" >
     {!hideMessage && <div className="flex-evenly">
       <div className="full-width flex-center" style={{ textAlign: 'center', fontSize: 15 }}>
         <b>{message ? message : 'Balances'}</b>
       </div>
     </div>}
-    {/* {!!lastFetchedAt &&
-      <div>
-        <InfoCircleOutlined style={{ marginRight: 4 }} />
-        <span style={{ fontSize: 12 }}>
-          {lastFetchedAt ? 'Last updated at: ' + new Date(Number(lastFetchedAt)).toLocaleDateString() + ' ' + new Date(Number(lastFetchedAt)).toLocaleTimeString() : 'Loading...'}
-        </span>
-
-      </div>} */}
-    <div className="flex-evenly">
+    <div className="flex-center full-width">
       <div className='flex-column full-width' style={{ textAlign: floatToRight ? 'right' : 'center', justifyContent: 'end' }}>
         <div className='full-width flex-center' style={{ fontSize: 15, alignItems: 'normal' }}>
           <table style={{ alignItems: 'normal' }}>
@@ -109,41 +103,11 @@ export function BalanceDisplay({
               const badgeIds = balance.badgeIds;
               const ownershipTimes = balance.ownershipTimes;
 
-              // if (numIncrements > 0 && incrementBadgeIdsBy > 0) {
-              //   return <>
-              //     {numIncrements > 0 && incrementBadgeIdsBy > 0 ? (
-              //       <>
-              //         {' '}
-              //         (x{Numberify(amount)} of IDs{' '}
-              //         {badgeIds.map((uintRange, idx) => (
-              //           <span key={idx}>
-              //             {idx !== 0 ? ', ' : ' '}
-              //             {uintRange.start === uintRange.end
-              //               ? `${uintRange.start}`
-              //               : `${uintRange.start}-${uintRange.end}`}
-              //           </span>
-              //         ))}
-              //         to first recipient, then x{Numberify(amount)} of IDs{' '}
-              //         {badgeIds.map((uintRange, idx) => (
-              //           <span key={idx}>
-              //             {idx !== 0 ? ', ' : ' '}
-              //             {uintRange.start === uintRange.end
-              //               ? `${uintRange.start + incrementBadgeIdsBy}`
-              //               : `${uintRange.start + incrementBadgeIdsBy}-${uintRange.end + incrementBadgeIdsBy}`}
-              //           </span>
-              //         ))}, and so on)
-              //       </>
-              //     ) : numIncrements > 1 && (
-              //       <>
-              //         {' '}
-              //         (x{Numberify(amount)} to each recipient)
-              //       </>
-              //     )}</>
-              // }
+
               return <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
                 <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>
                 <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true, showingSupplyPreview)}</td>
+                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
               </tr>
             })}
             {(!balances || balances?.length === 0) && <span>None</span>}
@@ -152,20 +116,20 @@ export function BalanceDisplay({
 
 
         {!hideBadges && <>
-          <br /><div>
-            {(!balances || balances?.length === 0) ? <div style={{ textAlign: 'center', display: 'flex' }}>
+          <br /><div className='full-width flex-center'>
+            {(!balances || balances?.length === 0) ? <div className='full-width flex-center' style={{ textAlign: 'center', display: 'flex' }}>
               <Empty
                 className='primary-text primary-blue-bg'
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={'No balances found.'}
               />
-            </div> : <div style={{ marginTop: 4 }}>
+            </div> : <div style={{ marginTop: 4 }} className=' full-width'>
               <BadgeAvatarDisplay
                 collectionId={collectionId}
                 balance={allBalances}
                 badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1))}
                 showIds
-                showSupplys={false}
+                showSupplys={true}
                 cardView={cardView}
                 size={size ? size : 50}
               />

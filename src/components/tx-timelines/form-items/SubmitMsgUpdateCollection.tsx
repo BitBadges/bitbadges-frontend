@@ -1,17 +1,16 @@
 import { Button } from 'antd';
 import { useState } from 'react';
+import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgUpdateCollectionModal } from '../../tx-modals/CreateTxMsgUpdateCollection';
-import { MsgUpdateCollectionProps } from '../TxTimeline';
 
 export function SubmitMsgNewCollection({
   collectionId,
-  txState,
 }: {
   collectionId?: bigint;
-  txState: MsgUpdateCollectionProps
 }) {
 
   const [visible, setVisible] = useState<boolean>(false);
+  const txState = useTxTimelineContext();
 
   return <div className='full-width flex-center'
     style={{ marginTop: 20, }} >

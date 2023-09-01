@@ -32,35 +32,13 @@ export function RecipientsSelectStep({ sender,
     setNumRecipients(BigInt(toAddresses.length));
   }, [toAddresses, setNumRecipients]);
 
-  //Check if the toAddresses are allowed
-  //Three things we have to check: 1) allowedTransfer, 2) managerApprovedTransfers, 3) current approvals for sender address (if sending on behalf of another user)
-  // const forbiddenAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.allowedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
-  // const managerApprovedAddresses = collection && senderAccount ? getValidTransfersForTransferMapping(collection.managerApprovedTransfers, senderAccount.cosmosAddress, toAddresses, collection.manager) : [];
-
-  //If sender !== current user, check if they have any approvals. 
-  // const unapprovedAddresses: any[] = [];
-  //TODO: Better check for approvals
-  //Tricky here because we need balances but we don't have them yet
-  //This is a naive implementation that just checks if the sender has any approval for the current user
-  //Right now, we just catch upon simulation
-  // if (signedInAccount && signedInAccount?.cosmosAddress !== senderAccount?.cosmosAddress) {
-  //   if (senderBalance.approvals.find((approval) => approval.address === signedInAccount?.cosmosAddress) === undefined) {
-  //     for (const address of toAddresses) {
-  //       unapprovedAddresses.push(address);
-  //     }
-  //   }
-  // }
+  //TODO: Actually thoroughly check for approvals rather than relying on simulation and naive implementations. See past code in Git. Or run simulation here ?!?!
+  //Need to check: 
+  //-Check collection-level transferability
+  //-If sender != current user, check if they satisfy all outgoing approvals (including overrides)
+  //-Must satisfy all incoming approvals (including overrides)
 
 
-  // if (signedInAccount && signedInAccount?.cosmosAddress !== senderAccount?.cosmosAddress) {
-  //   const isApproved = checkIfApproved(senderBalance, signedInAccount?.cosmosAddress, balances);
-
-  //   if (!isApproved) {
-  //     for (const address of toAddresses) {
-  //       unapprovedAddresses.push(address);
-  //     }
-  //   }
-  // }
   let forbiddenUsersMap: { [cosmosAddress: string]: string } = {}; //Map of cosmosAddress to an error message
   for (const address of toAddresses) {
     const account = accounts.getAccount(address);
@@ -68,19 +46,6 @@ export function RecipientsSelectStep({ sender,
       forbiddenUsersMap[address] = `Address not found.`;
       continue;
     }
-    // //If forbidden or unapproved, add to map
-    // if (forbiddenAddresses.includes(account?.cosmosAddress)) {
-    //   forbiddenUsersMap[account?.cosmosAddress] = `Transfer to this recipient has been allowed by the manager.`;
-    // }
-
-    // if (unapprovedAddresses.includes(account?.cosmosAddress)) {
-    //   forbiddenUsersMap[account?.cosmosAddress] = `The selected sender has not approved you to transfer on their behalf.`;
-    // }
-
-    // //If manager approved transfer, this overrides the allowed transfer
-    // if (collection && signedInAccount?.cosmosAddress === collection?.manager && managerApprovedAddresses.includes(account?.cosmosAddress)) {
-    //   delete forbiddenUsersMap[account?.cosmosAddress];
-    // }
 
     //Even in the case of manager approved transfer, the sender cannot be the recipient
     if (account?.cosmosAddress === senderAccount?.cosmosAddress) {

@@ -10,6 +10,7 @@ export type AccountsContextType = {
   accounts: AccountMap<DesiredNumberType>,
   getAccount: (addressOrUsername: string) => BitBadgesUserInfo<DesiredNumberType> | undefined,
   updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => BitBadgesUserInfo<DesiredNumberType>,
+  updateAccounts: (userInfos: BitBadgesUserInfo<DesiredNumberType>[]) => BitBadgesUserInfo<DesiredNumberType>[],
 
   fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>[]>,
   fetchAccountsWithOptions: (accountsToFetch: {
@@ -65,6 +66,7 @@ const AccountsContext = createContext<AccountsContextType>({
     }
   },
   updateAccount: () => { return BLANK_USER_INFO },
+  updateAccounts: () => { return [] },
   getAccount: () => BLANK_USER_INFO,
   incrementSequence: () => { },
   setPublicKey: () => { },
@@ -86,162 +88,136 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': MINT_ACCOUNT, 'All Other': MINT_ACCOUNT });
   const [cosmosAddressesByUsernames, setCosmosAddressesByUsernames] = useState<{ [username: string]: string }>({});
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
+  const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
+
   const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
-    if (addressOrUsername === 'Mint' || addressOrUsername === "Total") return MINT_ACCOUNT;
-    if (addressOrUsername === "All") {
-      return {
-        ...MINT_ACCOUNT,
-        address: 'All',
-        cosmosAddress: 'All',
-      }
-    } else if (addressOrUsername === 'All Other') {
-      return {
-        ...MINT_ACCOUNT,
-        address: 'All Other',
-        cosmosAddress: 'All Other',
-      }
-    }
+    if (reservedNames.includes(addressOrUsername)) return { ...MINT_ACCOUNT, address: addressOrUsername, cosmosAddress: addressOrUsername };
+
     let accountToReturn;
-
-
 
     if (isAddressValid(addressOrUsername)) {
       const cosmosAddress = convertToCosmosAddress(addressOrUsername);
-      if (forcefulRefresh) {
-        // accounts[cosmosAddress] = undefined;
-        accountToReturn = undefined;
-      } else accountToReturn = accounts[cosmosAddress];
-
-      // const chainForAddress = getChainForAddress(addressOrUsername);
-      // if (accountToReturn && chainForAddress !== accountToReturn.chain) {
-      //   accountToReturn.chain = chainForAddress;
-      //   accountToReturn.address = addressOrUsername;
-      // }
-
+      if (forcefulRefresh) accountToReturn = undefined;
+      else accountToReturn = accounts[cosmosAddress];
     } else {
       accountToReturn = accounts[cosmosAddressesByUsernames[addressOrUsername]];
     }
     return accountToReturn;
   }
-  const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
 
-  const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
+  const updateAccounts = (userInfos: BitBadgesUserInfo<DesiredNumberType>[], forcefulRefresh?: boolean) => {
+    const accountsToReturn: { account: BitBadgesUserInfo<DesiredNumberType>, needToCompare: boolean, ignore: boolean, cachedAccountCopy?: BitBadgesUserInfo<DesiredNumberType> }[] = [];
+    for (const account of userInfos) {
+      if (reservedNames.includes(account.cosmosAddress)) {
+        accountsToReturn.push({ account: { ...MINT_ACCOUNT, address: account.cosmosAddress, cosmosAddress: account.cosmosAddress }, ignore: true, needToCompare: false })
+        continue;
+      }
 
-    if (reservedNames.includes(account.cosmosAddress)) return MINT_ACCOUNT
+      if (forcefulRefresh) {
+        accounts[account.cosmosAddress] = undefined;
+      }
 
-    if (forcefulRefresh) {
-      accounts[account.cosmosAddress] = undefined;
+
+      let cachedAccount = accounts[`${account.cosmosAddress}`];
+      if (cachedAccount == undefined) {
+        accountsToReturn.push({ account, needToCompare: false, ignore: false });
+        continue;
+
+      } else {
+        const cachedAccountCopy = deepCopy(cachedAccount);
+
+        let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
+        //If we have stored the public key in cookies, use that instead (for Ethereum)
+        if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
+          publicKey = cookies.pub_key.split('-')[1];
+        }
+
+        //Append all views to the existing views
+        const newViews = cachedAccount?.views || {};
+        for (const [key, val] of Object.entries(account.views)) {
+          if (!val) continue;
+
+          newViews[key] = {
+            ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
+            pagination: {
+              ...val.pagination,
+              total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
+            },
+            type: val.type
+          }
+        }
+
+        //Merge the rest
+        const newAccount = {
+          ...cachedAccount,
+          ...account,
+          reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
+          collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
+          activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
+          announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
+          addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
+          claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
+          views: newViews,
+          publicKey,
+          airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
+          sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
+          accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
+          resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
+        };
+
+        //Filter duplicates
+        newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+        newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+        newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+        newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+        newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
+        newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+
+
+
+        accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
+      }
     }
 
+    //Update the accounts map
+    const newUpdates: AccountMap<bigint> = {};
+    const newUsernameUpdates: { [username: string]: string } = {};
+    for (const accountToReturn of accountsToReturn) {
+      if (accountToReturn.ignore) continue;
+      //Only trigger a rerender if the account has changed or we haev to
+      if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
+        newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
+        if (accountToReturn.account.username) {
+          newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
+        }
+      }
+    }
 
-    let cachedAccount = accounts[`${account.cosmosAddress}`];
-
-    if (cachedAccount == undefined) {
+    if (Object.keys(newUpdates).length > 0) {
       setAccountsMap(accounts => {
         return {
           ...accounts,
-          [account.cosmosAddress]: account
+          ...newUpdates
         }
       });
-      if (account.username) {
-        setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {
-          if (account.username) {
-            return {
-              ...cosmosAddressesByUsernames,
-              [account.username]: account.cosmosAddress
-            };
-          } else {
-            return cosmosAddressesByUsernames;
-          }
-        });
-      }
-
-      return account;
-    } else {
-      const cachedAccountCopy = deepCopy(cachedAccount);
-
-      let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
-
-      //If we have stored the public key in cookies, use that instead (for Ethereum)
-      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
-        publicKey = cookies.pub_key.split('-')[1];
-      }
-
-      const newViews = cachedAccount?.views || {};
-
-      for (const [key, val] of Object.entries(account.views)) {
-        if (!val) continue;
-
-        newViews[key] = {
-          ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
-          pagination: {
-            ...val.pagination,
-            total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-          },
-          type: val.type
-        }
-      }
-
-      //We may have to be careful in the future if we introduce more fine-grained control over API responses
-      //For now, we just overwrite the old account with the new one
-      const newAccount = {
-        ...cachedAccount,
-        ...account,
-        reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
-        collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
-        activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
-        announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
-        addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
-        claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
-        views: newViews,
-        publicKey,
-        airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
-        sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
-        accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
-        resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
-      };
-
-      //Filter duplicates by _id
-      newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
-      newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-
-      // accounts[account.cosmosAddress] = newAccount;
-      // if (account.username) {
-      //   cosmosAddressesByUsernames[account.username] = account.cosmosAddress;
-      // }
-
-
-
-      //Only trigger a rerender if the account has changed
-      if (!compareObjects(newAccount, cachedAccountCopy)) {
-        setAccountsMap(accounts => {
-          return {
-            ...accounts,
-            [account.cosmosAddress]: newAccount
-
-          }
-        });
-        if (account.username) {
-          setCosmosAddressesByUsernames((cosmosAddressesByUsernames) => {
-            if (account.username) {
-              return {
-                ...cosmosAddressesByUsernames,
-                [account.username]: account.cosmosAddress
-              };
-            } else {
-              return cosmosAddressesByUsernames;
-            }
-
-          });
-        }
-      }
-
-      return newAccount;
     }
+
+    if (Object.keys(newUsernameUpdates).length > 0) {
+      setCosmosAddressesByUsernames(cosmosAddressesByUsernames => {
+        return {
+          ...cosmosAddressesByUsernames,
+          ...newUsernameUpdates
+        }
+      });
+    }
+
+
+    return accountsToReturn.map(x => x.account);
+  }
+
+
+  const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
+    return updateAccounts([account], forcefulRefresh)[0];
   }
 
   //Note if you want to update balances both in collections and accounts, you should use fetchBalanceForUser in CollectionsContext
@@ -262,8 +238,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     return res.balance;
   }
 
-  //IMPORTANT: addressOrUsername must be the user's current signed in address or username, or else, unexpected behavior may occur
-  //This is necessary because AccountsContext is the outermost context and does not have access to ChainContext
+  //IMPORTANT: addressOrUsername must be the user's current signed in address or username, or else this will not work
   const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<bigint>) => {
     const account = getAccount(addressOrUsername);
     if (!account) throw new Error(`Account ${addressOrUsername} not found`);
@@ -309,11 +284,10 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       accountsToFetch: []
     };
 
-    //Iterate through and see which accounts + info we actually need to fetch versus which we already have
+    //Iterate through and see which accounts + info we actually need to fetch versus which we already have enough for
     for (const accountToFetch of accountsToFetch) {
       // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
       accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
-      // console.log(accountToFetch.viewsToFetch);
 
       const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
       if (cachedAccount === undefined) {
@@ -326,12 +300,14 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           noExternalCalls: accountToFetch.noExternalCalls,
         });
       } else {
+        //Do not fetch views where hasMore is false
         accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => {
           const currPagination = cachedAccount.views[x.viewKey]?.pagination;
           if (!currPagination) return true;
           else return currPagination.hasMore
         });
-        //Check if we need to fetch
+
+        //Check if we need to fetch anything
         const needToFetch =
           (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
           (accountToFetch.fetchBalance && cachedAccount.balance === undefined) ||
@@ -370,17 +346,12 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getAccounts(batchRequestBody);
-    //If we get here, we have fetched and cached all the accounts we need. 
-    //Now we just need to return them in the same order as the input.
-    //Note that we implement this by using our accounts map and not getAccount because there is no guarantee that the state is updated yet (Look into this; it may work)
+
     const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
     for (const account of res.accounts) {
       updateAccount(account, forcefulRefresh);
       accountsToReturn.push(account);
     }
-
-    console.log(accountsToReturn);
-
 
     for (const account of accountsToFetch) {
       const fetchedAccount = getAccount(account.address || account.username || '', forcefulRefresh);
@@ -503,6 +474,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     fetchAccounts,
     fetchBalanceForUser,
     updateAccount,
+    updateAccounts,
     fetchNextForViews,
     getAccount,
     incrementSequence,

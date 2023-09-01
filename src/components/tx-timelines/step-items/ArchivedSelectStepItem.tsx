@@ -3,9 +3,9 @@ import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPer
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionIcon } from "../../collection-page/PermissionsInfo";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 export function IsArchivedSelectStepItem(
   canArchiveCollection: boolean,
@@ -18,35 +18,7 @@ export function IsArchivedSelectStepItem(
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
   if (!collection) return EmptyStepItem;
-  // const permissions: TimedUpdatePermission<bigint>[] = [{
-  //   defaultValues: {
-  //     timelineTimes: [],
-  //     forbiddenTimes: [],
-  //     permittedTimes: [],
-  //   },
-  //   combinations: [{
-  //     timelineTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     forbiddenTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: true,
-  //       noValues: false,
-  //     },
-  //     permittedTimesOptions: {
-  //       invertDefault: false,
-  //       allValues: false,
-  //       noValues: false,
-  //     },
-  //   }]
-  // }];
   const err = existingCollection ? validateIsArchivedUpdate(existingCollection.isArchivedTimeline, collection.isArchivedTimeline, existingCollection.collectionPermissions.canArchiveCollection) : undefined;
-
-  // const err = validateManagerUpdate(existingCollection?.managerTimeline ?? [], collection.managerTimeline, permissions);
-
-
 
   return {
     title: 'Archived Status',
@@ -67,7 +39,6 @@ export function IsArchivedSelectStepItem(
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}
         existingCollectionId={existingCollectionId}
-
         node={
 
           <div>
@@ -92,9 +63,8 @@ export function IsArchivedSelectStepItem(
                 </div>}
 
               <SwitchForm
-                noSelectUntilClick
+                // noSelectUntilClick
                 onSwitchChange={(idx) => {
-
                   if (idx == 0) {
                     collections.updateCollection({
                       ...collection,
@@ -109,8 +79,6 @@ export function IsArchivedSelectStepItem(
                       }],
                     })
                   }
-
-
                 }}
                 options={[
                   {

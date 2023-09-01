@@ -34,24 +34,25 @@ export function AddressListSelect({
     const addressesList: string[] = batchAddAddressListInput.split('\n').filter((a) => a !== '').map(x => x.trim());
 
 
-    //TODO: Should we even fetch the accounts here? We can just manually generate the accounts / convert to cosmosAddresses/
+    //Manually generate blank accounts with the addresses if not already in context
+    //We will check fetchedProfile later to see if we need to actually fetch from server
+    const accountsToUpdate = [];
     for (const address of addressesList) {
       if (!accounts.getAccount(address)) {
-        accounts.updateAccount({
-          ...BLANK_USER_INFO,
-          address: address,
-          cosmosAddress: convertToCosmosAddress(address),
-          chain: getChainForAddress(address),
-        })
+        accountsToUpdate.push(
+          {
+            ...BLANK_USER_INFO,
+            address: address,
+            cosmosAddress: convertToCosmosAddress(address),
+            chain: getChainForAddress(address),
+          })
       }
     }
 
-    // const accountsFetched = await accounts.fetchAccountsWithOptions(addressesList.map(x => {
-    //   return {
-    //     address: x,
-    //     noExternalCalls: true
-    //   }
-    // }));
+    if (accountsToUpdate.length > 0) {
+      accounts.updateAccounts(accountsToUpdate)
+    }
+
     setUsers([...users, ...addressesList]);
     setBatchAddAddressListInput('');
     setLoading(false);
@@ -90,8 +91,6 @@ export function AddressListSelect({
         </>}>
           <DeleteOutlined onClick={() => setUsers([])} style={{ cursor: 'pointer', marginLeft: 4 }} />
         </Tooltip>
-
-
       </>
       }
     />

@@ -157,10 +157,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         {
           viewKey: 'explicitlyExcludedAddressMappings',
           bookmark: ''
-        },
-
-
-        ]
+        }]
 
         if (loggedIn) {
           viewsToFetch.push({

@@ -8,6 +8,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 
 export function DistributionOverview({
   collectionId,
@@ -21,34 +22,24 @@ export function DistributionOverview({
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
 
+  if (!collection) return <></>;
   if (!collection?.collectionPermissions) return <></>
 
   const isBadgeView = badgeId !== undefined;
 
-  if (!collection) return <></>;
 
 
-  // EXPERIMENTAL STANDARD
+
+
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
-
   const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
   const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
-
-  let maxBadgeId = 0n;
-  for (const balance of totalSupplyBalance) {
-    for (const badgeIdRange of balance.badgeIds) {
-      if (badgeIdRange.end > maxBadgeId) {
-        maxBadgeId = badgeIdRange.end;
-      }
-    }
-  }
+  const maxBadgeId = getTotalNumberOfBadges(collection);
 
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
-  // const lastFetchedAtBlock = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAtBlock ?? 0n
 
   return <InformationDisplayCard title={'Distribution'} span={span}>
     <>
-
       {collection && <TableRow label={"Circulating (Total)"} value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
@@ -116,9 +107,6 @@ export function DistributionOverview({
         <div>
           <>
             {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : '...'}
-            {/* {lastFetchedAtBlock ? <Tooltip title={"Fetched at block #" + lastFetchedAtBlock}>
-              <BlockOutlined style={{ marginLeft: 4 }} />
-            </Tooltip> : <></>} */}
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}

@@ -8,9 +8,9 @@ import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { ActivityTab } from '../../components/activity/TransferActivityDisplay';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
-import { MultiCollectionBadgeDisplay } from '../../components/badges/MultiCollectionBadgeDisplay';
+import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { DevMode } from '../../components/common/DevMode';
@@ -18,6 +18,7 @@ import { InformationDisplayCard } from '../../components/display/InformationDisp
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
+import { AddressListCard } from '../../components/badges/AddressListCard';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -35,8 +36,8 @@ function PortfolioPage() {
   const [tab, setTab] = useState(
     accountInfo?.readme ? 'overview' :
       'collected');
-  const [cardView, setCardView] = useState(false);
-  const [groupByCollection, setGroupByCollection] = useState(true);
+  const [cardView, setCardView] = useState(true);
+  const [groupByCollection, setGroupByCollection] = useState(false);
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
@@ -246,36 +247,6 @@ function PortfolioPage() {
                 <Select.Option value="image">Image</Select.Option>
               </Select>
             </div>
-            {/* {isSameAccount &&
-              <div className='primary-text primary-blue-bg' style={{
-                float: 'right',
-                display: 'flex',
-                alignItems: 'center',
-                marginRight: 16,
-                minHeight: 32,
-              }}>
-                Show Hidden:
-                <Select
-                  className="selector primary-text primary-blue-bg"
-                  value={showHidden ? 'Yes' : 'No'}
-                  placeholder=""
-                  onChange={(e: any) => {
-                    setShowHidden(e === 'Yes');
-                  }}
-                  style={{
-                    float: 'right',
-                    marginLeft: 8
-                  }}
-                  suffixIcon={
-                    <DownOutlined
-                      className='primary-text'
-                    />
-                  }
-                >
-                  <Select.Option value="Yes">Yes</Select.Option>
-                  <Select.Option value="No">No</Select.Option>
-                </Select>
-              </div>} */}
 
             <Divider />
           </>)}
@@ -290,7 +261,6 @@ function PortfolioPage() {
 
                   if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
                     await accounts.fetchNextForViews(accountInfo.cosmosAddress, ['badgesCollected']);
-
                   }
 
                   if (!groupByCollection) {
@@ -326,7 +296,7 @@ function PortfolioPage() {
                 />
               </InfiniteScroll>
 
-              {accountInfo?.collected.length === 0 && !collectedHasMore && (
+              {accountInfo?.collected.every((collection) => collection.balances.length === 0) && !collectedHasMore && (
                 <Empty
                   className='primary-text'
                   description={
@@ -413,66 +383,11 @@ function PortfolioPage() {
               >
                 <div className='full-width flex-center flex-wrap'>
                   {listsView.map((addressMapping, idx) => {
-                    const explicitly = addressMapping.addresses.includes(accountInfo.address) || addressMapping.addresses.includes(accountInfo.cosmosAddress);
-                    return <div key={idx} style={{ margin: 16 }}>
-                      <Card
-                        className='primary-text primary-blue-bg'
-                        style={{
-                          width: 225,
-                          margin: 8,
-                          textAlign: 'center',
-                          borderRadius: '4%',
-                        }}
-                        hoverable={true}
-                        onClick={() => {
-                          router.push(`/addresses/${addressMapping.mappingId}`);
-                        }}
-                        cover={<>
-                          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
-                            <BadgeAvatar
-                              collectionId={0n}
-                              metadataOverride={addressMapping.metadata}
-                              size={75}
-                            />
-                          </div>
-                        </>}
-                      >
-                        <Typography.Text strong className='primary-text'>
-                          {addressMapping.metadata?.name}
-                        </Typography.Text>
-                        <br />
-                        <br />
-                        {addressMapping.includeAddresses ?
-                          <Typography.Text strong className='primary-text' style={{ color: 'green' }}>
-                            {explicitly ? '' : 'SOFT'} INCLUDED
-                          </Typography.Text>
-                          :
-                          <Typography.Text strong className='primary-text' style={{ color: 'red' }}>
-                            {explicitly ? '' : 'SOFT'} EXCLUDED
-                          </Typography.Text>
-                        }
-
-                        {addressMapping.createdBy && <>
-                          <br />
-                          <br />
-                          <b>Created By</b>
-
-                          <AddressDisplay
-                            addressOrUsername={addressMapping.createdBy}
-                            fontSize={13}
-                          />
-                        </>
-                        }
-                        {addressMapping.lastUpdated > 0n && <>
-                          <br />
-                          <b>Last Updated</b>
-                          <br />
-                          {new Date(Number(addressMapping.lastUpdated)).toLocaleString()}
-                        </>
-                        }
-                      </Card>
-
-                    </div>
+                    return <AddressListCard
+                      key={idx}
+                      addressMapping={addressMapping}
+                      addressOrUsername={accountInfo.address}
+                    />
                   })}
                 </div>
               </InfiniteScroll>

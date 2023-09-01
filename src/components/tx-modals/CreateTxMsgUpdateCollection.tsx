@@ -1,14 +1,16 @@
 import { notification } from 'antd';
 import { CollectionApprovedTransferTimeline, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DistributionMethod, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { addBalancesToIpfs, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, TxTimeline } from '../tx-timelines/TxTimeline';
+import { TxTimeline } from '../tx-timelines/TxTimeline';
 import { TxModal } from './TxModal';
+import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { compareObjects } from '../../utils/compare';
 
 export function CreateTxMsgUpdateCollectionModal(
   { visible, setVisible, children, collectionId, doNotShowTimeline, inheritedTxState }
@@ -23,6 +25,7 @@ export function CreateTxMsgUpdateCollectionModal(
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
+  const txTimelineContext = useTxTimelineContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   // const existingCollection = collectionId ? collections.collections[collectionId.toString()] : undefined;
 
@@ -98,6 +101,11 @@ export function CreateTxMsgUpdateCollectionModal(
     )
   }
 
+  //This function basically takes all relevant details from collection / txState that need to be added to IPFS and adds them
+  //It then returns a new msg with the updated URIs to be broadcasted on-chain
+  //If simulate is true, it will return a msg with dummy URIs
+
+  //Eventually, we should probably parallelize this
   async function updateIPFSUris(simulate: boolean) {
     if (!txState || !collection) return;
 
@@ -115,7 +123,7 @@ export function CreateTxMsgUpdateCollectionModal(
             ...x,
             collectionMetadata: {
               ...x.collectionMetadata,
-              uri: 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB'
+              uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub'
             }
           }
         });
@@ -125,7 +133,7 @@ export function CreateTxMsgUpdateCollectionModal(
             badgeMetadata: x.badgeMetadata.map(y => {
               return {
                 ...y,
-                uri: 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB'
+                uri: y.uri ?? 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub'
               }
             })
           }
@@ -134,7 +142,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
         //TODO: Test this
         //TODO: Same with collection metadata and claims and balances
-        prunedMetadata = prunedMetadata.filter(x => x.toUpdate);
+        prunedMetadata = prunedMetadata.filter(x => x.toUpdate && !compareObjects(DefaultPlaceholderMetadata, x.metadata))
 
         let res = await addMetadataToIpfs({
           collectionMetadata: txState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
@@ -151,8 +159,6 @@ export function CreateTxMsgUpdateCollectionModal(
             },
           }];
         }
-
-
 
         if (txState.updateBadgeMetadataTimeline) {
           badgeMetadataTimeline = [{
@@ -172,6 +178,19 @@ export function CreateTxMsgUpdateCollectionModal(
 
             metadata.uri = 'ipfs://' + result.cid;
           }
+
+          if (collection.badgeMetadataTimeline.length > 0 && collection.badgeMetadataTimeline[0].badgeMetadata.length > 0) {
+            badgeMetadataTimeline[0].badgeMetadata.push(...collection.badgeMetadataTimeline[0].badgeMetadata);
+          }
+
+          badgeMetadataTimeline[0].badgeMetadata.push({
+            uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub',
+            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+            customData: ''
+          });
+
+
+          badgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata);
         }
       }
     }
@@ -190,7 +209,7 @@ export function CreateTxMsgUpdateCollectionModal(
               for (let k = 0; k < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails.length; k++) {
                 for (let x = 0; x < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges.length; x++) {
                   if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri) continue;
-                  collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri = 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB';
+                  collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
                 }
               }
             }
@@ -201,7 +220,7 @@ export function CreateTxMsgUpdateCollectionModal(
               for (let k = 0; k < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails.length; k++) {
                 for (let x = 0; x < collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges.length; x++) {
                   if (collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri &&
-                    collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri == 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB') {
+                    collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
                     collection.collectionApprovedTransfersTimeline[i].collectionApprovedTransfers[j].approvalDetails[k].merkleChallenges[x].uri = '';
                   }
 
@@ -229,10 +248,8 @@ export function CreateTxMsgUpdateCollectionModal(
       }
     }
 
-    if (collection.balancesType == "Off-Chain" && txState.transfers.length > 0 && txState.updateOffChainBalancesMetadataTimeline
-      && collection.offChainBalancesMetadataTimeline.length === 0
-
-    ) {
+    //Handle any off-chain balances updates
+    if (collection.balancesType == "Off-Chain" && txState.transfers.length > 0 && txState.updateOffChainBalancesMetadataTimeline && collection.offChainBalancesMetadataTimeline.length === 0) {
       if (!simulate) {
         const _balanceMap = await createBalanceMapForOffChainBalances(txState.transfers);
 
@@ -254,7 +271,7 @@ export function CreateTxMsgUpdateCollectionModal(
         offChainBalancesMetadataTimeline = [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
-            uri: 'ipfs://QmPK1s3pNYLi9ERiq3BDxKa4XosgWwFRQUydHUtz4YgpqB',
+            uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub',
             customData: '',
           },
         }];
@@ -312,10 +329,7 @@ export function CreateTxMsgUpdateCollectionModal(
         return newMsg
       }}
       msgSteps={msgSteps}
-
-
       onSuccessfulTx={async () => {
-
         notification.success({ message: 'Collection created / updated successfully! Note it may take some time for some of the details to populate.' });
 
         if (collectionId && collectionId > 0n) {
@@ -324,6 +338,8 @@ export function CreateTxMsgUpdateCollectionModal(
         } else {
           //navigating to a new collection page is handled in TxModal
         }
+
+        txTimelineContext.resetState();
       }}
       requireRegistration
     >

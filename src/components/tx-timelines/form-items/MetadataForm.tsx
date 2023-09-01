@@ -6,18 +6,18 @@ import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { MetadataUriSelect } from './MetadataUriSelect';
-// import style manually
 import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { UintRange } from 'bitbadgesjs-proto';
+import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { BadgeCard } from '../../badges/BadgeCard';
-import { UintRangesInput } from '../../badges/balances/IdRangesInput';
+import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import moment from 'moment';
+import { DevMode } from '../../common/DevMode';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -76,7 +76,7 @@ export function MetadataForm({
           cachedCollectionMetadata: metadata
         });
       } else {
-        const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, { toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
+        const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, { uri: undefined, toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
         collections.updateCollection({
           ...collection,
           cachedBadgeMetadata: newBadgeMetadata
@@ -89,6 +89,23 @@ export function MetadataForm({
 
   const populateOtherBadges = (badgeIds: UintRange<bigint>[], key: string, value: any) => {
     if (!collection) return;
+
+    if (key === 'all') {
+      collection.cachedBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata,
+        {
+          badgeIds,
+          metadata: currMetadata,
+          toUpdate: true,
+        }
+      );
+
+      collections.updateCollection({
+        ...collection,
+        cachedBadgeMetadata: collection.cachedBadgeMetadata,
+      })
+
+      return
+    }
 
     const badgeMetadata = collection.cachedBadgeMetadata;
     const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
@@ -237,7 +254,7 @@ export function MetadataForm({
               />
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with the metadata of this badge.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'all'
                       ? faMinus : faReplyAll}
@@ -266,7 +283,7 @@ export function MetadataForm({
                 <br />
                 <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
                 <br />
-                <UintRangesInput
+                <BadgeIdRangesInput
                   minimum={startId ? startId : 1n}
                   maximum={endId ? endId : GO_MAX_UINT_64}
                   setUintRanges={setUintRanges}
@@ -279,6 +296,12 @@ export function MetadataForm({
                   <br />
                   <br />
                 </div>}
+                <div className='secondary-text' style={{ textAlign: 'center' }}>
+                  <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                  <br />
+                  <br />
+                </div>
+
                 <Button type='primary'
                   className='full-width'
                   onClick={() => {
@@ -299,7 +322,7 @@ export function MetadataForm({
             <div className='flex-center'>
               <Tooltip color='black' title='Populate the metadata of other badges with this metadata.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'all'
                       ? faMinus : faReplyAll}
@@ -317,7 +340,7 @@ export function MetadataForm({
                 <br />
                 <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this metadata?</h3>
                 <br />
-                <UintRangesInput
+                <BadgeIdRangesInput
                   minimum={startId ? startId : 1n}
                   maximum={endId ? endId : GO_MAX_UINT_64}
                   setUintRanges={setUintRanges}
@@ -330,6 +353,12 @@ export function MetadataForm({
                   <br />
                   <br />
                 </div>}
+                <div className='secondary-text' style={{ textAlign: 'center' }}>
+                  <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                  <br />
+                  <br />
+                </div>
+
                 <Button type='primary'
                   className='full-width'
                   onClick={() => {
@@ -369,7 +398,7 @@ export function MetadataForm({
               />
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this title.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'name'
                       ? faMinus : faReplyAll}
@@ -386,7 +415,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this title?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -399,6 +428,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -483,7 +517,7 @@ export function MetadataForm({
 
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this image.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'image'
                       ? faMinus : faReplyAll}
@@ -500,7 +534,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this image?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -513,6 +547,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -591,7 +630,7 @@ export function MetadataForm({
               </Select>
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this category.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'category'
                       ? faMinus : faReplyAll}
@@ -611,7 +650,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this category?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -624,6 +663,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -670,7 +714,7 @@ export function MetadataForm({
                         /> */}
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this description.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'description'
                       ? faMinus : faReplyAll}
@@ -687,7 +731,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this description?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -700,6 +744,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -740,7 +789,7 @@ export function MetadataForm({
               />
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this website.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'externalUrl'
                       ? faMinus : faReplyAll}
@@ -763,7 +812,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this website?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -776,6 +825,12 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
+
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -893,7 +948,7 @@ export function MetadataForm({
               </div>
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this expiration date.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'validFrom'
                       ? faMinus : faReplyAll}
@@ -911,7 +966,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -924,6 +979,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -965,7 +1025,7 @@ export function MetadataForm({
               />
               {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with these tags.'>
                 <Avatar
-                  className='screen-button'
+                  className='styled-button'
                   src={<FontAwesomeIcon
                     icon={populateIsOpen && fieldName === 'tags'
                       ? faMinus : faReplyAll}
@@ -998,7 +1058,7 @@ export function MetadataForm({
               <br />
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have these tags?</h3>
               <br />
-              <UintRangesInput
+              <BadgeIdRangesInput
                 minimum={startId ? startId : 1n}
                 maximum={endId ? endId : GO_MAX_UINT_64}
                 setUintRanges={setUintRanges}
@@ -1011,6 +1071,11 @@ export function MetadataForm({
                 <br />
                 <br />
               </div>}
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+                <br />
+                <br />
+              </div>
               <Button type='primary'
                 className='full-width'
                 onClick={() => {
@@ -1022,135 +1087,14 @@ export function MetadataForm({
               <hr />
             </div>}
           </Form.Item>
-          {/* <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Border Color <Tooltip color='black' title={'Add a colored border around the image!'}>
-                  <InfoCircleOutlined />
-                </Tooltip>
-              </Text>
-            }
-          >
-            <div className='flex-between'>
-              <Select
-                className="selector primary-text primary-blue-bg"
-                defaultValue={currMetadata.color}
-                onSelect={(e: any) => {
-                  setMetadata({
-                    ...currMetadata,
-                    color: e
-                  });
-                }}
-                style={{
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-              >
-                <Select.Option value={undefined}>
-                  None
-                </Select.Option>
-                <Select.Option value="black">
-                  <span style={{ color: 'black' }}>
-                    ⬤
-                  </span>{' '}
-                  Black
-                </Select.Option>
-                <Select.Option value="red">
-                  <span style={{ color: 'red' }}>⬤</span>{' '}
-                  Red
-                </Select.Option>
-                <Select.Option value="blue">
-                  <span style={{ color: 'blue' }}>⬤</span>{' '}
-                  Blue
-                </Select.Option>
-                <Select.Option value="green">
-                  <span style={{ color: 'green' }}>
-                    ⬤
-                  </span>{' '}
-                  Green
-                </Select.Option>
-                <Select.Option value="orange">
-                  <span style={{ color: 'orange' }}>
-                    ⬤
-                  </span>{' '}
-                  Orange
-                </Select.Option>
-                <Select.Option value="yellow">
-                  <span style={{ color: 'yellow' }}>
-                    ⬤
-                  </span>{' '}
-                  Yellow
-                </Select.Option>
-                <Select.Option value="purple">
-                  <span style={{ color: 'purple' }}>
-                    ⬤
-                  </span>{' '}
-                  Purple
-                </Select.Option>
-                <Select.Option value="pink">
-                  <span style={{ color: 'pink' }}>⬤</span>{' '}
-                  Pink
-                </Select.Option>
-                <Select.Option value="brown">
-                  <span style={{ color: 'brown' }}>
-                    ⬤
-                  </span>{' '}
-                  Brown
-                </Select.Option>
-              </Select>
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this border color.'>
-                <Avatar
-                  className='screen-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'color'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('color');
-                  }}
-                />
-              </Tooltip>}
 
-            </div>
-            {populateIsOpen && fieldName === 'color' && <div style={{ marginTop: 8 }} className='primary-text'>
-              <br />
-              <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this color?</h3>
-              <br />
-              <UintRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
-                setUintRanges={setUintRanges}
-                collectionId={collectionId}
-              />
-
-              <Divider />
-              {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
-                  <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
-                  <br />
-                  <br />
-                </div>}
-              <Button type='primary'
-                className='full-width'
-                onClick={() => {
-                  populateOtherBadges(uintRanges, fieldName, currMetadata[fieldName]);
-                  setPopulateIsOpen(false);
-                }}
-              > Update </Button>
-              <Divider />
-              <hr />
-            </div>}
-          </Form.Item> */}
 
 
         </Form>}
+        <DevMode obj={collection?.collectionMetadataTimeline} />
+        <DevMode obj={collection?.cachedCollectionMetadata} />
+        <DevMode obj={collection?.cachedBadgeMetadata} />
+        <DevMode obj={collection?.badgeMetadataTimeline} />
       </div >
     </>
   );

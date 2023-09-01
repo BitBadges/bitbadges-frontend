@@ -15,10 +15,10 @@ import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
-import { MSG_PREVIEW_ID } from '../../components/tx-timelines/TxTimeline';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { Tabs } from '../../components/navigation/Tabs';
 import Meta from 'antd/lib/card/Meta';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -100,15 +100,12 @@ function CollectionPage({ }: {}) {
       // }
 
       await accounts.fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
-      if (mapping.uri) {
-        const metadataRes = await fetchMetadataDirectly({
-          uris: [mapping.uri],
-        });
+      if (mapping.metadata) {
 
-        setMetadata(metadataRes.metadata[0]);
+        setMetadata(mapping.metadata);
 
-        if (metadataRes.metadata[0]?.description) {
-          setReactElement(HtmlToReactParser.parse(mdParser.render(metadataRes.metadata[0]?.description)));
+        if (mapping.metadata?.description) {
+          setReactElement(HtmlToReactParser.parse(mdParser.render(mapping.metadata?.description)));
         }
       }
     }

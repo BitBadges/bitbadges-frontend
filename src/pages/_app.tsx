@@ -20,6 +20,7 @@ import { configureChains, createClient, WagmiConfig } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { INFINITE_LOOP_MODE } from '../constants';
 import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
+import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
 
 const chains = [mainnet]
 const projectId = 'febf8d9986a2cd637fa4004338dad39b'
@@ -64,45 +65,47 @@ const App = ({ Component, pageProps }: AppProps) => {
               <CollectionsContextProvider>
                 <BrowseContextProvider>
                   <StatusContextProvider>
-                    <WagmiConfig client={wagmiClient}>
-                      <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
-                        themeMode="dark"
+                    <TxTimelineContextProvider>
+                      <WagmiConfig client={wagmiClient}>
+                        <Web3Modal projectId={projectId} ethereumClient={ethereumClient}
+                          themeMode="dark"
 
-                      />
-                      <Layout className="layout">
-                        <WalletHeader />
+                        />
+                        <Layout className="layout">
+                          <WalletHeader />
 
-                        <Component {...pageProps} />
-                        {myCookieValue !== 'accepted' &&
-                          <div className='primary-text primary-blue-bg'
-                            style={{
-                              textAlign: 'center',
-                              borderTop: '1px solid white',
-                              paddingBottom: 16,
-                              paddingTop: 16,
-                              position: 'fixed',
-                              bottom: 0,
-                              width: '100%',
-                              zIndex: 200
-                            }}>
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              flexWrap: 'wrap'
-                            }}>
-                              This website uses cookies to ensure you get the best experience.
-                              By continuing to use this website, you agree to our use of cookies, {" "}
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a>privacy policy</a></p>, and
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a>terms of service</a></p>.
-                            </div>
-                            <Button key="accept" className='screen-button' onClick={() => handleCookieResponse(true)}>
-                              Close
-                            </Button>
-                            <br />
-                          </div>}
-                        <WalletFooter />
-                      </Layout>
-                    </WagmiConfig>
+                          <Component {...pageProps} />
+                          {myCookieValue !== 'accepted' &&
+                            <div className='primary-text primary-blue-bg'
+                              style={{
+                                textAlign: 'center',
+                                borderTop: '1px solid white',
+                                paddingBottom: 16,
+                                paddingTop: 16,
+                                position: 'fixed',
+                                bottom: 0,
+                                width: '100%',
+                                zIndex: 200
+                              }}>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                flexWrap: 'wrap'
+                              }}>
+                                This website uses cookies to ensure you get the best experience.
+                                By continuing to use this website, you agree to our use of cookies, {" "}
+                                <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a>privacy policy</a></p>, and
+                                <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a>terms of service</a></p>.
+                              </div>
+                              <Button key="accept" className='styled-button' onClick={() => handleCookieResponse(true)}>
+                                Close
+                              </Button>
+                              <br />
+                            </div>}
+                          <WalletFooter />
+                        </Layout>
+                      </WagmiConfig>
+                    </TxTimelineContextProvider>
                   </StatusContextProvider>
                 </BrowseContextProvider>
               </CollectionsContextProvider>

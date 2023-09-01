@@ -49,7 +49,6 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
         paddingTop: 8,
         backgroundColor: '#001529',
       }}
-      className='primary-text primary-blue-bg'
       onCancel={() => setVisible(false)}
       destroyOnClose={true}
     >

@@ -1,7 +1,7 @@
 import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
@@ -61,9 +61,9 @@ export function CanUpdateBalancesStepItem(
                       forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     },
                     combinations: [{
-                      permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                     }]
                   }] : []
                 }

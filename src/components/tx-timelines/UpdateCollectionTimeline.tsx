@@ -2,9 +2,10 @@ import { Balance } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferWithDetails, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getPermissionDataSource } from '../collection-page/PermissionsInfo';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
-import { EmptyStepItem, MSG_PREVIEW_ID, MsgUpdateCollectionProps } from './TxTimeline';
+import { AddressMappingSelectStepItem } from './step-items/AddressMappingSelectStepItem';
 import { IsArchivedSelectStepItem } from './step-items/ArchivedSelectStepItem';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
@@ -14,6 +15,7 @@ import { CanArchiveCollectionStepItem } from './step-items/CanUpdateArchivedStep
 import { CanUpdateBalancesStepItem } from './step-items/CanUpdateBytesStepItem';
 import { ChooseBadgeTypeStepItem, MintType } from './step-items/ChooseBadgeTypeStepItem';
 import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
+import { CreateAddressMappingStepItem } from './step-items/CreateAddressMappingStepItem';
 import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
 import { DefaultToApprovedSelectStepItem } from './step-items/DefaultToApprovedSelectStepItem';
@@ -21,73 +23,60 @@ import { DistributionMethodStepItem } from './step-items/DistributionMethodStepI
 import { FreezeSelectStepItem } from './step-items/FreezeSelectStepItem';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
+import { OffChainBalancesStorageSelectStepItem } from './step-items/OffChainBalancesStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
 import { RevokeSelectStepItem } from './step-items/RevokeSelectStepItem';
+import { SetAddressMappingMetadataStepItem } from './step-items/SetAddressMappingMetadataStepItem';
 import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
-import { OffChainBalancesStorageSelectStepItem } from './step-items/OffChainBalancesStepItem';
-import { AddressMappingSelectStepItem } from './step-items/AddressMappingSelectStepItem';
-import { CreateAddressMappingStepItem } from './step-items/CreateAddressMappingStepItem';
-import { SetAddressMappingMetadataStepItem } from './step-items/SetAddressMappingMetadataStepItem';
 
 //See TxTimeline for explanations and documentation
 
 
 export function UpdateCollectionTimeline({
-  txTimelineProps,
   isModal
 }: {
-  txTimelineProps: MsgUpdateCollectionProps,
   isModal: boolean
 }) {
 
   const collections = useCollectionsContext();
+  const txTimelineContext = useTxTimelineContext();
 
   const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>([]);
 
-
-  const handledPermissions = txTimelineProps.handledPermissions;
-  const setHandledPermissions = txTimelineProps.setHandledPermissions;
-  const addMethod = txTimelineProps.addMethod;
-  const setAddMethod = txTimelineProps.setAddMethod;
-  const distributionMethod = txTimelineProps.distributionMethod;
-  const setDistributionMethod = txTimelineProps.setDistributionMethod;
-  const metadataSize = txTimelineProps.metadataSize;
-  const badgesToCreate = txTimelineProps.badgesToCreate;
-  const setBadgesToCreate = txTimelineProps.setBadgesToCreate;
-  const transfers = txTimelineProps.transfers;
-  const setTransfers = txTimelineProps.setTransfers;
-  const existingCollectionId = txTimelineProps.existingCollectionId;
+  //TODO: Eventually we should refactor this bc txTimelineContext is now a context so we don't need to pass it in as a prop
+  const handledPermissions = txTimelineContext.handledPermissions;
+  const setHandledPermissions = txTimelineContext.setHandledPermissions;
+  const addMethod = txTimelineContext.addMethod;
+  const setAddMethod = txTimelineContext.setAddMethod;
+  const distributionMethod = txTimelineContext.distributionMethod;
+  const setDistributionMethod = txTimelineContext.setDistributionMethod;
+  const metadataSize = txTimelineContext.metadataSize;
+  const badgesToCreate = txTimelineContext.badgesToCreate;
+  const setBadgesToCreate = txTimelineContext.setBadgesToCreate;
+  const transfers = txTimelineContext.transfers;
+  const setTransfers = txTimelineContext.setTransfers;
+  const existingCollectionId = txTimelineContext.existingCollectionId;
   // const existingCollectionId = 1n;
-  const updateCollectionApprovedTransfers = txTimelineProps.updateCollectionApprovedTransfersTimeline;
-  const setUpdateCollectionApprovedTransfers = txTimelineProps.setUpdateCollectionApprovedTransfersTimeline;
-  const updateManagerTimeline = txTimelineProps.updateManagerTimeline;
-  const setUpdateManagerTimeline = txTimelineProps.setUpdateManagerTimeline;
-  const updateCollectionMetadataTimeline = txTimelineProps.updateCollectionMetadataTimeline;
-  const setUpdateCollectionMetadataTimeline = txTimelineProps.setUpdateCollectionMetadataTimeline;
-  const updateBadgeMetadataTimeline = txTimelineProps.updateBadgeMetadataTimeline;
-  const setUpdateBadgeMetadataTimeline = txTimelineProps.setUpdateBadgeMetadataTimeline;
-  // const updateOffChainBalancesMetadataTimeline = txTimelineProps.updateOffChainBalancesMetadataTimeline;
-  // const setUpdateOffChainBalancesMetadataTimeline = txTimelineProps.setUpdateOffChainBalancesMetadataTimeline;
-  // const updateCustomDataTimeline = txTimelineProps.updateCustomDataTimeline;
-  // const setUpdateCustomDataTimeline = txTimelineProps.setUpdateCustomDataTimeline;
-  // const updateInheritedBalancesTimeline = txTimelineProps.updateInheritedBalancesTimeline;
-  // const setUpdateInheritedBalancesTimeline = txTimelineProps.setUpdateInheritedBalancesTimeline;
-  // const updateStandardsTimeline = txTimelineProps.updateStandardsTimeline;
-  // const setUpdateStandardsTimeline = txTimelineProps.setUpdateStandardsTimeline;
-  // const updateContractAddressTimeline = txTimelineProps.updateContractAddressTimeline;
-  // const setUpdateContractAddressTimeline = txTimelineProps.setUpdateContractAddressTimeline;
-  const updateIsArchivedTimeline = txTimelineProps.updateIsArchivedTimeline;
-  const setUpdateIsArchivedTimeline = txTimelineProps.setUpdateIsArchivedTimeline;
-  // const updateCollectionPermissions = txTimelineProps.updateCollectionPermissions;
-  // const setUpdateCollectionPermissions = txTimelineProps.setUpdateCollectionPermissions;
-  const mintType = txTimelineProps.mintType;
-  const setMintType = txTimelineProps.setMintType;
-  const addressMapping = txTimelineProps.addressMapping;
-  const setAddressMapping = txTimelineProps.setAddressMapping;
-  const isUpdateAddressMapping = txTimelineProps.isUpdateAddressMapping;
+  const updateCollectionApprovedTransfers = txTimelineContext.updateCollectionApprovedTransfersTimeline;
+  const setUpdateCollectionApprovedTransfers = txTimelineContext.setUpdateCollectionApprovedTransfersTimeline;
+  const updateManagerTimeline = txTimelineContext.updateManagerTimeline;
+  const setUpdateManagerTimeline = txTimelineContext.setUpdateManagerTimeline;
+  const updateCollectionMetadataTimeline = txTimelineContext.updateCollectionMetadataTimeline;
+  const setUpdateCollectionMetadataTimeline = txTimelineContext.setUpdateCollectionMetadataTimeline;
+  const updateBadgeMetadataTimeline = txTimelineContext.updateBadgeMetadataTimeline;
+  const setUpdateBadgeMetadataTimeline = txTimelineContext.setUpdateBadgeMetadataTimeline;
+  const updateIsArchivedTimeline = txTimelineContext.updateIsArchivedTimeline;
+  const setUpdateIsArchivedTimeline = txTimelineContext.setUpdateIsArchivedTimeline;
+  const mintType = txTimelineContext.mintType;
+  const setMintType = txTimelineContext.setMintType;
+  const addressMapping = txTimelineContext.addressMapping;
+  const setAddressMapping = txTimelineContext.setAddressMapping;
+  const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping;
+  const formStepNum = txTimelineContext.formStepNum;
+  const setFormStepNum = txTimelineContext.setFormStepNum;
 
 
 
@@ -107,7 +96,7 @@ export function UpdateCollectionTimeline({
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem(addMethod, updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline, existingCollectionId);
   const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, existingCollectionId);
   const CreateClaims = CreateClaimsStepItem(approvedTransfersToAdd, setApprovedTransfersToAdd, transfers, setTransfers, distributionMethod, existingCollectionId);
-  const CreateCollectionStep = CreateCollectionStepItem(txTimelineProps, existingCollectionId);
+  const CreateCollectionStep = CreateCollectionStepItem(existingCollectionId);
   const CanCreateMoreStep = CanCreateMoreStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
   const CanDeleteStep = CanDeleteStepItem(handledPermissions, setHandledPermissions, existingCollectionId);
   const CollectionPreviewStep = PreviewCollectionStepItem();
@@ -122,14 +111,14 @@ export function UpdateCollectionTimeline({
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
   const CanUpdateBytesStep = CanUpdateBalancesStepItem(handledPermissions, setHandledPermissions);
   const AddressMappingSelectItem = AddressMappingSelectStepItem(addressMapping, setAddressMapping);
-  const CreateAddressMappingStep = CreateAddressMappingStepItem(txTimelineProps);
+  const CreateAddressMappingStep = CreateAddressMappingStepItem();
   const items: TimelineItem[] = [
 
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem :
 
       ChooseBadgeType
   ];
-  
+
   if (mintType === MintType.BitBadge) {
     if (existingCollectionId && existingCollectionId > 0n) {
       // items.push(ExistingWarningStepItem());
@@ -251,9 +240,11 @@ export function UpdateCollectionTimeline({
   return (
     <>
       <FormTimeline
+        formStepNum={formStepNum}
+        setFormStepNum={setFormStepNum}
         items={items}
         onFinish={() => {
-          if (txTimelineProps.onFinish) txTimelineProps.onFinish(txTimelineProps);
+          if (txTimelineContext.onFinish) txTimelineContext.onFinish(txTimelineContext);
         }}
       />
     </>

@@ -3,10 +3,10 @@ import { Button, Divider, Input, InputNumber, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
-import { SwitchForm } from "../../tx-timelines/form-items/SwitchForm";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 
-export function UintRangesInput({
+export function BadgeIdRangesInput({
   uintRanges,
   setUintRanges,
   maximum,
@@ -80,7 +80,7 @@ export function UintRangesInput({
 
     {!updateAllIsSelected && <>
       <br />
-      <div className='flex-center' >
+      <div className='flex-center full-width' >
         <Input
           style={{ marginTop: 16, textAlign: 'center' }}
           className="primary-text primary-blue-bg"
@@ -187,7 +187,7 @@ export function UintRangesInput({
             <div className='flex' >
               <Tooltip title="Delete Range" placement='bottom'>
                 <DeleteOutlined
-                  className='screen-button'
+                  className='styled-button'
                   style={{
                     fontSize: 24, marginLeft: 20, marginTop: 16,
                     cursor: 'pointer',
@@ -219,7 +219,7 @@ export function UintRangesInput({
               cursor: 'pointer',
               border: 'none'
             }}
-            className='screen-button'
+            className='styled-button'
             onClick={() => {
               setNumRanges(numRanges + 1)
 
@@ -239,7 +239,7 @@ export function UintRangesInput({
       <div className='flex-center'>
         {overlaps &&
           <Button type='primary'
-            className="screen-button"
+            className="styled-button"
             onClick={() => {
               const newUintRanges = sortUintRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
 
@@ -263,8 +263,8 @@ export function UintRangesInput({
 
     </>}
     <br />
-    <div className='flex-center'>
-      <div style={{ maxWidth: 700 }} className='primary-text'>
+    <div className='flex-center full-width'>
+      <div style={{  }} className='primary-text full-width'>
         <BadgeAvatarDisplay
           collectionId={collectionId}
           badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}

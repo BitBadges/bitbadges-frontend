@@ -61,7 +61,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 src={"https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png"}
               >
               </Avatar>
@@ -75,7 +75,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 src={"https://etherscan.io/images/brandassets/etherscan-logo-circle-light.svg"}
               >
 
@@ -90,7 +90,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 src={"https://about.twitter.com/content/dam/about-twitter/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg"}
               >
                 {/* <TwitterOutlined /> */}
@@ -104,7 +104,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 src={"https://1000logos.net/wp-content/uploads/2021/04/Telegram-logo.png"}
               >
               </Avatar>
@@ -117,7 +117,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 // src={ }
                 src={"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"}
               >
@@ -132,7 +132,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
                 src={"https://global-uploads.webflow.com/5e157548d6f7910beea4e2d6/604150242d4c6f111dc4e0e8_AMXD2mEvYtyJeooktUtHlCW0f3vrpbwrCN0KjvULcmHdfWBRaAyxA9cSiPn_t6wHhI4mm1qbImd2ewbgBQwm-EtT8hZVevgGiACcBFZ58UQC6EPLcV-mQtaHVb02PzhRrjrpYsnz.png"}
               >
               </Avatar>
@@ -145,7 +145,7 @@ export function AccountButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <LinkOutlined />
               </Avatar>
@@ -165,7 +165,7 @@ export function AccountButtonDisplay({
                   );
                   message.success('Copied to clipboard!');
                 }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <CopyOutlined />
               </Avatar>
@@ -182,7 +182,7 @@ export function AccountButtonDisplay({
 
                   window.open(shareUrl, '_blank');
                 }}
-                className="screen-button account-socials-button"
+                className="styled-button account-socials-button"
               >
                 <TwitterOutlined />
               </Avatar>
@@ -191,7 +191,7 @@ export function AccountButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="screen-button account-socials-button"
+            className="styled-button account-socials-button"
           >
             <ShareAltOutlined />
           </Avatar>
@@ -201,7 +201,7 @@ export function AccountButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="screen-button account-socials-button"
+            className="styled-button account-socials-button"
             onClick={() => {
               //send email
               window.open('mailto:andrew@bitbadges.org');
@@ -221,7 +221,7 @@ export function AccountButtonDisplay({
                 );
                 // message.success('Copied to clipboard!');
               }}
-              className="screen-button account-socials-button"
+              className="styled-button account-socials-button"
             >
               <SettingOutlined />
             </Avatar>

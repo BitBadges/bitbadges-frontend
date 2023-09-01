@@ -85,25 +85,12 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   const ethereumContext = useEthereumContext();
   const cosmosContext = useCosmosContext();
 
-
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
 
     if (chain === 'Ethereum') {
       ethereumContext.setChainId('eth');
     }
-    // else if (chain === 'Polygon') {
-    //     ethereumContext.setChainId('polygon');
-    // } else if (chain === 'Avalanche') {
-    //     ethereumContext.setChainId('avalanche');
-    // } else if (chain === 'BSC') {
-    //     ethereumContext.setChainId('bsc');
-    // }
-    // else if (chain === 'Algorand Mainnet') {
-    //     algorandContext.setChainId('Mainnet');
-    // } else if (chain === 'Algorand Testnet') {
-    //     algorandContext.setChainId('Testnet');
-    // }
   }, [chain, setChain, ethereumContext]);
 
   let currentChainContext: ChainSpecificContextType;

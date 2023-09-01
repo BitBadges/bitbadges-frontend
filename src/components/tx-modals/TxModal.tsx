@@ -159,9 +159,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [txCosmosMsg, currentStep, visible, createTxFunction, chain, signedInAccount, beforeTx, msgSteps, gasPrice
-    // chain, signedInAccount, beforeTx, msgSteps
-  ]);
+  }, [txCosmosMsg, currentStep, visible, createTxFunction, chain, signedInAccount, beforeTx, msgSteps, gasPrice]);
 
   useEffect(() => {
     if (!visible) return
@@ -216,7 +214,8 @@ export function TxModal(
 
       if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
         // setSimulated(false);
-        // throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please try again.`);
+        setSimulatedGas(BigIntify(gasUsed));
+        throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please review the updated recommended fee and try again.`);
       }
 
 
@@ -229,11 +228,6 @@ export function TxModal(
       const msgResponse = await broadcastTransaction(rawTx);
 
       if (DEV_MODE) console.log(msgResponse);
-
-      //If transaction goes through, increment sequence number (includes errors within badges module)
-      //Note if there is an error within ValidateBasic on the chain, the sequence number will be mismatched
-      //However, this is a rare case and the user can just refresh the page to fix it. We should also strive to never allow this to happen on the frontend.
-      // accounts.incrementSequence(chain.cosmosAddress);
 
       //If transaction fails with badges module error, throw error. Other errors are caught before this.
       if (msgResponse.tx_response.codespace === "badges" && msgResponse.tx_response.code !== 0) {
@@ -248,6 +242,7 @@ export function TxModal(
         message: 'Transaction Broadcasted',
         description: `We are now waiting for the transaction to be included on the blockchain and our servers to process that block.`,
       });
+
       //Wait for transaction to be included in block and indexer to process that block
       let currIndexerHeight = 0n;
       while (currIndexerHeight < Numberify(msgResponse.tx_response.height)) {
@@ -295,7 +290,7 @@ export function TxModal(
     }
   };
 
-  const finalStep = {
+  const finalSubmitStep = {
     title: <>Submit</>,
     description: <div>
       {currentStep === (msgSteps ?? []).length && <div>
@@ -338,11 +333,6 @@ export function TxModal(
                 onChange={(value) => {
                   value = Math.round(value);
                   setAmount(BigInt(value));
-                  // if (statusContext.gasPrice == 0n) {
-                  //   // setSimulatedGas(0n);
-                  // } else {
-                  //   // setSimulatedGas(BigIntify(value) / statusContext.gasPrice);
-                  // }
                 }}
                 min={0}
                 max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
@@ -442,11 +432,11 @@ export function TxModal(
       onChange={onStepChange}
       type='navigation'
     >
-      {msgSteps && [...msgSteps, finalStep].map((item, index) => (
+      {msgSteps && [...msgSteps, finalSubmitStep].map((item, index) => (
         <Step
           key={index}
           title={<b>{item.title}</b>}
-          disabled={msgSteps && [...msgSteps, finalStep].find((step, idx) => step.disabled && idx < index) ? true : false}
+          disabled={msgSteps && [...msgSteps, finalSubmitStep].find((step, idx) => step.disabled && idx < index) ? true : false}
         />
       ))}
 
@@ -454,7 +444,7 @@ export function TxModal(
     <div className='primary-text'>
       <br />
       {<div>
-        {[...(msgSteps ?? []), finalStep][currentStep].description}
+        {[...(msgSteps ?? []), finalSubmitStep][currentStep].description}
       </div>}
       <br />
     </div>

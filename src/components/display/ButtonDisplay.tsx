@@ -43,7 +43,7 @@ export function ButtonDisplay({
                     }}
                     size="large"
                     onClick={button.disabled ? () => { } : button.onClick}
-                    className="screen-button"
+                    className="styled-button"
                   >
                     {button.icon}
                   </Avatar>

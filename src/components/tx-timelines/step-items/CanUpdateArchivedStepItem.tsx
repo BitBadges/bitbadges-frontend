@@ -1,7 +1,7 @@
 import { CollectionPermissions, TimedUpdatePermission } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
@@ -34,7 +34,7 @@ export function CanArchiveCollectionStepItem(
           options={[
             {
               title: 'No',
-              message: `Moving forward, the manager will never be able to archive or unarchive the collection. The current archived status will be permanently locked.`,
+              message: `Moving forward, the manager will never be able to archive or unarchive the collection.`,
               isSelected: handledPermissions.canArchiveCollection.length > 0 && collection?.collectionPermissions.canArchiveCollection.length > 0
             },
             {
@@ -60,9 +60,9 @@ export function CanArchiveCollectionStepItem(
                     forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   },
                   combinations: [{
-                    permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                   }]
                 }] : []
               }

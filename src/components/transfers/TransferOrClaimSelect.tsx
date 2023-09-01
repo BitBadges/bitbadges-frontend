@@ -12,13 +12,12 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { BalancesInput } from '../badges/balances/BalancesInput';
+import { BalancesInput } from '../inputs/BalancesInput';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { NumberInput } from '../display/NumberInput';
-import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
-import { BalanceInput } from '../tx-timelines/form-items/BalanceInput';
+import { NumberInput } from '../inputs/NumberInput';
+import { BalanceInput } from '../inputs/BalanceInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimCodesSelectStep } from './ClaimCodesSelectStep';
 import { ClaimMetadataSelectSelectStep } from './ClaimMetadataSelectStep';
@@ -27,6 +26,7 @@ import { ClaimTimeRangeSelectStep } from './ClaimTimeRangeSelectStep';
 import { OrderMattersSelectStepItem } from './OrderMattersSelectStep';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const crypto = require('crypto');
 const { Text } = Typography;
@@ -696,7 +696,6 @@ export function TransferSelect({
           <TransferDisplay
             transfers={transfersToAdd}
             collectionId={collectionId}
-          // hideBalances
           />
         }
       </div>}
@@ -709,26 +708,6 @@ export function TransferSelect({
             setBalances([]);
             // setBalances([]);
           } else if (isClaimSelect && setApprovedTransfersToAdd && approvedTransfersToAdd) {
-            // const convertedTransfers: TransferWithIncrements<bigint>[] = [...approvedTransfersToAdd, approvedTransferToAdd].map(approvedTransfer => {
-
-            //   return {
-            //     toAddresses: [],
-            //     toAddressesLength: 1n,
-            //     balances: approvedTransfer.balances,
-            //     from: sender,
-            //     precalculationDetails: {
-            //       approvalId: approvalId.current,
-            //       approvalLevel: "collection",
-            //       approverAddress: ""
-            //     },
-            //     merkleProofs: [],
-            //     memo: "",
-            //   }
-            // })
-            // console.log("Setting claim balances");
-
-
-            //Previously we just set challenges and challengeDetails to []
             //Set them here
             const codes = [];
             const addresses = [];
@@ -809,7 +788,7 @@ export function TransferSelect({
     <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
 
       {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        <Col md={11} sm={24} xs={24} className='flex'>
+        <Col md={11} sm={24} xs={24} className='flex-center'>
           <InformationDisplayCard
             title='Remaining'
             noBorder
@@ -826,7 +805,7 @@ export function TransferSelect({
           </InformationDisplayCard>
         </Col>
 
-        <Col md={11} sm={24} xs={24} className='flex'>
+        <Col md={11} sm={24} xs={24} className='flex-center'>
           <InformationDisplayCard
             title={<>Added {isClaimSelect ? 'Claims' : 'Transfers'}</>}
             noBorder
@@ -915,36 +894,6 @@ export function TransferSelect({
     <div style={{ alignItems: 'center' }} className='primary-text full-width'>
       {
         !addTransferIsVisible && !hideTransferDisplay && <div>
-          {/* {!isClaimSelect && <div>
-            <div className='flex-between'>
-
-              <div></div>
-              <h2 style={{ textAlign: 'center' }} className='primary-text'>Transfers Added ({convertedTransfers.length})</h2>
-              <div></div>
-            </div>
-            <TransferDisplay
-              transfers={convertedTransfers}
-              setTransfers={setTransfers}
-              collectionId={collectionId}
-              deletable
-            />
-          </div>} */}
-
-          {/* {isClaimSelect && numActiveClaims > 0 && <div>
-            <div className='flex-between'>
-              <div></div>
-              <h2 style={{ textAlign: 'center' }} className='primary-text'>Claims Added ({approvedTransfersToAdd?.length})</h2>
-              <div></div>
-            </div>
-            <ClaimsTab
-              collectionId={collectionId}
-            // codesAndPasswords={}
-            // codes={approvedTransfersToAdd.map(x => x.codes)}
-            // passwords={approvedTransfersToAdd.map(x => x.password)}
-            />
-          </div>
-          } */}
-
           <br />
           <br />
         </div>
@@ -996,7 +945,7 @@ export function TransferSelect({
                   setAddTransferIsVisible(true);
                 }}
                 src={<PlusOutlined />}
-                className='screen-button'
+                className='styled-button'
               >
               </Avatar>
             </div> :

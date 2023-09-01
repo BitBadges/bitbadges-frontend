@@ -1,5 +1,5 @@
 import { UintRange } from "bitbadgesjs-proto";
-import { DateRangeInput } from "../tx-timelines/form-items/DateRangeInput";
+import { DateRangeInput } from "../inputs/DateRangeInput";
 
 export function ClaimTimeRangeSelectStep(
   timeRange: UintRange<bigint>,

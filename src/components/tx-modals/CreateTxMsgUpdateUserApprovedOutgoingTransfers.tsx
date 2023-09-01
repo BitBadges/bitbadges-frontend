@@ -13,7 +13,7 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
-import { BalanceInput } from '../tx-timelines/form-items/BalanceInput';
+import { BalanceInput } from '../inputs/BalanceInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TxModal } from './TxModal';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -32,11 +32,9 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
   const collection = collections.collections[collectionId.toString()];
   const originalBalances = collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances ?? [];
 
-
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalBalances);
   const [allInOne, setAllInOne] = useState<boolean>(false);
   const [approvee, setApprovee] = useState<string>(chain.address);
-
   const [fetchedOutgoingTransfers, setFetchedOutgoingTransfers] = useState<UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]>([]);
   const approveeAccount = accounts.getAccount(approvee);
 
@@ -47,12 +45,8 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
     async function getApproveeBalance() {
       await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
 
-
       const balances = await getBadgeBalanceByAddress(collectionId, chain.cosmosAddress, { doNotHandleAllAndAppendDefaults: true });
-
-      // setNewApprovedOutgoingTransfers(balances.balance.approvedOutgoingTransfersTimeline);
       setFetchedOutgoingTransfers(balances.balance.approvedOutgoingTransfersTimeline);
-      console.log('balances', balances);
     }
     getApproveeBalance();
   }, []);
@@ -135,6 +129,34 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
             allValues: false,
             noValues: false
           },
+        }, {
+          isApproved: false,
+          toMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+
+          initiatedByMappingOptions: {
+            invertDefault: false,
+            allValues: false,
+            noValues: false
+          },
+          badgeIdsOptions: {
+            invertDefault: false,
+            allValues: true,
+            noValues: false
+          },
+          ownershipTimesOptions: {
+            invertDefault: false,
+            allValues: true,
+            noValues: false
+          },
+          transferTimesOptions: {
+            invertDefault: false,
+            allValues: true,
+            noValues: false
+          },
         }]
       }] : [...balances.map(x => {
         return {
@@ -210,48 +232,37 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
               allValues: false,
               noValues: false
             },
+          }, {
+            isApproved: false,
+            toMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+
+            initiatedByMappingOptions: {
+              invertDefault: false,
+              allValues: false,
+              noValues: false
+            },
+            badgeIdsOptions: {
+              invertDefault: false,
+              allValues: true,
+              noValues: false
+            },
+            ownershipTimesOptions: {
+              invertDefault: false,
+              allValues: true,
+              noValues: false
+            },
+            transferTimesOptions: {
+              invertDefault: false,
+              allValues: true,
+              noValues: false
+            },
           }]
         }
       })]),
-      {
-        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMappingId: "AllWithMint",
-        initiatedByMappingId: convertToCosmosAddress(approvee),
-        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-        approvalDetails: [],
-        allowedCombinations: [{
-          isApproved: false,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          badgeIdsOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          transferTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-        }]
-      },
       ...(fetchedOutgoingTransfers.length > 0 ? fetchedOutgoingTransfers[0].approvedOutgoingTransfers : []),
     ]
   }]
@@ -324,7 +335,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         <br />
 
         <SwitchForm
-          noSelectUntilClick
+          // noSelectUntilClick
           options={[
             {
               title: 'All Or Nothing',
@@ -351,10 +362,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         <BalanceInput
           balancesToShow={balances}
           onAddBadges={(balance) => {
-            // const newBalances = deepCopy([...balances, balance]);
             setBalances(deepCopy([...balances, balance]));
-
-
           }}
           onRemoveAll={() => {
             setBalances([]);
@@ -371,13 +379,6 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       description: <div style={{ textAlign: 'center', }}>
         <UserApprovalsTab
           collectionId={collectionId}
-          // setUserApprovedIncomingTransfers={async (newApprovals) => {
-          //   setNewApprovedIncomingTransfers(newApprovals);
-          // }}
-          // userApprovedIncomingTransfers={newApprovedIncomingTransfers}
-          // setUserApprovedOutgoingTransfers={async (newApprovals) => {
-          //   setNewApprovedOutgoingTransfers(newApprovals);
-          // }}
           isOutgoingApprovalEdit
           userApprovedOutgoingTransfers={newApprovedOutgoingTransfers}
         />
@@ -397,7 +398,6 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       createTxFunction={createTxMsgUpdateUserApprovedTransfers}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
-        // await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
     >

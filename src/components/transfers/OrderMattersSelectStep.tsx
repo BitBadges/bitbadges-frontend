@@ -12,11 +12,6 @@ export function OrderMattersSelectStepItem(
   return {
     title: 'Claim Order',
     description: <div>
-
-      <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
-        {/* <h3 style={{ textAlign: 'center' }} className='primary-text'>Who should receive what badges?</h3> */}
-      </div>
-
       <SwitchForm
         onSwitchChange={(idx) => {
           setOrderMatters(idx == 1);
@@ -24,7 +19,7 @@ export function OrderMattersSelectStepItem(
         }}
         options={[{
           title: 'Increasing',
-          message: 'Increments will be calculated based on the number of processed claims. First user to claim will receive the first increment of badges, second user will receive the second increment, etc.',
+          message: 'Increments will be calculated based on the total number of processed claims. First user to claim will receive the first increment of badges, second user will receive the second increment, etc.',
           isSelected: !orderMatters
         }, {
           title: 'Reserved',
@@ -32,7 +27,7 @@ export function OrderMattersSelectStepItem(
             } the first increment of badges, second to the second increment, and so on.`,
           isSelected: orderMatters
         }]}
-        noSelectUntilClick
+        // noSelectUntilClick
       />
     </div>,
     disabled: !handled

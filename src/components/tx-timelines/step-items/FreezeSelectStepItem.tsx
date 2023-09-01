@@ -1,11 +1,11 @@
 import { AddressMapping, CollectionApprovedTransferPermission, CollectionPermissions } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 export function FreezeSelectStepItem(
@@ -22,7 +22,7 @@ export function FreezeSelectStepItem(
 
   return {
     title: `Edit Transferability?`,
-    description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from new claims, freezing addresses, revoking badges, etc.`,
+    description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from how badges are distributed, freezing addresses, revoking badges, etc.`,
     node:
       <PermissionUpdateSelectWrapper
         checked={checked}
@@ -37,7 +37,7 @@ export function FreezeSelectStepItem(
             options={[
               {
                 title: 'No',
-                message: `The manager cannot edit the collection-level transferability. The transferability selected in the previous steps will be permanently frozen.`,
+                message: `The manager cannot edit the collection-level transferability. What was selected in the previous steps will be permanently frozen. If you select this option, make sure all badges can be minted and distributed as intended with the current settings because they cannot be edited.`,
                 isSelected: handledPermissions.canUpdateCollectionApprovedTransfers.length > 0 && collection.collectionPermissions.canUpdateCollectionApprovedTransfers.length > 0
               },
               {
@@ -73,15 +73,15 @@ export function FreezeSelectStepItem(
                       forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     },
                     combinations: [{
-                      initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-                      ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                     }]
                   },
                   {
@@ -101,15 +101,15 @@ export function FreezeSelectStepItem(
                       forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                     },
                     combinations: [{
-                      initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                      timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-                      ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                      forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                      // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                     }]
                   }] : []
                 }

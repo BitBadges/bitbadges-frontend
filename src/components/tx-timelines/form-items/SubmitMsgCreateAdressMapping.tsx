@@ -1,19 +1,18 @@
 import { Button, Divider, Input, Typography } from 'antd';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
-import { MSG_PREVIEW_ID, MsgUpdateCollectionProps } from '../TxTimeline';
-import { SwitchForm } from './SwitchForm';
-import { useRouter } from 'next/router';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
+
+import { SwitchForm } from './SwitchForm';
 
 export function SubmitMsgCreateAddressMapping({
-  txState,
-}: {
-  txState: MsgUpdateCollectionProps
-}) {
+}: {}) {
   const chain = useChainContext();
+  const txState = useTxTimelineContext();
   const addressMapping = txState.addressMapping;
   const setAddressMapping = txState.setAddressMapping;
   const isUpdateAddressMapping = txState.isUpdateAddressMapping;
@@ -66,9 +65,6 @@ export function SubmitMsgCreateAddressMapping({
         <Input
           defaultValue={addressMapping.mappingId}
           placeholder="Enter a unique identifier for your list."
-          // onSearch={async (value) => {
-          //   onSearch(value, true);
-          // }}
           value={addressMapping.mappingId}
           onChange={async (e) => {
             setAddressMapping({
@@ -101,7 +97,6 @@ export function SubmitMsgCreateAddressMapping({
 
           const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
           const mappingId = onChainStorage ? addressMapping.mappingId : chain.cosmosAddress + "_" + addressMapping.mappingId;
-          console.log(mappingId);
           await updateAddressMappings({
             addressMappings: [{
               ...addressMapping,
@@ -109,9 +104,6 @@ export function SubmitMsgCreateAddressMapping({
               uri: metadataUrl,
             }],
           });
-
-
-
           router.push(`/addresses/${mappingId}`);
 
         }

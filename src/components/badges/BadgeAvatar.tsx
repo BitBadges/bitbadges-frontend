@@ -32,9 +32,7 @@ export function BadgeAvatar({
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
-  const showOwnershipTimesIcon = badgeId && balances && showSupplys ?
-    balances.some(x => x.ownershipTimes.length > 0 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64)
-    : false;
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => x.ownershipTimes.length > 0 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64) : false;
 
   const avatar = <Avatar
     style={{
@@ -50,12 +48,7 @@ export function BadgeAvatar({
     size={size ? size : 50}
     onClick={() => {
       if (!badgeId) return;
-
-      if (collectionId === 0n) {
-        if (confirm('Navigating to this badge will cause you to lose your progress. Continue?')) {
-          router.push(`/collections/${collectionId}/${badgeId}`)
-        }
-      } else router.push(`/collections/${collectionId}/${badgeId}`)
+      router.push(`/collections/${collectionId}/${badgeId}`)
     }}
     onError={() => {
       return false;
@@ -82,9 +75,10 @@ export function BadgeAvatar({
         </div>
       </Tooltip>}
     <div style={{ textAlign: 'center' }}>
-      {showId && <b><span>{`${badgeId}`}</span></b>}
+      {showId && <b><span>{`${badgeId}`}</span><br /></b>}
       {!!balances && <>
-        <br />
+
+
         <b>
           {showSupplys && <>
             x<span style={{ color: currBalanceAmount < 0 ? 'red' : undefined }}>
@@ -97,8 +91,9 @@ export function BadgeAvatar({
                 {
                   balances.map(x => {
                     return <>
-                      x{x.amount.toString()} owned from {getTimeRangesString(x.ownershipTimes, '', true)}
+                      x{x.amount.toString()} from {getTimeRangesString(x.ownershipTimes, '', true)}
                       <br />
+                      <br/>
                     </>
                   })
                 }

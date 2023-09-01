@@ -12,8 +12,8 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
-import { MSG_PREVIEW_ID } from '../tx-timelines/TxTimeline';
 import { BalanceOverview } from './BalancesInfo';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 export function OwnersTab({ collectionId, badgeId }: {
   collectionId: bigint;
@@ -42,7 +42,6 @@ export function OwnersTab({ collectionId, badgeId }: {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
     if (!collection) return;
 
-    // const accountsToFetch: string[] = [...owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').slice(pageStartId - 1, pageEndId).map(x => cosmosToEth(x.cosmosAddress))];  //Default to ETH address if not found
     accounts.fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => cosmosToEth(x.cosmosAddress)) ?? []);
     //Even though this depends on collection (context), it should be okay because collection should not change
   }, [collection, owners]);
@@ -57,16 +56,12 @@ export function OwnersTab({ collectionId, badgeId }: {
         return;
       }
       const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: pagination.bookmark });
-
-
       const badgeOwners = [...ownersRes.owners.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total')]
-
       setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
       setPagination({
         ...ownersRes.pagination,
-        total: (ownersRes.pagination.total ?? 0) - 2,
-      }
-      );
+        total: (ownersRes.pagination.total ?? 0) - 2, //-2 because of Mint and Total always being there
+      });
 
       setLoaded(true);
     }
@@ -74,6 +69,7 @@ export function OwnersTab({ collectionId, badgeId }: {
   }, []);
 
   const isMobile = window.innerWidth < 768;
+
   return (
     <InformationDisplayCard
       title="Balances"
@@ -97,11 +93,10 @@ export function OwnersTab({ collectionId, badgeId }: {
           <InfiniteScroll
             dataLength={owners.length}
             next={async () => {
+              if (isPreview) return;
+
               const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: pagination.bookmark });
-
-
               const badgeOwners = [...ownersRes.owners.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total')]
-
               setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
               setPagination({
                 ...ownersRes.pagination,
@@ -109,7 +104,7 @@ export function OwnersTab({ collectionId, badgeId }: {
               });
             }}
 
-            hasMore={owners.length !== totalNumOwners}
+            hasMore={isPreview ? false : pagination.hasMore}
             loader={<div>
               <br />
               <Spin size={'large'} />

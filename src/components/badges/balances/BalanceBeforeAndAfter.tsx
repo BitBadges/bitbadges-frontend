@@ -42,7 +42,6 @@ export function BalanceBeforeAndAfter({
           collectionId={collectionId}
           balances={newBalances}
           message={afterMessage ? afterMessage : 'After'}
-
         />
       </Col>
     </Row>

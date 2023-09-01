@@ -1,6 +1,6 @@
 import { ActionPermission, CollectionPermissions } from "bitbadgesjs-proto";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
@@ -39,7 +39,7 @@ export function CanDeleteStepItem(
             },
             {
               title: 'Yes',
-              message: `The collection can be deleted by the manager. This permission can be revoked at any time by the manager, if desired.`,
+              message: `The collection can be deleted by the manager. This permission can be disabled at any time by the manager, if desired.`,
               isSelected: handledPermissions.canDeleteCollection.length > 0 && collection.collectionPermissions.canDeleteCollection.length === 0,
             },
           ]}
@@ -59,8 +59,8 @@ export function CanDeleteStepItem(
                     forbiddenTimes: [],
                   },
                   combinations: [{
-                    permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    forbiddenTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                    // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                    // forbiddenTimesOptions: { invertDefault: false, allValues: true, noValues: false },
                   }]
                 }] : []
               }

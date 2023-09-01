@@ -2,11 +2,11 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Form, Input, Tooltip, Typography } from "antd";
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { useEffect, useState } from "react";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { INFINITE_LOOP_MODE } from "../../../constants";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 const { Text } = Typography
 
@@ -55,7 +55,7 @@ export function OffChainBalancesStorageSelectStepItem() {
             isSelected: addMethod === MetadataAddMethod.UploadUrl,
           },
           {
-            title: 'Outsourced',
+            title: 'Manual',
             message: <div>{`Enter your balances directly into this form, and we handle the balances storage for you! This is done in a decentralized manner using IPFS.`}
               <Tooltip
                 placement='bottom'

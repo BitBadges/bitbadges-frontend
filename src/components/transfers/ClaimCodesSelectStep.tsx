@@ -4,8 +4,8 @@ import { DistributionMethod } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { CodeType } from "./TransferOrClaimSelect";
-import { EmptyStepItem } from "../tx-timelines/TxTimeline";
 import { INFINITE_LOOP_MODE } from "../../constants";
+import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, setNumRecipients: (numRecipients: bigint) => void, password?: string, setClaimPassword?: (password: string) => void) {
   const [numCodes, setNumCodes] = useState<number>(0);

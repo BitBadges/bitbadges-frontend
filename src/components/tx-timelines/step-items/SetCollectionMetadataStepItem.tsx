@@ -7,7 +7,7 @@ import { useCollectionsContext } from "../../../bitbadges-api/contexts/Collectio
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { PermissionIcon, } from "../../collection-page/PermissionsInfo";
 import { ToolIcon } from "../../display/ToolIcon";
-import { MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function SetCollectionMetadataStepItem(

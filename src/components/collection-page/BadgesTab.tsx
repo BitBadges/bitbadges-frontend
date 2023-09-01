@@ -14,7 +14,7 @@ export function BadgesTab({ collectionId }: {
   const collection = collections.collections[collectionId.toString()]
 
   return (
-    <div className='primary-text'>
+    <div className='primary-text full-width'>
       <br />
 
       <div className='primary-text primary-blue-bg' style={{
@@ -53,8 +53,10 @@ export function BadgesTab({ collectionId }: {
           collectionId={collectionId}
           cardView={cardView}
           badgeIds={collection ? getUintRangesForAllBadgeIdsInCollection(collection) : []}
-          pageSize={cardView ? 25 : 1000}
+          defaultPageSize={cardView ? 25 : 1000}
           hideCollectionLink={true}
+          doNotAdaptToWidth
+
         />
       </div>
     </div >

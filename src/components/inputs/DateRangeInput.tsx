@@ -1,7 +1,7 @@
 import { Button, DatePicker } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import moment from 'moment';
-import { getTimeRangesElement } from '../../../utils/dates';
+import { getTimeRangesElement } from '../../utils/dates';
 
 export function DateRangeInput({
   timeRanges,
@@ -15,7 +15,7 @@ export function DateRangeInput({
 
   // //Top of the hour even :00:00
   const currTimeNextHour = new Date();
-  currTimeNextHour.setHours(currTimeNextHour.getHours());
+  currTimeNextHour.setHours(currTimeNextHour.getHours() - 1);
   currTimeNextHour.setMinutes(0);
   currTimeNextHour.setSeconds(0);
   currTimeNextHour.setMilliseconds(0);
@@ -26,7 +26,7 @@ export function DateRangeInput({
       <br />
       <div className='flex flex-wrap'>
         <Button
-          className='screen-button'
+          className='styled-button'
           style={{ margin: 4 }}
           onClick={() => {
             setTimeRanges([{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24) }]);
@@ -35,7 +35,7 @@ export function DateRangeInput({
           +1 Day
         </Button>
         <Button
-          className='screen-button'
+          className='styled-button'
           style={{ margin: 4 }}
           onClick={() => {
             setTimeRanges([{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 7) }]);
@@ -44,7 +44,7 @@ export function DateRangeInput({
           +1 Week
         </Button>
         <Button
-          className='screen-button'
+          className='styled-button'
           style={{ margin: 4 }}
           onClick={() => {
             setTimeRanges([{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365) }]);
@@ -56,7 +56,7 @@ export function DateRangeInput({
           return <>
 
             <Button
-              className='screen-button'
+              className='styled-button'
               style={{ margin: 4 }}
               onClick={() => {
                 setTimeRanges(deepCopy([x]));

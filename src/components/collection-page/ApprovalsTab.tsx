@@ -1,7 +1,7 @@
 import { DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Select, Tooltip, Typography } from 'antd';
 import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { UserApprovedIncomingTransferTimelineWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovedTransferTimelineWithDetails, CollectionApprovedTransferWithDetails, NumberType, UserApprovedIncomingTransferTimelineWithDetails, UserApprovedIncomingTransferWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, UserApprovedOutgoingTransferWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -12,13 +12,63 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { Tabs } from '../navigation/Tabs';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
-import { TransferabilityRow, getTableHeader } from './TransferabilityTab';
+import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
+
+
+export const getApprovalsDisplay = (timeline:
+  UserApprovedIncomingTransferTimelineWithDetails<bigint>[] | UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]
+  | CollectionApprovedTransferTimelineWithDetails<bigint>[], convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[], defaultOutgoingIdx: number, setDefaultOutgoingIdx: (idx: number) => void, collection: BitBadgesCollection<bigint>, badgeId?: bigint) => {
+  return <> {collection && ((timeline.length > 1)) ?
+    <>
+      <Select
+        className="selector primary-text primary-blue-bg"
+        style={{ marginLeft: 4 }}
+        defaultValue={defaultOutgoingIdx}
+        onChange={(value) => {
+          setDefaultOutgoingIdx(Number(value));
+        }}
+        suffixIcon={
+          <DownOutlined
+            className='primary-text'
+          />
+        }
+      >
+        {timeline.map((timeline, idx) => {
+          return <Select.Option key={idx} value={idx}>{getTimeRangesElement(timeline.timelineTimes, '', true)}</Select.Option>
+        })}
+      </Select>
+      <br />
+      <br />
+    </> : <> </>
+  }
+
+
+
+    {/* //TODO:  User permissions */}
+    {/* <Divider />
+<p>Note: Go to permissions on the overview tab to see if these currently set values can be changed or not by the manager.</p> */}
+    <br />
+    <div className='flex-between' style={{ overflow: 'auto' }}>
+
+      <table style={{ width: '100%', fontSize: 16 }}>
+        {getTableHeader()}
+        <br />
+        {
+          convertedFirstMatches.map((x, idx) => {
+            const result = <TransferabilityRow transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} />
+            return result
+          })
+        }
+      </table>
+    </div>
+  </>
+}
+
 
 export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
   userApprovedIncomingTransfers, userApprovedOutgoingTransfers,
   setUserApprovedIncomingTransfers,
-  // setUserApprovedOutgoingTransfers
-
+  // setUserApprovedOutgoingTransfers //We never use this
 }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -39,12 +89,10 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
   const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
 
   const approverAccount = address ? accounts.getAccount(address) : undefined;
-  const approvedOutgoingTransfersTimeline =
-    userApprovedOutgoingTransfers ? userApprovedOutgoingTransfers :
-      collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
-  const approvedIncomingTransfersTimeline =
-    userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
-      collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
+  const approvedOutgoingTransfersTimeline = userApprovedOutgoingTransfers ? userApprovedOutgoingTransfers :
+    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
+  const approvedIncomingTransfersTimeline = userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
+    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
 
   const currOutgoingTransferabilityIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
   const currIncomingTransferabilityIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
@@ -70,132 +118,80 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
     }
   }, [collectionId, approvedIncomingTransfersTimeline, approvedOutgoingTransfersTimeline]);
 
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers a');
-    if (collectionId > 0) {
-      async function fetchTrackers() {
-        const outgoingIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
-        const defaultOutgoingIdx = outgoingIdx < 0 ? 0 : outgoingIdx;
 
-        if (collection && approvedOutgoingTransfersTimeline.length > 0) {
+    if (collectionId <= 0) {
+      return;
+    }
 
-          const approvedTransfers = approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers.filter(x => x.approvalDetails.length > 0);
+    function fetchTrackers(approvedTransfersTimeline: UserApprovedIncomingTransferTimelineWithDetails<bigint>[] | UserApprovedOutgoingTransferTimelineWithDetails<bigint>[], approvalLevel: string) {
+      const idx = getCurrentIdxForTimeline(approvedTransfersTimeline);
+      const defaultIdx = idx < 0 ? 0 : idx;
 
+      if (collection && approvedTransfersTimeline.length > 0) {
+        const approvedTransfersCasted = approvalLevel === "outgoing" ?
+          (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedOutgoingTransfers as UserApprovedOutgoingTransferWithDetails<bigint>[]
+          : (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedIncomingTransfers as UserApprovedIncomingTransferWithDetails<bigint>[];
 
-          const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] =
-            approvedTransfers.map(approvedTransfer => {
-              const approvalId = approvedTransfer.approvalDetails[0].approvalId;
-              const approvalIdDetails = [
-                {
-                  collectionId,
-                  approvalId,
-                  approvalLevel: "outgoing",
-                  approvedAddress: "",
-                  approverAddress: approverAccount?.cosmosAddress,
-                  trackerType: "overall",
-                },
-                {
-                  collectionId,
-                  approvalId,
-                  approvalLevel: "outgoing",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: approverAccount?.cosmosAddress,
-                  trackerType: "initiatedBy",
-                },
-                {
-                  collectionId,
-                  approvalId,
-                  approvalLevel: "outgoing",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: approverAccount?.cosmosAddress,
-                  trackerType: "to",
-                },
-                {
-                  collectionId,
-                  approvalId,
-                  approvalLevel: "outgoing",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: approverAccount?.cosmosAddress,
-                  trackerType: "from",
-                },
-              ] as ApprovalTrackerIdDetails<bigint>[];
-              return approvalIdDetails;
-            }).flat();
+        const approvedTransfers = approvedTransfersCasted.filter(x => x.approvalDetails.length > 0)
 
+        const approvalsIdsToFetch = approvedTransfers.flatMap(approvedTransfer => {
+          const approvalId = approvedTransfer.approvalDetails[0].approvalId;
+          return [
+            {
+              collectionId,
+              approvalId,
+              approvalLevel,
+              approvedAddress: "",
+              approverAddress: approverAccount?.cosmosAddress,
+              trackerType: "overall",
+            },
+            {
+              collectionId,
+              approvalId,
+              approvalLevel,
+              approvedAddress: chain.cosmosAddress,
+              approverAddress: approverAccount?.cosmosAddress,
+              trackerType: "initiatedBy",
+            },
+            {
+              collectionId,
+              approvalId,
+              approvalLevel,
+              approvedAddress: chain.cosmosAddress,
+              approverAddress: approverAccount?.cosmosAddress,
+              trackerType: "to",
+            },
+            {
+              collectionId,
+              approvalId,
+              approvalLevel,
+              approvedAddress: chain.cosmosAddress,
+              approverAddress: approverAccount?.cosmosAddress,
+              trackerType: "from",
+            },
+          ] as ApprovalTrackerIdDetails<NumberType>[]
+        });
 
-
-          collections.fetchCollectionsWithOptions([{
-            collectionId,
-            viewsToFetch: [],
-            merkleChallengeIdsToFetch: [],
-            approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-            handleAllAndAppendDefaults: true,
-          }]);
-        }
-
-
-        const incomingIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
-        const defaultIncomingIdx = incomingIdx < 0 ? 0 : incomingIdx;
-
-        if (collection && approvedIncomingTransfersTimeline.length > 0) {
-
-          const approvedTransfers = approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers.filter(x => x.approvalDetails.length > 0);
-
-
-          const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = approvedTransfers.map(approvedTransfer => {
-            const approvalId = approvedTransfer.approvalDetails[0].approvalId;
-            const approvalIdDetails = [
-              {
-                collectionId,
-                approvalId,
-                approvalLevel: "incoming",
-                approvedAddress: "",
-                approverAddress: approverAccount?.cosmosAddress,
-                trackerType: "overall",
-              },
-              {
-                collectionId,
-                approvalId,
-                approvalLevel: "incoming",
-                approvedAddress: chain.cosmosAddress,
-                approverAddress: approverAccount?.cosmosAddress,
-                trackerType: "initiatedBy",
-              },
-              {
-                collectionId,
-                approvalId,
-                approvalLevel: "incoming",
-                approvedAddress: chain.cosmosAddress,
-                approverAddress: approverAccount?.cosmosAddress,
-                trackerType: "to",
-              },
-              {
-                collectionId,
-                approvalId,
-                approvalLevel: "incoming",
-                approvedAddress: chain.cosmosAddress,
-                approverAddress: approverAccount?.cosmosAddress,
-                trackerType: "from",
-              },
-            ] as ApprovalTrackerIdDetails<bigint>[];
-            return approvalIdDetails;
-          }).flat();
-
-
-          collections.fetchCollectionsWithOptions([{
-            collectionId,
-            viewsToFetch: [],
-            merkleChallengeIdsToFetch: [],
-            approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-            handleAllAndAppendDefaults: true,
-          }])
-        }
+        return approvalsIdsToFetch
       }
 
-      fetchTrackers();
-
+      return [];
     }
-  }, []);
+
+    const outgoingArr = fetchTrackers(approvedOutgoingTransfersTimeline, "outgoing");
+    const incomingArr = fetchTrackers(approvedIncomingTransfersTimeline, "incoming");
+    collections.fetchCollectionsWithOptions([{
+      collectionId,
+      viewsToFetch: [],
+      merkleChallengeIdsToFetch: [],
+      approvalsTrackerIdsToFetch: [...outgoingArr, ...incomingArr],
+      handleAllAndAppendDefaults: true,
+    }]);
+  }, [address, chain.cosmosAddress, collectionId]);
+
 
   if (!collection) return <></>;
 
@@ -206,6 +202,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []
+
 
 
   return (<>
@@ -251,70 +248,9 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
             </Tooltip>
           }
         </Typography.Text>
-        {/* <br /> */}
-        {collection && ((approvedOutgoingTransfersTimeline.length > 1)) ?
-          <>
-            <Select
-              className="selector primary-text primary-blue-bg"
-              style={{ marginLeft: 4 }}
-              defaultValue={defaultOutgoingIdx}
-              onChange={(value) => {
-                setDefaultOutgoingIdx(Number(value));
-              }}
-              suffixIcon={
-                <DownOutlined
-                  className='primary-text'
-                />
-              }
-            >
-              {approvedOutgoingTransfersTimeline.map((timeline, idx) => {
-                return <Select.Option key={idx} value={idx}>{getTimeRangesElement(timeline.timelineTimes, '', true)}</Select.Option>
-              })}
-            </Select>
-            <br />
-            <br />
-          </> : <> </>
-        }
+        {getApprovalsDisplay(approvedOutgoingTransfersTimeline, convertedFirstOutgoingMatches, defaultOutgoingIdx, setDefaultOutgoingIdx, collection, badgeId)}
 
-
-
-        {/* //TODO:  User permissions */}
-        {/* <Divider />
-      <p>Note: Go to permissions on the overview tab to see if these currently set values can be changed or not by the manager.</p> */}
-        <br />
-        <div className='flex-between' style={{ overflow: 'auto' }}>
-
-          <table style={{ width: '100%', fontSize: 16 }}>
-            {getTableHeader()}
-            <br />
-            {
-              convertedFirstOutgoingMatches.map((x, idx) => {
-                const result = <TransferabilityRow transfer={x} key={idx} badgeId={badgeId} collectionId={collectionId} />
-                return result
-              }
-              )
-            }
-            {/* {
-              convertedFirstOutgoingMatches.length === 0 &&
-              <tr>
-                <td>
-                  <p>No outgoing approvals found.</p>
-                </td>
-              </tr>
-            } */}
-            <br />
-            {/* <TransferabilityRow transfer={{
-              fromMapping: {
-              
-              },
-              approvalDetails: [],
-            }} key={"all else"} badgeId={badgeId} collectionId={collectionId} /> */}
-
-          </table>
-        </div>
       </>}
-
-
 
       {tab === 'incoming' && <>
         <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
@@ -323,51 +259,8 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
               Incoming Approvals <FieldTimeOutlined style={{ marginLeft: 4 }} />
             </Tooltip> : <> </>
           }
-
-
         </Typography.Text>
-        {collection && ((approvedIncomingTransfersTimeline.length > 1)) ?
-          <>
-            <Select
-              className="selector primary-text primary-blue-bg"
-              style={{ marginLeft: 4 }}
-              defaultValue={defaultIncomingIdx}
-              onChange={(value) => {
-                setDefaultIncomingIdx(Number(value));
-              }}
-              suffixIcon={
-                <DownOutlined
-                  className='primary-text'
-                />
-              }
-            >
-              {approvedIncomingTransfersTimeline.map((timeline, idx) => {
-                return <Select.Option key={idx} value={idx}>{getTimeRangesElement(timeline.timelineTimes, '', true)}</Select.Option>
-              })}
-            </Select>
-            <br />
-            <br />
-          </> : <> </>
-        }
-
-        {/* //TODO:  User permissions */}
-        {/* <Divider />
-      <p>Note: Go to permissions on the overview tab to see if these currently set values can be changed or not by the manager.</p> */}
-        <br />
-        <div className='flex-between' style={{ overflow: 'auto' }}>
-
-          <table style={{ width: '100%', fontSize: 16 }}>
-            {getTableHeader()}
-            <br />
-            {
-              convertedFirstIncomingMatches.map((x, idx) => {
-                return <TransferabilityRow transfer={x} key={idx} badgeId={badgeId} collectionId={collectionId} />
-              }
-              )
-            }
-
-          </table>
-        </div>
+        {getApprovalsDisplay(approvedIncomingTransfersTimeline, convertedFirstIncomingMatches, defaultIncomingIdx, setDefaultIncomingIdx, collection, badgeId)}
       </>}
     </div>
     <div className='primary-text'>
@@ -378,38 +271,10 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
         </p>
         <br />
         <p>
-          <InfoCircleOutlined />{' '} Note that approvals can be overriden by the collection-level transferability (if set).
+          <InfoCircleOutlined />{' '} Note that user level approvals can be overriden by the collection-level transferability.
         </p>
       </>}
       {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
-
-      {/* {isIncomingApprovalEdit && tab === 'outgoing' && <>
-        <ApprovalSelect
-          plusButton
-          hideTransferDisplay
-          hideRemaining
-          sender={chain.cosmosAddress}
-
-          distributionMethod={DistributionMethod.FirstComeFirstServe}
-          collectionId={collectionId}
-          originalSenderBalances={collection.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.balances ?? []}
-          approvedTransfersToAdd={approvedTransfersToAdd}
-
-          setApprovedTransfersToAdd={(value) => {
-            setApprovedTransfersToAdd(value);
-
-            console.log(value);
-
-            setUserApprovedOutgoingTransfers?.([{
-              ...approvedOutgoingTransfersTimeline[0],
-              approvedOutgoingTransfers: [...value.map(x => castFromCollectionTransferToOutgoingTransfer(x))]
-            }])
-
-            console.log([...value.map(x => castFromCollectionTransferToOutgoingTransfer(x))]);
-          }}
-        />
-
-      </>} */}
 
       {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
         options={[

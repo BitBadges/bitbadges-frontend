@@ -2,12 +2,11 @@ import { CollectionPermissions, TimedUpdatePermission, TimedUpdateWithBadgeIdsPe
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../TxTimeline";
+import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { useState } from "react";
 
-//TODO: Split this into canUpdateCollection vs canUpdateBadgeMetadata
 export function UpdatableMetadataSelectStepItem(
   handledPermissions: CollectionPermissions<bigint>,
   setHandledPermissions: (permissions: CollectionPermissions<bigint>) => void,
@@ -38,8 +37,7 @@ export function UpdatableMetadataSelectStepItem(
       handledPermissions.canUpdateCollectionMetadata.length > 0 && collection?.collectionPermissions.canUpdateCollectionMetadata.length === 0,
   });
 
-  let description = `Following this transaction, do you want this metadata to remain updatable or be frozen? `;
-
+  let description = `Following this transaction, do you want to be able to update the metadata for ${collectionMetadataUpdate ? 'the collection' : 'badges'}? This includes the name, description, image, and other metadata. See full list `
 
   return {
     title: collectionMetadataUpdate ? 'Updatable Collection Metadata?' : 'Updatable Badge Metadata?',
@@ -52,7 +50,6 @@ export function UpdatableMetadataSelectStepItem(
       permissionName={collectionMetadataUpdate ? 'canUpdateCollectionMetadata' : 'canUpdateBadgeMetadata'}
       existingCollectionId={existingCollectionId}
       node={
-
         <SwitchForm
           options={options}
           onSwitchChange={(_idx, title) => {
@@ -85,9 +82,9 @@ export function UpdatableMetadataSelectStepItem(
                         forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                       },
                       combinations: [{
-                        permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                        forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                        timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                       }]
                     }]
                   }
@@ -123,10 +120,10 @@ export function UpdatableMetadataSelectStepItem(
                         forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                       },
                       combinations: [{
-                        badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-                        permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                        forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                        timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
+                        // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                       }]
                     }]
                   }
