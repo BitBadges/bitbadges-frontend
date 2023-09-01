@@ -11,7 +11,7 @@ export const NODE_URL = `http://${HOSTNAME}:1317`;
 export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
-export const DEV_MODE = true;
+export const DEV_MODE = false;
 export const INFINITE_LOOP_MODE = false;
 
 
