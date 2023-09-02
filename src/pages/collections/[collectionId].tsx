@@ -46,11 +46,13 @@ function CollectionPage({
   if (!isOffChainBalances) {
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
-      { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
+    
       { key: 'transferability', content: 'Transferability', disabled: false },
-      { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'claims', content: 'Claims', disabled: false },
+      { key: 'approvals', content: 'Approvals', disabled: false },
+      { key: 'announcements', content: 'Announcements', disabled: false },
+      
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
@@ -122,7 +124,7 @@ function CollectionPage({
           }}
         >
           {collection && <>
-            <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />
+            {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />}
             {/* Overview and Tabs */}
             {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
             <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />

@@ -11,6 +11,7 @@ import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
 import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
 import { getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
+import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 
 export function ActionsTab({
   collectionId,
@@ -29,6 +30,7 @@ export function ActionsTab({
   const [deleteIsVisible, setDeleteIsVisible] = useState(false);
   const [approveIsVisible, setApproveIsVisible] = useState(false);
   const [outgoingApproveIsVisible, setOutgoingApproveIsVisible] = useState(false);
+  const [distributeCodesIsVisible, setDistributeCodesIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -36,7 +38,7 @@ export function ActionsTab({
     showModal: () => void,
     disabled?: boolean
   }[] = [];
-  
+
 
   const managerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
   const isManager = managerIdx >= 0 && collection && collection.managerTimeline[Number(managerIdx)].manager === chain.cosmosAddress;
@@ -119,6 +121,17 @@ export function ActionsTab({
     });
 
 
+    if (collection.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers.find(x => x.fromMappingId === "Mint" && x.approvalDetails.find(y => y.merkleChallenges.find(z => z.root && !z.useCreatorAddressAsLeaf))) !== undefined) !== undefined) {
+      actions.push({
+        title: getTitleElem("Distribute Codes"),
+        description: getDescriptionElem(
+          "Distribute the claim codes / passwords so users can receive these badges!"
+        ),
+        showModal: () => {
+          setDistributeCodesIsVisible(!distributeCodesIsVisible);
+        },
+      });
+    }
 
     if (collection.collectionPermissions.canDeleteCollection.length == 0) {
       actions.push({
@@ -131,6 +144,7 @@ export function ActionsTab({
         },
       });
     }
+
   }
 
   if (!chain.connected) {
@@ -223,6 +237,13 @@ export function ActionsTab({
             <CreateTxMsgUpdateUserApprovedOutgoingTransfersModal
               visible={outgoingApproveIsVisible}
               setVisible={setOutgoingApproveIsVisible}
+              collectionId={collectionId}
+            />}
+
+          {distributeCodesIsVisible &&
+            <FetchCodesModal
+              visible={distributeCodesIsVisible}
+              setVisible={setDistributeCodesIsVisible}
               collectionId={collectionId}
             />}
         </div >

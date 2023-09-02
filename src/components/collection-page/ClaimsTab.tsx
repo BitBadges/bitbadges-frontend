@@ -92,6 +92,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     <div className='primary-text'
       style={{
         justifyContent: 'center',
+        width: '100%',
       }}>
       {isRefreshing && <>
         <div className='flex-center' style={{ textAlign: 'center' }}>

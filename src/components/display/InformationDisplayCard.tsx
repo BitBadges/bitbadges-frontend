@@ -32,7 +32,10 @@ export function InformationDisplayCard({
     <Col
       xl={xl ? xl : undefined} xxl={xxl ? xxl : undefined}
       xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
-      span={span ? span : undefined} style={{ ...style, padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10 }}>
+      span={span ? span : undefined} style={{
+        ...style, padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10
+
+      }}>
       <div className="primary-text">
         <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>

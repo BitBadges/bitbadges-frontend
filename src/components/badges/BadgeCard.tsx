@@ -32,14 +32,15 @@ export function BadgeCard({
 
 
   return (
-    <>
+    <div>
       <Card
         className='primary-text primary-blue-bg'
         style={{
-          minWidth: 200,
+          width: 200,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
+          // background: 'linear-gradient(0deg, black 10%, #001529 100%)'
         }}
         hoverable={hoverable ? hoverable : true}
         onClick={() => {
@@ -107,6 +108,6 @@ export function BadgeCard({
           />
         </div>
       </Card>
-    </>
+    </div>
   );
 }

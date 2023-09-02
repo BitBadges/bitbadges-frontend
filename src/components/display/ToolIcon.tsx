@@ -131,29 +131,30 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 10, maxWidth: 300 }} className='primary-text primary-blue-bg'
+    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='primary-text primary-blue-bg'
       onClick={() => {
         window.open(tool.url)
       }}
     >
-      <Card.Meta
-        avatar={<Avatar size={50} src={tool.icon} />}
-        title={
-          <div className='primary-text'>
-            {tool.name}
-            <LinkOutlined style={{ marginLeft: 10 }} />
-            {tool.communityBuilt &&
-              <Tooltip title={`Built by ${tool.createdBy
-                }`} placement="bottom">
-                <TeamOutlined style={{ marginLeft: 10 }} />
-              </Tooltip>}
+      <div className='flex-between' style={{ alignItems: 'normal', width: '100%' }}>
+        <div style={{ marginRight: 10 }}>
+          <Avatar size={50} src={tool.icon} />
 
-          </div>}
-        description={<div className='primary-text'>
-          {tool.description}
-        </div>}
-        className='primary-text'
-      />
+        </div>
+        <div className='flex-center flex-column '>
+          <div className='flex-around'>
+            <div className='primary-text' style={{ display: 'inline' }}>
+              <b>
+                {tool.name}
+              </b>
+            </div>
+
+          </div>
+          <div className='primary-text'>
+            {tool.description}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }
