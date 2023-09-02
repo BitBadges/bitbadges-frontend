@@ -71,7 +71,7 @@ export const tools = [{
 {
   name: 'Blockin',
   url: 'https://blockin.vercel.app/',
-  icon: <img height="auto" src="https://www.gitbook.com/cdn-cgi/image/width=40,dpr=2,height=40,fit=contain,format=auto/https%3A%2F%2F3632080616-files.gitbook.io%2F~%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FAwjdYgEsUkK9cCca5DiU%252Ficon%252FzXgOPDuxXwqaOUVRHtGf%252Fblockinlogo.PNG%3Falt%3Dmedia%26token%3Dc2ba0238-82ec-48ac-841e-9b0268eb9148" alt="Blockin" />,
+  icon: <img height="auto" src="https://avatars.githubusercontent.com/u/105506360?s=200&v=4" alt="Blockin" />,
   description: 'Badge-gate websites with Blockin: a universal, multi-chain Web3 sign-in standard.',
   createdBy: 'Blockin',
   toolType: 'Verification',

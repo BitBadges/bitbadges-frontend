@@ -20,6 +20,7 @@ export function BadgeAvatarDisplay({
   showSupplys = true,
   defaultPageSize = 10,
   maxWidth,
+  noBorder,
 
   cardView,
   hideCollectionLink,
@@ -46,6 +47,7 @@ export function BadgeAvatarDisplay({
   lightTheme?: boolean;
   doNotFetchMetadata?: boolean;
   doNotAdaptToWidth?: boolean;
+  noBorder?: boolean;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
@@ -181,6 +183,7 @@ export function BadgeAvatarDisplay({
                     collectionId={collectionId}
                     badgeId={badgeId}
                     showId={showIds}
+                    noBorder={noBorder}
                     showSupplys={showSupplys}
                     balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
                   /> : <BadgeCard

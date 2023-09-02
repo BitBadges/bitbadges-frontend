@@ -12,6 +12,7 @@ import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/cont
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 
 const { Text } = Typography;
 
@@ -178,47 +179,48 @@ export const BlockinDisplay = ({
           }}
           selectedChainName={chain}
           displayedAssets={[
-            // {
-            //   collectionId: 2,
-            //   chain: 'BitBadges',
-            //   assetIds: [{ start: 1, end: 10 }],
-            //   mustOwnAmounts: { start: 0, end: 0 },
-            //   // ownershipTimes: [{ start: 1, end: 10000 }],
-            //   name: 'General Access',
-            //   description: 'Gain general access to this website. You will not be allowed access if you own a scammer or spammer badge.',
-            //   frozen: true,
-            //   defaultSelected: true,
-            //   // additionalCriteria: "HELLO!",
-            //   additionalDisplay: <div>
-            //     <BadgeAvatarDisplay
-            //       collectionId={2n}
-            //       badgeIds={[{ start: 1n, end: 10n }]}
-            //     // showIds
+            {
+              collectionId: 1,
+              chain: 'BitBadges',
+              assetIds: [{ start: 8, end: 8 }],
+              mustOwnAmounts: { start: 0, end: 0 },
+              // ownershipTimes: [{ start: 1, end: 10000 }],
+              name: 'General Access',
+              description: 'Gain general access to this website. You will not be allowed access if you own a scammer or spammer badge.',
+              frozen: true,
+              defaultSelected: true,
+              // additionalCriteria: "HELLO!",
+              additionalDisplay: <div>
+                <BadgeAvatarDisplay
+                  collectionId={1n}
+                  badgeIds={[{ start: 8n, end: 8n }]}
+                  size={100}
+                  noBorder
+                /></div>
+            },
+            {
+              collectionId: 11,
+              chain: 'BitBadges',
+              assetIds: [{ start: 1, end: 1 }, { start: 3, end: 3 }],
+              mustOwnAmounts: { start: 1, end: 10000 },
+              // ownershipTimes: [{ start: 1, end: 10000 }],
+              name: 'Premium Features',
+              description: 'Premium features are restricted to people who own the gold membership badge and verified badge. Note this is just an example to show off BitBadges features. There are no gated premium features on this website.',
+              frozen: false,
+              defaultSelected: false,
+              // additionalCriteria: "HELLO!",
+              additionalDisplay: <div>
+                <BadgeAvatarDisplay
+                  collectionId={1n}
+                  size={100}
+                  badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
+                  lightTheme
+                  noBorder
+                // showIds
 
-            //     /></div>
+                /></div>
 
-            // },
-            // {
-            //   collectionId: 11,
-            //   chain: 'BitBadges',
-            //   assetIds: [{ start: 1, end: 10 }],
-            //   mustOwnAmounts: { start: 1, end: 10000 },
-            //   // ownershipTimes: [{ start: 1, end: 10000 }],
-            //   name: 'Premium Features',
-            //   description: 'Gain access to premium features on this website.  Restricted to people who own the membership badge.',
-            //   frozen: false,
-            //   defaultSelected: false,
-            //   // additionalCriteria: "HELLO!",
-            //   additionalDisplay: <div>
-            //     <BadgeAvatarDisplay
-            //       collectionId={11n}
-            //       badgeIds={[{ start: 1n, end: 100n }]}
-            //       lightTheme
-            //     // showIds
-
-            //     /></div>
-
-            // },
+            },
 
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
