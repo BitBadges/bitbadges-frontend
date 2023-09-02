@@ -1,5 +1,4 @@
-import { LinkOutlined, TeamOutlined } from '@ant-design/icons';
-import { Avatar, Card, Tooltip } from 'antd';
+import { Avatar, Card } from 'antd';
 
 export const tools = [{
   name: 'Sketch.io',
