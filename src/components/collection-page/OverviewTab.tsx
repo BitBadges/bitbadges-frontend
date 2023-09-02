@@ -48,15 +48,13 @@ export function OverviewTab({
       <br />
     </>}
 
-
-    <br />
     <Row
       style={{
         display: 'flex',
         justifyContent: 'space-between',
       }}
     >
-      <Col md={24} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
+      <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
         {collectionMetadata?.description && <>
           <InformationDisplayCard
             title={<>About</>}
@@ -70,8 +68,6 @@ export function OverviewTab({
           </InformationDisplayCard>
           <br />
         </>}
-      </Col>
-      <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
         <MetadataDisplay
           collectionId={collectionId}
           span={24}
@@ -87,6 +83,7 @@ export function OverviewTab({
 
         <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
         {<>
+
           <DistributionOverview
             collectionId={collectionId}
             span={24}

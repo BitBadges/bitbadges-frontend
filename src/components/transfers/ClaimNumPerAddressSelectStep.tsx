@@ -41,7 +41,7 @@ export function ClaimNumPerAddressSelectStep(
                 min={1}
                 value={Numberify(numPerInitiatedByAddress)}
                 onChange={(value) => {
-                  setNumPerInitiatedByAddress(BigIntify(value));
+                  setNumPerInitiatedByAddress(value ? BigIntify(value) : 0n);
                 }}
                 className='primary-text primary-blue-bg'
               />}
@@ -116,7 +116,7 @@ export function ClaimNumPerAddressSelectStep(
                   min={1}
                   value={Numberify(numPerToAddress)}
                   onChange={(value) => {
-                    setNumPerToAddress(BigIntify(value));
+                    setNumPerToAddress(value ? BigIntify(value) : 0n);
                   }}
                   className='primary-text primary-blue-bg'
                 />}

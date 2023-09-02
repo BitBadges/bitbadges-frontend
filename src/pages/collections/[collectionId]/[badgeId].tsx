@@ -140,6 +140,18 @@ export function BadgePage({ collectionPreview }
               <div className='flex-center'>
                 <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
                   <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                    {metadata?.description && <>
+                      <InformationDisplayCard
+                        title="About"
+                      >
+                        <div style={{ maxHeight: 200, overflow: 'auto' }} >
+                          <div className='custom-html-style primary-text' id="description">
+                            {reactElement}
+                          </div>
+                        </div>
+                      </InformationDisplayCard>
+                      <br />
+                    </>}
                     <MetadataDisplay
                       collectionId={collectionIdNumber}
                       badgeId={badgeIdNumber}
@@ -157,18 +169,7 @@ export function BadgePage({ collectionPreview }
                   </Col>
                   <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                   <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
-                    {metadata?.description && <>
-                      <InformationDisplayCard
-                        title="About"
-                      >
-                        <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                          <div className='custom-html-style primary-text' id="description">
-                            {reactElement}
-                          </div>
-                        </div>
-                      </InformationDisplayCard>
-                      <br />
-                    </>}
+
                     <DistributionOverview
                       collectionId={collectionIdNumber}
                       span={24}

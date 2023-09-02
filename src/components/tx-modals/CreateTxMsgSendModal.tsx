@@ -43,7 +43,8 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
         <InputNumber
           value={sendAmount}
           onChange={(e) => {
-            setSendAmount(e)
+            
+            setSendAmount(e ?? 0n);
           }}
           className='primary-text primary-blue-bg'
           min={0}

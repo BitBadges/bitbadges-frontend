@@ -11,6 +11,7 @@ import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { WarningOutlined } from '@ant-design/icons';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -65,6 +66,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   }, [query.claimId]);
 
 
+
+
   if (isPreview) return <Empty
     className='primary-text'
     description={
@@ -72,7 +75,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     }
     image={Empty.PRESENTED_IMAGE_SIMPLE}
   />
-  
+
   //Get IPFS cid and path
   let currClaimCid = '';
   if (claimItem?.uri.startsWith('ipfs://')) {
@@ -80,12 +83,23 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     currClaimCid = currClaimCid.split('/')[0];
   }
 
+  let isRefreshing = false;
+  if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
+    isRefreshing = true;
+  }
+
   return (
     <div className='primary-text'
       style={{
         justifyContent: 'center',
       }}>
-
+      {isRefreshing && <>
+        <div className='flex-center' style={{ textAlign: 'center' }}>
+          <WarningOutlined style={{ marginRight: '8px', color: 'orange' }} />
+          The metadata for this claim is currently being refreshed. Certain metadata may not be up to date.
+        </div>
+        <br />
+      </>}
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} showOnSinglePage />
       <br />
       <div className='flex-center'>

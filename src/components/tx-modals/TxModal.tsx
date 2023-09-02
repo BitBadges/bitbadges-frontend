@@ -331,7 +331,9 @@ export function TxModal(
               <InputNumber
                 value={Numberify(txDetails.fee.amount)}
                 onChange={(value) => {
-                  value = Math.round(value);
+                  
+
+                  value = value ? Math.round(value) : 0;
                   setAmount(BigInt(value));
                 }}
                 min={0}

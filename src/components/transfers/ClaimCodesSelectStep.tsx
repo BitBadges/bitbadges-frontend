@@ -29,6 +29,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
               min={1}
               value={numCodes}
               onChange={(value) => {
+                
                 setNumCodes(value ?? 0n);
               }}
               className='primary-text primary-blue-bg'
@@ -88,7 +89,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
                 max={100000}
                 value={numCodes}
                 onChange={(value) => {
-                  setNumCodes(value);
+                  setNumCodes(value ?? 0n);
                 }}
                 className='primary-text primary-blue-bg'
               />

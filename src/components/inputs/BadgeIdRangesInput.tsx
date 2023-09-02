@@ -151,6 +151,8 @@ export function BadgeIdRangesInput({
                 value={Numberify(sliderValues[i][0])}
                 onChange={
                   (value: number) => {
+                    
+
                     if (value >= 0 && value <= sliderValues[i][1]) {
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
                       const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
