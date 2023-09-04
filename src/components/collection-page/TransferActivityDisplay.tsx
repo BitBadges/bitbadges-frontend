@@ -105,7 +105,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
 
                         {getPanelHeaderAddress(activity.to)}
                       </Col>
-                      <div>{activity.method} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
+                      <div>{collection?.balancesType === 'Standard' ? activity.method : 'Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
                     </Row>
 
                     <Row>
@@ -138,7 +138,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                           <Row>
                             <Col span={24}>
                               <div className='flex-center flex-column'>
-                                <h2 className='primary-text'>Transaction Type: {activity.method}</h2>
+                                <h2 className='primary-text'>Transaction Type: {collection?.balancesType === 'Standard' ? activity.method : 'Update'}</h2>
                               </div>
 
                               {collection &&

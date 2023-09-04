@@ -195,10 +195,11 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
 
   if (!collection) return <></>;
 
-  const firstOutgoingMatches = getFirstMatchForUserOutgoingApprovedTransfers(appendDefaultForOutgoing(
-    defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
-  const firstIncomingMatches = getFirstMatchForUserIncomingApprovedTransfers(appendDefaultForIncoming(
-    defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
+  console.log(defaultOutgoingIdx, defaultIncomingIdx, approvedOutgoingTransfersTimeline, approvedIncomingTransfersTimeline, approverAccount);
+  const firstOutgoingMatches = !approverAccount?.cosmosAddress ? [] : getFirstMatchForUserOutgoingApprovedTransfers(appendDefaultForOutgoing(
+    (defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length) ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
+  const firstIncomingMatches = !approverAccount?.cosmosAddress ? [] : getFirstMatchForUserIncomingApprovedTransfers(appendDefaultForIncoming(
+    (defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length) ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []

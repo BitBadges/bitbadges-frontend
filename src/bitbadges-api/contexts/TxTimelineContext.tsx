@@ -115,6 +115,9 @@ export interface BaseTxTimelineProps {
   setFormStepNum: (formStepNum: number) => void
 
   resetState: () => void
+
+  completeControl: boolean
+  setCompleteControl: (completeControl: boolean) => void
 }
 
 export type TxTimelineContextType = MsgUpdateCollectionProps;
@@ -183,6 +186,9 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   formStepNum: 1,
   setFormStepNum: () => { },
   resetState: () => { },
+
+  completeControl: false,
+  setCompleteControl: () => { }
 });
 
 type Props = {
@@ -207,6 +213,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
   const [initialLoad, setInitialLoad] = useState(false);
+  const [completeControl, setCompleteControl] = useState(false);
 
   const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
 
@@ -270,6 +277,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
+
+    setCompleteControl(false);
   }
 
   //Initial fetch of the address mapping we are updating if it exists
@@ -588,6 +597,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
     formStepNum,
     setFormStepNum,
+
+    completeControl,
+    setCompleteControl
   }
 
   return <TxTimelineContext.Provider value={context}>

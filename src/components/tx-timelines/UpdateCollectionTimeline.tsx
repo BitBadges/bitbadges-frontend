@@ -31,6 +31,7 @@ import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
+import { ChooseControlTypeStepItem } from './step-items/CompleteControlStepItem';
 
 //See TxTimeline for explanations and documentation
 
@@ -75,6 +76,8 @@ export function UpdateCollectionTimeline({
   const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping;
   const formStepNum = txTimelineContext.formStepNum;
   const setFormStepNum = txTimelineContext.setFormStepNum;
+  const completeControl = txTimelineContext.completeControl;
+  const setCompleteControl = txTimelineContext.setCompleteControl;
 
 
 
@@ -105,6 +108,7 @@ export function UpdateCollectionTimeline({
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem(existingCollectionId);
   const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, existingCollectionId);
   const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
+  const ChooseControlStepItem = ChooseControlTypeStepItem(completeControl, setCompleteControl);
 
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
   const CanUpdateBytesStep = CanUpdateBalancesStepItem();
@@ -120,6 +124,8 @@ export function UpdateCollectionTimeline({
   if (mintType === MintType.BitBadge) {
     if (existingCollectionId && existingCollectionId > 0n) {
       // items.push(ExistingWarningStepItem());
+    } else {
+
     }
 
     const isOffChainBalances = distributionMethod === DistributionMethod.OffChainBalances;
@@ -186,12 +192,13 @@ export function UpdateCollectionTimeline({
 
     items.push(
       toShowCanManagerBeTransferredPermission ? ConfirmManager : EmptyStepItem,
+      hasManager && (!existingCollectionId || existingCollectionId == 0n) ? ChooseControlStepItem : EmptyStepItem,
       toShowCanCreateMorePermission ? BadgeSupplySelectStep : EmptyStepItem,
-      hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
-      hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
-      hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
       toShowCanArchiveCollectionPermission && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
-      hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
 
 
       toShowCanUpdateCollectionMetadataPermission || toShowCanUpdateBadgeMetadataPermission ? MetadataStorageSelectStep : EmptyStepItem,
@@ -203,8 +210,8 @@ export function UpdateCollectionTimeline({
       addMethod === MetadataAddMethod.Manual
         ? toShowCanUpdateBadgeMetadataPermission ? SetBadgeMetadataStep : EmptyStepItem : EmptyStepItem,
       MetadataTooLargeStep,
-      hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
-      hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
       isOffChainBalances || toShowCanUpdateCollectionApprovedTransfersPermission ?
         DistributionMethodStep : EmptyStepItem,
 
@@ -217,7 +224,7 @@ export function UpdateCollectionTimeline({
 
       !isOffChainBalances && toShowCanUpdateCollectionApprovedTransfersPermission ? TransferabilityStep : EmptyStepItem,
       !isOffChainBalances && (hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? RevokeStepItem : EmptyStepItem,
-      !isOffChainBalances && (hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? FreezeSelectStep : EmptyStepItem,
+      !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances && hasManager ? DefaultToApprovedStepItem : EmptyStepItem,
       isOffChainBalances && (hasManager && toShowCanUpdateOffChainBalancesMetadataPermission) ? CanUpdateBytesStep : EmptyStepItem,
 

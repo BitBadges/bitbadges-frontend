@@ -137,8 +137,8 @@ const Home: NextPage = () => {
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
               </Typography.Text> */}
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles (not $BADGE) can optionally be migrated to mainnet once launched.</Typography.Text>
-              <br />
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text>
+              {/* <br />
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text> */}
               <div className='flex'>
                 <Button
                   size='large'

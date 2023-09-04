@@ -2,22 +2,23 @@ import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, Warnin
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getCurrentIdxForTimeline, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getCurrentIdxForTimeline, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { BalancesInput } from '../inputs/BalancesInput';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { NumberInput } from '../inputs/NumberInput';
 import { BalanceInput } from '../inputs/BalanceInput';
+import { BalancesInput } from '../inputs/BalancesInput';
+import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimCodesSelectStep } from './ClaimCodesSelectStep';
 import { ClaimMetadataSelectSelectStep } from './ClaimMetadataSelectStep';
@@ -26,7 +27,6 @@ import { ClaimTimeRangeSelectStep } from './ClaimTimeRangeSelectStep';
 import { OrderMattersSelectStepItem } from './OrderMattersSelectStep';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const crypto = require('crypto');
 const { Text } = Typography;
@@ -166,15 +166,7 @@ export function TransferSelect({
     transferTimes: [claimTimeRange],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: balances.map(x => x.badgeIds).flat(),
-    allowedCombinations: [{
-      initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-      fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-      toMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-      badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-      ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-      transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-      isApproved: true,
-    }],
+    allowedCombinations: [{ isApproved: true, }],
     approvalDetails: [{
       approvalId: approvalId.current,
       uri: '',
@@ -241,7 +233,6 @@ export function TransferSelect({
       overridesToApprovedIncomingTransfers: false,
       overridesFromApprovedOutgoingTransfers: true,
     }],
-
     balances: balances,
   };
 
@@ -275,13 +266,6 @@ export function TransferSelect({
       }
     }) || [];
   }
-
-  //Reset the balances whenever the sender balance changes
-  // useEffect(() => {
-  // if (INFINITE_LOOP_MODE) console.log('useEffect: ');
-  //   console.log("Original sender balances changed");
-  //   setBalances(originalSenderBalances.map((balance) => convertBalance(balance, BigIntify)));
-  // }, [originalSenderBalances]);
 
   //Whenever something changes, update the pre and post transfer balances
   useEffect(() => {
@@ -323,6 +307,23 @@ export function TransferSelect({
     setPreTransferBalance(preTransferBalanceObj);
   }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalId]);
 
+  const postCurrTransferBalances = postTransferBalances?.map((balance) => {
+    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
+    return {
+      ...balance,
+      badgeIds: removed,
+    }
+  }).filter(x => x.badgeIds.length > 0) ?? [];
+
+  const preCurrTransferBalance = preTransferBalances?.map((balance) => {
+    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
+    return {
+      ...balance,
+      badgeIds: removed,
+
+    }
+  }).filter(x => x.badgeIds.length > 0) ?? [];
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: transfer or claim select, check warnings');
     //Generate any error or warning messages for undistributed or overflowing badge amounts
@@ -340,13 +341,15 @@ export function TransferSelect({
               }
             }).filter(x => !!x).join(', ')}).`;
           } else if ((badgeUintRange.start + (increment * numRecipients) - 1n) < badgeUintRange.end) {
-            warningMessage = `The following badges are included in the claim but will not be distributed: IDs ${balance.badgeIds.map((range) => {
+            warningMessage = `The following badges will not be distributed due to only ${numRecipients} possible recipients: IDs ${balance.badgeIds.map((range) => {
               if ((range.start + (increment * numRecipients) - 1n) < range.end) {
                 return `${range.start + (increment * numRecipients)}-${range.end}`;
               } else {
                 return undefined;
               }
             }).filter(x => !!x).join(', ')}.`;
+          } else if (postCurrTransferBalances.length > 0) {
+            warningMessage = `You must have no remaining badges for the selected badge IDs.`
           }
         }
       }
@@ -570,11 +573,11 @@ export function TransferSelect({
               <div>
                 <div style={{ marginLeft: 8 }}>
                   {increment === 0n && 'All recipients will receive all of the previously selected badge IDs.'}
-                  {increment ? `The first recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start}${increment > 1 ? `-${start + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                  {increment ? `The first claim will correspond to the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start}${increment > 1 ? `-${start + increment - 1n}` : ''}`).join(', ')}.` : ''}
                 </div>
                 <div style={{ marginLeft: 8 }}>
 
-                  {increment ? `The second recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + increment}${increment > 1 ? `-${start + increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                  {increment ? `The second claim will correspond to the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + increment}${increment > 1 ? `-${start + increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
 
                 </div>
 
@@ -585,7 +588,7 @@ export function TransferSelect({
                 </div>}
                 {numRecipients > 2 && <div style={{ marginLeft: 8 }}>
                   <div style={{ marginLeft: 8 }}>
-                    {increment ? `The ${numRecipients === 3n ? 'third' : numRecipients + 'th'} selected recipient to claim will receive the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + (numRecipients - 1n) * increment}${increment > 1 ? `-${start + (numRecipients - 1n) * increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
+                    {increment ? `The ${numRecipients === 3n ? 'third' : numRecipients + 'th'} claim will correspond to the badge ID${increment > 1 ? 's' : ''} ${balances.map(x => x.badgeIds).flat().map(({ start }) => `${start + (numRecipients - 1n) * increment}${increment > 1 ? `-${start + (numRecipients - 1n) * increment + increment - 1n}` : ''}`).join(', ')}.` : ''}
                   </div>
                 </div>}
               </div>
@@ -642,7 +645,10 @@ export function TransferSelect({
 
         {
           postTransferBalances && <div>
-            <BalanceBeforeAndAfter collectionId={collectionId} balances={preTransferBalances ? preTransferBalances : originalSenderBalances} newBalances={postTransferBalances} partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
+            <BalanceBeforeAndAfter collectionId={collectionId}
+              balances={(preCurrTransferBalance ? preCurrTransferBalance : originalSenderBalances)}
+              newBalances={postCurrTransferBalances}
+              partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
             {/* {transfers.length >= 1 && <p style={{ textAlign: 'center' }} className='secondary-text'>*These balances assum.</p>} */}
           </div>
         }
@@ -758,8 +764,11 @@ export function TransferSelect({
               approvedTransferToAdd.approvalDetails[0].merkleChallenges = [];
             }
 
+
             approvedTransferToAdd.balances = getAllBalancesToBeTransferred(transfersToAdd);
 
+            approvedTransferToAdd.badgeIds = approvedTransferToAdd.balances.map(x => x.badgeIds).flat();
+            approvedTransferToAdd.ownershipTimes = approvedTransferToAdd.balances.map(x => x.ownershipTimes).flat();
 
             setApprovedTransfersToAdd([...approvedTransfersToAdd, approvedTransferToAdd]);
           }

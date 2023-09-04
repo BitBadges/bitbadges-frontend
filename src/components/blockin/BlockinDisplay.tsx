@@ -184,12 +184,10 @@ export const BlockinDisplay = ({
               chain: 'BitBadges',
               assetIds: [{ start: 8, end: 8 }],
               mustOwnAmounts: { start: 0, end: 0 },
-              // ownershipTimes: [{ start: 1, end: 10000 }],
               name: 'General Access',
               description: 'Gain general access to this website. You will not be allowed access if you own a scammer or spammer badge.',
               frozen: true,
               defaultSelected: true,
-              // additionalCriteria: "HELLO!",
               additionalDisplay: <div>
                 <BadgeAvatarDisplay
                   collectionId={1n}
@@ -199,11 +197,10 @@ export const BlockinDisplay = ({
                 /></div>
             },
             {
-              collectionId: 11,
+              collectionId: 1,
               chain: 'BitBadges',
               assetIds: [{ start: 1, end: 1 }, { start: 3, end: 3 }],
               mustOwnAmounts: { start: 1, end: 10000 },
-              // ownershipTimes: [{ start: 1, end: 10000 }],
               name: 'Premium Features',
               description: 'Premium features are restricted to people who own the gold membership badge and verified badge. Note this is just an example to show off BitBadges features. There are no gated premium features on this website.',
               frozen: false,
