@@ -7,7 +7,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { DesiredNumberType } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { INFINITE_LOOP_MODE } from '../../constants';
+import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
@@ -126,6 +126,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                           {collection?.cachedCollectionMetadata?.name}
                         </a>
                       </div>
+
                     </Row>
                   </>
                   }
@@ -138,8 +139,9 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                           <Row>
                             <Col span={24}>
                               <div className='flex-center flex-column'>
-                                <h2 className='primary-text'>Transaction Type: {collection?.balancesType === 'Standard' ? activity.method : 'Update'}</h2>
+                                <h2 className='primary-text'>{collection?.balancesType === 'Standard' ? activity.method : 'Update'}</h2>
                               </div>
+
 
                               {collection &&
                                 <TransferDisplay
@@ -157,6 +159,12 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                                     }
                                   ]}
                                 />
+                              }
+                              <Divider />
+                              {activity.txHash &&
+                                <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
+                                  {activity.txHash}
+                                </a></p>
                               }
                               <Divider />
                             </Col>

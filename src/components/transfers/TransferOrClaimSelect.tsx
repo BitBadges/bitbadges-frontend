@@ -154,8 +154,8 @@ export function TransferSelect({
   // const numActiveClaims = approvedTransfersForClaims.length;
 
   const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
-
-  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
+  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   const approvedTransferToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] }) = {
     fromMappingId: sender,
     fromMapping: getReservedAddressMapping(sender, "") as AddressMapping,
@@ -168,7 +168,7 @@ export function TransferSelect({
     badgeIds: balances.map(x => x.badgeIds).flat(),
     allowedCombinations: [{ isApproved: true, }],
     approvalDetails: [{
-      approvalId: approvalId.current,
+      approvalTrackerId: approvalTrackerId.current,
       uri: '',
       customData: '',
       mustOwnBadges: [],
@@ -186,6 +186,7 @@ export function TransferSelect({
           ? 1n : numClaimsPerInitiatedByAddress,
       },
       predeterminedBalances: {
+        precalculationId: precalculationId.current,
         manualBalances: [],
         incrementedBalances: {
           startBalances: balances.map((balance) => {
@@ -256,7 +257,7 @@ export function TransferSelect({
         balances: claim.balances,
         from: sender,
         precalculationDetails: {
-          approvalId: approvalId.current,
+          precalculationId: precalculationId.current,
           approvalLevel: "collection",
           approverAddress: ""
         },
@@ -279,7 +280,7 @@ export function TransferSelect({
           balances: claim.balances,
           from: sender,
           precalculationDetails: {
-            approvalId: approvalId.current,
+            precalculationId: precalculationId.current,
             approvalLevel: "collection",
             approverAddress: ""
           },
@@ -305,7 +306,7 @@ export function TransferSelect({
 
     setPostTransferBalance(postTransferBalanceObj);
     setPreTransferBalance(preTransferBalanceObj);
-  }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalId]);
+  }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalTrackerId]);
 
   const postCurrTransferBalances = postTransferBalances?.map((balance) => {
     const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
@@ -374,7 +375,7 @@ export function TransferSelect({
         toAddressesLength: isClaimSelect ? numRecipients : undefined,
         from: sender,
         precalculationDetails: {
-          approvalId: approvalId.current,
+          precalculationId: precalculationId.current,
           approvalLevel: "collection",
           approverAddress: ""
         },
@@ -412,7 +413,7 @@ export function TransferSelect({
             }],
             from: sender,
             precalculationDetails: {
-              approvalId: approvalId.current,
+              precalculationId: precalculationId.current,
               approvalLevel: "collection",
               approverAddress: ""
             },
@@ -450,7 +451,7 @@ export function TransferSelect({
           incrementBadgeIdsBy: numPerAddress,
           from: sender,
           precalculationDetails: {
-            approvalId: approvalId.current,
+            precalculationId: precalculationId.current,
             approvalLevel: "collection",
             approverAddress: ""
           },
@@ -461,7 +462,7 @@ export function TransferSelect({
     }
 
     setTransfersToAdd(newTransfersToAdd);
-  }, [balances, numRecipients, increment, amountSelectType, toAddresses, doNotUseTransferWithIncrements, approvalId]);
+  }, [balances, numRecipients, increment, amountSelectType, toAddresses, doNotUseTransferWithIncrements, approvalTrackerId]);
 
   const uintRangesOverlap = checkIfUintRangesOverlap(balances[0]?.badgeIds || []);
   const uintRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
@@ -836,7 +837,7 @@ export function TransferSelect({
                 <div className='flex-center'>
                   <Pagination currPage={currPage} onChange={setCurrPage} total={[...(transfers ?? []), ...(approvedTransfersToAdd ?? [])].length} pageSize={1} />
                 </div>
-                <Collapse accordion className='primary-text primary-blue-bg' style={{ margin: 0 }}>
+                <Collapse accordion className='primary-text primary-blue-bg full-width' style={{ margin: 0 }}>
                   {[...(transfers ?? []), ...(approvedTransfersToAdd ?? [])].map((item, index) => {
                     if (index < (currPage - 1) * (distributionMethod === DistributionMethod.Codes ? 20 : 10) || index >= currPage * (distributionMethod === DistributionMethod.Codes ? 20 : 10)) {
                       return <></>
@@ -869,9 +870,9 @@ export function TransferSelect({
                         </div>
                       }
                       key={index}
-                      className='primary-text primary-blue-bg'
+                      className='primary-text primary-blue-bg full-width'
                     >
-                      <div className='flex-center flex-column'>x
+                      <div className='flex-center flex-column full-width'>
                         {isClaimSelect && <div className='primary-text primary-blue-bg' >
                           <ClaimDisplay
                             approvedTransfer={transfer}

@@ -83,8 +83,6 @@ export interface UpdateFlags {
   setUpdateOffChainBalancesMetadataTimeline: (value: boolean) => void;
   updateCustomDataTimeline: boolean;
   setUpdateCustomDataTimeline: (value: boolean) => void;
-  updateInheritedBalancesTimeline: boolean;
-  setUpdateInheritedBalancesTimeline: (value: boolean) => void;
   updateCollectionApprovedTransfersTimeline: boolean;
   setUpdateCollectionApprovedTransfersTimeline: (value: boolean) => void;
   updateStandardsTimeline: boolean;
@@ -151,8 +149,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   setUpdateOffChainBalancesMetadataTimeline: () => { },
   updateCustomDataTimeline: true,
   setUpdateCustomDataTimeline: () => { },
-  updateInheritedBalancesTimeline: true,
-  setUpdateInheritedBalancesTimeline: () => { },
   updateCollectionApprovedTransfersTimeline: true,
   setUpdateCollectionApprovedTransfersTimeline: () => { },
   updateStandardsTimeline: true,
@@ -242,7 +238,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline] = useState(true);
   const [updateOffChainBalancesMetadataTimeline, setUpdateOffChainBalancesMetadataTimeline] = useState(true);
   const [updateCustomDataTimeline, setUpdateCustomDataTimeline] = useState(true);
-  const [updateInheritedBalancesTimeline, setUpdateInheritedBalancesTimeline] = useState(true);
   const [updateCollectionApprovedTransfersTimeline, setUpdateCollectionApprovedTransfersTimeline] = useState(true);
   const [updateStandardsTimeline, setUpdateStandardsTimeline] = useState(true);
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
@@ -272,7 +267,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateBadgeMetadataTimeline(true);
     setUpdateOffChainBalancesMetadataTimeline(true);
     setUpdateCustomDataTimeline(true);
-    setUpdateInheritedBalancesTimeline(true);
     setUpdateCollectionApprovedTransfersTimeline(true);
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
@@ -347,6 +341,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         //If existing, they are overriden further below via the spread
         merkleChallenges: [],
         approvalsTrackers: [],
+        updateHistory: [],
         managerTimeline: [{
           manager: chain.cosmosAddress,
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -374,6 +369,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateApprovedIncomingTransfers: [],
             canUpdateApprovedOutgoingTransfers: [],
           },
+          updateHistory: [],
         }, {
           _id: "0:Mint",
           cosmosAddress: 'Mint',
@@ -386,6 +382,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateApprovedIncomingTransfers: [],
             canUpdateApprovedOutgoingTransfers: [],
           },
+          updateHistory: [],
         }],
         views: {},
         collectionApprovedTransfersTimeline: [],
@@ -410,7 +407,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateCollectionMetadata: [],
           canUpdateContractAddress: [],
           canUpdateCustomData: [],
-          canUpdateInheritedBalances: [],
           canUpdateManager: [],
           canUpdateOffChainBalancesMetadata: [],
           canUpdateStandards: [],
@@ -430,9 +426,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         offChainBalancesMetadataTimeline: existingCollection && existingCollection.offChainBalancesMetadataTimeline
           && existingCollection.balancesType === "Off-Chain"
           ? existingCollection.offChainBalancesMetadataTimeline : [],
-        inheritedBalancesTimeline: existingCollection && existingCollection.inheritedBalancesTimeline
-          && existingCollection.balancesType === "Inherited"
-          ? existingCollection.inheritedBalancesTimeline : [],
 
         //Preview / simulated collection values
         _id: "0",
@@ -570,8 +563,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateOffChainBalancesMetadataTimeline,
     updateCustomDataTimeline,
     setUpdateCustomDataTimeline,
-    updateInheritedBalancesTimeline,
-    setUpdateInheritedBalancesTimeline,
     updateCollectionApprovedTransfersTimeline,
     setUpdateCollectionApprovedTransfersTimeline,
     updateStandardsTimeline,

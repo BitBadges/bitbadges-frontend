@@ -31,7 +31,8 @@ export function CreateTxMsgClaimBadgeModal(
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
 
-  const approvalId = approvedTransfer?.approvalDetails[0].approvalId;
+  // const approvalTrackerId = approvedTransfer?.approvalDetails[0].approvalTrackerId;
+  const precalculationId = approvedTransfer?.approvalDetails[0].predeterminedBalances.precalculationId;
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
   const requiresProof = (approvedTransfer?.approvalDetails[0].merkleChallenges ?? []).length > 0;
@@ -123,7 +124,7 @@ export function CreateTxMsgClaimBadgeModal(
       toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
       balances: [],
       precalculationDetails: {
-        approvalId: approvalId ?? '',
+        precalculationId: precalculationId ?? '',
         approvalLevel: "collection",
         approverAddress: "",
       },

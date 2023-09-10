@@ -297,13 +297,15 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
 
             //Intutition: check singular, starting badge ID. If it is same as others, handle all together. Else, just handle that and continue
+            console.log(badgeIdsLeft, collectionId);
             while (badgeIdsLeft.length > 0) {
+              console.log(badgeIdsLeft);
               const currBadgeUintRange = badgeIdsLeft[0];
 
               const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-              console.log(currBadgeUintRange, badgeMetadata);
+
               const metadataId = getMetadataIdForBadgeId(BigInt(currBadgeUintRange.start), badgeMetadata);
-              if (metadataId === -1) throw new Error('Badge does not exist');
+              if (metadataId === -1) break
 
               const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
               for (const uri of uris) {
@@ -318,13 +320,14 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
               const otherMatchingBadgeUintRanges = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
               const [remaining,] = removeUintRangeFromUintRange(otherMatchingBadgeUintRanges, badgeIdsLeft);
               badgeIdsLeft = remaining
+              console.log(badgeIdsLeft);
               badgeIdsLeft = sortUintRangesAndMergeIfNecessary(badgeIdsLeft);
             }
           } else {
             //Is a singular badgeId
             const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
             const metadataId = getMetadataIdForBadgeId(BigInt(badgeIdCastedAsNumber), badgeMetadata);
-            if (metadataId === -1) throw new Error('Badge does not exist');
+            if (metadataId === -1) break
 
             const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
             for (const uri of uris) {
@@ -390,7 +393,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }) !== undefined;
 
         const shouldFetchApprovalTrackerIds = (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
-          const match = cachedCollection.approvalsTrackers.find(y => y.approvalId === x.approvalId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
+          const match = cachedCollection.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
           return !match;
         }) !== undefined;
 

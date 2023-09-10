@@ -443,7 +443,7 @@
           ],
           "approvalDetails": [
             {
-              "approvalId": "150e6c16a7b27a24ac24f585bf3ef7555b24752d982180052b7e8eb4ff2ba606",
+              "approvalTrackerId": "150e6c16a7b27a24ac24f585bf3ef7555b24752d982180052b7e8eb4ff2ba606",
               "uri": "",
               "customData": "",
               "mustOwnBadges": [],
@@ -565,7 +565,7 @@
           },
           "approvalDetails": [
             {
-              "approvalId": "Revoke",
+              "approvalTrackerId": "Revoke",
               "uri": "",
               "customData": "",
               "merkleChallenges": [],

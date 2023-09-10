@@ -1,12 +1,12 @@
-import { DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Divider, Select, Tooltip, Typography } from 'antd';
+import { ClockCircleOutlined, DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Divider, Empty, Select, Tooltip, Typography } from 'antd';
 import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
 import { BitBadgesCollection, CollectionApprovedTransferTimelineWithDetails, CollectionApprovedTransferWithDetails, NumberType, UserApprovedIncomingTransferTimelineWithDetails, UserApprovedIncomingTransferWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, UserApprovedOutgoingTransferWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { INFINITE_LOOP_MODE } from '../../constants';
+import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
@@ -65,7 +65,8 @@ export const getApprovalsDisplay = (timeline:
 }
 
 
-export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
+export function UserApprovalsTab({ collectionId,
+  badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
   userApprovedIncomingTransfers, userApprovedOutgoingTransfers,
   setUserApprovedIncomingTransfers,
   // setUserApprovedOutgoingTransfers //We never use this
@@ -93,6 +94,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
     collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
   const approvedIncomingTransfersTimeline = userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
     collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
+  const updateHistory = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.updateHistory ?? [];
 
   const currOutgoingTransferabilityIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
   const currIncomingTransferabilityIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
@@ -138,11 +140,11 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
         const approvedTransfers = (approvedTransfersCasted as UserApprovedIncomingTransferWithDetails<bigint>[]).filter(x => x.approvalDetails.length > 0)
 
         const approvalsIdsToFetch = approvedTransfers.flatMap(approvedTransfer => {
-          const approvalId = approvedTransfer.approvalDetails[0].approvalId;
+          const approvalTrackerId = approvedTransfer.approvalDetails[0].approvalTrackerId;
           return [
             {
               collectionId,
-              approvalId,
+              approvalTrackerId,
               approvalLevel,
               approvedAddress: "",
               approverAddress: approverAccount?.cosmosAddress,
@@ -150,7 +152,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
             },
             {
               collectionId,
-              approvalId,
+              approvalTrackerId,
               approvalLevel,
               approvedAddress: chain.cosmosAddress,
               approverAddress: approverAccount?.cosmosAddress,
@@ -158,7 +160,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
             },
             {
               collectionId,
-              approvalId,
+              approvalTrackerId,
               approvalLevel,
               approvedAddress: chain.cosmosAddress,
               approverAddress: approverAccount?.cosmosAddress,
@@ -166,7 +168,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
             },
             {
               collectionId,
-              approvalId,
+              approvalTrackerId,
               approvalLevel,
               approvedAddress: chain.cosmosAddress,
               approverAddress: approverAccount?.cosmosAddress,
@@ -204,7 +206,27 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []
 
+  const tabInfo = [
 
+    {
+      key: 'outgoing',
+      content: <>Outgoing Approvals</>
+    },
+    {
+      key: 'incoming',
+      content: <>Incoming Approvals</>
+    },
+
+  ];
+
+  if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit) {
+    tabInfo.push({
+
+      key: 'history',
+      content: <>Update History</>
+
+    })
+  }
 
   return (<>
     <div className='primary-text'>
@@ -229,17 +251,43 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
           tab={tab}
           theme='dark'
           setTab={setTab}
-          tabInfo={[
-            {
-              key: 'outgoing',
-              content: <>Outgoing Approvals</>
-            },
-            {
-              key: 'incoming',
-              content: <>Incoming Approvals</>
-            },
-          ]}
+          tabInfo={tabInfo}
         /></>}
+
+      {tab === 'history' && <div className='primary-text'>
+        <br />
+        <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the user updated their approvals.
+        <br />
+
+        {updateHistory.map((update, i) => {
+          return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
+            <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+              <ClockCircleOutlined style={{ marginRight: '5px' }} />
+              {new Date(Number(update.blockTimestamp)).toLocaleString()}
+              {' '}(Block #{update.block.toString()})
+            </Typography.Text>
+            {update.txHash &&
+              <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                {update.txHash}
+              </a></p>
+            }
+            <Divider />
+          </div>
+        })}
+        {updateHistory.length === 0 && <div>
+          <Empty
+            className='primary-text'
+            description={<>
+              <Typography.Text strong className='primary-text'>
+                This user has never updated their approvals.
+              </Typography.Text>
+            </>}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        </div>}
+      </div>}
+
+
       {tab === 'outgoing' && <>
         {/* <br /> */}
         <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
@@ -250,7 +298,6 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
           }
         </Typography.Text>
         {getApprovalsDisplay(approvedOutgoingTransfersTimeline, convertedFirstOutgoingMatches, defaultOutgoingIdx, setDefaultOutgoingIdx, collection, badgeId)}
-
       </>}
 
       {tab === 'incoming' && <>
@@ -265,7 +312,7 @@ export function UserApprovalsTab({ collectionId, badgeId, isIncomingApprovalEdit
       </>}
     </div>
     <div className='primary-text'>
-      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>      <Divider />
+      {tab !== 'history' && !(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>      <Divider />
         <p>
           <InfoCircleOutlined />{' '}Approvals are broken down into multiple criteria: who can send? who can receive? etc.
           Each row represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.

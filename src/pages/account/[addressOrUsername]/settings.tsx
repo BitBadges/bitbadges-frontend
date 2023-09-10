@@ -1,10 +1,12 @@
-import { Button, Divider, Form, Input, Layout, Typography } from 'antd';
+import { Avatar, Button, Divider, Form, Input, Layout, Typography } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 
+import { PlusOutlined } from '@ant-design/icons';
+import { SupportedChain } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -13,7 +15,6 @@ import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsCont
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { INFINITE_LOOP_MODE } from '../../../constants';
-import { SupportedChain } from 'bitbadgesjs-utils';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -51,27 +52,35 @@ export function AccountSettings() {
     signedInAccount?.readme ? signedInAccount.readme : ''
   );
 
+  const [customLinks, setCustomLinks] = useState(
+    signedInAccount?.customLinks ? signedInAccount.customLinks : []
+  );
 
+  const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
 
-  // const [showAllByDefault, setShowAllByDefault] = useState<boolean>(
-  //   signedInAccount?.showAllByDefault ? signedInAccount.showAllByDefault : true
-  // );
-  const showAllByDefault = true;
+  const [newCustomLinkUrl, setNewCustomLinkUrl] = useState('');
 
-  // const [shownBadges, setShownBadges] = useState(
-  //   signedInAccount?.shownBadges ? signedInAccount.shownBadges : []
-  // );
-  const shownBadges: any[] = [];
+  const [newCustomLinkImage, setNewCustomLinkImage] = useState('');
 
-  // const [hiddenBadges, setHiddenBadges] = useState(
-  //   signedInAccount?.hiddenBadges ? signedInAccount.hiddenBadges : []
-  // );
-  const hiddenBadges: any[] = [];
+  const [showAllByDefault, setShowAllByDefault] = useState<boolean>(
+    signedInAccount?.onlyShowApproved ? false : true
+  );
+  // const showAllByDefault = true;
 
-  // const [customPages, setCustomPages] = useState(
-  //   signedInAccount?.customPages ? signedInAccount.customPages : []
-  // );
-  const customPages: any[] = []
+  const [shownBadges, setShownBadges] = useState(
+    signedInAccount?.shownBadges ? signedInAccount.shownBadges : []
+  );
+  // const shownBadges: any[] = [];
+
+  const [hiddenBadges, setHiddenBadges] = useState(
+    signedInAccount?.hiddenBadges ? signedInAccount.hiddenBadges : []
+  );
+  // const hiddenBadges: any[] = [];
+
+  const [customPages, setCustomPages] = useState(
+    signedInAccount?.customPages ? signedInAccount.customPages : []
+  );
+  // const customPages: any[] = []
 
   const [profilePicUrl, setProfilePicUrl] = useState(
     signedInAccount?.profilePicUrl ? signedInAccount.profilePicUrl : ''
@@ -99,6 +108,12 @@ export function AccountSettings() {
     setReadme(signedInAccount.readme ? signedInAccount.readme : '');
     setProfilePicUrl(signedInAccount.profilePicUrl ? signedInAccount.profilePicUrl : '');
     setUsername(signedInAccount.username ? signedInAccount.username : '');
+    setShowAllByDefault(signedInAccount.onlyShowApproved ? false : true);
+    setShownBadges(signedInAccount.shownBadges ? signedInAccount.shownBadges : []);
+    setHiddenBadges(signedInAccount.hiddenBadges ? signedInAccount.hiddenBadges : []);
+    setCustomPages(signedInAccount.customPages ? signedInAccount.customPages : []);
+    setCustomLinks(signedInAccount.customLinks ? signedInAccount.customLinks : []);
+
   }, [signedInAccount]);
 
   return (
@@ -187,14 +202,14 @@ export function AccountSettings() {
                     <Typography.Text strong className='secondary-text'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
-                  </Form.Item>
-                  {/* <Form.Item
+                    {/* </Form.Item>
+                  <Form.Item
                     label={
                       <Text className='primary-text' strong>
-                        Show All Badges By Default?
+                        Show All Badges?
                       </Text>
-
                     }
+                    className='primary-text'
                   >
                     <Checkbox
                       defaultChecked={showAllByDefault}
@@ -202,27 +217,43 @@ export function AccountSettings() {
                       onChange={(e) => {
                         setShowAllByDefault(e.target.checked);
                       }}
-                    />
-                    <Typography.Text strong className='secondary-text'>
-                      {' '}If checked, all owned badges will be shown on your portfolio by default. If unchecked, only badges that you have marked as shown will be shown by default.
-                    </Typography.Text>
-                  </Form.Item> */}
-                  {/* {!showAllByDefault &&
-                    <Form.Item
-                      label={
-                        <Text className='primary-text' strong>
-                          Shown Badges?
-                        </Text>
+                    /> */}
+                    {/* <Typography.Text strong className='secondary-text'>
+                      {' '}{showAllByDefault ? 'All badges ' : 'Only badges you approve'} will be shown on your profile {showAllByDefault ? 'unless you hide them' : 'and all others will be hidden'}.
+                       </Typography.Text>
+                    <br />
+                    <Typography.Text className='secondary-text'>
+                      {' '}{'You can also select to hide/show individual badges on your portfolio page. Make sure you are signed in to see the Customize Mode option.'}
+                      </Typography.Text> */}
+                    {/* <br />
+                    <br />
+                    <b>{showAllByDefault ? 'Hidden Badges' : 'Shown Badges'}</b>
+                    {showAllByDefault ?
+                      <>{hiddenBadges.map(x => {
+                        return <div key={x.collectionId.toString()} className='flex'>
+                          Collection: {x.collectionId.toString()}
+                          <br />
+                          Badge Ids: {x.badgeIds.map(y => {
+                            return y.start == y.end ? y.start.toString() : y.start.toString() + '-' + y.end.toString()
+                          }).join(', ')}
+                          <br />
+                          <br />
+                        </div>
+                      })}</>
+                      :
+                      <>
+                        {shownBadges.map(x => {
+                          return <div key={x.collectionId.toString()}>
+                            {x.collectionId.toString()}
+                          </div>
+                        })}
+                      </>
+                    } */}
+                  </Form.Item>
 
-                      }
-                    >
-
-                      <Typography.Text strong className='secondary-text'>
-                        If checked, all badges will be shown by default. If unchecked, only badges that you have marked as shown will be shown by default.
-                      </Typography.Text>
 
 
-                    </Form.Item>} */}
+                  <br />
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
@@ -290,6 +321,100 @@ export function AccountSettings() {
                       className="form-input"
                     />
                   </Form.Item>
+                  <br />
+
+
+                  <Form.Item
+                    label={
+                      <Typography.Text strong className='secondary-text' style={{ textAlign: 'center' }}>
+                        Add a new custom link?
+                      </Typography.Text>
+                    }
+                  >
+                    <AccountButtonDisplay
+                      addressOrUsername={chain.cosmosAddress}
+                      // profilePic={profilePicUrl}
+                      customLinks={customLinks}
+                      setCustomLinks={setCustomLinks}
+                      hideDisplay
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Link Title
+                      </Text>
+                    }
+                  >
+                    <Input
+                      defaultValue={newCustomLinkTitle}
+                      value={newCustomLinkTitle}
+                      onChange={(e) => {
+                        setNewCustomLinkTitle(e.target.value);
+                      }}
+                      className="form-input"
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Link URL
+                      </Text>
+                    }
+                  >
+                    <Input
+                      defaultValue={newCustomLinkUrl}
+                      value={newCustomLinkUrl}
+                      onChange={(e) => {
+                        setNewCustomLinkUrl(e.target.value);
+                      }}
+                      className="form-input"
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Image URL
+                      </Text>
+                    }
+                  >
+                    <Input
+                      defaultValue={newCustomLinkImage}
+                      value={newCustomLinkImage}
+                      onChange={(e) => {
+                        setNewCustomLinkImage(e.target.value);
+                      }}
+                      className="form-input"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label={<></>
+                    }
+                  ><div className='flex-center full-width'>
+                      <Avatar
+                        className='styled-button'
+                        src={
+                          <PlusOutlined
+
+                            type='primary'
+                            // className='styled-button'
+                            onClick={() => {
+                              if (!newCustomLinkTitle || !newCustomLinkUrl) return;
+                              const newCustomLink = {
+                                title: newCustomLinkTitle,
+                                url: newCustomLinkUrl,
+                                image: newCustomLinkImage
+                              }
+                              setCustomLinks([...customLinks, newCustomLink]);
+                              setNewCustomLinkTitle('');
+                              setNewCustomLinkUrl('');
+                              setNewCustomLinkImage('');
+                            }}
+                          />} />
+                    </div>
+                  </Form.Item>
+
 
                 </div>
               </Form>
@@ -303,6 +428,7 @@ export function AccountSettings() {
                   onClick={async () => {
                     setLoading(true);
                     try {
+                      if (!signedInAccount) return;
 
                       const data = {
                         twitter,
@@ -312,14 +438,20 @@ export function AccountSettings() {
                         // name,
                         readme,
                         profilePicUrl,
-                        showAllByDefault,
+                        onlyShowApproved: !showAllByDefault,
                         shownBadges,
                         hiddenBadges,
+                        customLinks,
                         customPages,
                         username
                       };
 
                       await updateAccountInfo(data);
+
+                      accounts.updateAccount({
+                        ...signedInAccount,
+                        ...data
+                      });
                       router.push(`/account/${chain.cosmosAddress}`);
                     } catch (err) {
                       console.log(err);

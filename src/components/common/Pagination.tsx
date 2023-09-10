@@ -1,6 +1,8 @@
 import { Pagination as PaginationAntD } from 'antd';
 
-export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePage, lightTheme }: { lightTheme?: boolean, currPage: number, onChange: (page: number) => void, total: number, pageSize: number, showOnSinglePage?: boolean }) {
+export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePage, lightTheme, showPageJumper }: {
+  lightTheme?: boolean, currPage: number, onChange: (page: number) => void, total: number, pageSize: number, showOnSinglePage?: boolean, showPageJumper?: boolean
+}) {
   return <div className='flex-center'>
     <PaginationAntD
       className={lightTheme ? undefined : 'primary-text primary-blue-bg dark'}
@@ -16,6 +18,8 @@ export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePa
       showSizeChanger={false}
       size='small'
       hideOnSinglePage={!showOnSinglePage}
+      showQuickJumper={showPageJumper}
+      showTotal={showPageJumper ? (total, range) => `${range[0]}-${range[1]} of ${total} items` : undefined}
     />
   </div>
 }

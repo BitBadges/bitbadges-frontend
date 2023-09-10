@@ -1,5 +1,6 @@
 import { Card, Empty, notification } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -7,11 +8,10 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsC
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
-import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
 import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
-import { getCurrentIdxForTimeline } from 'bitbadgesjs-utils';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 export function ActionsTab({
   collectionId,
@@ -40,8 +40,7 @@ export function ActionsTab({
   }[] = [];
 
 
-  const managerIdx = getCurrentIdxForTimeline(collection?.managerTimeline ?? []);
-  const isManager = managerIdx >= 0 && collection && collection.managerTimeline[Number(managerIdx)].manager === chain.cosmosAddress;
+  const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
 

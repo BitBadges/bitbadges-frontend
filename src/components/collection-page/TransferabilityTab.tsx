@@ -35,7 +35,7 @@ export function TransferabilityTab({ collectionId, badgeId }: {
             approvedTransfers.map(approvedTransfer => {
               return [{
                 collectionId,
-                approvalId: approvedTransfer.approvalDetails[0].approvalId,
+                approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
                 approvalLevel: "collection",
                 approvedAddress: "",
                 approverAddress: "",
@@ -43,7 +43,7 @@ export function TransferabilityTab({ collectionId, badgeId }: {
               },
               {
                 collectionId,
-                approvalId: approvedTransfer.approvalDetails[0].approvalId,
+                approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
                 approvalLevel: "collection",
                 approvedAddress: chain.cosmosAddress,
                 approverAddress: "",
@@ -51,7 +51,7 @@ export function TransferabilityTab({ collectionId, badgeId }: {
               },
               {
                 collectionId,
-                approvalId: approvedTransfer.approvalDetails[0].approvalId,
+                approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
                 approvalLevel: "collection",
                 approvedAddress: chain.cosmosAddress,
                 approverAddress: "",
@@ -59,7 +59,7 @@ export function TransferabilityTab({ collectionId, badgeId }: {
               },
               {
                 collectionId,
-                approvalId: approvedTransfer.approvalDetails[0].approvalId,
+                approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
                 approvalLevel: "collection",
                 approvedAddress: chain.cosmosAddress,
                 approverAddress: "",

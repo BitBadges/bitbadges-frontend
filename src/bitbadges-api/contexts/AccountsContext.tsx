@@ -31,7 +31,7 @@ export type AccountsContextType = {
 
 
   //Custom fetch functions (paginated views). This handles all pagination logic for you. Just pass in the viewKeys you want to fetch and it will fetch the next page for each of them.
-  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[]) => Promise<BitBadgesUserInfo<DesiredNumberType>>
+  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>>
 
   //Helper functions for views
   viewHasMore: (addressOrUsername: string, viewKey: AccountViewKey) => boolean,
@@ -62,7 +62,8 @@ const AccountsContext = createContext<AccountsContextType>({
         canUpdateApprovedIncomingTransfers: [],
         canUpdateApprovedOutgoingTransfers: [],
       },
-      collectionId: -1n, onChain: false, cosmosAddress: '', _id: ''
+      collectionId: -1n, onChain: false, cosmosAddress: '', _id: '',
+      updateHistory: [],
     }
   },
   updateAccount: () => { return BLANK_USER_INFO },
@@ -122,7 +123,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       if (cachedAccount == undefined) {
         accountsToReturn.push({ account, needToCompare: false, ignore: false });
         continue;
-
       } else {
         const cachedAccountCopy = deepCopy(cachedAccount);
 
@@ -165,6 +165,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
         };
 
+        console.log(newAccount.collected);
+
         //Filter duplicates
         newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
         newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
@@ -174,7 +176,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
 
 
-
+        console.log(newAccount);
         accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
       }
     }
@@ -185,6 +187,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     for (const accountToReturn of accountsToReturn) {
       if (accountToReturn.ignore) continue;
       //Only trigger a rerender if the account has changed or we haev to
+      console.log(compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy));
       if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
         newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
         if (accountToReturn.account.username) {
@@ -194,6 +197,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     if (Object.keys(newUpdates).length > 0) {
+      console.log(newUpdates);
       setAccountsMap(accounts => {
         return {
           ...accounts,
@@ -272,6 +276,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     username?: string,
     fetchSequence?: boolean,
     fetchBalance?: boolean,
+    fetchHidden?: boolean,
     viewsToFetch?: {
       viewKey: AccountViewKey,
       bookmark: string
@@ -296,6 +301,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           username: accountToFetch.username,
           fetchSequence: accountToFetch.fetchSequence,
           fetchBalance: accountToFetch.fetchBalance,
+
           viewsToFetch: accountToFetch.viewsToFetch,
           noExternalCalls: accountToFetch.noExternalCalls,
         });
@@ -371,10 +377,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     return account.views[viewKey]?.pagination?.hasMore || true;
   }
 
-  async function fetchNextForViews(addressOrUsername: string, viewKeys: AccountViewKey[]) {
+  async function fetchNextForViews(addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) {
     const accounts = await fetchAccountsWithOptions([{
       address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
       username: isAddressValid(addressOrUsername) ? undefined : addressOrUsername,
+      fetchHidden,
       viewsToFetch: viewKeys.map(x => {
         const currPagination = getAccount(addressOrUsername)?.views[x]?.pagination;
         if (!currPagination) return {

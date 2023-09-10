@@ -79,7 +79,7 @@ export function RevokeSelectStepItem(
               fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
               initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
               approvalDetails: [{
-                approvalId: "Revoke",
+                approvalTrackerId: "Revoke",
                 uri: "",
                 customData: "",
                 merkleChallenges: [],
@@ -91,6 +91,7 @@ export function RevokeSelectStepItem(
                 requireToEqualsInitiatedBy: false,
                 mustOwnBadges: [],
                 predeterminedBalances: {
+                  precalculationId: '',
                   incrementedBalances: {
                     startBalances: [],
                     incrementBadgeIdsBy: 0n,

@@ -222,6 +222,12 @@
 .ant-tooltip-disabled-compatible-wrapper {
     display: flex !important;
 }
+
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input
+{
+    background-color: #001529;
+    color: white;
+}
 /* 
 #w3m-modal { 
     z-index: 2000 !important; 

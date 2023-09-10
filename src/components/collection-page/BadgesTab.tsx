@@ -56,9 +56,9 @@ export function BadgesTab({ collectionId }: {
           defaultPageSize={cardView ? 25 : 1000}
           hideCollectionLink={true}
           doNotAdaptToWidth
-
+          showPageJumper
         />
       </div>
-    </div >
+    </div>
   );
 }

@@ -46,7 +46,6 @@ export function ChooseControlTypeStepItem(
                 canUpdateCollectionMetadata: [],
                 canUpdateContractAddress: [],
                 canUpdateCustomData: [],
-                canUpdateInheritedBalances: [],
                 canUpdateManager: [],
                 canUpdateOffChainBalancesMetadata: [],
                 canUpdateStandards: [],

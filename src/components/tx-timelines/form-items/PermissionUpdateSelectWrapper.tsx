@@ -1,6 +1,6 @@
 import { Checkbox, Divider } from 'antd';
-import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
-import { CollectionApprovedTransferPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
+import { ActionPermission, BalancesActionPermission, TimedUpdatePermission } from 'bitbadgesjs-proto';
+import { CollectionApprovedTransferPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
@@ -52,9 +52,9 @@ export function PermissionUpdateSelectWrapper({
         err = validateBalancesActionPermissionUpdate(oldPermissions as BalancesActionPermission<bigint>[], newPermissions as BalancesActionPermission<bigint>[]);
         break;
       case 'canUpdateBadgeMetadata':
-      case 'canUpdateInheritedBalances':
-        err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
-        break;
+      // case 'canUpdateInheritedBalances':
+      //   err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
+      //   break;
       case 'canUpdateCollectionApprovedTransfers':
         err = validateCollectionApprovedTransferPermissionsUpdate(oldPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[], newPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[]);
         break;

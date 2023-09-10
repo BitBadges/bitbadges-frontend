@@ -42,12 +42,11 @@ export function WalletHeader() {
   const address = chain.address;
   const avatar = account?.profilePicUrl ?? account?.avatar;
 
-  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean) => {
-    if (!value) return;
+  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => {
 
     if (isAccount && typeof value !== "string") {
       router.push('/account/' + value.address);
-    } else if (isCollection) {
+    } else if (isCollection || isBadge) {
       router.push('/collections/' + value);
     } else {
       router.push('/addresses/' + value);
@@ -254,7 +253,7 @@ export function WalletHeader() {
 
   const SearchBar = <Input
     defaultValue=""
-    placeholder="Enter an Address, Username, List Name, or Collection Name"
+    placeholder="Enter an Address, Username, List, Badge, or Collection"
     // onSearch={async (value) => {
     //   onSearch(value, true);
     // }}
@@ -272,11 +271,8 @@ export function WalletHeader() {
     <Dropdown
       open={searchValue !== ''}
       placement="bottom"
-
       overlay={
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
-
-
       }
       overlayClassName='primary-text primary-blue-bg'
       className='primary-blue-bg'

@@ -28,7 +28,8 @@ export function BadgeAvatarDisplay({
   showOnSinglePage,
   lightTheme,
   doNotFetchMetadata,
-  doNotAdaptToWidth
+  doNotAdaptToWidth,
+  showPageJumper
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
@@ -48,6 +49,7 @@ export function BadgeAvatarDisplay({
   doNotFetchMetadata?: boolean;
   doNotAdaptToWidth?: boolean;
   noBorder?: boolean;
+  showPageJumper?: boolean
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
@@ -164,7 +166,9 @@ export function BadgeAvatarDisplay({
   //Calculate pageSize based on the width of this componetnt
 
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
-    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme} />
+    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme}
+      showPageJumper={showPageJumper}
+    />
 
     <>
       <div className='flex-center flex-wrap full-width primary-text' ref={divRef}>

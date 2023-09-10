@@ -240,7 +240,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 {transfer.approvalDetails[0].approvalAmounts.overallApprovalAmount > 0
                   && (
                     <>
@@ -265,7 +265,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                       <br />
                       <BalanceDisplay
                         message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "overall")?.amounts ?? []}
+                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "overall")?.amounts ?? []}
                         collectionId={collectionId}
                       />
                     </>
@@ -277,7 +277,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 {transfer.approvalDetails[0].approvalAmounts.perToAddressApprovalAmount > 0
                   && (
                     <>
@@ -302,7 +302,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                       <br />
                       <BalanceDisplay
                         message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "to")?.amounts ?? []}
+                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "to")?.amounts ?? []}
                         collectionId={collectionId}
                       />
                     </>
@@ -314,7 +314,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 {transfer.approvalDetails[0].approvalAmounts.perFromAddressApprovalAmount > 0
                   && (
                     <>
@@ -339,7 +339,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                       <br />
                       <BalanceDisplay
                         message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "from")?.amounts ?? []}
+                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "from")?.amounts ?? []}
                         collectionId={collectionId}
                       />
                     </>
@@ -351,7 +351,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 {transfer.approvalDetails[0].approvalAmounts.perInitiatedByAddressApprovalAmount > 0
                   && (
                     <>
@@ -376,7 +376,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                       <br />
                       <BalanceDisplay
                         message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "initiatedBy")?.amounts ?? []}
+                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "initiatedBy")?.amounts ?? []}
                         collectionId={collectionId}
                       />
                     </>
@@ -388,9 +388,9 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
+                  <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
                     {' '}out of {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
 
               </div>
@@ -400,13 +400,13 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 <div>Showing results for:</div>
 
                 <AddressDisplay addressOrUsername={chain.address} />
                 <br />
                 {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
+                  <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
                     {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>)}
 
               </div>
@@ -416,13 +416,13 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 <div>Showing results for:</div>
 
                 <AddressDisplay addressOrUsername={chain.address} />
                 <br />
                 {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
+                  <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
                     {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>)}
 
               </div>
@@ -432,13 +432,13 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
                 )}
               </Popover>
               <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalId}</li>}
+                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
                 <div>Showing results for:</div>
 
                 <AddressDisplay addressOrUsername={chain.address} />
                 <br />
                 {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalId === transfer.approvalDetails[0].approvalId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
+                  <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
                     {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>)}
 
               </div>

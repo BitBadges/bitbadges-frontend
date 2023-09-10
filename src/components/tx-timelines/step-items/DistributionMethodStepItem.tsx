@@ -103,7 +103,7 @@ export function DistributionMethodStepItem(
   }
 
 
-  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
 
   return {
@@ -174,7 +174,7 @@ export function DistributionMethodStepItem(
                       isApproved: true,
                     }],
                     approvalDetails: [{
-                      approvalId: approvalId.current,
+                      approvalTrackerId: approvalTrackerId.current,
                       uri: '',
                       customData: '',
                       mustOwnBadges: [],
@@ -191,6 +191,7 @@ export function DistributionMethodStepItem(
                         perInitiatedByAddressMaxNumTransfers: 0n,
                       },
                       predeterminedBalances: {
+                        precalculationId: '',
                         manualBalances: [],
                         incrementedBalances: {
                           startBalances: [],

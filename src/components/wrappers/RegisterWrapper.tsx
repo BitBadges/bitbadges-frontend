@@ -10,12 +10,13 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
   const signedInAccount = accounts.getAccount(chain.address);
   const isRegistered = signedInAccount?.accountNumber && signedInAccount?.accountNumber > 0;
   const airdropped = signedInAccount?.airdropped;
+  const fetched = signedInAccount?.fetchedProfile;
 
   if (!signedInAccount) return <div className='primary-blue-bg flex-center'><Spin size='large' style={{ marginTop: 30 }} /></div>
 
   return (
     <>
-      {isRegistered && airdropped ? node : <RegisterScreen message={message} />}
+      {isRegistered && airdropped && fetched ? node : <RegisterScreen message={message} />}
     </>
   );
 }

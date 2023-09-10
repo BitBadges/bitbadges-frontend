@@ -41,7 +41,7 @@ export function TransferabilitySelectStepItem(
   const transferableLength = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).length - filteredApprovedTransfers.length;
   const transferable = transferableLength > 0;
 
-  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   useEffect(() => {
     if (!collection || !clicked) return;
 
@@ -96,7 +96,7 @@ export function TransferabilitySelectStepItem(
         initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
           [{
-            approvalId: approvalId.current,
+            approvalTrackerId: approvalTrackerId.current,
             uri: '',
             customData: '',
             mustOwnBadges: mustOwnBadges,
@@ -113,6 +113,7 @@ export function TransferabilitySelectStepItem(
               perInitiatedByAddressMaxNumTransfers: 0n,
             },
             predeterminedBalances: {
+              precalculationId: '',
               manualBalances: [],
               incrementedBalances: {
                 startBalances: [],
@@ -303,6 +304,7 @@ export function TransferabilitySelectStepItem(
                           amountRange: { start: balance.amount, end: balance.amount },
                           badgeIds: balance.badgeIds,
                           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                          mustOwnAll: true
                         }]);
                       }}
                       onRemoveAll={() => {

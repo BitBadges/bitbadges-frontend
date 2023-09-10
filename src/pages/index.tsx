@@ -136,7 +136,7 @@ const Home: NextPage = () => {
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
               </Typography.Text> */}
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles (not $BADGE) can optionally be migrated to mainnet once launched.</Typography.Text>
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</Typography.Text>
               {/* <br />
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text> */}
               <div className='flex'>
@@ -560,7 +560,7 @@ const Home: NextPage = () => {
                     <DatabaseOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges supports different balance types, such as storing balances off-chain (via a typical server) or inheriting balances from a parent collection.
+                      BitBadges supports different balance types, such as storing balances off-chain (via a typical server) or inheriting balances from a parent collection (coming soon).
                     </Typography.Text>
                   </>
                 }

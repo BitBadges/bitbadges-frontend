@@ -1,5 +1,6 @@
 import {
   CopyOutlined,
+  DeleteOutlined,
   FlagOutlined,
   LinkOutlined,
   SettingOutlined,
@@ -21,13 +22,27 @@ export function AccountButtonDisplay({
   bio,
   profilePic,
   website,
-  hideButtons
+  hideButtons,
+  hideDisplay,
+  customLinks,
+  setCustomLinks,
 }: {
   addressOrUsername: string,
   bio?: string,
   profilePic?: string,
   website?: string,
   hideButtons?: boolean
+  hideDisplay?: boolean
+  customLinks?: {
+    title: string,
+    url: string,
+    image: string
+  }[]
+  setCustomLinks?: (links: {
+    title: string,
+    url: string,
+    image: string
+  }[]) => void
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
@@ -51,10 +66,13 @@ export function AccountButtonDisplay({
   const telegramLink = 'https://t.me/' + accountInfo?.telegram;
   const githubLink = 'https://github.com/' + accountInfo?.github;
   const discordLink = 'https://discord.com/users/' + accountInfo?.discord;
+  const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
+  const blurLink = 'https://blur.network/0x' + address;
+  //https://blur.io/0x020cA66C30beC2c4Fe3861a94E4DB4A498A35872
 
   return (
     <div>
-      {!hideButtons && <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
+      {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10, top: 74, display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">
@@ -63,6 +81,34 @@ export function AccountButtonDisplay({
                 onClick={() => { }}
                 className="styled-button account-socials-button"
                 src={"https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png"}
+              >
+              </Avatar>
+            </Tooltip>
+          </a>
+        )}
+
+        {accountInfo?.chain === SupportedChain.ETH && (
+          <a href={blurLink} target="_blank" rel="noreferrer">
+            <Tooltip title="Blur" placement="bottom">
+              <Avatar
+                size="large"
+                onClick={() => { }}
+                className="styled-button account-socials-button"
+                src={"https://pbs.twimg.com/profile_images/1518705644450291713/X2FLVDdn_400x400.jpg"}
+              >
+              </Avatar>
+            </Tooltip>
+          </a>
+        )}
+
+        {accountInfo?.chain === SupportedChain.COSMOS && (
+          <a href={stargazeLink} target="_blank" rel="noreferrer">
+            <Tooltip title="Stargaze" placement="bottom">
+              <Avatar
+                size="large"
+                onClick={() => { }}
+                className="styled-button account-socials-button"
+                src={"https://pbs.twimg.com/profile_images/1507391623914737669/U3fR7nxh_400x400.jpg"}
               >
               </Avatar>
             </Tooltip>
@@ -139,6 +185,36 @@ export function AccountButtonDisplay({
             </Tooltip>
           </a>
         )}
+
+        {(customLinks ?? accountInfo?.customLinks)?.map((link, i) => (<div key={i}>
+          <a key={i} href={link.url} target="_blank" rel="noreferrer">
+            <Tooltip title={link.title} placement="bottom">
+              <Avatar
+                size="large"
+                onClick={() => { }}
+                className="styled-button account-socials-button"
+                src={link.image}
+              >
+              </Avatar>
+            </Tooltip>
+
+          </a>
+          {setCustomLinks && customLinks && <>
+
+            <Avatar
+              size="large"
+              onClick={() => {
+                setCustomLinks((customLinks).filter((_, j) => j !== i))
+              }}
+              className="styled-button account-socials-button"
+              style={{ border: 'none' }}
+              src={<DeleteOutlined />}
+            >
+            </Avatar>
+          </>}
+        </div>
+        ))}
+
         {website && (
           <a href={website} target="_blank" rel="noreferrer">
             <Tooltip title="Website" placement="bottom">
@@ -152,6 +228,8 @@ export function AccountButtonDisplay({
             </Tooltip>
           </a>
         )}
+
+
 
         <Tooltip title={<>
           <div style={{ textAlign: 'center' }}>
@@ -228,49 +306,50 @@ export function AccountButtonDisplay({
           </Tooltip>
         )}
       </div>}
-      <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
-      <Content
-        className='flex-center'
-        style={{
-          padding: '0',
-          textAlign: 'center',
-          color: 'white',
-          paddingBottom: 10,
-        }}
-      >
-        <div className='full-width'>
-          <div
-            style={{
-              padding: '0',
-              textAlign: 'center',
-              color: 'white',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 20,
-            }}
-          >
-            <Avatar size={200} src={profilePicSrc} />
-            <div style={{ marginTop: 4 }} className='flex-center'>
-              <AddressDisplay
-                addressOrUsername={addressOrUsername}
-                fontSize={20}
-                hidePortfolioLink
-              />
-            </div>
 
-            {bio && (
-              <div
-                className='secondary-text'
-                style={{
-                  fontSize: 18,
-                }}
-              >
-                {bio}
+      {!hideDisplay && <>
+        <Col md={0} sm={1} xs={1} style={{ height: '50px' }} /><Content
+          className='flex-center'
+          style={{
+            padding: '0',
+            textAlign: 'center',
+            color: 'white',
+            paddingBottom: 10,
+          }}
+        >
+          <div className='full-width'>
+            <div
+              style={{
+                padding: '0',
+                textAlign: 'center',
+                color: 'white',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: 20,
+              }}
+            >
+              <Avatar size={200} src={profilePicSrc} />
+              <div style={{ marginTop: 4 }} className='flex-center'>
+                <AddressDisplay
+                  addressOrUsername={addressOrUsername}
+                  fontSize={20}
+                  hidePortfolioLink
+                />
               </div>
-            )}
+
+              {bio && (
+                <div
+                  className='secondary-text'
+                  style={{
+                    fontSize: 18,
+                  }}
+                >
+                  {bio}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </Content>
+        </Content></>}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Divider, Empty, Layout, notification } from 'antd';
+import { Divider, Empty, Layout, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
@@ -14,9 +14,10 @@ import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { Tabs } from '../../components/navigation/Tabs';
-import { INFINITE_LOOP_MODE } from '../../constants';
+import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 
 const { Content } = Layout;
 
@@ -47,18 +48,19 @@ function CollectionPage({
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
-    
+
       { key: 'transferability', content: 'Transferability', disabled: false },
       { key: 'claims', content: 'Claims', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
-      
+
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
+
+      { key: 'history', content: 'Update History', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
     )
   } else {
-
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
@@ -201,6 +203,30 @@ function CollectionPage({
                 />
               </>
             )}
+
+            {tab === 'history' && !isPreview && <div className='primary-text'>
+              <br />
+              <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the collection was created / updated.
+              <br />
+              <br />
+              {collection.updateHistory.map((update, i) => {
+                return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
+
+                  <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+                    <ClockCircleOutlined style={{ marginRight: '5px' }} />
+                    Collection {i == 0 ? 'Created' : 'Updated'
+                    } at{' '}
+                    {new Date(Number(update.blockTimestamp)).toLocaleString()}
+                    {' '}(Block #{update.block.toString()})
+
+                  </Typography.Text>
+                  <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                    {update.txHash}
+                  </a></p>
+                  <Divider />
+                </div>
+              })}
+            </div>}
           </>
           }
         </div>

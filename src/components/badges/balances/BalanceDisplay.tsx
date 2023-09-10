@@ -51,7 +51,7 @@ export function BalanceDisplay({
         from: '',
         merkleProofs: [],
         precalculationDetails: {
-          approvalId: '',
+          precalculationId: '',
           approvalLevel: '',
           approverAddress: '',
         },

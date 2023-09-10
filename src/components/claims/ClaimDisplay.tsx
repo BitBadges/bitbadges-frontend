@@ -71,7 +71,7 @@ export function ClaimDisplay({
   const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
 
   useEffect(() => {
-    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
+    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === '');
     const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
     let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
       claim?.useCreatorAddressAsLeaf ?
@@ -113,7 +113,7 @@ export function ClaimDisplay({
       async function fetchTrackers() {
         const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = [{
           collectionId,
-          approvalId: approvedTransfer.approvalDetails[0].approvalId,
+          approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
           approvalLevel: "collection",
           approvedAddress: "",
           approverAddress: "",
@@ -122,7 +122,7 @@ export function ClaimDisplay({
         if (approvedTransfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
           approvalsIdsToFetch.push({
             collectionId,
-            approvalId: approvedTransfer.approvalDetails[0].approvalId,
+            approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
             approvalLevel: "collection",
             approvedAddress: chain.cosmosAddress,
             approverAddress: "",
@@ -149,8 +149,8 @@ export function ClaimDisplay({
   }, [collectionId, approvedTransfer, claimId, chain]);
 
   //TODO: Will need to change with more supported features
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === '');
-  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalId === approvedTransfer.approvalDetails[0].approvalId && x.approvedAddress === chain.cosmosAddress);
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === '');
+  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === chain.cosmosAddress);
 
   const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
   let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ? claim?.useCreatorAddressAsLeaf ?

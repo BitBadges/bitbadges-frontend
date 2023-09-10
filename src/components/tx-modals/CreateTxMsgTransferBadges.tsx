@@ -62,7 +62,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       balances: x.balances,
       toAddresses: x.toAddresses,
       precalculationDetails: {
-        approvalId: '',
+        precalculationId: '',
         approvalLevel: '',
         approverAddress: '',
       },

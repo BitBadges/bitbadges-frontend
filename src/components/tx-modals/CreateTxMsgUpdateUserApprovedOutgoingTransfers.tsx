@@ -51,7 +51,8 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
     getApproveeBalance();
   }, []);
 
-  const approvalId = useRef(crypto.randomBytes(32).toString('hex'));
+  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
   const newApprovedOutgoingTransfers = [{
     timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     approvedOutgoingTransfers: [
@@ -66,7 +67,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
         approvalDetails: [
           {
-            approvalId: approvalId.current,
+            approvalTrackerId: approvalTrackerId.current,
             uri: '',
             customData: '',
             mustOwnBadges: [],
@@ -83,6 +84,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
               perInitiatedByAddressMaxNumTransfers: 0n,
             },
             predeterminedBalances: {
+              precalculationId: precalculationId.current,
               manualBalances: [{ balances: balances }],
               incrementedBalances: {
                 startBalances: [],
@@ -169,7 +171,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
           initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
           approvalDetails: [
             {
-              approvalId: approvalId.current,
+              approvalTrackerId: approvalTrackerId.current,
               uri: '',
               customData: '',
               mustOwnBadges: [],
@@ -186,6 +188,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
                 perInitiatedByAddressMaxNumTransfers: 0n,
               },
               predeterminedBalances: {
+                precalculationId: '',
                 manualBalances: [],
                 incrementedBalances: {
                   startBalances: [],
