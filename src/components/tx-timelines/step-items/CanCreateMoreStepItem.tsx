@@ -20,7 +20,7 @@ const DefaultCombinations = [{
   // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
 }]
 
-const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
+export const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
   defaultValues: {
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],

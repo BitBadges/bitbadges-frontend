@@ -1,4 +1,4 @@
-import { Avatar, Divider } from "antd";
+import { Avatar, Checkbox, Divider, Typography } from "antd";
 import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
@@ -20,6 +20,7 @@ export function ConfirmManagerStepItem(
   setCanUpdateManager: (canUpdateManager: boolean) => void,
   existingCollectionId?: bigint
 ) {
+  const [checked, setChecked] = useState<boolean>(true);
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
@@ -54,6 +55,7 @@ export function ConfirmManagerStepItem(
 
   return {
     title: 'Select Manager',
+    disabled: !!err || (!hasManager && !checked),
     description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, and more. See full list '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
@@ -68,7 +70,6 @@ export function ConfirmManagerStepItem(
       </> : <></>}
 
     </>,
-    disabled: !!err,
     node:
       <UpdateSelectWrapper
         updateFlag={canUpdateManager}
@@ -127,6 +128,21 @@ export function ConfirmManagerStepItem(
                 },
                 ]}
               />
+
+              {!hasManager && <div>
+                <br />
+                <div className='flex-center'>
+                  <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
+                    By checking the box below, I confirm that I understand that everything selected in the following steps will be permanent and cannot be changed in the future.
+                  </Typography.Text>
+                </div>
+                <div className='flex-center'>
+                  <Checkbox
+                    checked={checked}
+                    onChange={(e) => setChecked(e.target.checked)}
+                  />
+                </div>
+              </div>}
 
               {hasManager && <div>
                 <Divider />

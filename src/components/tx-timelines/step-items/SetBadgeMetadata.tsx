@@ -83,7 +83,6 @@ export function SetBadgeMetadataStepItem(
             collectionId={MSG_PREVIEW_ID}
             startId={1n}
             endId={collection ? getTotalNumberOfBadges(collection) : 1n}
-            toBeFrozen={collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0}
             addMethod={addMethod}
           />
           <Divider />

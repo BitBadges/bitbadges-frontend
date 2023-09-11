@@ -26,7 +26,7 @@ export function ChooseControlTypeStepItem(
           },
           {
             title: 'Complete Control',
-            message: 'To streamline the process, we will set all admin privileges to be enabled. Moving forward, you will have compelte control to be able to customize and update the collection details on the blockchain as you see fit.',
+            message: 'To streamline the process, we will set all admin privileges to be enabled. You will have complete control to be able to customize and update the collection details on the blockchain as you see fit.',
             isSelected: completeControl
           },
         ]}

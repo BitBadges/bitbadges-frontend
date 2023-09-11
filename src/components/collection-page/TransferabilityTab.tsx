@@ -1,23 +1,23 @@
 import { FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Tooltip, Typography } from 'antd';
-import { ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { getCurrentIdxForTimeline, getFirstMatchForCollectionApprovedTransfers } from 'bitbadgesjs-utils';
+import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
+import { getCurrentIdxForTimeline, getFirstMatchForCollectionApprovedTransfers, getReservedAddressMapping, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getApprovalsDisplay } from './ApprovalsTab';
 
-export function TransferabilityTab({ collectionId, badgeId }: {
+export function TransferabilityTab({ collectionId, badgeId, isClaimSelect }: {
   collectionId: bigint,
   badgeId?: bigint,
+  isClaimSelect?: boolean
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
   const currTransferabilityIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
   const [defaultIdx, setDefaultIdx] = useState<number>(Number(currTransferabilityIdx));
   const chain = useChainContext();
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers b');
@@ -84,8 +84,17 @@ export function TransferabilityTab({ collectionId, badgeId }: {
 
   if (!collection) return <></>;
 
-  const firstMatches = getFirstMatchForCollectionApprovedTransfers(defaultIdx < 0 ? [] : collection.collectionApprovedTransfersTimeline[Number(defaultIdx)].collectionApprovedTransfers, true);
-
+  let firstMatches = getFirstMatchForCollectionApprovedTransfers(defaultIdx < 0 ? [] : collection.collectionApprovedTransfersTimeline[Number(defaultIdx)].collectionApprovedTransfers, true);
+  if (isClaimSelect) {
+    firstMatches = firstMatches.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
+    firstMatches = firstMatches.map(x => {
+      return {
+        ...x,
+        fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
+        fromMappingId: 'Mint',
+      }
+    })
+  }
 
   return (
     <div className='primary-text'>
@@ -99,7 +108,7 @@ export function TransferabilityTab({ collectionId, badgeId }: {
         }
       </Typography.Text>
 
-      {getApprovalsDisplay(collection.collectionApprovedTransfersTimeline, firstMatches, defaultIdx, setDefaultIdx, collection, badgeId)}
+      {getApprovalsDisplay(collection.collectionApprovedTransfersTimeline, firstMatches, defaultIdx, setDefaultIdx, collection, badgeId, isClaimSelect)}
       <Divider />
       <p>
         <InfoCircleOutlined />{' '}Transferability is broken down into multiple criteria: who can send? who can receive? etc.

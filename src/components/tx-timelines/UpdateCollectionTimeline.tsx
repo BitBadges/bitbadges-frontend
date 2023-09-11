@@ -1,6 +1,6 @@
 import { Balance } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferWithDetails, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getPermissionDataSource } from '../collection-page/PermissionsInfo';
@@ -32,6 +32,7 @@ import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadat
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
 import { ChooseControlTypeStepItem } from './step-items/CompleteControlStepItem';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 //See TxTimeline for explanations and documentation
 
@@ -44,8 +45,47 @@ export function UpdateCollectionTimeline({
 
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
+  const existingCollectionId = txTimelineContext.existingCollectionId;
+  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
-  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>([]);
+
+  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>(
+    existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
+      ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint').map(x => {
+        return {
+          ...x,
+          balances: [{
+            badgeIds: x.badgeIds,
+            ownershipTimes: x.ownershipTimes,
+            amount: 1n //will not matter
+          }]
+        }
+      }) : []
+
+  );
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
+    if (!existingCollection) return;
+
+    //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
+    const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
+      ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
+
+    setApprovedTransfersToAdd(existingFromMint.map(x => {
+      return {
+        ...x,
+        balances: [{
+          badgeIds: x.badgeIds,
+          ownershipTimes: x.ownershipTimes,
+          amount: 1n //will not matter
+        }]
+      }
+    }));
+  }, [existingCollection]);
+
+
+
 
   //TODO: Eventually we should refactor this bc txTimelineContext is now a context so we don't need to pass it in as a prop
   const addMethod = txTimelineContext.addMethod;
@@ -57,7 +97,6 @@ export function UpdateCollectionTimeline({
   const setBadgesToCreate = txTimelineContext.setBadgesToCreate;
   const transfers = txTimelineContext.transfers;
   const setTransfers = txTimelineContext.setTransfers;
-  const existingCollectionId = txTimelineContext.existingCollectionId;
   // const existingCollectionId = 1n;
   const updateCollectionApprovedTransfers = txTimelineContext.updateCollectionApprovedTransfersTimeline;
   const setUpdateCollectionApprovedTransfers = txTimelineContext.setUpdateCollectionApprovedTransfersTimeline;

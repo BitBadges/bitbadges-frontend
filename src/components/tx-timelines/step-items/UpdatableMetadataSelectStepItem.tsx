@@ -25,7 +25,6 @@ export function UpdatableMetadataSelectStepItem(
     message: `${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the metadata (i.e. the self-hosted ones provided by you)' : 'The metadata'} will be frozen and cannot be updated after this transaction.`,
     isSelected: collectionMetadataUpdate ? collection?.collectionPermissions.canUpdateCollectionMetadata.length > 0 :
       collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0
-
   })
 
   options.push({

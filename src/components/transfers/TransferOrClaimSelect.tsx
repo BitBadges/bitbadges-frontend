@@ -2,7 +2,7 @@ import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, Warnin
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getCurrentIdxForTimeline, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, filterZeroBalances, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getBalancesForIds, getCurrentIdxForTimeline, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
@@ -11,9 +11,10 @@ import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 import { BalanceBeforeAndAfter } from '../badges/balances/BalanceBeforeAndAfter';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
+import { TransferabilityTab } from '../collection-page/TransferabilityTab';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { BalanceInput } from '../inputs/BalanceInput';
@@ -254,7 +255,7 @@ export function TransferSelect({
       return {
         toAddresses: [],
         toAddressesLength: 1n,
-        balances: claim.balances,
+        balances: getBalancesForIds(claim.balances.map(x => x.badgeIds).flat(), [{ start: 1n, end: GO_MAX_UINT_64 }], originalSenderBalances),
         from: sender,
         precalculationDetails: {
           precalculationId: precalculationId.current,
@@ -277,7 +278,7 @@ export function TransferSelect({
         return {
           toAddresses: [],
           toAddressesLength: 1n,
-          balances: claim.balances,
+          balances: getBalancesForIds(claim.balances.map(x => x.badgeIds).flat(), [{ start: 1n, end: GO_MAX_UINT_64 }], originalSenderBalances),
           from: sender,
           precalculationDetails: {
             precalculationId: precalculationId.current,
@@ -301,6 +302,11 @@ export function TransferSelect({
     preTransferBalanceObj = getBalancesAfterTransfers(preTransferBalanceObj, [...convertedTransfers], true);
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true);
     //Deduct transfers to add
+
+    let currBalancesForSelectedBadges = getBalancesForIds(balances.map(x => x.badgeIds).flat(), [{ start: 1n, end: GO_MAX_UINT_64 }], postTransferBalanceObj);
+    currBalancesForSelectedBadges = filterZeroBalances(currBalancesForSelectedBadges);
+
+    // postTransferBalanceObj = subtractBalances(currBalancesForSelectedBadges, postTransferBalanceObj);
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
 
 
@@ -321,7 +327,6 @@ export function TransferSelect({
     return {
       ...balance,
       badgeIds: removed,
-
     }
   }).filter(x => x.badgeIds.length > 0) ?? [];
 
@@ -643,14 +648,25 @@ export function TransferSelect({
           />
         </div>}
         <Divider />
-
+        <div className='flex-center'>
+          {
+            postCurrTransferBalances.length > 0 && <div>
+              <WarningOutlined style={{}} />
+              <span style={{ marginLeft: 8, }}>
+                Any balances remaining will remain undistributed.
+              </span>
+              <Divider />
+            </div>
+          }
+        </div>
         {
           postTransferBalances && <div>
             <BalanceBeforeAndAfter collectionId={collectionId}
               balances={(preCurrTransferBalance ? preCurrTransferBalance : originalSenderBalances)}
               newBalances={postCurrTransferBalances}
-              partyString='' beforeMessage='Before Transfer Is Added' afterMessage='After Transfer Is Added' />
-            {/* {transfers.length >= 1 && <p style={{ textAlign: 'center' }} className='secondary-text'>*These balances assum.</p>} */}
+              partyString='' beforeMessage='Before Transfer Is Added'
+              afterMessage='After Transfer Is Added'
+            />
           </div>
         }
       </div></>}
@@ -803,10 +819,16 @@ export function TransferSelect({
             title='Remaining'
             noBorder
           >
-            {preTransferBalances && preTransferBalances.length > 0 && <BalanceDisplay
-              collectionId={collectionId ?? MSG_PREVIEW_ID}
-              balances={preTransferBalances}
-            />}
+            {preTransferBalances && preTransferBalances.length > 0 &&
+              <BadgeAvatarDisplay
+                collectionId={collectionId ?? MSG_PREVIEW_ID}
+                badgeIds={preTransferBalances.map(x => x.badgeIds).flat()}
+                showIds
+              />}
+            {/* // <BalanceDisplay
+              //   collectionId={collectionId ?? MSG_PREVIEW_ID}
+              //   balances={preTransferBalances}
+              // />} */}
             {(!preTransferBalances || preTransferBalances.length === 0) && <Empty
               className='primary-text'
               image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -815,10 +837,11 @@ export function TransferSelect({
           </InformationDisplayCard>
         </Col>
 
-        <Col md={11} sm={24} xs={24} className='flex-center'>
+        <Col md={11} sm={24} xs={24} className='flex-center full-width'>
           <InformationDisplayCard
             title={<>Added {isClaimSelect ? 'Claims' : 'Transfers'}</>}
             noBorder
+            span={24}
           >
             <>
               {[...(transfers ?? []), ...(approvedTransfersToAdd ?? [])].length === 0 && <Empty
@@ -848,7 +871,7 @@ export function TransferSelect({
                     const claimItem = transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.approvalDetails[0].merkleChallenges.length > 0 ? transfer.approvalDetails[0].merkleChallenges[0].details : undefined;
                     return <CollapsePanel
                       header={
-                        <div className='primary-text' style={{ margin: 0, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className='primary-text full-width' style={{ margin: 0, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
                             <Text strong className='primary-text'>
                               {index + 1}. {distributionMethod} {distributionMethod === DistributionMethod.Codes ?
@@ -970,6 +993,13 @@ export function TransferSelect({
                   Add New Transfer
                 </Button>
               </div>}
+            {isClaimSelect && <>
+              <br />
+              <hr />
+              <div className='flex-center' style={{ textAlign: 'center' }}>
+                <TransferabilityTab collectionId={collectionId} isClaimSelect />
+              </div>
+            </>}
           </>}
       <br />
     </div >

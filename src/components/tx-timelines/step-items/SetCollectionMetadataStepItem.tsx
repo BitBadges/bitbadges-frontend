@@ -83,7 +83,6 @@ export function SetCollectionMetadataStepItem(
             addMethod={addMethod}
             startId={existingCollection ? getTotalNumberOfBadges(existingCollection) : 1n}
             endId={collection ? getTotalNumberOfBadges(collection) : 1n}
-            toBeFrozen={collection?.collectionPermissions.canUpdateBadgeMetadata.length > 0}
           />
           <Divider />
           {addMethod === MetadataAddMethod.Manual && <>

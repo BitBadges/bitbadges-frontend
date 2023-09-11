@@ -37,9 +37,9 @@ export function CreateClaims({
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
     if (!collection || distributionMethod === DistributionMethod.OffChainBalances) return;
 
-    //Slot it right in the middle of [existing from "Mint", toAdd, non-"Mint"]
-    const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
-      ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
+    //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
+    // const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
+    //   ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
 
     const existingNonMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
       ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId !== 'Mint') : [];
@@ -48,7 +48,9 @@ export function CreateClaims({
     collections.updateCollection({
       ...collection,
       collectionApprovedTransfersTimeline: [{
-        collectionApprovedTransfers: [...existingFromMint, ...approvedTransfersToAdd, ...existingNonMint],
+        collectionApprovedTransfers: [
+          // ...existingFromMint, //We included in approvedTransfersToAdd 
+          ...approvedTransfersToAdd, ...existingNonMint],
         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
       }]
     });

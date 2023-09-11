@@ -17,7 +17,9 @@ import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
 
 export const getApprovalsDisplay = (timeline:
   UserApprovedIncomingTransferTimelineWithDetails<bigint>[] | UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]
-  | CollectionApprovedTransferTimelineWithDetails<bigint>[], convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[], defaultOutgoingIdx: number, setDefaultOutgoingIdx: (idx: number) => void, collection: BitBadgesCollection<bigint>, badgeId?: bigint) => {
+  | CollectionApprovedTransferTimelineWithDetails<bigint>[], convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[], defaultOutgoingIdx: number, setDefaultOutgoingIdx: (idx: number) => void, collection: BitBadgesCollection<bigint>, badgeId?: bigint,
+  isClaimSelect?: boolean
+  ) => {
   return <> {collection && ((timeline.length > 1)) ?
     <>
       <Select

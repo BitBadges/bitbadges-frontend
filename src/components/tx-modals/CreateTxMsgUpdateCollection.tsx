@@ -139,7 +139,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
         //TODO: Test this
         //TODO: Same with collection metadata and claims and balances
-        prunedMetadata = prunedMetadata.filter(x => x.toUpdate && !compareObjects(DefaultPlaceholderMetadata, x.metadata))
+        prunedMetadata = prunedMetadata.filter(x => x.badgeIds.length > 0 && x.toUpdate && !compareObjects(DefaultPlaceholderMetadata, x.metadata))
 
         let res = await addMetadataToIpfs({
           collectionMetadata: txState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
