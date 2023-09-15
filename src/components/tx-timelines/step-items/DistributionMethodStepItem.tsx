@@ -25,7 +25,7 @@ export function DistributionMethodStepItem(
   const options = [];
   if (!hideFirstComeFirstServe) {
     options.push({
-      title: 'Open to Anyone',
+      title: 'First Come, First Serve',
       message: `First come, first serve until all badges are claimed.`,
       isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
     });
@@ -36,6 +36,12 @@ export function DistributionMethodStepItem(
     message: `Generate secret codes or passwords that can be entered by users to claim badges. These can be distributed to users however you would like (email, social media, etc). ${!neverHasManager ? '\n\nIMPORTANT: Codes / passwords will only ever be viewable by the current collection manager.' : 'Currently only available with a manager.'}`,
     isSelected: distributionMethod == DistributionMethod.Codes,
     disabled: neverHasManager
+  }
+
+  const JsonStep = {
+    title: 'JSON',
+    message: 'Advanced option. Requires technical skills. Enter a JSON specifying the transferability of this collection. See BitBadges documentation for more info.',
+    isSelected: distributionMethod == DistributionMethod.JSON,
   }
 
   const WhitelistStep = {
@@ -73,12 +79,8 @@ export function DistributionMethodStepItem(
     options.push(
       CodesStep,
       WhitelistStep,
+      JsonStep
 
-      // {
-      //   title: 'JSON',
-      //   message: 'Advanced option. Upload a JSON file, specifying how to distribute your badges. See BitBadges documentation for more info.',
-      //   isSelected: distributionMethod == DistributionMethod.JSON,
-      // }
     );
 
     if (!neverHasManager) options.push(ManualTransferStep);
@@ -87,7 +89,8 @@ export function DistributionMethodStepItem(
     options.push(
       CodesStep,
       WhitelistStep,
-      OffChainBalancesStep
+      OffChainBalancesStep,
+      JsonStep
     );
 
     if (!neverHasManager) options.push(ManualTransferStep);
@@ -116,7 +119,7 @@ export function DistributionMethodStepItem(
         onSwitchChange={(_idx, newTitle) => {
           if (!collection) return;
 
-          if (newTitle == 'Open to Anyone') {
+          if (newTitle == 'First Come, First Serve') {
             setDistributionMethod(DistributionMethod.FirstComeFirstServe);
           } else if (newTitle == 'Codes') {
             setDistributionMethod(DistributionMethod.Codes);
@@ -141,6 +144,7 @@ export function DistributionMethodStepItem(
             if (!collection) return;
 
             //Slot it right in the middle of [existing from "Mint", toAdd, non-"Mint"]
+            //TODO: Potential assumption?
             const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
               ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
 

@@ -4,10 +4,11 @@ import { useCollectionsContext } from "../../../bitbadges-api/contexts/Collectio
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function RevokeSelectStepItem(
   updateCollectionApprovedTransfers: boolean,
-  // setUpdateCollectionApprovedTransfers: (val: boolean) => void,
+  setUpdateCollectionApprovedTransfers: (val: boolean) => void,
 
   existingCollectionId?: bigint,
 ) {
@@ -31,143 +32,158 @@ export function RevokeSelectStepItem(
     description: <>{`Once badges are into a user's wallet, should they be revokable or non-revokable by the manager?`}
     </>,
     node:
+      <UpdateSelectWrapper
+        updateFlag={updateCollectionApprovedTransfers}
+        setUpdateFlag={setUpdateCollectionApprovedTransfers}
+        existingCollectionId={existingCollectionId}
+        jsonPropertyPath='collectionApprovedTransfersTimeline'
+        permissionName='canUpdateCollectionApprovedTransfers'
+        disableJson
+        disableUndo
+        nonMintOnly
+        node={
 
-      <div>
+          <div>
 
-        {err &&
-          <div style={{ color: 'red', textAlign: 'center' }}>
-            <b>Error: </b>{err.message}
-            <br />
-            <p>Please resolve this error before continuing.</p>
-            <br />
-            <p>This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
+            {err &&
+              <div style={{ color: 'red', textAlign: 'center' }}>
+                <b>Error: </b>You are attempting to update a previously frozen value.
+                <br />
 
-          </div>}
+                <br />
 
-        <SwitchForm
-          options={[
-            {
-              title: 'Non-Revokable',
-              message: `Badges will be non-revokable.`,
-              isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") === undefined
-            },
-            {
-              title: 'Revokable',
-              message: `Badges will be revokable.`,
-              isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") !== undefined
-            },
-            // {
-            //TODO:
-            //   title: 'Custom',
-            //   disabled: true,
-            //   message: `Custom transferability is selected.`,
-            //   isSelected: transferable && transferableLength > 1
-            // },
-          ]}
-          onSwitchChange={(idx) => {
-            const mintTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" && x.initiatedByMappingId !== "Manager");
 
-            const nonMintTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId !== "Mint" && x.initiatedByMappingId !== "Manager");
+              </div>}
 
-            const transfersToAdd: CollectionApprovedTransferWithDetails<bigint>[] = idx == 0 ? [] : [{
-              fromMappingId: "AllWithoutMint",
-              toMappingId: "AllWithoutMint",
-              initiatedByMappingId: "Manager",
-              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-              fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-              initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
-              approvalDetails: [{
-                approvalTrackerId: "Revoke",
-                uri: "",
-                customData: "",
-                merkleChallenges: [],
-                overridesFromApprovedOutgoingTransfers: true,
-                overridesToApprovedIncomingTransfers: false,
-                requireFromDoesNotEqualInitiatedBy: false,
-                requireFromEqualsInitiatedBy: false,
-                requireToDoesNotEqualInitiatedBy: false,
-                requireToEqualsInitiatedBy: false,
-                mustOwnBadges: [],
-                predeterminedBalances: {
-                  precalculationId: '',
-                  incrementedBalances: {
-                    startBalances: [],
-                    incrementBadgeIdsBy: 0n,
-                    incrementOwnershipTimesBy: 0n,
-                  },
-                  manualBalances: [],
-                  orderCalculationMethod: {
-                    useMerkleChallengeLeafIndex: false,
-                    useOverallNumTransfers: false,
-                    usePerFromAddressNumTransfers: false,
-                    usePerInitiatedByAddressNumTransfers: false,
-                    usePerToAddressNumTransfers: false,
-                  },
+            <SwitchForm
+              showCustomOption
+              options={[
+                {
+                  title: 'Non-Revokable',
+                  message: `Badges will be non-revokable.`,
+                  //TODO: Potential assumption?
+                  isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") === undefined
                 },
-                approvalAmounts: {
-                  overallApprovalAmount: 0n,
-                  perFromAddressApprovalAmount: 0n,
-                  perInitiatedByAddressApprovalAmount: 0n,
-                  perToAddressApprovalAmount: 0n,
+                {
+                  title: 'Revokable',
+                  message: `Badges will be revokable.`,
+                  isSelected: collection.collectionApprovedTransfersTimeline.length > 0 && collection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.find(x => x.initiatedByMappingId === "Manager") !== undefined
                 },
-                maxNumTransfers: {
-                  overallMaxNumTransfers: 0n,
-                  perFromAddressMaxNumTransfers: 0n,
-                  perInitiatedByAddressMaxNumTransfers: 0n,
-                  perToAddressMaxNumTransfers: 0n,
-                },
-              }],
-              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              allowedCombinations: [{
-                isApproved: true,
-                toMappingOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
-                fromMappingOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
+                // {
+                //TODO:
+                //   title: 'Custom',
+                //   disabled: true,
+                //   message: `Custom transferability is selected.`,
+                //   isSelected: transferable && transferableLength > 1
+                // },
+              ]}
+              onSwitchChange={(idx) => {
+                //TODO: Potential assumption?
+                const mintTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" && x.initiatedByMappingId !== "Manager");
 
-                initiatedByMappingOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
-                badgeIdsOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
-                ownershipTimesOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
-                transferTimesOptions: {
-                  invertDefault: false,
-                  allValues: false,
-                  noValues: false
-                },
-              }]
-            }];
+                const nonMintTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId !== "Mint" && x.initiatedByMappingId !== "Manager");
+
+                const transfersToAdd: CollectionApprovedTransferWithDetails<bigint>[] = idx == 0 ? [] : [{
+                  fromMappingId: "AllWithoutMint",
+                  toMappingId: "AllWithoutMint",
+                  initiatedByMappingId: "Manager",
+                  badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+                  fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+                  initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
+                  approvalDetails: [{
+                    approvalTrackerId: "Revoke",
+                    uri: "",
+                    customData: "",
+                    merkleChallenges: [],
+                    overridesFromApprovedOutgoingTransfers: true,
+                    overridesToApprovedIncomingTransfers: false,
+                    requireFromDoesNotEqualInitiatedBy: false,
+                    requireFromEqualsInitiatedBy: false,
+                    requireToDoesNotEqualInitiatedBy: false,
+                    requireToEqualsInitiatedBy: false,
+                    mustOwnBadges: [],
+                    predeterminedBalances: {
+                      precalculationId: '',
+                      incrementedBalances: {
+                        startBalances: [],
+                        incrementBadgeIdsBy: 0n,
+                        incrementOwnershipTimesBy: 0n,
+                      },
+                      manualBalances: [],
+                      orderCalculationMethod: {
+                        useMerkleChallengeLeafIndex: false,
+                        useOverallNumTransfers: false,
+                        usePerFromAddressNumTransfers: false,
+                        usePerInitiatedByAddressNumTransfers: false,
+                        usePerToAddressNumTransfers: false,
+                      },
+                    },
+                    approvalAmounts: {
+                      overallApprovalAmount: 0n,
+                      perFromAddressApprovalAmount: 0n,
+                      perInitiatedByAddressApprovalAmount: 0n,
+                      perToAddressApprovalAmount: 0n,
+                    },
+                    maxNumTransfers: {
+                      overallMaxNumTransfers: 0n,
+                      perFromAddressMaxNumTransfers: 0n,
+                      perInitiatedByAddressMaxNumTransfers: 0n,
+                      perToAddressMaxNumTransfers: 0n,
+                    },
+                  }],
+                  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  allowedCombinations: [{
+                    isApproved: true,
+                    toMappingOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+                    fromMappingOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+
+                    initiatedByMappingOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+                    badgeIdsOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+                    ownershipTimesOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+                    transferTimesOptions: {
+                      invertDefault: false,
+                      allValues: false,
+                      noValues: false
+                    },
+                  }]
+                }];
 
 
-            collections.updateCollection({
-              ...collection,
-              collectionApprovedTransfersTimeline: [{
-                collectionApprovedTransfers: [...mintTransfers, ...transfersToAdd, ...nonMintTransfers],
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              }]
-            });
-          }}
-        />
+                collections.updateCollection({
+                  ...collection,
+                  collectionApprovedTransfersTimeline: [{
+                    collectionApprovedTransfers: [...mintTransfers, ...transfersToAdd, ...nonMintTransfers],
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  }]
+                });
+              }}
+            />
 
-      </div >
+          </div >
+        }
+      />
     ,
     disabled: !!err,
   }

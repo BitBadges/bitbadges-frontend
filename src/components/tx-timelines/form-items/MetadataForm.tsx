@@ -10,7 +10,7 @@ import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
@@ -18,6 +18,7 @@ import { BadgeCard } from '../../badges/BadgeCard';
 import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import moment from 'moment';
 import { DevMode } from '../../common/DevMode';
+import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -32,16 +33,14 @@ export function MetadataForm({
   collectionId,
   isCollectionSelect,
   addMethod,
-  startId,
-  endId,
+  badgeIds,
   toBeFrozen,
   hideCollectionSelect,
   isAddressMappingSelect
 }: {
   addMethod: MetadataAddMethod;
   isCollectionSelect?: boolean;
-  startId: bigint;
-  endId: bigint;
+  badgeIds: UintRange<bigint>[];
   toBeFrozen?: boolean;
   collectionId: bigint;
   hideCollectionSelect?: boolean;
@@ -50,7 +49,7 @@ export function MetadataForm({
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
-  const [badgeId, setBadgeId] = useState<bigint>(startId ?? 1n);
+  const [badgeId, setBadgeId] = useState<bigint>(badgeIds.length > 0 ? badgeIds[0].start : 1n);
 
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
 
@@ -119,12 +118,7 @@ export function MetadataForm({
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
   const [validForeverChecked, setValidForeverChecked] = useState((!metadata.validFrom) || (metadata.validFrom && metadata.validFrom.length === 0));
-  const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>([
-    {
-      start: startId ? startId : 1n,
-      end: endId ? endId : GO_MAX_UINT_64
-    }
-  ]);
+  const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds);
 
   const sampleImages = [
     {
@@ -231,8 +225,8 @@ export function MetadataForm({
         {addMethod === MetadataAddMethod.UploadUrl && <>
           <MetadataUriSelect
             collectionId={collectionId}
-            startId={startId}
-            endId={endId}
+            startId={1n}
+            endId={collection ? getTotalNumberOfBadges(collection) : 1n}
             hideCollectionSelect={hideCollectionSelect}
           />
         </>}
@@ -243,10 +237,15 @@ export function MetadataForm({
             <div className='primary-text flex-center' >
 
               <div><b>Setting Metadata for Badge ID:{' '}</b></div>
-              <InputNumber min={Numberify((startId ? startId : 1n).toString())} max={Numberify((endId ? endId : GO_MAX_UINT_64).toString())}
+              <InputNumber
+                min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
+                max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
                 value={Numberify(badgeId.toString())}
                 onChange={(e) => {
-                  if (e && e > 0 && setBadgeId) setBadgeId(BigInt(e));
+                  if (e && e > 0 && setBadgeId) {
+                    const [, found] = searchUintRangesForId(BigInt(e), badgeIds);
+                    if (found) setBadgeId(BigInt(e));
+                  }
                 }}
                 style={{
                   marginLeft: 8,
@@ -290,8 +289,9 @@ export function MetadataForm({
                 <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have the metadata of this badge?</h3>
                 <br />
                 <BadgeIdRangesInput
-                  minimum={startId ? startId : 1n}
-                  maximum={endId ? endId : GO_MAX_UINT_64}
+                  uintRangeBounds={badgeIds}
+                  uintRanges={uintRanges}
+
                   setUintRanges={setUintRanges}
                   collectionId={collectionId}
                 />
@@ -347,8 +347,8 @@ export function MetadataForm({
                 <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this metadata?</h3>
                 <br />
                 <BadgeIdRangesInput
-                  minimum={startId ? startId : 1n}
-                  maximum={endId ? endId : GO_MAX_UINT_64}
+                  uintRangeBounds={badgeIds}
+                  uintRanges={uintRanges}
                   setUintRanges={setUintRanges}
                   collectionId={collectionId}
                 />
@@ -422,8 +422,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this title?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -541,8 +541,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this image?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -657,8 +657,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this category?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -738,8 +738,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this description?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -819,8 +819,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this website?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -973,8 +973,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this expiration date?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />
@@ -1065,8 +1065,8 @@ export function MetadataForm({
               <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have these tags?</h3>
               <br />
               <BadgeIdRangesInput
-                minimum={startId ? startId : 1n}
-                maximum={endId ? endId : GO_MAX_UINT_64}
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
                 setUintRanges={setUintRanges}
                 collectionId={collectionId}
               />

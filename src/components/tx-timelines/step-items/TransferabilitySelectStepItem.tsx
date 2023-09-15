@@ -36,6 +36,7 @@ export function TransferabilitySelectStepItem(
   // const lastElement = approvedTransfers.length > 0 ? approvedTransfers[approvedTransfers.length - 1] : undefined;
 
   //Hardcoded and naive
+  //TODO: Potential assumption?
   const filteredApprovedTransfers = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).filter(x => x.fromMappingId === "Mint" || x.initiatedByMappingId === "Manager");
 
   const transferableLength = (collection?.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers)?.collectionApprovedTransfers ?? []).length - filteredApprovedTransfers.length;
@@ -174,6 +175,7 @@ export function TransferabilitySelectStepItem(
       {existingCollectionId ? <> {`Current Permission - Can Update Transferability?: `}
         {
           PermissionIcon(
+            "canUpdateCollectionApprovedTransfers",
             castCollectionApprovedTransferPermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []), '', ApprovedTransferPermissionUsedFlags
           )
         }
@@ -184,23 +186,27 @@ export function TransferabilitySelectStepItem(
       updateFlag={updateCollectionApprovedTransfers}
       setUpdateFlag={setUpdateCollectionApprovedTransfers}
       existingCollectionId={existingCollectionId}
+      jsonPropertyPath='collectionApprovedTransfersTimeline'
+      permissionName='canUpdateCollectionApprovedTransfers'
+      disableJson
+      disableUndo
+      nonMintOnly
       node={
-
-
         <div className="priamry-text">
 
           {err &&
             <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>{err.message}
+              <b>Error: </b>You are attempting to update a previously frozen value.
               <br />
-              <p>Please resolve this error before continuing.</p>
+
               <br />
-              <p>This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
+
 
             </div>}
 
           <SwitchForm
             // noSelectUntilClick
+            showCustomOption
             options={[
               {
                 title: 'Non-Transferable',

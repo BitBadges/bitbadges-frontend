@@ -1,7 +1,7 @@
 import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, InputNumber, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { Numberify, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { Numberify, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
@@ -12,25 +12,29 @@ export function BadgeIdRangesInput({
   maximum,
   minimum,
   collectionId,
-  hideSelect
+  hideSelect,
+  uintRangeBounds
 }: {
-  uintRanges?: UintRange<bigint>[],
+  uintRanges: UintRange<bigint>[],
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
   maximum?: bigint,
   minimum?: bigint,
+  uintRangeBounds?: UintRange<bigint>[],
   collectionId: bigint,
   hideSelect?: boolean,
 }) {
-  // const isDefaultAllSelected = uintRanges ? uintRanges.length === 1 && uintRanges[0].start === minimum && uintRanges[0].end === maximum : defaultAllSelected;
-
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
     uintRanges ? uintRanges.map(({ start, end }) => [start, end])
-      : [[minimum ?? 1n, maximum ?? 1n]]);
+      :
+      uintRangeBounds ? uintRangeBounds.map(({ start, end }) => [start, end]) :
+        [[minimum ?? 1n, maximum ?? 1n]]);
   const [inputStr, setInputStr] = useState(
     uintRanges ?
+
       uintRanges.map(({ start, end }) => `${start}-${end}`).join(', ')
-      : `${minimum ?? 1n}-${maximum ?? 1n}`);
+      : uintRangeBounds ? uintRangeBounds.map(({ start, end }) => [start, end]).map(([start, end]) => `${start}-${end}`).join(', ')
+        : `${minimum ?? 1n}-${maximum ?? 1n}`);
   const [updateAllIsSelected, setUpdateAllIsSelected] = useState(false);
   // const [clicked, setClicked] = useState(false);
 
@@ -62,8 +66,16 @@ export function BadgeIdRangesInput({
     isSelected: updateAllIsSelected,
   });
 
-  const maximumNum = Numberify(maximum?.toString() ?? 1);
-  const minimumNum = Numberify(minimum?.toString() ?? 1);
+  const maximumNum =
+    uintRangeBounds && uintRangeBounds.length > 0 ?
+      Numberify(uintRangeBounds[uintRangeBounds.length - 1].end.toString()) :
+      Numberify(maximum?.toString() ?? 1);
+  const minimumNum = uintRangeBounds && uintRangeBounds.length > 0 ?
+    Numberify(uintRangeBounds[0].start.toString()) :
+    Numberify(minimum?.toString() ?? 1);
+
+  const [remaining, removed] = removeUintRangeFromUintRange(uintRangeBounds ?? [], uintRanges ?? []);
+  const outOfBounds = uintRangeBounds && remaining.length > 0;
 
 
   return <>
@@ -73,7 +85,8 @@ export function BadgeIdRangesInput({
         onSwitchChange={(_idx, name) => {
           setUpdateAllIsSelected(name === 'All Badges');
           if (name === 'All Badges') {
-            setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
+            if (uintRangeBounds) setUintRanges(uintRangeBounds);
+            else setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
           }
         }}
       />}
@@ -129,20 +142,6 @@ export function BadgeIdRangesInput({
       {
         new Array(numRanges).fill(0).map((_, i) => {
           return <div key={i} style={{ display: "flex", alignItems: 'center', justifyContent: 'center' }}>
-            {/* <div className='flex-between' style={{ flexDirection: 'column', minWidth: 200, marginRight: 12 }} >
-              <b>Select Badge IDs to {verb ? verb : 'Transfer'}</b>
-              <Slider min={minimumNum} max={maximumNum} range
-                style={{ minWidth: 200 }}
-                value={[Numberify(sliderValues[i][0]), Numberify(sliderValues[i][1])]}
-                onChange={(e) => {
-                  const _newSliderValues = sliderValues.map((v, j) => i === j ? e : v);
-                  const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
-                  setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
-                  setUintRanges(newSliderValues.map(([start, end]) => ({ start, end })));
-                  setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
-                }}
-              />
-            </div> */}
             <div className='flex-between' style={{ flexDirection: 'column', marginRight: 8 }} >
               <b>Start</b>
               <InputNumber
@@ -151,7 +150,7 @@ export function BadgeIdRangesInput({
                 value={Numberify(sliderValues[i][0])}
                 onChange={
                   (value: number) => {
-                    
+
 
                     if (value >= 0 && value <= sliderValues[i][1]) {
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
@@ -227,9 +226,9 @@ export function BadgeIdRangesInput({
 
               const oldSliderValues = sliderValues;
 
-              setSliderValues([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]]);
-              setUintRanges([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => ({ start, end })));
-              setInputStr([...oldSliderValues, [minimum ?? 1n, maximum ?? 1n]].map(([start, end]) => `${start}-${end}`).join(', '));
+              setSliderValues([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]]);
+              setUintRanges([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => ({ start, end })));
+              setInputStr([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => `${start}-${end}`).join(', '));
             }}
             disabled={numRanges === 1}
           />
@@ -258,15 +257,22 @@ export function BadgeIdRangesInput({
         overlaps &&
         <div style={{ color: 'red', textAlign: 'center' }}>
           <b>Overlapping ranges are not allowed.</b>
-          <Divider />
+          <br />
         </div>
       }
-
-
+      {
+        outOfBounds &&
+        <div style={{ color: 'red', textAlign: 'center' }}>
+          <b>You have selected some badges that are out of bounds. Please resolve this before continuing.</b>
+          <br />
+          <p>Out of Bounds IDs: {remaining?.map(({ start, end }) => `${start}-${end}`).join(', ')}</p>
+          <br />
+        </div>
+      }
     </>}
     <br />
     <div className='flex-center full-width'>
-      <div style={{  }} className='primary-text full-width'>
+      <div style={{}} className='primary-text full-width'>
         <BadgeAvatarDisplay
           collectionId={collectionId}
           badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}

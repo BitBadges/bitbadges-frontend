@@ -7,7 +7,7 @@ import { INFINITE_LOOP_MODE, } from "../../constants";
 import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
-
+import Carousel from "../display/Carousel";
 
 export function BadgeAvatarDisplay({
   collectionId,
@@ -66,15 +66,15 @@ export function BadgeAvatarDisplay({
 
   useEffect(() => {
     let newPageSize = pageSize;
-    if (!doNotAdaptToWidth) {
-      if (divRef.current && !cardView) {
-        const divWidth = divRef.current.offsetWidth as any;
-        newPageSize = 3 * Math.floor(divWidth / 58); // Adjust as needed
-      } else if (divRef.current && cardView) {
-        const divWidth = divRef.current.offsetWidth as any;
-        newPageSize = Math.floor(divWidth / 220); // Adjust as needed
-      }
-    }
+    // if (!doNotAdaptToWidth) {
+    //   if (divRef.current && !cardView) {
+    //     const divWidth = divRef.current.offsetWidth as any;
+    //     newPageSize = 3 * Math.floor(divWidth / 58); // Adjust as needed
+    //   } else if (divRef.current && cardView) {
+    //     const divWidth = divRef.current.offsetWidth as any;
+    //     newPageSize = Math.floor(divWidth / 220); // Adjust as needed
+    //   }
+    // }
     setPageSize(newPageSize);
 
     if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
@@ -164,14 +164,20 @@ export function BadgeAvatarDisplay({
   }, [badgeIds, currPage, divRef.current, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
 
   //Calculate pageSize based on the width of this componetnt
-
+  console.log(total, pageSize, Math.ceil(total / pageSize))
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme}
       showPageJumper={showPageJumper}
     />
 
     <>
-      <div className='flex-center flex-wrap full-width primary-text' ref={divRef}>
+      {/* <Carousel
+        title={<b>Badges</b>}
+        page={currPage}
+        setPage={(page) => setCurrPage(page + 1)}
+        total={Math.ceil(total / pageSize)}
+        items={[ */}
+      <div key={currPage} className='flex-center flex-wrap full-width primary-text' ref={divRef}>
         {
           badgeIdsToDisplay.map((badgeUintRange) => {
             const badgeIds: bigint[] = [];
@@ -202,6 +208,8 @@ export function BadgeAvatarDisplay({
           })
         }
       </div>
+      {/* ]}
+      /> */}
     </>
 
   </div>

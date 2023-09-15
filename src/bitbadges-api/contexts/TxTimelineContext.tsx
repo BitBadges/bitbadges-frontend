@@ -190,7 +190,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
 type Props = {
   children?: React.ReactNode
 };
-
 export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const collections = useCollectionsContext();
   const chain = useChainContext();
@@ -201,6 +200,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [onFinish, setOnFinish] = useState<(props: MsgUpdateCollectionProps) => void>();
   const [existingAddressMappingId, setExistingAddressMappingId] = useState<string>('');
   const [formStepNum, setFormStepNum] = useState(1);
+
 
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
   const simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
@@ -278,6 +278,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //Initial fetch of the address mapping we are updating if it exists
   useEffect(() => {
     async function getAddressMapping() {
+      if (INFINITE_LOOP_MODE) console.log('useEffect: address mapping, initial load');
       if (!existingAddressMappingId) return;
       setMintType(MintType.AddressList);
       const res = await getAddressMappings({ mappingIds: [existingAddressMappingId] });

@@ -92,12 +92,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
     if (cachedCollection) {
       let newBadgeMetadata = cachedCollection?.cachedBadgeMetadata || [];
-      console.log(newBadgeMetadata, cachedCollection?.cachedBadgeMetadata);
       for (const badgeMetadata of newCollection.cachedBadgeMetadata) {
         newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, badgeMetadata);
       }
-
-      console.log(newBadgeMetadata);
 
       const newViews = cachedCollection?.views || {};
 
@@ -158,7 +155,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       console.log(compareObjects(cachedCollectionCopy, cachedCollection));
       //Only update if anything has changed
       if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
-        console.log("Updating collection", cachedCollection);
         setCollections(collections => {
           return {
             ...collections,

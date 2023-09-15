@@ -1,13 +1,13 @@
 import { Divider, Typography } from "antd";
-import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
+import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
-import { PermissionIcon, } from "../../collection-page/PermissionsInfo";
+import { PermissionIcon, getPermissionDataSource, } from "../../collection-page/PermissionsInfo";
 import { ToolIcon } from "../../display/ToolIcon";
-import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function SetCollectionMetadataStepItem(
@@ -24,21 +24,30 @@ export function SetCollectionMetadataStepItem(
 
   const err = existingCollection && collection ? validateCollectionMetadataUpdate(existingCollection.collectionMetadataTimeline, collection.collectionMetadataTimeline, existingCollection.collectionPermissions.canUpdateCollectionMetadata) : undefined;
 
+  if (!collection) return EmptyStepItem
+
+  let canUpdateBadgeMetadataRes = getPermissionDataSource(
+    existingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
+    TimedUpdateWithBadgeIdsPermissionUsedFlags
+  );
+  let maxBadgeId = getTotalNumberOfBadges(collection);
+  let toUpdateBadges = canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => {
+    const [remaining, removed] = removeUintRangeFromUintRange([{ start: 1n, end: maxBadgeId }], x.badgeIds ?? []);
+
+    return removed;
+  }).flat();
+  toUpdateBadges = sortUintRangesAndMergeIfNecessary(toUpdateBadges);
+
+
   return {
     title: 'Set Collection Metadata',
     description: <>{'Provide details about the collection you are creating.'}
 
-      {existingCollectionId ? <> <br /><br />{`Current Permission - Can Update Collection Metadata?: `}
-        {
-          PermissionIcon(
-            castTimedUpdatePermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateCollectionMetadata ?? []), '', TimedUpdatePermissionUsedFlags
-          )
-        }
-      </> : <></>}
       <br />
       {existingCollectionId && addMethod === MetadataAddMethod.UploadUrl ? <> {`Current Permission - Can Update Badge Metadata?: `}
         {
           PermissionIcon(
+            "canUpdateBadgeMetadata",
             castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateBadgeMetadata ?? []), '', TimedUpdateWithBadgeIdsPermissionUsedFlags
           )
         }
@@ -49,19 +58,18 @@ export function SetCollectionMetadataStepItem(
       updateFlag={canUpdateCollectionMetadata}
       setUpdateFlag={setCanUpdateCollectionMetadata}
       existingCollectionId={existingCollectionId}
+      jsonPropertyPath='collectionMetadataTimeline'
+      permissionName='canUpdateCollectionMetadata'
+      disableJson
       node={<>{
-
-
-
-
         collection && collectionMetadata && <div>
           {err &&
             <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>{err.message}
+              <b>Error: </b>You are attempting to update a previously frozen value.
               <br />
-              <p>Please resolve this error before continuing.</p>
+
               <br />
-              <p>This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
+
 
               <Divider />
             </div>}
@@ -81,8 +89,7 @@ export function SetCollectionMetadataStepItem(
             hideCollectionSelect={hideCollectionSelect}
             isCollectionSelect
             addMethod={addMethod}
-            startId={existingCollection ? getTotalNumberOfBadges(existingCollection) : 1n}
-            endId={collection ? getTotalNumberOfBadges(collection) : 1n}
+            badgeIds={toUpdateBadges}
           />
           <Divider />
           {addMethod === MetadataAddMethod.Manual && <>

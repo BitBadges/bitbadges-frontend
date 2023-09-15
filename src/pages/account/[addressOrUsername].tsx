@@ -39,7 +39,7 @@ function PortfolioPage() {
 
   const { addressOrUsername } = router.query;
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
-
+  console.log("ACCOUNT INFO.COLLECTED", accountInfo?.collected)
   const [tab, setTab] = useState(
     accountInfo?.readme ? 'overview' :
       'collected');
@@ -152,31 +152,33 @@ function PortfolioPage() {
 
   let badgesToShow = accounts.getBalancesView(accountInfo?.cosmosAddress ?? '', editMode ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
 
-  // if (filteredCollections.length > 0) {
-  badgesToShow = [];
-  for (const filteredCollection of filteredCollections) {
-    const balanceInfo = accounts.getAccount(accountInfo?.cosmosAddress ?? '')?.collected.find(x => x.collectionId === filteredCollection.collectionId);
-    if (balanceInfo) {
-      const balancesToAdd = [];
-      for (const balance of balanceInfo.balances) {
-        const [, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, balance.badgeIds);
-        if (removed.length > 0) {
-          balancesToAdd.push({
-            ...balance,
-            badgeIds: removed
+  if (filteredCollections.length > 0) {
+    badgesToShow = [];
+    for (const filteredCollection of filteredCollections) {
+      const balanceInfo = accounts.getAccount(accountInfo?.cosmosAddress ?? '')?.collected.find(x => x.collectionId === filteredCollection.collectionId);
+      if (balanceInfo) {
+        const balancesToAdd = [];
+        for (const balance of balanceInfo.balances) {
+          const [, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, balance.badgeIds);
+          if (removed.length > 0) {
+            balancesToAdd.push({
+              ...balance,
+              badgeIds: removed
+            });
+          }
+        }
+
+        if (balancesToAdd.length > 0) {
+          badgesToShow.push({
+            ...balanceInfo,
+            balances: balancesToAdd
           });
         }
       }
-
-      if (balancesToAdd.length > 0) {
-        badgesToShow.push({
-          ...balanceInfo,
-          balances: balancesToAdd
-        });
-      }
     }
   }
-  // }
+
+  console.log(badgesToShow)
 
 
   useEffect(() => {
@@ -609,14 +611,14 @@ function PortfolioPage() {
               </Select>
             </div>
             <Divider />
-            <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
+            {/* <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 8 }} />
               Soft included / excluded means that the address is in the list, but the address was not explicitly added to the list.
               <br />
               <br />
               For example, abc.eth would be soft included in the following list: all addresses except xyz.eth.
             </div>
-            <br />
+            <br /> */}
             <div className='flex-center flex-wrap'>
               <InfiniteScroll
                 dataLength={listsView.length}
@@ -708,15 +710,17 @@ function PortfolioPage() {
                 initialScrollY={0}
                 style={{ width: '100%', overflow: 'hidden' }}
               >
-                <MultiCollectionBadgeDisplay
-                  collectionIds={accountInfo?.views['createdBy']?.ids.map(x => BigInt(x)) ?? []}
-                  cardView={cardView}
-                  groupByCollection={true}
-                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
+                <div className='full-width flex-center flex-wrap'>
+                  <MultiCollectionBadgeDisplay
+                    collectionIds={accountInfo?.views['createdBy']?.ids.map(x => BigInt(x)) ?? []}
+                    cardView={cardView}
+                    groupByCollection={true}
+                    defaultPageSize={cardView ? 1 : 10}
+                    hidePagination={true}
 
-                  showCustomizeButtons={editMode}
-                />
+                    showCustomizeButtons={editMode}
+                  />
+                </div>
               </InfiniteScroll>
 
               {accountInfo?.views['createdBy']?.ids.length == 0 && !accountInfo?.views['createdBy']?.pagination?.hasMore && (
@@ -753,17 +757,20 @@ function PortfolioPage() {
                   <></>
                 }
                 initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
+                style={{ width: '100%', overflow: 'hidden', }}
               >
-                <MultiCollectionBadgeDisplay
-                  collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
-                  cardView={cardView}
-                  groupByCollection={true}
-                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
+                <div className='full-width flex-center flex-wrap'>
+                  <MultiCollectionBadgeDisplay
+                    collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
+                    cardView={cardView}
+                    groupByCollection={true}
+                    defaultPageSize={cardView ? 1 : 10}
+                    // defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
+                    hidePagination={true}
 
-                  showCustomizeButtons={editMode}
-                />
+                    showCustomizeButtons={editMode}
+                  />
+                </div>
               </InfiniteScroll>
 
               {accountInfo?.views['managing']?.ids.length == 0 && !accountInfo?.views['managing']?.pagination?.hasMore && (
@@ -832,7 +839,7 @@ function PortfolioPage() {
                     }).filter(x => x !== undefined) as { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]}
                     cardView={cardView}
                     groupByCollection={groupByCollection}
-                    defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
+                    defaultPageSize={cardView ? 1 : 10}
                     hidePagination={true}
 
                     showCustomizeButtons={editMode}

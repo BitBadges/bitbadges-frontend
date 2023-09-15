@@ -102,11 +102,6 @@ export function MetadataUriSelect({
         }] : [],
       })
 
-
-      // collections.fetchAndUpdateMetadata(collectionId, {
-      //   badgeIds: [{ start: startId, end: endId }],
-
-      // }, true)
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)

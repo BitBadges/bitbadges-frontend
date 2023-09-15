@@ -4,6 +4,9 @@ import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/T
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { BeforeAfterPermission } from "../form-items/BeforeAfterPermission";
+import { castTimedUpdatePermissionToUniversalPermission, TimedUpdatePermissionUsedFlags } from "bitbadgesjs-utils";
+import { getPermissionDataSource } from "../../collection-page/PermissionsInfo";
 
 export function CanArchiveCollectionStepItem(
 
@@ -16,6 +19,9 @@ export function CanArchiveCollectionStepItem(
   const [err, setErr] = useState<Error | null>(null);
   if (!collection) return EmptyStepItem;
 
+  // const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
+  const permissionDetails = getPermissionDataSource(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags);
+
   return {
     title: 'Can archive / unarchive collection?',
     description: ``,
@@ -26,19 +32,24 @@ export function CanArchiveCollectionStepItem(
       setErr={setErr}
       permissionName="canArchiveCollection"
       existingCollectionId={existingCollectionId}
-      node={
+      node={<>
         <SwitchForm
-
+          showCustomOption
           options={[
             {
               title: 'No',
-              message: `Moving forward, the manager will never be able to archive or unarchive the collection.`,
-              isSelected: collection?.collectionPermissions.canArchiveCollection.length > 0
+              message: `The collection can never be archived or unarchived by the manager. This permission can not be updated. It will be frozen forever.`,
+              isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes
             },
             {
-              title: 'Yes',
-              message: `The manager will be able to archive or unarchive the collection, if desired.`,
-              isSelected: collection?.collectionPermissions.canArchiveCollection.length === 0,
+              title: 'Yes - Updatable',
+              message: `The collection can be archived or unarchived by the manager. This permission can be disabled at any time by the manager, if desired.`,
+              isSelected: permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes
+            },
+            {
+              title: 'Yes - Frozen',
+              message: `The collection can be archived or unarchived by the manager. This permission is permanently permitted.`,
+              isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes
             }
           ]}
           onSwitchChange={(idx) => {
@@ -58,12 +69,28 @@ export function CanArchiveCollectionStepItem(
                     // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                     // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                   }]
-                }] : []
+                }] : idx == 1 ? [] : [{
+                  defaultValues: {
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                    permittedTimes: [],
+                    forbiddenTimes: [],
+                  },
+                  combinations: [{
+                    permittedTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                    forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: true },
+                    timelineTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                  }]
+                }]
+
               }
             });
           }}
 
         />
+        <br />
+        <br />
+
+      </>
       }
     />
     ,

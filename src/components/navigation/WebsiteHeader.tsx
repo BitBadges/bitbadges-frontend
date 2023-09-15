@@ -61,31 +61,9 @@ export function WalletHeader() {
   const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
   const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
-  const BrowseTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
-    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/profiles')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Profiles
-      </div>
-    </Menu.Item>
-    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/badges')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Badges
-      </div>
-    </Menu.Item>
-    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/addresses')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Lists
-      </div>
-    </Menu.Item>
-    <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/browse/activity')}>
-      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-        Activity
-      </div>
-    </Menu.Item>
-
-  </Menu>
-  const BrowseTabWithIcon = { key: 'popup-browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'popup-browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabMenu = <></>
+  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };

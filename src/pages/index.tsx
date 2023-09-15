@@ -119,85 +119,92 @@ const Home: NextPage = () => {
         <div
           // className='primary-blue-bg'
           style={{
-            marginLeft: '2vw',
-            marginRight: '2vw',
+            marginLeft: '5vw',
+            marginRight: '5vw',
             paddingLeft: '2vw',
             paddingRight: '2vw',
             paddingTop: '20px',
-            minHeight: '70vh'
           }}
         >
-          <div style={{ minHeight: '70vh', }}>
+          <div style={{ minHeight: '70vh' }}>
+            <Row className='flex-around' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'end' }}>
+              <Col md={16} sm={24} xs={24} style={{ alignItems: "center", height: '100%' }}>
+                <span className='primary-text collect-title' style={{
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', }}>
-              <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height="300px" width="300px" quality={60} />
-              {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>BitBadges</Typography.Text> */}
-              <Typography.Text strong className='secondary-text' style={{ fontSize: 24 }}>Collect badges and build your digital identity!</Typography.Text>
-              {/* <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                BitBadges is a community-driven ecosystem for creating, collecting, and sharing digital badges regardless of what blockchain you r. Badges can be created for any purpose, such as an attendance badge, event tickets, a gym membership, or a college diploma.
-              </Typography.Text> */}
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</Typography.Text>
-              {/* <br />
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>Experiment and let us know if you have any feedback!</Typography.Text> */}
-              <div className='flex'>
-                <Button
-                  size='large'
-                  className='styled-button'
-                  style={{ marginTop: '20px' }}
-                  onClick={() => {
-                    router.push('/browse/badges');
-                  }}
-                >
-                  Explore
-                </Button>
 
-                <Button
-                  size='large'
-                  className='styled-button'
-                  style={{ marginTop: '20px', marginLeft: 8 }}
-                  href="https://docs.bitbadges.io/overview"
-                  target='_blank'
-                >
-                  Learn More
-                </Button>
-                <Button
-                  size='large'
-                  className='styled-button'
-                  style={{ marginTop: '20px', marginLeft: 8 }}
-                  href="https://discord.com/invite/TJMaEd9bar"
-                  target='_blank'
-                >
-                  Feedback?
-                </Button>
+                }}>Collect badges and build your digital identity!</span>
+                <br />
+                <br />
+                <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</p>
+                <br />
+                <div className='flex flex-wrap flex-center-if-mobile full-width'>
+                  <Button
+                    size='large'
+                    className='landing-button'
+                    onClick={() => {
+                      router.push('/browse');
+                    }}
+                  >
+                    Explore
+                  </Button>
+
+                  <Button
+                    size='large'
+                    className='landing-button'
+                    onClick={() => {
+                      window.open('https://docs.bitbadges.io/overview', '_blank');
+                    }}
+                    target='_blank'
+                  >
+                    Learn More
+                  </Button>
+                  <Button
+                    size='large'
+                    className='landing-button'
+                    onClick={() => {
+                      window.open('https://discord.com/invite/TJMaEd9bar', '_blank');
+                    }}
+                    target='_blank'
+                  >
+                    Feedback?
+                  </Button>
+                </div>
+
+              </Col>
+              <Col md={1} xs={0} sm={0} />
+              <Col md={7} sm={24} xs={24} style={{ alignItems: "normal", height: '100%', marginTop: 20 }} className='flex-center'>
+                <div style={{ maxWidth: 400, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='landing-logo' />
+                </div>
+              </Col>
+              <Divider />
+              <div style={{ paddingRight: 4, paddingLeft: 4 }} className='flex-center full-width'>
+
+                <div className='flex flex-wrap full-width primary-text flex-center-if-mobile'>
+                  {
+                    [...featuredBadges].map((badge, idx) => {
+                      const { collectionId, badgeId } = badge;
+                      return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
+
+                        <BadgeAvatar
+                          size={75}
+                          // size={size && selectedId === badgeId ? size * 1.5 : size}
+                          collectionId={collectionId}
+                          badgeId={badgeId}
+                          showId={false}
+                          showSupplys={false}
+                        />
+
+                      </div>
+                    })
+                  }
+                </div>
               </div>
-              <br />
-              {/* <div className='flex-center'> */}
+            </Row>
 
-              {/* </div> */}
 
-            </div>
-            <br />
-            <div style={{ paddingRight: 4, paddingLeft: 4 }}>
-              <div className='flex-center flex-wrap full-width primary-text'>
-                {
-                  featuredBadges.map((badge, idx) => {
-                    const { collectionId, badgeId } = badge;
-                    return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
 
-                      <BadgeAvatar
-                        size={75}
-                        // size={size && selectedId === badgeId ? size * 1.5 : size}
-                        collectionId={collectionId}
-                        badgeId={badgeId}
-                        showId={false}
-                        showSupplys={false}
-                      />
 
-                    </div>
-                  })
-                }
-              </div>
-            </div>
             <Divider />
             <Row className='flex-between' style={{ alignItems: 'normal' }}>
               <LandingCard
@@ -252,7 +259,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-                    Verify ownership of badges using our verification tools, allowing you to offer gated utility like event tickets, membership benefits, or access to a website.
+                    Verify ownership to offer gated utility exclusive to badge owners like event tickets, membership benefits, or access to a website.
                   </Typography.Text>
                 </>
                 }
@@ -275,7 +282,11 @@ const Home: NextPage = () => {
               {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
               {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>Team</Typography.Text> */}
               <br />
-              <div className="container">
+              <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
+                What is BitBadges?
+              </Typography.Text>
+              <div className="container" style={{ marginTop: 12 }}>
+
                 <iframe
                   className='responsive-iframe'
                   // width={'60%'}
@@ -294,7 +305,10 @@ const Home: NextPage = () => {
               {/* <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> */}
               {/* <Typography.Text strong className='primary-text' style={{  fontSize: 26 }}>Team</Typography.Text> */}
               <br />
-              <div className="container">
+              <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
+                Create a Badge in 45 Seconds
+              </Typography.Text>
+              <div className="container" style={{ marginTop: 12 }}>
                 <iframe
                   className='responsive-iframe'
                   // width={'60%'}
@@ -356,11 +370,6 @@ const Home: NextPage = () => {
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                     BitBadges is also committed to decentralization in other ways, such as the protocol being governed by the $BADGE token and having a community-driven, open-source ecosystem.
                   </Typography.Text>
-                  {/* <br />
-                  <br />
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    We always provide the option for 60% decentralization, but we also offer some hybrid approaches where some features are decentralized and some are not.
-                  </Typography.Text> */}
                 </>
               }
             />
@@ -368,7 +377,7 @@ const Home: NextPage = () => {
               content={
                 <>
                   <Typography.Text strong className='primary-text' style={{ fontSize: 26 }}>
-                    Cross-Chain
+                    Multi-Chain
                   </Typography.Text>
                   <br />
                   <br />
@@ -386,7 +395,7 @@ const Home: NextPage = () => {
 
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Badges are not limited to one blockchain ecosystem and can be sent cross-chain (currently supports Ethereum and Cosmos with Bitcoin and Solana planned next).
+                    Badges can be sent from users of one ecosystem to another (currently supports Ethereum and Cosmos users with Bitcoin and Solana planned next).
                   </Typography.Text>
                 </>
               }
@@ -418,7 +427,7 @@ const Home: NextPage = () => {
                   <GlobalOutlined size={80} style={{ fontSize: 80, marginTop: 16, marginBottom: 16 }} />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Through newly innovated features seen below, BitBadges is able to scale to millions of users and billions of badges.
+                    BitBadges is able to scale to millions of users and billions of badges through newly innovated features seen below.
                   </Typography.Text>
                 </>
               }
@@ -429,7 +438,6 @@ const Home: NextPage = () => {
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                     New features coupled with our architecture that is designed in a way that uses no smart contracts (expensive) means we can decrease the resources used per collection over 1000x.
                   </Typography.Text>
-
                 </>
               }
             />
@@ -744,10 +752,39 @@ const Home: NextPage = () => {
             </Col>
           </Row> */}
 
+        </div >
+
+        <Divider />
+        <Row className='flex-center'>
+          <Col md={12} sm={24} xs={24}>
+            <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
+              Ecosystem
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        <Row className='flex-center' style={{ alignItems: 'normal' }}>
+          <Col md={22} sm={22} xs={22}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+
+            </Typography.Text>
+          </Col>
+        </Row>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {tools.map((tool, idx) => {
+            if (tool.toolType !== "Verification") return <></>
+
+            return <div style={{ margin: 8, display: 'flex' }} key={idx}>
+              <ToolIcon
+                name={tool.name}
+              />
+            </div>
+          })}
         </div>
 
 
-        <Divider />
+        {/* <Divider />
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
             <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
@@ -811,7 +848,7 @@ const Home: NextPage = () => {
               />
             </div>
           })}
-        </div>
+        </div> */}
 
 
       </Content >

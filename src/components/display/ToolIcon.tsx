@@ -130,25 +130,25 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='primary-text primary-blue-bg'
+    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='primary-text primary-blue-bg tool-icon'
       onClick={() => {
         window.open(tool.url)
       }}
     >
-      <div className='flex-between' style={{ alignItems: 'normal', width: '100%' }}>
-        <div style={{ marginRight: 10 }}>
-          <Avatar size={50} src={tool.icon} />
+      <div className='' style={{ alignItems: 'normal', width: '100%' }}>
+        <div style={{ marginRight: 10 }} className='flex-around full-width'>
+          <div>
+            <Avatar size={60} src={tool.icon} shape='square' />
+          </div>
+          <div className='primary-text full-width' style={{ textAlign: 'center', alignItems: 'center' }}>
+            <b style={{ marginLeft: 10, fontSize: 24 }}>
+              {tool.name}
+            </b>
+          </div>
 
         </div>
-        <div className='flex-center flex-column '>
-          <div className='flex-around'>
-            <div className='primary-text' style={{ display: 'inline' }}>
-              <b>
-                {tool.name}
-              </b>
-            </div>
 
-          </div>
+        <div className='flex-center flex-column ' style={{ marginTop: 16 }}>
           <div className='primary-text'>
             {tool.description}
           </div>

@@ -8,7 +8,6 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
   const accounts = useAccountsContext();
 
   const signedInAccount = accounts.getAccount(chain.address);
-  const isRegistered = signedInAccount?.accountNumber && signedInAccount?.accountNumber > 0;
   const airdropped = signedInAccount?.airdropped;
   const fetched = signedInAccount?.fetchedProfile;
 
@@ -16,7 +15,7 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
 
   return (
     <>
-      {isRegistered && airdropped && fetched ? node : <RegisterScreen message={message} />}
+      {airdropped && fetched ? node : <RegisterScreen message={message} />}
     </>
   );
 }

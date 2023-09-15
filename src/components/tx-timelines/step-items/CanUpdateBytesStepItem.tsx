@@ -4,6 +4,9 @@ import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/T
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { BeforeAfterPermission } from "../form-items/BeforeAfterPermission";
+import { castTimedUpdatePermissionToUniversalPermission, TimedUpdatePermissionUsedFlags } from "bitbadgesjs-utils";
+import { getPermissionDataSource } from "../../collection-page/PermissionsInfo";
 
 export function CanUpdateBalancesStepItem(
 
@@ -16,7 +19,8 @@ export function CanUpdateBalancesStepItem(
   const [err, setErr] = useState<Error | null>(null);
   if (!collection) return EmptyStepItem;
 
-
+  // const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
+  const permissionDetails = getPermissionDataSource(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []), TimedUpdatePermissionUsedFlags);
   return {
     title: 'Can Update Balances?',
     description: ``,
@@ -28,19 +32,26 @@ export function CanUpdateBalancesStepItem(
         setErr={setErr}
         permissionName="canUpdateOffChainBalancesMetadata"
         existingCollectionId={existingCollectionId}
-        node={
+        node={<>
           <SwitchForm
+            showCustomOption
             options={[
               {
                 title: 'No',
                 message: `The balances are permanently frozen and can never be updated.`,
-                isSelected:  collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length > 0
+                isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes
               },
               {
-                title: 'Yes',
-                message: `The balances can be updated by the manager.`,
-                isSelected:  collection?.collectionPermissions.canUpdateOffChainBalancesMetadata.length === 0,
+
+                title: 'Yes - Updatable',
+                message: `The balances can be updated by the manager. This permission can be disabled at any time by the manager, if desired.`,
+                isSelected: permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes
               },
+              {
+                title: 'Yes - Frozen',
+                message: `The balances can be updated by the manager. This permission is permanently permitted.`,
+                isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes
+              }
             ]}
             onSwitchChange={(idx) => {
               collections.updateCollection({
@@ -58,14 +69,30 @@ export function CanUpdateBalancesStepItem(
                       // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                       // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
                     }]
-                  }] : []
+                  }] : idx == 1 ? [] : [{
+                    defaultValues: {
+                      timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      permittedTimes: [],
+                      forbiddenTimes: [],
+                    },
+                    combinations: [{
+                      permittedTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                      forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: true },
+                      timelineTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                    }]
+                  }]
                 }
               });
             }}
 
           />
+          <br />
+          <br />
+
+
+        </>
         }
       />,
-    disabled:  !!err,
+    disabled: !!err,
   }
 }

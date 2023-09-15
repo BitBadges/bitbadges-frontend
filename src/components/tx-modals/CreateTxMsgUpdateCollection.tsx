@@ -187,7 +187,7 @@ export function CreateTxMsgUpdateCollectionModal(
           });
 
 
-          badgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata);
+          badgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
         }
       }
     }

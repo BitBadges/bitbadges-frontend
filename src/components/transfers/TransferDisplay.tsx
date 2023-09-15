@@ -1,5 +1,5 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Empty, Tooltip, Typography } from "antd";
+import { Avatar, Divider, Empty, Tooltip, Typography } from "antd";
 import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
@@ -45,47 +45,24 @@ export function TransferDisplay({
         />
       </div> : <Pagination currPage={page} onChange={setPage} total={transfers.length} pageSize={1} />
     }
-    <br />
-
-    {!hideBalances && transfer && <div>
-      {collection &&
-        <BalanceDisplay
-          message={'Badges Transferred'}
-          collectionId={collectionId}
-          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
-          balances={transfer.balances}
-          numIncrements={toLength}
-          incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
-          incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
-        />}
-    </div>}
-
-
     {
       !hideAddresses && transfer && <div className="full-width">
         <br />
         <div className="flex-center flex-wrap">
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
-            <AddressDisplayList
+            <br /><AddressDisplayList
               users={[transfer.from]}
               // toLength={Numberify(toLength)}
               title={'From'}
               fontSize={15}
               center
             />
-            {initiatedBy && transfer.from !== initiatedBy && <>
-              <br />
-              <AddressDisplayList
-                users={[initiatedBy]}
-                // toLength={Numberify(toLength)}
-                title={'Initiated By'}
-                fontSize={15}
-                center
-              /><br /></>}
           </div>
 
+
+
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
-            <AddressDisplayList
+            <br /> <AddressDisplayList
               users={transfer.toAddresses}
               // toLength={Numberify(toLength)}
               title={'To'}
@@ -99,9 +76,40 @@ export function TransferDisplay({
                 </Text>
               </>}
           </div>
+
+
+          {initiatedBy && transfer.from !== initiatedBy && <> <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
+
+
+            <br />
+            <AddressDisplayList
+              users={[initiatedBy]}
+              // toLength={Numberify(toLength)}
+              title={'Initiated By'}
+              fontSize={15}
+              center
+            /><br />
+          </div></>}
         </div>
       </div>
     }
+
+    <Divider />
+    {!hideBalances && transfer && <div className="full-width">
+      {collection &&
+        <BalanceDisplay
+          message={'Badges Transferred'}
+          collectionId={collectionId}
+          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
+          balances={transfer.balances}
+          numIncrements={toLength}
+          incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
+          incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
+        />}
+    </div>}
+
+
+
     {deletable && setTransfers && transfers.length > 0 && <div style={{ textAlign: 'center' }}>
       <br />
       <Avatar

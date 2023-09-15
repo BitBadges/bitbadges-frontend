@@ -41,6 +41,7 @@ export function CreateClaims({
     // const existingFromMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
     //   ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId === 'Mint') : [];
 
+    //TODO: Potential assumption?
     const existingNonMint = existingCollection && existingCollection.collectionApprovedTransfersTimeline.length > 0
       ? existingCollection.collectionApprovedTransfersTimeline[0].collectionApprovedTransfers.filter(x => x.fromMappingId !== 'Mint') : [];
 

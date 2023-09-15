@@ -24,7 +24,7 @@ export function FormTimeline({
   items: TimelineItem[]
   onFinish?: () => void
 }) {
-  
+
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
   const filteredItems = items.filter((item) => !item.doNotDisplay);
@@ -49,13 +49,15 @@ export function FormTimeline({
   };
 
   useEffect(() => {
+    const filteredItems = items.filter((item) => !item.doNotDisplay);
+
     if (INFINITE_LOOP_MODE) console.log('useEffect: set next button ');
     setNextButtonDisabled(!!filteredItems[formStepNum - 1]?.disabled);
 
     if (formStepNum === filteredItems.length && onFinish) {
       onFinish();
     }
-  }, [filteredItems, formStepNum, onFinish]);
+  }, [items, formStepNum, onFinish]);
 
   const getTitleElem = (title: string | ReactNode) => {
     return (
@@ -89,7 +91,7 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
-          className='flex-center primary-text'
+          className='flex-center secondary-text'
           style={{
             fontSize: 14,
             textAlign: 'center',

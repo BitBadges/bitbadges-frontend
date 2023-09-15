@@ -994,8 +994,16 @@ export function TransferSelect({
                 </Button>
               </div>}
             {isClaimSelect && <>
+
               <br />
               <hr />
+              <br />
+              <div className='flex-center'>
+                <Typography.Text className='primary-text' strong style={{ fontSize: 24, textAlign: 'center' }}>
+                  Distribution
+                </Typography.Text>
+              </div>
+
               <div className='flex-center' style={{ textAlign: 'center' }}>
                 <TransferabilityTab collectionId={collectionId} isClaimSelect />
               </div>

@@ -1,5 +1,5 @@
 import { Balance } from 'bitbadgesjs-proto';
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferWithDetails, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferWithDetails, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, invertUintRanges, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -33,6 +33,9 @@ import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelec
 import { UpdatableMetadataSelectStepItem } from './step-items/UpdatableMetadataSelectStepItem';
 import { ChooseControlTypeStepItem } from './step-items/CompleteControlStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { JSONTransferabilitySelectStepItem } from './step-items/TransferabilityJSONSelect';
 
 //See TxTimeline for explanations and documentation
 
@@ -47,6 +50,9 @@ export function UpdateCollectionTimeline({
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+
+
 
 
   const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>(
@@ -135,7 +141,7 @@ export function UpdateCollectionTimeline({
   const SetCollectionMetadataStep = SetCollectionMetadataStepItem(addMethod, updateCollectionMetadataTimeline, setUpdateCollectionMetadataTimeline, existingCollectionId);
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem(addMethod, updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline, existingCollectionId);
   const DistributionMethodStep = DistributionMethodStepItem(distributionMethod, setDistributionMethod, existingCollectionId);
-  const CreateClaims = CreateClaimsStepItem(approvedTransfersToAdd, setApprovedTransfersToAdd, transfers, setTransfers, distributionMethod, existingCollectionId);
+  const CreateClaims = CreateClaimsStepItem(approvedTransfersToAdd, setApprovedTransfersToAdd, transfers, setTransfers, distributionMethod, updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers, existingCollectionId);
   const CreateCollectionStep = CreateCollectionStepItem(existingCollectionId);
   const CanCreateMoreStep = CanCreateMoreStepItem(existingCollectionId);
   const CanDeleteStep = CanDeleteStepItem(existingCollectionId);
@@ -145,9 +151,10 @@ export function UpdateCollectionTimeline({
   const IsArchivedSelectStep = IsArchivedSelectStepItem(updateIsArchivedTimeline, setUpdateIsArchivedTimeline, existingCollectionId);
   const CanArchiveCollectionStep = CanArchiveCollectionStepItem(existingCollectionId);
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem(existingCollectionId);
-  const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, existingCollectionId);
+  const RevokeStepItem = RevokeSelectStepItem(updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers, existingCollectionId);
   const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
   const ChooseControlStepItem = ChooseControlTypeStepItem(completeControl, setCompleteControl);
+  const JSONTransferability = JSONTransferabilitySelectStepItem(updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers, existingCollectionId);
 
   // const UserBalancesStep = UserBalancesSelectStepItem(userBalances, setUserBalances);
   const CanUpdateBytesStep = CanUpdateBalancesStepItem();
@@ -159,6 +166,11 @@ export function UpdateCollectionTimeline({
 
       ChooseBadgeType
   ];
+
+  if (!collection) return <></>;
+
+
+  console.log(distributionMethod);
 
   if (mintType === MintType.BitBadge) {
     if (existingCollectionId && existingCollectionId > 0n) {
@@ -177,81 +189,117 @@ export function UpdateCollectionTimeline({
       ActionPermissionUsedFlags,
       !hasManager
     );
-    let toShowCanDeletePermission = !((deleteRes.hasForbiddenTimes && !deleteRes.hasNeutralTimes && !deleteRes.hasPermittedTimes));
+    let toShowCanDeletePermission = deleteRes.hasNeutralTimes
+    let toShowDeleteAction = deleteRes.hasNeutralTimes || deleteRes.hasPermittedTimes
 
     let canCreateMoreRes = getPermissionDataSource(
       existingCollection ? castBalancesActionPermissionToUniversalPermission(existingCollection.collectionPermissions.canCreateMoreBadges ?? []) : [],
       BalancesActionPermissionUsedFlags,
       !hasManager
     );
-    let toShowCanCreateMorePermission = !((canCreateMoreRes.hasForbiddenTimes && !canCreateMoreRes.hasNeutralTimes && !canCreateMoreRes.hasPermittedTimes));
+    let toShowCanCreateMorePermission = canCreateMoreRes.hasNeutralTimes
+    let toShowCreateMoreAction = canCreateMoreRes.hasNeutralTimes || canCreateMoreRes.hasPermittedTimes
 
     let canManagerBeTransferredRes = getPermissionDataSource(
       existingCollection ? castTimedUpdatePermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateManager ?? []) : [],
       TimedUpdatePermissionUsedFlags,
       !hasManager
     );
-    let toShowCanManagerBeTransferredPermission = !((canManagerBeTransferredRes.hasForbiddenTimes && !canManagerBeTransferredRes.hasNeutralTimes && !canManagerBeTransferredRes.hasPermittedTimes));
+    let toShowCanManagerBeTransferredPermission = canManagerBeTransferredRes.hasNeutralTimes
+    let toShowManagerTransferAction = canManagerBeTransferredRes.hasNeutralTimes || canManagerBeTransferredRes.hasPermittedTimes
 
     let canUpdateBadgeMetadataRes = getPermissionDataSource(
       existingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
       TimedUpdateWithBadgeIdsPermissionUsedFlags,
       !hasManager
     );
-    let toShowCanUpdateBadgeMetadataPermission = !((canUpdateBadgeMetadataRes.hasForbiddenTimes && !canUpdateBadgeMetadataRes.hasNeutralTimes && !canUpdateBadgeMetadataRes.hasPermittedTimes));
+    let maxBadgeId = getTotalNumberOfBadges(collection);
+    let toShowCanUpdateBadgeMetadataPermission = canUpdateBadgeMetadataRes.hasNeutralTimes;
+
+    let toShowUpdateBadgeMetadataAction = canUpdateBadgeMetadataRes.dataSource.some(x => !x.forbidden &&
+      //Check if we have any badge IDs from 1 to maxBadgeID
+      x.badgeIds?.find(y => y.start < maxBadgeId && y.end > 0n) !== undefined
+    )
+
 
     let canUpdateCollectionMetadataRes = getPermissionDataSource(
       existingCollection ? castTimedUpdatePermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateCollectionMetadata ?? []) : [],
       TimedUpdatePermissionUsedFlags,
       !hasManager
     );
-    let toShowCanUpdateCollectionMetadataPermission = !(canUpdateCollectionMetadataRes.hasForbiddenTimes && !canUpdateCollectionMetadataRes.hasNeutralTimes && !canUpdateCollectionMetadataRes.hasPermittedTimes);
+    let toShowCanUpdateCollectionMetadataPermission = canUpdateCollectionMetadataRes.hasNeutralTimes
+    let toShowUpdateCollectionMetadataAction = canUpdateCollectionMetadataRes.hasNeutralTimes || canUpdateCollectionMetadataRes.hasPermittedTimes
 
-    let canUpdateCollectionApprovedTransfersRes = getPermissionDataSource(
-      existingCollection ? castCollectionApprovedTransferPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []) : [],
-      ApprovedTransferPermissionUsedFlags,
-      !hasManager
-    );
-    let toShowCanUpdateCollectionApprovedTransfersPermission = !(canUpdateCollectionApprovedTransfersRes.hasForbiddenTimes && !canUpdateCollectionApprovedTransfersRes.hasNeutralTimes && !canUpdateCollectionApprovedTransfersRes.hasPermittedTimes);
+
 
     let canUpdateOffChainBalancesMetadata = getPermissionDataSource(
       existingCollection ? castTimedUpdatePermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []) : [],
       TimedUpdatePermissionUsedFlags,
       !hasManager
     );
-    let toShowCanUpdateOffChainBalancesMetadataPermission = !(canUpdateOffChainBalancesMetadata.hasForbiddenTimes && !canUpdateOffChainBalancesMetadata.hasNeutralTimes && !canUpdateOffChainBalancesMetadata.hasPermittedTimes);
+    let toShowCanUpdateOffChainBalancesMetadataPermission = canUpdateOffChainBalancesMetadata.hasNeutralTimes
+    let toShowUpdateOffChainBalancesMetadataAction = canUpdateOffChainBalancesMetadata.hasNeutralTimes || canUpdateOffChainBalancesMetadata.hasPermittedTimes
 
     let canArchiveCollection = getPermissionDataSource(
       existingCollection ? castTimedUpdatePermissionToUniversalPermission(existingCollection.collectionPermissions.canArchiveCollection ?? []) : [],
       TimedUpdatePermissionUsedFlags,
       !hasManager
     );
-    let toShowCanArchiveCollectionPermission = !(canArchiveCollection.hasForbiddenTimes && !canArchiveCollection.hasNeutralTimes && !canArchiveCollection.hasPermittedTimes);
+    let toShowCanArchiveCollectionPermission = canArchiveCollection.hasNeutralTimes
+    let toShowArchiveCollectionAction = canArchiveCollection.hasNeutralTimes || canArchiveCollection.hasPermittedTimes
 
+    const lockedBadgeIds = collection.collectionPermissions.canCreateMoreBadges.length > 0 ? collection.collectionPermissions.canCreateMoreBadges.map(x => x.defaultValues.badgeIds).flat() : [];
+    const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
+
+    // If we never have a manager, this step will not be shown
+    // const neverHasManager = collection.managerTimeline.length === 0 || collection.managerTimeline.every(timelineVal => !timelineVal.manager);
+
+    const permissionDetails = getPermissionDataSource(castCollectionApprovedTransferPermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []), ApprovedTransferPermissionUsedFlags);
+    const mintPermissionDetails = permissionDetails.dataSource.filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, "Mint"));
+    const mintHasPermittedTimes = mintPermissionDetails.some(x => x.permitted);
+    const mintHasForbiddenTimes = mintPermissionDetails.some(x => x.forbidden);
+    const mintHasNeutralTimes = mintPermissionDetails.some(x => !x.permitted && !x.forbidden);
+
+    const nonMintPermissionDetails = permissionDetails.dataSource.filter(x => x.fromMapping && !isInAddressMapping(x.fromMapping, "Mint"));
+    const nonMintHasPermittedTimes = nonMintPermissionDetails.some(x => x.permitted);
+    const nonMintHasForbiddenTimes = nonMintPermissionDetails.some(x => x.forbidden);
+    const nonMintHasNeutralTimes = nonMintPermissionDetails.some(x => !x.permitted && !x.forbidden);
+
+    let canUpdateCollectionApprovedTransfersRes = getPermissionDataSource(
+      existingCollection ? castCollectionApprovedTransferPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []) : [],
+      ApprovedTransferPermissionUsedFlags,
+      !hasManager
+    );
+    let toShowCanUpdateCollectionApprovedTransfersPermission = canUpdateCollectionApprovedTransfersRes.hasNeutralTimes
+
+    let toShowUpdateMintTransfersAction = (canUpdateCollectionApprovedTransfersRes.hasNeutralTimes || canUpdateCollectionApprovedTransfersRes.hasPermittedTimes)
+
+    let toShowUpdateNonMintTransfersAction = (canUpdateCollectionApprovedTransfersRes.hasNeutralTimes || canUpdateCollectionApprovedTransfersRes.hasPermittedTimes)
 
     items.push(
-      toShowCanManagerBeTransferredPermission ? ConfirmManager : EmptyStepItem,
+      toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
       hasManager && (!existingCollectionId || existingCollectionId == 0n) ? ChooseControlStepItem : EmptyStepItem,
-      toShowCanCreateMorePermission ? BadgeSupplySelectStep : EmptyStepItem,
+      toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
-      toShowCanArchiveCollectionPermission && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
+      toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
 
 
-      toShowCanUpdateCollectionMetadataPermission || toShowCanUpdateBadgeMetadataPermission ? MetadataStorageSelectStep : EmptyStepItem,
+      toShowUpdateCollectionMetadataAction || toShowUpdateBadgeMetadataAction ? MetadataStorageSelectStep : EmptyStepItem,
       addMethod === MetadataAddMethod.Manual ?
-        toShowCanUpdateCollectionMetadataPermission ? SetCollectionMetadataStep : EmptyStepItem :
-        toShowCanUpdateCollectionMetadataPermission || toShowCanUpdateBadgeMetadataPermission ? SetBadgeMetadataStep :
+        toShowUpdateCollectionMetadataAction ? SetCollectionMetadataStep : EmptyStepItem :
+        toShowUpdateCollectionMetadataAction || toShowUpdateBadgeMetadataAction ? SetBadgeMetadataStep :
           EmptyStepItem,
 
       addMethod === MetadataAddMethod.Manual
-        ? toShowCanUpdateBadgeMetadataPermission ? SetBadgeMetadataStep : EmptyStepItem : EmptyStepItem,
+        ? toShowUpdateBadgeMetadataAction ? SetBadgeMetadataStep : EmptyStepItem : EmptyStepItem,
       MetadataTooLargeStep,
       !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
-      isOffChainBalances || toShowCanUpdateCollectionApprovedTransfersPermission ?
+
+      isOffChainBalances || toShowUpdateMintTransfersAction ?
         DistributionMethodStep : EmptyStepItem,
 
       distributionMethod === DistributionMethod.OffChainBalances ? OffChainBalancesStorageStepItem : EmptyStepItem,
@@ -261,16 +309,21 @@ export function UpdateCollectionTimeline({
       distributionMethod !== DistributionMethod.None && distributionMethod !== DistributionMethod.Unminted && distributionMethod !== DistributionMethod.JSON && distributionMethod !== DistributionMethod.DirectTransfer && distributionMethod !== DistributionMethod.OffChainBalances
         && (true) ? CreateClaims : EmptyStepItem,
 
-      !isOffChainBalances && toShowCanUpdateCollectionApprovedTransfersPermission ? TransferabilityStep : EmptyStepItem,
-      !isOffChainBalances && (hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? RevokeStepItem : EmptyStepItem,
+      distributionMethod === DistributionMethod.JSON ?
+        JSONTransferability : EmptyStepItem,
+
+
+      !isOffChainBalances && distributionMethod !== DistributionMethod.JSON && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+      !isOffChainBalances && distributionMethod !== DistributionMethod.JSON && (hasManager && toShowUpdateNonMintTransfersAction) ? RevokeStepItem : EmptyStepItem,
+
       !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? FreezeSelectStep : EmptyStepItem,
-      !isOffChainBalances && hasManager ? DefaultToApprovedStepItem : EmptyStepItem,
+      !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
       isOffChainBalances && (hasManager && toShowCanUpdateOffChainBalancesMetadataPermission) ? CanUpdateBytesStep : EmptyStepItem,
 
 
       CollectionPreviewStep,
 
-      //Will also need to support distribution method === JSON (see line 220 TxTimeline with createCollectionFromMsgUpdateCollection and manualSend)
+      // Will also need to support distribution method === JSON (see line 220 TxTimeline with createCollectionFromMsgUpdateCollection and manualSend)
       !isModal ? CreateCollectionStep : EmptyStepItem
     );
   } else {

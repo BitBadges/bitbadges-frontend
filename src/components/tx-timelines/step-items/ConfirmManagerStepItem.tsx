@@ -1,83 +1,79 @@
-import { Avatar, Checkbox, Divider, Typography } from "antd";
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
+import { Avatar, Divider } from "antd";
+import { convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
-import { PermissionIcon } from "../../collection-page/PermissionsInfo";
+import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { MSG_PREVIEW_ID, EmptyStepItem, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { DevMode } from "../../common/DevMode";
-import { INFINITE_LOOP_MODE } from "../../../constants";
 
 export function ConfirmManagerStepItem(
   canUpdateManager: boolean,
   setCanUpdateManager: (canUpdateManager: boolean) => void,
   existingCollectionId?: bigint
 ) {
-  const [checked, setChecked] = useState<boolean>(true);
+  // const [checked, setChecked] = useState<boolean>(false);
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const txTimelineContext = useTxTimelineContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
   const signedInAccount = accounts.getAccount(chain.address);
   const [address, setAddress] = useState<string>(currentManager || signedInAccount?.address || '');
-  const hasManager = txTimelineContext.updateManagerTimeline;
+  const hasManager = collection?.managerTimeline.some(x => x.manager) ?? false;
 
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
-    if (!collection || !hasManager) return;
+    if (!collection) return;
 
     collections.updateCollection({
       ...collection,
       managerTimeline: [{
-        manager: convertToCosmosAddress(address),
+        manager: convertToCosmosAddress(chain.address),
         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       }],
     })
-  }, [address, hasManager])
+  }, [chain.address])
 
   if (!collection) return EmptyStepItem;
   const err = existingCollection ? validateManagerUpdate(existingCollection.managerTimeline, collection.managerTimeline, existingCollection.collectionPermissions.canUpdateManager) : undefined;
 
-
-
-
-
+  console.log(collection);
+  console.log("HAS MANAGER", hasManager)
   return {
     title: 'Select Manager',
-    disabled: !!err || (!hasManager && !checked),
+    disabled: !!err,
+    //  || (!hasManager && !checked),
     description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, and more. See full list '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a>
-      <br /><br />
-      {existingCollectionId ? <> {`Current Permission - Can Update Manager?: `}
-        {
-          PermissionIcon(
-            castTimedUpdatePermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateManager ?? []), '', TimedUpdatePermissionUsedFlags
-          )
-        }
-      </> : <></>}
-
+      {' '}
+      <br />
+      <br />
+      If no manager is selected, no admin privileges will be available moving forward, and the collection details will be frozen and final.
+      <br />
     </>,
     node:
       <UpdateSelectWrapper
         updateFlag={canUpdateManager}
         setUpdateFlag={setCanUpdateManager}
         existingCollectionId={existingCollectionId}
+        jsonPropertyPath="managerTimeline"
+        permissionName="canUpdateManager"
+        validationErr={err}
         node={
 
-          <div>
+          <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
             <div className='primary-text'
               style={{
                 padding: '0',
@@ -87,20 +83,11 @@ export function ConfirmManagerStepItem(
                 marginTop: 20,
               }}
             >
-              {err &&
-                <div style={{ color: 'red', textAlign: 'center' }}>
-                  <b>Error: </b>{err.message}
-                  <br />
-                  <p>Please resolve this error before continuing.</p>
-                  <br />
-                  <p>This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
 
-                  <Divider />
-                </div>}
 
               <SwitchForm
+                showCustomOption
                 onSwitchChange={(idx) => {
-                  txTimelineContext.setUpdateManagerTimeline(idx == 1);
                   if (idx == 0) {
                     collections.updateCollection({
                       ...collection,
@@ -129,20 +116,6 @@ export function ConfirmManagerStepItem(
                 ]}
               />
 
-              {!hasManager && <div>
-                <br />
-                <div className='flex-center'>
-                  <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
-                    By checking the box below, I confirm that I understand that everything selected in the following steps will be permanent and cannot be changed in the future.
-                  </Typography.Text>
-                </div>
-                <div className='flex-center'>
-                  <Checkbox
-                    checked={checked}
-                    onChange={(e) => setChecked(e.target.checked)}
-                  />
-                </div>
-              </div>}
 
               {hasManager && <div>
                 <Divider />

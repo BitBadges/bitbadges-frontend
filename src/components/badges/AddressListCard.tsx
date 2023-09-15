@@ -17,16 +17,17 @@ export function AddressListCard({
   const accountInfo = addressOrUsername ? accounts.getAccount(addressOrUsername) : undefined;
 
 
-  const explicitly = accountInfo ? addressMapping.addresses.includes(accountInfo.address) || addressMapping.addresses.includes(accountInfo.cosmosAddress) : false
+  // const explicitly = accountInfo ? addressMapping.addresses.includes(accountInfo.address) || addressMapping.addresses.includes(accountInfo.cosmosAddress) : false
 
 
   return (
-    <div style={{ margin: 16 }}>
+    <div style={{}}>
       <Card
         className='primary-text primary-blue-bg'
         style={{
           width: 225,
-          margin: 8,
+          marginTop: 8,
+          marginRight: 8,
           textAlign: 'center',
           borderRadius: '4%',
         }}
@@ -53,11 +54,13 @@ export function AddressListCard({
         </>}
         {accountInfo ? addressMapping.includeAddresses ?
           <Typography.Text strong className='primary-text' style={{ color: 'green' }}>
-            {explicitly ? '' : 'SOFT'} INCLUDED
+            {/* {explicitly ? '' : 'SOFT'} */}
+            INCLUDED
           </Typography.Text>
           :
           <Typography.Text strong className='primary-text' style={{ color: 'red' }}>
-            {explicitly ? 'SOFT' : ''} EXCLUDED
+            {/* {explicitly ? 'SOFT' : ''}  */}
+            EXCLUDED
           </Typography.Text>
           : <></>}
 

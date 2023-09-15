@@ -1,8 +1,15 @@
-import { Checkbox, Divider } from 'antd';
-import { ActionPermission, BalancesActionPermission, TimedUpdatePermission } from 'bitbadgesjs-proto';
-import { CollectionApprovedTransferPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate } from 'bitbadgesjs-utils';
+import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
+import { Avatar, Col, Divider, Row, Switch, Tooltip } from 'antd';
+import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
+import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
+import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
+import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
+import { BeforeAfterPermission } from './BeforeAfterPermission';
+import { JSONSetter } from './CustomJSONSetter';
+import { SwitchForm } from './SwitchForm';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -23,21 +30,63 @@ export function PermissionUpdateSelectWrapper({
   node: JSX.Element,
 }) {
   const collections = useCollectionsContext();
-
-
-  if (!existingCollectionId) return node;
-
-  const existingCollection = collections.collections[existingCollectionId.toString()];
+  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(true);
+  const [customJson, setCustomJson] = useState<boolean>(false);
+  const [jsonErr, setJsonErr] = useState<string>('');
 
-  if (existingCollection && collection) {
-    const oldPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
-    const newPermissions = collection.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
+  const isMint = !existingCollectionId;
 
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: permission update select wrapper, collectionId changed ');
+
+    if (existingCollection && collection) {
+      const oldPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+      const newPermissions = collection.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
+
+      let err = null;
+      switch (permissionName) {
+        case 'canDeleteCollection':
+          err = validateActionPermissionUpdate(oldPermissions as ActionPermission<bigint>[], newPermissions as ActionPermission<bigint>[]);
+
+          break;
+        case 'canArchiveCollection':
+        case 'canUpdateContractAddress':
+        case 'canUpdateOffChainBalancesMetadata':
+        case 'canUpdateStandards':
+        case 'canUpdateCustomData':
+        case 'canUpdateManager':
+        case 'canUpdateCollectionMetadata':
+          err = validateTimedUpdatePermissionUpdate(oldPermissions as TimedUpdatePermission<bigint>[], newPermissions as TimedUpdatePermission<bigint>[]);
+
+          break;
+        case 'canCreateMoreBadges':
+          err = validateBalancesActionPermissionUpdate(oldPermissions as BalancesActionPermission<bigint>[], newPermissions as BalancesActionPermission<bigint>[]);
+
+          break;
+        case 'canUpdateBadgeMetadata':
+          // case 'canUpdateInheritedBalances':
+          err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
+
+          break;
+        case 'canUpdateCollectionApprovedTransfers':
+          err = validateCollectionApprovedTransferPermissionsUpdate(oldPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[], newPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[]);
+          break;
+      }
+
+      setErr(err);
+    }
+  }, [collection, existingCollection, permissionName]);
+
+  let castFunction: any = () => { }
+  let flags;
+  if (collection) {
 
     switch (permissionName) {
       case 'canDeleteCollection':
-        err = validateActionPermissionUpdate(oldPermissions as ActionPermission<bigint>[], newPermissions as ActionPermission<bigint>[]);
+        castFunction = castActionPermissionToUniversalPermission;
+        flags = ActionPermissionUsedFlags;
         break;
       case 'canArchiveCollection':
       case 'canUpdateContractAddress':
@@ -46,22 +95,25 @@ export function PermissionUpdateSelectWrapper({
       case 'canUpdateCustomData':
       case 'canUpdateManager':
       case 'canUpdateCollectionMetadata':
-        err = validateTimedUpdatePermissionUpdate(oldPermissions as TimedUpdatePermission<bigint>[], newPermissions as TimedUpdatePermission<bigint>[]);
+        castFunction = castTimedUpdatePermissionToUniversalPermission;
+        flags = TimedUpdatePermissionUsedFlags
         break;
       case 'canCreateMoreBadges':
-        err = validateBalancesActionPermissionUpdate(oldPermissions as BalancesActionPermission<bigint>[], newPermissions as BalancesActionPermission<bigint>[]);
+        castFunction = castBalancesActionPermissionToUniversalPermission;
+        flags = BalancesActionPermissionUsedFlags;
         break;
       case 'canUpdateBadgeMetadata':
-      // case 'canUpdateInheritedBalances':
-      //   err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
-      //   break;
+        // case 'canUpdateInheritedBalances':
+        castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
+        flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
+        break;
       case 'canUpdateCollectionApprovedTransfers':
-        err = validateCollectionApprovedTransferPermissionsUpdate(oldPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[], newPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[]);
+        castFunction = castCollectionApprovedTransferPermissionToUniversalPermission;
+        flags = ApprovedTransferPermissionUsedFlags;
         break;
     }
-
-    setErr(err);
   }
+
 
 
   return (
@@ -69,45 +121,176 @@ export function PermissionUpdateSelectWrapper({
       <div className='primary-text flex-center flex-column' >
 
         <div style={{ alignItems: 'center' }}>
-          <Checkbox
-            checked={checked}
-            onChange={(e) => {
-              setChecked(e.target.checked);
-              if (existingCollection && collection) {
+          {!isMint &&
+            <Switch
+              style={{ marginLeft: 10 }}
+              checked={checked}
+              checkedChildren="Update"
+              unCheckedChildren="Do Not Update"
+              onChange={(e) => {
+                setChecked(e);
+                if (existingCollection && collection) {
 
 
-                const existingPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+                  const existingPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
 
-                collections.updateCollection({
-                  ...collection,
-                  collectionPermissions: {
-                    ...collection.collectionPermissions,
-                    [`${permissionName}`]: existingPermissions
+                  collections.updateCollection({
+                    ...collection,
+                    collectionPermissions: {
+                      ...collection.collectionPermissions,
+                      [`${permissionName}`]: existingPermissions
+                    }
+                  });
+                }
+              }}
+              className='primary-text'
+            />}
+          {checked &&
+            <Tooltip
+              title={'Undo changes'}
+            >
+              <Avatar
+                className='styled-button'
+                src={<UndoOutlined style={{ fontSize: 16 }} />}
+                style={{ marginLeft: 10, cursor: 'pointer' }}
+                onClick={() => {
+                  if (existingCollection && collection) {
+                    const existingPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+
+                    collections.updateCollection({
+                      ...collection,
+                      collectionPermissions: {
+                        ...collection.collectionPermissions,
+                        [`${permissionName}`]: existingPermissions
+                      }
+                    });
+                  } else if (collection && !existingCollection) {
+                    collections.updateCollection({
+                      ...collection,
+                      collectionPermissions: {
+                        ...collection.collectionPermissions,
+                        [`${permissionName}`]: []
+                      }
+                    });
                   }
-                });
-              }
-            }}
-            className='primary-text'
-            style={{ textAlign: 'left', alignItems: 'center' }}
+                }}
+              />
+            </Tooltip>}
+          {checked &&
+            <Tooltip
+              title={showBeforeAndAfter ? 'Hide before and after' : 'Show before and after'}
+            >
+              <Avatar
+                className='styled-button'
+                src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
+                style={{ marginLeft: 10, cursor: 'pointer' }}
+                onClick={() => {
+                  setShowBeforeAndAfter(!showBeforeAndAfter);
+                }}
+              />
+            </Tooltip>}
+          {checked && !customJson &&
+            <Tooltip
+              color='black'
+              placement='bottom'
+              title={'Custom JSON (Advanced)'}
+            >
+              <Avatar
+                className='styled-button'
+                src={<CodeOutlined style={{ fontSize: 16 }} />}
+                style={{ marginLeft: 10, cursor: 'pointer' }}
+                onClick={() => {
+                  setCustomJson(true);
+                }}
+              />
+            </Tooltip>}
+          {checked && customJson &&
+            <Tooltip
+              color='black'
+              placement='bottom'
+              title={'Normal Form'}
+            >
+              <Avatar
+                className='styled-button'
+                src={<FormOutlined style={{ fontSize: 16 }} />}
+                style={{ marginLeft: 10, cursor: 'pointer' }}
+                onClick={() => {
+                  setCustomJson(false);
+                }}
+              />
+            </Tooltip>}
 
-          >
-            {checked ? 'This property will be updated to the selected value below.' : 'Do not update this property. It will remain as currently set.'}
-          </Checkbox>
+
         </div>
       </div>
 
-      {checked && <>
+
+
+      {!checked && castFunction && flags &&
+        <>
+          <br />
+          <Row className="full-width flex-center" justify="center">
+            <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+              <SwitchForm
+                options={[{
+                  title: 'Do Not Update',
+                  message: `This value will remain as previously set.
+                  ${!existingCollectionId && permissionName != 'canUpdateManager' && ' For new collections, this means the value will be empty or unset.'}
+                  ${!existingCollectionId && permissionName == 'canUpdateManager' && ' For new collections, this means the manager will be set to your address by default.'}`,
+                  isSelected: true,
+                },
+                ]}
+                onSwitchChange={() => { }}
+              />
+              <br />
+
+              <br />
+              {PermissionDisplay(
+                permissionName,
+                castFunction(
+                  existingCollection?.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions] ?? []
+                ), '', flags as any
+              )}
+            </Col>
+          </Row>
+        </>}
+
+      {checked && customJson && <>
+        <JSONSetter
+          err={jsonErr}
+          setErr={setJsonErr}
+          jsonPropertyPath={permissionName}
+          isPermissionUpdate
+        />
+
+        {jsonErr && <div className='flex-center' style={{ color: 'red' }}>
+          {jsonErr}
+        </div>}
+        <br />
+        <Divider />
+      </>}
+
+      {checked && !customJson && <>
         {err &&
           <><br />
             <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>{err.message}
+              <b>Error: </b> The newly selected value for this permissions is updating a previously frozen value.
               <br />
-              <p>Please resolve this error before continuing. This error may have happened because this collection previously used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
 
-              <Divider />
+              {DEV_MODE && <>
+                {err.message}
+                <br />
+              </>}
+
             </div></>}
         <br />
         {node}
+      </>}
+      {checked && castFunction && flags && showBeforeAndAfter && <>
+        <BeforeAfterPermission
+          permissionName={permissionName}
+          existingCollectionId={existingCollectionId}
+        />
       </>}
     </>
   )

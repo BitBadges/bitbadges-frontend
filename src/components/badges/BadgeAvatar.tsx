@@ -34,7 +34,7 @@ export function BadgeAvatar({
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
-  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => x.ownershipTimes.length > 0 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64) : false;
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => x.ownershipTimes.length == 1 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64) : false;
 
   const avatar = <Avatar
     style={{

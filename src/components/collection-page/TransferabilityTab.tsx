@@ -1,5 +1,5 @@
 import { FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Divider, Tooltip, Typography } from 'antd';
+import { Divider, Switch, Tooltip, Typography } from 'antd';
 import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
 import { getCurrentIdxForTimeline, getFirstMatchForCollectionApprovedTransfers, getReservedAddressMapping, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -18,6 +18,8 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect }: {
   const currTransferabilityIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
   const [defaultIdx, setDefaultIdx] = useState<number>(Number(currTransferabilityIdx));
   const chain = useChainContext();
+
+  const [showHidden, setShowHidden] = useState<boolean>(false);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers b');
@@ -96,6 +98,10 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect }: {
     })
   }
 
+  if (!showHidden) {
+    firstMatches = firstMatches.filter(x => x.allowedCombinations.length > 0 && x.allowedCombinations[0].isApproved);
+  }
+
   return (
     <div className='primary-text'>
       <br />
@@ -107,6 +113,14 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect }: {
           </Tooltip> : <> </>
         }
       </Typography.Text>
+      <div style={{ float: 'right' }}>
+        <Switch
+          checkedChildren="Show Only Allowed"
+          unCheckedChildren="Show All"
+          checked={!showHidden}
+          onChange={(checked) => setShowHidden(!checked)}
+        />
+      </div>
 
       {getApprovalsDisplay(collection.collectionApprovedTransfersTimeline, firstMatches, defaultIdx, setDefaultIdx, collection, badgeId, isClaimSelect)}
       <Divider />
@@ -116,8 +130,6 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect }: {
       </p>
 
       <Divider />
-      <p>Note: Go to permissions on the overview tab to see if these currently set values can be changed or not by the manager.</p>
-      <br />
     </div >
   );
 }

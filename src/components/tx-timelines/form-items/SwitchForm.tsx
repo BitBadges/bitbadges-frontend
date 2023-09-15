@@ -14,11 +14,21 @@ export function SwitchForm({
   onSwitchChange,
   options,
   helperMessage,
+  showCustomOption,
 }: {
   onSwitchChange: (selectedIdx: number, newSelectedOptionTitle: string) => void;
   options: SwitchFormOption[];
   helperMessage?: string;
+  showCustomOption?: boolean;
 }) {
+
+  if (showCustomOption && options.every(x => !x.isSelected)) {
+    options.push({
+      title: 'Custom',
+      message: 'A custom value has been set that does not match any of the other options.',
+      isSelected: true,
+    })
+  }
 
   return (
     <>
@@ -29,6 +39,7 @@ export function SwitchForm({
             textAlign: 'center',
             alignItems: 'normal',
             overflowWrap: 'break-word',
+
           }}
         >
           {options.map((option, index) => {
@@ -40,7 +51,7 @@ export function SwitchForm({
                 style={{
                   margin: 8,
                   textAlign: 'center',
-                  border: option.isSelected ? '1px solid #1890ff' : undefined,
+                  border: option.isSelected ? '3px solid #1890ff' : undefined,
                   cursor: option.disabled ? 'not-allowed' : undefined,
                   overflowWrap: 'break-word',
                 }}
@@ -52,30 +63,28 @@ export function SwitchForm({
                   // setCanShowSelected(true);
                 }}
               >
-                <Meta
-                  title={
-                    <div className='primary-text'
-                      style={{
-                        fontSize: 20,
-                        fontWeight: 'bolder',
-                        overflowWrap: 'break-word',
-                        maxWidth: '100%',
-                      }}
-                    >
-                      {option.title}
-                    </div>
-                  }
-                  description={
-                    <div className='secondary-text full-width'
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {option.message}
-                    </div>
-                  }
-                />
+                <div className='primary-text'
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 'bolder',
+                    overflowWrap: 'break-word',
+                    maxWidth: '100%',
+                  }}
+                >
+                  {option.title}
+                </div>
+                <div className='secondary-text'
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: 14,
+                    overflowWrap: 'break-word',
+                    width: '100%',
+                    marginTop: 8
+                  }}
+                >
+                  {option.message}
+                </div>
               </Card>
             </Col>
           })}

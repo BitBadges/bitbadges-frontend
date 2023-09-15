@@ -67,8 +67,11 @@ export function DistributionOverview({
       </>}
       {!isBadgeView &&
         <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
-      {<TableRow label={"Can more badges be created?"} value={PermissionIcon(castBalancesActionPermissionToUniversalPermission(collection.collectionPermissions.canCreateMoreBadges), "", BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
-        collection.managerTimeline.every(x => !x.manager), badgeId)} labelSpan={20} valueSpan={4} />}
+      {<TableRow label={"Can more badges be created?"} value={PermissionIcon(
+        "canCreateMoreBadges",
+        castBalancesActionPermissionToUniversalPermission(
+          collection.collectionPermissions.canCreateMoreBadges), "", BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
+      collection.managerTimeline.every(x => !x.manager), badgeId)} labelSpan={20} valueSpan={4} />}
       {isOffChainBalances && <TableRow label={"Balances URL"} value={
         <div>
           <>
@@ -100,8 +103,12 @@ export function DistributionOverview({
         </div>
       } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && <TableRow label={"Update balances URL?"} value={
-        PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateOffChainBalancesMetadata), "off-chain balances URL", TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
-          collection.managerTimeline.every(x => !x.manager), badgeId)
+        PermissionIcon(
+          "canUpdateOffChainBalancesMetadata",
+          castTimedUpdatePermissionToUniversalPermission(
+
+            collection.collectionPermissions.canUpdateOffChainBalancesMetadata), "off-chain balances URL", TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
+        collection.managerTimeline.every(x => !x.manager), badgeId)
       } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && <TableRow label={"Last Updated"} value={
         <div>

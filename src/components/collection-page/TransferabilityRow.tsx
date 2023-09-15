@@ -1,4 +1,4 @@
-import { CheckCircleOutlined, InfoCircleOutlined, StopOutlined, WarningOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, InfoCircleOutlined, StopFilled, WarningOutlined } from '@ant-design/icons';
 import { Popover, Tooltip } from 'antd';
 import { CollectionApprovedTransferWithDetails, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -112,7 +112,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
         {getTimeRangesElement(transfer.ownershipTimes, '', true)}
       </td>
       <td style={{ alignItems: 'center' }}>
-        {transfer.allowedCombinations[0].isApproved ? <CheckCircleOutlined style={{ color: 'green', fontSize: 20 }} /> : <StopOutlined style={{ color: 'red', fontSize: 20 }} />}
+        {transfer.allowedCombinations[0].isApproved ? <CheckCircleFilled style={{ color: 'green', fontSize: 20 }} /> : <StopFilled style={{ color: 'red', fontSize: 20 }} />}
       </td>
 
       <td style={{ alignItems: 'center' }}>

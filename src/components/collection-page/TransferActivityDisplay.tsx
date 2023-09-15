@@ -91,6 +91,14 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
               {activity.map((activity, idx) => {
                 const collectionId = activity.collectionId;
                 const collection = collections.collections[collectionId.toString()]
+                let numBadgesTransferred = 0n;
+                activity.balances.forEach(balance => {
+                  for (const badgeIdRange of balance.badgeIds) {
+                    numBadgesTransferred += badgeIdRange.end - badgeIdRange.start + 1n;
+                  }
+                });
+
+
 
                 return <CollapsePanel
                   key={idx}
@@ -101,11 +109,16 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                         {collection?.balancesType === 'Standard' ? <>
                           {getPanelHeaderAddress([activity.from])}
                           <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
-                        </> : <Typography.Text className='primary-text' strong style={{ fontSize: 20, marginRight: 4 }}>Balances Update:{' '}</Typography.Text>}
+                        </> :
+                          <></>}
 
                         {getPanelHeaderAddress(activity.to)}
+                        <b style={{ marginRight: 8, marginLeft: 8 }}>
+                          {/* Calculate number of badges transferred */}
+                          ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
+                        </b>
                       </Col>
-                      <div>{collection?.balancesType === 'Standard' ? activity.method : 'Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
+                      <div>{collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
                     </Row>
 
                     <Row>
@@ -138,8 +151,8 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                         <div key={idx} className='primary-text'>
                           <Row>
                             <Col span={24}>
-                              <div className='flex-center flex-column'>
-                                <h2 className='primary-text'>{collection?.balancesType === 'Standard' ? activity.method : 'Update'}</h2>
+                              <div className='flex-center flex-column full-width'>
+                                <h2 className='primary-text'>{collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'}</h2>
                               </div>
 
 
@@ -162,8 +175,8 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                               }
                               <Divider />
                               {activity.txHash &&
-                                <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
-                                  {activity.txHash}
+                                <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
+                                  See Blockchain Transaction
                                 </a></p>
                               }
                               <Divider />

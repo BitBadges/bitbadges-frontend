@@ -23,15 +23,6 @@ export function IsArchivedSelectStepItem(
   return {
     title: 'Archived Status',
     description: <>{'Is this collection archived (read-only)?'}
-
-      {existingCollectionId ? <> <br /><br />{`Current Permission - Can Archive Collection?: `}
-        {
-          PermissionIcon(
-            castTimedUpdatePermissionToUniversalPermission(existingCollection?.collectionPermissions.canArchiveCollection ?? []), '', TimedUpdatePermissionUsedFlags
-          )
-        }
-      </> : <></>}
-
     </>,
     disabled: !!err,
     node:
@@ -39,6 +30,8 @@ export function IsArchivedSelectStepItem(
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}
         existingCollectionId={existingCollectionId}
+        jsonPropertyPath="isArchivedTimeline"
+        permissionName='canArchiveCollection'
         node={
 
           <div>
@@ -48,22 +41,17 @@ export function IsArchivedSelectStepItem(
                 textAlign: 'center',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginTop: 20,
               }}
             >
               {err &&
                 <div style={{ color: 'red', textAlign: 'center' }}>
-                  <b>Error: </b>{err.message}
-                  <br />
-                  <p>Please resolve this error before continuing.</p>
-                  <br />
-                  <p>This error may have happened because this collection used a tool other than this website to be created or updated. If this is the case, certain features may not be fully supported, and we apologize. We are working on 100% compatibility.</p>
-
+                  <b>Error: </b>You are attempting to update a previously frozen value.
                   <Divider />
                 </div>}
 
               <SwitchForm
                 // noSelectUntilClick
+                showCustomOption
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
                     collections.updateCollection({

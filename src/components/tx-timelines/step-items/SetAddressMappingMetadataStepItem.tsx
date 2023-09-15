@@ -29,8 +29,7 @@ export function SetAddressMappingMetadataStepItem() {
         collectionId={MSG_PREVIEW_ID}
         isCollectionSelect
         addMethod={MetadataAddMethod.Manual}
-        startId={1n}
-        endId={1n}
+        badgeIds={[]}
         isAddressMappingSelect
       />
       <Divider />

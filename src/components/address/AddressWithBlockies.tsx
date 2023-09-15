@@ -37,16 +37,17 @@ export function AddressWithBlockies({
   const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
   return <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-    <Tooltip
-      title={getChainForAddress(address)}
-      placement="bottom"
-    >
-      <Avatar
-        src={chainLogo}
-        style={{ marginRight: 8 }}
-        size={fontSize}
-      />
-    </Tooltip>
+    {address !== 'Mint' && address !== 'All' &&
+      <Tooltip
+        title={getChainForAddress(address)}
+        placement="bottom"
+      >
+        <Avatar
+          src={chainLogo}
+          style={{ marginRight: 8 }}
+          size={fontSize}
+        />
+      </Tooltip>}
     <BlockiesAvatar address={address} avatar={userInfo?.profilePicUrl ?? userInfo?.avatar} fontSize={fontSize} />
     <Address
       fontSize={fontSize}

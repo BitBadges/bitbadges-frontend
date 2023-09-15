@@ -26,6 +26,7 @@ export function AccountButtonDisplay({
   hideDisplay,
   customLinks,
   setCustomLinks,
+  onlySocials
 }: {
   addressOrUsername: string,
   bio?: string,
@@ -42,7 +43,8 @@ export function AccountButtonDisplay({
     title: string,
     url: string,
     image: string
-  }[]) => void
+  }[]) => void,
+  onlySocials?: boolean
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
@@ -230,66 +232,69 @@ export function AccountButtonDisplay({
         )}
 
 
+        {!onlySocials &&
+          <Tooltip title={<>
+            <div style={{ textAlign: 'center' }}>
+              <b>Share</b>
+              <Tooltip title="Copy Link" placement="left">
+                <Avatar
+                  size="large"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      window.location.href
+                    );
+                    message.success('Copied to clipboard!');
+                  }}
+                  className="styled-button account-socials-button"
+                >
+                  <CopyOutlined />
+                </Avatar>
+              </Tooltip>
+              <Tooltip title="Share on Twitter" placement="left">
+                <Avatar
+                  size="large"
+                  onClick={() => {
+                    const tweetMessage = `Check out ${isSameAccount ? 'my' : addressOrUsername + "\'s"} profile on BitBadges!\n\n`;
 
-        <Tooltip title={<>
-          <div style={{ textAlign: 'center' }}>
-            <b>Share</b>
-            <Tooltip title="Copy Link" placement="left">
-              <Avatar
-                size="large"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    window.location.href
-                  );
-                  message.success('Copied to clipboard!');
-                }}
-                className="styled-button account-socials-button"
-              >
-                <CopyOutlined />
-              </Avatar>
-            </Tooltip>
-            <Tooltip title="Share on Twitter" placement="left">
-              <Avatar
-                size="large"
-                onClick={() => {
-                  const tweetMessage = `Check out ${isSameAccount ? 'my' : addressOrUsername + "\'s"} profile on BitBadges!\n\n`;
+                    const shareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(
+                      window.location.href
+                    )}`;
 
-                  const shareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(
-                    window.location.href
-                  )}`;
+                    window.open(shareUrl, '_blank');
+                  }}
+                  className="styled-button account-socials-button"
+                >
+                  <TwitterOutlined />
+                </Avatar>
+              </Tooltip>
+            </div>
+          </>} placement="bottom">
+            <Avatar
+              size="large"
+              className="styled-button account-socials-button"
+            >
+              <ShareAltOutlined />
+            </Avatar>
+          </Tooltip>}
 
-                  window.open(shareUrl, '_blank');
-                }}
-                className="styled-button account-socials-button"
-              >
-                <TwitterOutlined />
-              </Avatar>
-            </Tooltip>
-          </div>
-        </>} placement="bottom">
-          <Avatar
-            size="large"
-            className="styled-button account-socials-button"
-          >
-            <ShareAltOutlined />
-          </Avatar>
-        </Tooltip>
-        <Tooltip title={<>
-          Report
-        </>} placement="bottom">
-          <Avatar
-            size="large"
-            className="styled-button account-socials-button"
-            onClick={() => {
-              //send email
-              window.open('mailto:andrew@bitbadges.org');
-            }}
-          >
-            <FlagOutlined />
-          </Avatar>
-        </Tooltip>
+        {!onlySocials &&
+          <Tooltip title={<>
+            Report
+          </>} placement="bottom">
+            <Avatar
+              size="large"
+              className="styled-button account-socials-button"
+              onClick={() => {
+                //send email
+                window.open('mailto:andrew@bitbadges.org');
+              }}
+            >
+              <FlagOutlined />
+            </Avatar>
+          </Tooltip>
+        }
 
-        {isSameAccount && (
+        {!onlySocials && isSameAccount && (
           <Tooltip title="Settings" placement="bottom">
             <Avatar
               size="large"
