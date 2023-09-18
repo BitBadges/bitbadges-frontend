@@ -56,8 +56,8 @@ const AccountsContext = createContext<AccountsContextType>({
   fetchBalanceForUser: async () => {
     return {
       balances: [],
-      approvedIncomingTransfersTimeline: [],
-      approvedOutgoingTransfersTimeline: [],
+      approvedIncomingTransfers: [],
+      approvedOutgoingTransfers: [],
       userPermissions: {
         canUpdateApprovedIncomingTransfers: [],
         canUpdateApprovedOutgoingTransfers: [],

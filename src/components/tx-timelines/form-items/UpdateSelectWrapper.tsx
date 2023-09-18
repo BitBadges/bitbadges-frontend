@@ -1,18 +1,17 @@
-import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, PlusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Avatar, Switch, Tooltip, Typography } from 'antd';
+import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
+import { Avatar, Switch, Tooltip } from 'antd';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE } from '../../../constants';
-import { PermissionDisplay, getPermissionDataSource } from '../../collection-page/PermissionsInfo';
+import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
 import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
 
 export function UpdateSelectWrapper({
   updateFlag,
   setUpdateFlag,
-  existingCollectionId,
   node,
   jsonPropertyPath,
   permissionName,
@@ -28,7 +27,6 @@ export function UpdateSelectWrapper({
 }: {
   setUpdateFlag: (val: boolean) => void,
   updateFlag: boolean,
-  existingCollectionId?: bigint,
   node: JSX.Element,
   jsonPropertyPath: string,
   permissionName: string,
@@ -43,8 +41,10 @@ export function UpdateSelectWrapper({
   onlyShowJson?: boolean,
 }) {
   const collections = useCollectionsContext();
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
   const [err, setErr] = useState<string>('');
@@ -84,8 +84,8 @@ export function UpdateSelectWrapper({
     }
   }
 
-  const permissionDataSource = jsonPropertyPath === "defaultUserApprovedIncomingTransfersTimeline" ? undefined : getPermissionDataSource(
-    castFunction(existingCollection?.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions] ?? []),
+  const permissionDataSource = jsonPropertyPath === "defaultUserApprovedIncomingTransfers" ? undefined : getPermissionDetails(
+    castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
     flags as any
   );
 
@@ -128,15 +128,15 @@ export function UpdateSelectWrapper({
                       customRevertFunction();
                     } else {
 
-                      if (existingCollection && collection) {
-                        const existingValue = existingCollection[jsonPropertyPath as keyof typeof existingCollection];
+                      if (startingCollection && collection) {
+                        const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
                         collections.updateCollection({
                           ...collection,
                           [`${jsonPropertyPath}`]: existingValue
                         });
 
-                      } else if (collection && !existingCollection) {
+                      } else if (collection && !startingCollection) {
                         collections.updateCollection({
                           ...collection,
                           [`${jsonPropertyPath}`]: []
@@ -176,7 +176,7 @@ export function UpdateSelectWrapper({
                   }}
                 />
               </Tooltip>}
-            {updateFlag && jsonPropertyPath !== "defaultUserApprovedIncomingTransfersTimeline" &&
+            {updateFlag && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" &&
               <Tooltip
                 color='black'
                 placement='bottom'
@@ -221,9 +221,9 @@ export function UpdateSelectWrapper({
               title: 'Do Not Update',
               message: `This value will remain as previously set.
                   ${!existingCollectionId && permissionName != 'canUpdateManager'
-                  && jsonPropertyPath !== "defaultUserApprovedIncomingTransfersTimeline" ? ' For new collections, this means the value will be empty or unset.' : ''}
+                  && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" ? ' For new collections, this means the value will be empty or unset.' : ''}
                   ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}
-                  ${existingCollectionId && permissionName == 'defaultUserApprovedIncomingTransfersTimeline' ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
+                  ${existingCollectionId && permissionName == 'defaultUserApprovedIncomingTransfers' ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
                   `,
               isSelected: true,
             },
@@ -232,13 +232,13 @@ export function UpdateSelectWrapper({
           />
         </div>}
 
-      {showPermission && jsonPropertyPath !== "defaultUserApprovedIncomingTransfersTimeline" ? <>
+      {showPermission && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" ? <>
         <br />
         {
           PermissionDisplay(
             permissionName,
-            castFunction(existingCollection?.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions] ?? []),
-            '', flags as any,
+            castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
+            flags as any,
             undefined,
             undefined,
             mintOnly,
@@ -252,12 +252,10 @@ export function UpdateSelectWrapper({
       </>}
       {updateFlag && customJson && <>
         <JSONSetter
-          err={err}
           setErr={setErr}
           jsonPropertyPath={jsonPropertyPath}
           customValue={customValue}
           customSetValueFunction={customSetValueFunction}
-          customRevertFunction={customRevertFunction}
         />
 
         {err && <div className='flex-center' style={{ color: 'red' }}>

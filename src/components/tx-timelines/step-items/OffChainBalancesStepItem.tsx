@@ -41,8 +41,8 @@ export function OffChainBalancesStorageSelectStepItem() {
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uri])
+
   return {
     title: 'Off-Chain Balances Storage',
     description: `Choose your preferred storage method.`,
@@ -115,11 +115,6 @@ export function OffChainBalancesStorageSelectStepItem() {
           />
         </Form.Item>
       }
-
-
-
-
-
     </>,
     disabled: addMethod === MetadataAddMethod.None
   }

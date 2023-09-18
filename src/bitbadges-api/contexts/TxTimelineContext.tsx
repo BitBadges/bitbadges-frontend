@@ -1,12 +1,13 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovedTransferWithDetails, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
 import { getTotalNumberOfBadges } from '../utils/badges';
+import { getMintApprovedTransfers, getNonMintApprovedTransfers } from '../utils/mintVsNonMint';
 import { useAccountsContext } from './AccountsContext';
 import { useChainContext } from './ChainContext';
 import { useCollectionsContext } from './CollectionsContext';
@@ -36,7 +37,7 @@ export const MSG_PREVIEW_ID = 0n;
 
   Minor hacks applied:
   -badgesToCreate is exported in TxTimelineProps, and we automatically update "Mint" and "Total" balances to reflect the new total and mint balances
-  -merkleChallenges are handled via the collectionApprovedTransfersTimeline field of the collections from the collections context. Here, there is an extra field called details
+  -merkleChallenges are handled via the collectionApprovedTransfers field of the collections from the collections context. Here, there is an extra field called details
     which specifies extra details about the merkle challenge (name, description, password, preimage codes, etc). These are to be uploaded to IPFS but removed before creating the Msg.
   -transfers should only be used for off-chain balances
 
@@ -83,8 +84,8 @@ export interface UpdateFlags {
   setUpdateOffChainBalancesMetadataTimeline: (value: boolean) => void;
   updateCustomDataTimeline: boolean;
   setUpdateCustomDataTimeline: (value: boolean) => void;
-  updateCollectionApprovedTransfersTimeline: boolean;
-  setUpdateCollectionApprovedTransfersTimeline: (value: boolean) => void;
+  updateCollectionApprovedTransfers: boolean;
+  setUpdateCollectionApprovedTransfers: (value: boolean) => void;
   updateStandardsTimeline: boolean;
   setUpdateStandardsTimeline: (value: boolean) => void;
   updateContractAddressTimeline: boolean;
@@ -100,8 +101,8 @@ export interface BaseTxTimelineProps {
   existingCollectionId: bigint | undefined
   setExistingCollectionId: (existingCollectionId: bigint | undefined) => void
 
-  onFinish: (props: MsgUpdateCollectionProps) => void
-  setOnFinish: (onFinish: (props: MsgUpdateCollectionProps) => void) => void
+  startingCollection: BitBadgesCollection<bigint> | undefined
+  setStartingCollection: (startingCollection: BitBadgesCollection<bigint> | undefined) => void
 
   initialLoad: boolean
   setInitialLoad: (initialLoad: boolean) => void
@@ -116,6 +117,10 @@ export interface BaseTxTimelineProps {
 
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
+
+  approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]
+  setApprovedTransfersToAdd: (approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]) => void
+  resetApprovedTransfersToAdd: () => (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]
 }
 
 export type TxTimelineContextType = MsgUpdateCollectionProps;
@@ -125,8 +130,11 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   existingCollectionId: undefined,
   setExistingCollectionId: () => { },
 
-  onFinish: () => { },
-  setOnFinish: () => { },
+  approvedTransfersToAdd: [],
+  setApprovedTransfersToAdd: () => { },
+
+  startingCollection: undefined,
+  setStartingCollection: () => { },
 
   existingAddressMappingId: '',
   setExistingAddressMappingId: () => { },
@@ -149,8 +157,8 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   setUpdateOffChainBalancesMetadataTimeline: () => { },
   updateCustomDataTimeline: true,
   setUpdateCustomDataTimeline: () => { },
-  updateCollectionApprovedTransfersTimeline: true,
-  setUpdateCollectionApprovedTransfersTimeline: () => { },
+  updateCollectionApprovedTransfers: true,
+  setUpdateCollectionApprovedTransfers: () => { },
   updateStandardsTimeline: true,
   setUpdateStandardsTimeline: () => { },
   updateContractAddressTimeline: true,
@@ -184,7 +192,8 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   resetState: () => { },
 
   completeControl: false,
-  setCompleteControl: () => { }
+  setCompleteControl: () => { },
+  resetApprovedTransfersToAdd: () => []
 });
 
 type Props = {
@@ -197,11 +206,10 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const txType = 'UpdateCollection';
 
   const [existingCollectionId, setExistingCollectionId] = useState<bigint>();
-  const [onFinish, setOnFinish] = useState<(props: MsgUpdateCollectionProps) => void>();
   const [existingAddressMappingId, setExistingAddressMappingId] = useState<string>('');
   const [formStepNum, setFormStepNum] = useState(1);
 
-
+  const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
   const simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
 
@@ -222,8 +230,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     createdBy: chain.address
   })
 
-
-
   //The method used to add metadata to the collection and individual badges
   const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
 
@@ -238,13 +244,74 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline] = useState(true);
   const [updateOffChainBalancesMetadataTimeline, setUpdateOffChainBalancesMetadataTimeline] = useState(true);
   const [updateCustomDataTimeline, setUpdateCustomDataTimeline] = useState(true);
-  const [updateCollectionApprovedTransfersTimeline, setUpdateCollectionApprovedTransfersTimeline] = useState(true);
+  const [updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers] = useState(true);
   const [updateStandardsTimeline, setUpdateStandardsTimeline] = useState(true);
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
 
+  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>(
+    startingCollection ? getMintApprovedTransfers(startingCollection).map(x => {
+      return {
+        ...x,
+        balances: [{
+          //TODO: We should get rid of balances here
+          badgeIds: x.badgeIds,
+          ownershipTimes: x.ownershipTimes,
+          amount: 1n //will not matter
+        }]
+      }
+    }) : []
+  );
+
+  useEffect(() => {
+    resetApprovedTransfersToAdd();
+
+  }, [startingCollection]);
+
+  const resetApprovedTransfersToAdd = () => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
+    if (!startingCollection) return [];
+
+    //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
+    const existingFromMint = getMintApprovedTransfers(startingCollection);
+    const defaultApprovedTransfersToAdd = existingFromMint.map(x => {
+      return {
+        ...x,
+        balances: [{
+          //TODO: We should get rid of balances here
+          badgeIds: x.badgeIds,
+          ownershipTimes: x.ownershipTimes,
+          amount: 1n //will not matter
+        }]
+      }
+    })
+
+    setApprovedTransfersToAdd(defaultApprovedTransfersToAdd);
+
+    return deepCopy(defaultApprovedTransfersToAdd);
+  }
+  //This is the main useEffect where we update the collection with the new approved transfers
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
+    if (!simulatedCollection || distributionMethod === DistributionMethod.OffChainBalances) return;
+
+    const existingNonMint = getNonMintApprovedTransfers(simulatedCollection, true);
+
+    collections.updateCollection({
+      ...simulatedCollection,
+      collectionApprovedTransfers: [
+        // ...existingFromMint, //We included in approvedTransfersToAdd 
+        ...approvedTransfersToAdd, ...existingNonMint],
+    });
+  }, [approvedTransfersToAdd, distributionMethod]);
+
+
+
+
   function resetState() {
     setExistingCollectionId(undefined);
+    setStartingCollection(undefined);
     setExistingAddressMappingId('');
     setFormStepNum(1);
     setBadgesToCreate([]);
@@ -267,12 +334,14 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateBadgeMetadataTimeline(true);
     setUpdateOffChainBalancesMetadataTimeline(true);
     setUpdateCustomDataTimeline(true);
-    setUpdateCollectionApprovedTransfersTimeline(true);
+    setUpdateCollectionApprovedTransfers(true);
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
+    setDistributionMethod(DistributionMethod.None);
 
     setCompleteControl(false);
+    resetApprovedTransfersToAdd();
   }
 
   //Initial fetch of the address mapping we are updating if it exists
@@ -295,6 +364,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: inital load ');
     async function initialize() {
+
       setInitialLoad(false);
 
       const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
@@ -305,39 +375,11 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         }], true) : [];
       let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
-
-      //We also need to fetch all metadata for the collection and badges
       if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-        // let unhandledBadgeIds = [{ start: 1n, end: getTotalNumberOfBadges(existingCollection) }];
-
-        // let currMetadataId = 1n;
-        // existingCollection.cachedBadgeMetadata = [];
-        // while (unhandledBadgeIds.length > 0) {
-        //   console.time('fetchAndUpdateMetadata');
-        //   const res = await collections.fetchAndUpdateMetadata(existingCollectionId, { metadataIds: [{ start: currMetadataId, end: currMetadataId + 250n - 1n }] });
-        //   console.timeEnd('fetchAndUpdateMetadata');
-        //   console.time('updateBadgeMetadata');
-        //   if (res) {
-        //     existingCollection.cachedBadgeMetadata.push(...res[0].cachedBadgeMetadata); //Note we should normally use updateBadgeMetadata her, but we can safely assume that different metadata IDs will correspond to different URIs 
-        //     existingCollection.cachedCollectionMetadata = res[0].cachedCollectionMetadata;
-        //   }
-        //   console.timeEnd('updateBadgeMetadata');
-        //   console.time('removeUintRangeFromUintRange');
-        //   const [remaining,] = removeUintRangeFromUintRange(
-        //     sortUintRangesAndMergeIfNecessary(
-        //       existingCollection.cachedBadgeMetadata.map(x => x.badgeIds).flat()
-        //     ), unhandledBadgeIds);
-        //   unhandledBadgeIds = remaining;
-        //   console.log(unhandledBadgeIds);
-        //   console.timeEnd('removeUintRangeFromUintRange');
-        //   currMetadataId += 250n;
-        // }
-
-
         await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
       }
 
-      collections.updateCollection({
+      const startingCollection: BitBadgesCollection<bigint> = {
         //Default values for a new collection
         //If existing, they are overriden further below via the spread
         merkleChallenges: [],
@@ -364,8 +406,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           onChain: true,
           cosmosAddress: 'Total',
           balances: [],
-          approvedIncomingTransfersTimeline: [],
-          approvedOutgoingTransfersTimeline: [],
+          approvedIncomingTransfers: [],
+          approvedOutgoingTransfers: [],
           userPermissions: {
             canUpdateApprovedIncomingTransfers: [],
             canUpdateApprovedOutgoingTransfers: [],
@@ -377,8 +419,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           onChain: true,
           collectionId: 0n,
           balances: [],
-          approvedIncomingTransfersTimeline: [],
-          approvedOutgoingTransfersTimeline: [],
+          approvedIncomingTransfers: [],
+          approvedOutgoingTransfers: [],
           userPermissions: {
             canUpdateApprovedIncomingTransfers: [],
             canUpdateApprovedOutgoingTransfers: [],
@@ -386,7 +428,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           updateHistory: [],
         }],
         views: {},
-        collectionApprovedTransfersTimeline: [],
+        collectionApprovedTransfers: [],
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],
@@ -412,8 +454,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateOffChainBalancesMetadata: [],
           canUpdateStandards: [],
         },
-        defaultUserApprovedIncomingTransfersTimeline: [],
-        defaultUserApprovedOutgoingTransfersTimeline: [],
+        defaultUserApprovedIncomingTransfers: [],
+        defaultUserApprovedOutgoingTransfers: [],
         defaultUserPermissions: {
           canUpdateApprovedIncomingTransfers: [],
           canUpdateApprovedOutgoingTransfers: [],
@@ -431,7 +473,11 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         //Preview / simulated collection values
         _id: "0",
         collectionId: 0n
-      }, true);
+      }
+
+      setStartingCollection(deepCopy(startingCollection));
+      collections.updateCollection(startingCollection, true);
+
 
       setInitialLoad(true);
     }
@@ -450,9 +496,10 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
 
 
-    const _existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+    const _existingCollection = startingCollection;
     const _simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
     if (!_simulatedCollection) return;
+    if (!initialLoad) return;
 
     const existingCollection = _existingCollection ? deepCopy(_existingCollection) : undefined;
     const simulatedCollection = deepCopy(_simulatedCollection);
@@ -463,7 +510,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     const combinedClaims = [...(existingCollection?.merkleChallenges || []), ...simulatedCollection.merkleChallenges]
       //Remove duplicates  
       .filter(claim => {
-        return !simulatedCollection.merkleChallenges.some(claim2 => JSON.stringify(claim) === JSON.stringify(claim2));
+        return !simulatedCollection.merkleChallenges.some(claim2 => compareObjects(claim, claim2));
       });
     const newOwnersArr = incrementMintAndTotalBalances(0n, existingCollection?.owners ?? [], badgesToCreate);
 
@@ -502,7 +549,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     postSimulatedCollection.cachedBadgeMetadata = newBadgeMetadata;
 
     collections.updateCollection(postSimulatedCollection, true);
-  }, [existingCollectionId, badgesToCreate]);
+  }, [existingCollectionId, badgesToCreate, initialLoad, collections]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
@@ -514,9 +561,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         balancesType: "Off-Chain",
       });
 
-      setUpdateCollectionApprovedTransfersTimeline(false);
+      setUpdateCollectionApprovedTransfers(false);
     } else {
-      setUpdateCollectionApprovedTransfersTimeline(true);
+      setUpdateCollectionApprovedTransfers(true);
 
       collections.updateCollection({
         ...simulatedCollection,
@@ -529,8 +576,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //TODO: Make consistent with actual uploads
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: metadata size');
-    const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => JSON.stringify(x) === JSON.stringify(y)) === false);
-    const newCollectionMetadata = JSON.stringify(simulatedCollection?.cachedCollectionMetadata) !== JSON.stringify(existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
+    const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => compareObjects(x, y)) === false);
+    const newCollectionMetadata = !compareObjects(simulatedCollection?.cachedCollectionMetadata, existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
 
     setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
   }, [simulatedCollection, existingCollection]);
@@ -544,12 +591,15 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setDistributionMethod,
     metadataSize: size,
     existingCollectionId: existingCollectionId,
+    startingCollection,
+    setStartingCollection,
+
+    resetApprovedTransfersToAdd,
 
     transfers,
     setTransfers,
     badgesToCreate,
     setBadgesToCreate,
-    onFinish: onFinish ? onFinish : () => { },
 
     //Update flags
     updateCollectionPermissions,
@@ -564,8 +614,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateOffChainBalancesMetadataTimeline,
     updateCustomDataTimeline,
     setUpdateCustomDataTimeline,
-    updateCollectionApprovedTransfersTimeline,
-    setUpdateCollectionApprovedTransfersTimeline,
+    updateCollectionApprovedTransfers,
+    setUpdateCollectionApprovedTransfers,
     updateStandardsTimeline,
     setUpdateStandardsTimeline,
     updateContractAddressTimeline,
@@ -583,7 +633,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setExistingAddressMappingId,
 
     setExistingCollectionId: setExistingCollectionId,
-    setOnFinish: setOnFinish,
     initialLoad,
     setInitialLoad,
 
@@ -591,7 +640,10 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setFormStepNum,
 
     completeControl,
-    setCompleteControl
+    setCompleteControl,
+
+    approvedTransfersToAdd,
+    setApprovedTransfersToAdd
   }
 
   return <TxTimelineContext.Provider value={context}>

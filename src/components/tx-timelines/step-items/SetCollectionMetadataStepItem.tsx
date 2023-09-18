@@ -1,43 +1,40 @@
 import { Divider, Typography } from "antd";
-import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
+import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
-import { PermissionIcon, getPermissionDataSource, } from "../../collection-page/PermissionsInfo";
+import { PermissionIcon, getPermissionDetails, } from "../../collection-page/PermissionsInfo";
 import { ToolIcon } from "../../display/ToolIcon";
+import { ErrDisplay } from "../form-items/ErrDisplay";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
-export function SetCollectionMetadataStepItem(
-  addMethod: MetadataAddMethod,
-  canUpdateCollectionMetadata: boolean,
-  setCanUpdateCollectionMetadata: (canUpdateCollectionMetadata: boolean) => void,
-  existingCollectionId?: bigint,
-  hideCollectionSelect?: boolean,
-) {
+export function SetCollectionMetadataStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const collectionMetadata = collection?.cachedCollectionMetadata;
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
+  const existingCollectionId = txTimelineContext.existingCollectionId;
+  const canUpdateCollectionMetadata = txTimelineContext.updateCollectionMetadataTimeline;
+  const setCanUpdateCollectionMetadata = txTimelineContext.setUpdateCollectionMetadataTimeline;
+  const addMethod = txTimelineContext.addMethod;
+  const hideCollectionSelect = false;
 
-  const err = existingCollection && collection ? validateCollectionMetadataUpdate(existingCollection.collectionMetadataTimeline, collection.collectionMetadataTimeline, existingCollection.collectionPermissions.canUpdateCollectionMetadata) : undefined;
+  const err = startingCollection && collection ? validateCollectionMetadataUpdate(startingCollection.collectionMetadataTimeline, collection.collectionMetadataTimeline, startingCollection.collectionPermissions.canUpdateCollectionMetadata) : undefined;
 
   if (!collection) return EmptyStepItem
 
-  let canUpdateBadgeMetadataRes = getPermissionDataSource(
-    existingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
-    TimedUpdateWithBadgeIdsPermissionUsedFlags
+  const canUpdateBadgeMetadataRes = getPermissionDetails(
+    startingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
+    TimedUpdateWithBadgeIdsPermissionUsedFlags,
+    undefined,
+    [{ start: 1n, end: getTotalNumberOfBadges(collection) }]
   );
-  let maxBadgeId = getTotalNumberOfBadges(collection);
-  let toUpdateBadges = canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => {
-    const [remaining, removed] = removeUintRangeFromUintRange([{ start: 1n, end: maxBadgeId }], x.badgeIds ?? []);
 
-    return removed;
-  }).flat();
-  toUpdateBadges = sortUintRangesAndMergeIfNecessary(toUpdateBadges);
-
+  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat());
 
   return {
     title: 'Set Collection Metadata',
@@ -48,7 +45,7 @@ export function SetCollectionMetadataStepItem(
         {
           PermissionIcon(
             "canUpdateBadgeMetadata",
-            castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection?.collectionPermissions.canUpdateBadgeMetadata ?? []), '', TimedUpdateWithBadgeIdsPermissionUsedFlags
+            castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(startingCollection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags
           )
         }
       </> : <></>}
@@ -57,22 +54,12 @@ export function SetCollectionMetadataStepItem(
     node: <UpdateSelectWrapper
       updateFlag={canUpdateCollectionMetadata}
       setUpdateFlag={setCanUpdateCollectionMetadata}
-      existingCollectionId={existingCollectionId}
       jsonPropertyPath='collectionMetadataTimeline'
       permissionName='canUpdateCollectionMetadata'
       disableJson
       node={<>{
         collection && collectionMetadata && <div>
-          {err &&
-            <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>You are attempting to update a previously frozen value.
-              <br />
-
-              <br />
-
-
-              <Divider />
-            </div>}
+          <ErrDisplay err={err} />
 
           {addMethod === MetadataAddMethod.Manual &&
             <div>
@@ -85,10 +72,8 @@ export function SetCollectionMetadataStepItem(
           }
 
           <MetadataForm
-            collectionId={MSG_PREVIEW_ID}
             hideCollectionSelect={hideCollectionSelect}
             isCollectionSelect
-            addMethod={addMethod}
             badgeIds={toUpdateBadges}
           />
           <Divider />

@@ -47,7 +47,7 @@ function Update() {
                     }
                     collectionId={
                       !((id as string).indexOf("_") >= 0) ? BigInt(id as string) : undefined
-                    } txType='UpdateCollection' isModal={false} />
+                    } txType='UpdateCollection' />
 
                 </div>
               </Content>

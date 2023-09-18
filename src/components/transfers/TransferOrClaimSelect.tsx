@@ -2,7 +2,7 @@ import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, Warnin
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, filterZeroBalances, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getBalancesForIds, getCurrentIdxForTimeline, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, filterZeroBalances, getAllBalancesToBeTransferred, getBalancesAfterTransfers, getBalancesForIds, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
@@ -17,8 +17,8 @@ import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { TransferabilityTab } from '../collection-page/TransferabilityTab';
 import { Pagination } from '../common/Pagination';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { BalanceAmountInput } from '../inputs/BalanceAmountInput';
 import { BalanceInput } from '../inputs/BalanceInput';
-import { BalancesInput } from '../inputs/BalancesInput';
 import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimCodesSelectStep } from './ClaimCodesSelectStep';
@@ -104,6 +104,9 @@ export function TransferSelect({
   const [toAddresses, setToAddresses] = useState<string[]>([]);
   const [transfersToAdd, setTransfersToAdd] = useState<TransferWithIncrements<bigint>[]>([]);
 
+  const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
+  const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
+  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
   //Claim information - Not used if transfer select
   const [claimDetails, setClaimDetails] = useState<MerkleChallengeDetails<bigint>>({
@@ -124,7 +127,7 @@ export function TransferSelect({
   currTimeNextHour.setSeconds(0);
   currTimeNextHour.setMilliseconds(0);
 
-  const [claimTimeRange, setClaimTimeRange] = useState<UintRange<bigint>>({ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365), });
+  const [claimTimeRange, setClaimTimeRange] = useState<UintRange<bigint>[]>([{ start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365), }]);
   const [claimPassword, setClaimPassword] = useState('');
 
   const [numClaimsPerInitiatedByAddress, setNumClaimsPerInitiatedByAddress] = useState<bigint>(1n);
@@ -135,139 +138,6 @@ export function TransferSelect({
 
   const approvedTransfersForClaims = [];
   const merkleChallenges = [];
-
-
-  const currentApprovedTransfers = [];
-  const currIdx = getCurrentIdxForTimeline(collection?.collectionApprovedTransfersTimeline ?? []);
-  if (collection?.collectionApprovedTransfersTimeline && currIdx >= 0) {
-    currentApprovedTransfers.push(...collection.collectionApprovedTransfersTimeline[Number(currIdx)].collectionApprovedTransfers);
-  }
-
-  for (const approvedTransfer of currentApprovedTransfers) {
-    for (const approvalDetails of approvedTransfer.approvalDetails) {
-      for (const merkleChallenge of approvalDetails.merkleChallenges) {
-        merkleChallenges.push(merkleChallenge);
-        approvedTransfersForClaims.push(approvedTransfer);
-      }
-    }
-  }
-
-  // const numActiveClaims = approvedTransfersForClaims.length;
-
-  const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
-  const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-  const approvedTransferToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] }) = {
-    fromMappingId: sender,
-    fromMapping: getReservedAddressMapping(sender, "") as AddressMapping,
-    toMappingId: "AllWithMint",
-    toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-    initiatedByMappingId: "AllWithMint",
-    initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-    transferTimes: [claimTimeRange],
-    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    badgeIds: balances.map(x => x.badgeIds).flat(),
-    allowedCombinations: [{ isApproved: true, }],
-    approvalDetails: [{
-      approvalTrackerId: approvalTrackerId.current,
-      uri: '',
-      customData: '',
-      mustOwnBadges: [],
-      approvalAmounts: {
-        overallApprovalAmount: 0n,
-        perFromAddressApprovalAmount: 0n,
-        perToAddressApprovalAmount: 0n,
-        perInitiatedByAddressApprovalAmount: 0n,
-      },
-      maxNumTransfers: {
-        overallMaxNumTransfers: numRecipients,
-        perFromAddressMaxNumTransfers: 0n,
-        perToAddressMaxNumTransfers: numPerToAddress,
-        perInitiatedByAddressMaxNumTransfers: (distributionMethod === DistributionMethod.Codes && claimPassword)
-          ? 1n : numClaimsPerInitiatedByAddress,
-      },
-      predeterminedBalances: {
-        precalculationId: precalculationId.current,
-        manualBalances: [],
-        incrementedBalances: {
-          startBalances: balances.map((balance) => {
-            if (!increment || amountSelectType !== AmountSelectType.Increment) return balance;
-
-            return {
-              amount: balance.amount,
-              badgeIds: balance.badgeIds.map((uintRange) => {
-                return {
-                  start: uintRange.start,
-                  end: uintRange.start + increment - 1n,
-                }
-              }),
-              ownershipTimes: balance.ownershipTimes,
-            }
-          }),
-          incrementBadgeIdsBy: increment,
-          incrementOwnershipTimesBy: 0n,
-        },
-        orderCalculationMethod: {
-          useMerkleChallengeLeafIndex: orderMatters,
-          useOverallNumTransfers: !orderMatters,
-          usePerFromAddressNumTransfers: false,
-          usePerInitiatedByAddressNumTransfers: false,
-          usePerToAddressNumTransfers: false,
-        },
-      },
-      merkleChallenges: [{
-        root: '',
-        expectedProofLength: 0n,
-        details: claimDetails,
-        useCreatorAddressAsLeaf: false,
-        useLeafIndexForTransferOrder: orderMatters,
-        maxOneUsePerLeaf: true,
-        uri: '',
-        customData: '',
-        challengeId: challengeId.current.toString(),
-      }], //handled later
-      requireToEqualsInitiatedBy: requireToEqualsInitiatedBy,
-      requireFromEqualsInitiatedBy: false,
-      requireToDoesNotEqualInitiatedBy: requireToDoesNotEqualInitiatedBy,
-      requireFromDoesNotEqualInitiatedBy: false,
-
-
-      overridesToApprovedIncomingTransfers: false,
-      overridesFromApprovedOutgoingTransfers: true,
-    }],
-    balances: balances,
-  };
-
-  const onStepChange = (value: number) => {
-    setCurrentStep(value);
-  };
-
-  let totalNumBadges = 0n;
-  for (const balance of balances) {
-    for (const badgeUintRange of balance.badgeIds) {
-      totalNumBadges += badgeUintRange.end - badgeUintRange.start + 1n;
-    }
-  }
-
-  let convertedTransfers = transfers ?? [];
-  if (isClaimSelect) {
-    convertedTransfers = approvedTransfersToAdd?.map((claim) => {
-      return {
-        toAddresses: [],
-        toAddressesLength: 1n,
-        balances: getBalancesForIds(claim.balances.map(x => x.badgeIds).flat(), [{ start: 1n, end: GO_MAX_UINT_64 }], originalSenderBalances),
-        from: sender,
-        precalculationDetails: {
-          precalculationId: precalculationId.current,
-          approvalLevel: "collection",
-          approverAddress: ""
-        },
-
-        merkleProofs: [],
-        memo: "",
-      }
-    }) || [];
-  }
 
   //Whenever something changes, update the pre and post transfer balances
   useEffect(() => {
@@ -313,22 +183,6 @@ export function TransferSelect({
     setPostTransferBalance(postTransferBalanceObj);
     setPreTransferBalance(preTransferBalanceObj);
   }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalTrackerId]);
-
-  const postCurrTransferBalances = postTransferBalances?.map((balance) => {
-    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
-    return {
-      ...balance,
-      badgeIds: removed,
-    }
-  }).filter(x => x.badgeIds.length > 0) ?? [];
-
-  const preCurrTransferBalance = preTransferBalances?.map((balance) => {
-    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
-    return {
-      ...balance,
-      badgeIds: removed,
-    }
-  }).filter(x => x.badgeIds.length > 0) ?? [];
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: transfer or claim select, check warnings');
@@ -468,6 +322,148 @@ export function TransferSelect({
 
     setTransfersToAdd(newTransfersToAdd);
   }, [balances, numRecipients, increment, amountSelectType, toAddresses, doNotUseTransferWithIncrements, approvalTrackerId]);
+
+
+  const currentApprovedTransfers = collection?.collectionApprovedTransfers ?? [];
+
+  for (const approvedTransfer of currentApprovedTransfers) {
+    for (const approvalDetails of approvedTransfer.approvalDetails) {
+      for (const merkleChallenge of approvalDetails.merkleChallenges) {
+        merkleChallenges.push(merkleChallenge);
+        approvedTransfersForClaims.push(approvedTransfer);
+      }
+    }
+  }
+
+  const approvedTransferToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] }) = {
+    fromMappingId: sender,
+    fromMapping: getReservedAddressMapping(sender, "") as AddressMapping,
+    toMappingId: "AllWithMint",
+    toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    initiatedByMappingId: "AllWithMint",
+    initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    transferTimes: claimTimeRange,
+    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    badgeIds: balances.map(x => x.badgeIds).flat(),
+    allowedCombinations: [{ isApproved: true, }],
+    approvalDetails: [{
+      approvalTrackerId: approvalTrackerId.current,
+      uri: '',
+      customData: '',
+      mustOwnBadges: [],
+      approvalAmounts: {
+        overallApprovalAmount: 0n,
+        perFromAddressApprovalAmount: 0n,
+        perToAddressApprovalAmount: 0n,
+        perInitiatedByAddressApprovalAmount: 0n,
+      },
+      maxNumTransfers: {
+        overallMaxNumTransfers: numRecipients,
+        perFromAddressMaxNumTransfers: 0n,
+        perToAddressMaxNumTransfers: numPerToAddress,
+        perInitiatedByAddressMaxNumTransfers: (distributionMethod === DistributionMethod.Codes && claimPassword)
+          ? 1n : numClaimsPerInitiatedByAddress,
+      },
+      predeterminedBalances: {
+        precalculationId: precalculationId.current,
+        manualBalances: [],
+        incrementedBalances: {
+          startBalances: balances.map((balance) => {
+            if (!increment || amountSelectType !== AmountSelectType.Increment) return balance;
+
+            return {
+              amount: balance.amount,
+              badgeIds: balance.badgeIds.map((uintRange) => {
+                return {
+                  start: uintRange.start,
+                  end: uintRange.start + increment - 1n,
+                }
+              }),
+              ownershipTimes: balance.ownershipTimes,
+            }
+          }),
+          incrementBadgeIdsBy: increment,
+          incrementOwnershipTimesBy: 0n,
+        },
+        orderCalculationMethod: {
+          useMerkleChallengeLeafIndex: orderMatters,
+          useOverallNumTransfers: !orderMatters,
+          usePerFromAddressNumTransfers: false,
+          usePerInitiatedByAddressNumTransfers: false,
+          usePerToAddressNumTransfers: false,
+        },
+      },
+      merkleChallenges: [{
+        root: '',
+        expectedProofLength: 0n,
+        details: claimDetails,
+        useCreatorAddressAsLeaf: false,
+        useLeafIndexForTransferOrder: orderMatters,
+        maxOneUsePerLeaf: true,
+        uri: '',
+        customData: '',
+        challengeId: challengeId.current.toString(),
+      }], //handled later
+      requireToEqualsInitiatedBy: requireToEqualsInitiatedBy,
+      requireFromEqualsInitiatedBy: false,
+      requireToDoesNotEqualInitiatedBy: requireToDoesNotEqualInitiatedBy,
+      requireFromDoesNotEqualInitiatedBy: false,
+
+
+      overridesToApprovedIncomingTransfers: false,
+      overridesFromApprovedOutgoingTransfers: true,
+    }],
+    balances: balances,
+  };
+
+  const onStepChange = (value: number) => {
+    setCurrentStep(value);
+  };
+
+  let totalNumBadges = 0n;
+  for (const balance of balances) {
+    for (const badgeUintRange of balance.badgeIds) {
+      totalNumBadges += badgeUintRange.end - badgeUintRange.start + 1n;
+    }
+  }
+
+  let convertedTransfers = transfers ?? [];
+  if (isClaimSelect) {
+    convertedTransfers = approvedTransfersToAdd?.map((claim) => {
+      return {
+        toAddresses: [],
+        toAddressesLength: 1n,
+        balances: getBalancesForIds(claim.balances.map(x => x.badgeIds).flat(), [{ start: 1n, end: GO_MAX_UINT_64 }], originalSenderBalances),
+        from: sender,
+        precalculationDetails: {
+          precalculationId: precalculationId.current,
+          approvalLevel: "collection",
+          approverAddress: ""
+        },
+
+        merkleProofs: [],
+        memo: "",
+      }
+    }) || [];
+  }
+
+
+  const postCurrTransferBalances = postTransferBalances?.map((balance) => {
+    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
+    return {
+      ...balance,
+      badgeIds: removed,
+    }
+  }).filter(x => x.badgeIds.length > 0) ?? [];
+
+  const preCurrTransferBalance = preTransferBalances?.map((balance) => {
+    const [, removed] = removeUintRangeFromUintRange(balances.map(x => x.badgeIds).flat(), balance.badgeIds);
+    return {
+      ...balance,
+      badgeIds: removed,
+    }
+  }).filter(x => x.badgeIds.length > 0) ?? [];
+
 
   const uintRangesOverlap = checkIfUintRangesOverlap(balances[0]?.badgeIds || []);
   const uintRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
@@ -633,7 +629,7 @@ export function TransferSelect({
 
       <br />
       {numRecipients > 1 && !clicked ? <></> : <><div>
-        <BalancesInput
+        <BalanceAmountInput
           title={isClaimSelect ? 'Per-Claim Amount Transferred' : 'Amount Transferred'}
           balances={balances}
           setBalances={setBalances}
@@ -713,6 +709,7 @@ export function TransferSelect({
         {isClaimSelect ? <div>
           <ClaimDisplay
             approvedTransfer={approvedTransferToAdd}
+            approvalDetails={approvedTransferToAdd.approvalDetails[0]}
             collectionId={collectionId}
           />
         </div> :
@@ -898,6 +895,8 @@ export function TransferSelect({
                       <div className='flex-center flex-column full-width'>
                         {isClaimSelect && <div className='primary-text primary-blue-bg' >
                           <ClaimDisplay
+
+                            approvalDetails={approvedTransferToAdd.approvalDetails[0]}
                             approvedTransfer={transfer}
                             collectionId={collectionId}
                             noBorder

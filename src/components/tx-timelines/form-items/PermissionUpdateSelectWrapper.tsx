@@ -4,7 +4,7 @@ import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, Time
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
@@ -18,7 +18,6 @@ export function PermissionUpdateSelectWrapper({
   err,
   setErr,
   permissionName,
-  existingCollectionId,
   node,
 }: {
   checked: boolean,
@@ -26,11 +25,13 @@ export function PermissionUpdateSelectWrapper({
   err: Error | null,
   setErr: (err: Error | null) => void,
   permissionName: string,
-  existingCollectionId?: bigint,
   node: JSX.Element,
 }) {
   const collections = useCollectionsContext();
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const existingCollectionId = txTimelineContext.existingCollectionId;
+  const startingCollection = txTimelineContext.startingCollection;
+
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(true);
   const [customJson, setCustomJson] = useState<boolean>(false);
@@ -41,8 +42,8 @@ export function PermissionUpdateSelectWrapper({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: permission update select wrapper, collectionId changed ');
 
-    if (existingCollection && collection) {
-      const oldPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+    if (startingCollection && collection) {
+      const oldPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
       const newPermissions = collection.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
 
       let err = null;
@@ -77,7 +78,7 @@ export function PermissionUpdateSelectWrapper({
 
       setErr(err);
     }
-  }, [collection, existingCollection, permissionName]);
+  }, [collection, startingCollection, permissionName, setErr]);
 
   let castFunction: any = () => { }
   let flags;
@@ -129,10 +130,8 @@ export function PermissionUpdateSelectWrapper({
               unCheckedChildren="Do Not Update"
               onChange={(e) => {
                 setChecked(e);
-                if (existingCollection && collection) {
-
-
-                  const existingPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+                if (startingCollection && collection) {
+                  const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                   collections.updateCollection({
                     ...collection,
@@ -154,8 +153,8 @@ export function PermissionUpdateSelectWrapper({
                 src={<UndoOutlined style={{ fontSize: 16 }} />}
                 style={{ marginLeft: 10, cursor: 'pointer' }}
                 onClick={() => {
-                  if (existingCollection && collection) {
-                    const existingPermissions = existingCollection.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+                  if (startingCollection && collection) {
+                    const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                     collections.updateCollection({
                       ...collection,
@@ -164,7 +163,7 @@ export function PermissionUpdateSelectWrapper({
                         [`${permissionName}`]: existingPermissions
                       }
                     });
-                  } else if (collection && !existingCollection) {
+                  } else if (collection && !startingCollection) {
                     collections.updateCollection({
                       ...collection,
                       collectionPermissions: {
@@ -248,8 +247,8 @@ export function PermissionUpdateSelectWrapper({
               {PermissionDisplay(
                 permissionName,
                 castFunction(
-                  existingCollection?.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions] ?? []
-                ), '', flags as any
+                  startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []
+                ), flags as any
               )}
             </Col>
           </Row>
@@ -257,7 +256,6 @@ export function PermissionUpdateSelectWrapper({
 
       {checked && customJson && <>
         <JSONSetter
-          err={jsonErr}
           setErr={setJsonErr}
           jsonPropertyPath={permissionName}
           isPermissionUpdate
@@ -289,7 +287,6 @@ export function PermissionUpdateSelectWrapper({
       {checked && castFunction && flags && showBeforeAndAfter && <>
         <BeforeAfterPermission
           permissionName={permissionName}
-          existingCollectionId={existingCollectionId}
         />
       </>}
     </>

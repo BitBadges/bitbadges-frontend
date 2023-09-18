@@ -1,14 +1,9 @@
 import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUpdateCollection";
 
-export function CreateCollectionStepItem(
-  collectionId?: bigint,
-
-) {
+export function CreateCollectionStepItem() {
   return {
     title: 'Submit Transaction',
     description: '',
-    node: <SubmitMsgNewCollection
-      collectionId={collectionId}
-    />
+    node: <SubmitMsgNewCollection    />
   }
 }

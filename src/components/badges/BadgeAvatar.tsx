@@ -1,10 +1,10 @@
 import { ClockCircleOutlined, CloudSyncOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Spin, Tooltip } from "antd";
 import { Balance } from "bitbadgesjs-proto";
-import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId } from "bitbadgesjs-utils";
+import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId, isFullUintRanges } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
-import { GO_MAX_UINT_64, getTimeRangesString } from "../../utils/dates";
+import { getTimeRangesString } from "../../utils/dates";
 
 export function BadgeAvatar({
   collectionId,
@@ -34,7 +34,7 @@ export function BadgeAvatar({
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
-  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => x.ownershipTimes.length == 1 && x.ownershipTimes[0].start !== 1n && x.ownershipTimes[0].end !== GO_MAX_UINT_64) : false;
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => !isFullUintRanges(x.ownershipTimes)) : false;
 
   const avatar = <Avatar
     style={{

@@ -1,5 +1,6 @@
-import { Button, Divider, Empty } from 'antd';
-import { CodesAndPasswords, MerkleChallengeWithDetails, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Button, Divider, Empty, Spin } from 'antd';
+import { CodesAndPasswords, CollectionApprovedTransferWithDetails, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -11,7 +12,6 @@ import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { WarningOutlined } from '@ant-design/icons';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -30,37 +30,46 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
   const [recipient, setRecipient] = useState<string>(chain.address);
+  const [approvalDetailsIdx, setApprovalDetailsIdx] = useState<number>(0);
 
   const collection = collections.collections[collectionId.toString()]
 
-  const approvedTransfersForClaims = [];
-  const merkleChallenges: MerkleChallengeWithDetails<bigint>[] = [];
+  const approvedTransfersForClaims: CollectionApprovedTransferWithDetails<bigint>[] = [];
 
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? "";
-  const approvedTransfers = getCurrentValueForTimeline(collection?.collectionApprovedTransfersTimeline ?? [])?.collectionApprovedTransfers ?? [];
+  const approvedTransfers = collection?.collectionApprovedTransfers ?? [];
 
-  //TODO: This is hardcoded for length == 0 for now
   for (const approvedTransfer of approvedTransfers) {
-    for (const approvalDetails of approvedTransfer.approvalDetails) {
-      if (approvedTransfer.fromMappingId === "Mint" && approvedTransfer.initiatedByMappingId !== "Manager") {
-        merkleChallenges.push(...approvalDetails.merkleChallenges);
-        approvedTransfersForClaims.push(approvedTransfer);
-      }
+    if (approvedTransfer.approvalDetails.find(x => x.predeterminedBalances.precalculationId)) {
+      approvedTransfersForClaims.push(approvedTransfer);
     }
   }
 
   const numActiveClaims = approvedTransfersForClaims.length;
-  const numMerkleChallenges = merkleChallenges.length;
 
-  const claimItem = numActiveClaims > currPage - 1 ? merkleChallenges[currPage - 1] : undefined;
+
+  useEffect(() => {
+    if (approvalDetailsIdx >= approvedTransfersForClaims[currPage - 1]?.approvalDetails.length) {
+      setApprovalDetailsIdx(0);
+    }
+  }, [currPage])
+
   const approvedTransferItem = numActiveClaims > currPage - 1 ? approvedTransfersForClaims[currPage - 1] : undefined;
+  const approvalDetails = approvedTransferItem?.approvalDetails[approvalDetailsIdx];
+
+  //TODO: This is hardcoded for only one merkle challenge. Technically an assumption, although it is a rare case where they may have more than one.
+  const claimItem = (approvalDetails?.merkleChallenges ?? [])?.length > 0 ? approvalDetails?.merkleChallenges[0] : undefined;
   const query = router.query;
+  const hasMerkleChallenge = approvedTransfers.find(x => x.approvalDetails.find(y => y.merkleChallenges.length > 0));
 
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
     if (query.claimId && typeof query.claimId === 'string') {
-      const idx = merkleChallenges.findIndex((x) => x.challengeId === query.claimId);
+      const idx = approvedTransfers.findIndex((x) => x.approvalDetails.find(y => y.merkleChallenges.find(z => z.challengeId === query.claimId)));
+      const approvalIdx = approvedTransfers[idx]?.approvalDetails.findIndex(y => y.merkleChallenges.find(z => z.challengeId === query.claimId));
+
+      if (approvalIdx >= 0) setApprovalDetailsIdx(approvalIdx);
       if (idx >= 0) setCurrPage(idx + 1);
     }
   }, [query.claimId]);
@@ -88,6 +97,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
     isRefreshing = true;
   }
 
+  if (!collection) return <Spin />
+
   return (
     <div className='primary-text'
       style={{
@@ -103,12 +114,29 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       </>}
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} showOnSinglePage />
       <br />
+      {approvedTransfersForClaims[currPage - 1].approvalDetails.length > 1 && <>
+        <div className=''>
+          <br />
+          <b>Approval Criteria #{approvalDetailsIdx + 1}</b>
+          <br />
+          <InfoCircleOutlined style={{ marginRight: '8px' }} /> Only one of the {approvedTransfersForClaims[currPage - 1].approvalDetails.length} approvals needs to be satisfied to claim this badge.
+          <Pagination currPage={approvalDetailsIdx + 1} onChange={
+            (page) => {
+              setApprovalDetailsIdx(page - 1);
+            }
+          }
+            total={approvedTransfersForClaims[currPage - 1].approvalDetails.length} pageSize={1} showOnSinglePage />
+          <br />
+        </div>
+      </>}
+
       <div className='flex-center'>
-        {approvedTransfersForClaims[currPage - 1] &&
+        {approvedTransfersForClaims[currPage - 1] && approvalDetails &&
           <>
             <ClaimDisplay
               collectionId={collectionId}
               approvedTransfer={approvedTransfersForClaims[currPage - 1]}
+              approvalDetails={approvalDetails}
               openModal={(_x: any, leafIndex?: number) => {
                 setWhitelistIndex(leafIndex);
                 setModalVisible(true);
@@ -125,7 +153,18 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
         }
 
       </div>
-
+      {/* <Divider />
+      <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Approvals</Typography.Text>
+      <br />
+      <br />
+      {
+        <div className='flex-center full-width'>
+          {getApprovalsDisplay(
+            [approvedTransfersForClaims[currPage - 1]],
+            collection,
+          )}
+        </div>
+      } */}
       {
         numActiveClaims == 0 && <Empty
           className='primary-text'
@@ -133,13 +172,15 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       }
+
+
       <DevMode obj={claimItem} />
       <CreateTxMsgClaimBadgeModal
         collectionId={collectionId}
         visible={modalVisible}
         setVisible={setModalVisible}
         code={code}
-        approvedTransfer={approvedTransferItem}
+        approvalDetails={approvedTransferItem?.approvalDetails[approvalDetailsIdx]}
         claimItem={claimItem}
         whitelistIndex={whitelistIndex}
         recipient={recipient}
@@ -147,7 +188,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       <Divider />
       <div className='flex-center'>
 
-        {!isModal && currentManager === chain.cosmosAddress && numMerkleChallenges > 0 && <div>
+        {!isModal && currentManager === chain.cosmosAddress && hasMerkleChallenge && <div>
           {"To distribute the codes and/or passwords, click the button below. This is a manager-only privilege."}
           <br />
           <Button
@@ -167,7 +208,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
           />
           <Divider />
         </div>}
-        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && merkleChallenges.length > 0 && <div>
+        {!isModal && currentManager !== chain.cosmosAddress && numActiveClaims > 0 && hasMerkleChallenge && <div>
           {"If you are the manager of this collection, please connect your wallet to distribute the codes/password."}
         </div>}
       </div>

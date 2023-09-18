@@ -1,4 +1,4 @@
-import { Col, Modal, Row, Spin, Tooltip, Typography, notification } from "antd";
+import { Modal, Spin, Tooltip, Typography, notification } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, Numberify, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
@@ -13,12 +13,11 @@ import { updateAccountInfo } from "../../bitbadges-api/api";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
+import { AddressDisplay } from "../address/AddressDisplay";
 import { Pagination } from "../common/Pagination";
-import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
-import { AddressDisplay } from "../address/AddressDisplay";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -53,7 +52,8 @@ export function MultiCollectionBadgeDisplay({
   const [currPage, setCurrPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
   const [loaded, setLoaded] = useState<boolean>(false); //Total number of badges in badgeIds[]
-  const [pageSize, setPageSize] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
+  // const [pageSize, setPageSize] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
+  const pageSize = defaultPageSize
 
   //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<{

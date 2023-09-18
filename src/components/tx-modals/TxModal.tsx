@@ -305,8 +305,6 @@ export function TxModal(
           </div>
         }
 
-        <br />
-
         <div style={{ textAlign: 'center' }} className='primary-text'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
             This transaction is to be signed by:
@@ -331,7 +329,7 @@ export function TxModal(
               <InputNumber
                 value={Numberify(txDetails.fee.amount)}
                 onChange={(value) => {
-                  
+
 
                   value = value ? Math.round(value) : 0;
                   setAmount(BigInt(value));
@@ -429,20 +427,22 @@ export function TxModal(
   const innerContent = <>
     {children}
 
-    <Steps
-      current={currentStep}
-      onChange={onStepChange}
-      type='navigation'
-    >
-      {msgSteps && [...msgSteps, finalSubmitStep].map((item, index) => (
-        <Step
-          key={index}
-          title={<b>{item.title}</b>}
-          disabled={msgSteps && [...msgSteps, finalSubmitStep].find((step, idx) => step.disabled && idx < index) ? true : false}
-        />
-      ))}
+    {msgSteps && msgSteps.length > 0 && <>
+      <Steps
+        current={currentStep}
+        onChange={onStepChange}
+        type='navigation'
+      >
+        {msgSteps && [...msgSteps, finalSubmitStep].map((item, index) => (
+          <Step
+            key={index}
+            title={<b>{item.title}</b>}
+            disabled={msgSteps && [...msgSteps, finalSubmitStep].find((step, idx) => step.disabled && idx < index) ? true : false}
+          />
+        ))}
 
-    </Steps>
+      </Steps>
+    </>}
     <div className='primary-text'>
       <br />
       {<div>

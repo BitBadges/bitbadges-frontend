@@ -1,9 +1,8 @@
+import { ClockCircleOutlined, ContactsOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Layout, Row, Typography } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import { NextPage } from 'next/types';
-import { ClockCircleOutlined, ContactsOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, FormOutlined, GlobalOutlined, SwapOutlined, SyncOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';

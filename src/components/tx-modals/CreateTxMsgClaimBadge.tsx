@@ -1,5 +1,6 @@
+import { notification } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovedTransferWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { ApprovalDetailsWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
@@ -8,19 +9,17 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
-import { notification } from 'antd';
 
-//TODO: support multiple challenges per claim
-//TODO: handle used claim codes
+//TODO: This only supports one specific merkle challenge so will fail when > 1 bc claimItem is singular
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvedTransfer, claimItem, code, whitelistIndex, recipient
+    collectionId, visible, setVisible, children, approvalDetails, claimItem, code, whitelistIndex, recipient
   }: {
     collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
-    approvedTransfer?: CollectionApprovedTransferWithDetails<bigint>,
+    approvalDetails?: ApprovalDetailsWithDetails<bigint>,
     claimItem?: MerkleChallengeWithDetails<bigint>,
     code: string
     whitelistIndex?: number
@@ -31,11 +30,10 @@ export function CreateTxMsgClaimBadgeModal(
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
 
-  // const approvalTrackerId = approvedTransfer?.approvalDetails[0].approvalTrackerId;
-  const precalculationId = approvedTransfer?.approvalDetails[0].predeterminedBalances.precalculationId;
+  const precalculationId = approvalDetails?.predeterminedBalances.precalculationId;
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
-  const requiresProof = (approvedTransfer?.approvalDetails[0].merkleChallenges ?? []).length > 0;
+  const requiresProof = (approvalDetails?.merkleChallenges ?? []).length > 0;
 
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(

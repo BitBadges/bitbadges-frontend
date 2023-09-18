@@ -2,11 +2,13 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { Tooltip } from "antd";
+import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-export function MetadataStorageSelectStepItem(
-  addMethod: MetadataAddMethod,
-  setAddMethod: (addMethod: MetadataAddMethod) => void
-) {
+export function MetadataStorageSelectStepItem() {
+  const txTimelineContext = useTxTimelineContext();
+  const addMethod = txTimelineContext.addMethod;
+  const setAddMethod = txTimelineContext.setAddMethod;
+
   return {
     title: 'Metadata Storage',
     description: `For setting / updating metadata in the following steps, choose your preferred storage method.`,

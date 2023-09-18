@@ -1,5 +1,4 @@
 import { Card, Col, Row, Typography } from 'antd';
-import Meta from 'antd/lib/card/Meta';
 import { ReactNode } from 'react';
 
 
@@ -21,7 +20,6 @@ export function SwitchForm({
   helperMessage?: string;
   showCustomOption?: boolean;
 }) {
-
   if (showCustomOption && options.every(x => !x.isSelected)) {
     options.push({
       title: 'Custom',
@@ -39,7 +37,6 @@ export function SwitchForm({
             textAlign: 'center',
             alignItems: 'normal',
             overflowWrap: 'break-word',
-
           }}
         >
           {options.map((option, index) => {
@@ -59,8 +56,8 @@ export function SwitchForm({
                   if (option.disabled) {
                     return;
                   }
+                  // setCurrentSelected([index]);
                   onSwitchChange(index, option.title);
-                  // setCanShowSelected(true);
                 }}
               >
                 <div className='primary-text'

@@ -1,3 +1,4 @@
+import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export enum MintType {
@@ -6,10 +7,10 @@ export enum MintType {
   Attestation = 'Attestation',
 }
 
-export function ChooseBadgeTypeStepItem(
-  mintType: MintType,
-  setMintType: (mintType: MintType) => void,
-) {
+export function ChooseBadgeTypeStepItem() {
+  const txTimelineContext = useTxTimelineContext();
+  const mintType = txTimelineContext.mintType;
+  const setMintType = txTimelineContext.setMintType;
 
   return {
     title: 'Choose Type',

@@ -87,6 +87,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>) => {
+
+    console.log("new collection", newCollection);
     let cachedCollection = collections[`${newCollection.collectionId}`];
     const cachedCollectionCopy = deepCopy(cachedCollection);
 

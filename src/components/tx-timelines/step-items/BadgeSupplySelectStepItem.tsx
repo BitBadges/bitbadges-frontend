@@ -1,24 +1,26 @@
 import { Divider } from "antd";
-import { Balance } from "bitbadgesjs-proto";
 import { checkBalancesActionPermission, deepCopyBalances } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { DevMode } from "../../common/DevMode";
 import { BalanceInput } from "../../inputs/BalanceInput";
 import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { ErrDisplay } from "../form-items/ErrDisplay";
 
-export function BadgeSupplySelectStepItem(
-  badgesToCreate: Balance<bigint>[],
-  setBadgesToCreate: (badgesToCreate: Balance<bigint>[]) => void,
-  existingCollectionId?: bigint,
-) {
+export function BadgeSupplySelectStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[0n.toString()];
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
+  const existingCollectionId = txTimelineContext.existingCollectionId;
+  const badgesToCreate = txTimelineContext.badgesToCreate;
+  const setBadgesToCreate = txTimelineContext.setBadgesToCreate;
+
   const balancesToShow = collection?.owners.find(x => x.cosmosAddress === "Total")?.balances || []
 
-  const err = existingCollection ? checkBalancesActionPermission(badgesToCreate, existingCollection.collectionPermissions.canCreateMoreBadges) : undefined;
+  const err = startingCollection ? checkBalancesActionPermission(badgesToCreate, startingCollection.collectionPermissions.canCreateMoreBadges) : undefined;
   const [updateFlag, setUpdateFlag] = useState<boolean>(true);
 
   return {
@@ -27,7 +29,6 @@ export function BadgeSupplySelectStepItem(
     node: <UpdateSelectWrapper
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
-      existingCollectionId={existingCollectionId}
       jsonPropertyPath=''
       permissionName='canCreateMoreBadges'
       validationErr={err}
@@ -53,22 +54,11 @@ export function BadgeSupplySelectStepItem(
       node={
 
         <div className='primary-text'>
-
-          {err &&
-            <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>You are attempting to update a previously frozen value.
-              <br />
-              <p>Please remove the conflicting created badges. Note this is just one error and there may be multiple errors.</p>
-
-            </div>}
-
-
-
+          <ErrDisplay err={err} />
           <BalanceInput
             balancesToShow={balancesToShow}
             onAddBadges={(balance) => {
               setBadgesToCreate(deepCopyBalances([...badgesToCreate, balance]));
-              // console.log(deepCopyBalances([...badgesToCreate, balance]));
             }}
             onRemoveAll={() => {
               setBadgesToCreate([]);
@@ -80,6 +70,6 @@ export function BadgeSupplySelectStepItem(
         </div >
       }
     />,
-    disabled: (!existingCollection && badgesToCreate?.length == 0) || !!err,
+    disabled: (!existingCollectionId && badgesToCreate?.length == 0) || !!err,
   }
 }

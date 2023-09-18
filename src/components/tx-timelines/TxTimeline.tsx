@@ -7,14 +7,11 @@ import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 export function TxTimeline({
   txType,
   collectionId,
-  onFinish,
-  isModal,
   addressMappingId,
 }: {
   txType: 'UpdateCollection'
   collectionId?: bigint,
   onFinish?: ((props: MsgUpdateCollectionProps) => void),
-  isModal?: boolean,
   addressMappingId?: string,
 }) {
   const txTimelineContext = useTxTimelineContext();
@@ -22,7 +19,6 @@ export function TxTimeline({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: tx timeline, collectionId changed ');
     if (!txTimelineContext) return;
-    if (onFinish) txTimelineContext.setOnFinish(onFinish);
     if (addressMappingId && txTimelineContext.existingAddressMappingId !== addressMappingId) {
       txTimelineContext.setExistingAddressMappingId(addressMappingId);
       txTimelineContext.setFormStepNum(1);
@@ -36,7 +32,6 @@ export function TxTimeline({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: tx timeline, collectionId changed ');
     if (!txTimelineContext) return;
-    if (onFinish) txTimelineContext.setOnFinish(onFinish);
     if (addressMappingId && txTimelineContext.existingAddressMappingId !== addressMappingId) {
       txTimelineContext.setExistingAddressMappingId(addressMappingId);
       txTimelineContext.setFormStepNum(1);
@@ -55,7 +50,7 @@ export function TxTimeline({
   </div>
 
   if (txType === 'UpdateCollection') {
-    return <UpdateCollectionTimeline isModal={isModal ? true : false} />
+    return <UpdateCollectionTimeline />
   } else {
     return <></>
   }

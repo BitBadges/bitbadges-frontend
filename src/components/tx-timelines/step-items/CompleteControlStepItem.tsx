@@ -1,13 +1,14 @@
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
-export function ChooseControlTypeStepItem(
-  completeControl: boolean,
-  setCompleteControl: (completeControl: boolean) => void,
-) {
+export function ChooseControlTypeStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+
+  const txTimelineContext = useTxTimelineContext();
+  const completeControl = txTimelineContext.completeControl;
+  const setCompleteControl = txTimelineContext.setCompleteControl;
 
   return {
     title: 'Complete Control?',

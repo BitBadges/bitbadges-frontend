@@ -1,13 +1,13 @@
-import { ClockCircleOutlined, DownOutlined, FieldTimeOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Divider, Empty, Select, Tooltip, Typography } from 'antd';
-import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovedTransferTimelineWithDetails, CollectionApprovedTransferWithDetails, NumberType, UserApprovedIncomingTransferTimelineWithDetails, UserApprovedIncomingTransferWithDetails, UserApprovedOutgoingTransferTimelineWithDetails, UserApprovedOutgoingTransferWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getCurrentIdxForTimeline, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Divider, Empty, Typography } from 'antd';
+import { AddressMapping, ApprovalTrackerIdDetails, NumberType } from 'bitbadgesjs-proto';
+import { BitBadgesCollection, CollectionApprovedTransferWithDetails, UserApprovedIncomingTransferWithDetails, UserApprovedOutgoingTransferWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getFirstMatchForUserIncomingApprovedTransfers, getFirstMatchForUserOutgoingApprovedTransfers, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
-import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { Tabs } from '../navigation/Tabs';
@@ -15,37 +15,10 @@ import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
 
 
-export const getApprovalsDisplay = (timeline:
-  UserApprovedIncomingTransferTimelineWithDetails<bigint>[] | UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]
-  | CollectionApprovedTransferTimelineWithDetails<bigint>[], convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[], defaultOutgoingIdx: number, setDefaultOutgoingIdx: (idx: number) => void, collection: BitBadgesCollection<bigint>, badgeId?: bigint,
-  isClaimSelect?: boolean
-  ) => {
-  return <> {collection && ((timeline.length > 1)) ?
-    <>
-      <Select
-        className="selector primary-text primary-blue-bg"
-        style={{ marginLeft: 4 }}
-        defaultValue={defaultOutgoingIdx}
-        onChange={(value) => {
-          setDefaultOutgoingIdx(Number(value));
-        }}
-        suffixIcon={
-          <DownOutlined
-            className='primary-text'
-          />
-        }
-      >
-        {timeline.map((timeline, idx) => {
-          return <Select.Option key={idx} value={idx}>{getTimeRangesElement(timeline.timelineTimes, '', true)}</Select.Option>
-        })}
-      </Select>
-      <br />
-      <br />
-    </> : <> </>
-  }
-
-
-
+export const getApprovalsDisplay = (convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[], collection: BitBadgesCollection<bigint>, badgeId?: bigint,
+  filterFromMint?: boolean
+) => {
+  return <>
     {/* //TODO:  User permissions */}
     {/* <Divider />
 <p>Note: Go to permissions on the overview tab to see if these currently set values can be changed or not by the manager.</p> */}
@@ -57,7 +30,7 @@ export const getApprovalsDisplay = (timeline:
         <br />
         {
           convertedFirstMatches.map((x, idx) => {
-            const result = <TransferabilityRow transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} />
+            const result = <TransferabilityRow transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
             return result
           })
         }
@@ -77,10 +50,10 @@ export function UserApprovalsTab({ collectionId,
   badgeId?: bigint,
   isIncomingApprovalEdit?: boolean,
   isOutgoingApprovalEdit?: boolean,
-  userApprovedIncomingTransfers?: UserApprovedIncomingTransferTimelineWithDetails<bigint>[],
-  userApprovedOutgoingTransfers?: UserApprovedOutgoingTransferTimelineWithDetails<bigint>[],
-  setUserApprovedIncomingTransfers?: (approvedIncomingTransfers: UserApprovedIncomingTransferTimelineWithDetails<bigint>[]) => void,
-  // setUserApprovedOutgoingTransfers?: (approvedOutgoingTransfers: UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]) => void,
+  userApprovedIncomingTransfers?: UserApprovedIncomingTransferWithDetails<bigint>[],
+  userApprovedOutgoingTransfers?: UserApprovedOutgoingTransferWithDetails<bigint>[],
+  setUserApprovedIncomingTransfers?: (approvedIncomingTransfers: UserApprovedIncomingTransferWithDetails<bigint>[]) => void,
+  // setUserApprovedOutgoingTransfers?: (approvedOutgoingTransfers: UserApprovedOutgoingTransferWithDetails<bigint>[]) => void,
 }) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
@@ -92,35 +65,14 @@ export function UserApprovalsTab({ collectionId,
   const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
 
   const approverAccount = address ? accounts.getAccount(address) : undefined;
-  const approvedOutgoingTransfersTimeline = userApprovedOutgoingTransfers ? userApprovedOutgoingTransfers :
-    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
-  const approvedIncomingTransfersTimeline = userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
-    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
+  const approvedOutgoingTransfers = userApprovedOutgoingTransfers ? userApprovedOutgoingTransfers :
+    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfers ?? [];
+  const approvedIncomingTransfers = userApprovedIncomingTransfers ? userApprovedIncomingTransfers :
+    collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfers ?? [];
   const updateHistory = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.updateHistory ?? [];
 
-  const currOutgoingTransferabilityIdx = getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline);
-  const currIncomingTransferabilityIdx = getCurrentIdxForTimeline(approvedIncomingTransfersTimeline);
-
-
-  const [defaultOutgoingIdx, setDefaultOutgoingIdx] = useState<number>(Number(currOutgoingTransferabilityIdx));
-  const [defaultIncomingIdx, setDefaultIncomingIdx] = useState<number>(Number(currIncomingTransferabilityIdx));
-  // const [approvedIncomingUsers, setApprovedIncomingUsers] = useState<string[]>([]);
-
-  // const [showAllPossible, setShowAllPossible] = useState<boolean>(true);
   const showAllPossible = true;
 
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers a');
-
-    if (collectionId > 0) {
-      const approvedOutgoingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedOutgoingTransfersTimeline ?? [];
-      const approvedIncomingTransfersTimeline = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.approvedIncomingTransfersTimeline ?? [];
-
-      setDefaultIncomingIdx(Number(getCurrentIdxForTimeline(approvedIncomingTransfersTimeline)));
-      setDefaultOutgoingIdx(Number(getCurrentIdxForTimeline(approvedOutgoingTransfersTimeline)));
-    }
-  }, [collectionId, approvedIncomingTransfersTimeline, approvedOutgoingTransfersTimeline]);
 
 
   useEffect(() => {
@@ -130,53 +82,53 @@ export function UserApprovalsTab({ collectionId,
       return;
     }
 
-    function fetchTrackers(approvedTransfersTimeline: UserApprovedIncomingTransferTimelineWithDetails<bigint>[] | UserApprovedOutgoingTransferTimelineWithDetails<bigint>[], approvalLevel: string) {
-      const idx = getCurrentIdxForTimeline(approvedTransfersTimeline);
-      const defaultIdx = idx < 0 ? 0 : idx;
+    function fetchTrackers(_approvedTransfers: UserApprovedIncomingTransferWithDetails<bigint>[] | UserApprovedOutgoingTransferWithDetails<bigint>[], approvalLevel: string) {
 
-      if (collection && approvedTransfersTimeline.length > 0) {
+      if (collection && _approvedTransfers.length > 0) {
         const approvedTransfersCasted = approvalLevel === "outgoing" ?
-          (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedOutgoingTransfers as UserApprovedOutgoingTransferWithDetails<bigint>[]
-          : (approvedTransfersTimeline[Number(defaultIdx)] as any).approvedIncomingTransfers as UserApprovedIncomingTransferWithDetails<bigint>[];
+          _approvedTransfers as UserApprovedOutgoingTransferWithDetails<bigint>[]
+          : _approvedTransfers as UserApprovedIncomingTransferWithDetails<bigint>[];
 
         const approvedTransfers = (approvedTransfersCasted as UserApprovedIncomingTransferWithDetails<bigint>[]).filter(x => x.approvalDetails.length > 0)
 
         const approvalsIdsToFetch = approvedTransfers.flatMap(approvedTransfer => {
-          const approvalTrackerId = approvedTransfer.approvalDetails[0].approvalTrackerId;
-          return [
-            {
-              collectionId,
-              approvalTrackerId,
-              approvalLevel,
-              approvedAddress: "",
-              approverAddress: approverAccount?.cosmosAddress,
-              trackerType: "overall",
-            },
-            {
-              collectionId,
-              approvalTrackerId,
-              approvalLevel,
-              approvedAddress: chain.cosmosAddress,
-              approverAddress: approverAccount?.cosmosAddress,
-              trackerType: "initiatedBy",
-            },
-            {
-              collectionId,
-              approvalTrackerId,
-              approvalLevel,
-              approvedAddress: chain.cosmosAddress,
-              approverAddress: approverAccount?.cosmosAddress,
-              trackerType: "to",
-            },
-            {
-              collectionId,
-              approvalTrackerId,
-              approvalLevel,
-              approvedAddress: chain.cosmosAddress,
-              approverAddress: approverAccount?.cosmosAddress,
-              trackerType: "from",
-            },
-          ] as ApprovalTrackerIdDetails<NumberType>[]
+          return approvedTransfer.approvalDetails.map(x => {
+            const approvalTrackerId = x.approvalTrackerId;
+            return [
+              {
+                collectionId,
+                approvalTrackerId,
+                approvalLevel,
+                approvedAddress: "",
+                approverAddress: approverAccount?.cosmosAddress,
+                trackerType: "overall",
+              },
+              {
+                collectionId,
+                approvalTrackerId,
+                approvalLevel,
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: approverAccount?.cosmosAddress,
+                trackerType: "initiatedBy",
+              },
+              {
+                collectionId,
+                approvalTrackerId,
+                approvalLevel,
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: approverAccount?.cosmosAddress,
+                trackerType: "to",
+              },
+              {
+                collectionId,
+                approvalTrackerId,
+                approvalLevel,
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: approverAccount?.cosmosAddress,
+                trackerType: "from",
+              },
+            ] as ApprovalTrackerIdDetails<NumberType>[]
+          }).flat();
         });
 
         return approvalsIdsToFetch
@@ -185,8 +137,8 @@ export function UserApprovalsTab({ collectionId,
       return [];
     }
 
-    const outgoingArr = fetchTrackers(approvedOutgoingTransfersTimeline, "outgoing");
-    const incomingArr = fetchTrackers(approvedIncomingTransfersTimeline, "incoming");
+    const outgoingArr = fetchTrackers(approvedOutgoingTransfers, "outgoing");
+    const incomingArr = fetchTrackers(approvedIncomingTransfers, "incoming");
     collections.fetchCollectionsWithOptions([{
       collectionId,
       viewsToFetch: [],
@@ -199,11 +151,11 @@ export function UserApprovalsTab({ collectionId,
 
   if (!collection) return <></>;
 
-  console.log(defaultOutgoingIdx, defaultIncomingIdx, approvedOutgoingTransfersTimeline, approvedIncomingTransfersTimeline, approverAccount);
+
   const firstOutgoingMatches = !approverAccount?.cosmosAddress ? [] : getFirstMatchForUserOutgoingApprovedTransfers(appendDefaultForOutgoing(
-    (defaultOutgoingIdx < 0 || defaultOutgoingIdx >= approvedOutgoingTransfersTimeline.length) ? [] : approvedOutgoingTransfersTimeline[Number(defaultOutgoingIdx)].approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
+    approvedOutgoingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
   const firstIncomingMatches = !approverAccount?.cosmosAddress ? [] : getFirstMatchForUserIncomingApprovedTransfers(appendDefaultForIncoming(
-    (defaultIncomingIdx < 0 || defaultIncomingIdx >= approvedIncomingTransfersTimeline.length) ? [] : approvedIncomingTransfersTimeline[Number(defaultIncomingIdx)].approvedIncomingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
+    approvedIncomingTransfers, approverAccount?.cosmosAddress ?? ''), approverAccount?.cosmosAddress ?? '', showAllPossible);
 
   const convertedFirstOutgoingMatches = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(firstOutgoingMatches, approverAccount?.cosmosAddress ?? '') : [];
   const convertedFirstIncomingMatches = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(firstIncomingMatches, approverAccount?.cosmosAddress ?? '') : []
@@ -291,26 +243,11 @@ export function UserApprovalsTab({ collectionId,
 
 
       {tab === 'outgoing' && <>
-        {/* <br /> */}
-        <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
-          {collection && ((approvedOutgoingTransfersTimeline.length > 1)) &&
-            <Tooltip color='black' title="The transferability for this collection is scheduled to have different set values at different times.">
-              Outgoing Approvals <FieldTimeOutlined style={{ marginLeft: 4 }} />
-            </Tooltip>
-          }
-        </Typography.Text>
-        {getApprovalsDisplay(approvedOutgoingTransfersTimeline, convertedFirstOutgoingMatches, defaultOutgoingIdx, setDefaultOutgoingIdx, collection, badgeId)}
+        {getApprovalsDisplay(convertedFirstOutgoingMatches, collection, badgeId)}
       </>}
 
       {tab === 'incoming' && <>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 24 }}>
-          {collection && ((approvedIncomingTransfersTimeline.length > 1)) ?
-            <Tooltip color='black' title="The transferability for this collection is scheduled to have different set values at different times.">
-              Incoming Approvals <FieldTimeOutlined style={{ marginLeft: 4 }} />
-            </Tooltip> : <> </>
-          }
-        </Typography.Text>
-        {getApprovalsDisplay(approvedIncomingTransfersTimeline, convertedFirstIncomingMatches, defaultIncomingIdx, setDefaultIncomingIdx, collection, badgeId)}
+        {getApprovalsDisplay(convertedFirstIncomingMatches, collection, badgeId)}
       </>}
     </div>
     <div className='primary-text'>
@@ -342,29 +279,24 @@ export function UserApprovalsTab({ collectionId,
         }
         onSwitchChange={(value) => {
           if (value === 0) {
-            setUserApprovedIncomingTransfers?.([
-              {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                approvedIncomingTransfers: [{
-                  fromMappingId: "AllWithMint",
-                  fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                  initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                  initiatedByMappingId: "AllWithMint",
-                  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                  badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                  allowedCombinations: [{
-                    isApproved: true,
-                    initiatedByMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                    fromMappingOptions: { invertDefault: false, allValues: false, noValues: false },
-                    badgeIdsOptions: { invertDefault: false, allValues: false, noValues: false },
-                    ownershipTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    transferTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                  }],
-                  approvalDetails: []
-                }]
-              }
-            ]);
+            setUserApprovedIncomingTransfers?.([{
+              fromMappingId: "AllWithMint",
+              fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+              initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+              initiatedByMappingId: "AllWithMint",
+              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              allowedCombinations: [{
+                isApproved: true,
+                initiatedByMappingOptions: {},
+                fromMappingOptions: {},
+                badgeIdsOptions: {},
+                ownershipTimesOptions: {},
+                transferTimesOptions: {},
+              }],
+              approvalDetails: []
+            }]);
 
           } else if (value === 1) {
             setUserApprovedIncomingTransfers?.([]);

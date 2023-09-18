@@ -8,6 +8,7 @@ import { BadgeIdRangesInput } from './BadgeIdRangesInput';
 import { NumberInput } from './NumberInput';
 import { DateRangeInput } from './DateRangeInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
+import { checkIfUintRangesOverlap, isFullUintRanges } from 'bitbadgesjs-utils';
 const { Step } = Steps;
 
 export function BalanceInput({
@@ -129,21 +130,29 @@ export function BalanceInput({
 
               <Step
                 key={0}
-                title={<b>{'Select Badge IDs'}</b>}
+                title={<b>{'Badge IDs'}</b>}
               />
 
               <Step
                 key={1}
-                title={<b>{'Select Amount'}</b>}
+                title={<b>{'Amount'}</b>}
                 disabled={currentSupply.badgeIds.length === 0}
               />
 
               {!hideOwnershipTimes &&
                 <Step
                   key={2}
-                  title={<b>{'Select Ownership Times'}</b>}
-                  disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0}
+                  title={<b>{'Ownership Times'}</b>}
+                  disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0
+                    || checkIfUintRangesOverlap(currentSupply.ownershipTimes)}
                 />}
+
+              {<Step
+                key={hideOwnershipTimes ? 2 : 3}
+                title={<b>{'Confirm'}</b>}
+                disabled={currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0
+                  || checkIfUintRangesOverlap(currentSupply.ownershipTimes)}
+              />}
 
 
 
@@ -169,7 +178,7 @@ export function BalanceInput({
             {currentStep === 1 && <div>
               <br />
               <NumberInput
-                title={'Select Amount'}
+                title={'Amount'}
                 value={Number(currentSupply.amount)}
                 setValue={(value) => {
                   setCurrentSupply({ ...currentSupply, amount: BigInt(value) });
@@ -182,18 +191,17 @@ export function BalanceInput({
             </div>}
             {currentStep === 2 && !hideOwnershipTimes &&
               <>
-
                 <div>
                   <SwitchForm
                     options={[{
                       title: "Custom",
                       message: message == "Circulating Supplys" ? "Badges can be owned only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.",
-                      isSelected: !(currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64),
+                      isSelected: !(isFullUintRanges(currentSupply.ownershipTimes)),
                     },
                     {
                       title: "All Times",
                       message: message == "Circulating Supplys" ? "Badges can be owned at all times." : "Ownership of the selected badges is to be transferred for all times.",
-                      isSelected: currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64,
+                      isSelected: isFullUintRanges(currentSupply.ownershipTimes),
 
                     },]}
                     onSwitchChange={(value) => {
@@ -211,7 +219,7 @@ export function BalanceInput({
                     }}
                   />
                   <br />
-                  {currentSupply.ownershipTimes[0].start === 1n && currentSupply.ownershipTimes[0].end === GO_MAX_UINT_64 ? <></> : <>
+                  {isFullUintRanges(currentSupply.ownershipTimes) ? <></> : <>
 
                     <DateRangeInput
                       timeRanges={currentSupply.ownershipTimes}
@@ -223,11 +231,20 @@ export function BalanceInput({
                     />
                   </>}
                 </div>
-
-                {AddBadgesButton}
               </>
 
             }
+
+            {currentStep === 3 && <div>
+              <br />
+              <BalanceDisplay
+                message={'Badges to Add'}
+                collectionId={collectionId ?? 0n}
+                balances={[currentSupply]}
+              />
+              {AddBadgesButton}
+            </div>}
+
             <Divider />
           </div>
 

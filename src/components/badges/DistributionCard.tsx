@@ -27,10 +27,6 @@ export function DistributionOverview({
 
   const isBadgeView = badgeId !== undefined;
 
-
-
-
-
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
   const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
@@ -70,8 +66,8 @@ export function DistributionOverview({
       {<TableRow label={"Can more badges be created?"} value={PermissionIcon(
         "canCreateMoreBadges",
         castBalancesActionPermissionToUniversalPermission(
-          collection.collectionPermissions.canCreateMoreBadges), "", BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
-      collection.managerTimeline.every(x => !x.manager), badgeId)} labelSpan={20} valueSpan={4} />}
+          collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
+      collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)} labelSpan={20} valueSpan={4} />}
       {isOffChainBalances && <TableRow label={"Balances URL"} value={
         <div>
           <>
@@ -107,8 +103,8 @@ export function DistributionOverview({
           "canUpdateOffChainBalancesMetadata",
           castTimedUpdatePermissionToUniversalPermission(
 
-            collection.collectionPermissions.canUpdateOffChainBalancesMetadata), "off-chain balances URL", TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
-        collection.managerTimeline.every(x => !x.manager), badgeId)
+            collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
+        collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)
       } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && <TableRow label={"Last Updated"} value={
         <div>

@@ -1,22 +1,19 @@
 import { validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 
-export function JSONTransferabilitySelectStepItem(
-  updateCollectionApprovedTransfers: boolean,
-  setUpdateCollectionApprovedTransfers: (val: boolean) => void,
-
-  existingCollectionId?: bigint,
-) {
+export function JSONTransferabilitySelectStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
-
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
+  const updateCollectionApprovedTransfers = txTimelineContext.updateCollectionApprovedTransfers;
+  const setUpdateCollectionApprovedTransfers = txTimelineContext.setUpdateCollectionApprovedTransfers;
   if (!collection) return EmptyStepItem;
 
-  const err = existingCollection ? validateCollectionApprovedTransfersUpdate(existingCollection.collectionApprovedTransfersTimeline, collection.collectionApprovedTransfersTimeline, existingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers) : undefined;
+  const err = startingCollection ? validateCollectionApprovedTransfersUpdate(startingCollection.collectionApprovedTransfers, collection.collectionApprovedTransfers, startingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers) : undefined;
 
   return {
     title: `Select Transferability`,
@@ -25,13 +22,10 @@ export function JSONTransferabilitySelectStepItem(
     node: <UpdateSelectWrapper
       updateFlag={updateCollectionApprovedTransfers}
       setUpdateFlag={setUpdateCollectionApprovedTransfers}
-      existingCollectionId={existingCollectionId}
-      jsonPropertyPath='collectionApprovedTransfersTimeline'
+      jsonPropertyPath='collectionApprovedTransfers'
       permissionName='canUpdateCollectionApprovedTransfers'
       onlyShowJson={true}
-      node={<p className="primary-text" style={{ textAlign: 'center' }}>
-        fsdlka
-      </p>}
+      node={<></>}
     />,
     disabled: !!err,
   }

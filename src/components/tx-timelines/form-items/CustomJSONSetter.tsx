@@ -1,11 +1,11 @@
 
 import { WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Divider, Input, Row, Typography } from 'antd';
+import { Button, Col, Input, Row, Typography } from 'antd';
+import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { getReservedAddressMapping } from 'bitbadgesjs-utils';
-import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 
 export const validateUintRangeArr = (val: any) => {
@@ -21,20 +21,16 @@ export const validateUintRangeArr = (val: any) => {
 
 export function JSONSetter({
   jsonPropertyPath,
-  err,
   setErr,
   isPermissionUpdate,
   customValue,
-  customSetValueFunction,
-  customRevertFunction
+  customSetValueFunction
 }: {
   jsonPropertyPath: string,
-  err: string,
   setErr: (err: string) => void,
   isPermissionUpdate?: boolean,
   customValue?: any,
   customSetValueFunction?: (val: any) => void
-  customRevertFunction?: () => void
 }) {
 
   const collections = useCollectionsContext();
@@ -45,10 +41,8 @@ export function JSONSetter({
 
   if (!collection) return <></>;
 
-  const currValue =
-    customValue ? customValue :
-      !isPermissionUpdate ? collection?.[jsonPropertyPath as keyof typeof collection] :
-        collection.collectionPermissions?.[jsonPropertyPath as keyof typeof collection.collectionPermissions];
+  const currValue = customValue ? customValue : !isPermissionUpdate ? collection?.[jsonPropertyPath as keyof typeof collection] :
+    collection.collectionPermissions?.[jsonPropertyPath as keyof typeof collection.collectionPermissions];
 
   const setCurrentValue =
     customSetValueFunction ? (val: any) => {

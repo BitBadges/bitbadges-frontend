@@ -1,7 +1,7 @@
 import { ClockCircleOutlined, GiftOutlined, InfoCircleOutlined, SwapOutlined, WarningOutlined } from "@ant-design/icons";
 import { Avatar, Button, Card, Checkbox, Divider, Input, Row, Tooltip, Typography } from "antd";
 import { ApprovalTrackerIdDetails, deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovedTransferWithDetails, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
+import { ApprovalDetailsWithDetails, CollectionApprovedTransferWithDetails, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -18,15 +18,16 @@ import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { NumberInput } from "../inputs/NumberInput";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
 
-
 //TODO: Will need to change when we allow approvalDetails len > 0
 //TODO: per to/from/initiatedBy
 //TODO: max num transfers
 //TODO: Increment badge IDs logic
 //TODO: Manual Balances
 //TODO: Abstract to all approved transfers. not just "Mint" and ones with merkle challenges
+//TODO: Support multiple challenges per claim
 export function ClaimDisplay({
   approvedTransfer,
+  approvalDetails,
   collectionId,
   openModal,
   isCodeDisplay,
@@ -39,6 +40,7 @@ export function ClaimDisplay({
   noBorder
 }: {
   approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
+  approvalDetails: ApprovalDetailsWithDetails<bigint>,
   collectionId: bigint,
   openModal?: (code?: string, leafIndex?: number, recipient?: string) => void,
   isCodeDisplay?: boolean
@@ -56,8 +58,8 @@ export function ClaimDisplay({
   const collection = collections.collections[collectionId.toString()]
   const accounts = useAccountsContext();
 
-  const claim = approvedTransfer.approvalDetails.length > 0 && approvedTransfer.approvalDetails[0].merkleChallenges.length > 0 ?
-    approvedTransfer.approvalDetails[0].merkleChallenges[0] : undefined; //TODO: Support multiple challenges per claim
+  const claim = approvedTransfer.approvalDetails.length > 0 && approvalDetails.merkleChallenges.length > 0 ?
+    approvalDetails.merkleChallenges[0] : undefined;
   const claimId = claim?.challengeId;
 
   const query = router.query;
@@ -71,18 +73,16 @@ export function ClaimDisplay({
   const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
 
   useEffect(() => {
-    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === '');
-    const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === '');
+    const calculationMethod = approvalDetails.predeterminedBalances.orderCalculationMethod;
     let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
       claim?.useCreatorAddressAsLeaf ?
-        approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-        : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+        approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+        : approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
       : -1) ?? -1;
 
-    const numIncrements =
-      calculationMethod.useMerkleChallengeLeafIndex ?
-        leafIndex >= 0 ? leafIndex : 0 :
-        approvalTracker?.numTransfers ?? 0n;
+    const numIncrements = calculationMethod.useMerkleChallengeLeafIndex ?
+      leafIndex >= 0 ? leafIndex : 0 : approvalTracker?.numTransfers ?? 0n;
 
     setBrowseIdx(Number(numIncrements));
   }, [code])
@@ -100,10 +100,8 @@ export function ClaimDisplay({
 
   useEffect(() => {
     //fetch accounts as needed if we iterate through whitelist
-    if (
-      claim?.useCreatorAddressAsLeaf &&
-      approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx]) {
-      accounts.fetchAccounts([approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? '']);
+    if (claim?.useCreatorAddressAsLeaf && approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx]) {
+      accounts.fetchAccounts([approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? '']);
     }
   }, [browseIdx, claim]);
 
@@ -113,16 +111,16 @@ export function ClaimDisplay({
       async function fetchTrackers() {
         const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = [{
           collectionId,
-          approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
+          approvalTrackerId: approvalDetails.approvalTrackerId,
           approvalLevel: "collection",
           approvedAddress: "",
           approverAddress: "",
           trackerType: "overall",
         }];
-        if (approvedTransfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
+        if (approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
           approvalsIdsToFetch.push({
             collectionId,
-            approvalTrackerId: approvedTransfer.approvalDetails[0].approvalTrackerId,
+            approvalTrackerId: approvalDetails.approvalTrackerId,
             approvalLevel: "collection",
             approvedAddress: chain.cosmosAddress,
             approverAddress: "",
@@ -149,13 +147,13 @@ export function ClaimDisplay({
   }, [collectionId, approvedTransfer, claimId, chain]);
 
   //TODO: Will need to change with more supported features
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === '');
-  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalDetails[0].approvalTrackerId && x.approvedAddress === chain.cosmosAddress);
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === '');
+  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === chain.cosmosAddress);
 
-  const calculationMethod = approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod;
+  const calculationMethod = approvalDetails.predeterminedBalances.orderCalculationMethod;
   let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ? claim?.useCreatorAddressAsLeaf ?
-    approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-    : approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+    approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+    : approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
     : -1) ?? -1;
 
   const numIncrements = calculationMethod.useMerkleChallengeLeafIndex ? leafIndex ?? 0 : approvalTracker?.numTransfers ?? 0n;
@@ -183,7 +181,7 @@ export function ClaimDisplay({
   }).filter(x => x.badgeIds.length > 0 && x.ownershipTimes.length > 0);
   const undistributedBalances = subtractBalances(approvalTracker?.amounts ?? [], unmintedBalances);
 
-  const numClaimsPerAddress = approvedTransfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers ?? 0n;
+  const numClaimsPerAddress = approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers ?? 0n;
   const currInitiatedByCount = initiatedByTracker?.numTransfers ?? 0n;
 
 
@@ -215,22 +213,21 @@ export function ClaimDisplay({
   } else if (numClaimsPerAddress > 0n && currInitiatedByCount >= numClaimsPerAddress) {
     cantClaim = true;
     errorMessage = 'You have exceeded the maximum number of times you can claim!';
-  }
-  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(code).toString())) {
+  }  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(code).toString())) {
   //   cantClaim = true;
   //   errorMessage = 'This code has already been used!';
   // } 
-  else if (claim && !claim.details && approvedTransfer.approvalDetails[0].merkleChallenges && approvedTransfer.approvalDetails[0].merkleChallenges.length > 0) {
+  else if (claim && !claim.details && approvalDetails.merkleChallenges && approvalDetails.merkleChallenges.length > 0) {
     cantClaim = true;
     errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
-  } else if (approvedTransfer.approvalDetails[0].merkleChallenges && approvedTransfer.approvalDetails[0].merkleChallenges.length > 1) {
+  } else if (approvalDetails.merkleChallenges && approvalDetails.merkleChallenges.length > 1) {
     //TODO: Support multiple challenges
     cantClaim = true;
-    errorMessage = 'This claim was custom created by the creator with multiple challenges. This is incompatible with the BitBadges website.';
-  } else if (!approvedTransfer.approvalDetails[0].predeterminedBalances ||
-    approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
-    (!approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
-      !approvedTransfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex)) {
+    errorMessage = 'This claim was custom created with multiple challenges. This is incompatible with the BitBadges website.';
+  } else if (!approvalDetails.predeterminedBalances ||
+    approvalDetails.predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
+    (!approvalDetails.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
+      !approvalDetails.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex)) {
     cantClaim = true;
     errorMessage = 'This claim was custom created by the creator with a custom order calculation method. This is incompatible with the BitBadges website.';
   } else if (!validTime) {
@@ -242,9 +239,9 @@ export function ClaimDisplay({
   }
 
 
-  const currentClaimAmounts = deepCopy(approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances);
-  const incrementIdsBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
-  const incrementOwnershipTimesBy = approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy;
+  const currentClaimAmounts = deepCopy(approvalDetails.predeterminedBalances.incrementedBalances.startBalances);
+  const incrementIdsBy = approvalDetails.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
+  const incrementOwnershipTimesBy = approvalDetails.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy;
 
   for (let i = 0; i < numIncrements; i++) {
     for (const balance of currentClaimAmounts) {
@@ -260,7 +257,7 @@ export function ClaimDisplay({
     }
   }
 
-  const browseClaimAmounts = deepCopy(approvedTransfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances);
+  const browseClaimAmounts = deepCopy(approvalDetails.predeterminedBalances.incrementedBalances.startBalances);
   for (let i = 0; i < browseIdx; i++) {
     for (const balance of browseClaimAmounts) {
       for (const badgeIdRange of balance.badgeIds) {
@@ -376,13 +373,13 @@ export function ClaimDisplay({
                               //   setBrowseIdx(e.target.value);
                               // }}
                               min={1}
-                              max={approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers) : undefined}
+                              max={approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvalDetails.maxNumTransfers.overallMaxNumTransfers) : undefined}
 
                             />
                           </div>
                           {claim?.useCreatorAddressAsLeaf && <>
                             <AddressDisplay
-                              addressOrUsername={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
+                              addressOrUsername={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
                             // size={20}
                             />
                             <br />
@@ -405,7 +402,7 @@ export function ClaimDisplay({
                           {whitelistIsVisible && <>
 
                             <AddressDisplayList
-                              users={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                              users={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
                               allExcept={false}
                             />
                             <br />
@@ -430,7 +427,7 @@ export function ClaimDisplay({
                           //   setBrowseIdx(e.target.value);
                           // }}
                           min={1}
-                          max={approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvedTransfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers) : undefined}
+                          max={approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvalDetails.maxNumTransfers.overallMaxNumTransfers) : undefined}
 
                         />
                       </div>
@@ -466,7 +463,7 @@ export function ClaimDisplay({
                         {whitelistIsVisible && <>
 
                           <AddressDisplayList
-                            users={approvedTransfer.approvalDetails[0].merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                            users={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
                             allExcept={false}
                           />
                           <br />
@@ -538,7 +535,7 @@ export function ClaimDisplay({
                       <br />
                       <br />
 
-                      {!approvedTransfer.approvalDetails[0].requireToEqualsInitiatedBy && giftClaim && <>
+                      {!approvalDetails.requireToEqualsInitiatedBy && giftClaim && <>
                         <Checkbox
                           checked={giftClaim}
                           onChange={(e) => {
@@ -561,11 +558,10 @@ export function ClaimDisplay({
                         <AddressDisplay
                           addressOrUsername={recipient ?? ''}
                         />
-                        {recipient != chain.cosmosAddress && recipient != chain.address && !approvedTransfer.approvalDetails[0].overridesToApprovedIncomingTransfers && <>
+                        {recipient != chain.cosmosAddress && recipient != chain.address && !approvalDetails.overridesToApprovedIncomingTransfers && <>
                           <InfoCircleOutlined style={{ marginRight: 4 }} />
                           {"If selecting an address other than your own, you must obey their incoming approvals."}
                         </>}
-
                         <br />
                         <br />
                       </>}
@@ -576,10 +572,7 @@ export function ClaimDisplay({
                       {numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
                         <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
                       </div>}
-
                     </div>}
-
-
                   </div>
                 </>}
               </div>
@@ -592,7 +585,7 @@ export function ClaimDisplay({
 
     {
       !showClaimDisplay && <CodesDisplay
-        approvedTransfer={approvedTransfer}
+        approvalDetails={approvalDetails}
         collectionId={collectionId}
         codes={codes}
         claimPassword={claimPassword}

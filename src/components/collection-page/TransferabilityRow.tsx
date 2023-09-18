@@ -49,11 +49,12 @@ export const getTableHeader = () => {
 }
 
 
-export function TransferabilityRow({ transfer, badgeId, collectionId }: {
+export function TransferabilityRow({ transfer, badgeId, collectionId, filterFromMint }: {
   transfer: CollectionApprovedTransferWithDetails<bigint>,
   badgeId?: bigint,
   setTab?: (tab: string) => void,
   collectionId: bigint,
+  filterFromMint?: boolean
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
@@ -83,6 +84,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
           users={transfer.fromMapping.addresses}
           allExcept={!transfer.fromMapping.includeAddresses}
           fontSize={16}
+          filterMint={filterFromMint}
         />
       </td>
       <td style={{ alignItems: 'center' }}>
@@ -120,336 +122,350 @@ export function TransferabilityRow({ transfer, badgeId, collectionId }: {
 
         {transfer.approvalDetails && transfer.approvalDetails.length > 0 &&
           <>
-            <ul style={{ textAlign: 'left' }}>
-              {transfer.approvalDetails[0].requireFromDoesNotEqualInitiatedBy && (
-                <li>From Must NOT Equal Initiated By</li>
-              )}
-              {transfer.approvalDetails[0].requireFromEqualsInitiatedBy && (
-                <li>From Must Equal Initiated By</li>
-              )}
-              {transfer.approvalDetails[0].requireToDoesNotEqualInitiatedBy && (
-                <li>To Must NOT Equal Initiated By</li>
-              )}
-              {transfer.approvalDetails[0].requireToEqualsInitiatedBy && (
-                <li>To Must Equal Initiated By</li>
-              )}
-              {transfer.fromMappingId !== "Mint" && transfer.approvalDetails[0].overridesFromApprovedOutgoingTransfers ? (
-                <li>Overrides From Approvals</li>
-              ) : (
-                transfer.fromMappingId !== "Mint" && <li>Must Satisfy Outgoing Approvals</li>
-              )}
-              {transfer.fromMappingId === "Mint" && !transfer.approvalDetails[0].overridesFromApprovedOutgoingTransfers && (
-                <>
-                  <li>
-                    <WarningOutlined style={{ color: 'orange' }} /> Must Satisfy Outgoing Approvals for Mint Address (Mint never has approvals so this row will never work)
-                  </li>
-                </>
-              )}
-              {transfer.approvalDetails[0].overridesToApprovedIncomingTransfers ? (
-                <li>Overrides To Approvals</li>
-              ) : (
-                <li>Must Satisfy Incoming Approvals</li>
-              )}
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-between primary-blue-bg primary-text'>
-                <div>
-                  {transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
-                    <BalanceDisplay
-                      message='Start Balances'
-                      balances={transfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances}
-                      collectionId={collectionId}
-                    />
-                    <br />
-                    <b>Badge Increment: </b> {transfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
-                    <br />
-                    <b>Times Increment: </b>{transfer.approvalDetails[0].predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
-                    <br />
-                    <p style={{ inlineSize: 'max-content', wordBreak: "break-all", wordWrap: "break-word", overflowWrap: "break-word" }}> <b># Increments Calculation Method: </b>{Object.entries(transfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
-                      <>{"Overall Number of Transfers - First processed transfer will be for the starting balances without any increments applied. Second transfer will be the starting balances plus one increment. And so on."}</>
-                      : Object.entries(transfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
-                        <>{`Predetermined - The creator of this claim prereserved specific increments for specific ${transfer.approvalDetails[0].merkleChallenges[0].useCreatorAddressAsLeaf ? 'addresses' : 'codes'}.`}</>
-                        : Object.entries(transfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
-                  </>
-                  )}
-
-                  {transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.approvalDetails[0].predeterminedBalances.manualBalances.length > 0 && (<>
-
-                    {transfer.approvalDetails[0].predeterminedBalances.manualBalances.map((balances, idx) => {
-
-                      return <BalanceDisplay
-                        key={idx}
-                        message='Predetermined Balances'
-                        balances={balances.balances}
-                        collectionId={collectionId}
-                      />
-                    })}
-                    <br />
-                    <b>Increment Calculation Method: </b>{Object.entries(transfer.approvalDetails[0].predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}
-                  </>
-                  )}
-
-
-                </div>
-              </div>
-              }>
-                {transfer.approvalDetails[0].predeterminedBalances && (transfer.approvalDetails[0].predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
-                  transfer.approvalDetails[0].predeterminedBalances && transfer.approvalDetails[0].predeterminedBalances.manualBalances.length > 0) &&
-                  (
-                    <li>Predetermined Balances for Each Transfer</li>
-                  )}
-                {transfer.approvalDetails[0].merkleChallenges && transfer.approvalDetails[0].merkleChallenges.length > 0 && (
-                  <>
-                    {transfer.approvalDetails[0].merkleChallenges.find(x => x.useCreatorAddressAsLeaf) ? (
-                      <li>Whitelist Only</li>
-                    ) :
-                      <li>Must Provide Valid Code / Password</li>
-                    }
-                  </>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={
-                transfer.approvalDetails[0].mustOwnBadges?.length > 0 &&
-                <div className='flex-center flex-column primary-text'>
-                  <BalanceDisplay
-                    message='Min Amounts'
-                    balances={transfer.approvalDetails[0].mustOwnBadges.map(x => {
-                      return {
-                        ...x,
-                        amount: x.amountRange.start,
-                      }
-                    })}
-                    collectionId={transfer.approvalDetails[0].mustOwnBadges[0].collectionId}
-                    isMustOwnBadgesInput={transfer.approvalDetails[0].mustOwnBadges[0].overrideWithCurrentTime}
-                  />
+            {transfer.approvalDetails.map((x, idx) => {
+              return <>
+                {idx !== 0 && <>
+                  <b>OR</b>
                   <br />
                   <br />
-                  <BalanceDisplay
-                    message='Max Amounts'
-                    balances={transfer.approvalDetails[0].mustOwnBadges.map(x => {
-                      return {
-                        ...x,
-                        amount: x.amountRange.start,
-                      }
-                    })}
-                    collectionId={transfer.approvalDetails[0].mustOwnBadges[0].collectionId}
-                    isMustOwnBadgesInput={transfer.approvalDetails[0].mustOwnBadges[0].overrideWithCurrentTime}
-                  />
-                </div>
-              }>
-                {transfer.approvalDetails[0].mustOwnBadges?.length > 0 && (
-                  <li>Must Own Specific Badges to Transfer</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                {transfer.approvalDetails[0].approvalAmounts.overallApprovalAmount > 0
-                  && (
+                </>}
+                <ul style={{ textAlign: 'left' }}>
+                  {x.requireFromDoesNotEqualInitiatedBy && (
+                    <li>From Must NOT Equal Initiated By</li>
+                  )}
+                  {x.requireFromEqualsInitiatedBy && (
+                    <li>From Must Equal Initiated By</li>
+                  )}
+                  {x.requireToDoesNotEqualInitiatedBy && (
+                    <li>To Must NOT Equal Initiated By</li>
+                  )}
+                  {x.requireToEqualsInitiatedBy && (
+                    <li>To Must Equal Initiated By</li>
+                  )}
+                  {transfer.fromMappingId !== "Mint" && x.overridesFromApprovedOutgoingTransfers ? (
+                    <li>Overrides From Approvals</li>
+                  ) : (
+                    transfer.fromMappingId !== "Mint" && <li>Must Satisfy Outgoing Approvals</li>
+                  )}
+                  {transfer.fromMappingId === "Mint" && !x.overridesFromApprovedOutgoingTransfers && (
                     <>
-                      <div>Showing results for:</div>
-
-                      <AddressDisplay addressOrUsername={chain.address} />
-                      <br />
-                      <BalanceDisplay
-                        message='Approved Amounts'
-                        balances={
-                          [
-                            {
-                              amount: transfer.approvalDetails[0].approvalAmounts.overallApprovalAmount,
-                              badgeIds: transfer.badgeIds,
-                              ownershipTimes: transfer.ownershipTimes
-                            }
-                          ]
-                        }
-                        collectionId={collectionId}
-                      />
-                      <br />
-                      <br />
-                      <BalanceDisplay
-                        message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "overall")?.amounts ?? []}
-                        collectionId={collectionId}
-                      />
+                      <li>
+                        <WarningOutlined style={{ color: 'orange' }} /> Must Satisfy Outgoing Approvals for Mint Address (Mint never has approvals so this will never work)
+                      </li>
                     </>
                   )}
-              </div>
-              }>
-                {transfer.approvalDetails[0].approvalAmounts.overallApprovalAmount > 0 && (
-                  <li>Overall Approval Amount (All Users)</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                {transfer.approvalDetails[0].approvalAmounts.perToAddressApprovalAmount > 0
-                  && (
-                    <>
-                      <div>Showing results for:</div>
-
-                      <AddressDisplay addressOrUsername={chain.address} />
-                      <br />
-                      <BalanceDisplay
-                        message='Approved Amounts'
-                        balances={
-                          [
-                            {
-                              amount: transfer.approvalDetails[0].approvalAmounts.perToAddressApprovalAmount,
-                              badgeIds: transfer.badgeIds,
-                              ownershipTimes: transfer.ownershipTimes
-                            }
-                          ]
-                        }
-                        collectionId={collectionId}
-                      />
-                      <br />
-                      <br />
-                      <BalanceDisplay
-                        message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "to")?.amounts ?? []}
-                        collectionId={collectionId}
-                      />
-                    </>
+                  {x.overridesToApprovedIncomingTransfers ? (
+                    <li>Overrides To Approvals</li>
+                  ) : (
+                    <li>Must Satisfy Incoming Approvals</li>
                   )}
-              </div>
-              }>
-                {transfer.approvalDetails[0].approvalAmounts.perToAddressApprovalAmount > 0 && (
-                  <li>Per To Address Approval Amounts</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                {transfer.approvalDetails[0].approvalAmounts.perFromAddressApprovalAmount > 0
-                  && (
-                    <>
-                      <div>Showing results for:</div>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-between primary-blue-bg primary-text'>
+                    <div>
+                      {transfer.approvalDetails && transfer.approvalDetails.length > 0 && x.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
+                        <BalanceDisplay
+                          message='Start Balances'
+                          balances={x.predeterminedBalances.incrementedBalances.startBalances}
+                          collectionId={collectionId}
+                        />
+                        <br />
+                        <b>Badge Increment: </b> {x.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
+                        <br />
+                        <b>Times Increment: </b>{x.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
+                        <br />
+                        <p style={{ inlineSize: 'max-content', wordBreak: "break-all", wordWrap: "break-word", overflowWrap: "break-word" }}> <b># Increments Calculation Method: </b>{Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
+                          <>{"Overall Number of Transfers - First processed transfer will be for the starting balances without any increments applied. Second transfer will be the starting balances plus one increment. And so on."}</>
+                          : Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
+                            <>{`Predetermined - The creator of this claim prereserved specific increments for specific ${x.merkleChallenges.find(x => x.useLeafIndexForTransferOrder && x.useCreatorAddressAsLeaf) ? 'addresses' : 'codes'}.`}</>
+                            : Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
+                      </>
+                      )}
 
-                      <AddressDisplay addressOrUsername={chain.address} />
-                      <br />
-                      <BalanceDisplay
-                        message='Approved Amounts'
-                        balances={
-                          [
-                            {
-                              amount: transfer.approvalDetails[0].approvalAmounts.perFromAddressApprovalAmount,
-                              badgeIds: transfer.badgeIds,
-                              ownershipTimes: transfer.ownershipTimes
-                            }
-                          ]
+                      {transfer.approvalDetails && transfer.approvalDetails.length > 0 && x.predeterminedBalances.manualBalances.length > 0 && (<>
+
+                        {x.predeterminedBalances.manualBalances.map((balances, idx) => {
+
+                          return <BalanceDisplay
+                            key={idx}
+                            message='Predetermined Balances'
+                            balances={balances.balances}
+                            collectionId={collectionId}
+                          />
+                        })}
+                        <br />
+                        <b>Increment Calculation Method: </b>{Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}
+                      </>
+                      )}
+
+
+                    </div>
+                  </div>
+                  }>
+                    {x.predeterminedBalances && (x.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
+                      x.predeterminedBalances && x.predeterminedBalances.manualBalances.length > 0) &&
+                      (
+                        <li>Predetermined Balances for Each Transfer</li>
+                      )}
+                    {x.merkleChallenges && x.merkleChallenges.length > 0 && (
+                      <>
+                        {x.merkleChallenges.find(x => x.useCreatorAddressAsLeaf) ? (
+                          <li>Whitelist Only</li>
+                        ) :
+                          <li>Must Provide Valid Code / Password</li>
                         }
-                        collectionId={collectionId}
-                      />
-                      <br />
-                      <br />
-                      <BalanceDisplay
-                        message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "from")?.amounts ?? []}
-                        collectionId={collectionId}
-                      />
-                    </>
-                  )}
-              </div>
-              }>
-                {transfer.approvalDetails[0].approvalAmounts.perFromAddressApprovalAmount > 0 && (
-                  <li>Per From Address Approval Amounts</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                {transfer.approvalDetails[0].approvalAmounts.perInitiatedByAddressApprovalAmount > 0
-                  && (
+                      </>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={
+                    x.mustOwnBadges?.length > 0 &&
                     <>
-                      <div>Showing results for:</div>
-
-                      <AddressDisplay addressOrUsername={chain.address} />
-                      <br />
-                      <BalanceDisplay
-                        message='Approved Amounts'
-                        balances={
-                          [
-                            {
-                              amount: transfer.approvalDetails[0].approvalAmounts.perInitiatedByAddressApprovalAmount,
-                              badgeIds: transfer.badgeIds,
-                              ownershipTimes: transfer.ownershipTimes
-                            }
-                          ]
-                        }
-                        collectionId={collectionId}
-                      />
-                      <br />
-                      <br />
-                      <BalanceDisplay
-                        message='Already Transferred'
-                        balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "initiatedBy")?.amounts ?? []}
-                        collectionId={collectionId}
-                      />
+                      {x.mustOwnBadges.map((mustOwnBadge, idx) => {
+                        <div className='flex-center flex-column primary-text'>
+                          <BalanceDisplay
+                            message='Min Amounts'
+                            balances={[x.mustOwnBadges[idx]].map(x => {
+                              return {
+                                ...x,
+                                amount: x.amountRange.start,
+                              }
+                            })}
+                            collectionId={mustOwnBadge.collectionId}
+                            isMustOwnBadgesInput={mustOwnBadge.overrideWithCurrentTime}
+                          />
+                          <br />
+                          <br />
+                          <BalanceDisplay
+                            message='Max Amounts'
+                            balances={[x.mustOwnBadges[idx]].map(x => {
+                              return {
+                                ...x,
+                                amount: x.amountRange.start,
+                              }
+                            })}
+                            collectionId={mustOwnBadge.collectionId}
+                            isMustOwnBadgesInput={mustOwnBadge.overrideWithCurrentTime}
+                          />
+                        </div>
+                      })}
                     </>
-                  )}
-              </div>
-              }>
-                {transfer.approvalDetails[0].approvalAmounts.perInitiatedByAddressApprovalAmount > 0 && (
-                  <li>Per Initiated By Address Approval Amounts</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
-                    {' '}out of {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
+                  }>
+                    {x.mustOwnBadges?.length > 0 && (
+                      <li>Must Own Specific Badges to Transfer</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    {x.approvalAmounts.overallApprovalAmount > 0
+                      && (
+                        <>
+                          <div>Showing results for:</div>
 
-              </div>
-              }>
-                {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers > 0 && (
-                  <li>Overall Max Transfers (All Users): {transfer.approvalDetails[0].maxNumTransfers.overallMaxNumTransfers.toString()}</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                <div>Showing results for:</div>
+                          <AddressDisplay addressOrUsername={chain.address} />
+                          <br />
+                          <BalanceDisplay
+                            message='Approved Amounts'
+                            balances={
+                              [
+                                {
+                                  amount: x.approvalAmounts.overallApprovalAmount,
+                                  badgeIds: transfer.badgeIds,
+                                  ownershipTimes: transfer.ownershipTimes
+                                }
+                              ]
+                            }
+                            collectionId={collectionId}
+                          />
+                          <br />
+                          <br />
+                          <BalanceDisplay
+                            message='Already Transferred'
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "overall")?.amounts ?? []}
+                            collectionId={collectionId}
+                          />
+                        </>
+                      )}
+                  </div>
+                  }>
+                    {x.approvalAmounts.overallApprovalAmount > 0 && (
+                      <li>Overall Approval Amount (All Users)</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    {x.approvalAmounts.perToAddressApprovalAmount > 0
+                      && (
+                        <>
+                          <div>Showing results for:</div>
 
-                <AddressDisplay addressOrUsername={chain.address} />
-                <br />
-                {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
-                    {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>)}
+                          <AddressDisplay addressOrUsername={chain.address} />
+                          <br />
+                          <BalanceDisplay
+                            message='Approved Amounts'
+                            balances={
+                              [
+                                {
+                                  amount: x.approvalAmounts.perToAddressApprovalAmount,
+                                  badgeIds: transfer.badgeIds,
+                                  ownershipTimes: transfer.ownershipTimes
+                                }
+                              ]
+                            }
+                            collectionId={collectionId}
+                          />
+                          <br />
+                          <br />
+                          <BalanceDisplay
+                            message='Already Transferred'
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "to")?.amounts ?? []}
+                            collectionId={collectionId}
+                          />
+                        </>
+                      )}
+                  </div>
+                  }>
+                    {x.approvalAmounts.perToAddressApprovalAmount > 0 && (
+                      <li>Per To Address Approval Amounts</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    {x.approvalAmounts.perFromAddressApprovalAmount > 0
+                      && (
+                        <>
+                          <div>Showing results for:</div>
 
-              </div>
-              }>
-                {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
-                  <li>Max Transfers per To Address: {transfer.approvalDetails[0].maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                <div>Showing results for:</div>
+                          <AddressDisplay addressOrUsername={chain.address} />
+                          <br />
+                          <BalanceDisplay
+                            message='Approved Amounts'
+                            balances={
+                              [
+                                {
+                                  amount: x.approvalAmounts.perFromAddressApprovalAmount,
+                                  badgeIds: transfer.badgeIds,
+                                  ownershipTimes: transfer.ownershipTimes
+                                }
+                              ]
+                            }
+                            collectionId={collectionId}
+                          />
+                          <br />
+                          <br />
+                          <BalanceDisplay
+                            message='Already Transferred'
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "from")?.amounts ?? []}
+                            collectionId={collectionId}
+                          />
+                        </>
+                      )}
+                  </div>
+                  }>
+                    {x.approvalAmounts.perFromAddressApprovalAmount > 0 && (
+                      <li>Per From Address Approval Amounts</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    {x.approvalAmounts.perInitiatedByAddressApprovalAmount > 0
+                      && (
+                        <>
+                          <div>Showing results for:</div>
 
-                <AddressDisplay addressOrUsername={chain.address} />
-                <br />
-                {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
-                    {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>)}
+                          <AddressDisplay addressOrUsername={chain.address} />
+                          <br />
+                          <BalanceDisplay
+                            message='Approved Amounts'
+                            balances={
+                              [
+                                {
+                                  amount: x.approvalAmounts.perInitiatedByAddressApprovalAmount,
+                                  badgeIds: transfer.badgeIds,
+                                  ownershipTimes: transfer.ownershipTimes
+                                }
+                              ]
+                            }
+                            collectionId={collectionId}
+                          />
+                          <br />
+                          <br />
+                          <BalanceDisplay
+                            message='Already Transferred'
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "initiatedBy")?.amounts ?? []}
+                            collectionId={collectionId}
+                          />
+                        </>
+                      )}
+                  </div>
+                  }>
+                    {x.approvalAmounts.perInitiatedByAddressApprovalAmount > 0 && (
+                      <li>Per Initiated By Address Approval Amounts</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    {x.maxNumTransfers.overallMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
+                        {' '}out of {x.maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
 
-              </div>
-              }>
-                {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
-                  <li>Max Transfers per From Address: {transfer.approvalDetails[0].maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>
-                )}
-              </Popover>
-              <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalDetails[0].approvalTrackerId}</li>}
-                <div>Showing results for:</div>
+                  </div>
+                  }>
+                    {x.maxNumTransfers.overallMaxNumTransfers > 0 && (
+                      <li>Overall Max Transfers (All Users): {x.maxNumTransfers.overallMaxNumTransfers.toString()}</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    <div>Showing results for:</div>
 
-                <AddressDisplay addressOrUsername={chain.address} />
-                <br />
-                {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
-                  <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalDetails[0].approvalTrackerId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
-                    {' '}out of {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>)}
+                    <AddressDisplay addressOrUsername={chain.address} />
+                    <br />
+                    {x.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
+                        {' '}out of {x.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>)}
 
-              </div>
-              }>
-                {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
-                  <li>Max Transfers per Initiated By Address: {transfer.approvalDetails[0].maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>
-                )}
-              </Popover>
+                  </div>
+                  }>
+                    {x.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per To Address: {x.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    <div>Showing results for:</div>
 
-            </ul>
+                    <AddressDisplay addressOrUsername={chain.address} />
+                    <br />
+                    {x.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
+                        {' '}out of {x.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>)}
 
+                  </div>
+                  }>
+                    {x.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per From Address: {x.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>
+                    )}
+                  </Popover>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                    <div>Showing results for:</div>
+
+                    <AddressDisplay addressOrUsername={chain.address} />
+                    <br />
+                    {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
+                        {' '}out of {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>)}
+
+                  </div>
+                  }>
+                    {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per Initiated By Address: {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>
+                    )}
+                  </Popover>
+
+                </ul>
+
+              </>
+            }
+            )}
           </>
 
         }

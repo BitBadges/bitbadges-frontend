@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
+import { compareObjects } from "../../utils/compare";
 import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
-import Carousel from "../display/Carousel";
 
 export function BadgeAvatarDisplay({
   collectionId,
@@ -28,7 +28,7 @@ export function BadgeAvatarDisplay({
   showOnSinglePage,
   lightTheme,
   doNotFetchMetadata,
-  doNotAdaptToWidth,
+  // doNotAdaptToWidth,
   showPageJumper
 }: {
   collectionId: bigint;
@@ -47,7 +47,7 @@ export function BadgeAvatarDisplay({
   showOnSinglePage?: boolean;
   lightTheme?: boolean;
   doNotFetchMetadata?: boolean;
-  doNotAdaptToWidth?: boolean;
+  // doNotAdaptToWidth?: boolean;
   noBorder?: boolean;
   showPageJumper?: boolean
 }) {
@@ -139,7 +139,7 @@ export function BadgeAvatarDisplay({
           const res = await collections.fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch }, fetchDirectly);
           let newBadgeMetadata = res[0].cachedBadgeMetadata;
 
-          if (newBadgeMetadata && JSON.stringify(newBadgeMetadata) !== JSON.stringify(prevMetadata)) {
+          if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
 
             if (currPreviewCollection) {
               //Only update newly fetched metadata

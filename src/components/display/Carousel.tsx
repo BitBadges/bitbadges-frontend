@@ -1,6 +1,6 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Button, Carousel, InputNumber } from 'antd';
-import React, { ReactNode, useEffect } from 'react';
+import { Button, Carousel } from 'antd';
+import React, { ReactNode } from 'react';
 
 interface CustomCarouselProps {
   title: string | ReactNode
@@ -81,7 +81,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
         }}
       >
         {items.map((_, i) => (
-          <div key={currPage}>
+          <div key={i}>
             {
               total ? items[0] :
                 items[currPage]}

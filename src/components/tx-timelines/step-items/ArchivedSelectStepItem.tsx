@@ -1,24 +1,22 @@
-import { Divider } from "antd";
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, validateIsArchivedUpdate } from "bitbadgesjs-utils";
+import { getFullIsArchivedTimeline, validateIsArchivedUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionIcon } from "../../collection-page/PermissionsInfo";
+import { ErrDisplay } from "../form-items/ErrDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { MSG_PREVIEW_ID, EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-export function IsArchivedSelectStepItem(
-  canArchiveCollection: boolean,
-  setCanArchiveCollection: (canArchiveCollection: boolean) => void,
-  existingCollectionId?: bigint
-) {
+export function IsArchivedSelectStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
 
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
+  const canArchiveCollection = txTimelineContext.updateIsArchivedTimeline;
+  const setCanArchiveCollection = txTimelineContext.setUpdateIsArchivedTimeline;
 
   if (!collection) return EmptyStepItem;
-  const err = existingCollection ? validateIsArchivedUpdate(existingCollection.isArchivedTimeline, collection.isArchivedTimeline, existingCollection.collectionPermissions.canArchiveCollection) : undefined;
+  const err = startingCollection ? validateIsArchivedUpdate(startingCollection.isArchivedTimeline, collection.isArchivedTimeline, startingCollection.collectionPermissions.canArchiveCollection) : undefined;
 
   return {
     title: 'Archived Status',
@@ -29,7 +27,6 @@ export function IsArchivedSelectStepItem(
       <UpdateSelectWrapper
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}
-        existingCollectionId={existingCollectionId}
         jsonPropertyPath="isArchivedTimeline"
         permissionName='canArchiveCollection'
         node={
@@ -43,11 +40,7 @@ export function IsArchivedSelectStepItem(
                 alignItems: 'center',
               }}
             >
-              {err &&
-                <div style={{ color: 'red', textAlign: 'center' }}>
-                  <b>Error: </b>You are attempting to update a previously frozen value.
-                  <Divider />
-                </div>}
+              <ErrDisplay err={err} />
 
               <SwitchForm
                 // noSelectUntilClick
@@ -72,12 +65,12 @@ export function IsArchivedSelectStepItem(
                   {
                     title: 'Not Archived',
                     message: 'All transactions will succeed. The collection will not be archived.',
-                    isSelected: collection.isArchivedTimeline.length == 0,
+                    isSelected: collection.isArchivedTimeline.length == 0 || collection.isArchivedTimeline.every(x => !x.isArchived),
                   },
                   {
                     title: 'Archived (Read-Only)',
                     message: 'Moving forward, this collection will be archived and read-only. All transactions will fail until the collection is unarchived.',
-                    isSelected: collection.isArchivedTimeline.length > 0,
+                    isSelected: collection.isArchivedTimeline.length > 0 && getFullIsArchivedTimeline(collection.isArchivedTimeline).every(x => x.isArchived),
                   },
                 ]}
               />

@@ -9,8 +9,7 @@ import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMs
 
 import { SwitchForm } from './SwitchForm';
 
-export function SubmitMsgCreateAddressMapping({
-}: {}) {
+export function SubmitMsgCreateAddressMapping() {
   const chain = useChainContext();
   const txState = useTxTimelineContext();
   const addressMapping = txState.addressMapping;

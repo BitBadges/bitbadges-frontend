@@ -1,5 +1,5 @@
 import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { Button, Divider, Input, InputNumber, Tooltip } from "antd";
+import { Button, Input, InputNumber, Tooltip } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -23,12 +23,12 @@ export function BadgeIdRangesInput({
   collectionId: bigint,
   hideSelect?: boolean,
 }) {
+  uintRangeBounds = uintRangeBounds ? sortUintRangesAndMergeIfNecessary(uintRangeBounds) : undefined;
+
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
     uintRanges ? uintRanges.map(({ start, end }) => [start, end])
-      :
-      uintRangeBounds ? uintRangeBounds.map(({ start, end }) => [start, end]) :
-        [[minimum ?? 1n, maximum ?? 1n]]);
+      : uintRangeBounds ? uintRangeBounds.map(({ start, end }) => [start, end]) : [[minimum ?? 1n, maximum ?? 1n]]);
   const [inputStr, setInputStr] = useState(
     uintRanges ?
 
@@ -74,7 +74,7 @@ export function BadgeIdRangesInput({
     Numberify(uintRangeBounds[0].start.toString()) :
     Numberify(minimum?.toString() ?? 1);
 
-  const [remaining, removed] = removeUintRangeFromUintRange(uintRangeBounds ?? [], uintRanges ?? []);
+  const [remaining] = removeUintRangeFromUintRange(uintRangeBounds ?? [], uintRanges ?? []);
   const outOfBounds = uintRangeBounds && remaining.length > 0;
 
 

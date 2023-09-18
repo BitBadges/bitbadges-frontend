@@ -33,7 +33,7 @@ function Mint() {
                     paddingTop: '20px',
                   }}
                 >
-                  <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' isModal={false} />
+                  <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' />
                 </div>
               </Content>
             </Layout>

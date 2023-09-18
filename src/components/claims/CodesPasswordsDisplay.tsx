@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Card, Divider, Empty, Row, Tooltip, Typography } from "antd";
-import { CollectionApprovedTransferWithDetails } from "bitbadgesjs-utils";
+import { ApprovalDetailsWithDetails } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
@@ -10,12 +10,12 @@ import { ToolIcon, tools } from "../display/ToolIcon";
 import { Pagination } from "../common/Pagination";
 
 export function CodesDisplay({
-  approvedTransfer,
+  approvalDetails,
   collectionId,
   codes,
   claimPassword,
 }: {
-  approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
+  approvalDetails: ApprovalDetailsWithDetails<bigint>,
   collectionId: bigint,
   codes?: string[]
   claimPassword?: string
@@ -23,16 +23,17 @@ export function CodesDisplay({
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
-  const claim = approvedTransfer.approvalDetails.length > 0 && approvedTransfer.approvalDetails[0].merkleChallenges.length > 0 ?
-    approvedTransfer.approvalDetails[0].merkleChallenges[0] : undefined; //TODO: Support multiple challenges per claim
 
-  const claimId = claim?.challengeId;
+  const merkleChallenge = approvalDetails && approvalDetails.merkleChallenges.length > 0 ?
+    approvalDetails.merkleChallenges[0] : undefined;
+
+  const claimId = merkleChallenge?.challengeId;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
 
   const [codePage, setCodePage] = useState(1);
 
-  const printStr = claim?.details?.hasPassword ? 'password' : 'code';
-  const urlSuffix = claim?.details?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
+  const printStr = merkleChallenge?.details?.hasPassword ? 'password' : 'code';
+  const urlSuffix = merkleChallenge?.details?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
 
   return <Card
     className="primary-text primary-blue-bg"
@@ -55,7 +56,7 @@ export function CodesDisplay({
       <br />
 
 
-      {!claim?.details?.hasPassword && codes && codes.length > 0 && <>
+      {!merkleChallenge?.details?.hasPassword && codes && codes.length > 0 && <>
         <div>
           <Typography.Text strong className='primary-text' style={{ fontSize: 22 }}>Step 1: Fetch Codes</Typography.Text>
           <br />
@@ -172,7 +173,7 @@ export function CodesDisplay({
 
       />
       <br />
-      {claim && !claim.details?.hasPassword && claim.maxOneUsePerLeaf && codes && <Typography.Text strong className='secondary-text'>
+      {merkleChallenge && !merkleChallenge.details?.hasPassword && merkleChallenge.maxOneUsePerLeaf && codes && <Typography.Text strong className='secondary-text'>
         <InfoCircleOutlined /> Note that this code can only be used once.
         <br />
         Current Status: {
@@ -247,7 +248,7 @@ export function CodesDisplay({
         })}
       </div>
     </div>
-    {claim && !claim.details?.hasPassword && (!codes || codes.length === 0) &&
+    {merkleChallenge && !merkleChallenge.details?.hasPassword && (!codes || codes.length === 0) &&
       <Empty
         description={<span className='primary-text'>There are no {printStr}s for this claim.</span>}
         image={Empty.PRESENTED_IMAGE_SIMPLE}

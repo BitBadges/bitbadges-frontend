@@ -1,26 +1,23 @@
 import { Col, Row, Typography } from 'antd';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 
 
 export function BeforeAfterPermission({
   permissionName,
-  existingCollectionId,
 }: {
   permissionName: string,
-  existingCollectionId?: bigint,
 }) {
   const collections = useCollectionsContext();
-
-
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
 
   let castFunction: any = () => { }
   let flags;
-  let oldPermissions = existingCollection?.collectionPermissions[`${permissionName}` as keyof typeof existingCollection.collectionPermissions];
+  let oldPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
   let newPermissions = collection?.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
   if (collection) {
 
@@ -63,7 +60,7 @@ export function BeforeAfterPermission({
     <Row className="full-width flex-center" justify="center" style={{ alignItems: 'normal' }}>
       <br />
       <br />
-      {existingCollection && <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+      {startingCollection && <Col md={12} xs={24} style={{ textAlign: 'center' }}>
         <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
           Previous
         </Typography.Text>
@@ -71,7 +68,7 @@ export function BeforeAfterPermission({
         <br />
         {PermissionDisplay(
           permissionName,
-          castFunction(oldPermissions as any), '', flags as any
+          castFunction(oldPermissions as any), flags as any
         )}
       </Col>}
       <Col md={12} xs={24} style={{ textAlign: 'center' }}>
@@ -83,7 +80,7 @@ export function BeforeAfterPermission({
         <br />
         {PermissionDisplay(
           permissionName,
-          castFunction(newPermissions as any), '', flags as any
+          castFunction(newPermissions as any), flags as any
         )}
       </Col>
     </Row>

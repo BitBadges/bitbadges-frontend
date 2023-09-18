@@ -2,8 +2,8 @@ import { UintRange } from "bitbadgesjs-proto";
 import { DateRangeInput } from "../inputs/DateRangeInput";
 
 export function ClaimTimeRangeSelectStep(
-  timeRange: UintRange<bigint>,
-  setTimeRange: (timeRange: UintRange<bigint>) => void,
+  timeRanges: UintRange<bigint>[],
+  setTimeRanges: (timeRange: UintRange<bigint>[]) => void,
 ) {
   return {
     title: 'Time',
@@ -14,12 +14,12 @@ export function ClaimTimeRangeSelectStep(
       </div>
 
       <DateRangeInput
-        timeRanges={[timeRange]}
+        timeRanges={timeRanges}
         setTimeRanges={(timeRanges) => {
-          setTimeRange(timeRanges[0]);
+          setTimeRanges(timeRanges);
         }}
       />
     </div>,
-    disabled: !timeRange.start || !timeRange.end || timeRange.start > timeRange.end,
+    disabled: timeRanges.length === 0,
   }
 }

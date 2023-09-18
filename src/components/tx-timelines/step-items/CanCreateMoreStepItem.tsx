@@ -1,32 +1,27 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Divider, Typography } from "antd";
 import { BalancesActionPermission } from "bitbadgesjs-proto";
-import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, removeUintRangeFromUintRange } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission } from "bitbadgesjs-utils";
+import { useEffect, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { getPermissionDataSource } from "../../collection-page/PermissionsInfo";
+import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
-import { BeforeAfterPermission } from "../form-items/BeforeAfterPermission";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 
-
-//TODO: Advanced option
-
-const DefaultCombinations = [{
-
-}];
+const DefaultCombinations = [{}];
 
 const DefaultCombinationsEverythingLocked = [{},
 //Everything forbidden is already locked, we just lock everything else that is permitted here
 {
-  badgeIdsOptions: { invertDefault: false, allValues: true, noValues: false },
-  ownershipTimesOptions: { invertDefault: false, allValues: true, noValues: false },
-  permittedTimesOptions: { invertDefault: false, allValues: true, noValues: false },
-  forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: true },
+  badgeIdsOptions: { allValues: true },
+  ownershipTimesOptions: { allValues: true },
+  permittedTimesOptions: { allValues: true },
+  forbiddenTimesOptions: { noValues: true },
 }];
 
 const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
@@ -39,53 +34,40 @@ const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
   combinations: DefaultCombinations
 }
 
-export function CanCreateMoreStepItem(
-
-  existingCollectionId?: bigint,
-) {
+export function CanCreateMoreStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
+  const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
 
+  const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
+
+  //If we add badges to the collection, we need to update the permission to reflect the new max badge id
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
+    if (lastClickedIdx !== -1) {
+      handleSwitchChange(lastClickedIdx, everythingLocked);
+    }
+  }, [maxBadgeId, lastClickedIdx]);
 
   if (!collection) return EmptyStepItem;
 
-  const maxBadgeId = getTotalNumberOfBadges(collection);
-  const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
-  const currentlyMintedPermissionDetails = permissionDetails.dataSource.map(x => {
-    const [remaining, removed] = removeUintRangeFromUintRange([{ start: 1n, end: maxBadgeId }], x.badgeIds ?? []);
-
-    return {
-      ...x,
-      badgeIds: removed,
-    }
-  }).filter(x => x.badgeIds.length > 0);
-  const currentlyMintedHasPermittedTimes = currentlyMintedPermissionDetails.some(x => x.permitted);
-  const currentlyMintedHasForbiddenTimes = currentlyMintedPermissionDetails.some(x => x.forbidden);
-  const currentlyMintedHasNeutralTimes = currentlyMintedPermissionDetails.some(x => !x.permitted && !x.forbidden);
-
-  const allUnmintedPermissionDetails = permissionDetails.dataSource.map(x => {
-    const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }], x.badgeIds ?? []);
-
-    return {
-      ...x,
-      badgeIds: removed,
-
-    }
-  }).filter(x => x.badgeIds.length > 0);
-  const allUnmintedHasPermittedTimes = allUnmintedPermissionDetails.some(x => x.permitted);
-  const allUnmintedHasForbiddenTimes = allUnmintedPermissionDetails.some(x => x.forbidden);
-  const allUnmintedHasNeutralTimes = allUnmintedPermissionDetails.some(x => !x.permitted && !x.forbidden);
+  const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
 
 
+  const currentlyMintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, undefined, [{ start: 1n, end: maxBadgeId }]);
+  const currentlyMintedHasPermittedTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.permitted);
+  const currentlyMintedHasNeutralTimes = currentlyMintedPermissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
+  const currentlyMintedHasForbiddenTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.forbidden);
 
+  const allUnmintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, undefined, [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }]);
+  const allUnmintedHasPermittedTimes = allUnmintedPermissionDetails.dataSource.some(x => x.permitted);
+  const allUnmintedHasNeutralTimes = allUnmintedPermissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
+  const allUnmintedHasForbiddenTimes = allUnmintedPermissionDetails.dataSource.some(x => x.forbidden);
 
   const everythingLocked = !permissionDetails.hasNeutralTimes;
-
-
-
 
   const handleSwitchChange = (idx: number, locked?: boolean) => {
     const permissions =
@@ -118,7 +100,7 @@ export function CanCreateMoreStepItem(
   }
 
   const handleLocked = (locked: boolean, permissions: BalancesActionPermission<bigint>[]) => {
-    const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(permissions), BalancesActionPermissionUsedFlags);
+    const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(permissions), BalancesActionPermissionUsedFlags);
     if (!permissionDetails.hasForbiddenTimes) {
       if (!locked) return [];
       else return [{
@@ -138,8 +120,9 @@ export function CanCreateMoreStepItem(
         combinations: DefaultCombinations
       }))
     }
-  }
 
+
+  }
 
 
 
@@ -153,11 +136,9 @@ export function CanCreateMoreStepItem(
       err={err}
       setErr={setErr}
       permissionName="canCreateMoreBadges"
-      existingCollectionId={existingCollectionId}
       node={<>
         <SwitchForm
           showCustomOption
-          // noSelectUntilClick
           options={[
             {
               title: 'No',
@@ -168,21 +149,13 @@ export function CanCreateMoreStepItem(
               title: 'Unique Badges Only',
               message: `In the future, new unique badges (i.e. badges with new IDs) can be added, but any existing badge's supply can never be increased.`,
               isSelected: //all are forbidden explicitly for the currently minted badges
-                !completelyFrozen && !currentlyMintedHasPermittedTimes && !currentlyMintedHasNeutralTimes
-
-
-              // !compareObjects(collection.collectionPermissions.canCreateMoreBadges, [AlwaysLockedPermission])
-              //   && !compareObjects(collection.collectionPermissions.canCreateMoreBadges, [])
-              //   && collection.collectionPermissions.canCreateMoreBadges[0].defaultValues.badgeIds[0].start === 1n
+                !completelyFrozen && !currentlyMintedHasPermittedTimes && !currentlyMintedHasNeutralTimes && !allUnmintedHasForbiddenTimes
             },
             {
               title: 'Increment Supply Only',
               message: `In the future, the supply of existing badges can be increased, but no new unique badges (i.e. badges with new IDs) can ever be created.`,
               isSelected: //all are forbidden explicitly for all future badges
-                !completelyFrozen && !allUnmintedHasPermittedTimes && !allUnmintedHasNeutralTimes
-              // !compareObjects(collection.collectionPermissions.canCreateMoreBadges, [AlwaysLockedPermission])
-              //   && !compareObjects(collection.collectionPermissions.canCreateMoreBadges, [])
-              //   && collection.collectionPermissions.canCreateMoreBadges[0].defaultValues.badgeIds[0].start === maxBadgeId + 1n
+                !completelyFrozen && !allUnmintedHasPermittedTimes && !allUnmintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes
             },
             {
               title: 'Any',
@@ -191,7 +164,7 @@ export function CanCreateMoreStepItem(
             },
           ]}
           onSwitchChange={(idx) => {
-            handleSwitchChange(idx, everythingLocked);
+            setLastClickedIdx(idx);
           }}
           helperMessage=""
         />

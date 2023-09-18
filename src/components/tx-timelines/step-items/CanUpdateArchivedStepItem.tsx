@@ -1,16 +1,13 @@
+import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { BeforeAfterPermission } from "../form-items/BeforeAfterPermission";
-import { castTimedUpdatePermissionToUniversalPermission, TimedUpdatePermissionUsedFlags } from "bitbadgesjs-utils";
-import { getPermissionDataSource } from "../../collection-page/PermissionsInfo";
 
 export function CanArchiveCollectionStepItem(
-
-  existingCollectionId?: bigint,
 ) {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
@@ -19,8 +16,7 @@ export function CanArchiveCollectionStepItem(
   const [err, setErr] = useState<Error | null>(null);
   if (!collection) return EmptyStepItem;
 
-  // const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
-  const permissionDetails = getPermissionDataSource(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags);
+  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags);
 
   return {
     title: 'Can archive / unarchive collection?',
@@ -31,7 +27,6 @@ export function CanArchiveCollectionStepItem(
       err={err}
       setErr={setErr}
       permissionName="canArchiveCollection"
-      existingCollectionId={existingCollectionId}
       node={<>
         <SwitchForm
           showCustomOption
@@ -64,11 +59,7 @@ export function CanArchiveCollectionStepItem(
                     permittedTimes: [],
                     forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   },
-                  combinations: [{
-                    // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    // forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    // timelineTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                  }]
+                  combinations: [{}]
                 }] : idx == 1 ? [] : [{
                   defaultValues: {
                     timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -76,9 +67,9 @@ export function CanArchiveCollectionStepItem(
                     forbiddenTimes: [],
                   },
                   combinations: [{
-                    permittedTimesOptions: { invertDefault: false, allValues: true, noValues: false },
-                    forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: true },
-                    timelineTimesOptions: { invertDefault: false, allValues: true, noValues: false },
+                    permittedTimesOptions: { allValues: true },
+                    forbiddenTimesOptions: { noValues: true },
+                    timelineTimesOptions: { allValues: true },
                   }]
                 }]
 

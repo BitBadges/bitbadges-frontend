@@ -1,6 +1,6 @@
 import { Avatar, Divider } from 'antd';
 import { AddressMapping, Balance, MsgUpdateUserApprovedTransfers, createTxMsgUpdateUserApprovedTransfers, deepCopy } from 'bitbadgesjs-proto';
-import { UserApprovedOutgoingTransferTimelineWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { UserApprovedOutgoingTransferWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { getBadgeBalanceByAddress } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
@@ -35,7 +35,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalBalances);
   const [allInOne, setAllInOne] = useState<boolean>(false);
   const [approvee, setApprovee] = useState<string>(chain.address);
-  const [fetchedOutgoingTransfers, setFetchedOutgoingTransfers] = useState<UserApprovedOutgoingTransferTimelineWithDetails<bigint>[]>([]);
+  const [fetchedOutgoingTransfers, setFetchedOutgoingTransfers] = useState<UserApprovedOutgoingTransferWithDetails<bigint>[]>([]);
   const approveeAccount = accounts.getAccount(approvee);
 
 
@@ -46,20 +46,122 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
 
       const balances = await getBadgeBalanceByAddress(collectionId, chain.cosmosAddress, { doNotHandleAllAndAppendDefaults: true });
-      setFetchedOutgoingTransfers(balances.balance.approvedOutgoingTransfersTimeline);
+      setFetchedOutgoingTransfers(balances.balance.approvedOutgoingTransfers);
     }
     getApproveeBalance();
   }, []);
 
   const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
-  const newApprovedOutgoingTransfers = [{
-    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    approvedOutgoingTransfers: [
+  const newApprovedOutgoingTransfers = [
 
-      ...(allInOne ? [{
-        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    ...(allInOne ? [{
+      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+      toMappingId: "AllWithMint",
+      initiatedByMappingId: convertToCosmosAddress(approvee),
+      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+      toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
+      initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
+      approvalDetails: [
+        {
+          approvalTrackerId: approvalTrackerId.current,
+          uri: '',
+          customData: '',
+          mustOwnBadges: [],
+          approvalAmounts: {
+            overallApprovalAmount: 0n,
+            perFromAddressApprovalAmount: 0n,
+            perToAddressApprovalAmount: 0n,
+            perInitiatedByAddressApprovalAmount: 0n,
+          },
+          maxNumTransfers: {
+            overallMaxNumTransfers: 0n,
+            perFromAddressMaxNumTransfers: 0n,
+            perToAddressMaxNumTransfers: 0n,
+            perInitiatedByAddressMaxNumTransfers: 0n,
+          },
+          predeterminedBalances: {
+            precalculationId: precalculationId.current,
+            manualBalances: [{ balances: balances }],
+            incrementedBalances: {
+              startBalances: [],
+              incrementBadgeIdsBy: 0n,
+              incrementOwnershipTimesBy: 0n,
+            },
+            orderCalculationMethod: {
+              useMerkleChallengeLeafIndex: false,
+              useOverallNumTransfers: true,
+              usePerFromAddressNumTransfers: false,
+              usePerInitiatedByAddressNumTransfers: false,
+              usePerToAddressNumTransfers: false,
+            },
+          },
+          merkleChallenges: [],
+          requireToEqualsInitiatedBy: false,
+          requireToDoesNotEqualInitiatedBy: false,
+        }],
+      allowedCombinations: [{
+        isApproved: true,
+        toMappingOptions: {
+
+
+
+        },
+
+        initiatedByMappingOptions: {
+
+
+
+        },
+        badgeIdsOptions: {
+
+
+
+        },
+        ownershipTimesOptions: {
+
+
+
+        },
+        transferTimesOptions: {
+
+
+
+        },
+      }, {
+        isApproved: false,
+        toMappingOptions: {
+
+
+
+        },
+
+        initiatedByMappingOptions: {
+
+
+
+        },
+        badgeIdsOptions: {
+
+          allValues: true
+
+        },
+        ownershipTimesOptions: {
+
+          allValues: true
+
+        },
+        transferTimesOptions: {
+
+          allValues: true
+
+        },
+      }]
+    }] : [...balances.map(x => {
+      return {
+        badgeIds: [...x.badgeIds],
+        ownershipTimes: [...x.ownershipTimes],
         toMappingId: "AllWithMint",
         initiatedByMappingId: convertToCosmosAddress(approvee),
         transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -72,7 +174,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
             customData: '',
             mustOwnBadges: [],
             approvalAmounts: {
-              overallApprovalAmount: 0n,
+              overallApprovalAmount: x.amount,
               perFromAddressApprovalAmount: 0n,
               perToAddressApprovalAmount: 0n,
               perInitiatedByAddressApprovalAmount: 0n,
@@ -84,8 +186,8 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
               perInitiatedByAddressMaxNumTransfers: 0n,
             },
             predeterminedBalances: {
-              precalculationId: precalculationId.current,
-              manualBalances: [{ balances: balances }],
+              precalculationId: '',
+              manualBalances: [],
               incrementedBalances: {
                 startBalances: [],
                 incrementBadgeIdsBy: 0n,
@@ -93,7 +195,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
               },
               orderCalculationMethod: {
                 useMerkleChallengeLeafIndex: false,
-                useOverallNumTransfers: true,
+                useOverallNumTransfers: false,
                 usePerFromAddressNumTransfers: false,
                 usePerInitiatedByAddressNumTransfers: false,
                 usePerToAddressNumTransfers: false,
@@ -105,170 +207,20 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
           }],
         allowedCombinations: [{
           isApproved: true,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
           badgeIdsOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
+            allValues: true
           },
           ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
+            allValues: true
           },
           transferTimesOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-        }, {
-          isApproved: false,
-          toMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-
-          initiatedByMappingOptions: {
-            invertDefault: false,
-            allValues: false,
-            noValues: false
-          },
-          badgeIdsOptions: {
-            invertDefault: false,
-            allValues: true,
-            noValues: false
-          },
-          ownershipTimesOptions: {
-            invertDefault: false,
-            allValues: true,
-            noValues: false
-          },
-          transferTimesOptions: {
-            invertDefault: false,
-            allValues: true,
-            noValues: false
+            allValues: true
           },
         }]
-      }] : [...balances.map(x => {
-        return {
-          badgeIds: [...x.badgeIds],
-          ownershipTimes: [...x.ownershipTimes],
-          toMappingId: "AllWithMint",
-          initiatedByMappingId: convertToCosmosAddress(approvee),
-          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
-          initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-          approvalDetails: [
-            {
-              approvalTrackerId: approvalTrackerId.current,
-              uri: '',
-              customData: '',
-              mustOwnBadges: [],
-              approvalAmounts: {
-                overallApprovalAmount: x.amount,
-                perFromAddressApprovalAmount: 0n,
-                perToAddressApprovalAmount: 0n,
-                perInitiatedByAddressApprovalAmount: 0n,
-              },
-              maxNumTransfers: {
-                overallMaxNumTransfers: 0n,
-                perFromAddressMaxNumTransfers: 0n,
-                perToAddressMaxNumTransfers: 0n,
-                perInitiatedByAddressMaxNumTransfers: 0n,
-              },
-              predeterminedBalances: {
-                precalculationId: '',
-                manualBalances: [],
-                incrementedBalances: {
-                  startBalances: [],
-                  incrementBadgeIdsBy: 0n,
-                  incrementOwnershipTimesBy: 0n,
-                },
-                orderCalculationMethod: {
-                  useMerkleChallengeLeafIndex: false,
-                  useOverallNumTransfers: false,
-                  usePerFromAddressNumTransfers: false,
-                  usePerInitiatedByAddressNumTransfers: false,
-                  usePerToAddressNumTransfers: false,
-                },
-              },
-              merkleChallenges: [],
-              requireToEqualsInitiatedBy: false,
-              requireToDoesNotEqualInitiatedBy: false,
-            }],
-          allowedCombinations: [{
-            isApproved: true,
-            toMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-
-            initiatedByMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            badgeIdsOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            ownershipTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            transferTimesOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-          }, {
-            isApproved: false,
-            toMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-
-            initiatedByMappingOptions: {
-              invertDefault: false,
-              allValues: false,
-              noValues: false
-            },
-            badgeIdsOptions: {
-              invertDefault: false,
-              allValues: true,
-              noValues: false
-            },
-            ownershipTimesOptions: {
-              invertDefault: false,
-              allValues: true,
-              noValues: false
-            },
-            transferTimesOptions: {
-              invertDefault: false,
-              allValues: true,
-              noValues: false
-            },
-          }]
-        }
-      })]),
-      ...(fetchedOutgoingTransfers.length > 0 ? fetchedOutgoingTransfers[0].approvedOutgoingTransfers : []),
-    ]
-  }]
+      }
+    })]),
+    ...(fetchedOutgoingTransfers.length > 0 ? fetchedOutgoingTransfers : []),
+  ]
 
   const txCosmosMsg: MsgUpdateUserApprovedTransfers<bigint> = {
     creator: chain.cosmosAddress,
@@ -278,13 +230,13 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       canUpdateApprovedIncomingTransfers: [],
       canUpdateApprovedOutgoingTransfers: [],
     },
-    updateApprovedIncomingTransfersTimeline: false,
-    updateApprovedOutgoingTransfersTimeline: true,
-    approvedIncomingTransfersTimeline: [],
-    approvedOutgoingTransfersTimeline: newApprovedOutgoingTransfers,
+    updateApprovedIncomingTransfers: false,
+    updateApprovedOutgoingTransfers: true,
+    approvedIncomingTransfers: [],
+    approvedOutgoingTransfers: newApprovedOutgoingTransfers,
   };
-  const uintRangesOverlap = checkIfUintRangesOverlap(balances[0]?.badgeIds || []);
-  const uintRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
+  const uintRangesOverlap = balances.some(x => checkIfUintRangesOverlap(x.badgeIds));
+  const uintRangesLengthEqualsZero = balances.some(x => x.badgeIds.length === 0);
 
   const items = [
     {

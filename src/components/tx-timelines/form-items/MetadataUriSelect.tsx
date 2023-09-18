@@ -6,52 +6,28 @@ import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { DevMode } from "../../common/DevMode";
+import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 const { Text } = Typography;
 
 export function MetadataUriSelect({
-  collectionId,
-
   startId,
   endId,
   hideCollectionSelect,
   hideBadgeSelect
 }: {
-  collectionId: bigint,
   startId: bigint;
   endId: bigint;
   hideCollectionSelect?: boolean;
   hideBadgeSelect?: boolean;
 }) {
   const collections = useCollectionsContext();
+  const collectionId = MSG_PREVIEW_ID;
 
   const collection = collections.collections[collectionId.toString()]
 
   const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
   const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
-
-  //Upon initial load, populate with placeholder
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: uri select, initial load');
-    const collection = collections.collections[collectionId.toString()];
-    if (!collection) return;
-
-    // collections.updateCollection({
-    //   ...collection,
-    //   cachedCollectionMetadata: DefaultPlaceholderMetadata,
-    //   cachedBadgeMetadata: collection?.cachedBadgeMetadata.map(badge => ({
-    //     ...badge,
-    //     metadata: DefaultPlaceholderMetadata
-    //   })) || []
-    // })
-
-    if (collectionUri) {
-      collections.fetchAndUpdateMetadata(collectionId, {
-        // badgeIds: [{ start: startId, end: endId }],
-      }, true)
-    }
-  }, [collectionId])
-
 
   const DELAY_MS = 1000;
   useEffect(() => {

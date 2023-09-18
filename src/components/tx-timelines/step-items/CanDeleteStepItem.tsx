@@ -2,25 +2,20 @@ import { ActionPermissionUsedFlags, castActionPermissionToUniversalPermission } 
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { getPermissionDataSource } from "../../collection-page/PermissionsInfo";
-import { BeforeAfterPermission } from "../form-items/BeforeAfterPermission";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
 
-export function CanDeleteStepItem(
-
-
-  existingCollectionId?: bigint,
-) {
+export function CanDeleteStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const [checked, setChecked] = useState<boolean>(true);
 
   const [err, setErr] = useState<Error | null>(null);
   if (!collection) return EmptyStepItem;
-  // const permissionDetails = getPermissionDataSource(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
-  const permissionDetails = getPermissionDataSource(castActionPermissionToUniversalPermission(collection?.collectionPermissions.canDeleteCollection ?? []), ActionPermissionUsedFlags);
+
+  const permissionDetails = getPermissionDetails(castActionPermissionToUniversalPermission(collection?.collectionPermissions.canDeleteCollection ?? []), ActionPermissionUsedFlags);
 
   return {
     title: 'Can Delete?',
@@ -31,7 +26,6 @@ export function CanDeleteStepItem(
       err={err}
       setErr={setErr}
       permissionName="canDeleteCollection"
-      existingCollectionId={existingCollectionId}
       node={<>
 
         <SwitchForm
@@ -64,18 +58,15 @@ export function CanDeleteStepItem(
                     permittedTimes: [],
                     forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   },
-                  combinations: [{
-                    // permittedTimesOptions: { invertDefault: false, allValues: false, noValues: false },
-                    // forbiddenTimesOptions: { invertDefault: false, allValues: true, noValues: false },
-                  }]
+                  combinations: [{}]
                 }] : idx == 1 ? [] : [{
                   defaultValues: {
                     permittedTimes: [],
                     forbiddenTimes: [],
                   },
                   combinations: [{
-                    permittedTimesOptions: { invertDefault: false, allValues: true, noValues: false },
-                    forbiddenTimesOptions: { invertDefault: false, allValues: false, noValues: true },
+                    permittedTimesOptions: { allValues: true },
+                    forbiddenTimesOptions: { noValues: true },
                   }]
                 }]
               }
@@ -85,7 +76,6 @@ export function CanDeleteStepItem(
         />
         <br />
         <br />
-
       </>
       }
     />,

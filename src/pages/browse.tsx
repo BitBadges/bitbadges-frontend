@@ -1,20 +1,14 @@
-import { Carousel, Divider, Layout, Select, Spin, Typography } from 'antd';
-import { useEffect, useState } from 'react';
-import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
-import { AddressDisplay } from '../components/address/AddressDisplay';
-import { BlockiesAvatar } from '../components/address/Blockies';
-import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
-import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
-import { Tabs } from '../components/navigation/Tabs';
-import { DownOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { AccountButtonDisplay } from '../components/button-displays/AccountButtonDisplay';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons';
-import CustomCarousel from '../components/display/Carousel';
-import { AddressListCard } from '../components/badges/AddressListCard';
+import { useEffect, useState } from 'react';
 import { useAccountsContext } from '../bitbadges-api/contexts/AccountsContext';
+import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
+import { AddressListCard } from '../components/badges/AddressListCard';
+import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
+import { AccountButtonDisplay } from '../components/button-displays/AccountButtonDisplay';
 import { ActivityTab } from '../components/collection-page/TransferActivityDisplay';
+import CustomCarousel from '../components/display/Carousel';
+import { Tabs } from '../components/navigation/Tabs';
 
 const { Content } = Layout;
 
@@ -24,7 +18,8 @@ function BrowsePage() {
   const browseInfo = browseContext.browse;
   const router = useRouter();
   const [tab, setTab] = useState('featured');
-  const [cardView, setCardView] = useState(false);
+  // const [cardView, setCardView] = useState(false);
+  const cardView = false;
 
   const [badgesTab, setBadgesTab] = useState('latest');
   const [listsTab, setListsTab] = useState('latest');

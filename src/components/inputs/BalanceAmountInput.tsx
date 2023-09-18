@@ -2,7 +2,7 @@ import { Balance } from 'bitbadgesjs-proto';
 import { NumberInput } from './NumberInput';
 import { Numberify } from 'bitbadgesjs-utils';
 
-export function BalancesInput({
+export function BalanceAmountInput({
   balances,
   setBalances,
   title,

@@ -55,7 +55,7 @@ export function BadgesTab({ collectionId }: {
           badgeIds={collection ? getUintRangesForAllBadgeIdsInCollection(collection) : []}
           defaultPageSize={cardView ? 25 : 1000}
           hideCollectionLink={true}
-          doNotAdaptToWidth
+          // doNotAdaptToWidth
           showPageJumper
         />
       </div>

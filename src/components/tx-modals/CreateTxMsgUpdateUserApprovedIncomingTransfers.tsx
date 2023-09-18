@@ -1,5 +1,5 @@
 import { MsgUpdateUserApprovedTransfers, createTxMsgUpdateUserApprovedTransfers } from 'bitbadgesjs-proto';
-import { UserApprovedIncomingTransferTimelineWithDetails } from 'bitbadgesjs-utils';
+import { UserApprovedIncomingTransferWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
@@ -16,7 +16,7 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
   const chain = useChainContext();
   const collections = useCollectionsContext();
 
-  const [newApprovedIncomingTransfers, setNewApprovedIncomingTransfers] = useState<UserApprovedIncomingTransferTimelineWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.approvedIncomingTransfersTimeline ?? []);
+  const [newApprovedIncomingTransfers, setNewApprovedIncomingTransfers] = useState<UserApprovedIncomingTransferWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.approvedIncomingTransfers ?? []);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: approvee balance ');
@@ -35,10 +35,10 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
       canUpdateApprovedIncomingTransfers: [],
       canUpdateApprovedOutgoingTransfers: [],
     },
-    updateApprovedIncomingTransfersTimeline: true,
-    updateApprovedOutgoingTransfersTimeline: false,
-    approvedIncomingTransfersTimeline: newApprovedIncomingTransfers,
-    approvedOutgoingTransfersTimeline: [],
+    updateApprovedIncomingTransfers: true,
+    updateApprovedOutgoingTransfers: false,
+    approvedIncomingTransfers: newApprovedIncomingTransfers,
+    approvedOutgoingTransfers: [],
   };
 
   const items = [

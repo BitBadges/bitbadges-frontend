@@ -1,11 +1,10 @@
 import { Avatar, Divider } from "antd";
 import { convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { INFINITE_LOOP_MODE } from "../../../constants";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
@@ -14,45 +13,29 @@ import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
-export function ConfirmManagerStepItem(
-  canUpdateManager: boolean,
-  setCanUpdateManager: (canUpdateManager: boolean) => void,
-  existingCollectionId?: bigint
-) {
-  // const [checked, setChecked] = useState<boolean>(false);
+export function ConfirmManagerStepItem() {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+
+  const txTimelineContext = useTxTimelineContext();
+  const canUpdateManager = txTimelineContext.updateManagerTimeline;
+  const setCanUpdateManager = txTimelineContext.setUpdateManagerTimeline;
+  const startingCollection = txTimelineContext.startingCollection;
+
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
   const signedInAccount = accounts.getAccount(chain.address);
   const [address, setAddress] = useState<string>(currentManager || signedInAccount?.address || '');
-  const hasManager = collection?.managerTimeline.some(x => x.manager) ?? false;
-
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
-    if (!collection) return;
-
-    collections.updateCollection({
-      ...collection,
-      managerTimeline: [{
-        manager: convertToCosmosAddress(chain.address),
-        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      }],
-    })
-  }, [chain.address])
+  const hasManager = collection?.managerTimeline.some(x => x.manager) ?? false
 
   if (!collection) return EmptyStepItem;
-  const err = existingCollection ? validateManagerUpdate(existingCollection.managerTimeline, collection.managerTimeline, existingCollection.collectionPermissions.canUpdateManager) : undefined;
 
-  console.log(collection);
-  console.log("HAS MANAGER", hasManager)
+  const err = startingCollection ? validateManagerUpdate(startingCollection.managerTimeline, collection.managerTimeline, startingCollection.collectionPermissions.canUpdateManager) : undefined;
+
   return {
     title: 'Select Manager',
     disabled: !!err,
-    //  || (!hasManager && !checked),
     description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, and more. See full list '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
@@ -67,7 +50,6 @@ export function ConfirmManagerStepItem(
       <UpdateSelectWrapper
         updateFlag={canUpdateManager}
         setUpdateFlag={setCanUpdateManager}
-        existingCollectionId={existingCollectionId}
         jsonPropertyPath="managerTimeline"
         permissionName="canUpdateManager"
         validationErr={err}

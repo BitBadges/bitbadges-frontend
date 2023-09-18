@@ -1,9 +1,9 @@
-import { CloseCircleOutlined, DownOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, DownOutlined } from '@ant-design/icons';
 import { faThumbTack } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, convertToCosmosAddress, getMetadataForBadgeId, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { AccountViewKey, Numberify, convertToCosmosAddress, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -12,9 +12,11 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
+import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
@@ -23,9 +25,8 @@ import { InformationDisplayCard } from '../../components/display/InformationDisp
 import { SearchDropdown } from '../../components/navigation/SearchDropdown';
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
-import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
@@ -418,9 +419,7 @@ function PortfolioPage() {
             <div className='full-width flex-center flex-wrap'>
               {filteredCollections.map((filteredCollection, idx) => {
                 const collection = collections.collections[filteredCollection.collectionId.toString()];
-                const metadata = filteredCollection.badgeIds.length === 1
-                  && filteredCollection.badgeIds[0].start === 1n
-                  && filteredCollection.badgeIds[0].end === GO_MAX_UINT_64 ? collection?.cachedCollectionMetadata
+                const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
                   : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
                 return <Tag
                   className='primary-text primary-blue-bg flex-between'
@@ -433,7 +432,7 @@ function PortfolioPage() {
                     size={50}
                   />}
                   onClose={() => {
-                    setFilteredCollections(filteredCollections.filter(x => JSON.stringify(x) !== JSON.stringify(filteredCollection)));
+                    setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
                   }}
                 >
                   <div className='primary-text primary-blue-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
@@ -454,11 +453,9 @@ function PortfolioPage() {
                           Collection ID: {filteredCollection.collectionId.toString()}
                           <br />
 
-                          {filteredCollection.badgeIds.length === 1
-                            && filteredCollection.badgeIds[0].start === 1n
-                            && filteredCollection.badgeIds[0].end === GO_MAX_UINT_64 ? 'All' : `Badge IDs: ${filteredCollection.badgeIds.map(x =>
-                              x.start === x.end ? `${x.start}` :
-                                `${x.start}-${x.end}`).join(', ')}`}
+                          {isFullUintRanges(filteredCollection.badgeIds) ? 'All' : `Badge IDs: ${filteredCollection.badgeIds.map(x =>
+                            x.start === x.end ? `${x.start}` :
+                              `${x.start}-${x.end}`).join(', ')}`}
                         </div>
                       </Typography.Text>
                     </div>

@@ -1,9 +1,7 @@
 import { Divider, Typography } from "antd"
-import { EmptyStepItem } from "../../../bitbadges-api/contexts/TxTimelineContext"
+import { EmptyStepItem, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
-export const MetadataTooBigStepItem = (
-  size: number
-) => {
+export const MetadataTooBigStepItem = () => {
   function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) return '0 Bytes'
 
@@ -15,6 +13,9 @@ export const MetadataTooBigStepItem = (
 
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
   }
+
+  const txTimelineContext = useTxTimelineContext();
+  const size = txTimelineContext.metadataSize;
 
   //10 MB is too big. It will fail bc req is too big for API.
   return size > 1048576 * 10 ? {

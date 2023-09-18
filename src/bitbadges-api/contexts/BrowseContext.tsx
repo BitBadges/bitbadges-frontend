@@ -42,7 +42,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
 
-    console.log('browseInfo.profiles: ', browseInfo.profiles);
     for (const category of Object.keys(browseInfo.profiles)) {
       if (!browseInfo.profiles[category]) continue;
 
@@ -55,8 +54,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
     }
-
-    
   }
 
   async function getCollectionsAndUpdateBrowse() {

@@ -12,6 +12,7 @@ import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modal
 import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { getMintApprovedTransfers } from '../../bitbadges-api/utils/mintVsNonMint';
 
 export function ActionsTab({
   collectionId,
@@ -119,8 +120,7 @@ export function ActionsTab({
       },
     });
 
-
-    if (collection.collectionApprovedTransfersTimeline.find(x => x.collectionApprovedTransfers.find(x => x.fromMappingId === "Mint" && x.approvalDetails.find(y => y.merkleChallenges.find(z => z.root && !z.useCreatorAddressAsLeaf))) !== undefined) !== undefined) {
+    if (getMintApprovedTransfers(collection).find(x => x.approvalDetails.find(y => y.merkleChallenges.find(z => z.root && !z.useCreatorAddressAsLeaf))) !== undefined) {
       actions.push({
         title: getTitleElem("Distribute Codes"),
         description: getDescriptionElem(

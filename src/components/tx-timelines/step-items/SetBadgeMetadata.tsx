@@ -1,40 +1,36 @@
 import { Divider, Typography } from "antd";
-import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, validateBadgeMetadataUpdate } from "bitbadgesjs-utils";
+import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateBadgeMetadataUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
-import { PermissionIcon, getPermissionDataSource, } from "../../collection-page/PermissionsInfo";
+import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { ToolIcon } from "../../display/ToolIcon";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { ErrDisplay } from "../form-items/ErrDisplay";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
-export function SetBadgeMetadataStepItem(
-  addMethod: MetadataAddMethod,
-  canUpdateBadgeMetadata: boolean,
-  setUpdateBadgeMetadata: (canUpdateBadgeMetadata: boolean) => void,
-  existingCollectionId?: bigint
-) {
+export function SetBadgeMetadataStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[`${MSG_PREVIEW_ID}`];
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
+  const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
+  const canUpdateBadgeMetadata = txTimelineContext.updateBadgeMetadataTimeline;
+  const setUpdateBadgeMetadata = txTimelineContext.setUpdateBadgeMetadataTimeline;
+  const addMethod = txTimelineContext.addMethod;
 
   if (!collection) return EmptyStepItem
 
-  const err = existingCollection && collection ? validateBadgeMetadataUpdate(existingCollection.badgeMetadataTimeline, collection.badgeMetadataTimeline, existingCollection.collectionPermissions.canUpdateBadgeMetadata) : undefined;
+  const err = startingCollection && collection ? validateBadgeMetadataUpdate(startingCollection.badgeMetadataTimeline, collection.badgeMetadataTimeline, startingCollection.collectionPermissions.canUpdateBadgeMetadata) : undefined;
 
-  let canUpdateBadgeMetadataRes = getPermissionDataSource(
-    existingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(existingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
-    TimedUpdateWithBadgeIdsPermissionUsedFlags
+  const canUpdateBadgeMetadataRes = getPermissionDetails(
+    startingCollection ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []) : [],
+    TimedUpdateWithBadgeIdsPermissionUsedFlags,
+    undefined,
+    [{ start: 1n, end: getTotalNumberOfBadges(collection) }]
   );
-  let maxBadgeId = getTotalNumberOfBadges(collection);
-  let toUpdateBadges = canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => {
-    const [remaining, removed] = removeUintRangeFromUintRange([{ start: 1n, end: maxBadgeId }], x.badgeIds ?? []);
 
-    return removed;
-  }).flat();
-  console.log(toUpdateBadges);
-  toUpdateBadges = sortUintRangesAndMergeIfNecessary(toUpdateBadges);
+  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat());
 
 
   return {
@@ -43,25 +39,12 @@ export function SetBadgeMetadataStepItem(
     node: <UpdateSelectWrapper
       updateFlag={canUpdateBadgeMetadata}
       setUpdateFlag={setUpdateBadgeMetadata}
-      existingCollectionId={existingCollectionId}
       jsonPropertyPath='badgeMetadataTimeline'
       permissionName='canUpdateBadgeMetadata'
       disableJson
       node={<>{
-
-
-
         collection && <>
-          {err &&
-            <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b>You are attempting to update a previously frozen value.
-              <br />
-
-              <br />
-
-
-              <Divider />
-            </div>}
+          <ErrDisplay err={err} />
           {addMethod != MetadataAddMethod.UploadUrl && <>
             <div className='flex-center full-width'>
 
@@ -78,11 +61,7 @@ export function SetBadgeMetadataStepItem(
           </>
           }
 
-          <MetadataForm
-            collectionId={MSG_PREVIEW_ID}
-            badgeIds={toUpdateBadges}
-            addMethod={addMethod}
-          />
+          <MetadataForm badgeIds={toUpdateBadges} />
           <Divider />
           <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
           <div style={{ display: 'flex' }} className='flex-wrap'>

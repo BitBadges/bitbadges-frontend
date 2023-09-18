@@ -145,18 +145,18 @@ function CollectionPage({
               <TransferabilityTab collectionId={collectionIdNumber} />
             )}
 
-            {tab === 'approvals' && (
-              <UserApprovalsTab collectionId={collectionIdNumber} />
-            )}
 
-
-            {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation') && <Empty
+            {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
               className='primary-text'
               description={
                 "This tab is not supported for previews."
               }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />}
+
+            {tab === 'approvals' && !isPreview && (
+              <UserApprovalsTab collectionId={collectionIdNumber} />
+            )}
 
             {tab === 'reputation' && !isPreview && (
               <ReputationTab
