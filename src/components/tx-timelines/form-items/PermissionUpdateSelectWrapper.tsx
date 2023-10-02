@@ -1,5 +1,5 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
-import { Avatar, Col, Divider, Row, Switch, Tooltip } from 'antd';
+import { Col, Divider, Row, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -7,6 +7,7 @@ import { useCollectionsContext } from '../../../bitbadges-api/contexts/Collectio
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
+import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
@@ -33,7 +34,7 @@ export function PermissionUpdateSelectWrapper({
   const startingCollection = txTimelineContext.startingCollection;
 
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(true);
+  const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<string>('');
 
@@ -121,7 +122,7 @@ export function PermissionUpdateSelectWrapper({
     <>
       <div className='primary-text flex-center flex-column' >
 
-        <div style={{ alignItems: 'center' }}>
+        <div style={{ alignItems: 'center', }} className='flex-center'>
           {!isMint &&
             <Switch
               style={{ marginLeft: 10 }}
@@ -144,87 +145,64 @@ export function PermissionUpdateSelectWrapper({
               }}
               className='primary-text'
             />}
-          {checked &&
-            <Tooltip
-              title={'Undo changes'}
-            >
-              <Avatar
-                className='styled-button'
-                src={<UndoOutlined style={{ fontSize: 16 }} />}
-                style={{ marginLeft: 10, cursor: 'pointer' }}
-                onClick={() => {
-                  if (startingCollection && collection) {
-                    const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-                    collections.updateCollection({
-                      ...collection,
-                      collectionPermissions: {
-                        ...collection.collectionPermissions,
-                        [`${permissionName}`]: existingPermissions
-                      }
-                    });
-                  } else if (collection && !startingCollection) {
-                    collections.updateCollection({
-                      ...collection,
-                      collectionPermissions: {
-                        ...collection.collectionPermissions,
-                        [`${permissionName}`]: []
-                      }
-                    });
-                  }
-                }}
-              />
-            </Tooltip>}
+
           {checked &&
-            <Tooltip
-              title={showBeforeAndAfter ? 'Hide before and after' : 'Show before and after'}
-            >
-              <Avatar
-                className='styled-button'
-                src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
-                style={{ marginLeft: 10, cursor: 'pointer' }}
-                onClick={() => {
-                  setShowBeforeAndAfter(!showBeforeAndAfter);
-                }}
-              />
-            </Tooltip>}
+            <IconButton
+              src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
+              text={showBeforeAndAfter ? 'Hide' : 'Before/After'}
+              tooltipMessage={showBeforeAndAfter ? 'Hide before and after' : 'Show before and after'}
+              onClick={() => {
+                setShowBeforeAndAfter(!showBeforeAndAfter);
+              }}
+            />}
           {checked && !customJson &&
-            <Tooltip
-              color='black'
-              placement='bottom'
-              title={'Custom JSON (Advanced)'}
-            >
-              <Avatar
-                className='styled-button'
-                src={<CodeOutlined style={{ fontSize: 16 }} />}
-                style={{ marginLeft: 10, cursor: 'pointer' }}
-                onClick={() => {
-                  setCustomJson(true);
-                }}
-              />
-            </Tooltip>}
+            <IconButton
+              src={<CodeOutlined style={{ fontSize: 16 }} />}
+              text={'JSON'}
+              tooltipMessage='Custom JSON (Advanced)'
+              onClick={() => {
+                setCustomJson(true);
+              }}
+            />}
           {checked && customJson &&
-            <Tooltip
-              color='black'
-              placement='bottom'
-              title={'Normal Form'}
-            >
-              <Avatar
-                className='styled-button'
-                src={<FormOutlined style={{ fontSize: 16 }} />}
-                style={{ marginLeft: 10, cursor: 'pointer' }}
-                onClick={() => {
-                  setCustomJson(false);
-                }}
-              />
-            </Tooltip>}
+            <IconButton
+              src={<FormOutlined style={{ fontSize: 16 }} />}
+              text={'Form'}
+              tooltipMessage='Normal Form'
+              onClick={() => {
+                setCustomJson(false);
+              }}
+            />}
+          {checked &&
+            <IconButton
+              src={<UndoOutlined style={{ fontSize: 16 }} />}
+              text={'Reset'}
+              tooltipMessage='Undo all changes'
+              onClick={() => {
+                if (startingCollection && collection) {
+                  const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-
+                  collections.updateCollection({
+                    ...collection,
+                    collectionPermissions: {
+                      ...collection.collectionPermissions,
+                      [`${permissionName}`]: existingPermissions
+                    }
+                  });
+                } else if (collection && !startingCollection) {
+                  collections.updateCollection({
+                    ...collection,
+                    collectionPermissions: {
+                      ...collection.collectionPermissions,
+                      [`${permissionName}`]: []
+                    }
+                  });
+                }
+              }}
+            />}
         </div>
       </div>
-
-
-
       {!checked && castFunction && flags &&
         <>
           <br />
@@ -267,7 +245,11 @@ export function PermissionUpdateSelectWrapper({
         <br />
         <Divider />
       </>}
-
+      {checked && castFunction && flags && showBeforeAndAfter && <>
+        <BeforeAfterPermission
+          permissionName={permissionName}
+        />
+      </>}
       {checked && !customJson && <>
         {err &&
           <><br />
@@ -284,11 +266,7 @@ export function PermissionUpdateSelectWrapper({
         <br />
         {node}
       </>}
-      {checked && castFunction && flags && showBeforeAndAfter && <>
-        <BeforeAfterPermission
-          permissionName={permissionName}
-        />
-      </>}
+
     </>
   )
 }

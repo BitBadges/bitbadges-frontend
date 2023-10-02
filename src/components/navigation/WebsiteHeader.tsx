@@ -108,8 +108,8 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu theme='dark' className='dropdown' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
-    <div className='flex-center primary-text primary-blue-bg' style={{ marginTop: 10 }}>
+  const UserTabMenu = <Menu theme='dark' className='dropdown gradient-bg' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
+    <div className='flex-center primary-text inherit-bg' style={{ marginTop: 10 }}>
       <p>
         <b>{address ? <div className='primary-text'>
           <AddressDisplay
@@ -252,8 +252,8 @@ export function WalletHeader() {
       overlay={
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
       }
-      overlayClassName='primary-text primary-blue-bg'
-      className='primary-blue-bg'
+      overlayClassName='primary-text inherit-bg'
+      className='inherit-bg'
       trigger={['hover', 'click']}
     >
       {SearchBar}

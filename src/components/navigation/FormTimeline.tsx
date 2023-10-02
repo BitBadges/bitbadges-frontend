@@ -1,10 +1,10 @@
 import {
   Form,
-  Typography,
+  Typography
 } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
-import { FormNavigationHeader } from './FormNavigationHeader';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { FormNavigationHeader } from './FormNavigationHeader';
 export interface TimelineItem {
   disabled?: boolean;
   node: ReactNode;
@@ -95,6 +95,7 @@ export function FormTimeline({
           style={{
             fontSize: 14,
             textAlign: 'center',
+            color: 'lightgrey'
           }}
           strong
         >
@@ -124,6 +125,7 @@ export function FormTimeline({
           {getTitleDescription(filteredItems[formStepNum - 1].description)}
           {filteredItems[formStepNum - 1].node}
         </Form>
+
       </Form.Provider>
     </div>
   );

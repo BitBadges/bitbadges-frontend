@@ -17,7 +17,7 @@ export function BadgesTab({ collectionId }: {
     <div className='primary-text full-width'>
       <br />
 
-      <div className='primary-text primary-blue-bg' style={{
+      <div className='primary-text inherit-bg' style={{
         float: 'right',
         display: 'flex',
         alignItems: 'center',
@@ -27,7 +27,7 @@ export function BadgesTab({ collectionId }: {
         View:
 
         <Select
-          className="selector primary-text primary-blue-bg"
+          className="selector primary-text inherit-bg"
           value={cardView ? 'card' : 'image'}
           placeholder="Default: None"
           onChange={(e: any) => {

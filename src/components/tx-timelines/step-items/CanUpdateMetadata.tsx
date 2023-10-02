@@ -6,7 +6,7 @@ import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bi
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 
@@ -20,10 +20,10 @@ export function UpdatableMetadataSelectStepItem(
   const txTimelineContext = useTxTimelineContext();
   const addMethod = txTimelineContext.addMethod;
 
-
   const [err, setErr] = useState<Error | null>(null);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1); //Note this is the user clicked idx. The highlighted idx is the idx of the permission that is currently selected. These may be mismatched
   const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
+  const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
 
   const permissionDetails = collectionMetadataUpdate ?
     getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateCollectionMetadata ?? []), TimedUpdatePermissionUsedFlags) :
@@ -43,13 +43,32 @@ export function UpdatableMetadataSelectStepItem(
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
     if (lastClickedIdx !== -1 && !collectionMetadataUpdate) {
-      handleSwitchChange(lastClickedIdx);
+
+
+      handleSwitchChange(lastClickedIdx, lastClickedFrozen);
     }
   }, [maxBadgeId, collectionMetadataUpdate, lockedBadges])
 
 
   if (!collection) return EmptyStepItem;
 
+  function AdditionalNode({ noOption }: {
+    noOption?: boolean,
+  }) {
+    if (!collection) return <></>
+
+    return <div className="flex-center">
+      <PermissionsOverview
+        span={24}
+        collectionId={collection.collectionId}
+        permissionName={collectionMetadataUpdate ? 'canUpdateCollectionMetadata' : 'canUpdateBadgeMetadata'}
+        onFreezePermitted={noOption ? undefined : (frozen: boolean) => {
+          handleSwitchChange(1, frozen);
+          setLastClickedFrozen(frozen);
+        }}
+      />
+    </div>
+  }
 
   const options = [];
   options.push({
@@ -58,35 +77,36 @@ export function UpdatableMetadataSelectStepItem(
     isSelected:
       collectionMetadataUpdate ?
         !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes
-        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes
+        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes,
+    additionalNode: <AdditionalNode noOption />
   })
 
   options.push({
-    title: 'Yes - Updatable',
-    message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can be updated. This permission will remain updatable. In the future, the manager can change this permission to be permanently allowed or permanently forbidden.
+    title: 'Yes',
+    message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can be updated.
     `}</div>,
+    additionalNode: <AdditionalNode />,
     isSelected:
-      collectionMetadataUpdate ?
+      (collectionMetadataUpdate ?
         permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes
-        : currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes && !currentlyMintedHasForbiddenTimes
-  });
-
-  options.push({
-    title: 'Yes - Frozen',
-    message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can always be updated. This permission is permanently permitted.`}</div>,
-    isSelected:
-      collectionMetadataUpdate ?
+        : currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes && !currentlyMintedHasForbiddenTimes)
+      ||
+      (collectionMetadataUpdate ?
         !permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes
-        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes
+        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes)
   });
 
-
-
-  const handleSwitchChange = (idx: number) => {
+  const handleSwitchChangeIdxOnly = (idx: number) => {
     setLastClickedIdx(idx);
+    handleSwitchChange(idx);
+  }
+
+
+  const handleSwitchChange = (idx: number, frozen?: boolean) => {
+
     if (collectionMetadataUpdate) {
 
-      if (idx == 1) {
+      if (idx == 1 && !frozen) {
         collections.updateCollection({
           ...collection,
           collectionPermissions: {
@@ -95,7 +115,7 @@ export function UpdatableMetadataSelectStepItem(
           }
         });
 
-      } else if (idx == 2) {
+      } else if (idx == 1 && frozen) {
         collections.updateCollection({
           ...collection,
           collectionPermissions: {
@@ -137,7 +157,7 @@ export function UpdatableMetadataSelectStepItem(
       }
     } else {
 
-      if (idx == 1) {
+      if (idx == 1 && !frozen) {
         collections.updateCollection({
           ...collection,
           collectionPermissions: {
@@ -146,7 +166,7 @@ export function UpdatableMetadataSelectStepItem(
           }
         });
 
-      } else if (idx == 2) {
+      } else if (idx == 1 && frozen) {
         collections.updateCollection({
           ...collection,
           collectionPermissions: {
@@ -195,8 +215,10 @@ export function UpdatableMetadataSelectStepItem(
 
   let description = `Following this transaction, do you want to be able to update the metadata for ${collectionMetadataUpdate ? 'the collection' : 'the created badges'}? This includes the name, description, image, and other metadata.`
 
+
+
   return {
-    title: collectionMetadataUpdate ? 'Updatable Collection Metadata?' : 'Updatable Badge Metadata?',
+    title: collectionMetadataUpdate ? 'Update collection metadata?' : 'Updatable badge metadata?',
     description: description,
     node: <PermissionUpdateSelectWrapper
       checked={checked}
@@ -208,7 +230,7 @@ export function UpdatableMetadataSelectStepItem(
         <SwitchForm
           options={options}
           showCustomOption
-          onSwitchChange={handleSwitchChange}
+          onSwitchChange={handleSwitchChangeIdxOnly}
         />
       </>
       }

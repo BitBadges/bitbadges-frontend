@@ -1,6 +1,6 @@
 import { Avatar, Divider } from "antd";
 import { convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccountsContext } from "../../../bitbadges-api/contexts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
@@ -12,6 +12,7 @@ import { BlockiesAvatar } from "../../address/Blockies";
 import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 
 export function ConfirmManagerStepItem() {
   const chain = useChainContext();
@@ -26,25 +27,27 @@ export function ConfirmManagerStepItem() {
 
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
   const signedInAccount = accounts.getAccount(chain.address);
-  const [address, setAddress] = useState<string>(currentManager || signedInAccount?.address || '');
+  const currentManagerAccount = accounts.getAccount(currentManager);
+  const [address, setAddress] = useState<string>(currentManagerAccount?.address || signedInAccount?.address || '');
   const hasManager = collection?.managerTimeline.some(x => x.manager) ?? false
+
+  useEffect(() => {
+    setAddress(currentManagerAccount?.address || signedInAccount?.address || '');
+  }, [currentManagerAccount, signedInAccount])
 
   if (!collection) return EmptyStepItem;
 
   const err = startingCollection ? validateManagerUpdate(startingCollection.managerTimeline, collection.managerTimeline, startingCollection.collectionPermissions.canUpdateManager) : undefined;
 
+
+
   return {
     title: 'Select Manager',
     disabled: !!err,
-    description: <>{'Every badge can specify a manager who has custom admin privileges, such as updating the collection in the future, revoking badges, and more. See full list '}
+    description: <>{'The manager is a special role which can have custom admin privileges. See full list of privileges '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a>
-      {' '}
-      <br />
-      <br />
-      If no manager is selected, no admin privileges will be available moving forward, and the collection details will be frozen and final.
-      <br />
     </>,
     node:
       <UpdateSelectWrapper
@@ -87,55 +90,74 @@ export function ConfirmManagerStepItem() {
                 }}
                 options={[{
                   title: 'No Manager',
-                  message: 'Do not have a manager for this collection. No admin privileges will ever be available for this collection.',
+                  message: 'Do not have a manager for this collection. No admin privileges will ever be available for this collection. All collection details will be frozen and final after this transaction.',
                   isSelected: !hasManager,
+                  additionalNode: <>
+                    <div className="flex-center">
+                      <PermissionsOverview
+                        span={24}
+                        collectionId={collection.collectionId}
+                      />
+                    </div>
+                  </>,
                 },
                 {
                   title: 'Manager',
-                  message: 'Specify a manager for this collection that can execute admin privileges.',
+                  message: <>{'Specify a manager for this collection that can execute admin privileges.'}</>,
+                  additionalNode: <>
+                    {hasManager && <div>
+                      <Avatar
+                        size={150}
+                        src={
+                          <BlockiesAvatar
+                            address={accounts.getAccount(currentManager)?.address ?? ''}
+                            avatar={accounts.getAccount(currentManager)?.profilePicUrl ?? accounts.getAccount(currentManager)?.avatar}
+                            fontSize={150}
+                            shape='circle'
+                          />
+                        }
+                      />
+
+                      <AddressDisplay
+                        addressOrUsername={currentManager}
+                        hidePortfolioLink
+                      />
+
+
+                      <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
+                        <AddressSelect
+                          defaultValue={address}
+                          onUserSelect={(address) => {
+                            console.log("USER SELECT")
+                            setAddress(address);
+                            collections.updateCollection({
+                              ...collection,
+                              managerTimeline: [{
+                                manager: convertToCosmosAddress(address),
+                                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                              }],
+                            })
+                          }}
+                        />
+                      </div>
+                      <Divider />
+                      <div className="flex-center">
+                        <PermissionsOverview
+                          span={24}
+                          collectionId={collection.collectionId}
+                        />
+                      </div>
+                    </div>
+                    }
+                  </>,
                   isSelected: hasManager,
                 },
                 ]}
               />
 
 
-              {hasManager && <div>
-                <Divider />
-                <Avatar
-                  size={150}
-                  src={
-                    <BlockiesAvatar
-                      address={accounts.getAccount(currentManager)?.address ?? ''}
-                      avatar={accounts.getAccount(currentManager)?.profilePicUrl ?? accounts.getAccount(currentManager)?.avatar}
-                      fontSize={150}
-                      shape='circle'
-                    />
-                  }
-                />
 
-                <AddressDisplay
-                  addressOrUsername={currentManager}
-                  hidePortfolioLink
-                />
-                <Divider />
 
-                <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
-                  <AddressSelect
-                    defaultValue={address}
-                    onUserSelect={(address) => {
-                      setAddress(address);
-                      collections.updateCollection({
-                        ...collection,
-                        managerTimeline: [{
-                          manager: convertToCosmosAddress(address),
-                          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                        }],
-                      })
-                    }}
-                  />
-                </div>
-              </div>
-              }
             </div>
             <DevMode obj={collection.managerTimeline} />
           </div >

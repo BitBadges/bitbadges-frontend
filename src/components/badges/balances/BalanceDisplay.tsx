@@ -1,11 +1,12 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { Empty, Tooltip } from "antd";
+import { Col, Empty, Tooltip } from "antd";
 import { Balance, BigIntify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { useEffect, useState } from "react";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../../utils/dates";
+import { BalanceDisplayEditRow } from "../../inputs/BalanceDisplayEditRow";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
-import { useEffect, useState } from "react";
 
 
 export function BalanceDisplay({
@@ -17,19 +18,25 @@ export function BalanceDisplay({
   numIncrements = 0n,
   incrementBadgeIdsBy = 0n,
   incrementOwnershipTimesBy = 0n,
+  hideOwnershipTimeSelect,
 
   cardView,
   hideMessage,
   hideBadges,
   floatToRight,
-  isMustOwnBadgesInput
+  isMustOwnBadgesInput,
+  editable,
+  onAddBadges,
+  minimum,
+  maximum,
+  onRemoveAll
 }: {
   collectionId: bigint;
   balances: Balance<bigint>[];
   numIncrements?: bigint
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
-
+  hideOwnershipTimeSelect?: boolean
   message?: string;
   size?: number;
   showingSupplyPreview?: boolean;
@@ -39,11 +46,17 @@ export function BalanceDisplay({
   hideBadges?: boolean;
   floatToRight?: boolean;
   isMustOwnBadgesInput?: boolean
+  editable?: boolean
+  onAddBadges?: (balance: Balance<bigint>) => void
+  minimum?: bigint
+  maximum?: bigint
+  setBalances?: (balances: Balance<bigint>[]) => void
+  onRemoveAll?: () => void
 }) {
-
-  console.log(balances);
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
+
+  const [defaultBalancesToShow] = useState<Balance<bigint>[]>(balances);
 
   useEffect(() => {
     const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
@@ -51,11 +64,13 @@ export function BalanceDisplay({
         from: '',
         merkleProofs: [],
         precalculationDetails: {
-          precalculationId: '',
+          approvalId: '',
           approvalLevel: '',
           approverAddress: '',
         },
         memo: '',
+        prioritizedApprovals: [],
+        onlyCheckPrioritizedApprovals: false,
 
         balances: balances,
         toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
@@ -73,53 +88,36 @@ export function BalanceDisplay({
 
     setAllBalances(allBalances);
     setAllBadgeIdsArr(allBadgeIdsArr);
+
   }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy]);
 
+  const EditRowComponent = <BalanceDisplayEditRow
+    collectionId={collectionId}
+    balances={balances}
+    isMustOwnBadgesInput={isMustOwnBadgesInput}
+    onAddBadges={onAddBadges}
+    minimum={minimum}
+    maximum={maximum}
+    hideOwnershipTimeSelect={hideOwnershipTimeSelect}
+    message={message}
+    defaultBalancesToShow={defaultBalancesToShow}
+    onRemoveAll={onRemoveAll}
+  />
 
 
   return <div className="flex-center flex-column full-width" >
-    {!hideMessage && <div className="flex-evenly">
-      <div className="full-width flex-center" style={{ textAlign: 'center', fontSize: 15 }}>
+    {!hideMessage && !editable && <div className="flex-evenly">
+      <div className="full-width flex-center" style={{ textAlign: 'center', fontSize: 20 }}>
         <b>{message ? message : 'Balances'}</b>
       </div>
     </div>}
     <div className="flex-center full-width">
       <div className='flex-column full-width' style={{ textAlign: floatToRight ? 'right' : 'center', justifyContent: 'end' }}>
-        <div className='full-width flex-center' style={{ fontSize: 15, alignItems: 'normal' }}>
-          <table style={{ alignItems: 'normal' }}>
-            {!(!balances || balances?.length === 0) &&
-              <tr>
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4 }}>{isMustOwnBadgesInput ? 'Min Amount' : 'Amount'}</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>IDs</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4, minWidth: 70 }}>Times
-                  <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
-                    <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                  </Tooltip>
-                </td>
-              </tr>
-            }
-            {allBalances.map((balance, idx) => {
-              const amount = balance.amount;
-              const badgeIds = balance.badgeIds;
-              const ownershipTimes = balance.ownershipTimes;
-
-
-              return <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
-                <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
-              </tr>
-            })}
-            {(!balances || balances?.length === 0) && <span>None</span>}
-          </table>
-        </div >
-
-
-        {!hideBadges && <>
+        {!hideBadges && !editable && <>
           <br /><div className='full-width flex-center'>
             {(!balances || balances?.length === 0) ? <div className='full-width flex-center' style={{ textAlign: 'center', display: 'flex' }}>
               <Empty
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={'No balances found.'}
               />
@@ -136,7 +134,48 @@ export function BalanceDisplay({
             </div>}
           </div>
         </>}
+        <Col md={24} xs={24} sm={24}>
+          <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+            {!editable && <table style={{ alignItems: 'normal' }}>
+              {!(!balances || balances?.length === 0) &&
+                <tr>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingRight: 4 }}>{isMustOwnBadgesInput ? 'Min Amount' : 'Amount'}</td>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingLeft: 4 }}>IDs</td>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingLeft: 4, minWidth: 70 }}>Times
+                    <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
+                      <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                    </Tooltip>
+                  </td>
+                </tr>
+              }
+              {allBalances.map((balance, idx) => {
+                const amount = balance.amount;
+                const badgeIds = balance.badgeIds;
+                const ownershipTimes = balance.ownershipTimes;
+
+                const NormalRowComponent = <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
+                  <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
+                </tr>
+
+                return <>
+                  {NormalRowComponent}
+                </>
+              })}
+              {(!balances || balances?.length === 0) && hideBadges && <>
+                <span >None</span>
+              </>}
+            </table>}
+            <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+              {editable && EditRowComponent}
+            </div>
+          </div>
+        </Col >
+
+
+
       </div>
     </div>
-  </div>
+  </div >
 }

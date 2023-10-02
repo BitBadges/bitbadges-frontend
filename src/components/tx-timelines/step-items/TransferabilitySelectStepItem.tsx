@@ -17,6 +17,7 @@ import { NumberInput } from "../../inputs/NumberInput";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { approvalDetailsHasNoRestrictions } from "../../../bitbadges-api/utils/claims";
 
 const crypto = require('crypto');
 
@@ -54,8 +55,8 @@ export function TransferabilitySelectStepItem() {
   //This is still naive in the fact that it includes "Mint"+ mappings but works for nonTransferable / transfeerable vars
   const nonMintApprovedTransfers = getFirstMatchForCollectionApprovedTransfers(getNonMintApprovedTransfers(collection, false));
   const nonTransferable = nonMintApprovedTransfers.length == 0 || nonMintApprovedTransfers.every(x => x.allowedCombinations.length == 1 && !x.allowedCombinations[0].isApproved);
-  const transferable = nonMintApprovedTransfers.length > 0 && nonMintApprovedTransfers.every(x => x.allowedCombinations.length == 1 && x.allowedCombinations[0].isApproved && x.approvalDetails.length == 0);
-
+  const transferable = nonMintApprovedTransfers.length > 0 && nonMintApprovedTransfers.every(x => x.allowedCombinations.length == 1 && x.allowedCombinations[0].isApproved
+    && approvalDetailsHasNoRestrictions(x.approvalDetails));
 
   const handleClick = (nonTransferable: boolean, transferable: boolean) => {
     if (!collection) return;
@@ -74,8 +75,10 @@ export function TransferabilitySelectStepItem() {
         toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
         initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        approvalDetails: [], //no restrictions
         transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        approvalId: "transferable",
+        approvalTrackerId: "",
+        challengeTrackerId: "",
         allowedCombinations: [{
           isApproved: true,
         }]
@@ -95,11 +98,22 @@ export function TransferabilitySelectStepItem() {
           toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
           fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
           initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
-          approvalDetails: [{
-            approvalTrackerId: "Revoke",
+          approvalTrackerId: "revoke",
+          approvalId: "revoke",
+          challengeTrackerId: "",
+          approvalDetails: {
+
             uri: "",
             customData: "",
-            merkleChallenges: [],
+            merkleChallenge: {
+              root: '',
+              maxOneUsePerLeaf: false,
+              expectedProofLength: 0n,
+              useCreatorAddressAsLeaf: false,
+              useLeafIndexForTransferOrder: false,
+              uri: '',
+              customData: '',
+            },
             overridesFromApprovedOutgoingTransfers: true,
             overridesToApprovedIncomingTransfers: false,
             requireFromDoesNotEqualInitiatedBy: false,
@@ -108,7 +122,6 @@ export function TransferabilitySelectStepItem() {
             requireToEqualsInitiatedBy: false,
             mustOwnBadges: [],
             predeterminedBalances: {
-              precalculationId: '',
               incrementedBalances: {
                 startBalances: [],
                 incrementBadgeIdsBy: 0n,
@@ -135,7 +148,7 @@ export function TransferabilitySelectStepItem() {
               perInitiatedByAddressMaxNumTransfers: 0n,
               perToAddressMaxNumTransfers: 0n,
             },
-          }],
+          },
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           allowedCombinations: [{
             isApproved: true,
@@ -154,8 +167,11 @@ export function TransferabilitySelectStepItem() {
             fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
             toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
             initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-            approvalDetails: [],
+
             transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+            approvalId: "rejectfrom" + convertToCosmosAddress(user),
+            approvalTrackerId: "",
+            challengeTrackerId: "",
             allowedCombinations: [{
               isApproved: false,
             }]
@@ -171,8 +187,11 @@ export function TransferabilitySelectStepItem() {
             toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
             fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
             initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-            approvalDetails: [],
+
             transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+            approvalId: "rejectto" + convertToCosmosAddress(user),
+            approvalTrackerId: "",
+            challengeTrackerId: "",
             allowedCombinations: [{
               isApproved: false,
             }]
@@ -190,9 +209,11 @@ export function TransferabilitySelectStepItem() {
           toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
           fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
           initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+          approvalTrackerId: approvalTrackerId.current,
+          approvalId: approvalTrackerId.current,
+          challengeTrackerId: "",
           approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
-            [{
-              approvalTrackerId: approvalTrackerId.current,
+            {
               uri: '',
               customData: '',
               mustOwnBadges: mustOwnBadges,
@@ -209,7 +230,6 @@ export function TransferabilitySelectStepItem() {
                 perInitiatedByAddressMaxNumTransfers: 0n,
               },
               predeterminedBalances: {
-                precalculationId: '',
                 manualBalances: [],
                 incrementedBalances: {
                   startBalances: [],
@@ -224,18 +244,25 @@ export function TransferabilitySelectStepItem() {
                   usePerToAddressNumTransfers: false,
                 },
               },
-              merkleChallenges: [], //handled later
               requireToEqualsInitiatedBy: false,
               requireFromEqualsInitiatedBy: false,
               requireToDoesNotEqualInitiatedBy: false,
               requireFromDoesNotEqualInitiatedBy: false,
-
+              merkleChallenge: {
+                root: '',
+                maxOneUsePerLeaf: false,
+                expectedProofLength: 0n,
+                useCreatorAddressAsLeaf: false,
+                useLeafIndexForTransferOrder: false,
+                uri: '',
+                customData: '',
+              },
 
               overridesToApprovedIncomingTransfers: false,
               overridesFromApprovedOutgoingTransfers: false,
-            }]
+            }
 
-            : [], //no restrictions
+            : undefined,
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           allowedCombinations: [{
             isApproved: true,
@@ -281,7 +308,6 @@ export function TransferabilitySelectStepItem() {
       setUpdateFlag={setUpdateCollectionApprovedTransfers}
       jsonPropertyPath='collectionApprovedTransfers'
       permissionName='canUpdateCollectionApprovedTransfers'
-      disableJson
       customRevertFunction={() => {
         const existingNonMint = startingCollection ? getNonMintApprovedTransfers(startingCollection, true) : [];
 

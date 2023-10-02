@@ -102,7 +102,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setCollectionUri(e.target.value);
           }}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
         />
       </Form.Item>
 
@@ -129,7 +129,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setBadgeUri(e.target.value);
           }}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
         />
         <div style={{ fontSize: 12 }}>
           <Text style={{ color: 'lightgray' }}>

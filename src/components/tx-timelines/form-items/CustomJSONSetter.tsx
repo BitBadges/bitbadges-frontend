@@ -234,7 +234,7 @@ export function JSONSetter({
           rows={20}
           value={inputJson}
 
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
           placeholder={'Enter JSON here'}
           onChange={(e) => {
             setInputJson(e.target.value);
@@ -274,7 +274,7 @@ export function JSONSetter({
           rows={20}
           value={JSON.stringify(currValue, null, 2)}
           style={{ cursor: 'not-allowed', backgroundColor: 'black', color: 'white' }}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
           placeholder={'Enter JSON here'}
           disabled
         />

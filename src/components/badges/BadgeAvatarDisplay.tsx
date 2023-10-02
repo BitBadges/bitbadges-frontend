@@ -29,7 +29,8 @@ export function BadgeAvatarDisplay({
   lightTheme,
   doNotFetchMetadata,
   // doNotAdaptToWidth,
-  showPageJumper
+  showPageJumper,
+  onClick
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
@@ -50,6 +51,7 @@ export function BadgeAvatarDisplay({
   // doNotAdaptToWidth?: boolean;
   noBorder?: boolean;
   showPageJumper?: boolean
+  onClick?: (id: bigint) => void
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
@@ -62,7 +64,6 @@ export function BadgeAvatarDisplay({
   const [pageSize, setPageSize] = useState<number>(defaultPageSize); //Number of badges to display per page
 
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
-  console.log("RERENDER")
 
   useEffect(() => {
     let newPageSize = pageSize;
@@ -164,7 +165,6 @@ export function BadgeAvatarDisplay({
   }, [badgeIds, currPage, divRef.current, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
 
   //Calculate pageSize based on the width of this componetnt
-  console.log(total, pageSize, Math.ceil(total / pageSize))
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
     <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme}
       showPageJumper={showPageJumper}
@@ -189,13 +189,14 @@ export function BadgeAvatarDisplay({
               return <div key={idx} className='flex-center flex-wrap' style={{ margin: 0, flexWrap: 'wrap' }}>
                 {!cardView ?
                   <BadgeAvatar
-                    size={size && selectedId === badgeId ? size * 1.5 : size}
+                    size={selectedId === badgeId ? 50 * 1.5 : size}
                     collectionId={collectionId}
                     badgeId={badgeId}
                     showId={showIds}
                     noBorder={noBorder}
                     showSupplys={showSupplys}
                     balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
+                    onClick={onClick ? () => { onClick(badgeId) } : undefined}
                   /> : <BadgeCard
                     size={size && selectedId === badgeId ? size * 1.5 : size}
                     collectionId={collectionId}

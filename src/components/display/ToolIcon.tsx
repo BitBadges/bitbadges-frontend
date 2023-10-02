@@ -130,7 +130,7 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='primary-text primary-blue-bg tool-icon'
+    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='primary-text inherit-bg tool-icon'
       onClick={() => {
         window.open(tool.url)
       }}

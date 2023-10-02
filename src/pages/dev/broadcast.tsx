@@ -26,7 +26,7 @@ function Broadcast() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet to access this page.'
+      message='Please connect a wallet and sign im to access this page.'
       node={
         <Layout>
           <Content
@@ -46,7 +46,7 @@ function Broadcast() {
               }}
             >
               <Select
-                className="selector primary-text primary-blue-bg"
+                className="selector primary-text inherit-bg"
                 style={{ marginLeft: 4 }}
                 defaultValue={txType}
                 onChange={(value) => {
@@ -78,7 +78,7 @@ function Broadcast() {
               <Input.TextArea
                 rows={30}
 
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
                 placeholder={'Enter JSON here'}
                 onChange={(e) => {
                   setErr('');

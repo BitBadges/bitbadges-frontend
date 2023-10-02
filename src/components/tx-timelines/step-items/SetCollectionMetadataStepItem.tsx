@@ -1,13 +1,11 @@
-import { Divider, Typography } from "antd";
 import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
-import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { PermissionIcon, getPermissionDetails, } from "../../collection-page/PermissionsInfo";
-import { ToolIcon } from "../../display/ToolIcon";
+import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
@@ -57,35 +55,16 @@ export function SetCollectionMetadataStepItem() {
       jsonPropertyPath='collectionMetadataTimeline'
       permissionName='canUpdateCollectionMetadata'
       disableJson
-      node={<>{
+      node={<InformationDisplayCard title='Collection Metadata'>{
         collection && collectionMetadata && <div>
           <ErrDisplay err={err} />
-
-          {addMethod === MetadataAddMethod.Manual &&
-            <div>
-              <div>
-                <br />
-                <br />
-                <CollectionHeader collectionId={MSG_PREVIEW_ID} />
-              </div>
-            </div>
-          }
-
           <MetadataForm
             hideCollectionSelect={hideCollectionSelect}
             isCollectionSelect
             badgeIds={toUpdateBadges}
           />
-          <Divider />
-          {addMethod === MetadataAddMethod.Manual && <>
-            <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
-            <div style={{ display: 'flex' }} className='flex-wrap'>
-              <ToolIcon name="Sketch.io" />
-              <ToolIcon name="Excalidraw" />
-            </div>
-          </>}
         </div>
-      }</>
+      }</InformationDisplayCard>
       }
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))

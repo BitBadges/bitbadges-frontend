@@ -43,10 +43,10 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
         <InputNumber
           value={sendAmount}
           onChange={(e) => {
-            
+
             setSendAmount(e ?? 0n);
           }}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
           min={0}
         // max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
         />

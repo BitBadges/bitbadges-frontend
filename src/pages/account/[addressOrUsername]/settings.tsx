@@ -194,7 +194,7 @@ export function AccountSettings() {
                   >
                     <div className='flex-between'>
                       <MdEditor
-                        className='primary-text primary-blue-bg full-width'
+                        className='primary-text inherit-bg full-width'
                         style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                         value={readme}
                       />

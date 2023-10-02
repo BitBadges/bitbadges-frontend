@@ -1,5 +1,4 @@
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { Col, Divider, Typography } from "antd";
+import { Divider } from "antd";
 import { BalancesActionPermission } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
@@ -8,7 +7,7 @@ import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/T
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -50,7 +49,7 @@ export function CanCreateMoreStepItem() {
     if (lastClickedIdx !== -1) {
       handleSwitchChange(lastClickedIdx, everythingLocked);
     }
-  }, [maxBadgeId, lastClickedIdx]);
+  }, [maxBadgeId]);
 
   if (!collection) return EmptyStepItem;
 
@@ -70,25 +69,24 @@ export function CanCreateMoreStepItem() {
   const everythingLocked = !permissionDetails.hasNeutralTimes;
 
   const handleSwitchChange = (idx: number, locked?: boolean) => {
-    const permissions =
-      handleLocked(!!locked,
-        idx === 0 ? [{
-          ...AlwaysLockedPermission,
-        }] :
-          idx === 1 ? [{
-            defaultValues: {
-              ...AlwaysLockedPermission.defaultValues,
-              badgeIds: [{ start: 1n, end: maxBadgeId }],
-            },
-            combinations: locked ? DefaultCombinationsEverythingLocked : DefaultCombinations
-          }] : idx === 2 ? [{
-            defaultValues: {
-              ...AlwaysLockedPermission.defaultValues,
-              badgeIds: [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
-            },
-            combinations: locked ? DefaultCombinationsEverythingLocked : DefaultCombinations
-          }] : []
-      )
+    const permissions = handleLocked(!!locked,
+      idx === 0 ? [{
+        ...AlwaysLockedPermission,
+      }] :
+        idx === 1 ? [{
+          defaultValues: {
+            ...AlwaysLockedPermission.defaultValues,
+            badgeIds: [{ start: 1n, end: maxBadgeId }],
+          },
+          combinations: locked ? DefaultCombinationsEverythingLocked : DefaultCombinations
+        }] : idx === 2 ? [{
+          defaultValues: {
+            ...AlwaysLockedPermission.defaultValues,
+            badgeIds: [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
+          },
+          combinations: locked ? DefaultCombinationsEverythingLocked : DefaultCombinations
+        }] : []
+    )
 
     collections.updateCollection({
       ...collection,
@@ -120,16 +118,36 @@ export function CanCreateMoreStepItem() {
         combinations: DefaultCombinations
       }))
     }
-
-
   }
 
+  const AdditionalNode = () => {
 
+
+
+    return <>
+      <div className="flex-center">
+        <PermissionsOverview
+          span={24}
+          collectionId={collection.collectionId}
+          permissionName="canCreateMoreBadges"
+          onFreezePermitted={(frozen: boolean) => {
+            collections.updateCollection({
+              ...collection,
+              collectionPermissions: {
+                ...collection.collectionPermissions,
+                canCreateMoreBadges: handleLocked(frozen, collection.collectionPermissions.canCreateMoreBadges)
+              }
+            });
+          }}
+        />
+      </div>
+    </>
+  }
 
   const completelyFrozen = !permissionDetails.hasPermittedTimes && !permissionDetails.hasNeutralTimes
   return {
-    title: 'Can Create More Badges',
-    description: `Can new badges be added to this collection by the manager?`,
+    title: 'Can create more badges?',
+    description: `Can new badges be created and added to this collection by the manager in the future?`,
     node: <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
@@ -144,70 +162,37 @@ export function CanCreateMoreStepItem() {
               title: 'No',
               message: `New badges can never be added to this collection. The circulating supplys will all be final after this transaction.`,
               isSelected: completelyFrozen,
+              additionalNode: AdditionalNode()
             },
             {
               title: 'Unique Badges Only',
               message: `In the future, new unique badges (i.e. badges with new IDs) can be added, but any existing badge's supply can never be increased.`,
               isSelected: //all are forbidden explicitly for the currently minted badges
-                !completelyFrozen && !currentlyMintedHasPermittedTimes && !currentlyMintedHasNeutralTimes && !allUnmintedHasForbiddenTimes
+                !completelyFrozen && !currentlyMintedHasPermittedTimes && !currentlyMintedHasNeutralTimes && !allUnmintedHasForbiddenTimes,
+              additionalNode: AdditionalNode()
             },
             {
               title: 'Increment Supply Only',
               message: `In the future, the supply of existing badges can be increased, but no new unique badges (i.e. badges with new IDs) can ever be created.`,
               isSelected: //all are forbidden explicitly for all future badges
-                !completelyFrozen && !allUnmintedHasPermittedTimes && !allUnmintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes
+                !completelyFrozen && !allUnmintedHasPermittedTimes && !allUnmintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes,
+              additionalNode: AdditionalNode()
+
             },
             {
               title: 'Any',
               message: `In the future, new unique badges (i.e. badges with new IDs) can be added, and the supply of existing badges can be increased.`,
-              isSelected: !permissionDetails.hasForbiddenTimes
+              isSelected: !permissionDetails.hasForbiddenTimes,
+              additionalNode: AdditionalNode()
             },
           ]}
           onSwitchChange={(idx) => {
-            setLastClickedIdx(idx);
+            handleSwitchChange(idx, false);
+            setLastClickedIdx(idx)
           }}
           helperMessage=""
         />
         <Divider />
-        {(permissionDetails.hasNeutralTimes || permissionDetails.hasPermittedTimes) && <>
-          <Col md={24} xs={24} style={{ textAlign: 'center' }}>
-            <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
-              Permitted Options
-            </Typography.Text>
-          </Col>
-          <div className="primary-text" style={{ textAlign: 'center' }}>
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> Permitted values can be set to either be updatable (neutral) or frozen (permanently permitted).
-          </div>
-          <SwitchForm
-            showCustomOption
-            options={[
-              {
-                title: 'Updatable',
-                message: `The permitted values will be set to permitted but can be updated by the manager. In the future, they can either be set to be permanently permitted or disabled (permanently forbidden).`,
-                isSelected: !everythingLocked,
-              },
-              {
-                title: 'Frozen',
-                message: `Moving forward, this permission will be frozen and not updatable.`,
-                isSelected: everythingLocked,
-              },
-            ]}
-
-            onSwitchChange={(idx) => {
-              collections.updateCollection({
-                ...collection,
-                collectionPermissions: {
-                  ...collection.collectionPermissions,
-                  canCreateMoreBadges: handleLocked(idx === 1, collection.collectionPermissions.canCreateMoreBadges)
-                }
-              });
-            }}
-            helperMessage=""
-          />
-
-          <br />
-          <br />
-        </>}
 
         <DevMode obj={collection.collectionPermissions.canCreateMoreBadges} />
       </>

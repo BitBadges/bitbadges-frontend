@@ -1,21 +1,21 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Card, Divider, Empty, Row, Tooltip, Typography } from "antd";
-import { ApprovalDetailsWithDetails } from "bitbadgesjs-utils";
+import { CollectionApprovedTransferWithDetails } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { WEBSITE_HOSTNAME } from "../../constants";
 import { downloadJson, downloadTxt } from "../../utils/downloadJson";
-import { ToolIcon, tools } from "../display/ToolIcon";
 import { Pagination } from "../common/Pagination";
+import { ToolIcon, tools } from "../display/ToolIcon";
 
 export function CodesDisplay({
-  approvalDetails,
+  approvedTransfer,
   collectionId,
   codes,
   claimPassword,
 }: {
-  approvalDetails: ApprovalDetailsWithDetails<bigint>,
+  approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
   collectionId: bigint,
   codes?: string[]
   claimPassword?: string
@@ -23,11 +23,10 @@ export function CodesDisplay({
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
+  const approvalDetails = approvedTransfer.approvalDetails;
+  const merkleChallenge = approvalDetails ? approvalDetails.merkleChallenge : undefined;
 
-  const merkleChallenge = approvalDetails && approvalDetails.merkleChallenges.length > 0 ?
-    approvalDetails.merkleChallenges[0] : undefined;
-
-  const claimId = merkleChallenge?.challengeId;
+  const claimId = approvedTransfer.challengeTrackerId;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
 
   const [codePage, setCodePage] = useState(1);
@@ -36,7 +35,7 @@ export function CodesDisplay({
   const urlSuffix = merkleChallenge?.details?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
 
   return <Card
-    className="primary-text primary-blue-bg"
+    className="primary-text inherit-bg"
     style={{
       // margin: 8,
       textAlign: 'center',

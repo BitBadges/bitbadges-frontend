@@ -13,11 +13,27 @@ import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 export function DistributionOverview({
   collectionId,
   span,
-  badgeId
+  badgeId,
+  isSelectStep,
+  xs,
+  sm,
+  md,
+  style,
+  lg,
+  xl,
+  xxl,
 }: {
   collectionId: bigint
   span?: number
   badgeId?: bigint
+  isSelectStep?: boolean
+  xs?: number
+  sm?: number
+  md?: number
+  lg?: number
+  xl?: number
+  xxl?: number
+  style?: React.CSSProperties
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
@@ -34,7 +50,7 @@ export function DistributionOverview({
 
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
 
-  return <InformationDisplayCard title={'Distribution'} span={span}>
+  return <InformationDisplayCard title={'Allocation'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
       {collection && <TableRow label={"Circulating (Total)"} value={
         <div style={{ float: 'right' }}>
@@ -48,7 +64,7 @@ export function DistributionOverview({
           />
         </div>
       } labelSpan={8} valueSpan={16} />}
-      {<>
+      {!isSelectStep && <>
         {collection && <TableRow label={"Unminted"} value={
           <div style={{ float: 'right' }}>
             <BalanceDisplay
@@ -63,7 +79,7 @@ export function DistributionOverview({
       </>}
       {!isBadgeView &&
         <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
-      {<TableRow label={"Can more badges be created?"} value={PermissionIcon(
+      {!isSelectStep && <TableRow label={"Can more badges be created?"} value={PermissionIcon(
         "canCreateMoreBadges",
         castBalancesActionPermissionToUniversalPermission(
           collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||

@@ -50,7 +50,6 @@ export function TxModal(
   const [checked, setChecked] = useState(false);
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
   const [betaChecked, setBetaChecked] = useState(false);
-  const [blockchainTruthChecked, setBlockchainTruthChecked] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
@@ -338,7 +337,7 @@ export function TxModal(
                 max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
                 step={1}
                 style={{ marginLeft: 5, marginRight: 5 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               /> ${txDetails.fee.denom.toUpperCase()}
             </Typography.Text>
             <br />
@@ -395,26 +394,13 @@ export function TxModal(
         <br />
         <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
-            By checking the box below, I understand that this transaction is irreversible.
+            By checking the box below, I understand that blockchain transactions are permanent and irreversible.
           </Typography.Text>
         </div >
         <div className='flex-center'>
           <Checkbox
             checked={irreversibleChecked}
             onChange={(e) => setIrreversibleChecked(e.target.checked)}
-          />
-
-        </div >
-        <br />
-        <div className='flex-center'>
-          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
-            By checking the box below, I understand that the blockchain is the final source of truth.
-          </Typography.Text>
-        </div >
-        <div className='flex-center'>
-          <Checkbox
-            checked={blockchainTruthChecked}
-            onChange={(e) => setBlockchainTruthChecked(e.target.checked)}
           />
 
         </div >
@@ -465,7 +451,7 @@ export function TxModal(
 
   return (
     <Modal
-      title={<div className='primary-text primary-blue-bg'><b>{txName}</b></div>}
+      title={<div className='primary-text inherit-bg'><b>{txName}</b></div>}
       open={visible}
 
       style={{
@@ -478,7 +464,7 @@ export function TxModal(
         ...style
       }}
       // width={width ? width : '80%'}
-      closeIcon={<div className='primary-text primary-blue-bg'>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
+      closeIcon={<div className='primary-text inherit-bg'>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,
         ...bodyStyle,
@@ -487,7 +473,7 @@ export function TxModal(
       }}
       onOk={handleSubmitTx}
       okButtonProps={{
-        disabled: transactionStatus != TransactionStatus.None || currentStep != (msgSteps ?? []).length || !txDetails || exceedsBalance || (!checked || !irreversibleChecked || !betaChecked || !blockchainTruthChecked || disabled),
+        disabled: transactionStatus != TransactionStatus.None || currentStep != (msgSteps ?? []).length || !txDetails || exceedsBalance || (!checked || !irreversibleChecked || !betaChecked || disabled),
         loading: transactionStatus != TransactionStatus.None
       }}
       onCancel={() => {

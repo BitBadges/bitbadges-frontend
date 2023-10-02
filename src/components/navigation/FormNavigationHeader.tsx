@@ -1,6 +1,5 @@
 import { CaretLeftFilled, CaretRightFilled } from '@ant-design/icons';
-import { Typography } from 'antd';
-import React from 'react';
+import { Col, Typography } from 'antd';
 
 
 
@@ -19,53 +18,80 @@ export function FormNavigationHeader({
   nextButtonDisabled?: boolean;
   finalStepNumber: number;
 }) {
-  return (
+  return (<>
     <div className='full-width flex-center'>
       <div>
         <button
           style={{
-            backgroundColor: 'inherit',
-            color: '#ddd',
+            // backgroundColor: 'inherit',
+            backgroundColor: backButtonDisabled ? 'lightgrey' : undefined,
+            // color: '#ddd',
+            margin: 10,
             fontSize: 17,
             cursor: backButtonDisabled ? 'not-allowed' : undefined,
             visibility: stepNum === 1 ? 'hidden' : undefined
           }}
           onClick={() => decrementStep()}
-          className="opacity link-button"
+          className="landing-button"
           disabled={backButtonDisabled || stepNum === 1}
         >
           <CaretLeftFilled size={40} />
           Back
         </button>
       </div>
-      <Typography.Text
-        strong
-        className='primary-text'
-        style={{
-          fontSize: 20,
-          marginLeft: 50,
-          marginRight: 50,
-        }}
+      <Col
+        md={2}
+        xs={0}
+        sm={0}
       >
-        {stepNum} / {finalStepNumber}
-      </Typography.Text>
+        <Typography.Text
+          strong
+          className='primary-text flex-center'
+          style={{
+            fontSize: 20,
+          }}
+        >
+          {stepNum} / {finalStepNumber}
+        </Typography.Text>
+      </Col>
+
       <div>
         <button
           style={{
-            backgroundColor: 'inherit',
-            color: '#ddd',
+            backgroundColor: nextButtonDisabled ? 'lightgrey' : undefined,
+            // color: '#ddd',
             fontSize: 17,
+            margin: 10,
             cursor: nextButtonDisabled ? 'not-allowed' : undefined,
             visibility: stepNum === finalStepNumber ? 'hidden' : undefined
           }}
           onClick={() => incrementStep()}
-          className="opacity link-button"
+          className="landing-button"
           disabled={nextButtonDisabled || stepNum === finalStepNumber}
         >
           Next
           <CaretRightFilled size={40} />
         </button>
       </div>
+
+
     </div>
+    <Col
+      md={0}
+      xs={24}
+      sm={24}
+    >
+      <Typography.Text
+        strong
+        className='primary-text full-width flex-center'
+        style={{
+          fontSize: 20,
+          textAlign: 'center',
+        }}
+      >
+        {stepNum} / {finalStepNumber}
+      </Typography.Text>
+    </Col>
+  </>
   );
 }

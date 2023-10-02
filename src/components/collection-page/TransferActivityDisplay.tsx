@@ -84,7 +84,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
           {/** Activity Collapse Panel */}
           {activity.length > 0 &&
             <Collapse
-              className='full-width primary-text primary-blue-bg'
+              className='full-width primary-text inherit-bg'
               style={{ alignItems: 'center' }}
               expandIconPosition='start'
             >
@@ -102,9 +102,9 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
 
                 return <CollapsePanel
                   key={idx}
-                  className='full-width'
+                  className='full-width gradient-bg'
                   header={<>
-                    <Row className='flex-between primary-text' style={{ textAlign: 'left' }} >
+                    <Row className='flex-between  primary-text' style={{ textAlign: 'left' }} >
                       <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                         {collection?.balancesType === 'Standard' ? <>
                           {getPanelHeaderAddress([activity.from])}
@@ -145,7 +145,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                   }
                 >
                   {
-                    <div className='full-width'>
+                    <div className='full-width gradient-bg'>
                       <br />
                       <div className='flex-center primary-text'>
                         <div key={idx} className='primary-text'>
@@ -169,6 +169,8 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                                       memo: activity.memo,
                                       precalculationDetails: activity.precalculationDetails,
                                       merkleProofs: [],
+                                      prioritizedApprovals: [],
+                                      onlyCheckPrioritizedApprovals: false,
                                     }
                                   ]}
                                 />

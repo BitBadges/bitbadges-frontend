@@ -236,7 +236,7 @@ function CollectionPage({ }: {}) {
                         {addressToCheck ? addressInList ? <div className='flex-center'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
                             <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                              <span className='primary-text primary-blue-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
+                              <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
 
                             </div>
                           </div>
@@ -244,7 +244,7 @@ function CollectionPage({ }: {}) {
                           <div className='flex-center'>
                             <div className='flex-center' style={{ alignItems: 'center' }}>
                               <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                                <span className='primary-text primary-blue-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
+                                <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
 
                               </div>
                             </div>
@@ -273,7 +273,7 @@ function CollectionPage({ }: {}) {
                 {actions.map((action, idx) => {
                   return <Card
                     key={idx}
-                    className='primary-text primary-blue-bg flex-center'
+                    className='primary-text inherit-bg flex-center'
                     style={{
                       width: '300px',
                       minHeight: '150px',

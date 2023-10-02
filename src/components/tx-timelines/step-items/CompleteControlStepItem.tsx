@@ -1,5 +1,6 @@
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ChooseControlTypeStepItem() {
@@ -12,7 +13,9 @@ export function ChooseControlTypeStepItem() {
 
   return {
     title: 'Complete Control?',
-    description: <>See list of privileges
+    description: <>
+      Would you like the manager to have complete administrative control (all admin privileges enabled)?
+      See full list of privileges
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a>
@@ -22,13 +25,30 @@ export function ChooseControlTypeStepItem() {
         options={[
           {
             title: 'Custom',
-            message: <>In the following steps, you will be able to customize which admin privileges you want enabled vs disabled. </>,
-            isSelected: !completeControl
+            message: <>In the following steps, you will be able to customize which admin privileges are enabled vs disabled. </>,
+            isSelected: !completeControl,
+            additionalNode: <>
+              <div className="flex-center">
+                <PermissionsOverview
+                  span={24}
+                  collectionId={MSG_PREVIEW_ID}
+                  tbd
+                />
+              </div>
+            </>
           },
           {
             title: 'Complete Control',
-            message: 'To streamline the process, we will set all admin privileges to be enabled. You will have complete control to be able to customize and update the collection details on the blockchain as you see fit.',
-            isSelected: completeControl
+            message: 'All admin privileges will be enabled. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
+            isSelected: completeControl,
+            additionalNode: <>
+              <div className="flex-center">
+                <PermissionsOverview
+                  span={24}
+                  collectionId={MSG_PREVIEW_ID}
+                />
+              </div>
+            </>
           },
         ]}
         onSwitchChange={(idx) => {
@@ -56,6 +76,7 @@ export function ChooseControlTypeStepItem() {
         }
         }
       />
+
     </div>
   }
 }

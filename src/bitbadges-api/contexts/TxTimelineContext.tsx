@@ -1,5 +1,5 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovedTransferWithDetails, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovedTransferWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -50,10 +50,6 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
 
   badgesToCreate: Balance<T>[];
   setBadgesToCreate: (badgesToCreate: Balance<T>[]) => void
-
-  //TODO: abstract this better so we can have multiple distribution methods for different transfers
-  distributionMethod: DistributionMethod
-  setDistributionMethod: (method: DistributionMethod) => void
 
   mintType: MintType
   setMintType: (mintType: MintType) => void
@@ -118,9 +114,12 @@ export interface BaseTxTimelineProps {
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
 
-  approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]
-  setApprovedTransfersToAdd: (approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]) => void
-  resetApprovedTransfersToAdd: () => (CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]
+  approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint>)[]
+  setApprovedTransfersToAdd: (approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint>)[]) => void
+  resetApprovedTransfersToAdd: () => (CollectionApprovedTransferWithDetails<bigint>)[]
+
+  showAdvancedOptions: boolean
+  setShowAdvancedOptions: (showAdvancedOptions: boolean) => void
 }
 
 export type TxTimelineContextType = MsgUpdateCollectionProps;
@@ -182,8 +181,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
 
   addMethod: MetadataAddMethod.None,
   setAddMethod: () => { },
-  distributionMethod: DistributionMethod.None,
-  setDistributionMethod: () => { },
   metadataSize: 0,
   initialLoad: true,
   setInitialLoad: () => { },
@@ -193,7 +190,10 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
 
   completeControl: false,
   setCompleteControl: () => { },
-  resetApprovedTransfersToAdd: () => []
+  resetApprovedTransfersToAdd: () => [],
+
+  showAdvancedOptions: false,
+  setShowAdvancedOptions: () => { },
 });
 
 type Props = {
@@ -233,10 +233,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //The method used to add metadata to the collection and individual badges
   const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
 
-  //The distribution method of the badges (claim by codes, manual transfers, whitelist, etc)
-  const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
-
-
   //Update flags
   const [updateCollectionPermissions, setUpdateCollectionPermissions] = useState(true);
   const [updateManagerTimeline, setUpdateManagerTimeline] = useState(true);
@@ -249,7 +245,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
 
-  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint> & { balances: Balance<bigint>[] })[]>(
+  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint>)[]>(
     startingCollection ? getMintApprovedTransfers(startingCollection).map(x => {
       return {
         ...x,
@@ -262,6 +258,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       }
     }) : []
   );
+
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
     resetApprovedTransfersToAdd();
@@ -294,7 +292,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
-    if (!simulatedCollection || distributionMethod === DistributionMethod.OffChainBalances) return;
+    if (!simulatedCollection || simulatedCollection.balancesType === "Off-Chain") return;
 
     const existingNonMint = getNonMintApprovedTransfers(simulatedCollection, true);
 
@@ -304,10 +302,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         // ...existingFromMint, //We included in approvedTransfersToAdd 
         ...approvedTransfersToAdd, ...existingNonMint],
     });
-  }, [approvedTransfersToAdd, distributionMethod]);
-
-
-
+  }, [approvedTransfersToAdd]);
 
   function resetState() {
     setExistingCollectionId(undefined);
@@ -338,7 +333,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
-    setDistributionMethod(DistributionMethod.None);
 
     setCompleteControl(false);
     resetApprovedTransfersToAdd();
@@ -549,28 +543,18 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     postSimulatedCollection.cachedBadgeMetadata = newBadgeMetadata;
 
     collections.updateCollection(postSimulatedCollection, true);
-  }, [existingCollectionId, badgesToCreate, initialLoad, collections]);
+  }, [existingCollectionId, badgesToCreate, initialLoad]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
     if (!simulatedCollection) return;
 
-    if (distributionMethod === DistributionMethod.OffChainBalances) {
-      collections.updateCollection({
-        ...simulatedCollection,
-        balancesType: "Off-Chain",
-      });
-
+    if (simulatedCollection.balancesType === "Off-Chain") {
       setUpdateCollectionApprovedTransfers(false);
     } else {
       setUpdateCollectionApprovedTransfers(true);
-
-      collections.updateCollection({
-        ...simulatedCollection,
-        balancesType: "Standard",
-      }, true);
     }
-  }, [distributionMethod]);
+  }, [simulatedCollection?.balancesType]);
 
   //Upon any new metadata that will need to be added, we need to update the size of the metadata
   //TODO: Make consistent with actual uploads
@@ -587,8 +571,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     txType,
     addMethod,
     setAddMethod,
-    distributionMethod,
-    setDistributionMethod,
     metadataSize: size,
     existingCollectionId: existingCollectionId,
     startingCollection,
@@ -643,7 +625,10 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setCompleteControl,
 
     approvedTransfersToAdd,
-    setApprovedTransfersToAdd
+    setApprovedTransfersToAdd,
+
+    showAdvancedOptions,
+    setShowAdvancedOptions
   }
 
   return <TxTimelineContext.Provider value={context}>

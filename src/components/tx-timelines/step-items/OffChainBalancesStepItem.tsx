@@ -111,7 +111,7 @@ export function OffChainBalancesStorageSelectStepItem() {
             onChange={(e: any) => {
               setUri(e.target.value);
             }}
-            className='primary-text primary-blue-bg'
+            className='primary-text inherit-bg'
           />
         </Form.Item>
       }

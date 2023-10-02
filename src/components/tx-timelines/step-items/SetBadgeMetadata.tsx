@@ -1,11 +1,9 @@
-import { Divider, Typography } from "antd";
 import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateBadgeMetadataUpdate } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
-import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
-import { ToolIcon } from "../../display/ToolIcon";
+import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
@@ -35,41 +33,19 @@ export function SetBadgeMetadataStepItem() {
 
   return {
     title: 'Set Badge Metadata',
-    description: <></>,
+    description: <>Customize each individual badge in the collection.</>,
     node: <UpdateSelectWrapper
       updateFlag={canUpdateBadgeMetadata}
       setUpdateFlag={setUpdateBadgeMetadata}
       jsonPropertyPath='badgeMetadataTimeline'
       permissionName='canUpdateBadgeMetadata'
       disableJson
-      node={<>{
+      node={<InformationDisplayCard title='Badge Metadata'>{
         collection && <>
           <ErrDisplay err={err} />
-          {addMethod != MetadataAddMethod.UploadUrl && <>
-            <div className='flex-center full-width'>
-
-              <div className='primary-text full-width'>
-                <BadgeAvatarDisplay
-                  collectionId={MSG_PREVIEW_ID}
-                  badgeIds={toUpdateBadges}
-                  showIds={true}
-                />
-              </div>
-            </div>
-            <hr />
-            <br />
-          </>
-          }
-
           <MetadataForm badgeIds={toUpdateBadges} />
-          <Divider />
-          <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
-          <div style={{ display: 'flex' }} className='flex-wrap'>
-            <ToolIcon name="Sketch.io" />
-            <ToolIcon name="Excalidraw" />
-          </div>
         </>
-      }</>}
+      }</InformationDisplayCard>}
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && (collection.cachedBadgeMetadata.length == 0))
       || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0) || (collection.badgeMetadataTimeline.length == 0)))

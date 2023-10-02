@@ -37,9 +37,9 @@ export function AddressMappingSelect({
               includeAddresses: e.target.checked,
             });
           }}
-          className="primary-text primary-blue-bg"
+          className="primary-text inherit-bg"
         >
-          <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+          <div className='primary-text inherit-bg' style={{ fontSize: 14 }}>
             Include Addresses
           </div>
         </Checkbox>

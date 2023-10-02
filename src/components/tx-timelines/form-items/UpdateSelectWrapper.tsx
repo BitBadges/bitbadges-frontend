@@ -1,13 +1,15 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Avatar, Switch, Tooltip } from 'antd';
+import { Switch } from 'antd';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE } from '../../../constants';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
+import IconButton from '../../display/IconButton';
 import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
+import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -93,6 +95,46 @@ export function UpdateSelectWrapper({
     setCustomJson(onlyShowJson);
   }, [onlyShowJson])
 
+  let question = "";
+
+
+  switch (permissionName) {
+    case 'canDeleteCollection':
+      question = "Can delete the collection?";
+      break;
+    case 'canArchiveCollection':
+      question = "Can archive the collection?";
+      break;
+    case 'canUpdateContractAddress':
+      question = "Can update the contract address?";
+      break;
+    case 'canUpdateOffChainBalancesMetadata':
+      question = "Can update the off-chain balances metadata?";
+      break;
+    case 'canUpdateStandards':
+      question = "Can update the standards?";
+      break;
+    case 'canUpdateCustomData':
+      question = "Can update the custom data?";
+      break;
+    case 'canUpdateManager':
+      question = "Can update the manager?";
+      break;
+    case 'canUpdateCollectionMetadata':
+      question = "Can update the collection metadata?";
+      break;
+    case 'canCreateMoreBadges':
+      question = "Can create more badges?";
+      break;
+    case 'canUpdateBadgeMetadata':
+      question = "Can update the badge metadata?";
+      break;
+    case 'canUpdateCollectionApprovedTransfers':
+      question = "Can update collection approved transfers?";
+      break;
+    // Add custom questions for other permissions as needed
+  }
+
 
   return (
     <>
@@ -112,86 +154,68 @@ export function UpdateSelectWrapper({
                 className='primary-text'
               />
             </div>}
-          <div style={{ marginTop: 10 }}>
-            {updateFlag && !disableUndo &&
-              <Tooltip
-                color='black'
-                placement='bottom'
-                title={'Undo changes'}
-              >
-                <Avatar
-                  className='styled-button'
-                  src={<UndoOutlined style={{ fontSize: 16 }} />}
-                  style={{ marginLeft: 10, cursor: 'pointer' }}
-                  onClick={() => {
-                    if (customRevertFunction) {
-                      customRevertFunction();
-                    } else {
 
-                      if (startingCollection && collection) {
-                        const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
-                        collections.updateCollection({
-                          ...collection,
-                          [`${jsonPropertyPath}`]: existingValue
-                        });
+          {updateFlag && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" &&
+            <IconButton
+              src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={showPermission ? 'Hide Permission' : 'Show Permission'}
+              text={showPermission ? 'Hide' : 'Permission'}
+              onClick={() => {
+                setShowPermission(!showPermission);
+              }}
+            />
+          }
+          {updateFlag && !customJson && !disableJson && !onlyShowJson &&
+            <IconButton
+              src={<CodeOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={'Custom JSON (Advanced Option)'}
+              text={'JSON'}
+              onClick={() => {
+                setCustomJson(true);
+              }}
+            />}
+          {updateFlag && customJson && !disableJson && !onlyShowJson &&
+            <IconButton
+              src={<FormOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={'Normal Form'}
+              text={'Form'}
+              onClick={() => {
+                setCustomJson(false);
+              }}
+            />}
 
-                      } else if (collection && !startingCollection) {
-                        collections.updateCollection({
-                          ...collection,
-                          [`${jsonPropertyPath}`]: []
-                        });
-                      }
-                    }
-                  }}
-                />
-              </Tooltip>}
-            {updateFlag && !customJson && !disableJson && !onlyShowJson &&
-              <Tooltip
-                color='black'
-                placement='bottom'
-                title={'Custom JSON (Advanced)'}
-              >
-                <Avatar
-                  className='styled-button'
-                  src={<CodeOutlined style={{ fontSize: 16 }} />}
-                  style={{ marginLeft: 10, cursor: 'pointer' }}
-                  onClick={() => {
-                    setCustomJson(true);
-                  }}
-                />
-              </Tooltip>}
-            {updateFlag && customJson && !disableJson && !onlyShowJson &&
-              <Tooltip
-                color='black'
-                placement='bottom'
-                title={'Normal Form'}
-              >
-                <Avatar
-                  className='styled-button'
-                  src={<FormOutlined style={{ fontSize: 16 }} />}
-                  style={{ marginLeft: 10, cursor: 'pointer' }}
-                  onClick={() => {
-                    setCustomJson(false);
-                  }}
-                />
-              </Tooltip>}
-            {updateFlag && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" &&
-              <Tooltip
-                color='black'
-                placement='bottom'
-                title={showPermission ? 'Hide Permission' : 'Show Permission'}
-              >
-                <Avatar
-                  className='styled-button'
-                  src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
-                  style={{ marginLeft: 10, cursor: 'pointer' }}
-                  onClick={() => {
-                    setShowPermission(!showPermission);
-                  }}
-                />
-              </Tooltip>}
-          </div>
+          {updateFlag && !disableUndo &&
+            <IconButton
+              src={<UndoOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={'Undo changes'}
+              text={'Reset'}
+              onClick={() => {
+                if (customRevertFunction) {
+                  customRevertFunction();
+                } else {
+
+                  if (startingCollection && collection) {
+                    const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
+
+                    collections.updateCollection({
+                      ...collection,
+                      [`${jsonPropertyPath}`]: existingValue
+                    });
+
+                  } else if (collection && !startingCollection) {
+                    collections.updateCollection({
+                      ...collection,
+                      [`${jsonPropertyPath}`]: []
+                    });
+                  }
+                }
+              }}
+            />}
         </div>
 
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag &&
@@ -213,9 +237,10 @@ export function UpdateSelectWrapper({
 
           </div>}
       </div>
+      <span color='black' style={{ margin: 16, }} />
+
       {!updateFlag &&
         <div style={{ textAlign: 'center' }} className='primary-text flex-center flex-column' >
-          <br />
           <SwitchForm
             options={[{
               title: 'Do Not Update',
@@ -233,21 +258,22 @@ export function UpdateSelectWrapper({
         </div>}
 
       {showPermission && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" ? <>
+        <InformationDisplayCard title={question}>
+          {
+            PermissionDisplay(
+              permissionName,
+              castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
+              flags as any,
+              undefined,
+              undefined,
+              mintOnly,
+              nonMintOnly,
+            )
+          }
+        </InformationDisplayCard>
         <br />
-        {
-          PermissionDisplay(
-            permissionName,
-            castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
-            flags as any,
-            undefined,
-            undefined,
-            mintOnly,
-            nonMintOnly,
-          )
-        }
       </> : <></>}
       {updateFlag && !customJson && <>
-        <br />
         {node}
       </>}
       {updateFlag && customJson && <>

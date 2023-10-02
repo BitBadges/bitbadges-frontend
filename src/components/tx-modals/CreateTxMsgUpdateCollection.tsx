@@ -1,6 +1,6 @@
 import { notification } from 'antd';
 import { CollectionApprovedTransfer, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, DistributionMethod, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { addBalancesToIpfs, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
@@ -169,48 +169,41 @@ export function CreateTxMsgUpdateCollectionModal(
     }
 
     //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
-    if (txTimelineContext.distributionMethod == DistributionMethod.Codes || txTimelineContext.distributionMethod == DistributionMethod.Whitelist) {
 
-      if (collection.collectionApprovedTransfers?.length > 0 && txTimelineContext.updateCollectionApprovedTransfers) {
-        if (simulate) {
-          for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
-            for (let k = 0; k < collection.collectionApprovedTransfers[i].approvalDetails.length; k++) {
-              for (let x = 0; x < collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges.length; x++) {
-                if (collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri) continue;
-                collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
-              }
-            }
+    if (collection.collectionApprovedTransfers?.length > 0 && txTimelineContext.updateCollectionApprovedTransfers) {
+      if (simulate) {
+        for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
+          const approvalDetails = collection.collectionApprovedTransfers[i].approvalDetails;
+          if (approvalDetails) {
+            if (approvalDetails.merkleChallenge.uri) continue;
+            approvalDetails.merkleChallenge.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
           }
-        } else {
-          for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
-            for (let k = 0; k < collection.collectionApprovedTransfers[i].approvalDetails.length; k++) {
-              for (let x = 0; x < collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges.length; x++) {
-                if (collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri &&
-                  collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
-                  collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri = '';
-                }
-
-                if (collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri) continue; //If it already has a URI, we don't need to add it to IPFS
-
-                if (collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details
-                  && (collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.name
-                    || collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.description
-                    || collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.challengeDetails
-                    || collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.password
-                  )) {
-                  let res = await addMerkleChallengeToIpfs({
-                    name: collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.name || '',
-                    description: collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.description || '',
-                    challengeDetails: collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].details?.challengeDetails,
-                  });
-
-                  collection.collectionApprovedTransfers[i].approvalDetails[k].merkleChallenges[x].uri = 'ipfs://' + res.result.cid;
-                }
-              }
-            }
-          }
-
         }
+      } else {
+        for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
+          const approvalDetails = collection.collectionApprovedTransfers[i].approvalDetails;
+          if (approvalDetails) {
+            if (approvalDetails.merkleChallenge.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
+              approvalDetails.merkleChallenge.uri = '';
+            }
+
+            if (approvalDetails.merkleChallenge.uri) continue; //If it already has a URI, we don't need to add it to IPFS
+
+            if (approvalDetails.merkleChallenge.details && (approvalDetails.merkleChallenge.details?.name || approvalDetails.merkleChallenge.details?.description
+              || approvalDetails.merkleChallenge.details?.challengeDetails
+              || approvalDetails.merkleChallenge.details?.password
+            )) {
+              let res = await addMerkleChallengeToIpfs({
+                name: approvalDetails.merkleChallenge.details?.name || '',
+                description: approvalDetails.merkleChallenge.details?.description || '',
+                challengeDetails: approvalDetails.merkleChallenge.details?.challengeDetails,
+              });
+
+              approvalDetails.merkleChallenge.uri = 'ipfs://' + res.result.cid;
+            }
+          }
+        }
+
       }
     }
 
@@ -245,21 +238,22 @@ export function CreateTxMsgUpdateCollectionModal(
     }
 
     const collectionApprovedTransfersWithoutDetails: CollectionApprovedTransfer<bigint>[] = collection.collectionApprovedTransfers?.map(y => {
+      const approvalDetails = y.approvalDetails;
+
+      if (!approvalDetails) return y;
+
       return {
         ...y,
-        approvalDetails: y.approvalDetails.map(z => {
-          return {
-            ...z,
-            merkleChallenges: z.merkleChallenges.map(a => {
-              return {
-                ...a,
-                details: undefined,
-              }
-            })
-          }
-        })
+        approvalDetails: {
+          ...approvalDetails,
+          merkleChallenge: {
+            ...approvalDetails.merkleChallenge,
+            details: undefined,
+          },
+        }
       }
-    }) || [];
+    }
+    ) || [];
 
 
     const msgUpdateCollection: MsgUpdateCollection<bigint> = {

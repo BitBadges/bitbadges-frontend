@@ -45,16 +45,17 @@ export const getTableHeader = () => {
       Other?
     </b></td>
   </tr>
-
 }
 
 
-export function TransferabilityRow({ transfer, badgeId, collectionId, filterFromMint }: {
+export function TransferabilityRow({ transfer, badgeId, collectionId, filterFromMint, noBorder, ignoreRow }: {
   transfer: CollectionApprovedTransferWithDetails<bigint>,
   badgeId?: bigint,
   setTab?: (tab: string) => void,
   collectionId: bigint,
-  filterFromMint?: boolean
+  filterFromMint?: boolean,
+  noBorder?: boolean,
+  ignoreRow?: boolean,
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
@@ -78,7 +79,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
 
   //TODO: Refactor this 
   return <>
-    <tr style={{ borderBottom: '1px solid gray' }} >
+    <tr style={{ borderBottom: noBorder ? undefined : '1px solid gray' }} >
       <td style={{ alignItems: 'center' }}>
         <AddressDisplayList
           users={transfer.fromMapping.addresses}
@@ -113,76 +114,72 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
       <td style={{ alignItems: 'center' }}>
         {getTimeRangesElement(transfer.ownershipTimes, '', true)}
       </td>
-      <td style={{ alignItems: 'center' }}>
-        {transfer.allowedCombinations[0].isApproved ? <CheckCircleFilled style={{ color: 'green', fontSize: 20 }} /> : <StopFilled style={{ color: 'red', fontSize: 20 }} />}
-      </td>
+      {!ignoreRow &&
+        <td style={{ alignItems: 'center' }}>
+          {transfer.allowedCombinations[0].isApproved ? <CheckCircleFilled style={{ color: 'green', fontSize: 20 }} /> : <StopFilled style={{ color: 'red', fontSize: 20 }} />}
+        </td>}
+      {!ignoreRow &&
+        <td style={{ alignItems: 'center' }}>
+          {/* {transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.allowedCombinations[0].isApproved ? '' : 'No'} */}
 
-      <td style={{ alignItems: 'center' }}>
-        {transfer.approvalDetails && transfer.approvalDetails.length > 0 && transfer.allowedCombinations[0].isApproved ? '' : 'No'}
+          {transfer.approvalDetails &&
+            <>
+              <>
 
-        {transfer.approvalDetails && transfer.approvalDetails.length > 0 &&
-          <>
-            {transfer.approvalDetails.map((x, idx) => {
-              return <>
-                {idx !== 0 && <>
-                  <b>OR</b>
-                  <br />
-                  <br />
-                </>}
                 <ul style={{ textAlign: 'left' }}>
-                  {x.requireFromDoesNotEqualInitiatedBy && (
+                  {transfer.approvalDetails.requireFromDoesNotEqualInitiatedBy && (
                     <li>From Must NOT Equal Initiated By</li>
                   )}
-                  {x.requireFromEqualsInitiatedBy && (
+                  {transfer.approvalDetails.requireFromEqualsInitiatedBy && (
                     <li>From Must Equal Initiated By</li>
                   )}
-                  {x.requireToDoesNotEqualInitiatedBy && (
+                  {transfer.approvalDetails.requireToDoesNotEqualInitiatedBy && (
                     <li>To Must NOT Equal Initiated By</li>
                   )}
-                  {x.requireToEqualsInitiatedBy && (
+                  {transfer.approvalDetails.requireToEqualsInitiatedBy && (
                     <li>To Must Equal Initiated By</li>
                   )}
-                  {transfer.fromMappingId !== "Mint" && x.overridesFromApprovedOutgoingTransfers ? (
+                  {transfer.fromMappingId !== "Mint" && transfer.approvalDetails.overridesFromApprovedOutgoingTransfers ? (
                     <li>Overrides From Approvals</li>
                   ) : (
                     transfer.fromMappingId !== "Mint" && <li>Must Satisfy Outgoing Approvals</li>
                   )}
-                  {transfer.fromMappingId === "Mint" && !x.overridesFromApprovedOutgoingTransfers && (
+                  {transfer.fromMappingId === "Mint" && !transfer.approvalDetails.overridesFromApprovedOutgoingTransfers && (
                     <>
                       <li>
                         <WarningOutlined style={{ color: 'orange' }} /> Must Satisfy Outgoing Approvals for Mint Address (Mint never has approvals so this will never work)
                       </li>
                     </>
                   )}
-                  {x.overridesToApprovedIncomingTransfers ? (
+                  {transfer.approvalDetails.overridesToApprovedIncomingTransfers ? (
                     <li>Overrides To Approvals</li>
                   ) : (
                     <li>Must Satisfy Incoming Approvals</li>
                   )}
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-between primary-blue-bg primary-text'>
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-between inherit-bg primary-text'>
                     <div>
-                      {transfer.approvalDetails && transfer.approvalDetails.length > 0 && x.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
+                      {transfer.approvalDetails && transfer.approvalDetails.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                         <BalanceDisplay
                           message='Start Balances'
-                          balances={x.predeterminedBalances.incrementedBalances.startBalances}
+                          balances={transfer.approvalDetails.predeterminedBalances.incrementedBalances.startBalances}
                           collectionId={collectionId}
                         />
                         <br />
-                        <b>Badge Increment: </b> {x.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
+                        <b>Badge Increment: </b> {transfer.approvalDetails.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
                         <br />
-                        <b>Times Increment: </b>{x.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
+                        <b>Times Increment: </b>{transfer.approvalDetails.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
                         <br />
-                        <p style={{ inlineSize: 'max-content', wordBreak: "break-all", wordWrap: "break-word", overflowWrap: "break-word" }}> <b># Increments Calculation Method: </b>{Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
+                        <p style={{ inlineSize: 'max-content', wordBreak: "break-all", wordWrap: "break-word", overflowWrap: "break-word" }}> <b># Increments Calculation Method: </b>{Object.entries(transfer.approvalDetails.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
                           <>{"Overall Number of Transfers - First processed transfer will be for the starting balances without any increments applied. Second transfer will be the starting balances plus one increment. And so on."}</>
-                          : Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
-                            <>{`Predetermined - The creator of this claim prereserved specific increments for specific ${x.merkleChallenges.find(x => x.useLeafIndexForTransferOrder && x.useCreatorAddressAsLeaf) ? 'addresses' : 'codes'}.`}</>
-                            : Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
+                          : Object.entries(transfer.approvalDetails.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
+                            <>{`Predetermined - The creator of this claim prereserved specific increments for specific ${transfer.approvalDetails.merkleChallenge.useLeafIndexForTransferOrder && transfer.approvalDetails.merkleChallenge.useCreatorAddressAsLeaf ? 'addresses' : 'codes'}.`}</>
+                            : Object.entries(transfer.approvalDetails.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}</p>
                       </>
                       )}
 
-                      {transfer.approvalDetails && transfer.approvalDetails.length > 0 && x.predeterminedBalances.manualBalances.length > 0 && (<>
+                      {transfer.approvalDetails && transfer.approvalDetails.predeterminedBalances.manualBalances.length > 0 && (<>
 
-                        {x.predeterminedBalances.manualBalances.map((balances, idx) => {
+                        {transfer.approvalDetails.predeterminedBalances.manualBalances.map((balances, idx) => {
 
                           return <BalanceDisplay
                             key={idx}
@@ -192,7 +189,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           />
                         })}
                         <br />
-                        <b>Increment Calculation Method: </b>{Object.entries(x.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}
+                        <b>Increment Calculation Method: </b>{Object.entries(transfer.approvalDetails.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0]}
                       </>
                       )}
 
@@ -200,14 +197,14 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                     </div>
                   </div>
                   }>
-                    {x.predeterminedBalances && (x.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
-                      x.predeterminedBalances && x.predeterminedBalances.manualBalances.length > 0) &&
+                    {transfer.approvalDetails.predeterminedBalances && (transfer.approvalDetails.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
+                      transfer.approvalDetails.predeterminedBalances && transfer.approvalDetails.predeterminedBalances.manualBalances.length > 0) &&
                       (
                         <li>Predetermined Balances for Each Transfer</li>
                       )}
-                    {x.merkleChallenges && x.merkleChallenges.length > 0 && (
+                    {transfer.approvalDetails.merkleChallenge.root && (
                       <>
-                        {x.merkleChallenges.find(x => x.useCreatorAddressAsLeaf) ? (
+                        {transfer.approvalDetails.merkleChallenge.useCreatorAddressAsLeaf ? (
                           <li>Whitelist Only</li>
                         ) :
                           <li>Must Provide Valid Code / Password</li>
@@ -215,14 +212,17 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                       </>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={
-                    x.mustOwnBadges?.length > 0 &&
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={
+                    transfer.approvalDetails.mustOwnBadges?.length > 0 &&
                     <>
-                      {x.mustOwnBadges.map((mustOwnBadge, idx) => {
-                        <div className='flex-center flex-column primary-text'>
+                      {transfer.approvalDetails.mustOwnBadges.map((mustOwnBadge, idx) => {
+                        const approvalDetails = transfer.approvalDetails;
+                        if (!approvalDetails) return null;
+
+                        return <div className='flex-center flex-column primary-text' key={idx}>
                           <BalanceDisplay
                             message='Min Amounts'
-                            balances={[x.mustOwnBadges[idx]].map(x => {
+                            balances={[approvalDetails?.mustOwnBadges[idx]].map(x => {
                               return {
                                 ...x,
                                 amount: x.amountRange.start,
@@ -235,7 +235,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           <br />
                           <BalanceDisplay
                             message='Max Amounts'
-                            balances={[x.mustOwnBadges[idx]].map(x => {
+                            balances={[approvalDetails.mustOwnBadges[idx]].map(x => {
                               return {
                                 ...x,
                                 amount: x.amountRange.start,
@@ -248,13 +248,13 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                       })}
                     </>
                   }>
-                    {x.mustOwnBadges?.length > 0 && (
+                    {transfer.approvalDetails.mustOwnBadges?.length > 0 && (
                       <li>Must Own Specific Badges to Transfer</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
-                    {x.approvalAmounts.overallApprovalAmount > 0
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
+                    {transfer.approvalDetails.approvalAmounts.overallApprovalAmount > 0
                       && (
                         <>
                           <div>Showing results for:</div>
@@ -266,7 +266,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                             balances={
                               [
                                 {
-                                  amount: x.approvalAmounts.overallApprovalAmount,
+                                  amount: transfer.approvalDetails.approvalAmounts.overallApprovalAmount,
                                   badgeIds: transfer.badgeIds,
                                   ownershipTimes: transfer.ownershipTimes
                                 }
@@ -278,20 +278,20 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           <br />
                           <BalanceDisplay
                             message='Already Transferred'
-                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "overall")?.amounts ?? []}
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "overall")?.amounts ?? []}
                             collectionId={collectionId}
                           />
                         </>
                       )}
                   </div>
                   }>
-                    {x.approvalAmounts.overallApprovalAmount > 0 && (
+                    {transfer.approvalDetails.approvalAmounts.overallApprovalAmount > 0 && (
                       <li>Overall Approval Amount (All Users)</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
-                    {x.approvalAmounts.perToAddressApprovalAmount > 0
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
+                    {transfer.approvalDetails.approvalAmounts.perToAddressApprovalAmount > 0
                       && (
                         <>
                           <div>Showing results for:</div>
@@ -303,7 +303,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                             balances={
                               [
                                 {
-                                  amount: x.approvalAmounts.perToAddressApprovalAmount,
+                                  amount: transfer.approvalDetails.approvalAmounts.perToAddressApprovalAmount,
                                   badgeIds: transfer.badgeIds,
                                   ownershipTimes: transfer.ownershipTimes
                                 }
@@ -315,20 +315,20 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           <br />
                           <BalanceDisplay
                             message='Already Transferred'
-                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "to")?.amounts ?? []}
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "to")?.amounts ?? []}
                             collectionId={collectionId}
                           />
                         </>
                       )}
                   </div>
                   }>
-                    {x.approvalAmounts.perToAddressApprovalAmount > 0 && (
+                    {transfer.approvalDetails.approvalAmounts.perToAddressApprovalAmount > 0 && (
                       <li>Per To Address Approval Amounts</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
-                    {x.approvalAmounts.perFromAddressApprovalAmount > 0
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
+                    {transfer.approvalDetails.approvalAmounts.perFromAddressApprovalAmount > 0
                       && (
                         <>
                           <div>Showing results for:</div>
@@ -340,7 +340,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                             balances={
                               [
                                 {
-                                  amount: x.approvalAmounts.perFromAddressApprovalAmount,
+                                  amount: transfer.approvalDetails.approvalAmounts.perFromAddressApprovalAmount,
                                   badgeIds: transfer.badgeIds,
                                   ownershipTimes: transfer.ownershipTimes
                                 }
@@ -352,20 +352,20 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           <br />
                           <BalanceDisplay
                             message='Already Transferred'
-                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "from")?.amounts ?? []}
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "from")?.amounts ?? []}
                             collectionId={collectionId}
                           />
                         </>
                       )}
                   </div>
                   }>
-                    {x.approvalAmounts.perFromAddressApprovalAmount > 0 && (
+                    {transfer.approvalDetails.approvalAmounts.perFromAddressApprovalAmount > 0 && (
                       <li>Per From Address Approval Amounts</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
-                    {x.approvalAmounts.perInitiatedByAddressApprovalAmount > 0
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
+                    {transfer.approvalDetails.approvalAmounts.perInitiatedByAddressApprovalAmount > 0
                       && (
                         <>
                           <div>Showing results for:</div>
@@ -377,7 +377,7 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                             balances={
                               [
                                 {
-                                  amount: x.approvalAmounts.perInitiatedByAddressApprovalAmount,
+                                  amount: transfer.approvalDetails.approvalAmounts.perInitiatedByAddressApprovalAmount,
                                   badgeIds: transfer.badgeIds,
                                   ownershipTimes: transfer.ownershipTimes
                                 }
@@ -389,87 +389,85 @@ export function TransferabilityRow({ transfer, badgeId, collectionId, filterFrom
                           <br />
                           <BalanceDisplay
                             message='Already Transferred'
-                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "initiatedBy")?.amounts ?? []}
+                            balances={collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "initiatedBy")?.amounts ?? []}
                             collectionId={collectionId}
                           />
                         </>
                       )}
                   </div>
                   }>
-                    {x.approvalAmounts.perInitiatedByAddressApprovalAmount > 0 && (
+                    {transfer.approvalDetails.approvalAmounts.perInitiatedByAddressApprovalAmount > 0 && (
                       <li>Per Initiated By Address Approval Amounts</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
-                    {x.maxNumTransfers.overallMaxNumTransfers > 0 && (
-                      <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
-                        {' '}out of {x.maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
+                    {transfer.approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (Overall): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "overall")?.numTransfers.toString() ?? 0}
+                        {' '}out of {transfer.approvalDetails.maxNumTransfers.overallMaxNumTransfers.toString()}</li>)}
 
                   </div>
                   }>
-                    {x.maxNumTransfers.overallMaxNumTransfers > 0 && (
-                      <li>Overall Max Transfers (All Users): {x.maxNumTransfers.overallMaxNumTransfers.toString()}</li>
+                    {transfer.approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0 && (
+                      <li>Overall Max Transfers (All Users): {transfer.approvalDetails.maxNumTransfers.overallMaxNumTransfers.toString()}</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
                     <div>Showing results for:</div>
 
                     <AddressDisplay addressOrUsername={chain.address} />
                     <br />
-                    {x.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
-                      <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
-                        {' '}out of {x.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>)}
+                    {transfer.approvalDetails.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (To): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "to")?.numTransfers.toString() ?? 0}
+                        {' '}out of {transfer.approvalDetails.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>)}
 
                   </div>
                   }>
-                    {x.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
-                      <li>Max Transfers per To Address: {x.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>
+                    {transfer.approvalDetails.maxNumTransfers.perToAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per To Address: {transfer.approvalDetails.maxNumTransfers.perToAddressMaxNumTransfers.toString()}</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
                     <div>Showing results for:</div>
 
                     <AddressDisplay addressOrUsername={chain.address} />
                     <br />
-                    {x.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
-                      <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
-                        {' '}out of {x.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>)}
+                    {transfer.approvalDetails.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (From): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "from")?.numTransfers.toString() ?? 0}
+                        {' '}out of {transfer.approvalDetails.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>)}
 
                   </div>
                   }>
-                    {x.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
-                      <li>Max Transfers per From Address: {x.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>
+                    {transfer.approvalDetails.maxNumTransfers.perFromAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per From Address: {transfer.approvalDetails.maxNumTransfers.perFromAddressMaxNumTransfers.toString()}</li>
                     )}
                   </Popover>
-                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='primary-blue-bg' content={<div className='flex-center flex-column primary-text'>
-                    {DEV_MODE && <li>Approvals Tracker ID: {x.approvalTrackerId}</li>}
+                  <Popover placement='bottom' overlayInnerStyle={{ background: '#001529', border: '1px solid gray' }} className='inherit-bg' content={<div className='flex-center flex-column primary-text'>
+                    {DEV_MODE && <li>Approvals Tracker ID: {transfer.approvalTrackerId}</li>}
                     <div>Showing results for:</div>
 
                     <AddressDisplay addressOrUsername={chain.address} />
                     <br />
-                    {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
-                      <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
-                        {' '}out of {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>)}
+                    {transfer.approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
+                      <li>Current Num Transfers (Initiated By): {collection?.approvalsTrackers.find(y => y.approvalTrackerId === transfer.approvalTrackerId && y.trackerType === "initiatedBy")?.numTransfers.toString() ?? 0}
+                        {' '}out of {transfer.approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>)}
 
                   </div>
                   }>
-                    {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
-                      <li>Max Transfers per Initiated By Address: {x.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>
+                    {transfer.approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0 && (
+                      <li>Max Transfers per Initiated By Address: {transfer.approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers.toString()}</li>
                     )}
                   </Popover>
 
                 </ul>
 
               </>
-            }
-            )}
-          </>
+            </>
 
-        }
-      </td >
+          }
+        </td >}
 
     </tr >
   </>

@@ -26,20 +26,17 @@ export function DefaultToApprovedSelectStepItem() {
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    approvalId: "default-incoming-allowed",
+    approvalTrackerId: "",
+    challengeTrackerId: "",
     allowedCombinations: [{
       isApproved: true,
-      initiatedByMappingOptions: {},
-      fromMappingOptions: {},
-      badgeIdsOptions: {},
-      ownershipTimesOptions: {},
-      transferTimesOptions: {},
-    }],
-    approvalDetails: []
+    }]
   }]
 
   return {
     title: `Default Incoming Approvals`,
-    description: ``,
+    description: `Can badges be sent to users without approval, or should approval be required by default?`,
     node: <UpdateSelectWrapper
       updateFlag={updatelag}
       setUpdateFlag={setUpdateFlag}
@@ -52,13 +49,13 @@ export function DefaultToApprovedSelectStepItem() {
           options={[
             {
               title: 'Forceful Transfers Allowed',
-              message: `For all users, by default, all incoming transfers (including mints) will be approved. Users can opt-out of this in the future.`,
+              message: `For all users, all incoming transfers (including mints) will be approved by default. Users can opt-out of this in the future.`,
               isSelected: compareObjects(collection.defaultUserApprovedIncomingTransfers, forcefulOption)
 
             },
             {
               title: 'Opt-In Only',
-              message: 'For all users, by default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
+              message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
               isSelected: collection.defaultUserApprovedIncomingTransfers.length === 0
             },
           ]}

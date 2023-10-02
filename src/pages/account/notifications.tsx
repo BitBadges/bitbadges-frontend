@@ -45,6 +45,8 @@ export function Notifications() {
     accounts.fetchAccounts([...new Set(createdBys)]);
   }, [listsView]);
 
+
+
   return (
     <DisconnectedWrapper
       requireLogin

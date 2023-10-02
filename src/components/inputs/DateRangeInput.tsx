@@ -3,8 +3,9 @@ import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import moment from 'moment';
 import { getTimeRangesElement } from '../../utils/dates';
 import { DeleteOutlined, EditOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { checkIfUintRangesOverlap } from 'bitbadgesjs-utils';
+import { checkIfUintRangesOverlap, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import { useState } from 'react';
+import IconButton from '../display/IconButton';
 
 export function DateRangeInput({
   timeRanges,
@@ -35,34 +36,44 @@ export function DateRangeInput({
         <br />
         <div className='flex flex-column'>
 
+          {timeRanges.length === 0 && <div className='primary-text' style={{ marginTop: 4 }}>
+            None
+          </div>}
           {timeRanges.map((x, i) => {
-            return <div key={i} className=''>
-              {getTimeRangesElement([x], '', true, false)}
-              <Avatar
-                className='styled-button'
-                style={{
-                  margin: 8, cursor: 'pointer',
-                  border: showTimeRange === i ? '3px solid #1890ff' : undefined,
-                  color: showTimeRange === i ? '#1890ff' : undefined,
-                }}
-                onClick={() => {
-                  setShowTimeRange(i);
-                }}
-                src={<EditOutlined />}
-              />
-              <Avatar
-                className='styled-button'
-                style={{ margin: 8, cursor: 'pointer' }}
-                onClick={() => {
-                  const newTimeRanges = deepCopy(timeRanges.filter((_, j) => j !== i))
-                  setShowTimeRange(-1);
-                  setTimeRanges(newTimeRanges);
-                }}
-                src={<DeleteOutlined />}
-              />
+            return <div key={i} className='flex-center flex-wrap' style={{ marginBottom: 8 }}>
+              <div>
+                {getTimeRangesElement([x], '', true, false)}
+              </div>
+              <div className='flex-center flex-wrap'>
+                <IconButton
+                  style={{
+                    color: showTimeRange === i ? '#1890ff' : undefined,
+                    backgroundColor: showTimeRange === i ? 'inherit' : undefined,
+                    border: showTimeRange === i ? '1px solid #1890ff' : undefined,
+                  }}
+                  src={<EditOutlined />}
+                  onClick={() => {
+                    if (showTimeRange === i) {
+                      setShowTimeRange(-1);
+                      return;
+                    }
+                    setShowTimeRange(i);
+                  }}
+                  text='Edit'
+                />
+                <IconButton
+                  onClick={() => {
+                    const newTimeRanges = deepCopy(timeRanges.filter((_, j) => j !== i))
+                    setShowTimeRange(-1);
+                    setTimeRanges(newTimeRanges);
+                  }}
+                  src={<DeleteOutlined />}
+                  text='Delete'
+                />
+              </div>
             </div>
           })}
-
+          <br />
 
         </div >
 
@@ -73,23 +84,43 @@ export function DateRangeInput({
             <br />
             <br />
           </div>}
+
+          <div className='flex-center flex-column'>
+            {timeRangesOverlap && <>
+              <Button type='primary'
+                style={{ width: 200 }}
+                className="landing-button"
+                onClick={() => {
+                  const newUintRanges = sortUintRangesAndMergeIfNecessary(timeRanges);
+
+                  setTimeRanges(newUintRanges);
+                }}>
+                Sort and Remove Overlaps
+              </Button>
+              <br />
+
+            </>
+            }
+          </div>
+
         </div>
 
         <Avatar
-          className='styled-button'
+          className='styled-icon-button'
           style={{ cursor: 'pointer' }}
           onClick={() => {
-            const len = timeRanges.length
+            // const len = timeRanges.length
             setTimeRanges([...timeRanges, { start: BigInt(currTimeNextHour.valueOf()), end: BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24) }]);
-            setShowTimeRange(len);
+            setShowTimeRange(-1);
           }}
           src={<PlusOutlined />}
         />
         <br />
         <br />
-      </div><hr />
+      </div>
       {showTimeRange >= 0 && showTimeRange < timeRanges.length && <>
-        <div style={{ textAlign: 'center' }}>
+        <hr />
+        <div style={{ textAlign: 'center', marginBottom: 10 }}>
           <b>Editing Time Range: {getTimeRangesElement([timeRanges[showTimeRange]], '', true, false)}</b>
           <br />
         </div>
@@ -97,7 +128,7 @@ export function DateRangeInput({
         <br />
         <div className='flex flex-wrap'>
           <Button
-            className='styled-button'
+            className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
               timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
@@ -109,7 +140,7 @@ export function DateRangeInput({
             +1 Day
           </Button>
           <Button
-            className='styled-button'
+            className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
               timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
@@ -121,7 +152,7 @@ export function DateRangeInput({
             +1 Week
           </Button>
           <Button
-            className='styled-button'
+            className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
               timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
@@ -136,7 +167,7 @@ export function DateRangeInput({
             return <>
 
               <Button
-                className='styled-button'
+                className='styled-icon-button'
                 style={{ margin: 4 }}
                 onClick={() => {
                   timeRanges[showTimeRange].start = x.start;
@@ -157,7 +188,7 @@ export function DateRangeInput({
           showTime
           placeholder='Start Date'
           value={timeRanges[showTimeRange].start ? moment(new Date(Number(timeRanges[showTimeRange].start))) : null}
-          className='primary-text primary-blue-bg full-width'
+          className='primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
             if (new Date(dateString).valueOf() > new Date(Number(timeRanges[showTimeRange].end)).valueOf()) {
               alert('Start time must be before end time.');
@@ -177,7 +208,7 @@ export function DateRangeInput({
           showTime
           placeholder='End Date'
           value={timeRanges[showTimeRange].end ? moment(new Date(Number(timeRanges[showTimeRange].end))) : null}
-          className='primary-text primary-blue-bg full-width'
+          className='primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
             if (new Date(dateString).valueOf() < new Date(Number(timeRanges[showTimeRange].start)).valueOf()) {
               alert('End time must be after start time.');
@@ -190,8 +221,6 @@ export function DateRangeInput({
           }}
         />
         <Divider />
-
-        <hr />
       </>}
     </div >
 

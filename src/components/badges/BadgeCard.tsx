@@ -34,7 +34,7 @@ export function BadgeCard({
   return (
     <div>
       <Card
-        className='primary-text primary-blue-bg'
+        className='primary-text gradient-bg'
         style={{
           width: 200,
           margin: 8,

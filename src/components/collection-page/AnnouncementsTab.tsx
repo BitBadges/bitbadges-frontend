@@ -59,7 +59,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
           onChange={(e) => setNewAnnouncement(e.target.value)}
           placeholder="New Announcement (Max 2048 Characters)"
           style={{ marginBottom: 16, }}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
         />
 
         <Button

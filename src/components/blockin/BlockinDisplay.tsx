@@ -150,9 +150,7 @@ export const BlockinDisplay = ({
               })
             }
           }}
-
-          buttonStyle={{ minWidth: 90, }}
-          modalStyle={{ color: `black`, backgroundColor: `white` }}
+          modalStyle={{ color: `white`, textAlign: 'start' }}
           disconnect={async () => {
             disconnect()
           }}
@@ -226,7 +224,6 @@ export const BlockinDisplay = ({
             {loading && <Spin size='large' />}
           </>}
           hideConnectVsSignInHelper={hideLogin}
-          allowTimeSelect
           maxTimeInFuture={168 * 60 * 60 * 1000}
         />
       }
@@ -238,6 +235,7 @@ export const BlockinDisplay = ({
           {!(hideLogo && !connected) &&
             <Avatar
               size={200}
+              shape="square"
               src={
                 connected ? <BlockiesAvatar
                   avatar={avatar}

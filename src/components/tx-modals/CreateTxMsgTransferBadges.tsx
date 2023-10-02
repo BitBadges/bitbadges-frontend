@@ -6,13 +6,13 @@ import React, { useEffect, useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
 export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -62,12 +62,14 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       balances: x.balances,
       toAddresses: x.toAddresses,
       precalculationDetails: {
-        precalculationId: '',
+        approvalId: '',
         approvalLevel: '',
         approverAddress: '',
       },
       merkleProofs: [],
       memo: '',
+      prioritizedApprovals: [],
+      onlyCheckPrioritizedApprovals: false,
     }
   })
 

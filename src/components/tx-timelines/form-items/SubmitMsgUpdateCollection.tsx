@@ -1,4 +1,3 @@
-import { Button } from 'antd';
 import { useState } from 'react';
 import { CreateTxMsgUpdateCollectionModal } from '../../tx-modals/CreateTxMsgUpdateCollection';
 
@@ -7,13 +6,13 @@ export function SubmitMsgNewCollection() {
 
   return <div className='full-width flex-center'
     style={{ marginTop: 20, }} >
-    <Button
-      type="primary"
+    <button
+      className='landing-button'
       style={{ width: '90%' }}
       onClick={() => setVisible(true)}
     >
       Create Badge Collection!
-    </Button>
+    </button>
     <CreateTxMsgUpdateCollectionModal
       visible={visible}
       setVisible={setVisible}

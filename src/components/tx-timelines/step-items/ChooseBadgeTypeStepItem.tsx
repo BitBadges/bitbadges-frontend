@@ -20,12 +20,12 @@ export function ChooseBadgeTypeStepItem() {
         options={[
           {
             title: 'Address List',
-            message: <> Create a simple list of addresses. Can be stored on-chain or off-chain. No tokens or balances.</>,
+            message: <>Create a list of addresses.</>,
             isSelected: mintType === MintType.AddressList
           },
           {
-            title: 'Badge',
-            message: 'This will create a token which can be owned, transferred, and traded, as well as having many other customization options.',
+            title: 'Badge Collection',
+            message: 'Create a collection of badges (tokens) which can be owned, transferred, and traded. Each badge can have its own unique properties.',
             isSelected: mintType === MintType.BitBadge
           },
         ]}

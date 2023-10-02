@@ -11,7 +11,7 @@ export function MetadataStorageSelectStepItem() {
 
   return {
     title: 'Metadata Storage',
-    description: `For setting / updating metadata in the following steps, choose your preferred storage method.`,
+    description: `For setting metadata in the following steps, choose your preferred storage method.`,
     node: <SwitchForm
       options={[
         {

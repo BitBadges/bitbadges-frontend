@@ -1,8 +1,10 @@
+import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -12,12 +14,10 @@ import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
+import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 
 const { Content } = Layout;
 
@@ -115,8 +115,9 @@ function CollectionPage({
           minHeight: '100vh',
         }}
       >
+        <br />
         <div
-          className='primary-blue-bg'
+          title=''
           style={{
             marginLeft: !isPreview ? '7vw' : undefined,
             marginRight: !isPreview ? '7vw' : undefined,

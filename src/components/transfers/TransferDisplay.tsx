@@ -1,11 +1,12 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Divider, Empty, Tooltip, Typography } from "antd";
+import { Avatar, Empty, Tooltip, Typography } from "antd";
 import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
 const { Text } = Typography
 
@@ -36,7 +37,7 @@ export function TransferDisplay({
   const transfer = transfers.length > 0 ? transfers[page] : undefined;
   const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
-  return <><div style={{ marginTop: 4 }}    >
+  return <InformationDisplayCard title=''><div style={{ marginTop: 4 }}    >
     {
       transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
         <Empty description='None'
@@ -45,6 +46,19 @@ export function TransferDisplay({
         />
       </div> : <Pagination currPage={page} onChange={setPage} total={transfers.length} pageSize={1} />
     }
+    {!hideBalances && transfer && <div className="full-width">
+      {collection &&
+        <BalanceDisplay
+          message={'Badges Transferred'}
+          collectionId={collectionId}
+          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
+          balances={transfer.balances}
+          numIncrements={toLength}
+          incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
+          incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
+        />}
+    </div>}
+
     {
       !hideAddresses && transfer && <div className="full-width">
         <br />
@@ -88,25 +102,11 @@ export function TransferDisplay({
               title={'Initiated By'}
               fontSize={15}
               center
-            /><br />
+            />
           </div></>}
         </div>
       </div>
     }
-
-    <Divider />
-    {!hideBalances && transfer && <div className="full-width">
-      {collection &&
-        <BalanceDisplay
-          message={'Badges Transferred'}
-          collectionId={collectionId}
-          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
-          balances={transfer.balances}
-          numIncrements={toLength}
-          incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
-          incrementOwnershipTimesBy={transfer.incrementOwnershipTimesBy}
-        />}
-    </div>}
 
 
 
@@ -125,6 +125,6 @@ export function TransferDisplay({
       <br />
     </div>}
   </div>
-  </>
+  </InformationDisplayCard>
 
 }

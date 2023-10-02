@@ -40,7 +40,7 @@ export function AddressSelect({
       >
         <Input
           value={input}
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
           onChange={async (e) => {
             e.preventDefault();
             setInput(e.target.value);

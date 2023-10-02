@@ -13,7 +13,7 @@ import { TxModal } from './TxModal';
 //TODO: This only supports one specific merkle challenge so will fail when > 1 bc claimItem is singular
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvalDetails, claimItem, code, whitelistIndex, recipient
+    collectionId, visible, setVisible, children, approvalDetails, claimItem, code, whitelistIndex, recipient, approvalId
   }: {
     collectionId: bigint,
     visible: boolean,
@@ -24,16 +24,17 @@ export function CreateTxMsgClaimBadgeModal(
     code: string
     whitelistIndex?: number
     recipient?: string
+    approvalId: string
   }
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
 
-  const precalculationId = approvalDetails?.predeterminedBalances.precalculationId;
+  const precalculationId = approvalId
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
-  const requiresProof = (approvalDetails?.merkleChallenges ?? []).length > 0;
+  const requiresProof = !!approvalDetails?.merkleChallenge.root;
 
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
@@ -122,7 +123,7 @@ export function CreateTxMsgClaimBadgeModal(
       toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
       balances: [],
       precalculationDetails: {
-        precalculationId: precalculationId ?? '',
+        approvalId: precalculationId ?? '',
         approvalLevel: "collection",
         approverAddress: "",
       },
@@ -135,7 +136,9 @@ export function CreateTxMsgClaimBadgeModal(
         }) : [],
         leaf: passwordCodeToSubmit,
       }] : [],
-      memo: ''
+      memo: '',
+      prioritizedApprovals: [],
+      onlyCheckPrioritizedApprovals: false,
     }],
   };
 

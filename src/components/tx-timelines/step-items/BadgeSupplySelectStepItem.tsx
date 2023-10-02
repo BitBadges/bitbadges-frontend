@@ -2,12 +2,13 @@ import { Divider } from "antd";
 import { checkBalancesActionPermission, deepCopyBalances } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { DevMode } from "../../common/DevMode";
 import { BalanceInput } from "../../inputs/BalanceInput";
 import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { ErrDisplay } from "../form-items/ErrDisplay";
+import { DistributionOverview } from "../../badges/DistributionCard";
 
 export function BadgeSupplySelectStepItem() {
   const collections = useCollectionsContext();
@@ -25,7 +26,7 @@ export function BadgeSupplySelectStepItem() {
 
   return {
     title: `Create Badges`,
-    description: <></>,
+    description: 'Create badges to add to your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
@@ -53,17 +54,26 @@ export function BadgeSupplySelectStepItem() {
       }}
       node={
 
-        <div className='primary-text'>
+        <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
           <ErrDisplay err={err} />
+          <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+
+            <DistributionOverview
+              md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}
+              collectionId={MSG_PREVIEW_ID}
+              isSelectStep={true}
+            />
+          </div>
+          <br />
           <BalanceInput
             balancesToShow={balancesToShow}
             onAddBadges={(balance) => {
               setBadgesToCreate(deepCopyBalances([...badgesToCreate, balance]));
             }}
+            message="Circulating Supplys"
             onRemoveAll={() => {
               setBadgesToCreate([]);
             }}
-            message="Circulating Supplys"
           />
           <Divider />
           <DevMode obj={badgesToCreate} />

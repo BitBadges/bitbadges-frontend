@@ -9,6 +9,7 @@ import { AccountButtonDisplay } from '../components/button-displays/AccountButto
 import { ActivityTab } from '../components/collection-page/TransferActivityDisplay';
 import CustomCarousel from '../components/display/Carousel';
 import { Tabs } from '../components/navigation/Tabs';
+import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 
 const { Content } = Layout;
 
@@ -155,7 +156,7 @@ function BrowsePage() {
                   >{idxArr.map(idx => {
                     if (idx >= browseInfo?.profiles[tab]?.length) return null
                     profile = browseInfo?.profiles[tab][idx];
-                    return <div className='primary-text' key={idx} style={{ margin: 16 }}>
+                    return <InformationDisplayCard title='' key={idx} style={{ margin: 16 }}>
                       <>
                         <div style={{ alignItems: 'normal' }}>
                           <AccountButtonDisplay
@@ -190,7 +191,7 @@ function BrowsePage() {
                           defaultPageSize={3}
                         /> */}
                       </>
-                    </div>
+                    </InformationDisplayCard>
                   }).filter(x => x)}</div>
                 }).filter(x => x) ?? []}
               />
@@ -231,7 +232,7 @@ function BrowsePage() {
                 >{idxArr.map(idx => {
                   if (idx >= browseInfo?.collections[badgesTab]?.length) return null
                   collection = browseInfo?.collections[badgesTab][idx];
-                  return <div className='primary-text' key={idx} style={{ margin: 16, width: 350 }}>
+                  return <div title='' key={idx} style={{ margin: 16, width: 350 }}>
                     <MultiCollectionBadgeDisplay
                       collectionIds={[collection.collectionId]}
                       groupByCollection

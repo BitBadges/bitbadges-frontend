@@ -1,11 +1,11 @@
 import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Avatar, Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import { useEffect, useState } from 'react';
 
-import { faMinus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
+import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -13,8 +13,13 @@ import { useCollectionsContext } from '../../../bitbadges-api/contexts/Collectio
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { BadgeCard } from '../../badges/BadgeCard';
+import { CollectionHeader } from '../../badges/CollectionHeader';
 import { DevMode } from '../../common/DevMode';
+import IconButton from '../../display/IconButton';
+import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { ToolIcon } from '../../display/ToolIcon';
 import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import { DateRangeInput } from '../../inputs/DateRangeInput';
 import { MetadataUriSelect } from './MetadataUriSelect';
@@ -51,6 +56,7 @@ export function MetadataForm({
   const collection = collections.collections[collectionId.toString()]
 
   const [badgeId, setBadgeId] = useState<bigint>(badgeIds.length > 0 ? badgeIds[0].start : 1n);
+  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(true);
 
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
 
@@ -85,9 +91,7 @@ export function MetadataForm({
     return () => clearTimeout(delayDebounceFn)
   }
 
-  const populateOtherBadges = (badgeIds: UintRange<bigint>[], key: string, value: any) => {
-    if (!collection) return;
-
+  const populateOtherBadges = (collection: BitBadgesCollection<bigint>, badgeIds: UintRange<bigint>[], key: string, value: any) => {
     if (key === 'all') {
       const badgeMetadata = updateBadgeMetadata(deepCopy(collection.cachedBadgeMetadata),
         {
@@ -97,21 +101,22 @@ export function MetadataForm({
         }
       );
 
-      collections.updateCollection({
+      const res = collections.updateCollection({
         ...collection,
         cachedBadgeMetadata: badgeMetadata,
       })
 
-      return
+      return res;
     }
 
     const badgeMetadata = deepCopy(collection.cachedBadgeMetadata);
     const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
-    collections.updateCollection(
+    const newCollection = collections.updateCollection(
       deepCopy({
         ...collection,
         cachedBadgeMetadata: newBadgeMetadata,
       }))
+    return newCollection
   }
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
@@ -145,7 +150,7 @@ export function MetadataForm({
   const [imageIsUploading, setImageIsUploading] = useState(false);
 
   const [populateIsOpen, setPopulateIsOpen] = useState(false);
-  const [fieldName, setFieldName] = useState('');
+  const [fieldNames, setFieldNames] = useState<string[]>([]);
 
   const addItem = (e: any) => {
     e.preventDefault();
@@ -218,6 +223,8 @@ export function MetadataForm({
     // console.log('handleEditorChange', html, text);
   }
 
+  console.log(fieldNames);
+
   const populateComponent = (_fieldName: string) => {
     let message = 'metadata';
     switch (_fieldName) {
@@ -248,38 +255,133 @@ export function MetadataForm({
 
 
     return <div>
-      {populateIsOpen && fieldName === _fieldName && <div style={{ marginTop: 8 }} className='primary-text'>
-        <br />
-        <h3 className='primary-text' style={{ textAlign: 'center' }}>Set other badges to have this {message}?</h3>
-        <br />
-        <BadgeIdRangesInput
-          uintRangeBounds={badgeIds}
-          uintRanges={uintRanges}
-          setUintRanges={setUintRanges}
-          collectionId={collectionId}
-        />
+      {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='primary-text'>
+        <InformationDisplayCard title={`Set other badges to have properties from this ${message}?`}>
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> This will overwrite the {message} of the selected badges.
+            <br />
+            <br />
+          </div>
+          <br />
+          <div className='flex-center flex-wrap primary-text'>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('name')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'name']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'name'));
+                }
+              }}
+            >Title</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('image')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'image']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'image'));
+                }
+              }}
+            >Image</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('description')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'description']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'description'));
+                }
+              }}
+            >Description</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('validFrom')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'validFrom']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'validFrom'));
+                }
+              }}
+            >Validity</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('category')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'category']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'category'));
+                }
+              }}
+            >Category</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('tags')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'tags']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'tags'));
+                }
+              }}
+            >Tags</Checkbox>
+            <Checkbox
+              className='primary-text'
+              checked={fieldNames.includes('externalUrl')}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setFieldNames([...fieldNames, 'externalUrl']);
+                } else {
+                  setFieldNames(fieldNames.filter(x => x !== 'externalUrl'));
+                }
+              }}
+            >Website</Checkbox>
+          </div>
 
-        <Divider />
-        {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
-          <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
-          <br />
-          <br />
-        </div>}
-        <div className='secondary-text' style={{ textAlign: 'center' }}>
-          <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
-          <br />
-          <br />
-        </div>
 
-        <Button type='primary'
-          className='full-width'
-          onClick={() => {
-            populateOtherBadges(uintRanges, fieldName, fieldName === 'all' ? '' : currMetadata[fieldName as keyof Metadata<bigint>]);
-            setPopulateIsOpen(false);
-          }}
-        > Update </Button>
-        <Divider />
-        <hr />
+          <br />
+          <BadgeIdRangesInput
+            uintRangeBounds={badgeIds}
+            uintRanges={uintRanges}
+            setUintRanges={setUintRanges}
+            collectionId={collectionId}
+          />
+
+          <Divider />
+          {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
+            <br />
+            <br />
+          </div>}
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
+            <br />
+            <br />
+          </div>
+          <div className='full-width flex-center'>
+            <button
+              className='landing-button full-width'
+              style={{ width: '100%' }}
+              onClick={() => {
+
+                console.log(uintRanges, fieldNames);
+                let cachedCollection = collection;
+                if (!cachedCollection) return;
+
+                for (const fieldName of fieldNames) {
+                  cachedCollection = populateOtherBadges(cachedCollection, uintRanges, fieldName, fieldName === 'all' ? '' : currMetadata[fieldName as keyof Metadata<bigint>]);
+                }
+                setPopulateIsOpen(false);
+              }}
+            >Update </button >
+          </div>
+          <Divider />
+        </ InformationDisplayCard>
       </div>}
     </div>
   }
@@ -297,79 +399,96 @@ export function MetadataForm({
 
         {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
 
-          {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <div>
-            <div className='primary-text flex-center' >
 
-              <div><b>Setting Metadata for Badge ID:{' '}</b></div>
-              <InputNumber
-                min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
-                max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
-                value={Numberify(badgeId.toString())}
-                onChange={(e) => {
-                  if (e && e > 0 && setBadgeId) {
-                    const [, found] = searchUintRangesForId(BigInt(e), badgeIds);
-                    if (found) setBadgeId(BigInt(e));
-                  }
-                }}
-                style={{
-                  marginLeft: 8,
-                }}
-                className='primary-text primary-blue-bg'
-              />
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with the metadata of this badge.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'all'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('all');
+          {isCollectionSelect && addMethod === MetadataAddMethod.Manual &&
+            <div>
+              <div>
+                <br />
+                <br />
+                <CollectionHeader collectionId={MSG_PREVIEW_ID} hideCollectionLink />
+              </div>
+            </div>
+          }
+          <div className='flex-center flex-wrap'>
+            {!isCollectionSelect && !isAddressMappingSelect && badgeId > 0 &&
+              <div className='primary-text flex-center' >
+
+
+                <div><b style={{ fontSize: 18 }}>Setting Metadata for Badge ID:{' '}</b></div>
+                <InputNumber
+                  min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
+                  max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
+                  value={Numberify(badgeId.toString())}
+                  onChange={(e) => {
+                    if (e && e > 0 && setBadgeId) {
+                      const [, found] = searchUintRangesForId(BigInt(e), badgeIds);
+                      if (found) setBadgeId(BigInt(e));
+                    }
                   }}
+                  style={{
+                    marginLeft: 8,
+                  }}
+                  className='primary-text inherit-bg'
                 />
-              </Tooltip>}
 
+              </div>}
+            {!isAddressMappingSelect && <IconButton
+              text='Batch Apply'
+              tooltipMessage='Populate the metadata of other badges with the metadata of this badge.'
+              src={<FontAwesomeIcon
+                icon={populateIsOpen ? faMinus : faReplyAll}
+              />}
+              onClick={() => {
+                setPopulateIsOpen(!populateIsOpen);
+              }}
+              style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
+            />}
+            {!isCollectionSelect && !isAddressMappingSelect && <IconButton
+              text='Show All'
+              tooltipMessage='Show all badges in this collection.'
+              src={showAvatarDisplay ? <FontAwesomeIcon
+                icon={faMinus}
+              /> : <FontAwesomeIcon
+                icon={faPlus}
+              />}
+              onClick={() => {
+                setShowAvatarDisplay(!showAvatarDisplay);
+              }}
+              style={{ cursor: 'pointer', marginLeft: 8 }}
+            />}
+          </div>
+          {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay && <div className='flex-center flex-column full-width'>
+            <div className='flex-center flex-column full-width'>
+              <div className='primary-text full-width'>
+                <BadgeAvatarDisplay
+                  onClick={(id: bigint) => {
+                    setBadgeId(id);
+                  }}
+                  collectionId={MSG_PREVIEW_ID}
+                  badgeIds={badgeIds}
+                  showIds={true}
+                  selectedId={badgeId}
+                />
+              </div>
             </div>
 
-
+          </div>}
+          {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <div>
             <br />
             <div className='primary-text flex-center'>
               <BadgeCard
                 badgeId={badgeId}
                 collectionId={collectionId}
                 size={75}
+
               />
-              {/* <BadgeCard
-                badgeId={badgeId + 1n}
-                collectionId={collectionId}
-                size={75}
-              /> */}
             </div>
-            {populateComponent('all')}
+
           </div>
 
           }
-          {!isAddressMappingSelect && isCollectionSelect && <>
-            <div className='flex-center'>
-              <Tooltip color='black' title='Populate the metadata of other badges with this metadata.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'all'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('all');
-                  }}
-                />
-              </Tooltip>
-            </div>
-            {populateComponent('all')}
-          </>}
+          {populateComponent('all')}
+
           <br />
           <Form.Item
             label={
@@ -382,7 +501,7 @@ export function MetadataForm({
             }
             required
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <Input
                 value={currMetadata.name}
                 onChange={(e: any) => {
@@ -393,25 +512,13 @@ export function MetadataForm({
                 }}
                 style={{
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this title.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'name'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('name');
-                  }}
-                />
-              </Tooltip>}
+
             </div>
-            {populateComponent('name')}
+
           </Form.Item>
+
           <Form.Item
             label={
               <Text
@@ -423,9 +530,9 @@ export function MetadataForm({
             }
             required
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <Select
-                className="selector primary-text primary-blue-bg"
+                className="selector primary-text inherit-bg"
                 value={images.find((item: any) => item.value === currMetadata.image)?.label}
                 onChange={(e) => {
                   const newImage = images.find((item: any) => e === item.label)?.value;
@@ -483,22 +590,8 @@ export function MetadataForm({
                 ))}
               </Select>
 
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this image.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'image'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('image');
-                  }}
-                />
-              </Tooltip>}
+
             </div>
-            {populateComponent('image')}
           </Form.Item>
 
           <Form.Item
@@ -512,9 +605,9 @@ export function MetadataForm({
             }
           // required={type === 0}
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <Select
-                className="selector primary-text primary-blue-bg"
+                className="selector primary-text inherit-bg"
                 value={currMetadata.category}
                 placeholder="Default: None"
                 onChange={(e: any) => {
@@ -565,25 +658,8 @@ export function MetadataForm({
                   </Option>
                 ))}
               </Select>
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this category.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'category'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{
-                    cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)',
-                  }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('category');
-                  }}
-                />
-              </Tooltip>}
 
             </div>
-            {populateComponent('category')}
           </Form.Item>
           <Form.Item
             label={
@@ -595,45 +671,19 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <MdEditor
-                className='primary-text primary-blue-bg'
+                className='primary-text'
                 style={{
                   width: '100%',
                   minHeight: '250px',
+                  background: 'inherit',
 
                 }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                 value={currMetadata.description}
               />
-              {/* <Input.TextArea
-                            value={currMetadata.description}
-                            onChange={(e) => {
-                                setMetadata({
-                                    ...currMetadata,
-                                    description: e.target.value
-                                });
-                            }}
-                            style={{
-                                backgroundColor: PRIMARY_BLUE,
-                                color: PRIMARY_TEXT,
-                            }}
-                        /> */}
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this description.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'description'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('description');
-                  }}
-                />
-              </Tooltip>}
+
             </div>
-            {populateComponent('description')}
           </Form.Item>
 
 
@@ -649,7 +699,7 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <Input
                 value={currMetadata.externalUrl}
                 onChange={(e) => {
@@ -660,22 +710,8 @@ export function MetadataForm({
                 }}
                 style={{
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this website.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'externalUrl'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('externalUrl');
-                  }}
-                />
-              </Tooltip>}
 
             </div>
             <div style={{ fontSize: 12 }}>
@@ -683,7 +719,6 @@ export function MetadataForm({
                 {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
               </Text>
             </div>
-            {populateComponent('externalUrl')}
           </Form.Item>
           <Form.Item
             label={
@@ -697,8 +732,8 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div className='flex-between'>
-              <div className='primary-text primary-blue-bg full-width'>
+            <div className='flex-between' style={{}}>
+              <div className='primary-text inherit-bg full-width'>
                 <div className='primary-text'>
                   Always Valid?
                   <Checkbox
@@ -748,23 +783,8 @@ export function MetadataForm({
                 }
 
               </div>
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with this expiration date.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'validFrom'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('validFrom');
-                  }}
-                />
-              </Tooltip>}
 
             </div>
-            {populateComponent('validFrom')}
           </Form.Item>
 
 
@@ -781,7 +801,7 @@ export function MetadataForm({
               </Text>
             }
           >
-            <div className='flex-between'>
+            <div className='flex-between' style={{}}>
               <Input
                 value={currMetadata.tags}
                 onChange={(e) => {
@@ -792,25 +812,11 @@ export function MetadataForm({
                 }}
                 style={{
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />
-              {!isAddressMappingSelect && <Tooltip color='black' title='Populate the metadata of other badges with these tags.'>
-                <Avatar
-                  className='styled-button'
-                  src={<FontAwesomeIcon
-                    icon={populateIsOpen && fieldName === 'tags'
-                      ? faMinus : faReplyAll}
-                  />}
-                  style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-                  onClick={() => {
-                    setPopulateIsOpen(!populateIsOpen);
-                    setFieldName('tags');
-                  }}
-                />
-              </Tooltip>}
 
             </div>
-            <div style={{ fontSize: 12 }}>
+            <div style={{ fontSize: 12, }}>
               <Text style={{ color: 'lightgray' }}>
                 *Separate with a comma.
               </Text>
@@ -824,8 +830,26 @@ export function MetadataForm({
               })}
 
             </div>
+          </Form.Item>
 
-            {populateComponent('tags')}
+
+          <Form.Item
+            label={
+              <Text
+                className='primary-text'
+                strong
+              >
+                Useful Tools
+              </Text>
+            }
+          >
+            <div className='flex-between' style={{}}>
+              <div style={{ display: 'flex' }} className='flex-wrap'>
+                <ToolIcon name="Sketch.io" />
+                <ToolIcon name="Excalidraw" />
+              </div>
+
+            </div>
           </Form.Item>
 
 

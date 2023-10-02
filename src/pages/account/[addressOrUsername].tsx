@@ -136,8 +136,8 @@ function PortfolioPage() {
         searchValue={searchValue}
       />
     }
-    overlayClassName='primary-text primary-blue-bg'
-    className='primary-blue-bg'
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
     trigger={['hover', 'click']}
   >
     {SearchBar}
@@ -300,7 +300,7 @@ function PortfolioPage() {
             <br />
             <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
               {chain.cosmosAddress === accountInfo.cosmosAddress && chain.loggedIn && (
-                <div className='primary-text primary-blue-bg' style={{
+                <div className='primary-text inherit-bg' style={{
                   float: 'right',
                   display: 'flex',
                   alignItems: 'center',
@@ -310,7 +310,7 @@ function PortfolioPage() {
                   Mode:
 
                   <Select
-                    className='selector primary-text primary-blue-bg'
+                    className='selector primary-text inherit-bg'
                     value={editMode ? 'edit' : 'none'}
                     placeholder="Default: None"
                     onChange={(e: any) => {
@@ -333,7 +333,7 @@ function PortfolioPage() {
                 </div>
               )}
 
-              {<div className='primary-text primary-blue-bg' style={{
+              {<div className='primary-text inherit-bg' style={{
                 float: 'right',
                 display: 'flex',
                 alignItems: 'center',
@@ -343,7 +343,7 @@ function PortfolioPage() {
                 Group By:
 
                 <Select
-                  className='selector primary-text primary-blue-bg'
+                  className='selector primary-text inherit-bg'
                   value={groupByCollection ? 'collection' : 'none'}
                   placeholder="Default: None"
                   onChange={(e: any) => {
@@ -366,7 +366,7 @@ function PortfolioPage() {
               </div>
               }
 
-              {!editMode && <div className='primary-text primary-blue-bg'
+              {!editMode && <div className='primary-text inherit-bg'
                 style={{
                   float: 'right',
                   display: 'flex',
@@ -378,7 +378,7 @@ function PortfolioPage() {
                 View:
 
                 <Select
-                  className="selector primary-text primary-blue-bg"
+                  className="selector primary-text inherit-bg"
                   value={cardView ? 'card' : 'image'}
                   placeholder="Default: None"
                   onChange={(e: any) => {
@@ -399,7 +399,7 @@ function PortfolioPage() {
                 </Select>
               </div>}
               {tab != 'hidden' && <>
-                <div className='primary-text primary-blue-bg'
+                <div className='primary-text inherit-bg'
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -422,7 +422,7 @@ function PortfolioPage() {
                 const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
                   : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
                 return <Tag
-                  className='primary-text primary-blue-bg flex-between'
+                  className='primary-text inherit-bg flex-between'
                   style={{ alignItems: 'center', marginBottom: 8 }}
                   key={idx}
                   closable
@@ -435,7 +435,7 @@ function PortfolioPage() {
                     setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
                   }}
                 >
-                  <div className='primary-text primary-blue-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+                  <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
                     <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
                       <div>
                         <BadgeAvatar
@@ -495,6 +495,8 @@ function PortfolioPage() {
                     showCustomizeButtons={editMode}
                   />
                   <Divider />
+                  {badgesToShow.length > 0 &&
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
                 </>
               }
 
@@ -529,8 +531,6 @@ function PortfolioPage() {
                 initialScrollY={0}
                 style={{ width: '100%', overflow: 'hidden' }}
               >
-                {badgesToShow.length > 0 &&
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
                 <MultiCollectionBadgeDisplay
                   collectionIds={badgesToShow.map((collection) => collection.collectionId)}
                   addressOrUsernameToShowBalance={accountInfo.address}
@@ -567,7 +567,7 @@ function PortfolioPage() {
 
           {tab === 'lists' && (<>
             <br />
-            <div className='primary-text primary-blue-bg'
+            <div className='primary-text inherit-bg'
               style={{
                 float: 'right',
                 display: 'flex',
@@ -580,7 +580,7 @@ function PortfolioPage() {
               View:
 
               <Select
-                className="selector primary-text primary-blue-bg"
+                className="selector primary-text inherit-bg"
                 value={listsTab}
                 placeholder="Default: None"
                 onChange={(e: any) => {
@@ -707,7 +707,7 @@ function PortfolioPage() {
                 initialScrollY={0}
                 style={{ width: '100%', overflow: 'hidden' }}
               >
-                <div className='full-width flex-center flex-wrap'>
+                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={accountInfo?.views['createdBy']?.ids.map(x => BigInt(x)) ?? []}
                     cardView={cardView}
@@ -756,7 +756,7 @@ function PortfolioPage() {
                 initialScrollY={0}
                 style={{ width: '100%', overflow: 'hidden', }}
               >
-                <div className='full-width flex-center flex-wrap'>
+                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
                     cardView={cardView}

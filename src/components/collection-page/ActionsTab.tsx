@@ -120,7 +120,7 @@ export function ActionsTab({
       },
     });
 
-    if (getMintApprovedTransfers(collection).find(x => x.approvalDetails.find(y => y.merkleChallenges.find(z => z.root && !z.useCreatorAddressAsLeaf))) !== undefined) {
+    if (getMintApprovedTransfers(collection).find(x => x.approvalDetails?.merkleChallenge.root && !x.approvalDetails?.merkleChallenge.useCreatorAddressAsLeaf)) {
       actions.push({
         title: getTitleElem("Distribute Codes"),
         description: getDescriptionElem(
@@ -166,7 +166,7 @@ export function ActionsTab({
             {actions.map((action, idx) => {
               return <Card
                 key={idx}
-                className='primary-text primary-blue-bg flex-center'
+                className='primary-text gradient-bg flex-center'
                 style={{
                   width: '300px',
                   minHeight: '150px',

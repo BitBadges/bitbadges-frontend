@@ -107,7 +107,7 @@ export function AddressListSelect({
       <>
         <br />
         <TextArea
-          className="primary-text primary-blue-bg"
+          className="primary-text inherit-bg"
           style={{ minHeight: 200 }}
           placeholder="Enter addresses here (one per line)"
           value={batchAddAddressListInput}

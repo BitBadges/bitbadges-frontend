@@ -6,20 +6,20 @@ import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { getApprovalsDisplay } from './ApprovalsTab';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { ApprovalsDisplay } from './ApprovalsTab';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
 
-export function TransferabilityTab({ collectionId, badgeId, isClaimSelect, isNotClaimSelect, showOnlyTxApprovedTransfersToAdd }: {
+export function TransferabilityTab({ collectionId, badgeId, isClaimSelect, isNotClaimSelect, showOnlyTxApprovedTransfersToAdd, hideHelperMessage }: {
   collectionId: bigint,
   badgeId?: bigint,
   isClaimSelect?: boolean
   isNotClaimSelect?: boolean
-  showOnlyTxApprovedTransfersToAdd?: boolean
+  showOnlyTxApprovedTransfersToAdd?: boolean,
+  hideHelperMessage?: boolean,
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()];
   const chain = useChainContext();
-  const txTimelineContext = useTxTimelineContext();
 
   const [showHidden, setShowHidden] = useState<boolean>(false);
 
@@ -29,45 +29,43 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect, isNot
       async function fetchTrackers() {
         if (collection && collection?.collectionApprovedTransfers.length > 0) {
 
-          const approvedTransfers = collection?.collectionApprovedTransfers.filter(x => x.approvalDetails.length > 0);
+          const approvedTransfers = collection?.collectionApprovedTransfers.filter(x => x.approvalTrackerId);
 
           const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] =
             approvedTransfers.map(approvedTransfer => {
-              return approvedTransfer.approvalDetails.map(x => {
-                return [{
-                  collectionId,
-                  approvalTrackerId: x.approvalTrackerId,
-                  approvalLevel: "collection",
-                  approvedAddress: "",
-                  approverAddress: "",
-                  trackerType: "overall",
-                },
-                {
-                  collectionId,
-                  approvalTrackerId: x.approvalTrackerId,
-                  approvalLevel: "collection",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: "",
-                  trackerType: "initiatedBy",
-                },
-                {
-                  collectionId,
-                  approvalTrackerId: x.approvalTrackerId,
-                  approvalLevel: "collection",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: "",
-                  trackerType: "to",
-                },
-                {
-                  collectionId,
-                  approvalTrackerId: x.approvalTrackerId,
-                  approvalLevel: "collection",
-                  approvedAddress: chain.cosmosAddress,
-                  approverAddress: "",
-                  trackerType: "from",
-                },
-                ] as ApprovalTrackerIdDetails<bigint>[];
-              }).flat();
+              return [{
+                collectionId,
+                approvalTrackerId: approvedTransfer.approvalTrackerId,
+                approvalLevel: "collection",
+                approvedAddress: "",
+                approverAddress: "",
+                trackerType: "overall",
+              },
+              {
+                collectionId,
+                approvalTrackerId: approvedTransfer.approvalTrackerId,
+                approvalLevel: "collection",
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: "",
+                trackerType: "initiatedBy",
+              },
+              {
+                collectionId,
+                approvalTrackerId: approvedTransfer.approvalTrackerId,
+                approvalLevel: "collection",
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: "",
+                trackerType: "to",
+              },
+              {
+                collectionId,
+                approvalTrackerId: approvedTransfer.approvalTrackerId,
+                approvalLevel: "collection",
+                approvedAddress: chain.cosmosAddress,
+                approverAddress: "",
+                trackerType: "from",
+              },
+              ] as ApprovalTrackerIdDetails<bigint>[];
             }).flat();
           collections.fetchCollectionsWithOptions([{
             collectionId,
@@ -109,28 +107,37 @@ export function TransferabilityTab({ collectionId, badgeId, isClaimSelect, isNot
     firstMatches = firstMatches.filter(x => x.allowedCombinations.length > 0 && x.allowedCombinations[0].isApproved);
   }
   return (
-    <div className='primary-text'>
+    <>
       <br />
-      <div style={{ float: 'right' }}>
-        <Switch
-          checkedChildren="Show Only Allowed"
-          unCheckedChildren="Show All"
-          checked={!showHidden}
-          onChange={(checked) => setShowHidden(!checked)}
+      <InformationDisplayCard title='' >
+        <br />
+        {!showOnlyTxApprovedTransfersToAdd &&
+          <div style={{ float: 'right' }}>
+            <Switch
+              checkedChildren="Show Only Allowed"
+              unCheckedChildren="Show All"
+              checked={!showHidden}
+              onChange={(checked) => setShowHidden(!checked)}
+            />
+          </div>}
+        <br />
+
+        <ApprovalsDisplay
+          convertedFirstMatches={firstMatches}
+          collection={collection}
+          badgeId={badgeId}
+          filterFromMint={isNotClaimSelect}
+          showIgnored={showOnlyTxApprovedTransfersToAdd}
         />
-      </div>
-      <br />
+        {!hideHelperMessage && <>
+          <Divider />
+          <p>
+            <InfoCircleOutlined />{' '}Transferability is broken down into multiple criteria: who can send? who can receive? etc.
+            Each row below represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
+          </p></>}
 
-
-      {getApprovalsDisplay(
-        showOnlyTxApprovedTransfersToAdd ? txTimelineContext.approvedTransfersToAdd : firstMatches, collection, badgeId, isNotClaimSelect)}
-      <Divider />
-      <p>
-        <InfoCircleOutlined />{' '}Transferability is broken down into multiple criteria: who can send? who can receive? etc.
-        Each row below represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
-      </p>
-
-      <Divider />
-    </div >
+        <Divider />
+      </InformationDisplayCard >
+    </>
   );
 }

@@ -31,7 +31,7 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
 
   return (
     <Modal
-      title={<div className='primary-text primary-blue-bg'><b>{'Distribute'}</b></div>}
+      title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
       open={visible}
 
       style={{
@@ -44,7 +44,7 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
       width={'90%'}
 
       footer={null}
-      closeIcon={<div className='primary-text primary-blue-bg'>{<CloseOutlined />}</div>}
+      closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,
         backgroundColor: '#001529',

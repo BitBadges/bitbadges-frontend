@@ -32,18 +32,21 @@ export function InformationDisplayCard({
     <Col
       xl={xl ? xl : undefined} xxl={xxl ? xxl : undefined}
       xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
+      className="gradient-bg"
       span={span ? span : undefined} style={{
-        ...style, padding: 8, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10
+        ...style, padding: 17, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10,
+
 
       }}>
       <div className="primary-text">
         <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>
-            <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
-              <Text strong style={{ fontSize: 22 }} className="primary-text full-width">
-                {title}
-              </Text>
-            </Row>
+            {title &&
+              <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>
+                <Text strong style={{ fontSize: 22 }} className="primary-text full-width">
+                  {title}
+                </Text>
+              </Row>}
             {children}
           </Col>
         </Row>

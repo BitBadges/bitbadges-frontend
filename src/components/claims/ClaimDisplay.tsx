@@ -58,9 +58,9 @@ export function ClaimDisplay({
   const collection = collections.collections[collectionId.toString()]
   const accounts = useAccountsContext();
 
-  const claim = approvedTransfer.approvalDetails.length > 0 && approvalDetails.merkleChallenges.length > 0 ?
-    approvalDetails.merkleChallenges[0] : undefined;
-  const claimId = claim?.challengeId;
+  const claim = approvedTransfer.approvalDetails && approvalDetails.merkleChallenge.root ?
+    approvalDetails.merkleChallenge : undefined;
+  const claimId = approvedTransfer.challengeTrackerId;
 
   const query = router.query;
   const codeQuery = query.code as string;
@@ -73,12 +73,12 @@ export function ClaimDisplay({
   const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
 
   useEffect(() => {
-    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === '');
+    const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalTrackerId && x.approvedAddress === '');
     const calculationMethod = approvalDetails.predeterminedBalances.orderCalculationMethod;
     let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ?
       claim?.useCreatorAddressAsLeaf ?
-        approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-        : approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+        approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+        : approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
       : -1) ?? -1;
 
     const numIncrements = calculationMethod.useMerkleChallengeLeafIndex ?
@@ -100,8 +100,8 @@ export function ClaimDisplay({
 
   useEffect(() => {
     //fetch accounts as needed if we iterate through whitelist
-    if (claim?.useCreatorAddressAsLeaf && approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx]) {
-      accounts.fetchAccounts([approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? '']);
+    if (claim?.useCreatorAddressAsLeaf && approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[browseIdx]) {
+      accounts.fetchAccounts([approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? '']);
     }
   }, [browseIdx, claim]);
 
@@ -111,7 +111,7 @@ export function ClaimDisplay({
       async function fetchTrackers() {
         const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = [{
           collectionId,
-          approvalTrackerId: approvalDetails.approvalTrackerId,
+          approvalTrackerId: approvedTransfer.approvalTrackerId,
           approvalLevel: "collection",
           approvedAddress: "",
           approverAddress: "",
@@ -120,7 +120,7 @@ export function ClaimDisplay({
         if (approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
           approvalsIdsToFetch.push({
             collectionId,
-            approvalTrackerId: approvalDetails.approvalTrackerId,
+            approvalTrackerId: approvedTransfer.approvalTrackerId,
             approvalLevel: "collection",
             approvedAddress: chain.cosmosAddress,
             approverAddress: "",
@@ -147,13 +147,13 @@ export function ClaimDisplay({
   }, [collectionId, approvedTransfer, claimId, chain]);
 
   //TODO: Will need to change with more supported features
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === '');
-  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvalDetails.approvalTrackerId && x.approvedAddress === chain.cosmosAddress);
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalTrackerId && x.approvedAddress === '');
+  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.approvalTrackerId === approvedTransfer.approvalTrackerId && x.approvedAddress === chain.cosmosAddress);
 
   const calculationMethod = approvalDetails.predeterminedBalances.orderCalculationMethod;
   let leafIndex: number = (calculationMethod.useMerkleChallengeLeafIndex ? claim?.useCreatorAddressAsLeaf ?
-    approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-    : approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+    approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+    : approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
     : -1) ?? -1;
 
   const numIncrements = calculationMethod.useMerkleChallengeLeafIndex ? leafIndex ?? 0 : approvalTracker?.numTransfers ?? 0n;
@@ -217,13 +217,9 @@ export function ClaimDisplay({
   //   cantClaim = true;
   //   errorMessage = 'This code has already been used!';
   // } 
-  else if (claim && !claim.details && approvalDetails.merkleChallenges && approvalDetails.merkleChallenges.length > 0) {
+  else if (claim && !claim.details && approvalDetails.merkleChallenge.root) {
     cantClaim = true;
     errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
-  } else if (approvalDetails.merkleChallenges && approvalDetails.merkleChallenges.length > 1) {
-    //TODO: Support multiple challenges
-    cantClaim = true;
-    errorMessage = 'This claim was custom created with multiple challenges. This is incompatible with the BitBadges website.';
   } else if (!approvalDetails.predeterminedBalances ||
     approvalDetails.predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
     (!approvalDetails.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
@@ -288,7 +284,7 @@ export function ClaimDisplay({
     <div>
       {isCodeDisplay && <Row>
         <div className="full-width">
-          <Button className='styled-button primary-blue-bg' onClick={() => setShowClaimDisplay(!showClaimDisplay)}>{showClaimDisplay ? 'Show Codes/Passwords' : 'Show Claim Details'}</Button>
+          <Button className='styled-button inherit-bg' onClick={() => setShowClaimDisplay(!showClaimDisplay)}>{showClaimDisplay ? 'Show Codes/Passwords' : 'Show Claim Details'}</Button>
           <br />
           <br />
         </div>
@@ -296,7 +292,7 @@ export function ClaimDisplay({
 
     </div>
     {showClaimDisplay && <Card
-      className="primary-text primary-blue-bg"
+      className="primary-text inherit-bg"
       style={{
         maxWidth: 500,
         minWidth: 250,
@@ -379,7 +375,7 @@ export function ClaimDisplay({
                           </div>
                           {claim?.useCreatorAddressAsLeaf && <>
                             <AddressDisplay
-                              addressOrUsername={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
+                              addressOrUsername={approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[browseIdx] ?? ''}
                             // size={20}
                             />
                             <br />
@@ -402,7 +398,7 @@ export function ClaimDisplay({
                           {whitelistIsVisible && <>
 
                             <AddressDisplayList
-                              users={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                              users={approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves ?? []}
                               allExcept={false}
                             />
                             <br />
@@ -463,7 +459,7 @@ export function ClaimDisplay({
                         {whitelistIsVisible && <>
 
                           <AddressDisplayList
-                            users={approvalDetails.merkleChallenges[0]?.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                            users={approvalDetails.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves ?? []}
                             allExcept={false}
                           />
                           <br />
@@ -497,7 +493,7 @@ export function ClaimDisplay({
                             onInput={(e: any) => {
                               if (setCode) setCode(e.target.value);
                             }}
-                            className="primary-text primary-blue-bg"
+                            className="primary-text inherit-bg"
                             style={{
                               textAlign: 'center'
                             }}
@@ -585,7 +581,7 @@ export function ClaimDisplay({
 
     {
       !showClaimDisplay && <CodesDisplay
-        approvalDetails={approvalDetails}
+        approvedTransfer={approvedTransfer}
         collectionId={collectionId}
         codes={codes}
         claimPassword={claimPassword}

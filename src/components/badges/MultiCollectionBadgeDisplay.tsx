@@ -18,6 +18,7 @@ import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
+import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -474,8 +475,8 @@ export function MultiCollectionBadgeDisplay({
 
   if (groupByCollection) {
     return <>
-      {!hidePagination && <Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} />}
-      <br />
+      {!hidePagination && <><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} />
+      </>}
 
       {
         collectionIds.map((collectionId, idx) => {
@@ -488,7 +489,7 @@ export function MultiCollectionBadgeDisplay({
           ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
           if (!loaded) return <Spin />
 
-          return <div key={idx} style={{ margin: 16 }} >
+          return <InformationDisplayCard title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
             <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
               <div className='link-button-nav flex-center' onClick={() => {
                 router.push('/collections/' + collectionId)
@@ -527,7 +528,7 @@ export function MultiCollectionBadgeDisplay({
             // doNotFetchMetadata
             />
             {CustomizeButtons({ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }, 1n, true)}
-          </div>
+          </InformationDisplayCard>
         })
       }
     </>

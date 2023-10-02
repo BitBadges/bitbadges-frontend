@@ -1,260 +1,176 @@
-import { Typography } from "antd";
-import { AddressMapping } from "bitbadgesjs-proto";
-import { DistributionMethod, getCurrentValueForTimeline, getReservedAddressMapping } from "bitbadgesjs-utils";
-import { useRef, useState } from "react";
+import { Avatar, Col, Divider, Empty, Row } from "antd";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
-import { SwitchForm } from "../form-items/SwitchForm";
-const crypto = require('crypto');
+import { CreateClaims } from "../form-items/CreateClaims";
+import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { InfoCircleOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
+import { getFirstMatchForCollectionApprovedTransfers, isInAddressMapping, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 export function DistributionMethodStepItem() {
-  const hideUnminted = false;
-  const hideFirstComeFirstServe = false;
 
   const collections = useCollectionsContext();
   const collection = collections.collections[`${MSG_PREVIEW_ID}`];
 
   const txTimelineContext = useTxTimelineContext();
-  const startingCollection = txTimelineContext.startingCollection;
-  const existingCollectionId = txTimelineContext.existingCollectionId;
-  const distributionMethod = txTimelineContext.distributionMethod;
-  const setDistributionMethod = txTimelineContext.setDistributionMethod;
-  const setApprovedTransfersToAdd = txTimelineContext.setApprovedTransfersToAdd;
+  // const approvedTransfers = txTimelineContext.approvedTransfersToAdd;
+  // const transfers = txTimelineContext.transfers;
+  const updateCollectionApprovedTransfers = txTimelineContext.updateCollectionApprovedTransfers;
+  const setUpdateCollectionApprovedTransfers = txTimelineContext.setUpdateCollectionApprovedTransfers;
 
+  const isOffChainBalances = collection?.balancesType === "Off-Chain";
 
-  const [lastClickedTitle, setLastClickedTitle] = useState<string | undefined>(undefined);
+  const [visible, setVisible] = useState(false);
 
-  const neverHasManager = collection?.managerTimeline.length == 0 || collection?.managerTimeline.every(x => !x.manager);
-  const options = [];
-  if (!hideFirstComeFirstServe) {
-    options.push({
-      title: 'First Come, First Serve',
-      message: `First come, first serve until all badges are claimed.`,
-      isSelected: distributionMethod == DistributionMethod.FirstComeFirstServe,
-    });
+  if (!collection) return EmptyStepItem;
+
+  let firstMatches = getFirstMatchForCollectionApprovedTransfers(collection?.collectionApprovedTransfers || [], true);
+  const maxBadgeId = getTotalNumberOfBadges(collection);
+  let unhandledBadges = [{ start: 1n, end: maxBadgeId }]
+
+  for (const match of firstMatches) {
+    if (match.allowedCombinations[0].isApproved && isInAddressMapping(match.fromMapping, 'Mint')) {
+      const [remaining] = removeUintRangeFromUintRange(match.badgeIds, unhandledBadges);
+      unhandledBadges = remaining;
+    }
   }
 
-  const CodesStep = {
-    title: 'Codes',
-    message: `Generate secret codes or passwords that can be entered by users to claim badges. These can be distributed to users however you would like (email, social media, etc). ${!neverHasManager ? '\n\nIMPORTANT: Codes / passwords will only ever be viewable by the current collection manager.' : 'Currently only available with a manager.'}`,
-    isSelected: distributionMethod == DistributionMethod.Codes,
-    disabled: neverHasManager
-  }
+  unhandledBadges = sortUintRangesAndMergeIfNecessary(unhandledBadges);
 
-  const JsonStep = {
-    title: 'JSON',
-    message: 'Advanced option. Requires technical skills. Enter a JSON specifying the transferability of this collection. See BitBadges documentation for more info.',
-    isSelected: distributionMethod == DistributionMethod.JSON,
-  }
+  let doubledUpBadges = [];
+  for (let i = 0; i < firstMatches.length; i++) {
+    for (let j = i + 1; j < firstMatches.length; j++) {
+      if (firstMatches[i].allowedCombinations[0].isApproved && firstMatches[j].allowedCombinations[0].isApproved
+        && isInAddressMapping(firstMatches[i].fromMapping, 'Mint') && isInAddressMapping(firstMatches[j].fromMapping, 'Mint')
+      ) {
+        const [, removed] = removeUintRangeFromUintRange(firstMatches[i].badgeIds, firstMatches[j].badgeIds);
 
-  const WhitelistStep = {
-    title: 'Whitelist',
-    message: 'Define specific addresses that will be able to claim this badge.',
-    isSelected: distributionMethod == DistributionMethod.Whitelist,
+        if (removed.length > 0) {
+          doubledUpBadges.push(...removed);
+        }
+      }
+    }
   }
+  doubledUpBadges = sortUintRangesAndMergeIfNecessary(doubledUpBadges);
 
-  const ManualTransferStep = {
-    title: 'Manual Transfer',
-    message: 'The manager will be approved to freely transfer badges to any address from the Mint address. Note the manager will pay all transfer fees. This can be done via transfer transactions after the collection has been created.',
-    isSelected: distributionMethod == DistributionMethod.DirectTransfer,
-    disabled: neverHasManager
-  }
 
-  const OffChainBalancesStep = {
-    title: 'Off-Chain Balances',
-    message: <div className='flex-center flex-column'><span>Balances will be stored on a typical server (not the blockchain) for enhanced scalability and user experience. All balances must be assigned. Users do not need to claim. This option should only be used for specific use cases. Learn more
-      <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
-        {' '}here.
-      </a></span>
-      {neverHasManager && <>
-        <br /> <br />
-        IMPORTANT: Updating balances in the future is a manager-only privilege, and this collection does / will not have a manager. The selected balances will be PERMANENT and FROZEN.
+
+  const DistributionComponent = <div>
+    {
+      <>
+        <Row className="full-width primary-text flex-center">
+          {unhandledBadges.length > 0 && <Col md={12} sm={24}>
+            <br />
+            <div className='flex-center primary-text'>
+              <b>Badges with 0 Distributions
+              </b>
+
+
+            </div>
+            <br /> <div className='flex-center primary-text'>
+              <InfoCircleOutlined style={{ marginRight: 4 }} />
+              The following badges are not distributed according to the current distributions selected.
+            </div>
+            <br />
+            <div className='flex-center'>
+
+              <BadgeAvatarDisplay
+                collectionId={MSG_PREVIEW_ID}
+                badgeIds={
+                  unhandledBadges
+                }
+                showIds
+              />
+              {unhandledBadges.length == 0 && <Empty
+                className="primary-text"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description='All badges are handled.' />}
+            </div>
+          </Col>}
+          {doubledUpBadges.length > 0 && <Col md={12} sm={24}>
+            <br />
+            <div className='flex-center primary-text'>
+              <b>Badges with 2+ Distributions</b>
+            </div>
+            <br /> <div className='flex-center primary-text'>
+              <InfoCircleOutlined style={{ marginRight: 4 }} />
+              The following badges are distributed in more than one way. This is typically not recommended.
+              If this is intentional, it is your responsibility to ensure that there are sufficient balances for all distributions and that the distributions will not conflict in undesired ways.
+            </div>
+            <br />
+            <div className='flex-center'>
+
+              <BadgeAvatarDisplay
+                collectionId={MSG_PREVIEW_ID}
+                badgeIds={
+                  doubledUpBadges
+                }
+                showIds
+              />
+              {doubledUpBadges.length == 0 && <Empty
+                className="primary-text"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description='No badges have 2+ distributions.' />}
+            </div>
+          </Col>}
+
+        </Row>
+        {unhandledBadges.length > 0 || doubledUpBadges.length > 0 && <hr />}
+      </>}
+    {<>
+
+
+      {!isOffChainBalances &&
+        <div className='flex-center' style={{ textAlign: 'center' }}>
+          <TransferabilityTab collectionId={MSG_PREVIEW_ID} isClaimSelect showOnlyTxApprovedTransfersToAdd hideHelperMessage />
+        </div>}
+    </>}
+    <div className='flex-center'>
+      <Avatar
+        style={{ cursor: 'pointer' }}
+        onClick={() => {
+          setVisible(!visible);
+        }}
+        src={visible ? <MinusOutlined /> : <PlusOutlined />}
+        className='styled-button'
+      >
+      </Avatar>
+    </div>
+
+    {visible &&
+      <>
+        <Divider />
+
+        <CreateClaims
+          setVisible={setVisible}
+        />
       </>}
 
-    </div>,
-    isSelected: distributionMethod == DistributionMethod.OffChainBalances,
-  }
 
-
-
-  if (startingCollection && startingCollection.balancesType === "Off-Chain") {
-    options.push(OffChainBalancesStep);
-  } else if (startingCollection) {
-    options.push(
-      CodesStep,
-      WhitelistStep,
-      JsonStep
-    );
-
-    options.push(ManualTransferStep);
-  } else {
-
-    options.push(
-      CodesStep,
-      WhitelistStep,
-      OffChainBalancesStep,
-      JsonStep
-    );
-
-    options.push(ManualTransferStep);
-  }
-
-  if (!hideUnminted) {
-    options.push({
-      title: 'Do Nothing',
-      message: `Do nothing. ${existingCollectionId !== undefined && existingCollectionId > 0n ? 'Leave as currently set.' : ''}` + (neverHasManager && (collection?.owners.find(x => x.cosmosAddress === "Mint")?.balances ?? []).length > 0 ? ' IMPORTANT: You have selected to not have a maanger moving forward. This means the distribution process is frozen and can never be updated. Ensure all badges can be distributed as desired.' : ''),
-      isSelected: distributionMethod == DistributionMethod.Unminted,
-      // disabled: neverHasManager
-    })
-  }
-
-
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  </div>
 
   return {
     title: `Distribution Method`,
     description: '',
-    node: <div>
-      <SwitchForm
-
-        options={options}
-        onSwitchChange={(_idx, newTitle) => {
-          if (!collection) return;
-
-          const defaultApprovedTransfersToAdd = txTimelineContext.resetApprovedTransfersToAdd();
-
-          setLastClickedTitle(newTitle);
-
-          if (newTitle == 'First Come, First Serve') {
-            setDistributionMethod(DistributionMethod.FirstComeFirstServe);
-          } else if (newTitle == 'Codes') {
-            setDistributionMethod(DistributionMethod.Codes);
-          } else if (newTitle == 'Whitelist') {
-            setDistributionMethod(DistributionMethod.Whitelist);
-          } else if (newTitle == 'JSON') {
-            setDistributionMethod(DistributionMethod.JSON);
-          } else if (newTitle == 'Do Nothing') {
-            setDistributionMethod(DistributionMethod.Unminted);
-          } else if (newTitle == 'Off-Chain Balances') {
-            setDistributionMethod(DistributionMethod.OffChainBalances);
-            collections.updateCollection({
-              ...collection,
-              collectionApprovedTransfers: [],
-              offChainBalancesMetadataTimeline: [],
-            });
-          } else if (newTitle == 'Manual Transfer') {
-
-            setDistributionMethod(DistributionMethod.DirectTransfer);
-
-            if (!collection) return;
-            const manager = getCurrentValueForTimeline(collection.managerTimeline)?.manager ?? '';
-            defaultApprovedTransfersToAdd.push({
-              fromMappingId: 'Mint',
-              toMappingId: 'AllWithMint',
-              initiatedByMappingId: 'Manager',
-              initiatedByMapping: getReservedAddressMapping('Manager', manager) as AddressMapping,
-              fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
-              toMapping: getReservedAddressMapping('AllWithMint', '') as AddressMapping,
-              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              allowedCombinations: [{
-                initiatedByMappingOptions: {},
-                fromMappingOptions: {},
-                toMappingOptions: {},
-                badgeIdsOptions: {},
-                ownershipTimesOptions: {},
-                transferTimesOptions: {},
-                isApproved: true,
-              }],
-              approvalDetails: [{
-                approvalTrackerId: approvalTrackerId.current,
-                uri: '',
-                customData: '',
-                mustOwnBadges: [],
-                approvalAmounts: {
-                  overallApprovalAmount: 0n,
-                  perFromAddressApprovalAmount: 0n,
-                  perToAddressApprovalAmount: 0n,
-                  perInitiatedByAddressApprovalAmount: 0n,
-                },
-                maxNumTransfers: {
-                  overallMaxNumTransfers: 0n,
-                  perFromAddressMaxNumTransfers: 0n,
-                  perToAddressMaxNumTransfers: 0n,
-                  perInitiatedByAddressMaxNumTransfers: 0n,
-                },
-                predeterminedBalances: {
-                  precalculationId: '',
-                  manualBalances: [],
-                  incrementedBalances: {
-                    startBalances: [],
-                    incrementBadgeIdsBy: 0n,
-                    incrementOwnershipTimesBy: 0n,
-                  },
-                  orderCalculationMethod: {
-                    useMerkleChallengeLeafIndex: false,
-                    useOverallNumTransfers: false,
-                    usePerFromAddressNumTransfers: false,
-                    usePerInitiatedByAddressNumTransfers: false,
-                    usePerToAddressNumTransfers: false,
-                  },
-                },
-                merkleChallenges: [],
-                requireToEqualsInitiatedBy: false,
-                requireFromEqualsInitiatedBy: false,
-                requireToDoesNotEqualInitiatedBy: false,
-                requireFromDoesNotEqualInitiatedBy: false,
-
-
-                overridesToApprovedIncomingTransfers: false,
-                overridesFromApprovedOutgoingTransfers: true,
-              }],
-              balances: [{
-                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                amount: 1n
-              }]
-            });
-
-          }
-
-          if (newTitle !== lastClickedTitle || newTitle == 'Manual Transfer') {
-            setApprovedTransfersToAdd(defaultApprovedTransfersToAdd);
-          }
-        }}
-      />
-      {<>
-
-        <br />
-        <hr />
-        <br />
-        <div className='flex-center'>
-          <Typography.Text className='primary-text' strong style={{ fontSize: 24, textAlign: 'center' }}>
-            Approved Transfers To Add
-          </Typography.Text>
-        </div>
-
-        <div className='flex-center' style={{ textAlign: 'center' }}>
-          <TransferabilityTab collectionId={MSG_PREVIEW_ID} isClaimSelect showOnlyTxApprovedTransfersToAdd />
-        </div>
-        <hr />
-        <br />
-        <div className='flex-center'>
-          <Typography.Text className='primary-text' strong style={{ fontSize: 24, textAlign: 'center' }}>
-            Distribution
-          </Typography.Text>
-        </div>
-
-        <div className='flex-center' style={{ textAlign: 'center' }}>
-          <TransferabilityTab collectionId={MSG_PREVIEW_ID} isClaimSelect />
-        </div>
-      </>}
-    </div>,
-    disabled: distributionMethod == DistributionMethod.None
-      || (neverHasManager && distributionMethod == DistributionMethod.DirectTransfer)
-      || (neverHasManager && distributionMethod == DistributionMethod.Codes)
+    // disabled: isOffChainBalances ? transfers.length === 0 : approvedTransfers.length === 0,
+    node: <>
+      {
+        collection?.balancesType === "Off-Chain" ? DistributionComponent :
+          <UpdateSelectWrapper
+            updateFlag={updateCollectionApprovedTransfers}
+            setUpdateFlag={setUpdateCollectionApprovedTransfers}
+            jsonPropertyPath='collectionApprovedTransfers'
+            permissionName='canUpdateCollectionApprovedTransfers'
+            customRevertFunction={() => {
+              txTimelineContext.resetApprovedTransfersToAdd();
+            }}
+            mintOnly
+            node={DistributionComponent}
+          />
+      }
+    </>
   }
 }

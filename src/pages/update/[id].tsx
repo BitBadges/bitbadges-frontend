@@ -19,7 +19,7 @@ function Update() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet to access this page.'
+      message='Please connect a wallet and sign in to access this page.'
       node={
         <RegisteredWrapper
           message='Please register to access this page.'

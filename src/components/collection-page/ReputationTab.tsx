@@ -57,7 +57,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
           color2="#ffd700"
         />
         <Input.TextArea
-          className='primary-text primary-blue-bg'
+          className='primary-text inherit-bg'
           value={newReview}
           onChange={(e) => setNewReview(e.target.value)}
           placeholder={`Is this ${addressOrUsername ? 'user' : 'badge'} legit? What was your experience? Leave a review (Max 2048 Characters)`}

@@ -33,7 +33,7 @@ export function NumberInput({
             }
           }
         }
-        className='primary-text primary-blue-bg'
+        className='primary-text inherit-bg'
       />
     </div>
   </div>

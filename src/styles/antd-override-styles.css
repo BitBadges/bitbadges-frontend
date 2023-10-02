@@ -32,7 +32,7 @@
 }
 
 .selector > .ant-select-selector {
-  background-color: #001529 !important;
+  background-color: inherit !important;
 }
 
 .selector > .ant-select-selector.selector::after {
@@ -83,6 +83,7 @@
 }
 
 .ant-modal-header {
+  
     background-color: #001529;
     color: white;
     border: none;
@@ -132,7 +133,7 @@
 }
 
 .ant-collapse-content {
-    background-color: #001529;
+    background-color: inherit !important;
 }
 
 .ant-collapse-expand-icon {
@@ -144,7 +145,7 @@
 }
 
 .dark .ant-pagination-item {
-    background-color: #001529;
+    background-color: inherit;
     color: white;
 }
 
@@ -153,41 +154,53 @@
 }
 
 .dark .ant-pagination-prev {
-    background-color: #001529;
+    background-color: inherit;
     color: white;
 }
 .dark .ant-pagination-prev .ant-pagination-item-link, .dark  .ant-pagination-next .ant-pagination-item-link {
-    background-color: #001529;
+    background-color: inherit;
     color: white;
 }
 
 .dark .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis, .dark .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis
 {
-    background-color: #001529;
+    background-color: inherit;
     color: white;
 }
 
 .rc-md-editor .rc-md-navigation {
-    background-color: #001529 !important;
+    background: inherit !important;
+}
+
+.rc-md-editor {
+  background: inherit !important;
+}
+
+.rc-md-editor.full {
+  background: #001529 !important;
 }
 
 .rc-md-editor .rc-md-navigation .button-wrap .button {
-    background-color: #001529 !important;
+    background: inherit !important;
     color: white !important;
 }
 
 .rc-md-editor .drop-wrap {
-    background-color: #001529 !important;
+    background: inherit !important;
 }
 
 .rc-md-editor .editor-container .sec-md .input {
-    background-color: #001529 !important;
+    background: inherit !important;
     color: white !important;
 }
 
 .rc-md-editor .editor-container .sec-html {
-  background-color: #001529 !important;
+  background: inherit !important;
   color: white !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: inherit;
 }
 
 
@@ -223,9 +236,13 @@
     display: flex !important;
 }
 
+.ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub {
+  background: inherit;
+}
+
 .ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input
 {
-    background-color: #001529;
+    background-color: inherit;
     color: white;
 }
 /* 
@@ -298,7 +315,7 @@
 
 .ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover, .ant-dropdown-menu-item.ant-dropdown-menu-item-active, .ant-dropdown-menu-item.ant-dropdown-menu-submenu-title-active, .ant-dropdown-menu-submenu-title.ant-dropdown-menu-item-active, .ant-dropdown-menu-submenu-title.ant-dropdown-menu-submenu-title-active
 {
-    background-color: initial;
+  background-color: inherit;
 }
 
 .ant-popover-inner {

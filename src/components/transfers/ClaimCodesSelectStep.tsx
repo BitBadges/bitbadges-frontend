@@ -29,10 +29,10 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
               min={1}
               value={numCodes}
               onChange={(value) => {
-                
+
                 setNumCodes(value ?? 0n);
               }}
-              className='primary-text primary-blue-bg'
+              className='primary-text inherit-bg'
             />
           </div>
         </div>
@@ -77,7 +77,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
                 onChange={(e) => {
                   setClaimPassword(e.target.value);
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />
             </div>}
             <br />
@@ -91,7 +91,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
                 onChange={(value) => {
                   setNumCodes(value ?? 0n);
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />
             </div>}
             <div style={{ textAlign: 'center' }} className='secondary-text'>

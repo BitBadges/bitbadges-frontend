@@ -1,4 +1,4 @@
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, DistributionMethod, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
@@ -7,20 +7,21 @@ import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
 import { AddressMappingSelectStepItem } from './step-items/AddressMappingSelectStepItem';
 import { IsArchivedSelectStepItem } from './step-items/ArchivedSelectStepItem';
 import { BadgeSupplySelectStepItem } from './step-items/BadgeSupplySelectStepItem';
+import { BalanceTypeSelectStepItem } from './step-items/BalancesTypeSelectStepItem';
 import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
 import { CanDeleteStepItem } from './step-items/CanDeleteStepItem';
 import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
 import { CanArchiveCollectionStepItem } from './step-items/CanUpdateArchivedStepItem';
+import { FreezeSelectStepItem } from './step-items/CanUpdateCollectionApprovedTransfers';
+import { UpdatableMetadataSelectStepItem } from './step-items/CanUpdateMetadata';
 import { CanUpdateBalancesStepItem } from './step-items/CanUpdateOffChainBalancesStepItem';
 import { ChooseBadgeTypeStepItem, MintType } from './step-items/ChooseBadgeTypeStepItem';
 import { ChooseControlTypeStepItem } from './step-items/CompleteControlStepItem';
 import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
 import { CreateAddressMappingStepItem } from './step-items/CreateAddressMappingStepItem';
-import { CreateClaimsStepItem } from './step-items/CreateClaimsStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
 import { DefaultToApprovedSelectStepItem } from './step-items/DefaultToApprovedSelectStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { FreezeSelectStepItem } from './step-items/CanUpdateCollectionApprovedTransfers';
 import { MetadataStorageSelectStepItem } from './step-items/MetadataStorageSelectStepItem';
 import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { OffChainBalancesStorageSelectStepItem } from './step-items/OffChainBalancesStepItem';
@@ -28,9 +29,7 @@ import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepIte
 import { SetAddressMappingMetadataStepItem } from './step-items/SetAddressMappingMetadataStepItem';
 import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
-import { JSONTransferabilitySelectStepItem } from './step-items/TransferabilityJSONSelect';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
-import { UpdatableMetadataSelectStepItem } from './step-items/CanUpdateMetadata';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -39,7 +38,6 @@ export function UpdateCollectionTimeline() {
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const distributionMethod = txTimelineContext.distributionMethod;
   const addMethod = txTimelineContext.addMethod;
   const mintType = txTimelineContext.mintType;
   const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping;
@@ -62,7 +60,6 @@ export function UpdateCollectionTimeline() {
   const SetCollectionMetadataStep = SetCollectionMetadataStepItem();
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem();
   const DistributionMethodStep = DistributionMethodStepItem();
-  const CreateClaims = CreateClaimsStepItem();
   const CreateCollectionStep = CreateCollectionStepItem();
   const CanCreateMoreStep = CanCreateMoreStepItem();
   const CanDeleteStep = CanDeleteStepItem();
@@ -74,10 +71,10 @@ export function UpdateCollectionTimeline() {
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem();
   const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
   const ChooseControlStepItem = ChooseControlTypeStepItem();
-  const JSONTransferability = JSONTransferabilitySelectStepItem();
   const CanUpdateBytesStep = CanUpdateBalancesStepItem();
   const AddressMappingSelectItem = AddressMappingSelectStepItem();
   const CreateAddressMappingStep = CreateAddressMappingStepItem();
+  const BalanceTypeSelect = BalanceTypeSelectStepItem();
 
 
   const items: TimelineItem[] = [
@@ -87,7 +84,7 @@ export function UpdateCollectionTimeline() {
   if (!collection || !startingCollection) return <></>;
 
   if (mintType === MintType.BitBadge) {
-    const isOffChainBalances = distributionMethod === DistributionMethod.OffChainBalances;
+    const isOffChainBalances = collection.balancesType === "Off-Chain";
     const managerTimeline = collection.managerTimeline;
     const hasManager = managerTimeline.length > 0 && managerTimeline.some(x => x.manager !== '');
 
@@ -188,16 +185,17 @@ export function UpdateCollectionTimeline() {
       MetadataTooLargeStep,
       !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
+      BalanceTypeSelect,
 
-      isOffChainBalances || toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
+      (isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction) || toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
 
-      distributionMethod === DistributionMethod.OffChainBalances ? OffChainBalancesStorageStepItem : EmptyStepItem,
-      distributionMethod === DistributionMethod.OffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? CreateClaims : EmptyStepItem,
-      distributionMethod !== DistributionMethod.None && distributionMethod !== DistributionMethod.Unminted && distributionMethod !== DistributionMethod.JSON && distributionMethod !== DistributionMethod.DirectTransfer && distributionMethod !== DistributionMethod.OffChainBalances
-        ? CreateClaims : EmptyStepItem,
+      isOffChainBalances ? OffChainBalancesStorageStepItem : EmptyStepItem,
 
-      distributionMethod === DistributionMethod.JSON ? JSONTransferability : EmptyStepItem,
-      !isOffChainBalances && distributionMethod !== DistributionMethod.JSON && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+
+      // distributionMethod === DistributionMethod.JSON ? JSONTransferability : EmptyStepItem,
+      !isOffChainBalances
+        // TODO: && distributionMethod !== DistributionMethod.JSON
+        && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
 
       !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,

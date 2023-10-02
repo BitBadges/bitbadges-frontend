@@ -4,7 +4,7 @@ import { AddressMapping } from "bitbadgesjs-proto";
 import { ApprovedTransferPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, castCollectionApprovedTransferPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
@@ -14,6 +14,8 @@ import { SwitchForm } from "../form-items/SwitchForm";
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 export function FreezeSelectStepItem() {
   const collections = useCollectionsContext();
+  const txTimelineContext = useTxTimelineContext();
+  const showAdvancedOptions = txTimelineContext.showAdvancedOptions;
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const [checked, setChecked] = useState<boolean>(true);
   const [selectedIdxs, setSelectedIdxs] = useState<number[]>([]);
@@ -140,6 +142,8 @@ export function FreezeSelectStepItem() {
           toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
           fromMapping: getReservedAddressMapping("AllWithoutMint", "") as AddressMapping,
           initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+          approvalTrackerId: "All",
+          challengeTrackerId: "All",
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -166,7 +170,7 @@ export function FreezeSelectStepItem() {
   }
 
   return {
-    title: `Edit Transferability?`,
+    title: `Update transferability?`,
     description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from how badges are distributed, freezing addresses, revoking badges, etc.`,
     node:
       <PermissionUpdateSelectWrapper
@@ -207,7 +211,7 @@ export function FreezeSelectStepItem() {
 
           />
           <Divider />
-          {(permissionDetails.hasNeutralTimes || permissionDetails.hasPermittedTimes) && <>
+          {(permissionDetails.hasNeutralTimes || permissionDetails.hasPermittedTimes) && showAdvancedOptions && <>
             <Col md={24} xs={24} style={{ textAlign: 'center' }}>
               <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
                 Permitted Options

@@ -46,15 +46,14 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
 
       const balances = await getBadgeBalanceByAddress(collectionId, chain.cosmosAddress, { doNotHandleAllAndAppendDefaults: true });
+      console.log(JSON.stringify(balances.balance.approvedOutgoingTransfers, null, 2));
       setFetchedOutgoingTransfers(balances.balance.approvedOutgoingTransfers);
     }
     getApproveeBalance();
   }, []);
 
   const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-  const precalculationId = useRef(crypto.randomBytes(32).toString('hex'));
-  const newApprovedOutgoingTransfers = [
-
+  const newApprovedOutgoingTransfers: UserApprovedOutgoingTransferWithDetails<bigint>[] = [
     ...(allInOne ? [{
       badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
       ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -63,14 +62,73 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
       initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-      approvalDetails: [
-        {
-          approvalTrackerId: approvalTrackerId.current,
+      approvalTrackerId: approvalTrackerId.current,
+      approvalId: approvalTrackerId.current,
+      challengeTrackerId: "",
+      approvalDetails: {
+        uri: '',
+        customData: '',
+        mustOwnBadges: [],
+        approvalAmounts: {
+          overallApprovalAmount: 0n,
+          perFromAddressApprovalAmount: 0n,
+          perToAddressApprovalAmount: 0n,
+          perInitiatedByAddressApprovalAmount: 0n,
+        },
+        maxNumTransfers: {
+          overallMaxNumTransfers: 0n,
+          perFromAddressMaxNumTransfers: 0n,
+          perToAddressMaxNumTransfers: 0n,
+          perInitiatedByAddressMaxNumTransfers: 0n,
+        },
+        predeterminedBalances: {
+          manualBalances: [{ balances: balances }],
+          incrementedBalances: {
+            startBalances: [],
+            incrementBadgeIdsBy: 0n,
+            incrementOwnershipTimesBy: 0n,
+          },
+          orderCalculationMethod: {
+            useMerkleChallengeLeafIndex: false,
+            useOverallNumTransfers: true,
+            usePerFromAddressNumTransfers: false,
+            usePerInitiatedByAddressNumTransfers: false,
+            usePerToAddressNumTransfers: false,
+          },
+        },
+        merkleChallenge: {
+          root: '',
+          maxOneUsePerLeaf: false,
+          expectedProofLength: 0n,
+          useCreatorAddressAsLeaf: false,
+          useLeafIndexForTransferOrder: false,
+          uri: '',
+          customData: '',
+        },
+        requireToEqualsInitiatedBy: false,
+        requireToDoesNotEqualInitiatedBy: false,
+      },
+      allowedCombinations: [{
+        isApproved: true,
+      }]
+    }] : [...balances.map((x, idx) => {
+      return {
+        badgeIds: [...x.badgeIds],
+        ownershipTimes: [...x.ownershipTimes],
+        toMappingId: "AllWithMint",
+        initiatedByMappingId: convertToCosmosAddress(approvee),
+        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
+        approvalTrackerId: idx + "-" + approvalTrackerId.current,
+        approvalId: idx + "-" + approvalTrackerId.current,
+        challengeTrackerId: "",
+        approvalDetails: {
           uri: '',
           customData: '',
           mustOwnBadges: [],
           approvalAmounts: {
-            overallApprovalAmount: 0n,
+            overallApprovalAmount: x.amount,
             perFromAddressApprovalAmount: 0n,
             perToAddressApprovalAmount: 0n,
             perInitiatedByAddressApprovalAmount: 0n,
@@ -82,8 +140,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
             perInitiatedByAddressMaxNumTransfers: 0n,
           },
           predeterminedBalances: {
-            precalculationId: precalculationId.current,
-            manualBalances: [{ balances: balances }],
+            manualBalances: [],
             incrementedBalances: {
               startBalances: [],
               incrementBadgeIdsBy: 0n,
@@ -91,131 +148,26 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
             },
             orderCalculationMethod: {
               useMerkleChallengeLeafIndex: false,
-              useOverallNumTransfers: true,
+              useOverallNumTransfers: false,
               usePerFromAddressNumTransfers: false,
               usePerInitiatedByAddressNumTransfers: false,
               usePerToAddressNumTransfers: false,
             },
           },
-          merkleChallenges: [],
-          requireToEqualsInitiatedBy: false,
-          requireToDoesNotEqualInitiatedBy: false,
-        }],
-      allowedCombinations: [{
-        isApproved: true,
-        toMappingOptions: {
-
-
-
-        },
-
-        initiatedByMappingOptions: {
-
-
-
-        },
-        badgeIdsOptions: {
-
-
-
-        },
-        ownershipTimesOptions: {
-
-
-
-        },
-        transferTimesOptions: {
-
-
-
-        },
-      }, {
-        isApproved: false,
-        toMappingOptions: {
-
-
-
-        },
-
-        initiatedByMappingOptions: {
-
-
-
-        },
-        badgeIdsOptions: {
-
-          allValues: true
-
-        },
-        ownershipTimesOptions: {
-
-          allValues: true
-
-        },
-        transferTimesOptions: {
-
-          allValues: true
-
-        },
-      }]
-    }] : [...balances.map(x => {
-      return {
-        badgeIds: [...x.badgeIds],
-        ownershipTimes: [...x.ownershipTimes],
-        toMappingId: "AllWithMint",
-        initiatedByMappingId: convertToCosmosAddress(approvee),
-        transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-        approvalDetails: [
-          {
-            approvalTrackerId: approvalTrackerId.current,
+          merkleChallenge: {
+            root: '',
+            maxOneUsePerLeaf: false,
+            expectedProofLength: 0n,
+            useCreatorAddressAsLeaf: false,
+            useLeafIndexForTransferOrder: false,
             uri: '',
             customData: '',
-            mustOwnBadges: [],
-            approvalAmounts: {
-              overallApprovalAmount: x.amount,
-              perFromAddressApprovalAmount: 0n,
-              perToAddressApprovalAmount: 0n,
-              perInitiatedByAddressApprovalAmount: 0n,
-            },
-            maxNumTransfers: {
-              overallMaxNumTransfers: 0n,
-              perFromAddressMaxNumTransfers: 0n,
-              perToAddressMaxNumTransfers: 0n,
-              perInitiatedByAddressMaxNumTransfers: 0n,
-            },
-            predeterminedBalances: {
-              precalculationId: '',
-              manualBalances: [],
-              incrementedBalances: {
-                startBalances: [],
-                incrementBadgeIdsBy: 0n,
-                incrementOwnershipTimesBy: 0n,
-              },
-              orderCalculationMethod: {
-                useMerkleChallengeLeafIndex: false,
-                useOverallNumTransfers: false,
-                usePerFromAddressNumTransfers: false,
-                usePerInitiatedByAddressNumTransfers: false,
-                usePerToAddressNumTransfers: false,
-              },
-            },
-            merkleChallenges: [],
-            requireToEqualsInitiatedBy: false,
-            requireToDoesNotEqualInitiatedBy: false,
-          }],
+          },
+          requireToEqualsInitiatedBy: false,
+          requireToDoesNotEqualInitiatedBy: false,
+        },
         allowedCombinations: [{
           isApproved: true,
-          badgeIdsOptions: {
-            allValues: true
-          },
-          ownershipTimesOptions: {
-            allValues: true
-          },
-          transferTimesOptions: {
-            allValues: true
-          },
         }]
       }
     })]),

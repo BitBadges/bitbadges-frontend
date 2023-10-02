@@ -32,6 +32,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
             }
         }
         id={tab.key}
+        className='inherit-bg'
       >
         {tab.content}
       </Menu.Item>

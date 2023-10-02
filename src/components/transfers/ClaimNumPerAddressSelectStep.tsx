@@ -43,7 +43,7 @@ export function ClaimNumPerAddressSelectStep(
                 onChange={(value) => {
                   setNumPerInitiatedByAddress(value ? BigIntify(value) : 0n);
                 }}
-                className='primary-text primary-blue-bg'
+                className='primary-text inherit-bg'
               />}
             <br />
             <Checkbox
@@ -51,9 +51,9 @@ export function ClaimNumPerAddressSelectStep(
               onChange={(e) => {
                 setNumPerInitiatedByAddress(e.target.checked ? BigInt(0) : BigInt(1));
               }}
-              className="primary-text primary-blue-bg"
+              className="primary-text inherit-bg"
             >
-              <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+              <div className='primary-text inherit-bg' style={{ fontSize: 14 }}>
                 No Limit
               </div>
             </Checkbox>
@@ -98,9 +98,9 @@ export function ClaimNumPerAddressSelectStep(
               }
             }
             }
-            className="primary-text primary-blue-bg"
+            className="primary-text inherit-bg"
           >
-            <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+            <div className='primary-text inherit-bg' style={{ fontSize: 14 }}>
               Require To Address Equals Initiated By Address?
             </div>
           </Checkbox> */}
@@ -118,7 +118,7 @@ export function ClaimNumPerAddressSelectStep(
                   onChange={(value) => {
                     setNumPerToAddress(value ? BigIntify(value) : 0n);
                   }}
-                  className='primary-text primary-blue-bg'
+                  className='primary-text inherit-bg'
                 />}
               <br />
               <Checkbox
@@ -126,9 +126,9 @@ export function ClaimNumPerAddressSelectStep(
                 onChange={(e) => {
                   setNumPerToAddress(e.target.checked ? BigInt(0) : BigInt(1));
                 }}
-                className="primary-text primary-blue-bg"
+                className="primary-text inherit-bg"
               >
-                <div className='primary-text primary-blue-bg' style={{ fontSize: 14 }}>
+                <div className='primary-text inherit-bg' style={{ fontSize: 14 }}>
                   No Limit
                 </div>
               </Checkbox>

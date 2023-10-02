@@ -16,6 +16,7 @@ export function BadgeAvatar({
   noHover,
   metadataOverride,
   noBorder,
+  onClick
 }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -26,6 +27,7 @@ export function BadgeAvatar({
   noHover?: boolean,
   metadataOverride?: Metadata<bigint>
   noBorder?: boolean
+  onClick?: () => void
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
@@ -49,6 +51,10 @@ export function BadgeAvatar({
       : metadata && !metadata.image ? DefaultPlaceholderMetadata.image : <Spin />}
     size={size ? size : 50}
     onClick={() => {
+      if (onClick) {
+        onClick();
+        return;
+      }
       if (!badgeId) return;
       router.push(`/collections/${collectionId}/${badgeId}`)
     }}

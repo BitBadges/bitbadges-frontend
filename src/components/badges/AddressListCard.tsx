@@ -23,7 +23,7 @@ export function AddressListCard({
   return (
     <div style={{}}>
       <Card
-        className='primary-text primary-blue-bg'
+        className='primary-text gradient-bg'
         style={{
           width: 225,
           marginTop: 8,

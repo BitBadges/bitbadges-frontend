@@ -43,7 +43,7 @@ export function TxTimeline({
   }, [collectionId, addressMappingId]);
 
 
-  if (!txTimelineContext.initialLoad) return <div className='primary-text'>
+  if (!txTimelineContext.initialLoad) return <div className='primary-text primary-blue-bg'>
     <Spin size='large' />
     <Divider />
     {<p>Fetching all details for this collection. This may take some time.</p>}
