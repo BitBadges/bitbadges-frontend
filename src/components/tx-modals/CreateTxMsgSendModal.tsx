@@ -44,7 +44,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
           value={sendAmount}
           onChange={(e) => {
 
-            setSendAmount(e ?? 0n);
+            setSendAmount(e ?? 0);
           }}
           className='primary-text inherit-bg'
           min={0}

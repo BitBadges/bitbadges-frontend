@@ -1,5 +1,5 @@
-import { ClockCircleOutlined, GiftOutlined, InfoCircleOutlined, SwapOutlined, WarningOutlined } from "@ant-design/icons";
-import { Avatar, Button, Card, Checkbox, Divider, Input, Row, Tooltip, Typography } from "antd";
+import { ClockCircleOutlined, CloudSyncOutlined, GiftOutlined, InfoCircleOutlined, SwapOutlined, WarningOutlined } from "@ant-design/icons";
+import { Button, Card, Checkbox, Divider, Input, Row, Typography, notification } from "antd";
 import { ApprovalTrackerIdDetails, deepCopy } from "bitbadgesjs-proto";
 import { ApprovalDetailsWithDetails, CollectionApprovedTransferWithDetails, removeUintRangeFromUintRange, searchUintRangesForId, subtractBalances } from "bitbadgesjs-utils";
 import { SHA256 } from "crypto-js";
@@ -15,6 +15,7 @@ import { AddressDisplayList } from "../address/AddressDisplayList";
 import { AddressSelect } from "../address/AddressSelect";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
+import IconButton from "../display/IconButton";
 import { NumberInput } from "../inputs/NumberInput";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
 
@@ -105,6 +106,46 @@ export function ClaimDisplay({
     }
   }, [browseIdx, claim]);
 
+  async function refreshTrackers() {
+    const approvalsIdsToFetch: ApprovalTrackerIdDetails<bigint>[] = [{
+      collectionId,
+      approvalTrackerId: approvedTransfer.approvalTrackerId,
+      approvalLevel: "collection",
+      approvedAddress: "",
+      approverAddress: "",
+      trackerType: "overall",
+    }];
+    if (approvalDetails.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > 0n) {
+      approvalsIdsToFetch.push({
+        collectionId,
+        approvalTrackerId: approvedTransfer.approvalTrackerId,
+        approvalLevel: "collection",
+        approvedAddress: chain.cosmosAddress,
+        approverAddress: "",
+        trackerType: "initiatedBy",
+      });
+    }
+
+    await collections.fetchCollectionsWithOptions([{
+      collectionId,
+      viewsToFetch: [],
+      merkleChallengeIdsToFetch: [{
+        collectionId,
+        challengeId: claimId ?? '',
+        challengeLevel: "collection",
+        approverAddress: "",
+      }],
+      approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+      handleAllAndAppendDefaults: true,
+      forcefulFetchTrackers: true,
+    }]);
+
+    notification.success({
+      message: 'Refreshed!',
+      description: 'The claim has been refreshed!',
+      duration: 5,
+    });
+  }
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
     if (collectionId > 0) {
@@ -268,17 +309,6 @@ export function ClaimDisplay({
     }
   }
 
-  const switchViewIcon = <Tooltip title={showAllUnclaimed ? 'Show Current Claim' : 'Show All Unclaimed'} placement='bottom'>
-
-    <Avatar className="styled-button"
-      onClick={() => setShowAllUnclaimed(!showAllUnclaimed)}
-      src={<SwapOutlined />
-      }
-      style={{ cursor: 'pointer', marginRight: 8 }}
-    />
-
-  </Tooltip>
-
   return <div className='flex-center flex-column'>
     {/* <Divider /> */}
     <div>
@@ -323,13 +353,27 @@ export function ClaimDisplay({
                 <div className='primary-text'>{claim.details?.description}</div>
               </Row>}
             <br />
+            <div className="flex-center flex-wrap">
 
+              <IconButton
+                src={<SwapOutlined size={40} />}
+                onClick={() => setShowAllUnclaimed(!showAllUnclaimed)}
+                text={'Switch View'}
+                tooltipMessage={showAllUnclaimed ? 'Show Each Claim' : 'Show All Unclaimed'}
+                size={40}
+              />
+              <IconButton
+                src={<CloudSyncOutlined size={40} />}
+                onClick={() => refreshTrackers()}
+                text={'Refresh'}
+                tooltipMessage={'Refresh'}
+                size={40}
+              />
+
+            </div>
+            <br />
             {(showAllUnclaimed || undistributedBalances.length == 0) && <>  <div className="flex-center flex-column" style={{ position: 'relative' }}>
-              {undistributedBalances.length != 0 && <>
-                <div style={{ position: 'absolute', top: 0, right: -20 }}>
-                  {switchViewIcon}
-                </div>
-              </>}
+
               <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Unclaimed</Typography.Text>
               <BalanceDisplay
                 // messageSize={20}
@@ -349,15 +393,6 @@ export function ClaimDisplay({
                     <div className="flex-center flex-column" style={{ position: 'relative' }}>
                       <>
                         <>
-                          <div style={{ position: 'absolute', top: 0, right: -20 }}>
-                            {switchViewIcon}
-                          </div>
-
-                          {/* <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                            Claim #{browseIdx + 1}
-
-                          </Typography.Text> */}
-
                           <div className="flex-center">
                             <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                               {claim?.useCreatorAddressAsLeaf ? "Claim" : "Code"} #</Typography.Text><NumberInput
@@ -408,38 +443,32 @@ export function ClaimDisplay({
                   </>}
                   {calculationMethod.useOverallNumTransfers && <>
                     <div className="flex-center flex-column" style={{ position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: 0, right: -20 }}>
-                        {switchViewIcon}
-                      </div>
-                      {/* <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Current Claim</Typography.Text> */}
-                      <div className="flex-center">
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                          Claim #</Typography.Text><NumberInput
-                          value={browseIdx + 1}
-                          setValue={(val) => {
-                            setBrowseIdx(val - 1);
-                          }}
-                          // onChange={(e: any) => {
-                          //   setBrowseIdx(e.target.value);
-                          // }}
-                          min={1}
-                          max={approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvalDetails.maxNumTransfers.overallMaxNumTransfers) : undefined}
 
-                        />
-                      </div>
-                      {/* <br /> */}
-                      <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginLeft: 8 }}>
-                        {browseIdx == numIncrements && <>{"Current Claim"}<br /><br /></>}</Typography.Text>
 
                       <BalanceDisplay
-                        message={'Current Claim'}
-                        hideMessage
+                        message={<div>
+                          <div className='flex-center flex-wrap'>
+                            Claimable Badges - Claim #<NumberInput
+                              value={browseIdx + 1}
+                              setValue={(val) => {
+                                setBrowseIdx(val - 1);
+                              }}
+                              min={1}
+                              max={approvalDetails.maxNumTransfers.overallMaxNumTransfers > 0n ? Number(approvalDetails.maxNumTransfers.overallMaxNumTransfers) : undefined}
+
+                            />
+                          </div>
+                          <Typography.Text className="secondary-text" style={{ fontSize: 14 }}>
+                            {`Current Claim - #${BigInt(numIncrements) + 1n}`}
+                          </Typography.Text>
+                        </div>}
+                        // hideMessage
                         collectionId={collectionId}
                         balances={browseClaimAmounts}
                       />
                     </div>
 
-                    {incrementIdsBy > 0 &&
+                    {incrementIdsBy > 0 && !errorMessage &&
 
                       <div>
                         <br />
@@ -471,6 +500,7 @@ export function ClaimDisplay({
                   <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
 
                     {errorMessage && <>
+                      <br />
                       <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
                       {errorMessage}
 
@@ -561,9 +591,11 @@ export function ClaimDisplay({
                         <br />
                         <br />
                       </>}
-                      <Button disabled={cantClaim} type='primary' onClick={() => { if (openModal) openModal(code, leafIndex, recipient) }} className='full-width flex-center' style={{ textAlign: 'center' }}>
+                      <button disabled={cantClaim} onClick={() => { if (openModal) openModal(code, leafIndex, recipient) }} className='landing-button full-width flex-center' style={{
+                        textAlign: 'center', width: '100%'
+                      }}>
                         Claim
-                      </Button>
+                      </button>
 
                       {numClaimsPerAddress > 0 && <div className='secondary-text' style={{ textAlign: 'center' }}>
                         <p>*Only {numClaimsPerAddress.toString()} claim(s) allowed per account</p>
@@ -585,6 +617,7 @@ export function ClaimDisplay({
         collectionId={collectionId}
         codes={codes}
         claimPassword={claimPassword}
-      />}
+      />
+    }
   </div >
 }

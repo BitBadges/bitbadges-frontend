@@ -47,6 +47,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const profile of browseInfo.profiles[category]) {
         if (!updatedAccounts.has(profile.cosmosAddress)) {
+          console.log(profile);
           accounts.updateAccount({
             ...profile,
           });

@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Empty, Tooltip } from "antd";
 import { Balance, BigIntify, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../../utils/dates";
 import { BalanceDisplayEditRow } from "../../inputs/BalanceDisplayEditRow";
@@ -37,7 +37,7 @@ export function BalanceDisplay({
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
   hideOwnershipTimeSelect?: boolean
-  message?: string;
+  message?: string | ReactNode;
   size?: number;
   showingSupplyPreview?: boolean;
 

@@ -26,7 +26,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     if (hasMore) fetchMore();
-  }, [hasMore, fetchMore])
+  }, [])
 
   return (
     <>

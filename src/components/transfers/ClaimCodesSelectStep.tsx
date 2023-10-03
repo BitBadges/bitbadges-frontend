@@ -30,7 +30,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
               value={numCodes}
               onChange={(value) => {
 
-                setNumCodes(value ?? 0n);
+                setNumCodes(value ?? 0);
               }}
               className='primary-text inherit-bg'
             />
@@ -89,7 +89,7 @@ export function ClaimCodesSelectStep(distributionMethod: DistributionMethod, set
                 max={100000}
                 value={numCodes}
                 onChange={(value) => {
-                  setNumCodes(value ?? 0n);
+                  setNumCodes(value ?? 0);
                 }}
                 className='primary-text inherit-bg'
               />

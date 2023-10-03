@@ -1,16 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
-import { createContext, useContext, useState } from 'react';
-import { useCookies } from 'react-cookie';
-import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
 import { deepCopy } from 'bitbadgesjs-proto';
+import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { createContext, useContext } from 'react';
+import { useCookies } from 'react-cookie';
+import { useDispatch, useSelector } from 'react-redux';
+import { legacy_createStore } from 'redux';
 import { compareObjects } from '../../utils/compare';
+import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../api';
+
 
 export type AccountsContextType = {
   accounts: AccountMap<DesiredNumberType>,
   getAccount: (addressOrUsername: string) => BitBadgesUserInfo<DesiredNumberType> | undefined,
-  updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => BitBadgesUserInfo<DesiredNumberType>,
-  updateAccounts: (userInfos: BitBadgesUserInfo<DesiredNumberType>[]) => BitBadgesUserInfo<DesiredNumberType>[],
+  updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => void,
+  updateAccounts: (userInfos: BitBadgesUserInfo<DesiredNumberType>[]) => void,
 
   fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>[]>,
   fetchAccountsWithOptions: (accountsToFetch: {
@@ -85,11 +88,149 @@ type Props = {
   children?: React.ReactNode
 };
 
+interface State {
+  accounts: Record<string, BitBadgesUserInfo<DesiredNumberType> | undefined>;
+  cosmosAddressesByUsernames: { [username: string]: string };
+}
+
+const initialState: State = {
+  accounts: { 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': MINT_ACCOUNT, 'All Other': MINT_ACCOUNT },
+  cosmosAddressesByUsernames: {}
+};
+
+const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
+
+const accountReducer = (state = initialState, action: { type: string; payload: any }): State => {
+  switch (action.type) {
+    case 'UPDATE_ACCOUNTS':
+      const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
+      const cookies = action.payload.cookies as { [key: string]: string };
+      const forcefulRefresh = action.payload.forcefulRefresh as boolean;
+      let accounts = state.accounts;
+      let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
+
+      const accountsToReturn: { account: BitBadgesUserInfo<DesiredNumberType>, needToCompare: boolean, ignore: boolean, cachedAccountCopy?: BitBadgesUserInfo<DesiredNumberType> }[] = [];
+      for (const account of userInfos) {
+        if (reservedNames.includes(account.cosmosAddress)) {
+          accountsToReturn.push({ account: { ...MINT_ACCOUNT, address: account.cosmosAddress, cosmosAddress: account.cosmosAddress }, ignore: true, needToCompare: false })
+          continue;
+        }
+
+        if (forcefulRefresh) {
+          accounts[account.cosmosAddress] = undefined;
+        }
+
+
+        let cachedAccount = accounts[`${account.cosmosAddress}`];
+        if (cachedAccount == undefined) {
+          accountsToReturn.push({ account, needToCompare: false, ignore: false });
+          continue;
+        } else {
+          const cachedAccountCopy = deepCopy(cachedAccount);
+
+          let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
+          //If we have stored the public key in cookies, use that instead (for Ethereum)
+          if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
+            publicKey = cookies.pub_key.split('-')[1];
+          }
+
+          //Append all views to the existing views
+          const newViews = cachedAccount?.views || {};
+          for (const [key, val] of Object.entries(account.views)) {
+            if (!val) continue;
+
+            newViews[key] = {
+              ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
+              pagination: {
+                ...val.pagination,
+                total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
+              },
+              type: val.type
+            }
+          }
+
+          //Merge the rest
+          const newAccount = {
+            ...cachedAccount,
+            ...account,
+            reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
+            collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
+            activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
+            announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
+            addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
+            claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
+            views: newViews,
+            publicKey,
+            airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
+            sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
+            accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
+            resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
+          };
+
+          console.log(newAccount.collected);
+
+          //Filter duplicates
+          newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+          newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+          newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+          newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+          newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
+          newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+
+          accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
+        }
+      }
+
+      //Update the accounts map
+      const newUpdates: AccountMap<bigint> = {};
+      const newUsernameUpdates: { [username: string]: string } = {};
+      for (const accountToReturn of accountsToReturn) {
+        if (accountToReturn.ignore) continue;
+        //Only trigger a rerender if the account has changed or we haev to
+        console.log(compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy), console.log(accountToReturn.cachedAccountCopy));
+        if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
+          newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
+          if (accountToReturn.account.username) {
+            newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
+          }
+        }
+      }
+
+      if (Object.keys(newUpdates).length > 0) {
+        accounts = { ...accounts, ...newUpdates };
+      }
+
+      if (Object.keys(newUsernameUpdates).length > 0) {
+        cosmosAddressesByUsernames = { ...cosmosAddressesByUsernames, ...newUsernameUpdates };
+      }
+
+      return {
+        ...state, accounts, cosmosAddressesByUsernames
+      }
+    default:
+      return state;
+  }
+};
+
+
+export const store = legacy_createStore(accountReducer);
+
+export const updateAccountsRedux = (userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false, cookies: { [key: string]: string } = {}) => ({
+  type: 'UPDATE_ACCOUNTS',
+  payload: {
+    userInfos,
+    forcefulRefresh,
+    cookies
+  }
+});
+
+
 export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
-  const [accounts, setAccountsMap] = useState<AccountMap<DesiredNumberType>>({ 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': MINT_ACCOUNT, 'All Other': MINT_ACCOUNT });
-  const [cosmosAddressesByUsernames, setCosmosAddressesByUsernames] = useState<{ [username: string]: string }>({});
+  const accounts = useSelector((state: State) => state.accounts);
+  const cosmosAddressesByUsernames = useSelector((state: State) => state.cosmosAddressesByUsernames);
+  const dispatch = useDispatch();
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
-  const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
+
 
   const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
     if (reservedNames.includes(addressOrUsername)) return { ...MINT_ACCOUNT, address: addressOrUsername, cosmosAddress: addressOrUsername };
@@ -107,121 +248,12 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateAccounts = (userInfos: BitBadgesUserInfo<DesiredNumberType>[], forcefulRefresh?: boolean) => {
-    const accountsToReturn: { account: BitBadgesUserInfo<DesiredNumberType>, needToCompare: boolean, ignore: boolean, cachedAccountCopy?: BitBadgesUserInfo<DesiredNumberType> }[] = [];
-    for (const account of userInfos) {
-      if (reservedNames.includes(account.cosmosAddress)) {
-        accountsToReturn.push({ account: { ...MINT_ACCOUNT, address: account.cosmosAddress, cosmosAddress: account.cosmosAddress }, ignore: true, needToCompare: false })
-        continue;
-      }
-
-      if (forcefulRefresh) {
-        accounts[account.cosmosAddress] = undefined;
-      }
-
-
-      let cachedAccount = accounts[`${account.cosmosAddress}`];
-      if (cachedAccount == undefined) {
-        accountsToReturn.push({ account, needToCompare: false, ignore: false });
-        continue;
-      } else {
-        const cachedAccountCopy = deepCopy(cachedAccount);
-
-        let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
-        //If we have stored the public key in cookies, use that instead (for Ethereum)
-        if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
-          publicKey = cookies.pub_key.split('-')[1];
-        }
-
-        //Append all views to the existing views
-        const newViews = cachedAccount?.views || {};
-        for (const [key, val] of Object.entries(account.views)) {
-          if (!val) continue;
-
-          newViews[key] = {
-            ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
-            pagination: {
-              ...val.pagination,
-              total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-            },
-            type: val.type
-          }
-        }
-
-        //Merge the rest
-        const newAccount = {
-          ...cachedAccount,
-          ...account,
-          reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
-          collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
-          activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
-          announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
-          addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
-          claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
-          views: newViews,
-          publicKey,
-          airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
-          sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
-          accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
-          resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
-        };
-
-        console.log(newAccount.collected);
-
-        //Filter duplicates
-        newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-        newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-        newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-        newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-        newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
-        newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-
-
-        console.log(newAccount);
-        accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
-      }
-    }
-
-    //Update the accounts map
-    const newUpdates: AccountMap<bigint> = {};
-    const newUsernameUpdates: { [username: string]: string } = {};
-    for (const accountToReturn of accountsToReturn) {
-      if (accountToReturn.ignore) continue;
-      //Only trigger a rerender if the account has changed or we haev to
-      console.log(compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy));
-      if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
-        newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
-        if (accountToReturn.account.username) {
-          newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
-        }
-      }
-    }
-
-    if (Object.keys(newUpdates).length > 0) {
-      console.log(newUpdates);
-      setAccountsMap(accounts => {
-        return {
-          ...accounts,
-          ...newUpdates
-        }
-      });
-    }
-
-    if (Object.keys(newUsernameUpdates).length > 0) {
-      setCosmosAddressesByUsernames(cosmosAddressesByUsernames => {
-        return {
-          ...cosmosAddressesByUsernames,
-          ...newUsernameUpdates
-        }
-      });
-    }
-
-
-    return accountsToReturn.map(x => x.account);
+    dispatch(updateAccountsRedux(userInfos, forcefulRefresh, cookies));
   }
 
 
   const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, forcefulRefresh?: boolean) => {
-    return updateAccounts([account], forcefulRefresh)[0];
+    updateAccounts([account], forcefulRefresh)
   }
 
   //Note if you want to update balances both in collections and accounts, you should use fetchBalanceForUser in CollectionsContext
@@ -472,7 +504,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       throw new Error(`Account ${addressOrUsername} not found`);
     }
 
-    setAccountsMap(accounts);
+    dispatch(updateAccountsRedux([account], false, cookies))
   }
 
   const accountsContext: AccountsContextType = {

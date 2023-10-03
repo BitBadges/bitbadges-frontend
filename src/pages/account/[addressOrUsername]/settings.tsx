@@ -1,11 +1,11 @@
-import { Avatar, Button, Divider, Form, Input, Layout, Typography } from 'antd';
+import { Avatar, Button, Divider, Form, Input, Layout, Typography, Upload } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 
-import { PlusOutlined } from '@ant-design/icons';
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { SupportedChain } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
@@ -82,10 +82,6 @@ export function AccountSettings() {
   );
   // const customPages: any[] = []
 
-  const [profilePicUrl, setProfilePicUrl] = useState(
-    signedInAccount?.profilePicUrl ? signedInAccount.profilePicUrl : ''
-  );
-
   const [
     username, setUsername
   ] = useState(
@@ -97,6 +93,27 @@ export function AccountSettings() {
     // console.log('handleEditorChange', html, text);
   }
 
+  const [fileList, setFileList] = useState<any[]>(signedInAccount?.profilePicUrl ? [{
+    uid: '-1',
+    name: 'profilepic.png',
+    status: 'done',
+    url: signedInAccount?.profilePicUrl,
+  }] : []);
+
+  useEffect(() => {
+    setFileList(signedInAccount?.profilePicUrl ? [{
+      uid: '-1',
+      name: 'profilepic.png',
+      status: 'done',
+      url: signedInAccount?.profilePicUrl,
+    }] : []);
+  }, [signedInAccount?.profilePicUrl]);
+
+  const handleFileChange = (info: any) => {
+    setFileList(info.fileList);
+  };
+
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
@@ -106,7 +123,6 @@ export function AccountSettings() {
     setGithub(signedInAccount.github ? signedInAccount.github : '');
     setTelegram(signedInAccount.telegram ? signedInAccount.telegram : '');
     setReadme(signedInAccount.readme ? signedInAccount.readme : '');
-    setProfilePicUrl(signedInAccount.profilePicUrl ? signedInAccount.profilePicUrl : '');
     setUsername(signedInAccount.username ? signedInAccount.username : '');
     setShowAllByDefault(signedInAccount.onlyShowApproved ? false : true);
     setShownBadges(signedInAccount.shownBadges ? signedInAccount.shownBadges : []);
@@ -115,6 +131,12 @@ export function AccountSettings() {
     setCustomLinks(signedInAccount.customLinks ? signedInAccount.customLinks : []);
 
   }, [signedInAccount]);
+  const uploadButton = (
+    <div className='primary-text'>
+      {loading ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
 
   return (
     <DisconnectedWrapper
@@ -128,11 +150,11 @@ export function AccountSettings() {
               className="full-area primary-blue-bg"
               style={{ minHeight: '100vh', padding: 8 }}
             >
-              <br />
+
               <AccountButtonDisplay
                 hideButtons
                 addressOrUsername={chain.cosmosAddress}
-                profilePic={profilePicUrl}
+                profilePic={signedInAccount?.profilePicUrl}
               />
               <Divider></Divider>
               <Form
@@ -163,19 +185,36 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
-                        Profile Pic URL
+                        Profile Pic
                       </Text>
                     }
                   >
+                    <div>
+                      <Upload
+                        name="avatar"
+                        listType="picture-card"
+                        fileList={fileList}
+                        onChange={handleFileChange}
+                        maxCount={1}
+                        accept="image/*"
+                        className=''
+                        showUploadList={true}
+                      >
+                        {uploadButton}
+                        {/* <div className='flex' style={{ alignItems: 'center' }}>
+                          <Button type='primary' icon={<UploadOutlined />}>Select File</Button>
+                          <div className='flex primary-text' style={{ alignItems: 'center', marginLeft: 10 }}>
+                            {fileList && fileList.length > 0 ? fileList[0].name : ''}
+                          </div>
+                        </div>
+                        {/* {
+                          <img src={
+                            fileList && fileList.length > 0 ? fileList[0].thumbUrl : imageUrl
+                          } style={{ width: '100%' }}></img>
+                        } */}
+                      </Upload>
 
-                    <Input
-                      defaultValue={profilePicUrl}
-                      value={profilePicUrl}
-                      onChange={(e) => {
-                        setProfilePicUrl(e.target.value);
-                      }}
-                      className="form-input"
-                    />
+                    </div>
                     {chain.chain === SupportedChain.ETH &&
                       <Typography.Text strong className='secondary-text'>
                         If username or profile pic URL is not specified, we will display your ENS name / avatar.
@@ -414,8 +453,6 @@ export function AccountSettings() {
                           />} />
                     </div>
                   </Form.Item>
-
-
                 </div>
               </Form>
 
@@ -429,7 +466,6 @@ export function AccountSettings() {
                     setLoading(true);
                     try {
                       if (!signedInAccount) return;
-
                       const data = {
                         twitter,
                         discord,
@@ -437,22 +473,55 @@ export function AccountSettings() {
                         telegram,
                         // name,
                         readme,
-                        profilePicUrl,
                         onlyShowApproved: !showAllByDefault,
                         shownBadges,
                         hiddenBadges,
                         customLinks,
                         customPages,
-                        username
+                        username,
+                        profilePicImageFile: ''
                       };
 
-                      await updateAccountInfo(data);
+                      let file = null;
+                      console.log('fileList', fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
+                      if (fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl) {
+                        file = fileList[0].originFileObj;
 
-                      accounts.updateAccount({
-                        ...signedInAccount,
-                        ...data
-                      });
-                      router.push(`/account/${chain.cosmosAddress}`);
+                        const reader = new FileReader();
+
+                        reader.onload = async (e) => {
+                          try {
+                            const base64Data = e.target?.result?.toString().split(',')[1] ?? ''; // Extract the base64 data
+                            data.profilePicImageFile = base64Data;
+
+                            await updateAccountInfo(data);
+
+                            accounts.updateAccount({
+                              ...signedInAccount,
+                              ...data
+                            });
+                            router.push(`/account/${chain.cosmosAddress}`);
+                          } catch (error) {
+                            console.error('Error uploading file:', error);
+                          }
+                        };
+
+                        reader.readAsDataURL(file);
+                      } else {
+
+                        await updateAccountInfo({
+                          ...signedInAccount,
+                          ...data,
+                          profilePicUrl: fileList.length == 0 ? '' : signedInAccount.profilePicUrl
+                        });
+
+                        accounts.updateAccount({
+                          ...signedInAccount,
+                          ...data,
+                          profilePicUrl: fileList.length == 0 ? '' : signedInAccount.profilePicUrl
+                        });
+                        router.push(`/account/${chain.cosmosAddress}`);
+                      }
                     } catch (err) {
                       console.log(err);
                     }

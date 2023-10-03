@@ -1,4 +1,4 @@
-import { Empty, Layout, Spin } from 'antd';
+import { Badge, Empty, Layout, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
@@ -25,15 +25,29 @@ export function Notifications() {
   const transferActivity = accounts.getActivityView(chain.cosmosAddress, 'latestActivity') ?? [];
   const announcements = accounts.getAnnouncementsView(chain.cosmosAddress, 'latestAnnouncements') ?? [];
   const claimAlerts = accounts.getClaimAlertsView(chain.cosmosAddress, 'latestClaimAlerts') ?? [];
+  const [prevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
+
+  const [seenAnnouncements, setSeenAnnouncements] = useState<boolean>(false);
+  const [seenClaimAlerts, setSeenClaimAlerts] = useState<boolean>(false);
+  const [seenTransferActivity, setSeenTransferActivity] = useState<boolean>(false);
+  const [seenAddressMappings, setSeenAddressMappings] = useState<boolean>(false);
+
+  const fetchMore = async () => {
+    if (!signedInAccount) return;
+
+    await accounts.fetchNextForViews(signedInAccount.cosmosAddress, [`${listsTab}`]);
+  }
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
     const signedInAccount = accounts.getAccount(chain.address);
 
     if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
-      accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: chain.lastSeenActivity });
+      accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
   }, [chain.connected, chain.loggedIn, chain.cosmosAddress, chain.address, chain.lastSeenActivity, accounts]);
+
 
   const listsTab = 'latestAddressMappings';
   const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -45,7 +59,55 @@ export function Notifications() {
     accounts.fetchAccounts([...new Set(createdBys)]);
   }, [listsView]);
 
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, fetch accounts');
+    if (hasMoreAddressMappings) fetchMore();
+  }, []);
 
+
+  const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
+  const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
+  const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
+  const unseenAddressMappingsCount = listsView.filter((addressMapping) => addressMapping.createdTimestamp > (prevSeenActivity ?? 0)).length;
+
+  //Make badge count disappear 5 seconds after being seen
+  useEffect(() => {
+    if (tab === 'announcements') {
+      if (seenAnnouncements) return
+      setTimeout(() => {
+        setSeenAnnouncements(true);
+      }, 5000);
+    } else if (tab === 'claimAlerts') {
+      if (seenClaimAlerts) return
+      setTimeout(() => {
+        setSeenClaimAlerts(true);
+      }, 5000);
+    } else if (tab === 'transferActivity') {
+      if (seenTransferActivity) return
+      setTimeout(() => {
+        setSeenTransferActivity(true);
+      }, 5000);
+    } else if (tab === 'latestAddressMappings') {
+      if (seenAddressMappings) return
+      setTimeout(() => {
+        setSeenAddressMappings(true);
+      }, 5000);
+    }
+  }, [tab]);
+
+  const TabComponent = ({ title, count }: { title: string, count: number }) => {
+    const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressMappings);
+
+
+    return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
+      <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>
+        {title}
+      </Typography.Text>
+      {'      '}
+      {count > 0 && toShow && <Badge style={{ marginLeft: 6 }} count={count} overflowCount={10}>
+      </Badge>}
+    </div>
+  }
 
   return (
     <DisconnectedWrapper
@@ -53,7 +115,6 @@ export function Notifications() {
       message={'Please connect your wallet and sign in to view this page.'}
       node={
         <RegisteredWrapper
-
           node={
             <Layout>
               <Content
@@ -83,20 +144,20 @@ export function Notifications() {
 
                       {
                         key: 'announcements',
-                        content: 'Announcements',
+                        content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
                         disabled: false
                       }, {
                         key: 'claimAlerts',
-                        content: 'Claim Alerts',
+                        content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
                         disabled: false
                       }, {
                         key: 'transferActivity',
-                        content: 'Transfer Activity',
+                        content: <TabComponent title={'Transfer Activity'} count={unseenTransferActivityCount} />,
                         disabled: false
                       },
                       {
                         key: 'latestAddressMappings',
-                        content: 'List Activity',
+                        content: <TabComponent title={'Lists'} count={unseenAddressMappingsCount} />,
                         disabled: false
                       }]}
                   />
@@ -133,11 +194,7 @@ export function Notifications() {
                       <div className='flex-center flex-wrap'>
                         <InfiniteScroll
                           dataLength={listsView.length}
-                          next={async () => {
-                            if (!signedInAccount) return;
-
-                            await accounts.fetchNextForViews(signedInAccount.cosmosAddress, [`${listsTab}`]);
-                          }}
+                          next={fetchMore}
 
                           hasMore={hasMoreAddressMappings}
                           loader={<div>

@@ -24,7 +24,7 @@ export function NumberInput({
         title='Amount'
         value={value}
         onChange={
-          (value: number) => {
+          (value: number | null) => {
             if (!value || value <= 0) {
               setValue(0);
             }

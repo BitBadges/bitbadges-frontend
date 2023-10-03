@@ -38,7 +38,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
       if (!activity) return;
 
       //We only fetch accounts for the panel headers, so if not displayed we don't fetch
-      const accountsToFetch = activity.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat();
+      const accountsToFetch = [...new Set(activity.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat())];
       const collectionsToFetch = activity.map(a => a.collectionId);
 
       await collections.fetchCollections(collectionsToFetch);

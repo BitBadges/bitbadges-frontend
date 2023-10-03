@@ -1,3 +1,4 @@
+import { UintRange } from "bitbadgesjs-proto";
 import { BitBadgesCollection } from "bitbadgesjs-utils";
 
 export function getTotalNumberOfBadges(collection: BitBadgesCollection<bigint>) {
@@ -12,4 +13,13 @@ export function getTotalNumberOfBadges(collection: BitBadgesCollection<bigint>) 
     }
   }
   return maxBadgeId;
+}
+
+export const getTotalNumberOfBadgeIds = (badgeIds: UintRange<bigint>[]) => {
+  let sum = 0n;
+  for (const range of badgeIds) {
+    sum += range.end - range.start + 1n;
+  }
+
+  return sum;
 }

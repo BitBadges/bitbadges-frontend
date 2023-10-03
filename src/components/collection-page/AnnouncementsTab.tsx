@@ -44,10 +44,9 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     if (hasMore) fetchMore();
-  }, [hasMore, fetchMore])
+  }, [])
 
   const manager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager;
-
   const isManager = manager && collection && collectionId && chain.cosmosAddress === manager && chain.loggedIn
 
   return (
@@ -94,6 +93,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
           <br />
           <Spin size={'large'} />
         </div>}
+
         scrollThreshold="200px"
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}

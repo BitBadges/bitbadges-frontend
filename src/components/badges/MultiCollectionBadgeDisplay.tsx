@@ -19,6 +19,7 @@ import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import IconButton from "../display/IconButton";
 
 export function MultiCollectionBadgeDisplay({
   collectionIds,
@@ -84,8 +85,6 @@ export function MultiCollectionBadgeDisplay({
         badgeIds: UintRange<bigint>[]
       }[] = [];
 
-      console.log(customPageBadges);
-
       //If we have an account to show balances for, show that accounts balances
       //Else, show the entire collection
       if (customPageBadges) {
@@ -98,15 +97,12 @@ export function MultiCollectionBadgeDisplay({
           });
         }
       } else if (accountInfo) {
-        console.log("ASFJHSD");
-        console.log(collectionIds);
         for (const collectionId of collectionIds) {
           let balances = deepCopy(badgesToShow.flat() ?? []);
           if (!showCustomizeButtons) {
             const onlyShowApproved = accountInfo.onlyShowApproved;
             const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
             const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
-            console.log("BALANCES", balances);
             if (onlyShowApproved) {
               balances = balances.map(x => {
                 return {
@@ -125,9 +121,7 @@ export function MultiCollectionBadgeDisplay({
                   }).filter(a => a !== undefined && a && a.badgeIds.length > 0) as Balance<bigint>[]
                 }
               })
-              console.log("BALANCES", balances);
             } else {
-              console.log("BALANCES", balances);
               balances = balances.map(x => {
                 return {
                   ...x,
@@ -148,7 +142,6 @@ export function MultiCollectionBadgeDisplay({
             }
 
           }
-          console.log(balances);
 
 
           if (balances) {
@@ -259,9 +252,7 @@ export function MultiCollectionBadgeDisplay({
     const addToArray = (arr: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[], badgeIdsToAdd: UintRange<bigint>[]) => {
       const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
       if (existingIdx != -1) {
-        console.log([...arr[existingIdx].badgeIds, ...badgeIdsToAdd]);
         arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd])
-        console.log(arr[existingIdx].badgeIds);
       } else {
         arr.push({
           collectionId: badgeIdObj.collectionId,
@@ -325,10 +316,13 @@ export function MultiCollectionBadgeDisplay({
         <div className="flex-center">
           {accountInfo &&
             <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Typography.Text strong className="primary-text" style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 10 }}>
-                {!onlyShowCollectionOptions && <>
-                  {(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide' : 'Show'} Badge
-                  <SwapOutlined className='styled-button' style={{ marginLeft: 4, cursor: 'pointer', border: 'none' }} onClick={async () => {
+
+              {!onlyShowCollectionOptions && <>
+                <IconButton
+
+                  src={<SwapOutlined />}
+                  text={(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide' : 'Show'}
+                  onClick={async () => {
                     // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
 
                     if (accountInfo.onlyShowApproved) {
@@ -351,7 +345,6 @@ export function MultiCollectionBadgeDisplay({
                     } else {
                       const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
 
-                      console.log("NEW HIDDEN", hiddenBadge);
                       await updateAccountInfo(deepCopy({
                         ...accountInfo,
                         hiddenBadges: hiddenBadge
@@ -369,11 +362,14 @@ export function MultiCollectionBadgeDisplay({
                     }
                   }
                   } />
-                  <br />
 
-                </>}
-                {(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide' : 'Show'} Entire Collection
-                <SwapOutlined className='styled-button' style={{ marginLeft: 4, cursor: 'pointer', border: 'none' }} onClick={async () => {
+              </>}
+
+              <IconButton
+
+                src={<SwapOutlined />}
+                text={(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide Collection' : 'Show Collection'}
+                onClick={async () => {
 
                   if (accountInfo.onlyShowApproved) {
                     const shownBadge = isShown ? removeFromArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
@@ -394,7 +390,6 @@ export function MultiCollectionBadgeDisplay({
                   } else {
                     const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
-                    console.log("NEW HIDDEN", hiddenBadge);
                     await updateAccountInfo(deepCopy({
                       ...accountInfo,
                       hiddenBadges: hiddenBadge
@@ -412,63 +407,60 @@ export function MultiCollectionBadgeDisplay({
                   }
                 }
                 } />
-                <br />
-                {!onlyShowCollectionOptions && <>
-                  {isPinned ? 'Unpin from' : 'Pin to'} Profile
-                  <FontAwesomeIcon
-                    icon={faThumbtack}
-                    className='styled-button'
-                    style={{ marginLeft: 4, cursor: 'pointer', border: 'none' }}
-                    onClick={async () => {
-                      let pinnedPage = deepCopy(accountInfo.customPages?.find(x => x.title == 'Pinned Badges'));
+              <IconButton
 
-                      if (isPinned) {
-                        if (pinnedPage) {
-                          const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                          pinnedPage.badges = newBadgeIds;
-                        }
-                      } else {
-                        if (pinnedPage) {
-                          const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                          pinnedPage.badges = newBadgeIds;
-                        } else {
-                          pinnedPage = {
-                            title: 'Pinned Badges',
-                            description: 'Badges pinned to your profile.',
-                            badges: [
-                              { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
-                            ]
-                          }
-                        }
-                      }
+                src={<FontAwesomeIcon
+                  icon={faThumbtack}
+                />
+                }
+                text={(accountInfo.onlyShowApproved && isPinned) || (!accountInfo.onlyShowApproved && !isPinned) ? 'Pin' : 'Unpin'}
+                onClick={async () => {
+                  let pinnedPage = deepCopy(accountInfo.customPages?.find(x => x.title == 'Pinned Badges'));
 
-                      if (pinnedPage === undefined) return;
-                      await updateAccountInfo({
-                        customPages:
-                          accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
-                            accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
-                            [...(accountInfo.customPages ?? []), pinnedPage]
-                      });
-
-                      accountsContext.updateAccount(deepCopy({
-                        ...accountInfo,
-                        customPages:
-                          accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
-                            accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
-                            [...(accountInfo.customPages ?? []), pinnedPage]
-                      }))
-
+                  if (isPinned) {
+                    if (pinnedPage) {
+                      const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
+                      pinnedPage.badges = newBadgeIds;
                     }
-                    } />
-                </>}
-                <br />
-                <br />
-              </Typography.Text>
+                  } else {
+                    if (pinnedPage) {
+                      const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
+                      pinnedPage.badges = newBadgeIds;
+                    } else {
+                      pinnedPage = {
+                        title: 'Pinned Badges',
+                        description: 'Badges pinned to your profile.',
+                        badges: [
+                          { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
+                        ]
+                      }
+                    }
+                  }
+
+                  if (pinnedPage === undefined) return;
+                  await updateAccountInfo({
+                    customPages:
+                      accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
+                        accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
+                        [...(accountInfo.customPages ?? []), pinnedPage]
+                  });
+
+                  accountsContext.updateAccount(deepCopy({
+                    ...accountInfo,
+                    customPages:
+                      accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
+                        accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
+                        [...(accountInfo.customPages ?? []), pinnedPage]
+                  }))
+
+                }
+                } />
             </div>
           }
         </div>
       </>
-    }</>
+    }
+    </>
   }
 
 
@@ -477,60 +469,60 @@ export function MultiCollectionBadgeDisplay({
     return <>
       {!hidePagination && <><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} />
       </>}
+      <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+        {
+          collectionIds.map((collectionId, idx) => {
+            const collection = collections.collections[collectionId.toString()];
+            const balances = accountInfo ? badgesToShow.find(collected => collected.collectionId == collectionId)?.balances ?? []
+              : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
+            if (balances.length == 0) return <></>;
 
-      {
-        collectionIds.map((collectionId, idx) => {
-          const collection = collections.collections[collectionId.toString()];
-          const balances = accountInfo ? badgesToShow.find(collected => collected.collectionId == collectionId)?.balances ?? []
-            : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
-          console.log(accountInfo);
-          if (balances.length == 0) return <></>;
+            ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
+            if (!loaded) return <Spin />
 
-          ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
-          if (!loaded) return <Spin />
-
-          return <InformationDisplayCard title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
-            <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
-              <div className='link-button-nav flex-center' onClick={() => {
-                router.push('/collections/' + collectionId)
-                Modal.destroyAll()
-              }} style={{ alignItems: 'center', justifyContent: 'center' }}>
-                <BadgeAvatar
-                  size={50}
-                  collectionId={collectionId}
-                  noHover
-                />
-                <Typography.Text className="primary-text" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
-                  {collection?.cachedCollectionMetadata?.name}
-                </Typography.Text>
-
-              </div>
-              {collection &&
-                <div className="flex-center">
-                  <Typography.Text className="primary-text" style={{ fontWeight: 'bold', marginRight: 10 }}>
-                    By:
+            return <InformationDisplayCard title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
+              <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
+                <div className='link-button-nav flex-center' onClick={() => {
+                  router.push('/collections/' + collectionId)
+                  Modal.destroyAll()
+                }} style={{ alignItems: 'center', justifyContent: 'center' }}>
+                  <BadgeAvatar
+                    size={50}
+                    collectionId={collectionId}
+                    noHover
+                  />
+                  <Typography.Text className="primary-text" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
+                    {collection?.cachedCollectionMetadata?.name}
                   </Typography.Text>
-                  <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />
-                </div>}
-              <br />
-            </Tooltip>
 
-            <BadgeAvatarDisplay
-              collectionId={collectionId}
-              defaultPageSize={defaultPageSize}
-              cardView={cardView}
-              addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
-              balance={addressOrUsernameToShowBalance ? balances : undefined}
-              badgeIds={balances.map((x) => x.badgeIds).flat()}
-              hideCollectionLink={hideCollectionLink}
-              showIds
-              showOnSinglePage
-            // doNotFetchMetadata
-            />
-            {CustomizeButtons({ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }, 1n, true)}
-          </InformationDisplayCard>
-        })
-      }
+                </div>
+                {collection &&
+                  <div className="flex-center">
+                    <Typography.Text className="primary-text" style={{ fontWeight: 'bold', marginRight: 10 }}>
+                      By:
+                    </Typography.Text>
+                    <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />
+                  </div>}
+                <br />
+              </Tooltip>
+
+              <BadgeAvatarDisplay
+                collectionId={collectionId}
+                defaultPageSize={defaultPageSize}
+                cardView={cardView}
+                addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
+                balance={addressOrUsernameToShowBalance ? balances : undefined}
+                badgeIds={balances.map((x) => x.badgeIds).flat()}
+                hideCollectionLink={hideCollectionLink}
+                showIds
+                showOnSinglePage
+              // doNotFetchMetadata
+              />
+              {CustomizeButtons({ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }, 1n, true)}
+            </InformationDisplayCard>
+          })
+        }
+      </div>
     </>
 
 
@@ -552,10 +544,6 @@ export function MultiCollectionBadgeDisplay({
                 }
                 return <>
                   {badgeIds.map((badgeId) => {
-                    console.log(badgeId);
-
-
-
                     return <>
                       {cardView ? <>
                         <div>

@@ -153,10 +153,10 @@ export function BadgeIdRangesInput({
                 max={Numberify(sliderValues[i][1])}
                 value={Numberify(sliderValues[i][0])}
                 onChange={
-                  (value: number) => {
+                  (value: number | null) => {
 
 
-                    if (value >= 0 && value <= sliderValues[i][1]) {
+                    if (value && value >= 0 && value <= sliderValues[i][1]) {
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [value, v[1]] : v);
                       const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
                       setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));
@@ -176,8 +176,8 @@ export function BadgeIdRangesInput({
                 title='Amount to Transfer'
                 value={Numberify(sliderValues[i][1])}
                 onChange={
-                  (value: number) => {
-                    if (value >= 0 && value >= sliderValues[i][0]) {
+                  (value: number | null) => {
+                    if (value && value >= 0 && value >= sliderValues[i][0]) {
                       const _newSliderValues = sliderValues.map((v, j) => i === j ? [v[0], value] : v);
                       const newSliderValues = _newSliderValues.map(([start, end]) => [BigInt(start), BigInt(end)]);
                       setSliderValues(newSliderValues.map(x => [BigInt(x[0]), BigInt(x[1])]));

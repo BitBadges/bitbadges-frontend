@@ -2,7 +2,7 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { Row } from "antd";
 import { Balance, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
 import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
@@ -34,7 +34,7 @@ export function BalanceDisplayEditRow({
   incrementOwnershipTimesBy?: bigint
   hideOwnershipTimeSelect?: boolean
 
-  message?: string;
+  message?: string | ReactNode
   size?: number;
   showingSupplyPreview?: boolean;
 

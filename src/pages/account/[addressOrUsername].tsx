@@ -12,7 +12,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
-import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { getTotalNumberOfBadgeIds } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
@@ -40,7 +40,6 @@ function PortfolioPage() {
 
   const { addressOrUsername } = router.query;
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
-  console.log("ACCOUNT INFO.COLLECTED", accountInfo?.collected)
   const [tab, setTab] = useState(
     accountInfo?.readme ? 'overview' :
       'collected');
@@ -55,7 +54,7 @@ function PortfolioPage() {
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
-
+  const [hiddenBadgesDisplayed, setHiddenBadgesDisplayed] = useState<number>(25);
 
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
@@ -179,7 +178,58 @@ function PortfolioPage() {
     }
   }
 
-  console.log(badgesToShow)
+
+  const fetchMoreCollected = async () => {
+    if (!accountInfo) return;
+
+    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+      await accounts.fetchNextForViews(accountInfo.cosmosAddress, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
+    }
+
+    if (!groupByCollection) {
+      if (numBadgesDisplayed + 25 > numTotalBadges) {
+        setNumBadgesDisplayed(numBadgesDisplayed + 25);
+      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+        setNumBadgesDisplayed(numBadgesDisplayed + 100);
+      } else {
+        setNumBadgesDisplayed(numTotalBadges + 25);
+      }
+    }
+  }
+
+  const fetchMoreLists = async () => {
+    if (!accountInfo) return;
+
+    await accounts.fetchNextForViews(accountInfo.cosmosAddress, [`${listsTab}`]);
+  }
+
+  const fetchMoreCreatedBy = async () => {
+    if (!accountInfo) return;
+
+    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['createdBy']);
+    await collections.fetchCollections([...new Set(res?.views['createdBy']?.ids.map(x => BigInt(x)) ?? [])]);
+  }
+
+  const fetchMoreManaging = async () => {
+    if (!accountInfo) return;
+
+    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['managing', 'createdBy']);
+    await collections.fetchCollections([...new Set(res?.views['managing']?.ids.map(x => BigInt(x)) ?? [])]);
+  }
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
+
+    if (tab === 'collected' && (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges))) {
+      fetchMoreCollected();
+    } else if (tab === 'lists' && hasMoreAddressMappings) {
+      fetchMoreLists();
+    } else if (tab === 'createdBy' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true)) {
+      fetchMoreCreatedBy();
+    } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true)) {
+      fetchMoreManaging();
+    }
+  }, [tab]);
 
 
   useEffect(() => {
@@ -484,6 +534,7 @@ function PortfolioPage() {
                     />
                     {badgeTab}
                   </Typography.Text>
+
                   <MultiCollectionBadgeDisplay
                     collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
                     customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
@@ -502,23 +553,7 @@ function PortfolioPage() {
 
               <InfiniteScroll
                 dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                next={async () => {
-                  if (!accountInfo) return;
-
-                  if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                    await accounts.fetchNextForViews(accountInfo.cosmosAddress, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
-                  }
-
-                  if (!groupByCollection) {
-                    if (numBadgesDisplayed + 25 > numTotalBadges) {
-                      setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                    } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                      setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                    } else {
-                      setNumBadgesDisplayed(numTotalBadges + 25);
-                    }
-                  }
-                }}
+                next={fetchMoreCollected}
                 hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
                 loader={<div>
                   <br />
@@ -619,11 +654,7 @@ function PortfolioPage() {
             <div className='flex-center flex-wrap'>
               <InfiniteScroll
                 dataLength={listsView.length}
-                next={async () => {
-                  if (!accountInfo) return;
-
-                  await accounts.fetchNextForViews(accountInfo.cosmosAddress, [`${listsTab}`]);
-                }}
+                next={fetchMoreLists}
                 hasMore={hasMoreAddressMappings}
                 loader={<div>
                   <br />
@@ -686,15 +717,11 @@ function PortfolioPage() {
           )}
 
           {tab === 'createdBy' && (<>
+            <br />
             <div className='flex-center flex-wrap'>
               <InfiniteScroll
                 dataLength={accountInfo?.views['createdBy']?.ids.length ?? 0}
-                next={async () => {
-                  if (!accountInfo) return;
-
-                  const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['createdBy']);
-                  await collections.fetchCollections([...new Set(res?.views['createdBy']?.ids.map(x => BigInt(x)) ?? [])]);
-                }}
+                next={fetchMoreCreatedBy}
                 hasMore={accountInfo?.views['createdBy']?.pagination?.hasMore ?? true}
                 loader={<div>
                   <br />
@@ -735,15 +762,11 @@ function PortfolioPage() {
           </>)}
 
           {tab === 'managing' && (<>
+            <br />
             <div className='flex-center flex-wrap'>
               <InfiniteScroll
                 dataLength={accountInfo?.views['managing']?.ids.length ?? 0}
-                next={async () => {
-                  if (!accountInfo) return;
-
-                  const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['managing', 'createdBy']);
-                  await collections.fetchCollections([...new Set(res?.views['managing']?.ids.map(x => BigInt(x)) ?? [])]);
-                }}
+                next={fetchMoreManaging}
                 hasMore={accountInfo?.views['managing']?.pagination?.hasMore ?? true}
                 loader={<div>
                   <br />
@@ -753,7 +776,7 @@ function PortfolioPage() {
                 endMessage={
                   <></>
                 }
-                initialScrollY={0}
+                initialScrollY={500}
                 style={{ width: '100%', overflow: 'hidden', }}
               >
                 <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
@@ -787,22 +810,12 @@ function PortfolioPage() {
           {tab === 'hidden' && (<>
             {!chain.loggedIn ? <BlockinDisplay /> :
               <div className='flex-center flex-wrap'>
-
                 <InfiniteScroll
-                  dataLength={numBadgesDisplayed}
-
+                  dataLength={!groupByCollection ? hiddenBadgesDisplayed : accountInfo.hiddenBadges?.length ?? 0}
                   next={async () => {
-                    if (!accountInfo) return;
-                    const num = accountInfo.hiddenBadges?.reduce((acc, collection) => acc + collection.badgeIds.reduce((acc2, range) => acc2 + (range.end - range.start + 1n), 0n), 0n) ?? 0n;
-                    const numTotalBadges = num > Number.MAX_SAFE_INTEGER ? Number.MAX_SAFE_INTEGER : Number(num);
-
-
-
-                    if (!groupByCollection) {
-                      setNumBadgesDisplayed(numBadgesDisplayed + 25 > numTotalBadges ? numTotalBadges : numBadgesDisplayed + 25);
-                    }
+                    setHiddenBadgesDisplayed(hiddenBadgesDisplayed + 25);
                   }}
-                  hasMore={true}
+                  hasMore={(!groupByCollection && hiddenBadgesDisplayed < (getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0))}
                   loader={<div>
                     <br />
                     <Spin size={'large'} />
@@ -814,31 +827,16 @@ function PortfolioPage() {
                   initialScrollY={0}
                   style={{ width: '100%', overflow: 'hidden' }}
                 >
-                  {badgesToShow.length > 0 &&
+                  {(getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0) > 0 &&
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
                   <MultiCollectionBadgeDisplay
                     collectionIds={accountInfo.hiddenBadges?.map((collection) => collection.collectionId) ?? []}
                     addressOrUsernameToShowBalance={accountInfo.address}
-                    customPageBadges={accountInfo.hiddenBadges?.map(x => {
-                      const collection = collections.collections[x.collectionId.toString()];
-                      if (!collection) return undefined;
-                      const maxBadgeId = getTotalNumberOfBadges(collection);
-
-                      return {
-                        collectionId: x.collectionId,
-                        badgeIds: x.badgeIds.map(range => {
-                          return {
-                            start: range.start,
-                            end: range.end > maxBadgeId ? maxBadgeId : range.end
-                          }
-                        }).filter(x => x.start <= x.end)
-                      }
-                    }).filter(x => x !== undefined) as { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]}
+                    customPageBadges={accountInfo.hiddenBadges ?? []}
                     cardView={cardView}
                     groupByCollection={groupByCollection}
-                    defaultPageSize={cardView ? 1 : 10}
+                    defaultPageSize={groupByCollection ? 1 : hiddenBadgesDisplayed}
                     hidePagination={true}
-
                     showCustomizeButtons={editMode}
                   />
                 </InfiniteScroll>
@@ -856,6 +854,8 @@ function PortfolioPage() {
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                     />
                   )}
+
+
               </div>
             }
           </>)}

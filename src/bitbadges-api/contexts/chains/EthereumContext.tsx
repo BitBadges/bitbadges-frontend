@@ -1,6 +1,6 @@
 import { Secp256k1 } from '@cosmjs/crypto';
 import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi/core";
-import { useWeb3Modal } from '@web3modal/wagmi/react'
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 
 import { notification } from 'antd';
 import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
@@ -52,16 +52,16 @@ type Props = {
 
 export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const accountsContext = useAccountsContext();
-  const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
   const [chainId, setChainId] = useState<string>('Mainnet');
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
-  const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
   const { open } = useWeb3Modal();
   const web3AccountContext = useAccount();
+  const address = web3AccountContext.address || '';
+  const cosmosAddress = convertToCosmosAddress(address);
 
   const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
     viewKey: 'badgesCollected',
@@ -93,7 +93,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       if (web3AccountContext.address) {
         connect();
       }
-
     }
 
     setDetails();
@@ -111,6 +110,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       setConnected(false);
       try {
         await open();
+
       } catch (e) {
         notification.error({
           message: 'Error connecting to wallet',
@@ -118,11 +118,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         })
       }
     } else if (web3AccountContext.address) {
+
       let loggedIn = false;
 
-      setAddress(web3AccountContext.address);
-      setCosmosAddress(convertToCosmosAddress(web3AccountContext.address));
       setConnected(true);
+
 
       if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
         const signedInRes = await checkIfSignedIn({});
@@ -156,8 +156,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const disconnect = async () => {
-    setAddress('');
-    setCosmosAddress('');
     setConnected(false);
     setLoggedIn(false);
     await disconnectWeb3();
@@ -259,9 +257,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     signChallenge,
     signTxn,
     cosmosAddress,
-    setCosmosAddress,
+    setCosmosAddress: () => { },
     address,
-    setAddress,
+    setAddress: () => { },
     signer,
     setSigner,
     getPublicKey,

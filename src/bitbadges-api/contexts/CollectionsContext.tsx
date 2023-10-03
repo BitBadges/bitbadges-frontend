@@ -23,6 +23,7 @@ export type CollectionsContextType = {
   fetchCollectionsWithOptions: (
     collectionsToFetch: (
       { collectionId: DesiredNumberType } & GetMetadataForCollectionRequestBody & GetAdditionalCollectionDetailsRequestBody
+      & { forcefulFetchTrackers?: boolean }
     )[],
     forceful?: boolean
   ) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
@@ -87,8 +88,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>) => {
-
-    console.log("new collection", newCollection);
     let cachedCollection = collections[`${newCollection.collectionId}`];
     const cachedCollectionCopy = deepCopy(cachedCollection);
 
@@ -111,7 +110,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           },
           type: val.type
         }
-        console.log("newViews[key]", newViews[key])
       }
 
       //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
@@ -153,8 +151,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         }
       }).filter(x => x !== undefined) as any);
 
-      console.log(cachedCollectionCopy, cachedCollection);
-      console.log(compareObjects(cachedCollectionCopy, cachedCollection));
       //Only update if anything has changed
       if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
         setCollections(collections => {
@@ -295,9 +291,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
 
             //Intutition: check singular, starting badge ID. If it is same as others, handle all together. Else, just handle that and continue
-            console.log(badgeIdsLeft, collectionId);
             while (badgeIdsLeft.length > 0) {
-              console.log(badgeIdsLeft);
               const currBadgeUintRange = badgeIdsLeft[0];
 
               const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
@@ -318,7 +312,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
               const otherMatchingBadgeUintRanges = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
               const [remaining,] = removeUintRangeFromUintRange(otherMatchingBadgeUintRanges, badgeIdsLeft);
               badgeIdsLeft = remaining
-              console.log(badgeIdsLeft);
               badgeIdsLeft = sortUintRangesAndMergeIfNecessary(badgeIdsLeft);
             }
           } else {
@@ -346,6 +339,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   const fetchCollectionsWithOptions = async (collectionsToFetch: (
     { collectionId: DesiredNumberType }
     & GetMetadataForCollectionRequestBody
+    & { forcefulFetchTrackers?: boolean }
     & GetAdditionalCollectionDetailsRequestBody)[], forcefulRefresh?: boolean) => {
     if (collectionsToFetch.some(x => x.collectionId === MSG_PREVIEW_ID)) {
       throw new Error('Cannot fetch preview collection ID === 0');
@@ -385,12 +379,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
         const shouldFetchTotalAndMint = !hasTotalAndMint && collectionToFetch.fetchTotalAndMintBalances;
-        const shouldFetchMerkleChallengeIds = (collectionToFetch.merkleChallengeIdsToFetch ?? []).find(x => {
+        const shouldFetchMerkleChallengeIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.merkleChallengeIdsToFetch ?? []).find(x => {
           const match = cachedCollection.merkleChallenges.find(y => y.challengeId === x.challengeId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && x.challengeLevel === y.challengeLevel)
           return !match;
         }) !== undefined;
 
-        const shouldFetchApprovalTrackerIds = (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
+        const shouldFetchApprovalTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
           const match = cachedCollection.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
           return !match;
         }) !== undefined;

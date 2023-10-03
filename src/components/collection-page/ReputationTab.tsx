@@ -40,7 +40,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: reputation fetch more');
     if (hasMore) fetchMore();
-  }, [hasMore, fetchMore])
+  }, [])
 
 
   return (

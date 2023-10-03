@@ -36,7 +36,22 @@ export function OwnersTab({ collectionId, badgeId }: {
 
   const totalNumOwners = pagination.total ? Numberify(pagination.total) : 0;
 
+  const fetchMore = async () => {
+    if (isPreview) return;
 
+    const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: pagination.bookmark });
+    const badgeOwners = [...ownersRes.owners.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total')]
+    setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
+    setPagination({
+      ...ownersRes.pagination,
+      total: (ownersRes.pagination.total ?? 0) - 2,
+    });
+  }
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: ');
+    if (isPreview ? false : pagination.hasMore) fetchMore();
+  }, [])
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
@@ -92,17 +107,7 @@ export function OwnersTab({ collectionId, badgeId }: {
           {/* <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} /> */}
           <InfiniteScroll
             dataLength={owners.length}
-            next={async () => {
-              if (isPreview) return;
-
-              const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: pagination.bookmark });
-              const badgeOwners = [...ownersRes.owners.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total')]
-              setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
-              setPagination({
-                ...ownersRes.pagination,
-                total: (ownersRes.pagination.total ?? 0) - 2,
-              });
-            }}
+            next={fetchMore}
 
             hasMore={isPreview ? false : pagination.hasMore}
             loader={<div>

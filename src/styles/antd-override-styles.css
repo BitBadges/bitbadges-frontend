@@ -21,6 +21,9 @@
 .ant-upload {
     width: 100%;
 }
+.ant-upload.ant-upload-select-picture-card {
+  background: inherit;
+}
 
 .ant-popover-placement-top {
     left: 0;

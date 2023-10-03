@@ -44,7 +44,6 @@ export function Address({
   const isValidAddress = isAddressValid(address) || address == 'All' || address == 'All Other';
   const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && chain === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
 
-  console.log(chain, overrideChain, address, userInfo?.address, userInfo?.cosmosAddress, newAddress);
   const innerContent = !hideTooltip && userInfo ? (
     <Tooltip
       placement="bottom"

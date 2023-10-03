@@ -10,6 +10,8 @@ import { ActivityTab } from '../components/collection-page/TransferActivityDispl
 import CustomCarousel from '../components/display/Carousel';
 import { Tabs } from '../components/navigation/Tabs';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbtack } from '@fortawesome/free-solid-svg-icons';
 
 const { Content } = Layout;
 
@@ -165,16 +167,8 @@ function BrowsePage() {
                           />
                         </div>
 
-                        <a onClick={() => {
-                          router.push(`/account/${profile.address}`)
-                        }}
-                          style={{ fontSize: 16 }}
-                        >
-                          See full profile
-                        </a>
-                        <div style={{ marginTop: '1rem' }}></div>
 
-                        {/* <b>Pinned <FontAwesomeIcon
+                        <b>Pinned <FontAwesomeIcon
                           icon={faThumbtack}
                           style={{
                             color: 'gold',
@@ -186,10 +180,21 @@ function BrowsePage() {
                           collectionIds={profile.collected.map(collected => collected.collectionId)}
                           addressOrUsernameToShowBalance={profile.address}
                           cardView={cardView}
+                          customPageBadges={profile.customPages?.find(x => x.title === 'Pinned Badges')?.badges ?? []}
                           // size={75}
                           hidePagination
                           defaultPageSize={3}
-                        /> */}
+                        />
+
+
+                        <div style={{ marginTop: '1rem' }}></div>
+                        <a onClick={() => {
+                          router.push(`/account/${profile.address}`)
+                        }}
+                          style={{ fontSize: 16 }}
+                        >
+                          See full profile
+                        </a>
                       </>
                     </InformationDisplayCard>
                   }).filter(x => x)}</div>
