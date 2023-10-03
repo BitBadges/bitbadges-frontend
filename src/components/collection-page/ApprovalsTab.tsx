@@ -14,6 +14,7 @@ import { AddressSelect } from '../address/AddressSelect';
 import { Tabs } from '../navigation/Tabs';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
 interface Props {
   convertedFirstMatches: CollectionApprovedTransferWithDetails<bigint>[];
   collection: BitBadgesCollection<bigint>;
@@ -416,137 +417,138 @@ export function UserApprovalsTab({ collectionId,
   }
 
   return (<>
-    <div className='primary-text'>
-      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
-        <AddressDisplay
-          addressOrUsername={address}
-          fontSize={16}
-        />
-        <AddressSelect
-          defaultValue={chain.address}
-          onUserSelect={(value) => {
-            setAddress(value);
-          }}
-
-        />
-        <br />
-      </>}
-      {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
-        <Tabs
-          fullWidth
-          tab={tab}
-          theme='dark'
-          setTab={setTab}
-          tabInfo={tabInfo}
-        /></>}
-
-      {tab === 'history' && <div className='primary-text'>
-        <br />
-        <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the user updated their approvals.
-        <br />
-
-        {updateHistory.map((update, i) => {
-          return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
-            <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
-              <ClockCircleOutlined style={{ marginRight: '5px' }} />
-              {new Date(Number(update.blockTimestamp)).toLocaleString()}
-              {' '}(Block #{update.block.toString()})
-            </Typography.Text>
-            {update.txHash &&
-              <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
-                {update.txHash}
-              </a></p>
-            }
-            <Divider />
-          </div>
-        })}
-        {updateHistory.length === 0 && <div>
-          <Empty
-            className='primary-text'
-            description={<>
-              <Typography.Text strong className='primary-text'>
-                This user has never updated their approvals.
-              </Typography.Text>
-            </>}
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
+    <InformationDisplayCard title=''>
+      <div className='primary-text'>
+        {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
+          <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
+          <AddressDisplay
+            addressOrUsername={address}
+            fontSize={16}
           />
+          <AddressSelect
+            defaultValue={chain.address}
+            onUserSelect={(value) => {
+              setAddress(value);
+            }}
+
+          />
+          <br />
+        </>}
+        {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
+          <Tabs
+            fullWidth
+            tab={tab}
+            theme='dark'
+            setTab={setTab}
+            tabInfo={tabInfo}
+          /></>}
+
+        {tab === 'history' && <div className='primary-text'>
+          <br />
+          <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the user updated their approvals.
+          <br />
+
+          {updateHistory.map((update, i) => {
+            return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
+              <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+                <ClockCircleOutlined style={{ marginRight: '5px' }} />
+                {new Date(Number(update.blockTimestamp)).toLocaleString()}
+                {' '}(Block #{update.block.toString()})
+              </Typography.Text>
+              {update.txHash &&
+                <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                  {update.txHash}
+                </a></p>
+              }
+              <Divider />
+            </div>
+          })}
+          {updateHistory.length === 0 && <div>
+            <Empty
+              className='primary-text'
+              description={<>
+                <Typography.Text strong className='primary-text'>
+                  This user has never updated their approvals.
+                </Typography.Text>
+              </>}
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          </div>}
         </div>}
-      </div>}
 
 
-      {tab === 'outgoing' && <>
-        <ApprovalsDisplay
-          convertedFirstMatches={convertedFirstOutgoingMatches}
-          collection={collection}
-          badgeId={badgeId}
-        />
-      </>}
+        {tab === 'outgoing' && <>
+          <ApprovalsDisplay
+            convertedFirstMatches={convertedFirstOutgoingMatches}
+            collection={collection}
+            badgeId={badgeId}
+          />
+        </>}
 
-      {tab === 'incoming' && <>
-        <ApprovalsDisplay
-          convertedFirstMatches={convertedFirstIncomingMatches}
-          collection={collection}
-          badgeId={badgeId}
-        />
-      </>}
-    </div>
-    <div className='primary-text'>
-      {tab !== 'history' && !(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>      <Divider />
-        <p>
-          <InfoCircleOutlined />{' '}Approvals are broken down into multiple criteria: who can send? who can receive? etc.
-          Each row represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
-        </p>
-        <br />
-        <p>
-          <InfoCircleOutlined />{' '} Note that user level approvals can be overriden by the collection-level transferability.
-        </p>
-      </>}
-      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
+        {tab === 'incoming' && <>
+          <ApprovalsDisplay
+            convertedFirstMatches={convertedFirstIncomingMatches}
+            collection={collection}
+            badgeId={badgeId}
+          />
+        </>}
+      </div>
+      <div className='primary-text'>
+        {tab !== 'history' && !(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>      <Divider />
+          <p>
+            <InfoCircleOutlined />{' '}Approvals are broken down into multiple criteria: who can send? who can receive? etc.
+            Each row represents a different set of criteria. For a transfer to be allowed, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
+          </p>
+          <br />
+          <p>
+            <InfoCircleOutlined />{' '} Note that user level approvals can be overriden by the collection-level transferability.
+          </p>
+        </>}
+        {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
 
-      {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
-        options={[
-          {
-            title: 'Approve All',
-            message: 'Approve any incoming transfer for this collection.',
-            isSelected: (userApprovedIncomingTransfers ?? [])?.length > 0,
-          },
-          {
-            title: 'Must Initiate',
-            message: 'Only approve incoming transfers that were initiated by you.',
-            isSelected: userApprovedIncomingTransfers?.length === 0,
+        {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
+          options={[
+            {
+              title: 'Approve All',
+              message: 'Approve any incoming transfer for this collection.',
+              isSelected: (userApprovedIncomingTransfers ?? [])?.length > 0,
+            },
+            {
+              title: 'Must Initiate',
+              message: 'Only approve incoming transfers that were initiated by you.',
+              isSelected: userApprovedIncomingTransfers?.length === 0,
+            }
+          ]
           }
-        ]
-        }
-        onSwitchChange={(value) => {
-          if (value === 0) {
-            setUserApprovedIncomingTransfers?.([{
-              fromMappingId: "AllWithMint",
-              fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-              initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-              initiatedByMappingId: "AllWithMint",
-              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              approvalId: "approved all",
-              approvalTrackerId: "",
-              challengeTrackerId: "",
-              allowedCombinations: [{
-                isApproved: true,
-                initiatedByMappingOptions: {},
-                fromMappingOptions: {},
-                badgeIdsOptions: {},
-                ownershipTimesOptions: {},
-                transferTimesOptions: {},
-              }]
-            }]);
+          onSwitchChange={(value) => {
+            if (value === 0) {
+              setUserApprovedIncomingTransfers?.([{
+                fromMappingId: "AllWithMint",
+                fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+                initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+                initiatedByMappingId: "AllWithMint",
+                transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                approvalId: "approved all",
+                approvalTrackerId: "",
+                challengeTrackerId: "",
+                allowedCombinations: [{
+                  isApproved: true,
+                  initiatedByMappingOptions: {},
+                  fromMappingOptions: {},
+                  badgeIdsOptions: {},
+                  ownershipTimesOptions: {},
+                  transferTimesOptions: {},
+                }]
+              }]);
 
-          } else if (value === 1) {
-            setUserApprovedIncomingTransfers?.([]);
-          }
-        }}
-      />
-        {/* 
+            } else if (value === 1) {
+              setUserApprovedIncomingTransfers?.([]);
+            }
+          }}
+        />
+          {/* 
         TODO: Add speicifc users
         
         {userApprovedIncomingTransfers?.length === 1 && <>
@@ -556,8 +558,9 @@ export function UserApprovalsTab({ collectionId,
             setUsers={setApprovedIncomingUsers}
           />
         </>} */}
-      </>}
-    </div >
+        </>}
+      </div >
+    </InformationDisplayCard>
   </>
   );
 }

@@ -110,7 +110,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     if (!web3AccountContext.address) {
       setConnected(false);
       try {
-        console.log("OPENING");
         await open();
       } catch (e) {
         notification.error({

@@ -51,7 +51,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
               }
             }}
           />
-          <div style={{ marginLeft: '1rem', fontSize: 18 }}>
+          <div style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
 
             {page ?? currPage + 1}/{total ?? items.length}
           </div>

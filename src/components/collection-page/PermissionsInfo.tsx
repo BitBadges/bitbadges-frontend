@@ -1,7 +1,7 @@
 import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, InfoCircleOutlined, LockOutlined, QuestionCircleFilled, StopFilled } from "@ant-design/icons";
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Checkbox, Popover } from "antd";
+import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
@@ -17,9 +17,9 @@ import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermissio
 
 export function getPermissionDetails(permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIdsToShow?: UintRange<bigint>[]) {
   const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToMapping, usesFromMapping, usesInitiatedByMapping, usesOwnershipTimes } = usedFlags;
-
-  const columns = [{
-    title: 'Permitted?',
+  const hideTimelineTimesIfAllFull = true;
+  let columns = [{
+    title: 'Allowed?',
     dataIndex: 'permission',
     key: 'permission',
     render: () => { return <></> }
@@ -32,7 +32,7 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
 
   },
   {
-    title: 'Executable?',
+    title: 'Times',
     dataIndex: 'permissionTimes',
     key: 'permissionTimes',
     render: (permissionTimes: UintRange<bigint>[]) => {
@@ -217,6 +217,13 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
     }
   }
 
+  if (hideTimelineTimesIfAllFull) {
+    if (dataSource.every(x => x.timelineTimes?.length === 1 && x.timelineTimes[0].start === 1n && x.timelineTimes[0].end === GO_MAX_UINT_64)) {
+      columns = columns.filter(x => x.key !== 'timelineTimes');
+      dataSource.forEach(x => x.timelineTimes = undefined);
+    }
+  }
+
 
   return { columns, dataSource, hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes, neverHasManager }
 }
@@ -326,34 +333,44 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
                       return <tr key={idx} style={{ border: '1px solid white' }}>
                         {y.forbidden && !y.permitted && <><td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CloseCircleFilled style={{ color: 'red' }} /> </td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
                           <div className="flex-center">
-                            {onFreezePermitted && <LockOutlined style={{ marginRight: 8 }} />}
-                            <FontAwesomeIcon icon={faSnowflake} />
+                            {onFreezePermitted ?
+                              <Switch
+                                style={{ marginRight: 8 }}
+                                checked={true}
+                                checkedChildren={<FontAwesomeIcon icon={faSnowflake} />}
+                                disabled
+                              /> :
+                              <FontAwesomeIcon icon={faSnowflake} />}
+
+
                           </div>
                         </td></>}
                         {y.permitted && !y.forbidden && <><td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CheckCircleFilled style={{ color: 'green' }} /></td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
                           <div className="flex-center">
-                            {onFreezePermitted &&
-                              <Checkbox
+                            {onFreezePermitted ?
+                              <Switch
                                 style={{ marginRight: 8 }}
                                 checked={true}
+                                checkedChildren={<FontAwesomeIcon icon={faSnowflake} />}
                                 onChange={() => {
                                   onFreezePermitted?.(false)
                                 }}
-                              />}
-                            <FontAwesomeIcon icon={faSnowflake} />
+                              /> : <FontAwesomeIcon icon={faSnowflake} />}
+
                           </div></td></>}
                         {!y.permitted && !y.forbidden && <><td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CheckCircleFilled style={{ color: 'green' }} /> </td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
                           <div className="flex-center">
-                            {onFreezePermitted &&
-                              <Checkbox
+                            {onFreezePermitted ?
+                              <Switch
                                 style={{ marginRight: 8 }}
                                 checked={false}
+                                unCheckedChildren={<>No</>}
                                 onChange={() => {
                                   onFreezePermitted?.(true)
                                 }}
-                              />}
+                              /> : <>No</>}
 
-                            No</div></td></>}
+                          </div></td></>}
                         {y.permissionTimes && <td style={{
                           padding: 8, fontWeight: 'bold', fontSize: 16,
                           borderRight: columns.length > 3 ? '1px solid white' : undefined

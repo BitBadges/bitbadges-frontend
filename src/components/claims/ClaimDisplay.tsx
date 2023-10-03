@@ -292,7 +292,7 @@ export function ClaimDisplay({
 
     </div>
     {showClaimDisplay && <Card
-      className="primary-text inherit-bg"
+      className="primary-text gradient-bg"
       style={{
         maxWidth: 500,
         minWidth: 250,
