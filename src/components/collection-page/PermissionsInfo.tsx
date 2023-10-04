@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { compareObjects } from "../../utils/compare";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";

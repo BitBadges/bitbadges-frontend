@@ -2,7 +2,7 @@ import { Col, Divider, Row, Typography } from "antd";
 import { AddressMapping, MustOwnBadges, deepCopy } from "bitbadgesjs-proto";
 import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPermissionToUniversalPermission, convertToCosmosAddress, getFirstMatchForCollectionApprovedTransfers, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { useStatusContext } from "../../../bitbadges-api/contexts/StatusContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getMintApprovedTransfers, getNonMintApprovedTransfers } from "../../../bitbadges-api/utils/mintVsNonMint";

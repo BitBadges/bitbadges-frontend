@@ -4,7 +4,7 @@ import { CodesAndPasswords, CollectionApprovedTransferWithDetails, getCurrentVal
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';

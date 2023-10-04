@@ -3,8 +3,8 @@ import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, Numberify, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 import { CheckCircleFilled, CloseCircleFilled, SwapOutlined } from "@ant-design/icons";
 import { faThumbtack } from "@fortawesome/free-solid-svg-icons";

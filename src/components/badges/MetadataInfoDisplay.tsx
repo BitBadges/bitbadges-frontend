@@ -10,7 +10,7 @@ import {
 import { Divider, Tag, Tooltip } from 'antd';
 import { BadgeMetadataTimeline, CollectionMetadataTimeline, ContractAddressTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
 import { Metadata, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';

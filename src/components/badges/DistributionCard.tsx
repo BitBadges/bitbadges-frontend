@@ -2,7 +2,7 @@ import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";

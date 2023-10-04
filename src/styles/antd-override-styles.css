@@ -29,6 +29,9 @@
     left: 0;
 }
 
+.blockin-header {
+  min-width: 200px !important;
+}
 
 .ant-timeline-item-head-custom {
     padding: 0;

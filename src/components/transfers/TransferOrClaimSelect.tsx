@@ -6,7 +6,7 @@ import { ApprovalDetailsWithDetails, BigIntify, CollectionApprovedTransferWithDe
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';

@@ -11,7 +11,7 @@ import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { INFINITE_LOOP_MODE } from '../../../constants';

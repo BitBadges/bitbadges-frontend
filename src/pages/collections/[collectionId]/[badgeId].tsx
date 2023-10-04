@@ -5,7 +5,7 @@ import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { DistributionOverview } from '../../../components/badges/DistributionCard';
@@ -19,7 +19,7 @@ import { TransferabilityTab } from '../../../components/collection-page/Transfer
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../../constants';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);

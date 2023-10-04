@@ -1,5 +1,5 @@
 import { getFullIsArchivedTimeline, validateIsArchivedUpdate } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { ErrDisplay } from "../form-items/ErrDisplay";

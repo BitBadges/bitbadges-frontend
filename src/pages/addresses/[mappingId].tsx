@@ -15,7 +15,7 @@ import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { Tabs } from '../../components/navigation/Tabs';
 import Meta from 'antd/lib/card/Meta';
 import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';

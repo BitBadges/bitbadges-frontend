@@ -6,7 +6,7 @@ import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { deepCopy } from "bitbadgesjs-proto"
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext"
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
 export function AddressDisplayList({
   users,

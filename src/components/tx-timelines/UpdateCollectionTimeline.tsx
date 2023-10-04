@@ -1,5 +1,5 @@
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';

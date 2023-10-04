@@ -1,6 +1,6 @@
 import { AddressMapping } from "bitbadgesjs-proto";
 import { getReservedAddressMapping } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { MSG_PREVIEW_ID, EmptyStepItem, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { SwitchForm } from "../form-items/SwitchForm";

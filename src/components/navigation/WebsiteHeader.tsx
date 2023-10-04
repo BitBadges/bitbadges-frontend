@@ -16,7 +16,7 @@ import { useCookies } from 'react-cookie';
 import { signOut } from '../../bitbadges-api/api';
 
 import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';

@@ -5,10 +5,10 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { mainnet } from 'wagmi/chains';
-import { AccountsContextProvider, store } from '../bitbadges-api/contexts/AccountsContext';
+import { AccountReducerState, AccountsContextProvider } from '../bitbadges-api/contexts/accounts/AccountsContext';
 import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
 import { ChainContextProvider } from '../bitbadges-api/contexts/ChainContext';
-import { CollectionsContextProvider } from '../bitbadges-api/contexts/CollectionsContext';
+import { CollectionReducerState, CollectionsContextProvider } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { StatusContextProvider } from '../bitbadges-api/contexts/StatusContext';
 import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
@@ -23,6 +23,9 @@ import { WagmiConfig } from 'wagmi';
 
 import '../styles/index.css';
 import '../styles/antd-override-styles.css';
+import { combineReducers, createStore } from 'redux';
+import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
+import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -40,7 +43,17 @@ const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
 // 3. Create modal
 createWeb3Modal({ wagmiConfig, projectId, chains })
 
+const combinedReducers = combineReducers({
+  collections: collectionReducer,
+  accounts: accountReducer,
+})
 
+const store = createStore(combinedReducers)
+
+export interface GlobalReduxState {
+  accounts: AccountReducerState
+  collections: CollectionReducerState
+}
 
 const App = ({ Component, pageProps }: AppProps) => {
   //React cookies

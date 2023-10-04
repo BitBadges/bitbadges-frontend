@@ -1,12 +1,14 @@
 import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
 import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
-import { createContext, useContext, useState } from 'react';
-import { compareObjects } from '../../utils/compare';
-import { DesiredNumberType, fetchMetadataDirectly, getBadgeBalanceByAddress, getCollections, refreshMetadata } from '../api';
-import { getCurrentMetadata } from '../utils/metadata';
-import { useAccountsContext } from './AccountsContext';
-import { MSG_PREVIEW_ID } from './TxTimelineContext';
+import { createContext, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { DesiredNumberType, fetchMetadataDirectly, getBadgeBalanceByAddress, getCollections, refreshMetadata } from '../../api';
+import { getCurrentMetadata } from '../../utils/metadata';
+import { MSG_PREVIEW_ID } from '../TxTimelineContext';
+import { useAccountsContext } from '../accounts/AccountsContext';
+import { updateCollectionsRedux } from './actions';
+import { GlobalReduxState } from '../../../pages/_app';
 
 export type CollectionsContextType = {
   collections: CollectionMap<DesiredNumberType>,
@@ -79,98 +81,26 @@ type Props = {
 
 
 
+export interface CollectionReducerState {
+  collections: CollectionMap<DesiredNumberType>,
+}
+
+export const initialState: CollectionReducerState = {
+  collections: {},
+};
+
 export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
-  const [collections, setCollections] = useState<CollectionMap<DesiredNumberType>>({});
+  const collections = useSelector((state: GlobalReduxState) => state.collections.collections);
   const accounts = useAccountsContext();
+  const dispatch = useDispatch();
 
   const getCollection = (collectionId: DesiredNumberType) => {
     return collections[`${collectionId}`];
   }
 
   const updateCollection = (newCollection: BitBadgesCollection<DesiredNumberType>) => {
-    let cachedCollection = collections[`${newCollection.collectionId}`];
-    const cachedCollectionCopy = deepCopy(cachedCollection);
-
-    if (cachedCollection) {
-      let newBadgeMetadata = cachedCollection?.cachedBadgeMetadata || [];
-      for (const badgeMetadata of newCollection.cachedBadgeMetadata) {
-        newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, badgeMetadata);
-      }
-
-      const newViews = cachedCollection?.views || {};
-
-      for (const [key, val] of Object.entries(newCollection.views)) {
-        if (!val) continue;
-
-        newViews[key] = {
-          ids: [...(newViews[key]?.ids || []), ...(val?.ids || []),],
-          pagination: {
-            ...val.pagination,
-            total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-          },
-          type: val.type
-        }
-      }
-
-      //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
-      cachedCollection = {
-        ...newCollection,
-        cachedCollectionMetadata: newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
-        cachedBadgeMetadata: newBadgeMetadata,
-        reviews: [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])],
-        announcements: [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])],
-        activity: [...(newCollection?.activity || []), ...(cachedCollection.activity || [])],
-        owners: [...(newCollection?.owners || []), ...(cachedCollection.owners || [])],
-        merkleChallenges: [...(newCollection?.merkleChallenges || []), ...(cachedCollection.merkleChallenges || [])],
-        approvalsTrackers: [...(newCollection?.approvalsTrackers || []), ...(cachedCollection.approvalsTrackers || [])],
-        views: newViews,
-      };
-
-      //Filter duplicates (but prioritize the new ones)
-      cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-      cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-
-
-      //Attempt to update the account balances for each of the owners (if we find an account)
-      //For now, if we do not find an account, we just carry on. 
-      //Can look to fetch all accounts as well in the future but would require async logic whereas this is intended to be synchronous
-      accounts.updateAccounts(cachedCollection.owners.map(x => {
-        const account = accounts.getAccount(x.cosmosAddress);
-
-        if (account) {
-          return {
-            ...account,
-            collected: [...(account.collected || []), x]
-          }
-        } else {
-          return account;
-        }
-      }).filter(x => x !== undefined) as any);
-
-      //Only update if anything has changed
-      if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
-        setCollections(collections => {
-          return {
-            ...collections,
-            [`${newCollection.collectionId}`]: cachedCollection
-          }
-        });
-      }
-      return cachedCollection;
-    } else {
-      // if (!compareObjects(cachedCollectionCopy, newCollection)) {
-      setCollections(collections => {
-        return {
-          ...collections,
-          [`${newCollection.collectionId}`]: newCollection
-        }
-      });
-      return newCollection;
-    }
+    dispatch(updateCollectionsRedux(newCollection));
+    return collections[`${newCollection.collectionId}`] as BitBadgesCollection<DesiredNumberType>;
   }
 
   const fetchBalanceForUser = async (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => {

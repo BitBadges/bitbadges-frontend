@@ -4,7 +4,7 @@ import { Button, Col, Input, Row, Typography } from 'antd';
 import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 

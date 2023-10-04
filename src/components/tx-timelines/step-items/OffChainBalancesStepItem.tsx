@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Form, Input, Tooltip, Typography } from "antd";
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { useEffect, useState } from "react";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { INFINITE_LOOP_MODE } from "../../../constants";

@@ -2,7 +2,7 @@ import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined,
 import { Switch } from 'antd';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE } from '../../../constants';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';

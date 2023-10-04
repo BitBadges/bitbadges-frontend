@@ -1,7 +1,7 @@
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { Numberify, getBadgesToDisplay, getBalancesForId, getMetadataDetailsForBadgeId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
 import { compareObjects } from "../../utils/compare";

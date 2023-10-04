@@ -3,7 +3,7 @@ import { ClaimAlertInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
 

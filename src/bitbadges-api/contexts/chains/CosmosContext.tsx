@@ -11,19 +11,20 @@ import { Dispatch, SetStateAction, createContext, useContext, useEffect, useStat
 import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
-import { useAccountsContext } from '../AccountsContext';
+import { useAccountsContext } from '../accounts/AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
 declare global {
   interface Window extends KeplrWindow { }
 }
 
 const BitBadgesKeplrSuggestChainInfo = {
-  chainId: "bitbadges_1-1",
-  chainName: "bitbadges",
+  chainId: "bitbadges_1-2",
+  chainName: "BitBadges",
+  chainSymbolImageUrl: "https://avatars.githubusercontent.com/u/86890740",
   rpc: `http://${HOSTNAME}:26657`,
   rest: `http://${HOSTNAME}:1317`,
   bip44: {
-    coinType: 60,
+    coinType: 118,
   },
   bech32Config: {
     bech32PrefixAccAddr: "cosmos",
@@ -59,9 +60,7 @@ const BitBadgesKeplrSuggestChainInfo = {
     coinMinimalDenom: "badge",
     coinDecimals: 0,
     coinGeckoId: "cosmos",
-  },
-  coinType: 60,
-  features: ["stargate", "eth-address-gen", "eth-key-sign"],
+  }
 }
 
 export type CosmosContextType = ChainSpecificContextType & {
@@ -78,7 +77,7 @@ export const CosmosContext = createContext<CosmosContextType>({
   setCosmosAddress: () => { },
   connect: async () => { },
   disconnect: async () => { },
-  chainId: 'bitbadges_1-1',
+  chainId: 'bitbadges_1-2',
   setChainId: () => { },
   signChallenge: async () => { return {} },
   getPublicKey: async () => { return '' },
@@ -104,7 +103,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
-  const [chainId, setChainId] = useState<string>('bitbadges_1-1');
+  const [chainId, setChainId] = useState<string>('bitbadges_1-2');
   const [signer, setSigner] = useState<SigningStargateClient>();
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
@@ -211,7 +210,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   };
 
   const signChallenge = async (message: string) => {
-    let sig = await window.keplr?.signArbitrary("bitbadges_1-1", cosmosAddress, message);
+    let sig = await window.keplr?.signArbitrary("bitbadges_1-2", cosmosAddress, message);
 
     if (!sig) sig = { signature: '', pub_key: { type: '', value: '' } };
 
@@ -220,10 +219,11 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     const pubKeyValueBuffer = Buffer.from(sig.pub_key.value, 'base64'); // Decode the base64 encoded value
     const pubKeyUint8Array = new Uint8Array(pubKeyValueBuffer); // Convert the buffer to an Uint8Array
 
-    const isRecovered = verifyADR36Amino('cosmos', cosmosAddress, message, pubKeyUint8Array, uint8Signature, 'ethsecp256k1');
+    const isRecovered = verifyADR36Amino('cosmos', cosmosAddress, message, pubKeyUint8Array, uint8Signature, 'secp256k1');
     if (!isRecovered) {
       throw new Error('Signature verification failed');
     }
+
     const concat = Buffer.concat([pubKeyUint8Array, uint8Signature]);
 
     return { originalBytes: new Uint8Array(Buffer.from(`0x${Buffer.from(message, 'utf8').toString('hex')}`, 'utf8')), signatureBytes: new Uint8Array(concat), message: 'Success' }
@@ -245,13 +245,15 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
     if (!simulate) {
 
+      console.log("PUBLIC KEY", sender.pubkey);
+      console.log(chainId, chain.cosmosChainId);
       const signResponse = await window?.keplr?.signDirect(
-        chain.cosmosChainId,
+        chainId,
         sender.accountAddress,
         {
           bodyBytes: txn.signDirect.body.serializeBinary(),
           authInfoBytes: txn.signDirect.authInfo.serializeBinary(),
-          chainId: chain.cosmosChainId,
+          chainId: chainId,
           accountNumber: new Long(sender.accountNumber),
         },
         {
@@ -290,10 +292,9 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const getPublicKey = async (_cosmosAddress: string) => {
-    const chain = CHAIN_DETAILS;
-
-    const account = await window?.keplr?.getKey(chain.cosmosChainId)
+    const account = await window?.keplr?.getKey(chainId)
     if (!account) return '';
+
     const pk = Buffer.from(account.pubKey).toString('base64')
 
     return pk;

@@ -2,7 +2,7 @@ import { Col, Row } from "antd";
 import { getUintRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { DistributionOverview } from "../badges/DistributionCard";
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay";

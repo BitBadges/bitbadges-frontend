@@ -6,7 +6,7 @@ import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
 

@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
 import { getUintRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 
 export function BadgesTab({ collectionId }: {

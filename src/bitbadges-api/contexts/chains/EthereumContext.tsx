@@ -3,7 +3,7 @@ import { disconnect as disconnectWeb3, signMessage, signTypedData } from "@wagmi
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 
 import { notification } from 'antd';
-import { createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
+import { SupportedChain, createTxRawEIP712, signatureToWeb3Extension } from 'bitbadgesjs-proto';
 import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetUri } from 'blockin';
 import { ethers } from 'ethers';
@@ -12,7 +12,7 @@ import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
 import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
-import { useAccountsContext } from '../AccountsContext';
+import { useAccountsContext } from '../accounts/AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
 
 
@@ -184,7 +184,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const accounts = await accountsContext.fetchAccountsWithOptions([{ address: address, fetchSequence: true, fetchBalance: true }]);
     const account = accounts[0];
 
-    const chain = CHAIN_DETAILS;
+    const chain = { ...CHAIN_DETAILS, chain: SupportedChain.ETH };
     const sender = {
       accountAddress: cosmosAddress,
       sequence: account.sequence ? Numberify(account.sequence) : 0,

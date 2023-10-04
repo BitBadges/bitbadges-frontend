@@ -1,6 +1,6 @@
 import { Avatar, Tooltip } from "antd";
 import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-utils";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";

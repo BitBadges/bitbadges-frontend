@@ -3,7 +3,7 @@ import { Avatar, Badge, Spin, Tooltip } from "antd";
 import { Balance } from "bitbadgesjs-proto";
 import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId, isFullUintRanges } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTimeRangesString } from "../../utils/dates";
 
 export function BadgeAvatar({

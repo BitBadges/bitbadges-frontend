@@ -2,7 +2,7 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Empty, Tooltip, Typography } from "antd";
 import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";

@@ -18,6 +18,8 @@ export const INFINITE_LOOP_MODE = false;
 
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
+export const BITCOIN_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png';
+export const SOLANA_LOGO = 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png';
 
 // export const BLANK_USER_INFO = {
 //   accountNumber: -1,

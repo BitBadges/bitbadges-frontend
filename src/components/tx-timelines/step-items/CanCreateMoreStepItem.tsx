@@ -2,7 +2,7 @@ import { Divider } from "antd";
 import { BalancesActionPermission } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";

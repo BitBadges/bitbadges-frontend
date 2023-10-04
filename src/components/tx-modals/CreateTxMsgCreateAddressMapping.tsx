@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import React from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { TxModal } from './TxModal';
 

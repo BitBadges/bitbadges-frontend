@@ -1,6 +1,6 @@
 import { Form, Input, Typography } from "antd";
 import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";

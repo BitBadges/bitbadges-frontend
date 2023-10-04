@@ -3,7 +3,7 @@ import { Row } from "antd";
 import { Balance, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";

@@ -4,7 +4,7 @@ import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';

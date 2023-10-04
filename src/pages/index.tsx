@@ -1,12 +1,12 @@
-import { AuditOutlined, BarcodeOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, GlobalOutlined, IdcardOutlined, LikeOutlined, LockOutlined, QrcodeOutlined, SafetyOutlined, SendOutlined, SwapOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
+import { AuditOutlined, BarcodeOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, GlobalOutlined, IdcardOutlined, LikeOutlined, LockOutlined, QrcodeOutlined, SafetyOutlined, SendOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
-import { useCollectionsContext } from '../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { COSMOS_LOGO, ETH_LOGO } from '../constants';
+import { BITCOIN_LOGO, COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
 
 
 export const LandingCard = ({ content, additionalContent, onClick }: {
@@ -636,11 +636,14 @@ const Home: NextPage = () => {
                     <Avatar
                       src={ETH_LOGO}
                       size={48}
+                      style={{ marginRight: 8 }}
+
                     />
-                    <SwapOutlined style={{ fontSize: 40, marginRight: 16, marginLeft: 16 }} />
+
                     <Avatar
                       src={COSMOS_LOGO}
                       size={48}
+                      style={{ marginRight: 8 }}
                     />
                   </div>
                   <br />
@@ -653,13 +656,20 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    The same badge can be owned by users from different blockchain ecosystems, such as Ethereum  <Avatar
+                    The same badge can be owned by users from different blockchain ecosystems. We currently support Ethereum  <Avatar
                       src={ETH_LOGO}
                       size={25}
                     /> and Cosmos <Avatar
                       src={COSMOS_LOGO}
                       size={25}
-                    />. Existing solutions are limited to only one ecosystem at a time.
+                    /> users, and we plan to integrate
+                    Solana <Avatar
+                      src={SOLANA_LOGO}
+                      size={25}
+                    />, Bitcoin <Avatar
+                      src={BITCOIN_LOGO}
+                      size={25}
+                    />, and more soon.
                   </Typography.Text></>
               }
             />

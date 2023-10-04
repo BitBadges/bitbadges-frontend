@@ -9,7 +9,7 @@ import { BitBadgesCollection, DefaultPlaceholderMetadata, Metadata, MetadataAddM
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../../constants';

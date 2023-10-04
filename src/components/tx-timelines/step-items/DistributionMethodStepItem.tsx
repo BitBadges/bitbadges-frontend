@@ -1,5 +1,5 @@
 import { Avatar, Col, Divider, Empty, Row } from "antd";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import { CreateClaims } from "../form-items/CreateClaims";

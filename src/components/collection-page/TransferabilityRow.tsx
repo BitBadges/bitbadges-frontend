@@ -2,7 +2,7 @@ import { CheckCircleFilled, InfoCircleOutlined, StopFilled, WarningOutlined } fr
 import { Popover, Tooltip } from 'antd';
 import { CollectionApprovedTransferWithDetails, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { getTimeRangesElement } from '../../utils/dates';

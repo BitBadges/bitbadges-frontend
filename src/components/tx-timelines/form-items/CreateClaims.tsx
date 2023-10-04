@@ -1,4 +1,4 @@
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DevMode } from '../../common/DevMode';
 
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';

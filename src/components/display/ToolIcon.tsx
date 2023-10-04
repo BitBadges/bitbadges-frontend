@@ -70,7 +70,7 @@ export const tools = [{
 
 {
   name: 'Blockin',
-  url: 'https://blockin.vercel.app/',
+  url: 'https://blockin-quickstart.vercel.app/',
   icon: <img height="auto" src="https://avatars.githubusercontent.com/u/105506360?s=200&v=4" alt="Blockin" />,
   description: 'Badge-gate websites with Blockin: a universal, multi-chain Web3 sign-in standard.',
   createdBy: 'Blockin',

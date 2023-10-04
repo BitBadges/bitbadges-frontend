@@ -1,7 +1,7 @@
 import { Badge, Empty, Layout, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';

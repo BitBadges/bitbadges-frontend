@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
@@ -46,10 +46,10 @@ export const BlockinDisplay = ({
   const [loading, setLoading] = useState<boolean>(true);
 
   const [challengeParams, setChallengeParams] = useState<ChallengeParams<DesiredNumberType>>({
-    domain: 'https://blockin.com',
+    domain: 'https://bitbadges.io',
     statement: 'Sign in to this website via Blockin. You will remain signed in until you terminate your browser session.',
     address: address ? address : 'Default Address',
-    uri: 'https://blockin.com/login',
+    uri: 'https://bitbadges.io/login',
     nonce: 'Default Nonce'
   });
 

@@ -1,7 +1,7 @@
 import { InputNumber } from 'antd';
 import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
 import React, { useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';

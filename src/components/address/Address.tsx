@@ -1,7 +1,7 @@
 import { Spin, Tooltip, Typography } from 'antd';
 import { MINT_ACCOUNT, SupportedChain, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from './AddressDisplay';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 

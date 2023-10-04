@@ -8,9 +8,9 @@ import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
 import { getTotalNumberOfBadges } from '../utils/badges';
 import { getMintApprovedTransfers, getNonMintApprovedTransfers } from '../utils/mintVsNonMint';
-import { useAccountsContext } from './AccountsContext';
+import { useAccountsContext } from './accounts/AccountsContext';
 import { useChainContext } from './ChainContext';
-import { useCollectionsContext } from './CollectionsContext';
+import { useCollectionsContext } from './collections/CollectionsContext';
 
 
 export const EmptyStepItem = {

@@ -1,6 +1,6 @@
 import { Col, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
 import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
 

@@ -1,7 +1,7 @@
 import { Divider } from "antd";
 import { checkBalancesActionPermission, deepCopyBalances } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { DevMode } from "../../common/DevMode";
 import { BalanceInput } from "../../inputs/BalanceInput";

@@ -4,7 +4,7 @@ import { AddressMapping, ApprovalTrackerIdDetails } from 'bitbadgesjs-proto';
 import { getFirstMatchForCollectionApprovedTransfers, getReservedAddressMapping, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ApprovalsDisplay } from './ApprovalsTab';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';

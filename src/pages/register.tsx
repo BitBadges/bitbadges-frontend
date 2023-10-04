@@ -4,7 +4,7 @@ import { getTokensFromFaucet } from '../bitbadges-api/api';
 import { DisconnectedWrapper } from '../components/wrappers/DisconnectedWrapper';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../bitbadges-api/contexts/StatusContext';
-import { useAccountsContext } from '../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Content } = Layout;
 const { Text } = Typography;

@@ -5,9 +5,9 @@ import { ApprovalDetailsWithDetails, CollectionApprovedTransferWithDetails, remo
 import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { getTimeRangesElement, getTimeRangesString } from "../../utils/dates";
 import { AddressDisplay } from "../address/AddressDisplay";

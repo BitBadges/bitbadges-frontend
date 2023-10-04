@@ -1,7 +1,7 @@
 import { Card, Typography } from 'antd';
 import { AddressMappingWithMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BadgeAvatar } from './BadgeAvatar';
 

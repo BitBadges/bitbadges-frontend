@@ -3,7 +3,7 @@ import { Card, Divider, Empty, Row, Tooltip, Typography } from "antd";
 import { CollectionApprovedTransferWithDetails } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { WEBSITE_HOSTNAME } from "../../constants";
 import { downloadJson, downloadTxt } from "../../utils/downloadJson";
 import { Pagination } from "../common/Pagination";

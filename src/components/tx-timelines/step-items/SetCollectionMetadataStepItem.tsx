@@ -1,7 +1,7 @@
 import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
 import { MetadataForm } from "../form-items/MetadataForm";
 
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { PermissionIcon, getPermissionDetails, } from "../../collection-page/PermissionsInfo";

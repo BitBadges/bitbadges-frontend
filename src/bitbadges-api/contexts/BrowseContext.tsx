@@ -3,8 +3,8 @@ import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { DesiredNumberType, getBrowseCollections } from '../api';
-import { useCollectionsContext } from './CollectionsContext';
-import { useAccountsContext } from './AccountsContext';
+import { useCollectionsContext } from './collections/CollectionsContext';
+import { useAccountsContext } from './accounts/AccountsContext';
 
 export type BrowseContextType = {
   browse: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined,

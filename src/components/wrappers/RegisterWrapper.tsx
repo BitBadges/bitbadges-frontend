@@ -1,5 +1,5 @@
 import { Spin } from 'antd';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import RegisterScreen from '../../pages/register';
 

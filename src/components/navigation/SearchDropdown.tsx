@@ -3,8 +3,8 @@ import { Avatar, Menu, Spin, Typography } from 'antd';
 import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 
@@ -115,7 +115,6 @@ export function SearchDropdown({
           </Menu.Item>
         })}
       </div>
-      <hr />
     </>}
     {/* Collection Results */}
     {
@@ -147,8 +146,6 @@ export function SearchDropdown({
 
     {
       !onlyAddresses && <>
-        <hr />
-
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {badgeResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
@@ -208,7 +205,7 @@ export function SearchDropdown({
 
     {
       !onlyAddresses && !onlyCollections && addressMappingsResults.length > 0 && <>
-        <hr />
+
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {addressMappingsResults.map((result,) => {

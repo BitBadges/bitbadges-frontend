@@ -2,7 +2,7 @@ import { MsgUpdateUserApprovedTransfers, createTxMsgUpdateUserApprovedTransfers 
 import { UserApprovedIncomingTransferWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';

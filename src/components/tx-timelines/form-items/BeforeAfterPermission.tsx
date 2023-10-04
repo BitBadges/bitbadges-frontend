@@ -1,6 +1,6 @@
 import { Col, Row, Typography } from 'antd';
 import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -60,7 +60,7 @@ export function BeforeAfterPermission({
     {/* <hr /> */}
     <InformationDisplayCard title=''>
       <Row className="full-width flex-between" justify="center" style={{ alignItems: 'normal' }}>
- 
+
         {startingCollection && <Col md={11} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
             Previous

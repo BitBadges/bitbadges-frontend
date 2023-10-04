@@ -1,6 +1,6 @@
 import { Divider, Typography } from "antd";
 import { useEffect } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/AccountsContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressListSelect } from "../address/AddressListSelect";
 import { ToolIcon, tools } from "../display/ToolIcon";

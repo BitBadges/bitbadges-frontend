@@ -1,9 +1,9 @@
 import { Empty } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
@@ -93,7 +93,7 @@ export function BalanceOverview({ collectionId, badgeId }: {
             collectionId={collectionId}
             balances={currBalances.map(x => {
               if (!badgeId) return x;
-            
+
               const filteredBadgeIds = [];
               const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
               if (found) {

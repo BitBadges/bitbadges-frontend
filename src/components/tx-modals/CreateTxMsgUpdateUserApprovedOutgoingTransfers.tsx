@@ -3,9 +3,9 @@ import { AddressMapping, Balance, MsgUpdateUserApprovedTransfers, createTxMsgUpd
 import { UserApprovedOutgoingTransferWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { getBadgeBalanceByAddress } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/CollectionsContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';

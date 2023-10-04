@@ -3,7 +3,7 @@ import { Col, Divider, Typography } from "antd";
 import { AddressMapping } from "bitbadgesjs-proto";
 import { ApprovedTransferPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, castCollectionApprovedTransferPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/CollectionsContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";

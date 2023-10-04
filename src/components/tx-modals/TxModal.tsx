@@ -5,7 +5,7 @@ import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus, simulateTx } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
@@ -70,7 +70,10 @@ export function TxModal(
   }
 
   const txDetails = {
-    chain: CHAIN_DETAILS,
+    chain: {
+      ...CHAIN_DETAILS,
+      chain: chain.chain as any,
+    },
     sender: {
       accountAddress: signedInAccount?.cosmosAddress ?? "",
       sequence: signedInAccount?.sequence ?? "0",
@@ -118,7 +121,10 @@ export function TxModal(
 
         //Sign and broadcast transaction
         const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, {
-          chain: CHAIN_DETAILS,
+          chain: {
+            ...CHAIN_DETAILS,
+            chain: chain.chain as any,
+          },
           sender: {
             accountAddress: signedInAccount?.cosmosAddress,
             sequence: signedInAccount?.sequence ?? "0",
@@ -190,6 +196,7 @@ export function TxModal(
 
       const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
       const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
+      console.log("SIMULATING TX", rawTxSimulated);
       const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
       const gasUsed = simulatedTx.gas_info.gas_used;
       console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
@@ -197,6 +204,7 @@ export function TxModal(
 
       //Get public key (if not already stored)
       const publicKey = await chain.getPublicKey(chain.cosmosAddress);
+      console.log("FETCHED PK", publicKey);
       accounts.setPublicKey(chain.cosmosAddress, publicKey);
 
       const finalTxDetails = {

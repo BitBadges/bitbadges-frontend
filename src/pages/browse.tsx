@@ -1,7 +1,7 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../bitbadges-api/contexts/AccountsContext';
+import { useAccountsContext } from '../bitbadges-api/contexts/accounts/AccountsContext';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
 import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
