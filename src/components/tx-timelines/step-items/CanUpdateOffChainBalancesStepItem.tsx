@@ -25,23 +25,14 @@ export function CanUpdateBalancesStepItem() {
       collectionPermissions: {
         ...collection.collectionPermissions,
         canUpdateOffChainBalancesMetadata: idx === 0 ? [{
-          defaultValues: {
-            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            permittedTimes: [],
-            forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          },
-          combinations: [{}]
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          permittedTimes: [],
+          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }] : idx == 1 && !frozen ? [] : [{
-          defaultValues: {
-            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            permittedTimes: [],
-            forbiddenTimes: [],
-          },
-          combinations: [{
-            permittedTimesOptions: { allValues: true },
-            forbiddenTimesOptions: { noValues: true },
-            timelineTimesOptions: { allValues: true },
-          }]
+          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          forbiddenTimes: [],
+
         }]
       }
     });

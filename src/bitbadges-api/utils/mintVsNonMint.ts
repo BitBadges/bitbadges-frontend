@@ -1,20 +1,20 @@
 import { AddressMapping } from "bitbadgesjs-proto";
-import { BitBadgesCollection, CollectionApprovedTransferWithDetails, getReservedAddressMapping, isAddressMappingEmpty, isInAddressMapping, removeAddressMappingFromAddressMapping } from "bitbadgesjs-utils";
+import { BitBadgesCollection, CollectionApprovalWithDetails, getReservedAddressMapping, isAddressMappingEmpty, isInAddressMapping, removeAddressMappingFromAddressMapping } from "bitbadgesjs-utils";
 
-export const getNonMintApprovedTransfers = (collection: BitBadgesCollection<bigint>, throwOnUnresolvableId?: boolean) => {
-  let firstMatches = collection?.collectionApprovedTransfers.length > 0 ? collection?.collectionApprovedTransfers ?? [] : []
+export const getNonMintApprovals = (collection: BitBadgesCollection<bigint>, throwOnUnresolvableId?: boolean) => {
+  let firstMatches = collection?.collectionApprovals.length > 0 ? collection?.collectionApprovals ?? [] : []
   const existingNonMint = firstMatches.map(x => {
     if (isInAddressMapping(x.fromMapping, "Mint")) {
       if (x.fromMappingId === 'AllWithMint') {
         return {
           ...x,
-          fromMapping: getReservedAddressMapping('AllWithoutMint', '') as AddressMapping,
+          fromMapping: getReservedAddressMapping('AllWithoutMint') as AddressMapping,
           fromMappingId: 'AllWithoutMint'
         }
       }
 
 
-      const [remaining] = removeAddressMappingFromAddressMapping(getReservedAddressMapping('Mint', '') as AddressMapping, x.fromMapping);
+      const [remaining] = removeAddressMappingFromAddressMapping(getReservedAddressMapping('Mint') as AddressMapping, x.fromMapping);
 
       if (isAddressMappingEmpty(remaining)) {
         return undefined;
@@ -30,24 +30,24 @@ export const getNonMintApprovedTransfers = (collection: BitBadgesCollection<bigi
     } else {
       return x;
     }
-  }).filter(x => x !== undefined) as CollectionApprovedTransferWithDetails<bigint>[];
+  }).filter(x => x !== undefined) as CollectionApprovalWithDetails<bigint>[];
 
   return existingNonMint;
 }
 
-export const getMintApprovedTransfers = (collection: BitBadgesCollection<bigint>) => {
-  let firstMatches = collection?.collectionApprovedTransfers.length > 0 ? collection?.collectionApprovedTransfers ?? [] : []
-  const newApprovedTransfers = firstMatches.map(x => {
+export const getMintApprovals = (collection: BitBadgesCollection<bigint>) => {
+  let firstMatches = collection?.collectionApprovals.length > 0 ? collection?.collectionApprovals ?? [] : []
+  const newApprovals = firstMatches.map(x => {
     if (isInAddressMapping(x.fromMapping, "Mint")) {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
+        fromMapping: getReservedAddressMapping('Mint') as AddressMapping,
         fromMappingId: 'Mint',
       }
     } else {
       return undefined;
     }
-  }).filter(x => x !== undefined) as CollectionApprovedTransferWithDetails<bigint>[];
+  }).filter(x => x !== undefined) as CollectionApprovalWithDetails<bigint>[];
 
-  return newApprovedTransfers;
+  return newApprovals;
 }

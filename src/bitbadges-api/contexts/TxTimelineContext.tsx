@@ -1,5 +1,5 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovedTransferWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -7,7 +7,7 @@ import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
 import { getTotalNumberOfBadges } from '../utils/badges';
-import { getMintApprovedTransfers, getNonMintApprovedTransfers } from '../utils/mintVsNonMint';
+import { getMintApprovals, getNonMintApprovals } from '../utils/mintVsNonMint';
 import { useAccountsContext } from './accounts/AccountsContext';
 import { useChainContext } from './ChainContext';
 import { useCollectionsContext } from './collections/CollectionsContext';
@@ -37,7 +37,7 @@ export const MSG_PREVIEW_ID = 0n;
 
   Minor hacks applied:
   -badgesToCreate is exported in TxTimelineProps, and we automatically update "Mint" and "Total" balances to reflect the new total and mint balances
-  -merkleChallenges are handled via the collectionApprovedTransfers field of the collections from the collections context. Here, there is an extra field called details
+  -merkleChallenges are handled via the collectionApprovals field of the collections from the collections context. Here, there is an extra field called details
     which specifies extra details about the merkle challenge (name, description, password, preimage codes, etc). These are to be uploaded to IPFS but removed before creating the Msg.
   -transfers should only be used for off-chain balances
 
@@ -80,8 +80,8 @@ export interface UpdateFlags {
   setUpdateOffChainBalancesMetadataTimeline: (value: boolean) => void;
   updateCustomDataTimeline: boolean;
   setUpdateCustomDataTimeline: (value: boolean) => void;
-  updateCollectionApprovedTransfers: boolean;
-  setUpdateCollectionApprovedTransfers: (value: boolean) => void;
+  updateCollectionApprovals: boolean;
+  setUpdateCollectionApprovals: (value: boolean) => void;
   updateStandardsTimeline: boolean;
   setUpdateStandardsTimeline: (value: boolean) => void;
   updateContractAddressTimeline: boolean;
@@ -114,9 +114,9 @@ export interface BaseTxTimelineProps {
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
 
-  approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint>)[]
-  setApprovedTransfersToAdd: (approvedTransfersToAdd: (CollectionApprovedTransferWithDetails<bigint>)[]) => void
-  resetApprovedTransfersToAdd: () => (CollectionApprovedTransferWithDetails<bigint>)[]
+  approvalsToAdd: (CollectionApprovalWithDetails<bigint>)[]
+  setApprovalsToAdd: (approvalsToAdd: (CollectionApprovalWithDetails<bigint>)[]) => void
+  resetApprovalsToAdd: () => (CollectionApprovalWithDetails<bigint>)[]
 
   showAdvancedOptions: boolean
   setShowAdvancedOptions: (showAdvancedOptions: boolean) => void
@@ -129,8 +129,8 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   existingCollectionId: undefined,
   setExistingCollectionId: () => { },
 
-  approvedTransfersToAdd: [],
-  setApprovedTransfersToAdd: () => { },
+  approvalsToAdd: [],
+  setApprovalsToAdd: () => { },
 
   startingCollection: undefined,
   setStartingCollection: () => { },
@@ -156,8 +156,8 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   setUpdateOffChainBalancesMetadataTimeline: () => { },
   updateCustomDataTimeline: true,
   setUpdateCustomDataTimeline: () => { },
-  updateCollectionApprovedTransfers: true,
-  setUpdateCollectionApprovedTransfers: () => { },
+  updateCollectionApprovals: true,
+  setUpdateCollectionApprovals: () => { },
   updateStandardsTimeline: true,
   setUpdateStandardsTimeline: () => { },
   updateContractAddressTimeline: true,
@@ -190,7 +190,7 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
 
   completeControl: false,
   setCompleteControl: () => { },
-  resetApprovedTransfersToAdd: () => [],
+  resetApprovalsToAdd: () => [],
 
   showAdvancedOptions: false,
   setShowAdvancedOptions: () => { },
@@ -240,13 +240,13 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateBadgeMetadataTimeline, setUpdateBadgeMetadataTimeline] = useState(true);
   const [updateOffChainBalancesMetadataTimeline, setUpdateOffChainBalancesMetadataTimeline] = useState(true);
   const [updateCustomDataTimeline, setUpdateCustomDataTimeline] = useState(true);
-  const [updateCollectionApprovedTransfers, setUpdateCollectionApprovedTransfers] = useState(true);
+  const [updateCollectionApprovals, setUpdateCollectionApprovals] = useState(true);
   const [updateStandardsTimeline, setUpdateStandardsTimeline] = useState(true);
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
 
-  const [approvedTransfersToAdd, setApprovedTransfersToAdd] = useState<(CollectionApprovedTransferWithDetails<bigint>)[]>(
-    startingCollection ? getMintApprovedTransfers(startingCollection).map(x => {
+  const [approvalsToAdd, setApprovalsToAdd] = useState<(CollectionApprovalWithDetails<bigint>)[]>(
+    startingCollection ? getMintApprovals(startingCollection).map(x => {
       return {
         ...x,
         balances: [{
@@ -262,17 +262,17 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
-    resetApprovedTransfersToAdd();
+    resetApprovalsToAdd();
 
   }, [startingCollection]);
 
-  const resetApprovedTransfersToAdd = () => {
+  const resetApprovalsToAdd = () => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
     if (!startingCollection) return [];
 
     //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
-    const existingFromMint = getMintApprovedTransfers(startingCollection);
-    const defaultApprovedTransfersToAdd = existingFromMint.map(x => {
+    const existingFromMint = getMintApprovals(startingCollection);
+    const defaultApprovalsToAdd = existingFromMint.map(x => {
       return {
         ...x,
         balances: [{
@@ -284,9 +284,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       }
     })
 
-    setApprovedTransfersToAdd(defaultApprovedTransfersToAdd);
+    setApprovalsToAdd(defaultApprovalsToAdd);
 
-    return deepCopy(defaultApprovedTransfersToAdd);
+    return deepCopy(defaultApprovalsToAdd);
   }
   //This is the main useEffect where we update the collection with the new approved transfers
 
@@ -294,15 +294,15 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
     if (!simulatedCollection || simulatedCollection.balancesType === "Off-Chain") return;
 
-    const existingNonMint = getNonMintApprovedTransfers(simulatedCollection, true);
+    const existingNonMint = getNonMintApprovals(simulatedCollection, true);
 
     collections.updateCollection({
       ...simulatedCollection,
-      collectionApprovedTransfers: [
-        // ...existingFromMint, //We included in approvedTransfersToAdd 
-        ...approvedTransfersToAdd, ...existingNonMint],
+      collectionApprovals: [
+        // ...existingFromMint, //We included in approvalsToAdd 
+        ...approvalsToAdd, ...existingNonMint],
     });
-  }, [approvedTransfersToAdd]);
+  }, [approvalsToAdd]);
 
   function resetState() {
     setExistingCollectionId(undefined);
@@ -329,13 +329,13 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateBadgeMetadataTimeline(true);
     setUpdateOffChainBalancesMetadataTimeline(true);
     setUpdateCustomDataTimeline(true);
-    setUpdateCollectionApprovedTransfers(true);
+    setUpdateCollectionApprovals(true);
     setUpdateStandardsTimeline(true);
     setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
 
     setCompleteControl(false);
-    resetApprovedTransfersToAdd();
+    resetApprovalsToAdd();
   }
 
   //Initial fetch of the address mapping we are updating if it exists
@@ -400,12 +400,16 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           onChain: true,
           cosmosAddress: 'Total',
           balances: [],
-          approvedIncomingTransfers: [],
-          approvedOutgoingTransfers: [],
+          incomingApprovals: [],
+          outgoingApprovals: [],
           userPermissions: {
-            canUpdateApprovedIncomingTransfers: [],
-            canUpdateApprovedOutgoingTransfers: [],
+            canUpdateIncomingApprovals: [],
+            canUpdateOutgoingApprovals: [],
+            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
+          autoApproveSelfInitiatedIncomingTransfers: false,
+          autoApproveSelfInitiatedOutgoingTransfers: false,
           updateHistory: [],
         }, {
           _id: "0:Mint",
@@ -413,16 +417,20 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           onChain: true,
           collectionId: 0n,
           balances: [],
-          approvedIncomingTransfers: [],
-          approvedOutgoingTransfers: [],
+          incomingApprovals: [],
+          outgoingApprovals: [],
           userPermissions: {
-            canUpdateApprovedIncomingTransfers: [],
-            canUpdateApprovedOutgoingTransfers: [],
+            canUpdateIncomingApprovals: [],
+            canUpdateOutgoingApprovals: [],
+            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
+          autoApproveSelfInitiatedIncomingTransfers: false,
+          autoApproveSelfInitiatedOutgoingTransfers: false,
           updateHistory: [],
         }],
         views: {},
-        collectionApprovedTransfers: [],
+        collectionApprovals: [],
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],
@@ -440,7 +448,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canCreateMoreBadges: [],
           canDeleteCollection: [],
           canUpdateBadgeMetadata: [],
-          canUpdateCollectionApprovedTransfers: [],
+          canUpdateCollectionApprovals: [],
           canUpdateCollectionMetadata: [],
           canUpdateContractAddress: [],
           canUpdateCustomData: [],
@@ -448,12 +456,16 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateOffChainBalancesMetadata: [],
           canUpdateStandards: [],
         },
-        defaultUserApprovedIncomingTransfers: [],
-        defaultUserApprovedOutgoingTransfers: [],
+        defaultUserIncomingApprovals: [],
+        defaultUserOutgoingApprovals: [],
         defaultUserPermissions: {
-          canUpdateApprovedIncomingTransfers: [],
-          canUpdateApprovedOutgoingTransfers: [],
+          canUpdateIncomingApprovals: [],
+          canUpdateOutgoingApprovals: [],
+          canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+          canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
         },
+        defaultAutoApproveSelfInitiatedIncomingTransfers: false,
+        defaultAutoApproveSelfInitiatedOutgoingTransfers: false,
         createdBy: '',
         createdBlock: 0n,
         createdTimestamp: 0n,
@@ -550,9 +562,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (!simulatedCollection) return;
 
     if (simulatedCollection.balancesType === "Off-Chain") {
-      setUpdateCollectionApprovedTransfers(false);
+      setUpdateCollectionApprovals(false);
     } else {
-      setUpdateCollectionApprovedTransfers(true);
+      setUpdateCollectionApprovals(true);
     }
   }, [simulatedCollection?.balancesType]);
 
@@ -576,7 +588,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     startingCollection,
     setStartingCollection,
 
-    resetApprovedTransfersToAdd,
+    resetApprovalsToAdd,
 
     transfers,
     setTransfers,
@@ -596,8 +608,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateOffChainBalancesMetadataTimeline,
     updateCustomDataTimeline,
     setUpdateCustomDataTimeline,
-    updateCollectionApprovedTransfers,
-    setUpdateCollectionApprovedTransfers,
+    updateCollectionApprovals,
+    setUpdateCollectionApprovals,
     updateStandardsTimeline,
     setUpdateStandardsTimeline,
     updateContractAddressTimeline,
@@ -624,8 +636,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     completeControl,
     setCompleteControl,
 
-    approvedTransfersToAdd,
-    setApprovedTransfersToAdd,
+    approvalsToAdd,
+    setApprovalsToAdd,
 
     showAdvancedOptions,
     setShowAdvancedOptions

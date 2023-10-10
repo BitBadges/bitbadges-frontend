@@ -21,27 +21,17 @@ export function CanDeleteStepItem() {
     handleSwitchChange(idx);
   }
 
-
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
     collections.updateCollection({
       ...collection,
       collectionPermissions: {
         ...collection.collectionPermissions,
         canDeleteCollection: idx === 0 ? [{
-          defaultValues: {
-            permittedTimes: [],
-            forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          },
-          combinations: [{}]
+          permittedTimes: [],
+          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }] : idx == 1 && !frozen ? [] : [{
-          defaultValues: {
-            permittedTimes: [],
-            forbiddenTimes: [],
-          },
-          combinations: [{
-            permittedTimesOptions: { allValues: true },
-            forbiddenTimesOptions: { noValues: true },
-          }]
+          permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          forbiddenTimes: [],
         }]
       }
     });
@@ -87,7 +77,6 @@ export function CanDeleteStepItem() {
             },
           ]}
           onSwitchChange={handleSwitchChangeIdxOnly}
-
         />
         <br />
         <br />

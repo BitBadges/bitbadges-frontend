@@ -1,11 +1,11 @@
 import { Col, Divider, Row, Typography } from "antd";
 import { AddressMapping, MustOwnBadges, deepCopy } from "bitbadgesjs-proto";
-import { ApprovedTransferPermissionUsedFlags, castCollectionApprovedTransferPermissionToUniversalPermission, convertToCosmosAddress, getFirstMatchForCollectionApprovedTransfers, getReservedAddressMapping, validateCollectionApprovedTransfersUpdate } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, castCollectionApprovalPermissionToUniversalPermission, convertToCosmosAddress, getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { useStatusContext } from "../../../bitbadges-api/contexts/StatusContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { getMintApprovedTransfers, getNonMintApprovedTransfers } from "../../../bitbadges-api/utils/mintVsNonMint";
+import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplayList } from "../../address/AddressDisplayList";
 import { AddressListSelect } from "../../address/AddressListSelect";
@@ -17,7 +17,8 @@ import { NumberInput } from "../../inputs/NumberInput";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { approvalDetailsHasNoRestrictions } from "../../../bitbadges-api/utils/claims";
+import { approvalCriteriaHasNoRestrictions } from "../../../bitbadges-api/utils/claims";
+import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 
 const crypto = require('crypto');
 
@@ -27,9 +28,10 @@ export function TransferabilitySelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const existingCollectionId = txTimelineContext.existingCollectionId;
-  const updateCollectionApprovedTransfers = txTimelineContext.updateCollectionApprovedTransfers;
-  const setUpdateCollectionApprovedTransfers = txTimelineContext.setUpdateCollectionApprovedTransfers;
-  const approvedTransfersToAdd = txTimelineContext.approvedTransfersToAdd;
+  const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
+  const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
+  const approvalsToAdd = txTimelineContext.approvalsToAdd;
+  const chain = useChainContext();
 
   const status = useStatusContext();
 
@@ -41,7 +43,7 @@ export function TransferabilitySelectStepItem() {
   const [showAdditional, setShowAdditional] = useState<boolean>(false);
   const [defaultTransferable, setDefaultTransferable] = useState<boolean>(false);
 
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   const manager = collection?.managerTimeline.find(x => x.manager)?.manager ?? '';
 
   useEffect(() => {
@@ -53,69 +55,50 @@ export function TransferabilitySelectStepItem() {
   if (!collection) return EmptyStepItem;
 
   //This is still naive in the fact that it includes "Mint"+ mappings but works for nonTransferable / transfeerable vars
-  const nonMintApprovedTransfers = getFirstMatchForCollectionApprovedTransfers(getNonMintApprovedTransfers(collection, false));
-  const nonTransferable = nonMintApprovedTransfers.length == 0 || nonMintApprovedTransfers.every(x => x.allowedCombinations.length == 1 && !x.allowedCombinations[0].isApproved);
-  const transferable = nonMintApprovedTransfers.length > 0 && nonMintApprovedTransfers.every(x => x.allowedCombinations.length == 1 && x.allowedCombinations[0].isApproved
-    && approvalDetailsHasNoRestrictions(x.approvalDetails));
+  const nonMintApprovals = getNonMintApprovals(collection, false);
+  const nonTransferable = nonMintApprovals.length == 0;
+  const transferable = nonMintApprovals.length > 0 && nonMintApprovals.every(x => approvalCriteriaHasNoRestrictions(x.approvalCriteria));
 
   const handleClick = (nonTransferable: boolean, transferable: boolean) => {
     if (!collection) return;
 
-    const newApprovedTransfers = getMintApprovedTransfers(collection);
+    const newApprovals = getMintApprovals(collection);
 
     if (nonTransferable) {
 
     } else if (transferable) {
-      newApprovedTransfers.push({
+      newApprovals.push({
         fromMappingId: "AllWithoutMint",
         toMappingId: "AllWithoutMint",
         initiatedByMappingId: "AllWithoutMint",
         badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
         ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
+        toMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+        fromMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
         transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         approvalId: "transferable",
-        approvalTrackerId: "",
+        amountTrackerId: "",
         challengeTrackerId: "",
-        allowedCombinations: [{
-          isApproved: true,
-        }]
+
       });
     } else {
-
-
-
-
       if (revokable) {
-        newApprovedTransfers.push({
+        newApprovals.push({
           fromMappingId: "AllWithoutMint",
           toMappingId: "AllWithoutMint",
           initiatedByMappingId: "Manager",
           badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-          fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-          initiatedByMapping: getReservedAddressMapping("Manager", manager) as AddressMapping,
-          approvalTrackerId: "revoke",
+          toMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+          fromMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+          initiatedByMapping: getReservedAddressMapping(chain.cosmosAddress) as AddressMapping,
+          amountTrackerId: "revoke",
           approvalId: "revoke",
           challengeTrackerId: "",
-          approvalDetails: {
-
-            uri: "",
-            customData: "",
-            merkleChallenge: {
-              root: '',
-              maxOneUsePerLeaf: false,
-              expectedProofLength: 0n,
-              useCreatorAddressAsLeaf: false,
-              useLeafIndexForTransferOrder: false,
-              uri: '',
-              customData: '',
-            },
-            overridesFromApprovedOutgoingTransfers: true,
-            overridesToApprovedIncomingTransfers: false,
+          approvalCriteria: {
+            overridesFromOutgoingApprovals: true,
+            overridesToIncomingApprovals: false,
             requireFromDoesNotEqualInitiatedBy: false,
             requireFromEqualsInitiatedBy: false,
             requireToDoesNotEqualInitiatedBy: false,
@@ -149,73 +132,34 @@ export function TransferabilitySelectStepItem() {
               perToAddressMaxNumTransfers: 0n,
             },
           },
-          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          allowedCombinations: [{
-            isApproved: true,
-          }]
+          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
         });
       }
 
+      let toMappingId = "AllWithoutMint";
+      let fromMappingId = "AllWithoutMint";
+      let initiatedByMappingId = "AllWithoutMint";
       if (defaultTransferable) {
         for (const user of frozenUsers) {
-          newApprovedTransfers.push({
-            toMappingId: "AllWithoutMint",
-            fromMappingId: convertToCosmosAddress(user),
-            initiatedByMappingId: "AllWithoutMint",
-            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            fromMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
-            toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-            initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-
-            transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            approvalId: "rejectfrom" + convertToCosmosAddress(user),
-            approvalTrackerId: "",
-            challengeTrackerId: "",
-            allowedCombinations: [{
-              isApproved: false,
-            }]
-
-          });
-
-          newApprovedTransfers.push({
-            fromMappingId: "AllWithoutMint",
-            toMappingId: convertToCosmosAddress(user),
-            initiatedByMappingId: "AllWithoutMint",
-            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            toMapping: getReservedAddressMapping(convertToCosmosAddress(user), '') as AddressMapping,
-            fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-            initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-
-            transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            approvalId: "rejectto" + convertToCosmosAddress(user),
-            approvalTrackerId: "",
-            challengeTrackerId: "",
-            allowedCombinations: [{
-              isApproved: false,
-            }]
-
-          });
-
+          toMappingId += ":" + convertToCosmosAddress(user);
+          fromMappingId += ":" + convertToCosmosAddress(user);
+          initiatedByMappingId += ":" + convertToCosmosAddress(user);
         }
 
-        newApprovedTransfers.push({
-          fromMappingId: "AllWithoutMint",
-          toMappingId: "AllWithoutMint",
-          initiatedByMappingId: "AllWithoutMint",
+        newApprovals.push({
+          fromMappingId: fromMappingId,
+          toMappingId: toMappingId,
+          initiatedByMappingId: initiatedByMappingId,
           badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          toMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-          fromMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-          initiatedByMapping: getReservedAddressMapping("AllWithoutMint", '') as AddressMapping,
-          approvalTrackerId: approvalTrackerId.current,
-          approvalId: approvalTrackerId.current,
+          toMapping: getReservedAddressMapping(toMappingId) as AddressMapping,
+          fromMapping: getReservedAddressMapping(fromMappingId) as AddressMapping,
+          initiatedByMapping: getReservedAddressMapping(initiatedByMappingId) as AddressMapping,
+          amountTrackerId: amountTrackerId.current,
+          approvalId: amountTrackerId.current,
           challengeTrackerId: "",
-          approvalDetails: mustOwnBadges && mustOwnBadges.length > 0 ?
+          approvalCriteria: mustOwnBadges && mustOwnBadges.length > 0 ?
             {
-              uri: '',
-              customData: '',
               mustOwnBadges: mustOwnBadges,
               approvalAmounts: {
                 overallApprovalAmount: 0n,
@@ -253,22 +197,17 @@ export function TransferabilitySelectStepItem() {
                 maxOneUsePerLeaf: false,
                 expectedProofLength: 0n,
                 useCreatorAddressAsLeaf: false,
-                useLeafIndexForTransferOrder: false,
+
                 uri: '',
                 customData: '',
               },
 
-              overridesToApprovedIncomingTransfers: false,
-              overridesFromApprovedOutgoingTransfers: false,
+              overridesToIncomingApprovals: false,
+              overridesFromOutgoingApprovals: false,
             }
 
             : undefined,
           transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          allowedCombinations: [{
-            isApproved: true,
-
-          }]
-
         });
 
       }
@@ -277,7 +216,7 @@ export function TransferabilitySelectStepItem() {
 
     collections.updateCollection({
       ...collection,
-      collectionApprovedTransfers: deepCopy(newApprovedTransfers),
+      collectionApprovals: deepCopy(newApprovals),
     });
   }
 
@@ -286,7 +225,7 @@ export function TransferabilitySelectStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const err = startingCollection ? validateCollectionApprovedTransfersUpdate(startingCollection.collectionApprovedTransfers, collection.collectionApprovedTransfers, startingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers) : undefined;
+  const err = startingCollection ? validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, collection.collectionApprovals, startingCollection.collectionPermissions.canUpdateCollectionApprovals) : undefined;
 
   return {
     title: `Select Transferability`,
@@ -296,25 +235,25 @@ export function TransferabilitySelectStepItem() {
       {existingCollectionId ? <> {`Current Permission - Can Update Transferability?: `}
         {
           PermissionIcon(
-            "canUpdateCollectionApprovedTransfers",
-            castCollectionApprovedTransferPermissionToUniversalPermission(startingCollection?.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []), ApprovedTransferPermissionUsedFlags
+            "canUpdateCollectionApprovals",
+            castCollectionApprovalPermissionToUniversalPermission(startingCollection?.collectionPermissions.canUpdateCollectionApprovals ?? []), ApprovalPermissionUsedFlags
           )
         }
       </> : <></>}
 
     </>,
     node: <UpdateSelectWrapper
-      updateFlag={updateCollectionApprovedTransfers}
-      setUpdateFlag={setUpdateCollectionApprovedTransfers}
-      jsonPropertyPath='collectionApprovedTransfers'
-      permissionName='canUpdateCollectionApprovedTransfers'
+      updateFlag={updateCollectionApprovals}
+      setUpdateFlag={setUpdateCollectionApprovals}
+      jsonPropertyPath='collectionApprovals'
+      permissionName='canUpdateCollectionApprovals'
       customRevertFunction={() => {
-        const existingNonMint = startingCollection ? getNonMintApprovedTransfers(startingCollection, true) : [];
+        const existingNonMint = startingCollection ? getNonMintApprovals(startingCollection, true) : [];
 
         collections.updateCollection({
           ...collection,
-          collectionApprovedTransfers: [
-            ...approvedTransfersToAdd,
+          collectionApprovals: [
+            ...approvalsToAdd,
             ...existingNonMint
           ],
         });
@@ -510,10 +449,7 @@ export function TransferabilitySelectStepItem() {
               </div>
 
               <div className='flex-center' style={{ textAlign: 'center' }}>
-                <TransferabilityTab collectionId={0n}
-                  isNotClaimSelect
-
-                />
+                <TransferabilityTab collectionId={0n} onlyShowNotFromMint />
               </div>
             </>
           }

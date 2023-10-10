@@ -1,12 +1,15 @@
-import { Card, Col, Divider, Empty, Layout, Row, Spin } from 'antd';
-import { AddressMapping } from 'bitbadgesjs-proto';
-import { Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { Card, Col, Divider, Empty, Layout, Row, Spin, Typography } from 'antd';
+import { AddressMappingInfo, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
+import { ClockCircleOutlined } from '@ant-design/icons';
+import Meta from 'antd/lib/card/Meta';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
 import { AddressSelect } from '../../components/address/AddressSelect';
@@ -15,10 +18,8 @@ import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { Tabs } from '../../components/navigation/Tabs';
-import Meta from 'antd/lib/card/Meta';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NODE_URL } from '../../constants';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -28,7 +29,7 @@ function CollectionPage({ }: {}) {
   const { mappingId } = router.query;
 
   const [tab, setTab] = useState('overview');
-  const [mapping, setMapping] = useState<AddressMapping>();
+  const [mapping, setMapping] = useState<AddressMappingInfo<bigint>>();
   const [metadata, setMetadata] = useState<Metadata<bigint>>();
 
   const HtmlToReactParser = HtmlToReact.Parser();
@@ -125,6 +126,7 @@ function CollectionPage({ }: {}) {
   const tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
+    { key: 'history', content: 'Update History' },
     { key: 'actions', content: 'Actions' },
   );
   return (
@@ -156,6 +158,28 @@ function CollectionPage({ }: {}) {
             theme="dark"
             fullWidth
           />
+          {tab === 'history' && <>
+            <div className='primary-text'>
+              <br />
+              {mapping?.updateHistory.map((update, i) => {
+                return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
+
+                  <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+                    <ClockCircleOutlined style={{ marginRight: '5px' }} />
+                    {i == 0 ? 'Created' : 'Updated'
+                    } at{' '}
+                    {new Date(Number(update.blockTimestamp)).toLocaleString()}
+                    {' '}(Block #{update.block.toString()})
+
+                  </Typography.Text>
+                  <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                    {update.txHash}
+                  </a></p>
+                  <Divider />
+                </div>
+              })}
+            </div>
+          </>}
           {tab === 'overview' && <>
             <br />
             {metadata?.description && <>
@@ -170,6 +194,7 @@ function CollectionPage({ }: {}) {
               </InformationDisplayCard>
               <br />
             </>}
+
             {
               <div className='flex-center'>
                 <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>

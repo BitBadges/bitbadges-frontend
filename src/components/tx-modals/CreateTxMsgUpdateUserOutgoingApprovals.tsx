@@ -1,10 +1,11 @@
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider } from 'antd';
-import { AddressMapping, Balance, MsgUpdateUserApprovedTransfers, createTxMsgUpdateUserApprovedTransfers, deepCopy } from 'bitbadgesjs-proto';
-import { UserApprovedOutgoingTransferWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { AddressMapping, Balance, MsgUpdateUserApprovals, createTxMsgUpdateUserApprovals, deepCopy } from 'bitbadgesjs-proto';
+import { UserOutgoingApprovalWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { getBadgeBalanceByAddress } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -16,11 +17,10 @@ import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { BalanceInput } from '../inputs/BalanceInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TxModal } from './TxModal';
-import { InfoCircleOutlined } from '@ant-design/icons';
 
 const crypto = require('crypto');
 
-export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collectionId, visible, setVisible, children }: {
+export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
@@ -35,7 +35,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalBalances);
   const [allInOne, setAllInOne] = useState<boolean>(false);
   const [approvee, setApprovee] = useState<string>(chain.address);
-  const [fetchedOutgoingTransfers, setFetchedOutgoingTransfers] = useState<UserApprovedOutgoingTransferWithDetails<bigint>[]>([]);
+  const [fetchedOutgoingTransfers, setFetchedOutgoingTransfers] = useState<UserOutgoingApprovalWithDetails<bigint>[]>([]);
   const approveeAccount = accounts.getAccount(approvee);
 
 
@@ -46,41 +46,26 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
 
       const balances = await getBadgeBalanceByAddress(collectionId, chain.cosmosAddress, { doNotHandleAllAndAppendDefaults: true });
-      console.log(JSON.stringify(balances.balance.approvedOutgoingTransfers, null, 2));
-      setFetchedOutgoingTransfers(balances.balance.approvedOutgoingTransfers);
+      console.log(JSON.stringify(balances.balance.outgoingApprovals, null, 2));
+      setFetchedOutgoingTransfers(balances.balance.outgoingApprovals);
     }
     getApproveeBalance();
   }, []);
 
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-  const newApprovedOutgoingTransfers: UserApprovedOutgoingTransferWithDetails<bigint>[] = [
+  const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const newOutgoingApprovals: UserOutgoingApprovalWithDetails<bigint>[] = [
     ...(allInOne ? [{
       badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
       ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
       toMappingId: "AllWithMint",
       initiatedByMappingId: convertToCosmosAddress(approvee),
       transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
-      initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-      approvalTrackerId: approvalTrackerId.current,
-      approvalId: approvalTrackerId.current,
-      challengeTrackerId: "",
-      approvalDetails: {
-        uri: '',
-        customData: '',
-        mustOwnBadges: [],
-        approvalAmounts: {
-          overallApprovalAmount: 0n,
-          perFromAddressApprovalAmount: 0n,
-          perToAddressApprovalAmount: 0n,
-          perInitiatedByAddressApprovalAmount: 0n,
-        },
-        maxNumTransfers: {
-          overallMaxNumTransfers: 0n,
-          perFromAddressMaxNumTransfers: 0n,
-          perToAddressMaxNumTransfers: 0n,
-          perInitiatedByAddressMaxNumTransfers: 0n,
-        },
+      toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+      initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee)) as AddressMapping,
+      amountTrackerId: amountTrackerId.current,
+      approvalId: amountTrackerId.current,
+      challengeTrackerId: amountTrackerId.current,
+      approvalCriteria: {
         predeterminedBalances: {
           manualBalances: [{ balances: balances }],
           incrementedBalances: {
@@ -96,21 +81,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
             usePerToAddressNumTransfers: false,
           },
         },
-        merkleChallenge: {
-          root: '',
-          maxOneUsePerLeaf: false,
-          expectedProofLength: 0n,
-          useCreatorAddressAsLeaf: false,
-          useLeafIndexForTransferOrder: false,
-          uri: '',
-          customData: '',
-        },
-        requireToEqualsInitiatedBy: false,
-        requireToDoesNotEqualInitiatedBy: false,
-      },
-      allowedCombinations: [{
-        isApproved: true,
-      }]
+      }
     }] : [...balances.map((x, idx) => {
       return {
         badgeIds: [...x.badgeIds],
@@ -118,74 +89,43 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         toMappingId: "AllWithMint",
         initiatedByMappingId: convertToCosmosAddress(approvee),
         transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toMapping: getReservedAddressMapping("AllWithMint", '') as AddressMapping,
-        initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee), '') as AddressMapping,
-        approvalTrackerId: idx + "-" + approvalTrackerId.current,
-        approvalId: idx + "-" + approvalTrackerId.current,
-        challengeTrackerId: "",
-        approvalDetails: {
-          uri: '',
-          customData: '',
-          mustOwnBadges: [],
+        toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+        initiatedByMapping: getReservedAddressMapping(convertToCosmosAddress(approvee)) as AddressMapping,
+        amountTrackerId: idx + "-" + amountTrackerId.current,
+        approvalId: idx + "-" + amountTrackerId.current,
+        challengeTrackerId: idx + "-" + amountTrackerId.current,
+        approvalCriteria: {
           approvalAmounts: {
             overallApprovalAmount: x.amount,
             perFromAddressApprovalAmount: 0n,
             perToAddressApprovalAmount: 0n,
             perInitiatedByAddressApprovalAmount: 0n,
           },
-          maxNumTransfers: {
-            overallMaxNumTransfers: 0n,
-            perFromAddressMaxNumTransfers: 0n,
-            perToAddressMaxNumTransfers: 0n,
-            perInitiatedByAddressMaxNumTransfers: 0n,
-          },
-          predeterminedBalances: {
-            manualBalances: [],
-            incrementedBalances: {
-              startBalances: [],
-              incrementBadgeIdsBy: 0n,
-              incrementOwnershipTimesBy: 0n,
-            },
-            orderCalculationMethod: {
-              useMerkleChallengeLeafIndex: false,
-              useOverallNumTransfers: false,
-              usePerFromAddressNumTransfers: false,
-              usePerInitiatedByAddressNumTransfers: false,
-              usePerToAddressNumTransfers: false,
-            },
-          },
-          merkleChallenge: {
-            root: '',
-            maxOneUsePerLeaf: false,
-            expectedProofLength: 0n,
-            useCreatorAddressAsLeaf: false,
-            useLeafIndexForTransferOrder: false,
-            uri: '',
-            customData: '',
-          },
-          requireToEqualsInitiatedBy: false,
-          requireToDoesNotEqualInitiatedBy: false,
         },
-        allowedCombinations: [{
-          isApproved: true,
-        }]
+
       }
     })]),
     ...(fetchedOutgoingTransfers.length > 0 ? fetchedOutgoingTransfers : []),
   ]
 
-  const txCosmosMsg: MsgUpdateUserApprovedTransfers<bigint> = {
+  const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
     updateUserPermissions: false,
     userPermissions: {
-      canUpdateApprovedIncomingTransfers: [],
-      canUpdateApprovedOutgoingTransfers: [],
+      canUpdateIncomingApprovals: [],
+      canUpdateOutgoingApprovals: [],
+      canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+      canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
     },
-    updateApprovedIncomingTransfers: false,
-    updateApprovedOutgoingTransfers: true,
-    approvedIncomingTransfers: [],
-    approvedOutgoingTransfers: newApprovedOutgoingTransfers,
+    updateIncomingApprovals: false,
+    updateOutgoingApprovals: true,
+    incomingApprovals: [],
+    outgoingApprovals: newOutgoingApprovals,
+    autoApproveSelfInitiatedIncomingTransfers: false,
+    autoApproveSelfInitiatedOutgoingTransfers: false,
+    updateAutoApproveSelfInitiatedIncomingTransfers: false,
+    updateAutoApproveSelfInitiatedOutgoingTransfers: false,
   };
   const uintRangesOverlap = balances.some(x => checkIfUintRangesOverlap(x.badgeIds));
   const uintRangesLengthEqualsZero = balances.some(x => x.badgeIds.length === 0);
@@ -287,7 +227,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
         <UserApprovalsTab
           collectionId={collectionId}
           isOutgoingApprovalEdit
-          userApprovedOutgoingTransfers={newApprovedOutgoingTransfers}
+          userOutgoingApprovals={newOutgoingApprovals}
         />
         <br />
       </div>
@@ -302,7 +242,7 @@ export function CreateTxMsgUpdateUserApprovedOutgoingTransfersModal({ collection
       txName="Update Approvals"
       txCosmosMsg={txCosmosMsg}
       style={{ minWidth: '95%' }}
-      createTxFunction={createTxMsgUpdateUserApprovedTransfers}
+      createTxFunction={createTxMsgUpdateUserApprovals}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
       }}

@@ -1,14 +1,15 @@
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DevMode } from '../../common/DevMode';
 
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
-import { DistributionMethod, getCurrentValueForTimeline, getReservedAddressMapping } from 'bitbadgesjs-utils';
-import { AddressMapping } from 'bitbadgesjs-proto';
-import { useState, useRef } from 'react';
-import { GO_MAX_UINT_64 } from '../../../utils/dates';
-import { SwitchForm } from './SwitchForm';
 import { Button, Divider } from 'antd';
+import { AddressMapping } from 'bitbadgesjs-proto';
+import { DistributionMethod, getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { useRef, useState } from 'react';
+import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
+import { ClaimSelect } from '../../transfers/TransferOrClaimSelect';
+import { SwitchForm } from './SwitchForm';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 const crypto = require('crypto');
 
@@ -17,10 +18,11 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const approvedTransfersToAdd = txTimelineContext.approvedTransfersToAdd;
-  const setApprovedTransfersToAdd = txTimelineContext.setApprovedTransfersToAdd;
+  const approvalsToAdd = txTimelineContext.approvalsToAdd;
+  const setApprovalsToAdd = txTimelineContext.setApprovalsToAdd;
   const transfers = txTimelineContext.transfers;
   const setTransfers = txTimelineContext.setTransfers;
+  const chain = useChainContext();
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
 
@@ -81,7 +83,7 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
     options.push(ManualTransferStep);
   }
 
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   //TODO: Make this more dynamic
   return <div style={{ justifyContent: 'center', width: '100%' }}>
     <br />
@@ -123,8 +125,8 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
           hideTransferDisplay={true}
           setVisible={setVisible}
           distributionMethod={isOffChainBalances ? DistributionMethod.OffChainBalances : distributionMethod}
-          approvedTransfersToAdd={approvedTransfersToAdd}
-          setApprovedTransfersToAdd={setApprovedTransfersToAdd}
+          approvalsToAdd={approvalsToAdd}
+          setApprovalsToAdd={setApprovalsToAdd}
           transfers={transfers}
           setTransfers={setTransfers}
         />
@@ -135,29 +137,22 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
         onClick={() => {
           if (!collection) return;
 
-          const defaultApprovedTransfersToAdd = [...approvedTransfersToAdd];
-          const manager = getCurrentValueForTimeline(collection.managerTimeline)?.manager ?? '';
+          const defaultApprovalsToAdd = [...approvalsToAdd];
           //Put at beginning of list
-          defaultApprovedTransfersToAdd.unshift({
+          defaultApprovalsToAdd.unshift({
             fromMappingId: 'Mint',
             toMappingId: 'AllWithMint',
-            initiatedByMappingId: 'Manager',
-            initiatedByMapping: getReservedAddressMapping('Manager', manager) as AddressMapping,
-            fromMapping: getReservedAddressMapping('Mint', '') as AddressMapping,
-            toMapping: getReservedAddressMapping('AllWithMint', '') as AddressMapping,
+            initiatedByMappingId: chain.cosmosAddress,
+            initiatedByMapping: getReservedAddressMapping(chain.cosmosAddress) as AddressMapping,
+            fromMapping: getReservedAddressMapping('Mint') as AddressMapping,
+            toMapping: getReservedAddressMapping('AllWithMint') as AddressMapping,
             transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            allowedCombinations: [{
-              isApproved: true,
-            }],
-            approvalId: approvalTrackerId.current,
-            approvalTrackerId: approvalTrackerId.current,
+            approvalId: amountTrackerId.current,
+            amountTrackerId: amountTrackerId.current,
             challengeTrackerId: '',
-            approvalDetails: {
-
-              uri: '',
-              customData: '',
+            approvalCriteria: {
               mustOwnBadges: [],
               approvalAmounts: {
                 overallApprovalAmount: 0n,
@@ -191,7 +186,6 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
                 maxOneUsePerLeaf: false,
                 expectedProofLength: 0n,
                 useCreatorAddressAsLeaf: false,
-                useLeafIndexForTransferOrder: false,
                 uri: '',
                 customData: '',
               },
@@ -201,12 +195,12 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
               requireFromDoesNotEqualInitiatedBy: false,
 
 
-              overridesToApprovedIncomingTransfers: false,
-              overridesFromApprovedOutgoingTransfers: true,
+              overridesToIncomingApprovals: false,
+              overridesFromOutgoingApprovals: true,
             },
           });
 
-          setApprovedTransfersToAdd(defaultApprovedTransfersToAdd);
+          setApprovalsToAdd(defaultApprovalsToAdd);
           setVisible(false);
         }}
         type='primary'
@@ -216,6 +210,6 @@ export function CreateClaims({ setVisible }: { setVisible: (visible: boolean) =>
       </Button>
     </div>
     }
-    <DevMode obj={txTimelineContext.approvedTransfersToAdd} />
+    <DevMode obj={txTimelineContext.approvalsToAdd} />
   </div >
 }

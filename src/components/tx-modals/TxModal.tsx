@@ -150,9 +150,9 @@ export function TxModal(
         setSimulated(true);
         setAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
         setRecommendedAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
-        notification.success({
-          message: 'Transaction Simulation Successful',
-        });
+        // notification.success({
+        //   message: 'Transaction Simulation Successful',
+        // });
       } catch (e: any) {
         if (e?.response?.data?.message) {
           setError(e.response.data.message);
@@ -378,7 +378,7 @@ export function TxModal(
 
         <div className='flex-center'>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
-            By checking the box below, I confirm that I will verify all transaction details are as desired when signing the transaction.
+            I will confirm that all transaction details are as desired when signing the transaction.
           </Typography.Text>
         </div>
         <div className='flex-center'>
@@ -390,7 +390,7 @@ export function TxModal(
         <br />
         <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
-            By checking the box below, I understand that this is a beta version of BitBadges, and there may be bugs.
+            I understand that this is a beta version of BitBadges, and there may be bugs.
           </Typography.Text>
         </div >
         <div className='flex-center'>
@@ -402,7 +402,7 @@ export function TxModal(
         <br />
         <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
-            By checking the box below, I understand that blockchain transactions are permanent and irreversible.
+            I understand that blockchain transactions are permanent and irreversible.
           </Typography.Text>
         </div >
         <div className='flex-center'>

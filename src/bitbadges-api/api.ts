@@ -6,7 +6,11 @@ import { BACKEND_URL } from '../constants';
 export type DesiredNumberType = bigint;
 export const ConvertFunction = BigIntify;
 
-const BitBadgesApi = new BitBadgesAPI(BACKEND_URL, BigIntify);
+const BitBadgesApi = new BitBadgesAPI({
+  apiUrl: BACKEND_URL,
+  // apiKey: ...
+  convertFunction: BigIntify
+});
 
 async function handleApiError(error: any): Promise<void> {
   console.error(error);
@@ -199,7 +203,7 @@ export async function addReviewForCollection(collectionId: NumberType, requestBo
 export async function getAccounts(requestBody: GetAccountsRouteRequestBody): Promise<GetAccountsRouteSuccessResponse<DesiredNumberType>> {
   try {
     const res = await BitBadgesApi.getAccounts(requestBody);
-    
+
     return res;
   } catch (error) {
     await handleApiError(error);

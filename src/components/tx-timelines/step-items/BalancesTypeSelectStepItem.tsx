@@ -102,7 +102,7 @@ export function BalanceTypeSelectStepItem() {
           collections.updateCollection({
             ...collection,
             balancesType: idx == 1 ? "Standard" : "Off-Chain",
-            collectionApprovedTransfers: idx == 1 ? collection.collectionApprovedTransfers : [],
+            collectionApprovals: idx == 1 ? collection.collectionApprovals : [],
             offChainBalancesMetadataTimeline: idx == 0 ? collection.offChainBalancesMetadataTimeline : [],
           })
         }}

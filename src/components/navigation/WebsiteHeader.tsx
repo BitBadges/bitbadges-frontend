@@ -85,7 +85,7 @@ export function WalletHeader() {
   }
 
   for (const addressMapping of account?.addressMappings ?? []) {
-    if (account?.seenActivity && account.seenActivity < addressMapping.lastUpdated) {
+    if (account?.seenActivity && account.seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
       unseenNotificationCount++;
 
       if (unseenNotificationCount > overflowCount) {

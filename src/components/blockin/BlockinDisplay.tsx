@@ -1,4 +1,4 @@
-import { Avatar, Spin, Typography, notification } from "antd";
+import { Avatar, Typography, notification } from "antd";
 import { BigIntify } from "bitbadgesjs-proto";
 import { SupportedChain } from "bitbadgesjs-utils";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
@@ -7,8 +7,8 @@ import Image from 'next/image';
 import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
+import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
@@ -43,7 +43,6 @@ export const BlockinDisplay = ({
 
 
   const [_cookies, setCookie] = useCookies(['blockincookie']);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const [challengeParams, setChallengeParams] = useState<ChallengeParams<DesiredNumberType>>({
     domain: 'https://bitbadges.io',
@@ -99,8 +98,6 @@ export const BlockinDisplay = ({
 
   const signAndVerifyChallenge = async (challenge: string) => {
 
-    setLoading(true);
-
     const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(challenge);
     //Check if error in challenge signature
     if (!signChallengeResponse.originalBytes || !signChallengeResponse.signatureBytes) {
@@ -111,8 +108,6 @@ export const BlockinDisplay = ({
       signChallengeResponse.signatureBytes,
       constructChallengeObjectFromString(challenge, BigIntify)
     );
-
-    setLoading(false);
 
     return verifyChallengeResponse;
   }
@@ -135,7 +130,7 @@ export const BlockinDisplay = ({
   }
 
   return <>
-    <div className='flex-center' style={{ color: 'black' }}>
+    <div className='flex-center primary-text'>
       {
         <BlockinUIDisplay
           connected={connected}
@@ -154,7 +149,6 @@ export const BlockinDisplay = ({
           disconnect={async () => {
             disconnect()
           }}
-          hideChainName={true}
           chainOptions={[
             //These should match what ChainDrivers are implemented in your backend.
             { name: 'Ethereum' },
@@ -219,10 +213,6 @@ export const BlockinDisplay = ({
 
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
-          canAddCustomAssets={false}
-          customAddHelpDisplay={<>
-            {loading && <Spin size='large' />}
-          </>}
           hideConnectVsSignInHelper={hideLogin}
           maxTimeInFuture={168 * 60 * 60 * 1000}
         />

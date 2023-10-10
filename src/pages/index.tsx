@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { BITCOIN_LOGO, COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
+import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
+import { ClaimsTab } from '../components/collection-page/ClaimsTab';
 
 
 export const LandingCard = ({ content, additionalContent, onClick }: {
@@ -142,6 +143,8 @@ const Home: NextPage = () => {
       }
     }));
   }, []);
+
+  const claimCollection = collections.collections[2n.toString()];
 
   return (
     <>
@@ -378,8 +381,10 @@ const Home: NextPage = () => {
           </Col>
         </Row>
 
-        <Divider />
-        <Row className='flex-center'>
+
+
+
+        {/* <Row className='flex-center'>
           <Col md={11} sm={24} xs={24} style={{ alignItems: "normal", height: '100%' }} >
 
 
@@ -414,11 +419,44 @@ const Home: NextPage = () => {
               />
             </div>
           </Col>
-        </Row >
+        </Row > */}
         <br />
       </div >
       <div className='gradient-bg landing-padding' style={{ textAlign: 'center' }}>
+        <Row className='flex-around' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal' }}>
+          <Col md={12} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '30px' }} className='flex-center flex-column'>
 
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+              Claim the BitBadges betanet participant badge!
+            </Typography.Text>
+            <br />
+            {claimCollection &&
+              <ClaimsTab
+                collectionId={2n}
+              />}
+          </Col>
+          <Col md={12} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '30px' }} className='flex-center flex-column'>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+              Watch the video below to learn more about BitBadges
+            </Typography.Text>
+            <br />
+            <div className="container" style={{ marginTop: 12, }}>
+              <iframe
+                className='responsive-iframe'
+                // width={'60%'}
+                // height={209 * 1.2}
+                src="https://www.youtube.com/embed/vgL1BR4PZNU"
+                title="Create a Badge in 45 Seconds w/ BitBadges"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+
+          </Col>
+        </Row>
+      </div>
+      <div className='gradient-bg landing-padding' style={{ textAlign: 'center' }}>
         <br />
         <br />
         <Row className='flex-center'>
@@ -666,10 +704,7 @@ const Home: NextPage = () => {
                     Solana <Avatar
                       src={SOLANA_LOGO}
                       size={25}
-                    />, Bitcoin <Avatar
-                      src={BITCOIN_LOGO}
-                      size={25}
-                    />, and more soon.
+                    /> and more soon.
                   </Typography.Text></>
               }
             />
@@ -691,7 +726,8 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    BitBadges supports multiple balance types, such as storing balances off-chain (via a typical server) as opposed to on the blockchain. Each balance type offers its own pros and cons.
+                    BitBadges supports multiple balance types, such as storing balances off-chain as opposed to on the blockchain.
+                    The airdrop badge uses this feature which is how you were able to receive it without signing a blockchain transaction!
                   </Typography.Text>
                 </>
               }

@@ -1,5 +1,5 @@
 import { notification } from 'antd';
-import { CollectionApprovedTransfer, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
+import { CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
 import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, OffChainBalancesMap, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -28,12 +28,16 @@ export function CreateTxMsgUpdateCollectionModal(
   const msg: MsgUpdateCollection<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId ? collectionId : 0n,
-    defaultApprovedIncomingTransfers: collection ? collection?.defaultUserApprovedIncomingTransfers : [],
-    defaultApprovedOutgoingTransfers: collection ? collection?.defaultUserApprovedOutgoingTransfers : [],
+    defaultIncomingApprovals: collection ? collection?.defaultUserIncomingApprovals : [],
+    defaultOutgoingApprovals: collection ? collection?.defaultUserOutgoingApprovals : [],
     defaultUserPermissions: collection ? collection?.defaultUserPermissions : {
-      canUpdateApprovedIncomingTransfers: [],
-      canUpdateApprovedOutgoingTransfers: [],
+      canUpdateIncomingApprovals: [],
+      canUpdateOutgoingApprovals: [],
+      canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+      canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
     },
+    defaultAutoApproveSelfInitiatedIncomingTransfers: false,
+    defaultAutoApproveSelfInitiatedOutgoingTransfers: false,
     badgesToCreate: txTimelineContext.badgesToCreate,
     updateCollectionPermissions: txTimelineContext.updateCollectionPermissions,
     balancesType: collection ? collection?.balancesType : "",
@@ -43,7 +47,7 @@ export function CreateTxMsgUpdateCollectionModal(
       canDeleteCollection: [],
       canUpdateBadgeMetadata: [],
       canUpdateCollectionMetadata: [],
-      canUpdateCollectionApprovedTransfers: [],
+      canUpdateCollectionApprovals: [],
       canUpdateContractAddress: [],
       canUpdateCustomData: [],
       canUpdateManager: [],
@@ -60,8 +64,8 @@ export function CreateTxMsgUpdateCollectionModal(
     offChainBalancesMetadataTimeline: collection ? collection?.offChainBalancesMetadataTimeline : [],
     updateCustomDataTimeline: txTimelineContext.updateCustomDataTimeline,
     customDataTimeline: collection ? collection?.customDataTimeline : [],
-    updateCollectionApprovedTransfers: txTimelineContext.updateCollectionApprovedTransfers,
-    collectionApprovedTransfers: collection ? collection?.collectionApprovedTransfers : [],
+    updateCollectionApprovals: txTimelineContext.updateCollectionApprovals,
+    collectionApprovals: collection ? collection?.collectionApprovals : [],
     updateStandardsTimeline: txTimelineContext.updateStandardsTimeline,
     standardsTimeline: collection ? collection?.standardsTimeline : [],
     updateContractAddressTimeline: txTimelineContext.updateContractAddressTimeline,
@@ -170,36 +174,36 @@ export function CreateTxMsgUpdateCollectionModal(
 
     //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
 
-    if (collection.collectionApprovedTransfers?.length > 0 && txTimelineContext.updateCollectionApprovedTransfers) {
+    if (collection.collectionApprovals?.length > 0 && txTimelineContext.updateCollectionApprovals) {
       if (simulate) {
-        for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
-          const approvalDetails = collection.collectionApprovedTransfers[i].approvalDetails;
-          if (approvalDetails) {
-            if (approvalDetails.merkleChallenge.uri) continue;
-            approvalDetails.merkleChallenge.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
+        for (let i = 0; i < collection.collectionApprovals.length; i++) {
+          const approvalCriteria = collection.collectionApprovals[i].approvalCriteria;
+          if (approvalCriteria && approvalCriteria.merkleChallenge) {
+            if (approvalCriteria.merkleChallenge?.uri) continue;
+            approvalCriteria.merkleChallenge.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
           }
         }
       } else {
-        for (let i = 0; i < collection.collectionApprovedTransfers.length; i++) {
-          const approvalDetails = collection.collectionApprovedTransfers[i].approvalDetails;
-          if (approvalDetails) {
-            if (approvalDetails.merkleChallenge.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
-              approvalDetails.merkleChallenge.uri = '';
+        for (let i = 0; i < collection.collectionApprovals.length; i++) {
+          const approvalCriteria = collection.collectionApprovals[i].approvalCriteria;
+          if (approvalCriteria && approvalCriteria.merkleChallenge) {
+            if (approvalCriteria.merkleChallenge.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
+              approvalCriteria.merkleChallenge.uri = '';
             }
 
-            if (approvalDetails.merkleChallenge.uri) continue; //If it already has a URI, we don't need to add it to IPFS
+            if (approvalCriteria.merkleChallenge.uri) continue; //If it already has a URI, we don't need to add it to IPFS
 
-            if (approvalDetails.merkleChallenge.details && (approvalDetails.merkleChallenge.details?.name || approvalDetails.merkleChallenge.details?.description
-              || approvalDetails.merkleChallenge.details?.challengeDetails
-              || approvalDetails.merkleChallenge.details?.password
+            if (approvalCriteria.merkleChallenge.details && (approvalCriteria.merkleChallenge.details?.name || approvalCriteria.merkleChallenge.details?.description
+              || approvalCriteria.merkleChallenge.details?.challengeDetails
+              || approvalCriteria.merkleChallenge.details?.password
             )) {
               let res = await addMerkleChallengeToIpfs({
-                name: approvalDetails.merkleChallenge.details?.name || '',
-                description: approvalDetails.merkleChallenge.details?.description || '',
-                challengeDetails: approvalDetails.merkleChallenge.details?.challengeDetails,
+                name: approvalCriteria.merkleChallenge.details?.name || '',
+                description: approvalCriteria.merkleChallenge.details?.description || '',
+                challengeDetails: approvalCriteria.merkleChallenge.details?.challengeDetails,
               });
 
-              approvalDetails.merkleChallenge.uri = 'ipfs://' + res.result.cid;
+              approvalCriteria.merkleChallenge.uri = 'ipfs://' + res.result.cid;
             }
           }
         }
@@ -237,19 +241,19 @@ export function CreateTxMsgUpdateCollectionModal(
       }
     }
 
-    const collectionApprovedTransfersWithoutDetails: CollectionApprovedTransfer<bigint>[] = collection.collectionApprovedTransfers?.map(y => {
-      const approvalDetails = y.approvalDetails;
+    const collectionApprovalsWithoutDetails: CollectionApproval<bigint>[] = collection.collectionApprovals?.map(y => {
+      const approvalCriteria = y.approvalCriteria;
 
-      if (!approvalDetails) return y;
+      if (!approvalCriteria) return y;
 
       return {
         ...y,
-        approvalDetails: {
-          ...approvalDetails,
-          merkleChallenge: {
-            ...approvalDetails.merkleChallenge,
+        approvalCriteria: {
+          ...approvalCriteria,
+          merkleChallenge: approvalCriteria.merkleChallenge ? {
+            ...approvalCriteria.merkleChallenge,
             details: undefined,
-          },
+          } : undefined,
         }
       }
     }
@@ -260,7 +264,7 @@ export function CreateTxMsgUpdateCollectionModal(
       ...msg,
       creator: chain.cosmosAddress,
       collectionId: collectionId ? collectionId : 0n,
-      collectionApprovedTransfers: collectionApprovedTransfersWithoutDetails,
+      collectionApprovals: collectionApprovalsWithoutDetails,
       badgesToCreate: txTimelineContext.badgesToCreate,
       collectionMetadataTimeline: collectionMetadataTimeline,
       badgeMetadataTimeline: badgeMetadataTimeline,

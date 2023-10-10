@@ -34,7 +34,7 @@ export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "V
     }
 
     if (validForever && timeRange.start === 1n) {
-      return "All Times";
+      return "All";
     }
 
     const endDateString = validForever ? `Forever` : new Date(Number(

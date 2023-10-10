@@ -8,11 +8,11 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
-import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
-import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
+import { CreateTxMsgUpdateUserIncomingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserIncomingApprovals';
+import { CreateTxMsgUpdateUserOutgoingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserOutgoingApprovals';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { getMintApprovedTransfers } from '../../bitbadges-api/utils/mintVsNonMint';
+import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
 
 export function ActionsTab({
   collectionId,
@@ -120,7 +120,7 @@ export function ActionsTab({
       },
     });
 
-    if (getMintApprovedTransfers(collection).find(x => x.approvalDetails?.merkleChallenge.root && !x.approvalDetails?.merkleChallenge.useCreatorAddressAsLeaf)) {
+    if (getMintApprovals(collection).find(x => x.approvalCriteria?.merkleChallenge?.root && !x.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf)) {
       actions.push({
         title: getTitleElem("Distribute Codes"),
         description: getDescriptionElem(
@@ -219,7 +219,7 @@ export function ActionsTab({
             />}
 
           {approveIsVisible &&
-            <CreateTxMsgUpdateUserApprovedIncomingTransfersModal
+            <CreateTxMsgUpdateUserIncomingApprovalsModal
               visible={approveIsVisible}
               setVisible={setApproveIsVisible}
               collectionId={collectionId}
@@ -233,7 +233,7 @@ export function ActionsTab({
             />}
 
           {outgoingApproveIsVisible &&
-            <CreateTxMsgUpdateUserApprovedOutgoingTransfersModal
+            <CreateTxMsgUpdateUserOutgoingApprovalsModal
               visible={outgoingApproveIsVisible}
               setVisible={setOutgoingApproveIsVisible}
               collectionId={collectionId}

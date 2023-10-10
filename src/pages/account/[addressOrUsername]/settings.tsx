@@ -483,8 +483,8 @@ export function AccountSettings() {
                       };
 
                       let file = null;
-                      console.log('fileList', fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
-                      if (fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl) {
+                      console.log('fileList', fileList, fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
+                      if (fileList.length > 0 && fileList[0].originFileObj) {
                         file = fileList[0].originFileObj;
 
                         const reader = new FileReader();

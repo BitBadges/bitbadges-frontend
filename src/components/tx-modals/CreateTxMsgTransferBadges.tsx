@@ -61,7 +61,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       from: senderAccount?.cosmosAddress ?? '',
       balances: x.balances,
       toAddresses: x.toAddresses,
-      precalculationDetails: {
+      precalculateBalancesFromApproval: {
         approvalId: '',
         approvalLevel: '',
         approverAddress: '',

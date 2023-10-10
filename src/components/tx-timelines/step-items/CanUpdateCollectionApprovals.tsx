@@ -1,10 +1,10 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Divider, Typography } from "antd";
 import { AddressMapping } from "bitbadgesjs-proto";
-import { ApprovedTransferPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, castCollectionApprovedTransferPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
@@ -20,8 +20,6 @@ export function FreezeSelectStepItem() {
   const [checked, setChecked] = useState<boolean>(true);
   const [selectedIdxs, setSelectedIdxs] = useState<number[]>([]);
 
-
-
   const [err, setErr] = useState<Error | null>(null);
   useEffect(() => {
     //Because this option depends on locked badges, we need to make sure the correct value is selected whenever the locked badges could potentially change
@@ -32,12 +30,10 @@ export function FreezeSelectStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-
-
-  const lockedBadgeIds = collection.collectionPermissions.canCreateMoreBadges.length > 0 ? collection.collectionPermissions.canCreateMoreBadges.map(x => x.defaultValues.badgeIds).flat() : [];
+  const lockedBadgeIds = collection.collectionPermissions.canCreateMoreBadges.length > 0 ? collection.collectionPermissions.canCreateMoreBadges.map(x => x.badgeIds).flat() : [];
   const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
 
-  const permissionDetails = getPermissionDetails(castCollectionApprovedTransferPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovedTransfers), ApprovedTransferPermissionUsedFlags);
+  const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags);
   const mintPermissionDetails = permissionDetails.dataSource.filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, "Mint"));
   const mintHasPermittedTimes = mintPermissionDetails.some(x => x.permitted);
   const mintHasForbiddenTimes = mintPermissionDetails.some(x => x.forbidden);
@@ -48,22 +44,20 @@ export function FreezeSelectStepItem() {
   const nonMintHasForbiddenTimes = nonMintPermissionDetails.some(x => x.forbidden);
   const nonMintHasNeutralTimes = nonMintPermissionDetails.some(x => !x.permitted && !x.forbidden);
 
-  const everythingLocked = !permissionDetails.hasNeutralTimes;
+  // const everythingLocked = !permissionDetails.hasNeutralTimes;
 
 
-
-  const EverythingLockedCombination = {
-    fromMappingOptions: { allValues: true },
-    toMappingOptions: { allValues: true },
-    initiatedByMappingOptions: { allValues: true },
-    badgeIdsOptions: { allValues: true },
-    ownershipTimesOptions: { allValues: true },
-    transferTimesOptions: { allValues: true },
-    permittedTimesOptions: { allValues: true },
-    forbiddenTimesOptions: { noValues: true },
-  }
-
-
+  // const EverythingLockerPermission = {
+  //   fromMappingId: "AllWithMint",
+  //   toMappingId: "AllWithMint",
+  //   initiatedByMappingId: "AllWithMint",
+  //   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //   timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //   permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //   forbiddenTimes: [],
+  // }
 
   const handleSwitchChange = (idx: number) => {
     let idxs: number[] = [];
@@ -78,46 +72,38 @@ export function FreezeSelectStepItem() {
       ...collection,
       collectionPermissions: {
         ...collection.collectionPermissions,
-        canUpdateCollectionApprovedTransfers: idxs.map((idx) => {
+        canUpdateCollectionApprovals: idxs.map((idx) => {
           if (idx === 1) {
             return {
-              defaultValues: {
-                fromMappingId: "AllWithoutMint",
-                toMappingId: "AllWithMint",
-                initiatedByMappingId: "AllWithMint",
-                toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                fromMapping: getReservedAddressMapping("AllWithoutMint", "") as AddressMapping,
-                initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              fromMappingId: "AllWithoutMint",
+              toMappingId: "AllWithMint",
+              initiatedByMappingId: "AllWithMint",
+              toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+              fromMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+              initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{
-              }]
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }
           } else if (idx === 0) {
             return {
-              defaultValues: {
-                fromMappingId: "Mint",
-                toMappingId: "AllWithMint",
-                initiatedByMappingId: "AllWithMint",
-                toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                fromMapping: getReservedAddressMapping("Mint", "") as AddressMapping,
-                initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                badgeIds: lockedBadgeIds,
-                ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              fromMappingId: "Mint",
+              toMappingId: "AllWithMint",
+              initiatedByMappingId: "AllWithMint",
+              toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+              fromMapping: getReservedAddressMapping("Mint") as AddressMapping,
+              initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              badgeIds: lockedBadgeIds,
+              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{
-              }]
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }
           } else {
             return undefined
@@ -126,48 +112,49 @@ export function FreezeSelectStepItem() {
       }
     });
 
-    handleLocked(everythingLocked, collection.collectionPermissions.canUpdateCollectionApprovedTransfers);
+    //TODO: what the hell does this do
+    // handleLocked(everythingLocked, collection.collectionPermissions.canUpdateCollectionApprovals);
   }
 
-  const handleLocked = (locked: boolean, permissions: CollectionApprovedTransferPermissionWithDetails<bigint>[]) => {
-    // const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(permissions), BalancesActionPermissionUsedFlags);
-    const permissionDetails = getPermissionDetails(castCollectionApprovedTransferPermissionToUniversalPermission(permissions), ApprovedTransferPermissionUsedFlags);
-    if (!permissionDetails.hasForbiddenTimes) {
-      if (!locked) return [];
-      else return [{
-        defaultValues: {
-          fromMappingId: "AllWithoutMint",
-          toMappingId: "AllWithMint",
-          initiatedByMappingId: "AllWithMint",
-          toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-          fromMapping: getReservedAddressMapping("AllWithoutMint", "") as AddressMapping,
-          initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-          approvalTrackerId: "All",
-          challengeTrackerId: "All",
-          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  // const handleLocked = (locked: boolean, permissions: CollectionApprovalPermissionWithDetails<bigint>[]) => {
+  // const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(permissions), BalancesActionPermissionUsedFlags);
+  // const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(permissions), ApprovalPermissionUsedFlags);
+  // if (!permissionDetails.hasForbiddenTimes) {
+  //   if (!locked) return [];
+  //   else return [{
+  //     defaultValues: {
+  //       fromMappingId: "AllWithoutMint",
+  //       toMappingId: "AllWithMint",
+  //       initiatedByMappingId: "AllWithMint",
+  //       toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+  //       fromMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+  //       initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+  //       amountTrackerId: "All",
+  //       challengeTrackerId: "All",
+  //       timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //       transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //       badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //       ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 
-          permittedTimes: [],
-          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        },
-        combinations: [EverythingLockedCombination]
-      }]
-    }
+  //       permittedTimes: [],
+  //       forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  //     },
+  //     combinations: [EverythingLockedCombination]
+  //   }]
+  // }
 
-    if (locked) {
-      return permissions.map(x => ({
-        ...x,
-        combinations: [{}, EverythingLockedCombination],
-      }))
-    } else {
-      return permissions.map(x => ({
-        ...x,
-        combinations: [{}]
-      }))
-    }
-  }
+  // if (locked) {
+  //   return permissions.map(x => ({
+  //     ...x,
+  //     combinations: [{}, EverythingLockedCombination],
+  //   }))
+  // } else {
+  //   return permissions.map(x => ({
+  //     ...x,
+  //     combinations: [{}]
+  //   }))
+  // }
+  // }
 
   return {
     title: `Update transferability?`,
@@ -178,7 +165,7 @@ export function FreezeSelectStepItem() {
         setChecked={setChecked}
         err={err}
         setErr={setErr}
-        permissionName="canUpdateCollectionApprovedTransfers"
+        permissionName="canUpdateCollectionApprovals"
         node={<>
           <br />
           <div className='primary-text flex-center'>
@@ -220,7 +207,7 @@ export function FreezeSelectStepItem() {
             <div className="primary-text" style={{ textAlign: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 4 }} /> Anything forbidden will be permanently forbidden, but permitted values can be set to either be updatable (neutral) or permanently permitted.
             </div>
-            <SwitchForm
+            {/* <SwitchForm
               showCustomOption
               options={[
                 {
@@ -240,12 +227,12 @@ export function FreezeSelectStepItem() {
                   ...collection,
                   collectionPermissions: {
                     ...collection.collectionPermissions,
-                    canUpdateCollectionApprovedTransfers: handleLocked(idx === 1, collection.collectionPermissions.canUpdateCollectionApprovedTransfers)
+                    canUpdateCollectionApprovals: handleLocked(idx === 1, collection.collectionPermissions.canUpdateCollectionApprovals)
                   }
                 });
               }}
               helperMessage=""
-            />
+            /> */}
             <br />
             <br />
           </>}

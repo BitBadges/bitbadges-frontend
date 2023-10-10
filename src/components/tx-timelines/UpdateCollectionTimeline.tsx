@@ -1,6 +1,6 @@
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
@@ -12,7 +12,7 @@ import { CanCreateMoreStepItem } from './step-items/CanCreateMoreStepItem';
 import { CanDeleteStepItem } from './step-items/CanDeleteStepItem';
 import { CanManagerBeTransferredStepItem } from './step-items/CanManagerBeTransferredStepItem';
 import { CanArchiveCollectionStepItem } from './step-items/CanUpdateArchivedStepItem';
-import { FreezeSelectStepItem } from './step-items/CanUpdateCollectionApprovedTransfers';
+import { FreezeSelectStepItem } from './step-items/CanUpdateCollectionApprovals';
 import { UpdatableMetadataSelectStepItem } from './step-items/CanUpdateMetadata';
 import { CanUpdateBalancesStepItem } from './step-items/CanUpdateOffChainBalancesStepItem';
 import { ChooseBadgeTypeStepItem, MintType } from './step-items/ChooseBadgeTypeStepItem';
@@ -88,6 +88,8 @@ export function UpdateCollectionTimeline() {
     const managerTimeline = collection.managerTimeline;
     const hasManager = managerTimeline.length > 0 && managerTimeline.some(x => x.manager !== '');
 
+    console.log(hasManager, managerTimeline);
+
     //For the following, we show the permission update if it has neutral times (i.e. it's not always permitted or always forbidden at all times)
     //We show the action if the permissions allow it, meaning it has neutral (currently permitted) or permitted times (always permitted)
 
@@ -111,9 +113,9 @@ export function UpdateCollectionTimeline() {
       TimedUpdatePermissionUsedFlags,
       !hasManager
     );
+
     const toShowCanManagerBeTransferredPermission = canManagerBeTransferredDetails.hasNeutralTimes
     const toShowManagerTransferAction = canManagerBeTransferredDetails.hasNeutralTimes || canManagerBeTransferredDetails.hasPermittedTimes
-
     const canUpdateBadgeMetadataDetails = getPermissionDetails(
       castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []),
       TimedUpdateWithBadgeIdsPermissionUsedFlags,
@@ -153,16 +155,16 @@ export function UpdateCollectionTimeline() {
     const toShowCanArchiveCollectionPermission = canArchiveCollection.hasNeutralTimes
     const toShowArchiveCollectionAction = canArchiveCollection.hasNeutralTimes || canArchiveCollection.hasPermittedTimes
 
-    const canUpdateCollectionApprovedTransfersDetails = getPermissionDetails(
-      castCollectionApprovedTransferPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateCollectionApprovedTransfers ?? []),
-      ApprovedTransferPermissionUsedFlags,
+    const canUpdateCollectionApprovalsDetails = getPermissionDetails(
+      castCollectionApprovalPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateCollectionApprovals ?? []),
+      ApprovalPermissionUsedFlags,
       !hasManager
     );
-    const toShowCanUpdateCollectionApprovedTransfersPermission = canUpdateCollectionApprovedTransfersDetails.hasNeutralTimes
+    const toShowCanUpdateCollectionApprovalsPermission = canUpdateCollectionApprovalsDetails.hasNeutralTimes
 
-    const toShowUpdateMintTransfersAction = (canUpdateCollectionApprovedTransfersDetails.hasNeutralTimes || canUpdateCollectionApprovedTransfersDetails.hasPermittedTimes)
+    const toShowUpdateMintTransfersAction = (canUpdateCollectionApprovalsDetails.hasNeutralTimes || canUpdateCollectionApprovalsDetails.hasPermittedTimes)
 
-    const toShowUpdateNonMintTransfersAction = (canUpdateCollectionApprovedTransfersDetails.hasNeutralTimes || canUpdateCollectionApprovedTransfersDetails.hasPermittedTimes)
+    const toShowUpdateNonMintTransfersAction = (canUpdateCollectionApprovalsDetails.hasNeutralTimes || canUpdateCollectionApprovalsDetails.hasPermittedTimes)
 
     items.push(
       toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
@@ -197,7 +199,7 @@ export function UpdateCollectionTimeline() {
         // TODO: && distributionMethod !== DistributionMethod.JSON
         && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
 
-      !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovedTransfersPermission) ? FreezeSelectStep : EmptyStepItem,
+      !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
       isOffChainBalances && (hasManager && toShowCanUpdateOffChainBalancesMetadataPermission) ? CanUpdateBytesStep : EmptyStepItem,
 
@@ -223,3 +225,5 @@ export function UpdateCollectionTimeline() {
     </>
   );
 }
+
+

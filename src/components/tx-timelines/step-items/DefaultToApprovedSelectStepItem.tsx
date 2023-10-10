@@ -20,18 +20,15 @@ export function DefaultToApprovedSelectStepItem() {
 
   const forcefulOption = [{
     fromMappingId: "AllWithMint",
-    fromMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
-    initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    fromMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+    initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
     initiatedByMappingId: "AllWithMint",
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     approvalId: "default-incoming-allowed",
-    approvalTrackerId: "",
-    challengeTrackerId: "",
-    allowedCombinations: [{
-      isApproved: true,
-    }]
+    amountTrackerId: "default-incoming-allowed",
+    challengeTrackerId: "default-incoming-allowed",
   }]
 
   return {
@@ -40,8 +37,8 @@ export function DefaultToApprovedSelectStepItem() {
     node: <UpdateSelectWrapper
       updateFlag={updatelag}
       setUpdateFlag={setUpdateFlag}
-      jsonPropertyPath='defaultUserApprovedIncomingTransfers'
-      permissionName='canUpdateDefaultUserApprovedIncomingTransfers'
+      jsonPropertyPath='defaultUserIncomingApprovals'
+      permissionName='canUpdateDefaultUserIncomingApprovals'
       validationErr={undefined}
       node={
         <SwitchForm
@@ -50,19 +47,19 @@ export function DefaultToApprovedSelectStepItem() {
             {
               title: 'Forceful Transfers Allowed',
               message: `For all users, all incoming transfers (including mints) will be approved by default. Users can opt-out of this in the future.`,
-              isSelected: compareObjects(collection.defaultUserApprovedIncomingTransfers, forcefulOption)
+              isSelected: compareObjects(collection.defaultUserIncomingApprovals, forcefulOption)
 
             },
             {
               title: 'Opt-In Only',
               message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
-              isSelected: collection.defaultUserApprovedIncomingTransfers.length === 0
+              isSelected: collection.defaultUserIncomingApprovals.length === 0
             },
           ]}
           onSwitchChange={(idx) => {
             collections.updateCollection({
               ...collection,
-              defaultUserApprovedIncomingTransfers: idx === 0 ? forcefulOption : [],
+              defaultUserIncomingApprovals: idx === 0 ? forcefulOption : [],
             });
           }}
         />

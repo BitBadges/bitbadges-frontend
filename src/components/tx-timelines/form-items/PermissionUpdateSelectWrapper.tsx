@@ -1,7 +1,7 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
 import { Col, Divider, Row, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
@@ -72,8 +72,8 @@ export function PermissionUpdateSelectWrapper({
           err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
 
           break;
-        case 'canUpdateCollectionApprovedTransfers':
-          err = validateCollectionApprovedTransferPermissionsUpdate(oldPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[], newPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[]);
+        case 'canUpdateCollectionApprovals':
+          err = validateCollectionApprovalPermissionsUpdate(oldPermissions as CollectionApprovalPermissionWithDetails<bigint>[], newPermissions as CollectionApprovalPermissionWithDetails<bigint>[]);
           break;
       }
 
@@ -109,9 +109,9 @@ export function PermissionUpdateSelectWrapper({
         castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
         flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
         break;
-      case 'canUpdateCollectionApprovedTransfers':
-        castFunction = castCollectionApprovedTransferPermissionToUniversalPermission;
-        flags = ApprovedTransferPermissionUsedFlags;
+      case 'canUpdateCollectionApprovals':
+        castFunction = castCollectionApprovalPermissionToUniversalPermission;
+        flags = ApprovalPermissionUsedFlags;
         break;
     }
   }

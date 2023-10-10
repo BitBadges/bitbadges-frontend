@@ -121,16 +121,9 @@ export function UpdatableMetadataSelectStepItem(
           collectionPermissions: {
             ...collection.collectionPermissions,
             canUpdateCollectionMetadata: [{
-              defaultValues: {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [],
-              },
-              combinations: [{
-                permittedTimesOptions: { allValues: true },
-                forbiddenTimesOptions: { noValues: true },
-                timelineTimesOptions: { allValues: true },
-              }]
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              forbiddenTimes: [],
             }]
           }
 
@@ -144,12 +137,10 @@ export function UpdatableMetadataSelectStepItem(
             ...collection.collectionPermissions,
 
             canUpdateCollectionMetadata: [{
-              defaultValues: {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{}]
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+
             }]
           }
 
@@ -172,18 +163,10 @@ export function UpdatableMetadataSelectStepItem(
           collectionPermissions: {
             ...collection.collectionPermissions,
             canUpdateBadgeMetadata: [{
-              defaultValues: {
-                badgeIds: lockedBadgeIds,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [],
-              },
-              combinations: [{
-                permittedTimesOptions: { allValues: true },
-                forbiddenTimesOptions: { noValues: true },
-                timelineTimesOptions: { allValues: true },
-                badgeIdsOptions: { allValues: true },
-              }]
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              forbiddenTimes: [],
             }]
           }
 
@@ -197,13 +180,10 @@ export function UpdatableMetadataSelectStepItem(
             ...collection.collectionPermissions,
 
             canUpdateBadgeMetadata: [{
-              defaultValues: {
-                badgeIds: lockedBadgeIds,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{}]
+              badgeIds: lockedBadgeIds,
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }]
           }
 

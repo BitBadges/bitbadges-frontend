@@ -1,6 +1,6 @@
 import { notification } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { ApprovalDetailsWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { ApprovalCriteriaWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
@@ -13,13 +13,13 @@ import { TxModal } from './TxModal';
 //TODO: This only supports one specific merkle challenge so will fail when > 1 bc claimItem is singular
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvalDetails, claimItem, code, whitelistIndex, recipient, approvalId
+    collectionId, visible, setVisible, children, approvalCriteria, claimItem, code, whitelistIndex, recipient, approvalId
   }: {
     collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
-    approvalDetails?: ApprovalDetailsWithDetails<bigint>,
+    approvalCriteria?: ApprovalCriteriaWithDetails<bigint>,
     claimItem?: MerkleChallengeWithDetails<bigint>,
     code: string
     whitelistIndex?: number
@@ -34,7 +34,7 @@ export function CreateTxMsgClaimBadgeModal(
   const precalculationId = approvalId
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
 
-  const requiresProof = !!approvalDetails?.merkleChallenge.root;
+  const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
 
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
@@ -122,7 +122,7 @@ export function CreateTxMsgClaimBadgeModal(
       from: "Mint",
       toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
       balances: [],
-      precalculationDetails: {
+      precalculateBalancesFromApproval: {
         approvalId: precalculationId ?? '',
         approvalLevel: "collection",
         approverAddress: "",

@@ -58,12 +58,16 @@ const AccountsContext = createContext<AccountsContextType>({
   fetchBalanceForUser: async () => {
     return {
       balances: [],
-      approvedIncomingTransfers: [],
-      approvedOutgoingTransfers: [],
+      incomingApprovals: [],
+      outgoingApprovals: [],
       userPermissions: {
-        canUpdateApprovedIncomingTransfers: [],
-        canUpdateApprovedOutgoingTransfers: [],
+        canUpdateIncomingApprovals: [],
+        canUpdateOutgoingApprovals: [],
+        canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+        canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
       },
+      autoApproveSelfInitiatedIncomingTransfers: false,
+      autoApproveSelfInitiatedOutgoingTransfers: false,
       collectionId: -1n, onChain: false, cosmosAddress: '', _id: '',
       updateHistory: [],
     }

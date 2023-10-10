@@ -63,7 +63,7 @@ export function BalanceDisplay({
       {
         from: '',
         merkleProofs: [],
-        precalculationDetails: {
+        precalculateBalancesFromApproval: {
           approvalId: '',
           approvalLevel: '',
           approverAddress: '',

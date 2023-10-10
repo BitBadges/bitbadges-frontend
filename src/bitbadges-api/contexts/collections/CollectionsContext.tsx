@@ -314,12 +314,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           return !match;
         }) !== undefined;
 
-        const shouldFetchApprovalTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
-          const match = cachedCollection.approvalsTrackers.find(y => y.approvalTrackerId === x.approvalTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
+        const shouldFetchAmountTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
+          const match = cachedCollection.approvalsTrackers.find(y => y.amountTrackerId === x.amountTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
           return !match;
         }) !== undefined;
 
-        if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || shouldFetchMerkleChallengeIds || shouldFetchApprovalTrackerIds) {
+        if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || shouldFetchMerkleChallengeIds || shouldFetchAmountTrackerIds) {
           batchRequestBody.collectionsToFetch.push({
             collectionId: collectionToFetch.collectionId,
             metadataToFetch: prunedMetadataToFetch,

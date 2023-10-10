@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Card, Divider, Empty, Row, Tooltip, Typography } from "antd";
-import { CollectionApprovedTransferWithDetails } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
@@ -10,12 +10,12 @@ import { Pagination } from "../common/Pagination";
 import { ToolIcon, tools } from "../display/ToolIcon";
 
 export function CodesDisplay({
-  approvedTransfer,
+  approval,
   collectionId,
   codes,
   claimPassword,
 }: {
-  approvedTransfer: CollectionApprovedTransferWithDetails<bigint>,
+  approval: CollectionApprovalWithDetails<bigint>,
   collectionId: bigint,
   codes?: string[]
   claimPassword?: string
@@ -23,10 +23,10 @@ export function CodesDisplay({
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
 
-  const approvalDetails = approvedTransfer.approvalDetails;
-  const merkleChallenge = approvalDetails ? approvalDetails.merkleChallenge : undefined;
+  const approvalCriteria = approval.approvalCriteria;
+  const merkleChallenge = approvalCriteria ? approvalCriteria.merkleChallenge : undefined;
 
-  const claimId = approvedTransfer.challengeTrackerId;
+  const claimId = approval.challengeTrackerId;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
 
   const [codePage, setCodePage] = useState(1);

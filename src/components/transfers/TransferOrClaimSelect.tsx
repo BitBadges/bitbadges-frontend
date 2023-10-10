@@ -2,7 +2,7 @@ import { CloseOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, Warnin
 import { Avatar, Button, Col, Collapse, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMapping, Balance, UintRange, convertBalance, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalDetailsWithDetails, BigIntify, CollectionApprovedTransferWithDetails, DistributionMethod, MerkleChallengeDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, filterZeroBalances, getBalancesAfterTransfers, getBalancesForIds, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { ApprovalCriteriaWithDetails, BigIntify, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeDetails, MerkleChallengeWithDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, filterZeroBalances, getBalancesAfterTransfers, getBalancesForIds, getReservedAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
@@ -60,16 +60,16 @@ export function TransferSelect({
   originalSenderBalances,
   distributionMethod,
   hideTransferDisplay,
-  approvedTransfersToAdd,
-  setApprovedTransfersToAdd,
+  approvalsToAdd,
+  setApprovalsToAdd,
   hideRemaining,
   isApprovalSelect,
 }: {
   transfers?: (TransferWithIncrements<bigint>)[],
   setTransfers?: (transfers: (TransferWithIncrements<bigint>)[]) => void;
   sender: string,
-  approvedTransfersToAdd?: ((CollectionApprovedTransferWithDetails<bigint>))[],
-  setApprovedTransfersToAdd?: (claims: ((CollectionApprovedTransferWithDetails<bigint>))[]) => void;
+  approvalsToAdd?: ((CollectionApprovalWithDetails<bigint>))[],
+  setApprovalsToAdd?: (claims: ((CollectionApprovalWithDetails<bigint>))[]) => void;
   hideTransferDisplay?: boolean;
   collectionId: bigint;
   distributionMethod: DistributionMethod;
@@ -106,7 +106,7 @@ export function TransferSelect({
   const [transfersToAdd, setTransfersToAdd] = useState<TransferWithIncrements<bigint>[]>([]);
 
   const challengeId = useRef(crypto.randomBytes(32).toString('hex'));
-  const approvalTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
   //Claim information - Not used if transfer select
   const [claimDetails, setClaimDetails] = useState<MerkleChallengeDetails<bigint>>({
@@ -161,7 +161,7 @@ export function TransferSelect({
 
     setPostTransferBalance(postTransferBalanceObj);
     setPreTransferBalance(preTransferBalanceObj);
-  }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvedTransfersToAdd, approvalTrackerId]);
+  }, [transfersToAdd, originalSenderBalances, transfers, isClaimSelect, isTransferSelect, approvalsToAdd, amountTrackerId]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: transfer or claim select, check warnings');
@@ -212,7 +212,7 @@ export function TransferSelect({
         balances: balances,
         toAddressesLength: isClaimSelect ? numRecipients : undefined,
         from: sender,
-        precalculationDetails: {
+        precalculateBalancesFromApproval: {
           approvalId: '',
           approvalLevel: "",
           approverAddress: ""
@@ -260,7 +260,7 @@ export function TransferSelect({
           toAddressesLength: isClaimSelect ? numRecipients : undefined,
           incrementBadgeIdsBy: numPerAddress,
           from: sender,
-          precalculationDetails: {
+          precalculateBalancesFromApproval: {
             approvalId: "",
             approvalLevel: "",
             approverAddress: ""
@@ -274,28 +274,25 @@ export function TransferSelect({
     }
 
     setTransfersToAdd(newTransfersToAdd);
-  }, [balances, numRecipients, increment, amountSelectType, toAddresses, doNotUseTransferWithIncrements, approvalTrackerId]);
+  }, [balances, numRecipients, increment, amountSelectType, toAddresses, doNotUseTransferWithIncrements, amountTrackerId]);
 
 
-  const approvedTransferToAdd: (CollectionApprovedTransferWithDetails<bigint> & {
-    approvalDetails: ApprovalDetailsWithDetails<bigint>
+  const approvalToAdd: (CollectionApprovalWithDetails<bigint> & {
+    approvalCriteria: ApprovalCriteriaWithDetails<bigint>
   }) = {
     fromMappingId: sender,
-    fromMapping: getReservedAddressMapping(sender, "") as AddressMapping,
+    fromMapping: getReservedAddressMapping(sender) as AddressMapping,
     toMappingId: "AllWithMint",
-    toMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
     initiatedByMappingId: "AllWithMint",
-    initiatedByMapping: getReservedAddressMapping("AllWithMint", "") as AddressMapping,
+    initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
     transferTimes: claimTimeRange,
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: balances.map(x => x.badgeIds).flat(),
-    allowedCombinations: [{ isApproved: true, }],
-    approvalId: approvalTrackerId.current,
-    approvalTrackerId: approvalTrackerId.current,
+    approvalId: amountTrackerId.current,
+    amountTrackerId: amountTrackerId.current,
     challengeTrackerId: challengeId.current.toString(),
-    approvalDetails: {
-      uri: '',
-      customData: '',
+    approvalCriteria: {
       mustOwnBadges: [],
       approvalAmounts: {
         overallApprovalAmount: 0n,
@@ -343,7 +340,6 @@ export function TransferSelect({
         expectedProofLength: 0n,
         details: claimDetails,
         useCreatorAddressAsLeaf: false,
-        useLeafIndexForTransferOrder: orderMatters,
         maxOneUsePerLeaf: true,
         uri: '',
         customData: '',
@@ -355,8 +351,8 @@ export function TransferSelect({
       requireFromDoesNotEqualInitiatedBy: false,
 
 
-      overridesToApprovedIncomingTransfers: false,
-      overridesFromApprovedOutgoingTransfers: true,
+      overridesToIncomingApprovals: false,
+      overridesFromOutgoingApprovals: true,
     }
   };
 
@@ -650,8 +646,8 @@ export function TransferSelect({
       {!isApprovalSelect && <div>
         {isClaimSelect ? <div>
           <ClaimDisplay
-            approvedTransfer={approvedTransferToAdd}
-            approvalDetails={approvedTransferToAdd.approvalDetails}
+            approval={approvalToAdd}
+            approvalCriteria={approvalToAdd.approvalCriteria}
             collectionId={collectionId}
           />
         </div> :
@@ -669,7 +665,7 @@ export function TransferSelect({
             setTransfers([...transfers, ...transfersToAdd]);
             setBalances([]);
             // setBalances([]);
-          } else if (isClaimSelect && setApprovedTransfersToAdd && approvedTransfersToAdd) {
+          } else if (isClaimSelect && setApprovalsToAdd && approvalsToAdd) {
             //Set them here
             const codes = [];
             const addresses = [];
@@ -685,45 +681,48 @@ export function TransferSelect({
               const codesTree = new MerkleTree(hashedCodes, SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
               const codesRoot = codesTree.getRoot().toString('hex');
 
+              const merkleChallenge: any = {};
+              merkleChallenge.root = codesRoot ? codesRoot : '';
+              merkleChallenge.expectedProofLength = BigInt(codesTree.getLayerCount() - 1);
+              merkleChallenge.useCreatorAddressAsLeaf = false;
+              merkleChallenge.maxOneUsePerLeaf = true;
+              merkleChallenge.details = claimDetails;
+              merkleChallenge.details.challengeDetails.leavesDetails.leaves = hashedCodes;
+              merkleChallenge.details.challengeDetails.leavesDetails.isHashed = true;
+              merkleChallenge.details.challengeDetails.leavesDetails.preimages = codes;
+              merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
+              merkleChallenge.details.challengeDetails.password = claimPassword;
+              merkleChallenge.details.challengeDetails.hasPassword = claimPassword ? true : false;
 
-              approvedTransferToAdd.approvalDetails.merkleChallenge.root = codesRoot ? codesRoot : '';
-              approvedTransferToAdd.approvalDetails.merkleChallenge.expectedProofLength = BigInt(codesTree.getLayerCount() - 1);
-              approvedTransferToAdd.approvalDetails.merkleChallenge.useCreatorAddressAsLeaf = false;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.maxOneUsePerLeaf = true;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details = claimDetails;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.leavesDetails.leaves = hashedCodes;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.leavesDetails.isHashed = true;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.leavesDetails.preimages = codes;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.password = claimPassword;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.hasPassword = claimPassword ? true : false;
+              approvalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
             } else if (distributionMethod === DistributionMethod.Whitelist) {
               addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
 
               const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' });
               const addressesRoot = addressesTree.getRoot().toString('hex');
 
+              const merkleChallenge: any = {};
+              merkleChallenge.root = addressesRoot ? addressesRoot : '';
+              merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
+              merkleChallenge.useCreatorAddressAsLeaf = true;
+              merkleChallenge.maxOneUsePerLeaf = false;
+              merkleChallenge.details = claimDetails;
+              merkleChallenge.details.challengeDetails.leavesDetails.leaves = addresses
+              merkleChallenge.details.challengeDetails.leavesDetails.isHashed = false;
+              merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
+              merkleChallenge.details.challengeDetails.password = ''
+              merkleChallenge.details.challengeDetails.hasPassword = false;
 
-              approvedTransferToAdd.approvalDetails.merkleChallenge.root = addressesRoot ? addressesRoot : '';
-              approvedTransferToAdd.approvalDetails.merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
-              approvedTransferToAdd.approvalDetails.merkleChallenge.useCreatorAddressAsLeaf = true;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.maxOneUsePerLeaf = false;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details = claimDetails;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.leavesDetails.leaves = addresses
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.leavesDetails.isHashed = false;
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.password = ''
-              approvedTransferToAdd.approvalDetails.merkleChallenge.details.challengeDetails.hasPassword = false;
+              approvalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
             } else {
-              // approvedTransferToAdd.approvalDetails.merkleChallenge.details = claimDetails;
-              // approvedTransferToAdd.approvalDetails.merkleChallenge.details.password = ''
-              // approvedTransferToAdd.approvalDetails.merkleChallenge.details.hasPassword = false;
-              approvedTransferToAdd.approvalDetails.merkleChallenge = {
+              // approvalToAdd.approvalCriteria.merkleChallenge.details = claimDetails;
+              // approvalToAdd.approvalCriteria.merkleChallenge.details.password = ''
+              // approvalToAdd.approvalCriteria.merkleChallenge.details.hasPassword = false;
+              approvalToAdd.approvalCriteria.merkleChallenge = {
                 root: '',
                 maxOneUsePerLeaf: false,
                 expectedProofLength: 0n,
                 useCreatorAddressAsLeaf: false,
-                useLeafIndexForTransferOrder: false,
                 details: undefined,
                 uri: '',
                 customData: '',
@@ -733,10 +732,10 @@ export function TransferSelect({
 
 
 
-            approvedTransferToAdd.badgeIds = deepCopy(balances).map(x => x.badgeIds).flat();
-            approvedTransferToAdd.ownershipTimes = deepCopy(balances).map(x => x.ownershipTimes).flat();
+            approvalToAdd.badgeIds = deepCopy(balances).map(x => x.badgeIds).flat();
+            approvalToAdd.ownershipTimes = deepCopy(balances).map(x => x.ownershipTimes).flat();
 
-            setApprovedTransfersToAdd([...approvedTransfersToAdd, approvedTransferToAdd]);
+            setApprovalsToAdd([...approvalsToAdd, approvalToAdd]);
           }
           setNumRecipients(0n);
           setToAddresses([]);

@@ -3,7 +3,7 @@ import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { compareObjects } from "../../utils/compare";
@@ -16,6 +16,8 @@ import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermissio
 
 
 export function getPermissionDetails(permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIdsToShow?: UintRange<bigint>[]) {
+  console.log(permissions);
+
   const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToMapping, usesFromMapping, usesInitiatedByMapping, usesOwnershipTimes } = usedFlags;
   const hideTimelineTimesIfAllFull = true;
   let columns = [{
@@ -149,7 +151,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
   let hasForbiddenTimes = false;
   const firstMatchDetails = GetFirstMatchOnly(permissions, true, usedFlags);
 
-
   //Neutral times = not explicitly permitted and not explicitly forbidden
   for (const origMatch of firstMatchDetails) {
     let neutralTimeRanges = [{ start: 1n, end: GO_MAX_UINT_64 }];
@@ -227,6 +228,7 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
 
   return { columns, dataSource, hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes, neverHasManager }
 }
+
 
 export const PermissionDisplay = (permissionName: string, permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIdsToShow?: UintRange<bigint>[], mintOnly?: boolean, nonMintOnly?: boolean, onFreezePermitted?: (frozen: boolean) => void) => {
 
@@ -322,7 +324,7 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
                       }
 
                       if (mintOnly) {
-                        y.fromMapping = getReservedAddressMapping("Mint", "")
+                        y.fromMapping = getReservedAddressMapping("Mint")
                       }
 
                       if (badgeIdsToShow) {
@@ -339,6 +341,7 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
                                 checked={true}
                                 checkedChildren={<FontAwesomeIcon icon={faSnowflake} />}
                                 disabled
+
                               /> :
                               <FontAwesomeIcon icon={faSnowflake} />}
 
@@ -346,12 +349,13 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
                           </div>
                         </td></>}
                         {y.permitted && !y.forbidden && <><td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CheckCircleFilled style={{ color: 'green' }} /></td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
-                          <div className="flex-center">
+                          <div className="flex-center" onClick={(e) => { e.stopPropagation(); }}>
                             {onFreezePermitted ?
                               <Switch
                                 style={{ marginRight: 8 }}
                                 checked={true}
                                 checkedChildren={<FontAwesomeIcon icon={faSnowflake} />}
+
                                 onChange={() => {
                                   onFreezePermitted?.(false)
                                 }}
@@ -359,7 +363,7 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
 
                           </div></td></>}
                         {!y.permitted && !y.forbidden && <><td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CheckCircleFilled style={{ color: 'green' }} /> </td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
-                          <div className="flex-center">
+                          <div className="flex-center" onClick={(e) => { e.stopPropagation(); }}>
                             {onFreezePermitted ?
                               <Switch
                                 style={{ marginRight: 8 }}
@@ -537,7 +541,7 @@ export function PermissionsOverview({
     case 'canUpdateBadgeMetadata':
       question = "Can update the badge metadata?";
       break;
-    case 'canUpdateCollectionApprovedTransfers':
+    case 'canUpdateCollectionApprovals':
       question = "Can update collection approved transfers?";
       break;
     // Add custom questions for other permissions as needed
@@ -559,7 +563,7 @@ export function PermissionsOverview({
         {(!permissionName || permissionName == "canUpdateBadgeMetadata") && <TableRow label={"Update badge metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateBadgeMetadata", castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection.collectionPermissions.canUpdateBadgeMetadata), TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
         {/* {collection.balancesType === "Inherited" && <TableRow label={"Update inherited balances?"} value={tbd ?  <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateInheritedBalances", castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection.collectionPermissions.canUpdateInheritedBalances), "inherited balances", TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />} */}
         {(!permissionName || permissionName == "canCreateMoreBadges") && <TableRow label={"Create more badges?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canCreateMoreBadges", castBalancesActionPermissionToUniversalPermission(collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateCollectionApprovedTransfers") && collection.balancesType === "Standard" && <TableRow label={"Update collection-level transferability?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateCollectionApprovedTransfers", castCollectionApprovedTransferPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovedTransfers), ApprovedTransferPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
+        {(!permissionName || permissionName == "canUpdateCollectionApprovals") && collection.balancesType === "Standard" && <TableRow label={"Update collection-level transferability?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateCollectionApprovals", castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
 
       </>
       {permissionName && <>

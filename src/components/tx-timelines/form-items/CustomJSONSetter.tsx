@@ -3,9 +3,8 @@ import { WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Input, Row, Typography } from 'antd';
 import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export const validateUintRangeArr = (val: any) => {
@@ -35,7 +34,6 @@ export function JSONSetter({
 
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
-  const chain = useChainContext();
 
   const [inputJson, setInputJson] = useState<string>('');
 
@@ -97,14 +95,14 @@ export function JSONSetter({
           }
 
           //TODO: Make this dynamic and ensure that the options are valid based on permission type
-          if (el.defaultValues.fromMappingId && typeof el.defaultValues.fromMappingId !== 'string') throw new Error('fromMappingId must be a string');
-          if (el.defaultValues.initiatedByMappingId && typeof el.defaultValues.initiatedByMappingId !== 'string') throw new Error('initiatedByMappingId must be a string');
-          if (el.defaultValues.toMappingId && typeof el.defaultValues.toMappingId !== 'string') throw new Error('toMappingId must be a string');
-          if (el.defaultValues.badgeIds && !validateUintRangeArr(el.defaultValues.badgeIds)) throw new Error('badgeIds must be an array of UintRange');
-          if (el.defaultValues.ownershipTimes && !validateUintRangeArr(el.defaultValues.ownershipTimes)) throw new Error('ownershipTimes must be an array of UintRange');
-          if (el.defaultValues.transferTimes && !validateUintRangeArr(el.defaultValues.transferTimes)) throw new Error('transferTimes must be an array of UintRange');
-          if (el.defaultValues.permittedTimes && !validateUintRangeArr(el.defaultValues.permittedTimes)) throw new Error('permittedTimes must be an array of UintRange');
-          if (el.defaultValues.forbiddenTimes && !validateUintRangeArr(el.defaultValues.forbiddenTimes)) throw new Error('forbiddenTimes must be an array of UintRange');
+          if (el.fromMappingId && typeof el.fromMappingId !== 'string') throw new Error('fromMappingId must be a string');
+          if (el.initiatedByMappingId && typeof el.initiatedByMappingId !== 'string') throw new Error('initiatedByMappingId must be a string');
+          if (el.toMappingId && typeof el.toMappingId !== 'string') throw new Error('toMappingId must be a string');
+          if (el.badgeIds && !validateUintRangeArr(el.badgeIds)) throw new Error('badgeIds must be an array of UintRange');
+          if (el.ownershipTimes && !validateUintRangeArr(el.ownershipTimes)) throw new Error('ownershipTimes must be an array of UintRange');
+          if (el.transferTimes && !validateUintRangeArr(el.transferTimes)) throw new Error('transferTimes must be an array of UintRange');
+          if (el.permittedTimes && !validateUintRangeArr(el.permittedTimes)) throw new Error('permittedTimes must be an array of UintRange');
+          if (el.forbiddenTimes && !validateUintRangeArr(el.forbiddenTimes)) throw new Error('forbiddenTimes must be an array of UintRange');
         }
       } else {
         //is a timeline update
@@ -151,48 +149,46 @@ export function JSONSetter({
 
           if (el.contractAddress && typeof el.contractAddress !== 'string') throw new Error('contractAddress must be a string');
 
-          if (el.collectionApprovedTransfers && !Array.isArray(el.collectionApprovedTransfers)) throw new Error('collectionApprovedTransfers must be an array');
+          if (el.collectionApprovals && !Array.isArray(el.collectionApprovals)) throw new Error('collectionApprovals must be an array');
 
-          for (const approvedTransfer of el.collectionApprovedTransfers) {
-            if (!approvedTransfer.badgeIds || !validateUintRangeArr(approvedTransfer.badgeIds)) throw new Error('approvedTransfer.badgeIds must be an array of UintRange');
-            if (!approvedTransfer.ownershipTimes || !validateUintRangeArr(approvedTransfer.ownershipTimes)) throw new Error('approvedTransfer.ownershipTimes must be an array of UintRange');
-            if (!approvedTransfer.transferTimes || !validateUintRangeArr(approvedTransfer.transferTimes)) throw new Error('approvedTransfer.transferTimes must be an array of UintRange');
-            if (!approvedTransfer.fromMappingId || typeof approvedTransfer.fromMappingId !== 'string') throw new Error('approvedTransfer.fromMappingId must be a string');
-            if (!approvedTransfer.initiatedByMappingId || typeof approvedTransfer.initiatedByMappingId !== 'string') throw new Error('approvedTransfer.initiatedByMappingId must be a string');
+          for (const approval of el.collectionApprovals) {
+            if (!approval.badgeIds || !validateUintRangeArr(approval.badgeIds)) throw new Error('approval.badgeIds must be an array of UintRange');
+            if (!approval.ownershipTimes || !validateUintRangeArr(approval.ownershipTimes)) throw new Error('approval.ownershipTimes must be an array of UintRange');
+            if (!approval.transferTimes || !validateUintRangeArr(approval.transferTimes)) throw new Error('approval.transferTimes must be an array of UintRange');
+            if (!approval.fromMappingId || typeof approval.fromMappingId !== 'string') throw new Error('approval.fromMappingId must be a string');
+            if (!approval.initiatedByMappingId || typeof approval.initiatedByMappingId !== 'string') throw new Error('approval.initiatedByMappingId must be a string');
 
-            if (!approvedTransfer.toMappingId || typeof approvedTransfer.toMappingId !== 'string') throw new Error('approvedTransfer.toMappingId must be a string');
+            if (!approval.toMappingId || typeof approval.toMappingId !== 'string') throw new Error('approval.toMappingId must be a string');
 
-            if (!approvedTransfer.allowedCombinations || !Array.isArray(approvedTransfer.allowedCombinations)) throw new Error('approvedTransfer.allowedCombinations must be an array');
-            for (const combo of approvedTransfer.allowedCombinations) {
+            if (!approval.allowedCombinations || !Array.isArray(approval.allowedCombinations)) throw new Error('approval.allowedCombinations must be an array');
+            for (const combo of approval.allowedCombinations) {
               //TODO: Add the rest of  the options 
               if (combo.isApproved === undefined || typeof combo.isApproved !== 'boolean') throw new Error('combo.isApproved must be a boolean');
 
 
             }
 
-            if (!approvedTransfer.approvalDetails || !Array.isArray(approvedTransfer.approvalDetails)) throw new Error('approvedTransfer.approvalDetails must be an array');
+            if (!approval.approvalCriteria || !Array.isArray(approval.approvalCriteria)) throw new Error('approval.approvalCriteria must be an array');
             //TODO: Add approval details validation
+            const fromMapping = getReservedAddressMapping(approval.fromMappingId);
+            const initiatedByMapping = getReservedAddressMapping(approval.initiatedByMappingId);
+            const toMapping = getReservedAddressMapping(approval.toMappingId);
 
-            const manager = chain.cosmosAddress;
-            const fromMapping = getReservedAddressMapping(approvedTransfer.fromMappingId, manager);
-            const initiatedByMapping = getReservedAddressMapping(approvedTransfer.initiatedByMappingId, manager);
-            const toMapping = getReservedAddressMapping(approvedTransfer.toMappingId, manager);
-
-            if (!approvedTransfer.fromMapping && !fromMapping) {
+            if (!approval.fromMapping && !fromMapping) {
               throw new Error('We currently do not support custom mapping IDs. Please enter it manually via fromMapping.');
             }
 
-            if (!approvedTransfer.initiatedByMapping && !initiatedByMapping) {
+            if (!approval.initiatedByMapping && !initiatedByMapping) {
               throw new Error('We currently do not support custom mapping IDs. Please enter it manually via initiatedByMapping.');
             }
 
-            if (!approvedTransfer.toMapping && !toMapping) {
+            if (!approval.toMapping && !toMapping) {
               throw new Error('We currently do not support custom mapping IDs. Please enter it manually via toMapping.');
             }
 
-            approvedTransfer.fromMapping = approvedTransfer.fromMapping || fromMapping;
-            approvedTransfer.initiatedByMapping = approvedTransfer.initiatedByMapping || initiatedByMapping;
-            approvedTransfer.toMapping = approvedTransfer.toMapping || toMapping;
+            approval.fromMapping = approval.fromMapping || fromMapping;
+            approval.initiatedByMapping = approval.initiatedByMapping || initiatedByMapping;
+            approval.toMapping = approval.toMapping || toMapping;
           }
         }
       }

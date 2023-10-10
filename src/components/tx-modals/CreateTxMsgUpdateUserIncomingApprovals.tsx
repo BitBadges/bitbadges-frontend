@@ -1,5 +1,5 @@
-import { MsgUpdateUserApprovedTransfers, createTxMsgUpdateUserApprovedTransfers } from 'bitbadgesjs-proto';
-import { UserApprovedIncomingTransferWithDetails } from 'bitbadgesjs-utils';
+import { MsgUpdateUserApprovals, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { UserIncomingApprovalWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -7,7 +7,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collectionId, visible, setVisible, children }: {
+export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
@@ -16,7 +16,7 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
   const chain = useChainContext();
   const collections = useCollectionsContext();
 
-  const [newApprovedIncomingTransfers, setNewApprovedIncomingTransfers] = useState<UserApprovedIncomingTransferWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.approvedIncomingTransfers ?? []);
+  const [newIncomingApprovals, setNewIncomingApprovals] = useState<UserIncomingApprovalWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.incomingApprovals ?? []);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: approvee balance ');
@@ -27,18 +27,24 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
   }, []);
 
 
-  const txCosmosMsg: MsgUpdateUserApprovedTransfers<bigint> = {
+  const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
     updateUserPermissions: false,
     userPermissions: {
-      canUpdateApprovedIncomingTransfers: [],
-      canUpdateApprovedOutgoingTransfers: [],
+      canUpdateIncomingApprovals: [],
+      canUpdateOutgoingApprovals: [],
+      canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+      canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
     },
-    updateApprovedIncomingTransfers: true,
-    updateApprovedOutgoingTransfers: false,
-    approvedIncomingTransfers: newApprovedIncomingTransfers,
-    approvedOutgoingTransfers: [],
+    updateIncomingApprovals: true,
+    updateOutgoingApprovals: false,
+    incomingApprovals: newIncomingApprovals,
+    outgoingApprovals: [],
+    updateAutoApproveSelfInitiatedIncomingTransfers: false,
+    updateAutoApproveSelfInitiatedOutgoingTransfers: false,
+    autoApproveSelfInitiatedIncomingTransfers: false,
+    autoApproveSelfInitiatedOutgoingTransfers: false,
   };
 
   const items = [
@@ -48,10 +54,10 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
         <UserApprovalsTab
           collectionId={collectionId}
           isIncomingApprovalEdit
-          setUserApprovedIncomingTransfers={async (newApprovals) => {
-            setNewApprovedIncomingTransfers(newApprovals);
+          setUserIncomingApprovals={async (newApprovals) => {
+            setNewIncomingApprovals(newApprovals);
           }}
-          userApprovedIncomingTransfers={newApprovedIncomingTransfers}
+          userIncomingApprovals={newIncomingApprovals}
         />
         <br />
       </div>
@@ -67,7 +73,7 @@ export function CreateTxMsgUpdateUserApprovedIncomingTransfersModal({ collection
       setVisible={setVisible}
       txName="Update Approvals"
       txCosmosMsg={txCosmosMsg}
-      createTxFunction={createTxMsgUpdateUserApprovedTransfers}
+      createTxFunction={createTxMsgUpdateUserApprovals}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);
       }}

@@ -200,20 +200,20 @@ function PortfolioPage() {
   const fetchMoreLists = async () => {
     if (!accountInfo) return;
 
-    await accounts.fetchNextForViews(accountInfo.cosmosAddress, [`${listsTab}`]);
+    await accounts.fetchNextForViews(accountInfo.address, [`${listsTab}`]);
   }
 
   const fetchMoreCreatedBy = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['createdBy']);
+    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['createdBy']);
     await collections.fetchCollections([...new Set(res?.views['createdBy']?.ids.map(x => BigInt(x)) ?? [])]);
   }
 
   const fetchMoreManaging = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['managing', 'createdBy']);
+    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['managing', 'createdBy']);
     await collections.fetchCollections([...new Set(res?.views['managing']?.ids.map(x => BigInt(x)) ?? [])]);
   }
 
@@ -290,7 +290,7 @@ function PortfolioPage() {
   }, [accountInfo?.readme]);
 
 
-  const listsView = accounts.getAddressMappingsView(accountInfo?.cosmosAddress ?? '', listsTab) ?? [];
+  const listsView = accounts.getAddressMappingsView(accountInfo?.address ?? '', listsTab) ?? [];
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: list view created by');
 

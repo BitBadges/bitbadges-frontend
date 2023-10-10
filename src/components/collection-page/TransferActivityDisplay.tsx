@@ -167,7 +167,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                                       toAddresses: activity.to,
                                       balances: activity.balances,
                                       memo: activity.memo,
-                                      precalculationDetails: activity.precalculationDetails,
+                                      precalculateBalancesFromApproval: activity.precalculateBalancesFromApproval,
                                       merkleProofs: [],
                                       prioritizedApprovals: [],
                                       onlyCheckPrioritizedApprovals: false,

@@ -1,10 +1,10 @@
-import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -207,15 +207,12 @@ function CollectionPage({
 
             {tab === 'history' && !isPreview && <div className='primary-text'>
               <br />
-              <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the collection was created / updated.
-              <br />
-              <br />
               {collection.updateHistory.map((update, i) => {
                 return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
 
                   <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
                     <ClockCircleOutlined style={{ marginRight: '5px' }} />
-                    Collection {i == 0 ? 'Created' : 'Updated'
+                    {i == 0 ? 'Created' : 'Updated'
                     } at{' '}
                     {new Date(Number(update.blockTimestamp)).toLocaleString()}
                     {' '}(Block #{update.block.toString()})

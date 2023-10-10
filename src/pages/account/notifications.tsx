@@ -68,7 +68,7 @@ export function Notifications() {
   const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
   const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
-  const unseenAddressMappingsCount = listsView.filter((addressMapping) => addressMapping.createdTimestamp > (prevSeenActivity ?? 0)).length;
+  const unseenAddressMappingsCount = listsView.filter((addressMapping) => addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp > (prevSeenActivity ?? 0)).length;
 
   //Make badge count disappear 5 seconds after being seen
   useEffect(() => {

@@ -63,7 +63,7 @@ export function ChooseControlTypeStepItem() {
                 canCreateMoreBadges: [],
                 canDeleteCollection: [],
                 canUpdateBadgeMetadata: [],
-                canUpdateCollectionApprovedTransfers: [],
+                canUpdateCollectionApprovals: [],
                 canUpdateCollectionMetadata: [],
                 canUpdateContractAddress: [],
                 canUpdateCustomData: [],
