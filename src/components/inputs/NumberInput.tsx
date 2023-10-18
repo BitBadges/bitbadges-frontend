@@ -6,13 +6,15 @@ export function NumberInput({
   setValue,
   title,
   min,
-  max
+  max,
+  disabled
 }: {
   value: number,
   setValue: (value: number) => void,
   title?: string
   min: number,
-  max?: number
+  max?: number,
+  disabled?: boolean
 }) {
   return <div style={{ alignItems: 'center', justifyContent: 'center' }}>
     <div className='flex-between flex-column'>
@@ -23,6 +25,7 @@ export function NumberInput({
         max={max}
         title='Amount'
         value={value}
+        disabled={disabled}
         onChange={
           (value: number | null) => {
             if (!value || value <= 0) {

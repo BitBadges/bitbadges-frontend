@@ -8,6 +8,7 @@ import { PermissionIcon, getPermissionDetails, } from "../../collection-page/Per
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { useState } from "react";
 
 export function SetCollectionMetadataStepItem() {
   const collections = useCollectionsContext();
@@ -18,7 +19,11 @@ export function SetCollectionMetadataStepItem() {
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const canUpdateCollectionMetadata = txTimelineContext.updateCollectionMetadataTimeline;
   const setCanUpdateCollectionMetadata = txTimelineContext.setUpdateCollectionMetadataTimeline;
-  const addMethod = txTimelineContext.addMethod;
+  const addMethod = txTimelineContext.collectionAddMethod;
+  const setAddMethod = txTimelineContext.setCollectionAddMethod;
+
+
+
   const hideCollectionSelect = false;
 
   const err = startingCollection && collection ? validateCollectionMetadataUpdate(startingCollection.collectionMetadataTimeline, collection.collectionMetadataTimeline, startingCollection.collectionPermissions.canUpdateCollectionMetadata) : undefined;
@@ -34,19 +39,12 @@ export function SetCollectionMetadataStepItem() {
 
   const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat());
 
+  console.log(!collection, addMethod === MetadataAddMethod.Manual, collectionMetadata?.name, addMethod === MetadataAddMethod.UploadUrl, collection.collectionMetadataTimeline.length == 0, collection.badgeMetadataTimeline.length == 0, addMethod === MetadataAddMethod.CSV, !collectionMetadata?.name, !!err)
+
+
   return {
     title: 'Set Collection Metadata',
     description: <>{'Provide details about the collection you are creating.'}
-
-      <br />
-      {existingCollectionId && addMethod === MetadataAddMethod.UploadUrl ? <> {`Current Permission - Can Update Badge Metadata?: `}
-        {
-          PermissionIcon(
-            "canUpdateBadgeMetadata",
-            castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(startingCollection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags
-          )
-        }
-      </> : <></>}
     </>,
 
     node: <UpdateSelectWrapper
@@ -62,13 +60,16 @@ export function SetCollectionMetadataStepItem() {
             hideCollectionSelect={hideCollectionSelect}
             isCollectionSelect
             badgeIds={toUpdateBadges}
+            addMethod={addMethod}
+            setAddMethod={setAddMethod}
           />
         </div>
       }</InformationDisplayCard>
       }
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-      || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0) || (collection.badgeMetadataTimeline.length == 0)))
+      || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0)
+        || (collection.badgeMetadataTimeline.length == 0)))
       || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
       || !!err,
   }

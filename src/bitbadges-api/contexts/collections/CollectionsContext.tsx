@@ -1,5 +1,5 @@
 import { UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AnnouncementInfo, ApprovalsTrackerInfo, BadgeMetadataDetails, BalanceInfo, BalanceInfoWithDetails, BigIntify, BitBadgesCollection, CollectionMap, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeInfo, MetadataFetchOptions, NumberType, ReviewInfo, TransferActivityInfo, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { createContext, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { MSG_PREVIEW_ID } from '../TxTimelineContext';
 import { useAccountsContext } from '../accounts/AccountsContext';
 import { updateCollectionsRedux } from './actions';
 import { GlobalReduxState } from '../../../pages/_app';
+import { compareObjects } from '../../../utils/compare';
 
 export type CollectionsContextType = {
   collections: CollectionMap<DesiredNumberType>,
@@ -37,7 +38,7 @@ export type CollectionsContextType = {
   //Custom fetch functions (not paginated views)
   fetchAndUpdateMetadata: (collectionId: DesiredNumberType, fetchOptions: MetadataFetchOptions, fetchDirectly?: boolean) => Promise<BitBadgesCollection<DesiredNumberType>[]>,
 
-  fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<BalanceInfo<DesiredNumberType>>,
+  fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<BalanceInfoWithDetails<DesiredNumberType>>,
 
   //Custom fetch functions (paginated views). This handles all pagination logic for you. Just pass in the viewKeys you want to fetch and it will fetch the next page for each of them.
   fetchNextForViews: (collectionId: DesiredNumberType, viewKeys: CollectionViewKey[]) => Promise<BitBadgesCollection<DesiredNumberType>>,
@@ -52,6 +53,8 @@ export type CollectionsContextType = {
   getBalancesView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => BalanceInfo<DesiredNumberType>[],
   getMerkleChallengeTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => MerkleChallengeInfo<DesiredNumberType>[],
   getApprovalTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => ApprovalsTrackerInfo<DesiredNumberType>[],
+
+  fetchMetadataForPreview: (existingCollectionId: DesiredNumberType, badgeIds: UintRange<bigint>[]) => Promise<void>,
 }
 
 const CollectionsContext = createContext<CollectionsContextType>({
@@ -71,8 +74,9 @@ const CollectionsContext = createContext<CollectionsContextType>({
   getMerkleChallengeTrackersView: () => [],
   getApprovalTrackersView: () => [],
   viewHasMore: () => false,
-  fetchBalanceForUser: async () => { return {} as BalanceInfo<DesiredNumberType> },
+  fetchBalanceForUser: async () => { return {} as BalanceInfoWithDetails<DesiredNumberType> },
   batchFetchAndUpdateMetadata: async () => { return [] },
+  fetchMetadataForPreview: async () => { },
 });
 
 type Props = {
@@ -150,6 +154,66 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         handleAllAndAppendDefaults: true,
       }
     }), forcefulRefresh);
+  }
+
+  const fetchMetadataForPreview = async (existingCollectionId: DesiredNumberType, badgeIdsToDisplay: UintRange<bigint>[]) => {
+    //We only fetch if undefined
+
+    const currPreviewCollection = getCollection(MSG_PREVIEW_ID);
+    if (!currPreviewCollection) throw new Error('Collection does not exist');
+
+
+
+
+    //We don't want to overwrite any edited metadata
+    //Should prob do this via a range implementation but badgeIdsToDisplay should only be max len of pageSize
+    let badgeIdsToFetch = deepCopy(badgeIdsToDisplay);
+    for (const badgeIdRange of badgeIdsToDisplay) {
+      for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+        const badgeId = i;
+        const currMetadata = getMetadataDetailsForBadgeId(badgeId, currPreviewCollection.cachedBadgeMetadata);
+        console.log(currMetadata);
+        if (currMetadata) {
+          //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
+          //Remove badgeId from badgeIdsToFetch
+          const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
+          badgeIdsToFetch = remaining;
+        }
+      }
+    }
+
+    console.log('FETCH METADATA FOR PREVIEW', badgeIdsToFetch.length);
+
+    if (badgeIdsToFetch.length > 0) {
+      if (existingCollectionId) {
+        console.time("BadgeAvatarDisplay: fetchAndUpdateMetadata");
+        console.time('fethc')
+        const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
+        const res = await fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch });
+        console.timeEnd('fethc')
+        let newBadgeMetadata = deepCopy(res[0].cachedBadgeMetadata);
+        console.time('update')
+
+        if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
+          //Only update newly fetched metadata
+          for (const metadata of newBadgeMetadata) {
+            const [, removed] = removeUintRangeFromUintRange(badgeIdsToFetch, metadata.badgeIds);
+            metadata.badgeIds = removed;
+          }
+          newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
+
+          if (currPreviewCollection) {
+            console.log(JSON.stringify(newBadgeMetadata));
+            updateCollection({
+              ...currPreviewCollection,
+              cachedBadgeMetadata: newBadgeMetadata
+            });
+          }
+        }
+        console.timeEnd('update')
+        console.timeEnd("BadgeAvatarDisplay: fetchAndUpdateMetadata");
+      }
+    }
   }
 
   //Check existing cached collection and see what metadata we already have
@@ -271,6 +335,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     & GetMetadataForCollectionRequestBody
     & { forcefulFetchTrackers?: boolean }
     & GetAdditionalCollectionDetailsRequestBody)[], forcefulRefresh?: boolean) => {
+
+
     if (collectionsToFetch.some(x => x.collectionId === MSG_PREVIEW_ID)) {
       throw new Error('Cannot fetch preview collection ID === 0');
     }
@@ -304,7 +370,10 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
         });
       } else {
+        console.time('prune')
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(collectionToFetch.collectionId, collectionToFetch.metadataToFetch);
+        console.timeEnd('prune')
+
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
@@ -333,7 +402,10 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
 
+    console.log(batchRequestBody.collectionsToFetch.length);
+
     if (batchRequestBody.collectionsToFetch.length === 0) {
+      console.time('getCollection')
       //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in state
       const collectionsToReturn = [];
       for (const collectionToFetch of collectionsToFetch) {
@@ -341,24 +413,29 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         collectionsToReturn.push(collection ? collection : {} as BitBadgesCollection<DesiredNumberType>); //HACK: should never be undefined
       }
 
+      console.timeEnd('getCollection')
       return collectionsToReturn;
     }
 
+    console.log('bakdfjkladsfj');
     const res = await getCollections(batchRequestBody);
 
     //Update collections map
     for (let i = 0; i < res.collections.length; i++) {
-      collections[`${res.collections[i].collectionId}`] = updateCollection(res.collections[i]);
+      updateCollection(res.collections[i]);
     }
 
     //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in React state
     const collectionsToReturn = [];
     for (const collectionToFetch of collectionsToFetch) {
-      const collection = collections[`${collectionToFetch.collectionId}`];
-      collectionsToReturn.push(collection ? collection : {} as BitBadgesCollection<DesiredNumberType>); //HACK: should never be undefined
+      if (batchRequestBody.collectionsToFetch.find(x => x.collectionId === collectionToFetch.collectionId) === undefined) {
+        collectionsToReturn.push(collections[`${collectionToFetch.collectionId}`]);
+      } else {
+        collectionsToReturn.push(res.collections.find(x => x.collectionId === collectionToFetch.collectionId));
+      }
     }
 
-    return collectionsToReturn;
+    return collectionsToReturn as BitBadgesCollection<bigint>[];
   }
 
   async function triggerMetadataRefresh(collectionId: DesiredNumberType) {
@@ -544,6 +621,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   const collectionsContext: CollectionsContextType = {
     collections,
     updateCollection,
+    fetchMetadataForPreview,
     fetchCollections,
     fetchCollectionsWithOptions,
     triggerMetadataRefresh,

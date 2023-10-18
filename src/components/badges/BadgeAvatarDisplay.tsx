@@ -1,5 +1,5 @@
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalancesForId, getMetadataDetailsForBadgeId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalancesForId, getMetadataDetailsForBadgeId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
@@ -56,6 +56,7 @@ export function BadgeAvatarDisplay({
   const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
+  const currPreviewCollection = collections.collections[MSG_PREVIEW_ID.toString()];
 
   const userBalance = balance ? balance : undefined;
 
@@ -79,6 +80,7 @@ export function BadgeAvatarDisplay({
     setPageSize(newPageSize);
 
     if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
+
 
     let total = 0;
     for (const range of badgeIds) {
@@ -110,54 +112,13 @@ export function BadgeAvatarDisplay({
     async function updateMetadata() {
       if (doNotFetchMetadata) return;
 
-      if (collectionId > 0n ||
-        (collectionId === 0n && fetchDirectly)
+      if (collectionId > 0n || (collectionId === 0n && fetchDirectly)
       ) {
         await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       } else if (collectionId === 0n) {
         const existingCollectionId = txTimelineContext.existingCollectionId;
-        const currPreviewCollection = collections.collections[MSG_PREVIEW_ID.toString()];
-        if (!currPreviewCollection) return;
-
-        //We don't want to overwrite any edited metadata
-        //Should prob do this via a range implementation but badgeIdsToDisplay should only be max len of pageSize
-        let badgeIdsToFetch = deepCopy(badgeIdsToDisplay);
-        for (const badgeIdRange of badgeIdsToDisplay) {
-          for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
-            const badgeId = i;
-            const currMetadata = getMetadataDetailsForBadgeId(badgeId, currPreviewCollection.cachedBadgeMetadata);
-            if (currMetadata && currMetadata.toUpdate && !currMetadata.uri) {
-              //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
-              //Remove badgeId from badgeIdsToFetch
-              const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
-              badgeIdsToFetch = remaining;
-            }
-          }
-        }
-
-        if (existingCollectionId && badgeIdsToFetch.length > 0) {
-          const prevMetadata = deepCopy(collections.collections[existingCollectionId.toString()]?.cachedBadgeMetadata);
-          const res = await collections.fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch }, fetchDirectly);
-          let newBadgeMetadata = res[0].cachedBadgeMetadata;
-
-          if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
-
-            if (currPreviewCollection) {
-              //Only update newly fetched metadata
-              for (const metadata of newBadgeMetadata) {
-                const [, removed] = removeUintRangeFromUintRange(badgeIdsToFetch, metadata.badgeIds);
-                metadata.badgeIds = removed;
-              }
-              newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
-
-              collections.updateCollection({
-                ...currPreviewCollection,
-                cachedBadgeMetadata: newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0),
-                cachedCollectionMetadata: res[0].cachedCollectionMetadata,
-              });
-            }
-          }
-        }
+        if (!existingCollectionId) return;
+        await collections.fetchMetadataForPreview(existingCollectionId, badgeIdsToDisplay);
       }
     }
 

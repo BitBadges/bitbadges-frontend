@@ -28,7 +28,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
 
   const msgSteps = [
     {
-      title: 'Select Recipient',
+      title: 'Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center' }}>
         <AddressSelect onUserSelect={setCurrUserInfo} />
         <br />
@@ -37,7 +37,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       disabled: !accounts.getAccount(currUserInfo)
     },
     {
-      title: 'Select Amount',
+      title: 'Amount',
       description: <div className='flex-center flex-column'>
         <b>$BADGE to Send</b>
         <InputNumber

@@ -4,11 +4,13 @@ import { compareObjects } from "../../../utils/compare";
 import { AccountReducerState, initialState, reservedNames } from "./AccountsContext";
 
 const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false, cookies: { [key: string]: string } = {}) => {
+
   let accounts = state.accounts;
   let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
 
   const accountsToReturn: { account: BitBadgesUserInfo<DesiredNumberType>, needToCompare: boolean, ignore: boolean, cachedAccountCopy?: BitBadgesUserInfo<DesiredNumberType> }[] = [];
   for (const account of userInfos) {
+
     if (reservedNames.includes(account.cosmosAddress)) {
       accountsToReturn.push({ account: { ...MINT_ACCOUNT, address: account.cosmosAddress, cosmosAddress: account.cosmosAddress }, ignore: true, needToCompare: false })
       continue;
@@ -28,9 +30,11 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
 
       let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
       //If we have stored the public key in cookies, use that instead (for Ethereum)
-      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.address) {
+      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.cosmosAddress) {
         publicKey = cookies.pub_key.split('-')[1];
       }
+
+      console.log("Cached public key", cachedAccount?.publicKey, "New public key", account.publicKey, "Cookies", cookies.pub_key, "Final public key", publicKey);
 
       //Append all views to the existing views
       const newViews = cachedAccount?.views || {};
@@ -51,6 +55,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       const newAccount = {
         ...cachedAccount,
         ...account,
+
         reviews: [...(cachedAccount?.reviews || []), ...(account.reviews || [])],
         collected: [...(cachedAccount?.collected || []), ...(account.collected || [])],
         activity: [...(cachedAccount?.activity || []), ...(account.activity || [])],
@@ -60,7 +65,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
         views: newViews,
         publicKey,
         airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
-        sequence: account && account.sequence !== undefined && account.sequence > 0n ? account.sequence : cachedAccount && cachedAccount.sequence !== undefined && cachedAccount.sequence > 0n ? cachedAccount.sequence : undefined,
+        sequence: account.sequence ?? cachedAccount?.sequence ?? 0n,
         accountNumber: account && account.accountNumber !== undefined && account.accountNumber >= 0n ? account.accountNumber : cachedAccount && cachedAccount.accountNumber !== undefined && cachedAccount.accountNumber >= 0n ? cachedAccount.accountNumber : -1n,
         resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
       };
@@ -74,7 +79,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
       newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-
+      console.log("NEW ACCOUNT", newAccount);
       accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
     }
   }
@@ -85,7 +90,6 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
   for (const accountToReturn of accountsToReturn) {
     if (accountToReturn.ignore) continue;
     //Only trigger a rerender if the account has changed or we haev to
-    console.log(compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy), console.log(accountToReturn.cachedAccountCopy));
     if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
       newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
       if (accountToReturn.account.username) {

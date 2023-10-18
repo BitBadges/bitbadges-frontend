@@ -11,7 +11,7 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
   const airdropped = signedInAccount?.airdropped;
   const fetched = signedInAccount?.fetchedProfile;
 
-  if (!signedInAccount) return <div className='primary-blue-bg flex-center'><Spin size='large' style={{ marginTop: 30 }} /></div>
+  if (!signedInAccount) return <div className='inherit-bg flex-center'><Spin size='large' style={{ marginTop: 30, minHeight: '100vh' }} /></div>
 
   return (
     <>

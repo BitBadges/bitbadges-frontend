@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
-import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
+import { PermissionDisplay, PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
@@ -122,29 +122,8 @@ export function PermissionUpdateSelectWrapper({
     <>
       <div className='primary-text flex-center flex-column' >
 
-        <div style={{ alignItems: 'center', }} className='flex-center'>
-          {!isMint &&
-            <Switch
-              style={{ marginLeft: 10 }}
-              checked={checked}
-              checkedChildren="Update"
-              unCheckedChildren="Do Not Update"
-              onChange={(e) => {
-                setChecked(e);
-                if (startingCollection && collection) {
-                  const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-                  collections.updateCollection({
-                    ...collection,
-                    collectionPermissions: {
-                      ...collection.collectionPermissions,
-                      [`${permissionName}`]: existingPermissions
-                    }
-                  });
-                }
-              }}
-              className='primary-text'
-            />}
+        <div style={{ alignItems: 'center', }} className='flex-center'>
 
 
           {checked &&
@@ -202,34 +181,54 @@ export function PermissionUpdateSelectWrapper({
               }}
             />}
         </div>
+
+        {!isMint &&
+          <Switch
+            style={{ marginLeft: 10 }}
+            checked={checked}
+            checkedChildren="Update"
+            unCheckedChildren="Do Not Update"
+            onChange={(e) => {
+              setChecked(e);
+              if (startingCollection && collection) {
+                const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
+
+                collections.updateCollection({
+                  ...collection,
+                  collectionPermissions: {
+                    ...collection.collectionPermissions,
+                    [`${permissionName}`]: existingPermissions
+                  }
+                });
+              }
+            }}
+            className='primary-text'
+          />}
       </div>
       {!checked && castFunction && flags &&
         <>
           <br />
-          <Row className="full-width flex-center" justify="center">
-            <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-              <SwitchForm
-                options={[{
-                  title: 'Do Not Update',
-                  message: `This value will remain as previously set.
-                  ${!existingCollectionId && permissionName != 'canUpdateManager' && ' For new collections, this means the value will be empty or unset.'}
-                  ${!existingCollectionId && permissionName == 'canUpdateManager' && ' For new collections, this means the manager will be set to your address by default.'}`,
-                  isSelected: true,
-                },
-                ]}
-                onSwitchChange={() => { }}
-              />
-              <br />
+          <div className="full-width">
+            <SwitchForm
+              options={[{
+                title: 'Do Not Update',
+                message: `This value will remain as previously set.
+                  ${!existingCollectionId && permissionName != 'canUpdateManager' ? ' For new collections, this means the value will be empty or unset.' : ''}
+                  ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}`,
+                isSelected: true,
+                additionalNode: <>
+                  <PermissionsOverview
+                    collectionId={MSG_PREVIEW_ID}
+                    permissionName={permissionName}
+                  />
+                </>,
+              },
+              ]}
+              onSwitchChange={() => { }}
+            />
 
-              <br />
-              {PermissionDisplay(
-                permissionName,
-                castFunction(
-                  startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []
-                ), flags as any
-              )}
-            </Col>
-          </Row>
+
+          </div>
         </>}
 
       {checked && customJson && <>

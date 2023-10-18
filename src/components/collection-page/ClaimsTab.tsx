@@ -115,6 +115,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
           <>
             <ClaimDisplay
               collectionId={collectionId}
+              approvals={approvals}
               approval={currApproval}
               approvalCriteria={approvalCriteria}
               openModal={(_x: any, leafIndex?: number) => {

@@ -15,7 +15,8 @@ export function SetBadgeMetadataStepItem() {
   const startingCollection = txTimelineContext.startingCollection;
   const canUpdateBadgeMetadata = txTimelineContext.updateBadgeMetadataTimeline;
   const setUpdateBadgeMetadata = txTimelineContext.setUpdateBadgeMetadataTimeline;
-  const addMethod = txTimelineContext.addMethod;
+  const addMethod = txTimelineContext.badgeAddMethod;
+  const setAddMethod = txTimelineContext.setBadgeAddMethod;
 
   if (!collection) return EmptyStepItem
 
@@ -43,7 +44,7 @@ export function SetBadgeMetadataStepItem() {
       node={<InformationDisplayCard title='Badge Metadata'>{
         collection && <>
           <ErrDisplay err={err} />
-          <MetadataForm badgeIds={toUpdateBadges} />
+          <MetadataForm badgeIds={toUpdateBadges} addMethod={addMethod} setAddMethod={setAddMethod} />
         </>
       }</InformationDisplayCard>}
     />,

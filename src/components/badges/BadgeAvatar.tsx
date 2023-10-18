@@ -5,6 +5,7 @@ import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetada
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTimeRangesString } from "../../utils/dates";
+import { getTotalNumberOfBadgeIds, getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 
 export function BadgeAvatar({
   collectionId,
@@ -33,7 +34,12 @@ export function BadgeAvatar({
   const collections = useCollectionsContext();
 
   const collection = collections.collections[collectionId.toString()]
-  const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
+  let metadata = metadataOverride ? metadataOverride :
+    badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
+
+  if (!metadata && badgeId && collection && badgeId > getTotalNumberOfBadges(collection)) {
+    metadata = DefaultPlaceholderMetadata;
+  }
 
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
   const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => !isFullUintRanges(x.ownershipTimes)) : false;
@@ -79,7 +85,6 @@ export function BadgeAvatar({
           >
             {avatar}
           </Badge>
-
         </div>
       </Tooltip>}
     <div style={{ textAlign: 'center' }}>

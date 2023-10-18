@@ -147,7 +147,7 @@ export function AccountSettings() {
 
           node={
             <Content
-              className="full-area primary-blue-bg"
+              className="full-area"
               style={{ minHeight: '100vh', padding: 8 }}
             >
 

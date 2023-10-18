@@ -68,7 +68,7 @@ export function CreateTxMsgCreateAddressMappingModal(
     <TxModal
       visible={visible}
       setVisible={setVisible}
-      txName="Create Address List"
+      txName="Address List"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgCreateAddressMappings}
       msgSteps={msgSteps}

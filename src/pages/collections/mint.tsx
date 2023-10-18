@@ -16,27 +16,25 @@ function Mint() {
         <RegisteredWrapper
           message='Please register to access the Mint page.'
           node={
-            <Layout>
-              <Content
+            <Content
+              className='gradient-bg'
+              style={{
+                textAlign: 'center',
+                minHeight: '100vh',
+              }}
+            >
+              <div
                 style={{
-                  background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-                  textAlign: 'center',
-                  minHeight: '100vh',
+                  marginLeft: '7vw',
+                  marginRight: '7vw',
+                  paddingLeft: '1vw',
+                  paddingRight: '1vw',
+                  paddingTop: '20px',
                 }}
               >
-                <div className='primary-blue-bg'
-                  style={{
-                    marginLeft: '7vw',
-                    marginRight: '7vw',
-                    paddingLeft: '1vw',
-                    paddingRight: '1vw',
-                    paddingTop: '20px',
-                  }}
-                >
-                  <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' />
-                </div>
-              </Content>
-            </Layout>
+                <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' />
+              </div>
+            </Content>
           }
         />
       }

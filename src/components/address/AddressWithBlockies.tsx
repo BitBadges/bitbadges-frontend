@@ -4,6 +4,7 @@ import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/Accoun
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
+import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 
 export function AddressWithBlockies({
   addressOrUsername,
@@ -39,7 +40,7 @@ export function AddressWithBlockies({
   return <div style={{ display: 'inline-flex', alignItems: 'center' }}>
     {address !== 'Mint' && address !== 'All' &&
       <Tooltip
-        title={getChainForAddress(address)}
+        title={getChainForAddress(address) !== SupportedChain.UNKNOWN ? `This address is for a ${getChainForAddress(address)} user` : `Unknown`}
         placement="bottom"
       >
         <Avatar

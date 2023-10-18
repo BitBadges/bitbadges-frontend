@@ -21,10 +21,13 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: approvee balance ');
     async function getApproveeBalance() {
-      await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
+      const balance = await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
+      setNewIncomingApprovals((balance?.incomingApprovals ?? []));
     }
     getApproveeBalance();
   }, []);
+
+  console.log(newIncomingApprovals);
 
 
   const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
@@ -39,7 +42,7 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
     },
     updateIncomingApprovals: true,
     updateOutgoingApprovals: false,
-    incomingApprovals: newIncomingApprovals,
+    incomingApprovals: newIncomingApprovals.filter(x => x.approvalId !== 'default-incoming' && x.approvalId !== 'default-outgoing'),
     outgoingApprovals: [],
     updateAutoApproveSelfInitiatedIncomingTransfers: false,
     updateAutoApproveSelfInitiatedOutgoingTransfers: false,
@@ -59,7 +62,6 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
           }}
           userIncomingApprovals={newIncomingApprovals}
         />
-        <br />
       </div>
     },
   ];

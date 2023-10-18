@@ -71,165 +71,165 @@ export function SearchDropdown({
       await onSearch(searchValue);
     }
   }} theme='dark' style={{ border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
-    {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
+    {loading ? <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
       <Spin size={'large'} />
-    </Menu.Item>}
-    {!onlyCollections && <>
-      <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
-      <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
-        {/* Current Search Value Address Helper - Matches Text Exactly */}
-        {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
-          <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }} onClick={async () => {
-            await onSearch(searchValue, true);
-          }}>
-            <div className='flex-between'>
-              <div className='flex-center' style={{ alignItems: 'center' }}>
-                <AddressDisplay
-                  addressOrUsername={searchValue}
-                  hidePortfolioLink
-                  hideTooltip
-                // fontColor={'black'}
-                />
-              </div>
-            </div>
-          </Menu.Item>
-        }
-
-
-
-        {/* {Account Results} */}
-        {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
-          return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
-            await onSearch(result, true, false);
-          }}>
-            <div className='flex-between'>
-              <div className='flex-center' style={{ alignItems: 'center' }}>
-                <AddressDisplay
-                  addressOrUsername={result.address}
-                  hidePortfolioLink
-                  hideTooltip
-                // fontColor={'black'}
-                />
-              </div>
-            </div>
-          </Menu.Item>
-        })}
-      </div>
-    </>}
-    {/* Collection Results */}
-    {
-      !onlyAddresses && <>
-
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+    </Menu.Item> : <>
+      {!onlyCollections && <>
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
-          {collectionsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
-            None
-          </Menu.Item>}
-          {collectionsResults.map((result,) => {
-            return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
-              onSearch(`${result.collectionId}`, false, true);
+          {/* Current Search Value Address Helper - Matches Text Exactly */}
+          {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
+            <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }} onClick={async () => {
+              await onSearch(searchValue, true);
             }}>
               <div className='flex-between'>
                 <div className='flex-center' style={{ alignItems: 'center' }}>
-                  <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
-                  {result.cachedCollectionMetadata?.name}
+                  <AddressDisplay
+                    addressOrUsername={searchValue}
+                    hidePortfolioLink
+                    hideTooltip
+                  // fontColor={'black'}
+                  />
                 </div>
+              </div>
+            </Menu.Item>
+          }
+
+
+
+          {/* {Account Results} */}
+          {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
+            return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
+              await onSearch(result, true, false);
+            }}>
+              <div className='flex-between'>
                 <div className='flex-center' style={{ alignItems: 'center' }}>
-                  ID: {`${result.collectionId}`}
+                  <AddressDisplay
+                    addressOrUsername={result.address}
+                    hidePortfolioLink
+                    hideTooltip
+                  // fontColor={'black'}
+                  />
                 </div>
               </div>
             </Menu.Item>
           })}
         </div>
-      </>
-    }
+      </>}
+      {/* Collection Results */}
+      {
+        !onlyAddresses && <>
 
-    {
-      !onlyAddresses && <>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
-        <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
-          {badgeResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
-            None
-          </Menu.Item>}
-          {badgeResults.map((result,) => {
-            const collection = result.collection;
-            const badgeIds = result.badgeIds;
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+            {collectionsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
+              None
+            </Menu.Item>}
+            {collectionsResults.map((result,) => {
+              return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
+                onSearch(`${result.collectionId}`, false, true);
+              }}>
+                <div className='flex-between'>
+                  <div className='flex-center' style={{ alignItems: 'center' }}>
+                    <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    {result.cachedCollectionMetadata?.name}
+                  </div>
+                  <div className='flex-center' style={{ alignItems: 'center' }}>
+                    ID: {`${result.collectionId}`}
+                  </div>
+                </div>
+              </Menu.Item>
+            })}
+          </div>
+        </>
+      }
 
-            return <>
-              {badgeIds.map((idRange) => {
-                const ids = [];
-                for (let i = 0n; i <= 3n; i++) {
-                  if (idRange.start + i > idRange.end) break;
-                  ids.push(idRange.start + i);
-                }
+      {
+        !onlyAddresses && <>
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+            {badgeResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
+              None
+            </Menu.Item>}
+            {badgeResults.map((result,) => {
+              const collection = result.collection;
+              const badgeIds = result.badgeIds;
 
-                const hasMoreThanThree = idRange.end - idRange.start > 3n;
-
-
-                return <>
-
-                  {ids.map((id, idx) => {
-                    const metadata = getMetadataForBadgeId(id, collection.cachedBadgeMetadata);
-
-                    return <Menu.Item key={'' + collection.collectionId + ' ' + id + idx} className='dropdown-item' onClick={() => {
-                      onSearch(`${collection.collectionId}/${id}`, false, false, true);
-                    }}>
-                      <div className='flex-between'>
-                        <div className='flex-center' style={{ alignItems: 'center' }}>
-                          <Avatar src={metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
-                          {metadata?.name}
-                        </div>
-                        <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
-                          Collection ID: {`${collection.collectionId}`}
-                          <br />
-                          Badge ID: {`${id}`}
-                        </div>
-                      </div>
-                    </Menu.Item>
-                  })}
-                  {hasMoreThanThree &&
-                    <>This collection (ID {collection.collectionId.toString()}) has {(idRange.end - idRange.start - 3n).toString()} more badges that match the search criteria...
-                      <hr color='grey' style={{}} />
-                    </>
+              return <>
+                {badgeIds.map((idRange) => {
+                  const ids = [];
+                  for (let i = 0n; i <= 3n; i++) {
+                    if (idRange.start + i > idRange.end) break;
+                    ids.push(idRange.start + i);
                   }
-                </>
-              })}
-            </>
-          })}
-        </div >
-      </>
-    }
+
+                  const hasMoreThanThree = idRange.end - idRange.start > 3n;
+
+
+                  return <>
+
+                    {ids.map((id, idx) => {
+                      const metadata = getMetadataForBadgeId(id, collection.cachedBadgeMetadata);
+
+                      return <Menu.Item key={'' + collection.collectionId + ' ' + id + idx} className='dropdown-item' onClick={() => {
+                        onSearch(`${collection.collectionId}/${id}`, false, false, true);
+                      }}>
+                        <div className='flex-between'>
+                          <div className='flex-center' style={{ alignItems: 'center' }}>
+                            <Avatar src={metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                            {metadata?.name}
+                          </div>
+                          <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
+                            Collection ID: {`${collection.collectionId}`}
+                            <br />
+                            Badge ID: {`${id}`}
+                          </div>
+                        </div>
+                      </Menu.Item>
+                    })}
+                    {hasMoreThanThree &&
+                      <>This collection (ID {collection.collectionId.toString()}) has {(idRange.end - idRange.start - 3n).toString()} more badges that match the search criteria...
+                        <hr color='grey' style={{}} />
+                      </>
+                    }
+                  </>
+                })}
+              </>
+            })}
+          </div >
+        </>
+      }
 
 
 
 
-    {
-      !onlyAddresses && !onlyCollections && addressMappingsResults.length > 0 && <>
+      {
+        !onlyAddresses && !onlyCollections && addressMappingsResults.length > 0 && <>
 
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
-        <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
-          {addressMappingsResults.map((result,) => {
-            const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
-            const isOffChain = result.mappingId.indexOf("_") >= 0;
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+            {addressMappingsResults.map((result,) => {
+              const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
+              const isOffChain = result.mappingId.indexOf("_") >= 0;
 
-            return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
-              onSearch(`${result.mappingId}`, false, false);
-            }}>
-              <div className='flex-between'>
-                <div className='flex-center' style={{ alignItems: 'center' }}>
-                  <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
-                  {result.metadata?.name}
+              return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
+                onSearch(`${result.mappingId}`, false, false);
+              }}>
+                <div className='flex-between'>
+                  <div className='flex-center' style={{ alignItems: 'center' }}>
+                    <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    {result.metadata?.name}
+                  </div>
+                  <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
+                    ID: {`${getAbbreviatedAddress(mappingId)}`} {isOffChain && '(Off-Chain)'}
+                  </div>
                 </div>
-                <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
-                  ID: {`${getAbbreviatedAddress(mappingId)}`} {isOffChain && '(Off-Chain)'}
-                </div>
-              </div>
-            </Menu.Item>
-          })}
-        </div>
-      </>
-    }
-
+              </Menu.Item>
+            })}
+          </div>
+        </>
+      }
+    </>}
 
   </Menu >
 }

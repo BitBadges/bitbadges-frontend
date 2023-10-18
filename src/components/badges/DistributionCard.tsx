@@ -50,7 +50,7 @@ export function DistributionOverview({
 
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
 
-  return <InformationDisplayCard title={'Allocation'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
+  return <InformationDisplayCard title={'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
       {collection && <TableRow label={"Circulating (Total)"} value={
         <div style={{ float: 'right' }}>
@@ -78,13 +78,13 @@ export function DistributionOverview({
         } labelSpan={8} valueSpan={16} />}
       </>}
       {!isBadgeView &&
-        <TableRow label={"Number of Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
+        <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
       {!isSelectStep && <TableRow label={"Can more badges be created?"} value={PermissionIcon(
         "canCreateMoreBadges",
         castBalancesActionPermissionToUniversalPermission(
           collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
       collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)} labelSpan={20} valueSpan={4} />}
-      {isOffChainBalances && <TableRow label={"Balances URL"} value={
+      {isOffChainBalances && !isSelectStep && <TableRow label={"Balances URL"} value={
         <div>
           <>
             <TimelineFieldWrapper
@@ -114,7 +114,7 @@ export function DistributionOverview({
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}
-      {isOffChainBalances && <TableRow label={"Update balances URL?"} value={
+      {isOffChainBalances && !isSelectStep && <TableRow label={"Update balances URL?"} value={
         PermissionIcon(
           "canUpdateOffChainBalancesMetadata",
           castTimedUpdatePermissionToUniversalPermission(
@@ -122,7 +122,7 @@ export function DistributionOverview({
             collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
         collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)
       } labelSpan={9} valueSpan={15} />}
-      {isOffChainBalances && <TableRow label={"Last Updated"} value={
+      {isOffChainBalances && !isSelectStep && <TableRow label={"Last Updated"} value={
         <div>
           <>
             {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : '...'}

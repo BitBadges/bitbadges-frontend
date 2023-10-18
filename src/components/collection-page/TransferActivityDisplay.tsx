@@ -12,11 +12,14 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
 import { TransferDisplay } from '../transfers/TransferDisplay';
+import { DeleteOutlined } from '@ant-design/icons';
+import IconButton from '../display/IconButton';
 
-export function ActivityTab({ activity, fetchMore, hasMore }: {
+export function ActivityTab({ activity, fetchMore, hasMore, onDelete }: {
   activity: TransferActivityInfo<DesiredNumberType>[],
   fetchMore: () => void,
-  hasMore: boolean
+  hasMore: boolean,
+  onDelete?: (idx: number) => void
 }) {
   const accounts = useAccountsContext();
 
@@ -39,7 +42,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
 
       //We only fetch accounts for the panel headers, so if not displayed we don't fetch
       const accountsToFetch = [...new Set(activity.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat())];
-      const collectionsToFetch = activity.map(a => a.collectionId);
+      const collectionsToFetch = activity.map(a => a.collectionId).filter(x => x > 0n);
 
       await collections.fetchCollections(collectionsToFetch);
       await accounts.fetchAccounts(accountsToFetch);
@@ -118,7 +121,10 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                           ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
                         </b>
                       </Col>
-                      <div>{collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})</div>
+                      <div className='flex-center' onClick={(e) => { e.stopPropagation(); }} style={{ display: 'flex', alignItems: 'center' }}>
+                        {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
+                        {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='Delete' />}
+                      </div>
                     </Row>
 
                     <Row>
@@ -159,6 +165,7 @@ export function ActivityTab({ activity, fetchMore, hasMore }: {
                               {collection &&
                                 <TransferDisplay
                                   key={idx}
+                                  isBalanceUpdate
                                   collectionId={collectionId}
                                   initiatedBy={activity.initiatedBy}
                                   transfers={[

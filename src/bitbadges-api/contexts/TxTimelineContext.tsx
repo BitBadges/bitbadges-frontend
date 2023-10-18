@@ -7,7 +7,7 @@ import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
 import { getTotalNumberOfBadges } from '../utils/badges';
-import { getMintApprovals, getNonMintApprovals } from '../utils/mintVsNonMint';
+import { getMintApprovals } from '../utils/mintVsNonMint';
 import { useAccountsContext } from './accounts/AccountsContext';
 import { useChainContext } from './ChainContext';
 import { useCollectionsContext } from './collections/CollectionsContext';
@@ -62,9 +62,16 @@ export interface CreateAddressMappingMsg {
 }
 
 export interface UpdateMetadataMsg {
-  addMethod: MetadataAddMethod
-  setAddMethod: (method: MetadataAddMethod) => void
+  collectionAddMethod: MetadataAddMethod
+  setCollectionAddMethod: (method: MetadataAddMethod) => void
+
+  badgeAddMethod: MetadataAddMethod
+  setBadgeAddMethod: (method: MetadataAddMethod) => void
+
   metadataSize: number
+
+  offChainAddMethod: MetadataAddMethod
+  setOffChainAddMethod: (method: MetadataAddMethod) => void
 }
 
 export interface UpdateFlags {
@@ -109,7 +116,7 @@ export interface BaseTxTimelineProps {
   formStepNum: number
   setFormStepNum: (formStepNum: number) => void
 
-  resetState: () => void
+  resetState: (collectionId?: bigint, addressMappingId?: string) => void
 
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
@@ -179,8 +186,14 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   },
   setAddressMapping: () => { },
 
-  addMethod: MetadataAddMethod.None,
-  setAddMethod: () => { },
+  collectionAddMethod: MetadataAddMethod.None,
+  setCollectionAddMethod: () => { },
+  badgeAddMethod: MetadataAddMethod.None,
+  setBadgeAddMethod: () => { },
+
+  offChainAddMethod: MetadataAddMethod.None,
+  setOffChainAddMethod: () => { },
+
   metadataSize: 0,
   initialLoad: true,
   setInitialLoad: () => { },
@@ -205,9 +218,14 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const accounts = useAccountsContext();
   const txType = 'UpdateCollection';
 
-  const [existingCollectionId, setExistingCollectionId] = useState<bigint>();
+  const [existingCollectionId, setExistingCollectionIdState] = useState<bigint>();
+
   const [existingAddressMappingId, setExistingAddressMappingId] = useState<string>('');
   const [formStepNum, setFormStepNum] = useState(1);
+
+  const setExistingCollectionId = (existingCollectionId: bigint | undefined) => {
+    setExistingCollectionIdState(existingCollectionId);
+  }
 
   const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
   const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
@@ -216,7 +234,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [size, setSize] = useState(0);
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
-  const [initialLoad, setInitialLoad] = useState(false);
   const [completeControl, setCompleteControl] = useState(false);
 
   const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
@@ -231,7 +248,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   })
 
   //The method used to add metadata to the collection and individual badges
-  const [addMethod, setAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.None);
+  const [collectionAddMethod, setCollectionAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
+  const [offChainAddMethod, setOffChainAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
+  const [badgeAddMethod, setBadgeAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
 
   //Update flags
   const [updateCollectionPermissions, setUpdateCollectionPermissions] = useState(true);
@@ -264,7 +283,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     resetApprovalsToAdd();
 
-  }, [startingCollection]);
+  }, [existingCollectionId]);
 
   const resetApprovalsToAdd = () => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
@@ -294,24 +313,22 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
     if (!simulatedCollection || simulatedCollection.balancesType === "Off-Chain") return;
 
-    const existingNonMint = getNonMintApprovals(simulatedCollection, true);
+    // const existingNonMint = getNonMintApprovals(simulatedCollection, true);
 
     collections.updateCollection({
       ...simulatedCollection,
-      collectionApprovals: [
-        // ...existingFromMint, //We included in approvalsToAdd 
-        ...approvalsToAdd, ...existingNonMint],
+      collectionApprovals: approvalsToAdd,
     });
   }, [approvalsToAdd]);
 
-  function resetState() {
-    setExistingCollectionId(undefined);
+  function resetState(existingCollectionId?: bigint, addressMappingId?: string) {
+    setExistingCollectionIdState(existingCollectionId);
     setStartingCollection(undefined);
-    setExistingAddressMappingId('');
+    setExistingAddressMappingId(addressMappingId ?? '');
     setFormStepNum(1);
     setBadgesToCreate([]);
+    setCollectionAddMethod(MetadataAddMethod.Manual);
     setTransfers([]);
-    setInitialLoad(false);
     setMintType(MintType.BitBadge);
     setAddressMapping({
       mappingId: '',
@@ -352,6 +369,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     getAddressMapping();
   }, [existingAddressMappingId]);
 
+  const initialLoad = !!startingCollection;
+
+
   //Only upon first load, we fetch the existing collection from the server if it exists
   //Set default values for the collection if it doesn't exist or populate with exsitng values if it does
   //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
@@ -359,21 +379,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: inital load ');
     async function initialize() {
 
-      setInitialLoad(false);
-
-      const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
-        [{
-          collectionId: existingCollectionId, viewsToFetch: [],
-          fetchTotalAndMintBalances: true,
-          handleAllAndAppendDefaults: false,
-        }], true) : [];
-      let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
-
-      if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-        await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
-      }
-
-      const startingCollection: BitBadgesCollection<bigint> = {
+      let startingCollectionDefault: BitBadgesCollection<bigint> = {
         //Default values for a new collection
         //If existing, they are overriden further below via the spread
         merkleChallenges: [],
@@ -383,14 +389,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           manager: chain.cosmosAddress,
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }],
-        cachedBadgeMetadata: [
-          {
-            metadata: DefaultPlaceholderMetadata,
-            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            toUpdate: true,
-          }],
         cachedCollectionMetadata: DefaultPlaceholderMetadata,
-
+        cachedBadgeMetadata: [],
         activity: [],
         announcements: [],
         reviews: [],
@@ -456,6 +456,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateOffChainBalancesMetadata: [],
           canUpdateStandards: [],
         },
+        offChainBalancesMetadataTimeline: [],
         defaultUserIncomingApprovals: [],
         defaultUserOutgoingApprovals: [],
         defaultUserPermissions: {
@@ -470,92 +471,82 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         createdBlock: 0n,
         createdTimestamp: 0n,
 
-        //Existing collection values
-        ...existingCollection,
-        offChainBalancesMetadataTimeline: existingCollection && existingCollection.offChainBalancesMetadataTimeline
-          && existingCollection.balancesType === "Off-Chain"
-          ? existingCollection.offChainBalancesMetadataTimeline : [],
-
         //Preview / simulated collection values
         _id: "0",
         collectionId: 0n
       }
 
-      setStartingCollection(deepCopy(startingCollection));
-      collections.updateCollection(startingCollection, true);
+      let noStartingCollection = false;
+      if (!startingCollection) {
+        noStartingCollection = true;
+        const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
+          [{
+            collectionId: existingCollectionId, viewsToFetch: [],
+            fetchTotalAndMintBalances: true,
+            handleAllAndAppendDefaults: false,
+          }], true) : [];
+        let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
+
+        if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
+          console.log(existingCollection);
+          await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
+        }
+
+        console.log(existingCollectionId, existingCollection);
+
+        startingCollectionDefault = {
+          ...startingCollectionDefault,
+
+          //Existing collection values
+          ...existingCollection,
+
+          //Preview / simulated collection values
+          _id: "0",
+          collectionId: 0n
+        }
+
+        console.log(existingCollectionId, JSON.stringify(startingCollectionDefault.cachedBadgeMetadata));
 
 
-      setInitialLoad(true);
+        setStartingCollection(deepCopy(startingCollectionDefault));
+      }
+
+      if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
+      //We have three things that can affect the new simulated collection:
+      //1. If claims change, we need to update the unminted supplys and respective claims field
+      //2. If transfers change, we need to update the unminted supplys and respective transfers field
+      //3. If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
+      //All other updates are handled within CollectionContext
+      //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
+
+      const currCollection = noStartingCollection ? startingCollectionDefault : simulatedCollection;
+      if (!currCollection) return;
+
+      //TODO: Is this right? Is remove duplicate logic right?
+      //Combine the claims arrays. This is because the fetches may be out of sync between the two
+      //Filter out any new claims to be added because those get added in simulateCollectionAfterMsg
+      const combinedClaims = [...(startingCollection?.merkleChallenges || []), ...currCollection.merkleChallenges]
+        //Remove duplicates  
+        .filter(claim => {
+          return !currCollection.merkleChallenges.some(claim2 => compareObjects(claim, claim2));
+        });
+      const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
+
+
+      const postSimulatedCollection = { ...currCollection, owners: newOwnersArr, merkleChallenges: combinedClaims };
+      collections.updateCollection(postSimulatedCollection, true);
     }
+
     initialize();
-  }, [existingCollectionId, txType]);
+  }, [existingCollectionId, startingCollection, badgesToCreate]);
 
-  //TODO: Reintroduce transfers / claims?
-  //TODO: handle balance docs here as well for transfers? For now, we just say unsupported balances. Will need to fetch all existing balances and then update the balances doc with the new balances
+
   useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
-    //We have three things that can affect the new simulated collection:
-    //1. If claims change, we need to update the unminted supplys and respective claims field
-    //2. If transfers change, we need to update the unminted supplys and respective transfers field
-    //3. If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
-    //All other updates are handled within CollectionContext
-    //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
+    function initialize() {
 
-
-    const _existingCollection = startingCollection;
-    const _simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
-    if (!_simulatedCollection) return;
-    if (!initialLoad) return;
-
-    const existingCollection = _existingCollection ? deepCopy(_existingCollection) : undefined;
-    const simulatedCollection = deepCopy(_simulatedCollection);
-
-    //TODO: Is this right? Is remove duplicate logic right?
-    //Combine the claims arrays. This is because the fetches may be out of sync between the two
-    //Filter out any new claims to be added because those get added in simulateCollectionAfterMsg
-    const combinedClaims = [...(existingCollection?.merkleChallenges || []), ...simulatedCollection.merkleChallenges]
-      //Remove duplicates  
-      .filter(claim => {
-        return !simulatedCollection.merkleChallenges.some(claim2 => compareObjects(claim, claim2));
-      });
-    const newOwnersArr = incrementMintAndTotalBalances(0n, existingCollection?.owners ?? [], badgesToCreate);
-
-
-    //If we have created any new badges since the last iteration, add placeholder metadata
-    //Else, if we have deleted any badges since the last iteration, remove the corresponding metadata;
-
-    const postSimulatedCollection = { ...simulatedCollection, owners: newOwnersArr, merkleChallenges: combinedClaims };
-
-    let newBadgeMetadata = simulatedCollection.cachedBadgeMetadata;
-    //If we have created any new badges since the last iteration, add placeholder metadata
-    //If we have removed any badges since the last iteration, remove the corresponding metadata
-    if (getTotalNumberOfBadges(postSimulatedCollection) > getTotalNumberOfBadges(simulatedCollection)) {
-      newBadgeMetadata = updateBadgeMetadata(newBadgeMetadata, {
-        metadata: DefaultPlaceholderMetadata,
-        badgeIds: [{
-          start: getTotalNumberOfBadges(simulatedCollection) + 1n,
-          end: getTotalNumberOfBadges(postSimulatedCollection)
-        }],
-        toUpdate: true,
-      });
-    } else if (getTotalNumberOfBadges(postSimulatedCollection) < getTotalNumberOfBadges(simulatedCollection)) {
-      newBadgeMetadata = removeBadgeMetadata(newBadgeMetadata, [{
-        start: getTotalNumberOfBadges(postSimulatedCollection) + 1n,
-        end: getTotalNumberOfBadges(simulatedCollection)
-      }]);
     }
-    console.log("newBadgeMetadata: ", newBadgeMetadata);
-    //Append placeholders to end. Note we take first match only so placeholder metadata will only be for badges w/o metadata
-    newBadgeMetadata.push({
-      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      metadata: DefaultPlaceholderMetadata,
-      toUpdate: true,
-    });
-
-    postSimulatedCollection.cachedBadgeMetadata = newBadgeMetadata;
-
-    collections.updateCollection(postSimulatedCollection, true);
-  }, [existingCollectionId, badgesToCreate, initialLoad]);
+    initialize()
+  }, [badgesToCreate, startingCollection]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
@@ -571,18 +562,23 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //Upon any new metadata that will need to be added, we need to update the size of the metadata
   //TODO: Make consistent with actual uploads
   useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: metadata size');
-    const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => compareObjects(x, y)) === false);
-    const newCollectionMetadata = !compareObjects(simulatedCollection?.cachedCollectionMetadata, existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
+    // if (INFINITE_LOOP_MODE) console.log('useEffect: metadata size');
+    // console.time('metadata size');
+    // const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => compareObjects(x, y)) === false);
+    // const newCollectionMetadata = !compareObjects(simulatedCollection?.cachedCollectionMetadata, existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
+    // console.timeEnd('metadata size');
 
-    setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
+    // setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
   }, [simulatedCollection, existingCollection]);
 
   const context: TxTimelineContextType = {
     resetState,
     txType,
-    addMethod,
-    setAddMethod,
+    collectionAddMethod,
+    setCollectionAddMethod,
+    badgeAddMethod,
+    setBadgeAddMethod,
+
     metadataSize: size,
     existingCollectionId: existingCollectionId,
     startingCollection,
@@ -594,6 +590,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setTransfers,
     badgesToCreate,
     setBadgesToCreate,
+
+    offChainAddMethod,
+    setOffChainAddMethod,
 
     //Update flags
     updateCollectionPermissions,
@@ -628,7 +627,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
     setExistingCollectionId: setExistingCollectionId,
     initialLoad,
-    setInitialLoad,
+    setInitialLoad: () => { },
 
     formStepNum,
     setFormStepNum,

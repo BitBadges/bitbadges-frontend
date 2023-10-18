@@ -1,18 +1,21 @@
 import { AddressMapping } from "bitbadgesjs-proto";
-import { getReservedAddressMapping } from "bitbadgesjs-utils";
+import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { useState } from "react";
+import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
+import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { MSG_PREVIEW_ID, EmptyStepItem, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { ApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { useState } from "react";
-import { compareObjects } from "../../../utils/compare";
 
 export function DefaultToApprovedSelectStepItem() {
   const collections = useCollectionsContext();
   const collection = collections.collections[MSG_PREVIEW_ID.toString()];
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
+  const chain = useChainContext();
 
   const [updatelag, setUpdateFlag] = useState<boolean>(true);
 
@@ -33,19 +36,19 @@ export function DefaultToApprovedSelectStepItem() {
 
   return {
     title: `Default Incoming Approvals`,
-    description: `Can badges be sent to users without approval, or should approval be required by default?`,
+    description: `If not forcefully overriden, all badge transfers need to satisfy the recipient's icnoming approvals. What should they be by default?`,
     node: <UpdateSelectWrapper
       updateFlag={updatelag}
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
       permissionName='canUpdateDefaultUserIncomingApprovals'
       validationErr={undefined}
-      node={
+      node={<>
         <SwitchForm
           showCustomOption
           options={[
             {
-              title: 'Forceful Transfers Allowed',
+              title: 'Approved by Default',
               message: `For all users, all incoming transfers (including mints) will be approved by default. Users can opt-out of this in the future.`,
               isSelected: compareObjects(collection.defaultUserIncomingApprovals, forcefulOption)
 
@@ -63,6 +66,20 @@ export function DefaultToApprovedSelectStepItem() {
             });
           }}
         />
+        <div style={{ textAlign: 'center' }}>
+          <ApprovalsDisplay
+            approvals={
+              castIncomingTransfersToCollectionTransfers(
+                collection.defaultUserIncomingApprovals.length > 0 ? collection.defaultUserIncomingApprovals : appendDefaultForIncoming([], chain.address)
+
+                , chain.address)}
+            collection={collection}
+            approvalLevel='incoming'
+            approverAddress={chain.address}
+            title="Incoming Approvals"
+          />
+        </div>
+      </>
       }
     />
 

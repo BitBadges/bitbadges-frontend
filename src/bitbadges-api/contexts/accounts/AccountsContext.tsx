@@ -205,6 +205,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
 
       const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
+
       if (cachedAccount === undefined) {
         batchRequestBody.accountsToFetch.push({
           address: accountToFetch.address,
@@ -216,6 +217,10 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           noExternalCalls: accountToFetch.noExternalCalls,
         });
       } else {
+
+        if (accountToFetch.address) accountToFetch.address = cachedAccount.address;
+        if (accountToFetch.username) accountToFetch.username = cachedAccount.username;
+
         //Do not fetch views where hasMore is false
         accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => {
           const currPagination = cachedAccount.views[x.viewKey]?.pagination;
@@ -376,13 +381,17 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
   const setPublicKey = (addressOrUsername: string, publicKey: string) => {
     const account = getAccount(addressOrUsername);
-    if (account) {
-      account.publicKey = publicKey;
-    } else {
+    if (!account) {
       throw new Error(`Account ${addressOrUsername} not found`);
     }
 
-    dispatch(updateAccountsRedux([account], false, cookies))
+    console.log(publicKey);
+    dispatch(updateAccountsRedux([{
+      ...account,
+      publicKey: publicKey
+    }], false, cookies))
+
+    console.log(getAccount(addressOrUsername))
   }
 
   const accountsContext: AccountsContextType = {

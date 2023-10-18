@@ -11,9 +11,11 @@ export enum EnterMethod {
 export function AddressSelect({
   defaultValue,
   onUserSelect,
+  disabled,
 }: {
   defaultValue?: string,
   onUserSelect: (currUserInfo: string) => void,
+  disabled?: boolean,
 }) {
   const [changed, setChanged] = useState<boolean>(false);
   const [input, setInput] = useState<string>(defaultValue ? defaultValue : '');
@@ -46,6 +48,7 @@ export function AddressSelect({
             setInput(e.target.value);
             setChanged(true);
           }}
+          disabled={disabled}
         />
       </Dropdown>
     </Input.Group>

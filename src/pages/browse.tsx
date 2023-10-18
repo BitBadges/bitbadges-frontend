@@ -62,15 +62,13 @@ function BrowsePage() {
 
 
   return (
-    <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
       >
-        <div className='primary-blue-bg'
+        <div 
           style={{
             marginLeft: '4vw',
             marginRight: '4vw',
@@ -323,7 +321,6 @@ function BrowsePage() {
 
         <Divider />
       </Content >
-    </Layout >
   );
 }
 

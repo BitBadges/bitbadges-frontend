@@ -1,7 +1,7 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
-import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
+import { BigIntify, CosmosCoin, Numberify, Stringify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus, simulateTx } from '../../bitbadges-api/api';
@@ -14,6 +14,7 @@ import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { convertTransfer } from 'bitbadgesjs-proto';
 
 const { Step } = Steps;
 
@@ -204,8 +205,6 @@ export function TxModal(
 
       //Get public key (if not already stored)
       const publicKey = await chain.getPublicKey(chain.cosmosAddress);
-      console.log("FETCHED PK", publicKey);
-      accounts.setPublicKey(chain.cosmosAddress, publicKey);
 
       const finalTxDetails = {
         ...txDetails,
@@ -225,7 +224,8 @@ export function TxModal(
         throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please review the updated recommended fee and try again.`);
       }
 
-
+      // console.log(cosmosMsg.transfers);
+      // console.log((cosmosMsg as any).transfers.map((x: any) => convertTransfer(x, Stringify, true)));
       const unsignedTx = await formatAndCreateGenericTx(createTxFunction, finalTxDetails, cosmosMsg);
       console.log("Unsigned TX:", unsignedTx);
       const rawTx = await chain.signTxn(unsignedTx, false);

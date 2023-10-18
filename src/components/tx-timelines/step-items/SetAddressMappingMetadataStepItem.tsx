@@ -13,32 +13,11 @@ export function SetAddressMappingMetadataStepItem() {
     </>,
 
     node: <>
-
-      {
-        <div>
-          <div>
-            <br />
-            <br />
-            <CollectionHeader collectionId={MSG_PREVIEW_ID} hideCollectionLink />
-          </div>
-        </div>
-      }
-
       <MetadataForm
         isCollectionSelect
         badgeIds={[]}
         isAddressMappingSelect
       />
-      <Divider />
-      {
-        <>
-          <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>Useful Tools</Typography.Text>
-          <div style={{ display: 'flex' }} className='flex-wrap'>
-            <ToolIcon name="Sketch.io" />
-            <ToolIcon name="Excalidraw" />
-          </div>
-        </>
-      }
     </>,
   }
 }

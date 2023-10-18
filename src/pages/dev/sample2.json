@@ -224,7 +224,7 @@
           "expectedProofLength": "7",
           "useCreatorAddressAsLeaf": true,
           "useLeafIndexForTransferOrder": false,
-          "maxOneUsePerLeaf": false,
+          "maxUsesPerLeaf": "1",
           "uri": "ipfs://QmSCGwqBofFt69iGzKERw6z27Eszchd39AoPNLLGB18exE",
           "customData": ""
         },

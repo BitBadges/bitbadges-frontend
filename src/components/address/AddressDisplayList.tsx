@@ -20,7 +20,9 @@ export function AddressDisplayList({
   // toLength,
   pageSize = 10,
   allExcept,
-  filterMint
+  filterMint,
+  trackerIdList,
+  hideIcons
 }: {
   users: string[],
   setUsers?: (users: string[]) => void
@@ -33,7 +35,9 @@ export function AddressDisplayList({
   // toLength?: number
   pageSize?: number
   allExcept?: boolean,
-  filterMint?: boolean
+  filterMint?: boolean,
+  trackerIdList?: boolean,
+  hideIcons?: boolean
 }) {
   const [currPage, setCurrPage] = useState<number>(1);
 
@@ -114,9 +118,9 @@ export function AddressDisplayList({
 
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
-          <AddressDisplay
+          {trackerIdList ? <> {user} </> : <AddressDisplay
             icon={
-              setUsers && user != 'All' &&
+              !hideIcons && setUsers && user != 'All' &&
               <Tooltip title={"Remove User"}>
                 <UserDeleteOutlined onClick={() => {
                   setUsers(users.filter((x => x !== user)));
@@ -130,7 +134,7 @@ export function AddressDisplayList({
 
               ? 'red' : fontColor}
             fontSize={fontSize}
-          />
+          />}
           {allowedMessage && allowedMessage.length > 0 &&
             <div style={{ color: 'red' }}>
               Reason: {allowedMessage}

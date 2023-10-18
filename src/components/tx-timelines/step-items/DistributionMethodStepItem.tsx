@@ -1,9 +1,10 @@
-import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
-import { Avatar, Divider } from "antd";
+import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
+import { validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
+import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
@@ -13,6 +14,7 @@ export function DistributionMethodStepItem() {
   const collection = collections.collections[`${MSG_PREVIEW_ID}`];
 
   const txTimelineContext = useTxTimelineContext();
+  const startingCollection = txTimelineContext.startingCollection;
   // const approvals = txTimelineContext.approvalsToAdd;
   // const transfers = txTimelineContext.transfers;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
@@ -26,39 +28,61 @@ export function DistributionMethodStepItem() {
   const DistributionComponent = <div>
     {<>
       {!isOffChainBalances &&
-        <div className='flex-center' style={{ textAlign: 'center' }}>
-          <TransferabilityTab collectionId={MSG_PREVIEW_ID} onlyShowFromMint hideHelperMessage />
+        <div className='flex-center full-width' style={{ textAlign: 'center' }}>
+          <TransferabilityTab
+            onDelete={(approvalId: string) => {
+              const approvalsToAdd = txTimelineContext.approvalsToAdd;
+              const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
+
+              let isValidUpdateError = null;
+              if (startingCollection) {
+                isValidUpdateError = validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, postApprovalsToAdd, startingCollection.collectionPermissions.canUpdateCollectionApprovals);
+              }
+
+              if (isValidUpdateError && confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + isValidUpdateError.message)) {
+                txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+              } else if (!isValidUpdateError) {
+                txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+              }
+            }}
+            // onEdit={(approval: CollectionApprovalWithDetails<bigint>) => {
+            //   const approvalsToAdd = txTimelineContext.approvalsToAdd;
+            //   const approval = approvalsToAdd.find(x => x.approvalId === approvalId);
+            //   if (approval) {
+            //     txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+            //     setVisible(true);
+            //   }
+            // }}
+            showDeletedGrayedOut
+            collectionId={MSG_PREVIEW_ID}
+            onlyShowFromMint
+            hideHelperMessage
+            addMoreNode={<>
+              <div className='flex-center'>
+                <IconButton
+                  src={visible ? <CloseOutlined /> : <PlusOutlined />}
+                  onClick={() => {
+                    setVisible(!visible);
+                  }}
+                  text={visible ? 'Cancel' : 'Add'}
+                />
+              </div>
+
+              {visible &&
+                <>
+                  <CreateClaims
+                    setVisible={setVisible}
+                  />
+                </>}
+            </>}
+          />
         </div>}
     </>}
-    <Divider />
-    <div className='flex-center'>
-      <Avatar
-        style={{ cursor: 'pointer' }}
-        onClick={() => {
-          setVisible(!visible);
-        }}
-        src={visible ? <MinusOutlined /> : <PlusOutlined />}
-        className='styled-button'
-      >
-      </Avatar>
-    </div>
-
-    {visible &&
-      <>
-        <Divider />
-
-        <CreateClaims
-          setVisible={setVisible}
-        />
-      </>}
-
-
   </div>
 
   return {
-    title: `Distribution Method`,
-    description: '',
-    // disabled: isOffChainBalances ? transfers.length === 0 : approvals.length === 0,
+    title: `Transferability - Minting`,
+    description: 'You previously created badges which have been sent to the Mint address. Here, you decide who can transfer from the Mint address.',
     node: <>
       {
         collection?.balancesType === "Off-Chain" ? DistributionComponent :

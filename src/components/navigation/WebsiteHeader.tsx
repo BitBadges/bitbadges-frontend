@@ -194,10 +194,10 @@ export function WalletHeader() {
     {connected && signedIn && <>
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
       <Menu.Item className='dropdown-item' onClick={() => {
-        chain.disconnect();
         signOut();
-        chain.setLoggedIn(false);
         _setCookie('blockincookie', '', { path: '/' });
+        chain.disconnect();
+
       }}>Disconnect and Sign Out</Menu.Item>
     </>}
   </Menu>
@@ -240,9 +240,10 @@ export function WalletHeader() {
       setSearchValue(e.target.value);
     }}
     // style={{ marginLeft: 10, marginRight: 10 }}
-    className='form-input'
+    className='form-input inherit-bg'
     // enterButton
     size='large'
+    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />}
   />;
 
   const ExpandedSearchBar = <>

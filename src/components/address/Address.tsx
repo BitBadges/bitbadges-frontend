@@ -1,9 +1,9 @@
 import { Spin, Tooltip, Typography } from 'antd';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { MINT_ACCOUNT, SupportedChain, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from './AddressDisplay';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
 
 const { Text } = Typography;
 
@@ -27,6 +27,8 @@ export function Address({
   const router = useRouter();
   const accounts = useAccountsContext();
   const userInfo = accounts.getAccount(addressOrUsername);
+
+  
 
   let newAddress = '';
   if (userInfo && overrideChain && userInfo?.chain !== overrideChain && overrideChain === SupportedChain.COSMOS) {

@@ -26,7 +26,7 @@ function Broadcast() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet and sign im to access this page.'
+      message='Please connect a wallet and sign in to access this page.'
       node={
         <Layout>
           <Content

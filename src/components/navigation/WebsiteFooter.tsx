@@ -6,20 +6,18 @@ export function WalletFooter() {
   return (
     <>
       <Content
-        className='primary-blue-bg full-width'
+        className='black-bg full-width'
         style={{
           display: 'flex',
           alignItems: 'center',
           padding: '1rem 2rem',
-          minHeight: '20vh',
-          paddingTop: '100px',
 
         }}
       >
 
         <footer id="footer" className="dark full-width" >
           <div className="footer-wrap">
-            <Row className='flex-center' style={{ width: '100%', alignItems: 'normal',  paddingTop: 20 }}>
+            <Row className='flex-center' style={{ width: '100%', alignItems: 'normal', paddingTop: 20 }}>
               <FooterButtonDisplay />
               <Col md={6} sm={24} xs={24}>
                 <div className="footer-center primary-text" style={{ textAlign: 'center' }}>

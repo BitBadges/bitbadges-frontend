@@ -30,7 +30,8 @@ export function MultiCollectionBadgeDisplay({
   groupByCollection,
   hideCollectionLink,
   hidePagination,
-  showCustomizeButtons
+  showCustomizeButtons,
+  hideAddress
 }: {
   collectionIds: bigint[],
   addressOrUsernameToShowBalance?: string,
@@ -40,6 +41,7 @@ export function MultiCollectionBadgeDisplay({
   groupByCollection?: boolean;
   hideCollectionLink?: boolean;
   hidePagination?: boolean;
+  hideAddress?: boolean;
   showCustomizeButtons?: boolean
   customPageBadges?: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]
 }) {
@@ -480,7 +482,7 @@ export function MultiCollectionBadgeDisplay({
             ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
             if (!loaded) return <Spin />
 
-            return <InformationDisplayCard title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
+            return <InformationDisplayCard noBorder inheritBg title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
               <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
                 <div className='link-button-nav flex-center' onClick={() => {
                   router.push('/collections/' + collectionId)
@@ -496,14 +498,15 @@ export function MultiCollectionBadgeDisplay({
                   </Typography.Text>
 
                 </div>
-                {collection &&
+                {collection && !hideAddress &&
                   <div className="flex-center">
                     <Typography.Text className="primary-text" style={{ fontWeight: 'bold', marginRight: 10 }}>
                       By:
                     </Typography.Text>
                     <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />
+                    <br />
                   </div>}
-                <br />
+
               </Tooltip>
 
               <BadgeAvatarDisplay

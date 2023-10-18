@@ -20,12 +20,13 @@ export const getNonMintApprovals = (collection: BitBadgesCollection<bigint>, thr
         return undefined;
       }
 
-      if (throwOnUnresolvableId) throw new Error('Not implemented. Could not resolve mapping ID after removing Mint address from fromMapping');
+      let newMappingId = remaining.includeAddresses ? "" : "AllWithout"
+      newMappingId += remaining.addresses.join(":");
 
       return {
         ...x,
         fromMapping: remaining,
-        fromMappingId: ''
+        fromMappingId: newMappingId
       }
     } else {
       return x;

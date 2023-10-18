@@ -88,11 +88,11 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <StatusContextProvider>
                       <TxTimelineContextProvider>
 
-                        <Layout className="layout">
+                        <Layout className="gradient-bg">
                           <WalletHeader />
                           <Component {...pageProps} />
                           {myCookieValue !== 'accepted' &&
-                            <div className='primary-text primary-blue-bg'
+                            <div className='primary-text black-bg'
                               style={{
                                 textAlign: 'center',
                                 borderTop: '1px solid white',

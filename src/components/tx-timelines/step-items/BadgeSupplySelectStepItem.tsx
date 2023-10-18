@@ -1,5 +1,5 @@
 import { Divider } from "antd";
-import { checkBalancesActionPermission, deepCopyBalances } from "bitbadgesjs-utils";
+import { DefaultPlaceholderMetadata, checkBalancesActionPermission, deepCopyBalances, removeBadgeMetadata, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
@@ -9,6 +9,7 @@ import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { DistributionOverview } from "../../badges/DistributionCard";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 export function BadgeSupplySelectStepItem() {
   const collections = useCollectionsContext();
@@ -24,9 +25,27 @@ export function BadgeSupplySelectStepItem() {
   const err = startingCollection ? checkBalancesActionPermission(badgesToCreate, startingCollection.collectionPermissions.canCreateMoreBadges) : undefined;
   const [updateFlag, setUpdateFlag] = useState<boolean>(true);
 
+  const revertFunction = () => {
+    if (!collection) return;
+
+    const prevNumberOfBadges = startingCollection ? getTotalNumberOfBadges(startingCollection) : 0n;
+
+    const newBadgeMetadata = removeBadgeMetadata(collection.cachedBadgeMetadata, [{
+      start: prevNumberOfBadges + 1n,
+      end: getTotalNumberOfBadges(collection)
+    }]);
+
+    collections.updateCollection({
+      ...collection,
+      cachedBadgeMetadata: newBadgeMetadata
+    });
+
+    setBadgesToCreate([]);
+  }
+
   return {
     title: `Create Badges`,
-    description: 'Create badges to add to your collection. You can customize and distribute these badges in later steps.',
+    description: 'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
@@ -49,9 +68,7 @@ export function BadgeSupplySelectStepItem() {
 
         setBadgesToCreate(val);
       }}
-      customRevertFunction={() => {
-        setBadgesToCreate([]);
-      }}
+      customRevertFunction={revertFunction}
       node={
 
         <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
@@ -66,14 +83,30 @@ export function BadgeSupplySelectStepItem() {
           </div>
           <br />
           <BalanceInput
+            sequentialOnly
             balancesToShow={balancesToShow}
             onAddBadges={(balance) => {
-              setBadgesToCreate(deepCopyBalances([...badgesToCreate, balance]));
+              if (!collection) return;
+
+              const newBadgesToCreate = deepCopyBalances([...badgesToCreate, balance])
+              const prevNumberOfBadges = startingCollection ? getTotalNumberOfBadges(startingCollection) : 0n;
+              const maxBadgeIdAdded = sortUintRangesAndMergeIfNecessary(newBadgesToCreate.map(x => x.badgeIds).flat()).pop()?.end || 0n;
+
+              const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, {
+                metadata: DefaultPlaceholderMetadata,
+                badgeIds: [{ start: prevNumberOfBadges + 1n, end: maxBadgeIdAdded }]
+              });
+
+              collections.updateCollection({
+                ...collection,
+                cachedBadgeMetadata: newBadgeMetadata
+              });
+
+              setBadgesToCreate(newBadgesToCreate);
             }}
+            hideDisplay
             message="Circulating Supplys"
-            onRemoveAll={() => {
-              setBadgesToCreate([]);
-            }}
+            onRemoveAll={revertFunction}
           />
           <Divider />
           <DevMode obj={badgesToCreate} />

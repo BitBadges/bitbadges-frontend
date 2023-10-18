@@ -84,6 +84,9 @@ code {
 .reverse-gradient-bg {
     background: linear-gradient(0deg, #001529 10%, black 100%);
 }
+.black-bg {
+    background-color: black;
+}
 
 .landing-padding {
   padding-left: 7vw;
@@ -216,9 +219,10 @@ code {
   }
 
   .styled-button {
-      background: #001529 !important;
+      background: inherit !important;
       /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
       border: 2px solid white;
+      cursor: pointer;
       color: white;
   }
 
@@ -620,4 +624,17 @@ transform: scale(1.01);
   background-color: inherit;
   color: #1890ff;
   border-color: #1890ff;
+}
+
+.transferability-row {
+  min-height: 50px;
+}
+
+.transferability-row-more {
+  background-color: inherit;
+}
+
+.transferability-row:hover {
+  background-color: #4a4a5b;
+  cursor: pointer;
 }

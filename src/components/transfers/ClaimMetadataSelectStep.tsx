@@ -1,10 +1,23 @@
-import { Form, Input, Typography } from "antd";
+import { Empty, Form, Input, Typography } from "antd";
 import { MerkleChallengeDetails } from "bitbadgesjs-utils";
+import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
+
+export function ClaimMetadataSelect({
+  merkleChallengeDetails,
+  setMerkleChallengeDetails,
+}: {
+  merkleChallengeDetails: MerkleChallengeDetails<bigint> | undefined,
+  setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
+}) {
+  return <>{ClaimMetadataSelectSelectStep(merkleChallengeDetails, setMerkleChallengeDetails).description}</>
+}
 
 export function ClaimMetadataSelectSelectStep(
-  merkleChallengeDetails: MerkleChallengeDetails<bigint>,
+  merkleChallengeDetails: MerkleChallengeDetails<bigint> | undefined,
   setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
 ) {
+  if (!merkleChallengeDetails) return EmptyStepItem
+
   const name = merkleChallengeDetails.name;
   const description = merkleChallengeDetails.description;
 
@@ -47,11 +60,8 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setName(e.target.value);
                 }}
-                className="form-input"
+                className="form-input inherit-bg primary-text"
               />
-              <Typography.Text strong className='secondary-text'>
-                Give this claim a name.
-              </Typography.Text>
             </Form.Item>
             <Form.Item
               label={<>
@@ -66,12 +76,9 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
-                className="form-input"
+                className="form-input inherit-bg primary-text"
                 rows={7}
               />
-              <Typography.Text strong className='secondary-text'>
-                Describe how users can earn this badge.
-              </Typography.Text>
             </Form.Item>
           </div>
         </Form>

@@ -18,6 +18,7 @@ import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import IconButton from "../display/IconButton";
 import { NumberInput } from "../inputs/NumberInput";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
+import { TransferabilityRow } from "../collection-page/TransferabilityRow";
 
 //TODO: Will need to change when we allow approvalCriteria len > 0
 //TODO: per to/from/initiatedBy
@@ -29,6 +30,7 @@ import { CodesDisplay } from "./CodesPasswordsDisplay";
 export function ClaimDisplay({
   approval,
   approvalCriteria,
+  approvals,
   collectionId,
   openModal,
   isCodeDisplay,
@@ -42,6 +44,7 @@ export function ClaimDisplay({
 }: {
   approval: CollectionApprovalWithDetails<bigint>,
   approvalCriteria: ApprovalCriteriaWithDetails<bigint>,
+  approvals: CollectionApprovalWithDetails<bigint>[],
   collectionId: bigint,
   openModal?: (code?: string, leafIndex?: number, recipient?: string) => void,
   isCodeDisplay?: boolean
@@ -468,13 +471,12 @@ export function ClaimDisplay({
                       />
                     </div>
 
-                    {incrementIdsBy > 0 && !errorMessage &&
-
+                    {(incrementIdsBy > 0 || incrementOwnershipTimesBy > 0) && !errorMessage &&
                       <div>
                         <br />
                         <Row className='flex-center' >
                           <p className='primary-text'>
-                            <WarningOutlined style={{ color: 'orange' }} /> Each time a user claims, the claim number increments which increments the claimable badge IDs by {`${incrementIdsBy}`}. {"You will receive the badge IDs that correspond to the claim number at process time."}
+                            <WarningOutlined style={{ color: 'orange' }} /> Each time a claim is processed, the claim number increments which increments the claimable badge IDs by {`${incrementIdsBy}`}.
                           </p>
                         </Row>
                         <br />
@@ -576,7 +578,7 @@ export function ClaimDisplay({
                         </Checkbox>
                         <br />
                         <br />
-                        <b>Select Recipient</b>
+                        <b>Recipient</b>
 
                         <AddressSelect defaultValue={chain.address} onUserSelect={(val) => {
                           if (setRecipient) setRecipient(val);

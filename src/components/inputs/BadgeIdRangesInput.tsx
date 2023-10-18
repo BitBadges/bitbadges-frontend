@@ -6,6 +6,7 @@ import { useState } from "react";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import IconButton from "../display/IconButton";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 
 export function BadgeIdRangesInput({
   uintRanges,
@@ -15,7 +16,9 @@ export function BadgeIdRangesInput({
   collectionId,
   hideSelect,
   uintRangeBounds,
-  hideDisplay
+  hideDisplay,
+  fullWidthCards,
+  hideNumberSelects
 }: {
   uintRanges: UintRange<bigint>[],
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
@@ -25,6 +28,8 @@ export function BadgeIdRangesInput({
   collectionId: bigint,
   hideSelect?: boolean,
   hideDisplay?: boolean
+  fullWidthCards?: boolean
+  hideNumberSelects?: boolean
 }) {
   uintRangeBounds = uintRangeBounds ? sortUintRangesAndMergeIfNecessary(uintRangeBounds) : undefined;
 
@@ -54,25 +59,13 @@ export function BadgeIdRangesInput({
     });
   });
 
-  const switchOptions = [];
-  if (maximum !== 1n) {
-    switchOptions.push({
-      title: 'Custom',
-      message: `Select specific badges.`,
-      isSelected: !updateAllIsSelected,
-    });
-  }
 
-  switchOptions.push({
-    title: 'All Badges',
-    message: `Select all badges in this collection. ${maximum === 1n ? 'This is auto-selected because there is only one badge.' : ''}`,
-    isSelected: updateAllIsSelected,
-  });
 
-  const maximumNum =
-    uintRangeBounds && uintRangeBounds.length > 0 ?
-      Numberify(uintRangeBounds[uintRangeBounds.length - 1].end.toString()) :
-      Numberify(maximum?.toString() ?? 1);
+  const maximumNum = uintRangeBounds && uintRangeBounds.length > 0 ?
+    Numberify(uintRangeBounds[uintRangeBounds.length - 1].end.toString()) :
+    Numberify(maximum?.toString() ?? 1);
+
+
   const minimumNum = uintRangeBounds && uintRangeBounds.length > 0 ?
     Numberify(uintRangeBounds[0].start.toString()) :
     Numberify(minimum?.toString() ?? 1);
@@ -81,19 +74,22 @@ export function BadgeIdRangesInput({
   const outOfBounds = uintRangeBounds && remaining.length > 0;
 
 
-  return <>
-    {!hideSelect &&
-      <SwitchForm
-        options={switchOptions}
-        onSwitchChange={(_idx, name) => {
-          setUpdateAllIsSelected(name === 'All Badges');
-          if (name === 'All Badges') {
-            if (uintRangeBounds) setUintRanges(uintRangeBounds);
-            else setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
-          }
-        }}
-      />}
+  const AvatarDisplay = <>{
+    !hideDisplay &&
 
+    <div className='flex-center full-width'>
+      <div style={{}} className='primary-text full-width'>
+        <BadgeAvatarDisplay
+          collectionId={collectionId}
+          badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
+          showIds={true}
+        />
+      </div>
+    </div>
+  }
+  </>
+
+  const CustomInput = <>
     {!updateAllIsSelected && <>
       <b>Select Badge IDs</b>
       <div className='flex-center full-width' >
@@ -145,6 +141,8 @@ export function BadgeIdRangesInput({
       {/* <h2 style={{ textAlign: 'center',  }} className='primary-text'>Badge ID Select</h2> */}
       {
         new Array(numRanges).fill(0).map((_, i) => {
+          if (hideNumberSelects) return null;
+
           return <div key={i} style={{ display: "flex", alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
             <div className='flex-between' style={{ flexDirection: 'column', marginRight: 8, }} >
               <b>Start ID</b>
@@ -217,30 +215,30 @@ export function BadgeIdRangesInput({
         })
       }
 
+      {!hideNumberSelects &&
+        <div className='flex-center'>
+          <IconButton
+            src={<PlusOutlined
+              style={{
+                cursor: 'pointer',
+                border: 'none'
+              }}
+              disabled={numRanges === maximumNum}
+            />}
+            style={{ margin: 8, cursor: 'pointer' }}
+            onClick={() => {
+              setNumRanges(numRanges + 1)
 
-      <div className='flex-center'>
-        <IconButton
-          src={<PlusOutlined
-            style={{
-              cursor: 'pointer',
-              border: 'none'
+              const oldSliderValues = sliderValues;
+
+              setSliderValues([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]]);
+              setUintRanges([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => ({ start, end })));
+              setInputStr([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => `${start}-${end}`).join(', '));
             }}
-            disabled={numRanges === maximumNum}
-          />}
-          style={{ margin: 8, cursor: 'pointer' }}
-          onClick={() => {
-            setNumRanges(numRanges + 1)
+            text="Add Range"
+          />
 
-            const oldSliderValues = sliderValues;
-
-            setSliderValues([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]]);
-            setUintRanges([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => ({ start, end })));
-            setInputStr([...oldSliderValues, [minimum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].start : 1n), maximum ?? (uintRangeBounds && uintRangeBounds.length > 0 ? uintRangeBounds[0].end : 1n)]].map(([start, end]) => `${start}-${end}`).join(', '));
-          }}
-          text="Add Range"
-        />
-
-      </div>
+        </div>}
 
       {
         overlaps &&
@@ -281,20 +279,50 @@ export function BadgeIdRangesInput({
       }
     </>
     }
+  </>
 
-    {
-      !hideDisplay &&
+  const switchOptions = [];
+  if (maximum !== 1n) {
+    switchOptions.push({
+      title: 'Custom',
+      message: `Select specific badges.`,
+      isSelected: !updateAllIsSelected,
+      additionalNode: <>
+        <br />
+        {CustomInput}
+        <br />
+        {AvatarDisplay}
+      </>
+    });
+  }
 
-      <div className='flex-center full-width'>
-        <div style={{}} className='primary-text full-width'>
-          <BadgeAvatarDisplay
-            collectionId={collectionId}
-            badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
-            showIds={true}
-          />
-        </div>
-      </div>
-    }
+  switchOptions.push({
+    title: 'All Badges',
+    message: `Select all badges in this collection (${getBadgeIdsString(uintRangeBounds ?? [{ start: minimum ?? 1n, end: maximum ?? 1n }])}). ${maximum === 1n ? 'This is auto-selected because there is only one badge.' : ''}`,
+    isSelected: updateAllIsSelected,
+    additionalNode: <>
+      {AvatarDisplay}
+    </>
+  });
+
+  return <>
+    {hideSelect ? <>
+      {CustomInput}
+      <br />
+      {AvatarDisplay}
+    </> :
+      <SwitchForm
+        fullWidthCards={fullWidthCards}
+        options={switchOptions}
+        onSwitchChange={(_idx, name) => {
+          setUpdateAllIsSelected(name === 'All Badges');
+          if (name === 'All Badges') {
+            if (uintRangeBounds) setUintRanges(uintRangeBounds);
+            else setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
+          }
+        }}
+      />}
+
 
   </>
 }

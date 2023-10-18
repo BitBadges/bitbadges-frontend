@@ -109,7 +109,7 @@ export function SubmitMsgCreateAddressMapping() {
         setLoading(false);
       }}
     >
-      Create Address List!
+      Submit
     </Button>
     <CreateTxMsgCreateAddressMappingModal
       visible={visible}

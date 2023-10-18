@@ -42,7 +42,7 @@ export function ConfirmManagerStepItem() {
 
 
   return {
-    title: 'Select Manager',
+    title: 'Manager',
     disabled: !!err,
     description: <>{'The manager is a special role which can have custom admin privileges. See full list of privileges '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
@@ -103,7 +103,7 @@ export function ConfirmManagerStepItem() {
                 },
                 {
                   title: 'Manager',
-                  message: <>{'Specify a manager for this collection that can execute admin privileges.'}</>,
+                  message: <>{'Specify a manager for this collection that can execute admin privileges. You can select which permissions are enabled.'}</>,
                   additionalNode: <>
                     {hasManager && <div>
                       <Avatar
@@ -144,6 +144,8 @@ export function ConfirmManagerStepItem() {
                       <div className="flex-center">
                         <PermissionsOverview
                           span={24}
+
+                          tbd
                           collectionId={collection.collectionId}
                         />
                       </div>

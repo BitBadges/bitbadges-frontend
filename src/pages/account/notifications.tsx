@@ -116,126 +116,123 @@ export function Notifications() {
       node={
         <RegisteredWrapper
           node={
-            <Layout>
-              <Content
-                className="full-area primary-blue-bg"
-                style={{ minHeight: '100vh' }}
+            <Content
+              className="full-area "
+              style={{ minHeight: '100vh' }}
+            >
+              <div
+                style={{
+                  marginLeft: '7vw',
+                  marginRight: '7vw',
+                  paddingLeft: '1vw',
+                  paddingRight: '1vw',
+                  paddingTop: '20px'
+                }}
               >
-                <div
-                  className="primary-blue-bg"
-                  style={{
-                    marginLeft: '7vw',
-                    marginRight: '7vw',
-                    paddingLeft: '1vw',
-                    paddingRight: '1vw',
-                    paddingTop: '20px'
-                  }}
-                >
-                  <br />
-                  <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
-                    Notifications
-                  </div>
-                  <br />
-                  <Tabs
-                    fullWidth
-                    tab={tab}
-                    setTab={setTab}
-                    tabInfo={[
-
-                      {
-                        key: 'announcements',
-                        content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
-                        disabled: false
-                      }, {
-                        key: 'claimAlerts',
-                        content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
-                        disabled: false
-                      }, {
-                        key: 'transferActivity',
-                        content: <TabComponent title={'Transfer Activity'} count={unseenTransferActivityCount} />,
-                        disabled: false
-                      },
-                      {
-                        key: 'latestAddressMappings',
-                        content: <TabComponent title={'Lists'} count={unseenAddressMappingsCount} />,
-                        disabled: false
-                      }]}
-                  />
-                  <div style={{ textAlign: 'center' }}>
-                    {tab === 'transferActivity' && <>
-                      <br /><ActivityTab
-                        activity={transferActivity ?? []}
-                        fetchMore={async () => {
-                          await accounts.fetchNextForViews(chain.cosmosAddress, ['latestActivity']);
-                        }}
-                        hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? true}
-                      />
-                    </>}
-
-                    {tab === 'announcements' && <><br /><AnnouncementsTab
-                      announcements={announcements ?? []}
-                      fetchMore={async () => {
-                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestAnnouncements']);
-                      }}
-                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? true}
-                    /></>}
-
-                    {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
-                      claimAlerts={claimAlerts ?? []}
-                      fetchMore={async () => {
-                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestClaimAlerts']);
-                      }}
-                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
-                    />
-                    </>}
-
-                    {tab === 'latestAddressMappings' && <><br />
-
-                      <div className='flex-center flex-wrap'>
-                        <InfiniteScroll
-                          dataLength={listsView.length}
-                          next={fetchMore}
-
-                          hasMore={hasMoreAddressMappings}
-                          loader={<div>
-                            <br />
-                            <Spin size={'large'} />
-                          </div>}
-                          scrollThreshold={"300px"}
-                          endMessage={
-                            <></>
-                          }
-                          initialScrollY={0}
-                          style={{ width: '100%', overflow: 'hidden' }}
-                        >
-                          <div className='full-width flex-center flex-wrap'>
-                            {listsView.map((addressMapping, idx) => {
-                              return <AddressListCard
-                                key={idx}
-                                addressMapping={addressMapping}
-                                addressOrUsername={signedInAccount?.address ?? ''}
-                              />
-                            })}
-                          </div>
-                        </InfiniteScroll>
-
-                        {listsView.length === 0 && !hasMoreAddressMappings && (
-                          <Empty
-                            className='primary-text'
-                            description={
-                              <span>
-                                No lists found.
-                              </span>
-                            }
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                          />
-                        )}
-                      </div>
-                    </>}
-                  </div>
+                <br />
+                <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
+                  Notifications
                 </div>
-              </Content>
-            </Layout>
+                <br />
+                <Tabs
+                  fullWidth
+                  tab={tab}
+                  setTab={setTab}
+                  tabInfo={[
+
+                    {
+                      key: 'announcements',
+                      content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
+                      disabled: false
+                    }, {
+                      key: 'claimAlerts',
+                      content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
+                      disabled: false
+                    }, {
+                      key: 'transferActivity',
+                      content: <TabComponent title={'Transfer Activity'} count={unseenTransferActivityCount} />,
+                      disabled: false
+                    },
+                    {
+                      key: 'latestAddressMappings',
+                      content: <TabComponent title={'Lists'} count={unseenAddressMappingsCount} />,
+                      disabled: false
+                    }]}
+                />
+                <div style={{ textAlign: 'center' }}>
+                  {tab === 'transferActivity' && <>
+                    <br /><ActivityTab
+                      activity={transferActivity ?? []}
+                      fetchMore={async () => {
+                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestActivity']);
+                      }}
+                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? true}
+                    />
+                  </>}
+
+                  {tab === 'announcements' && <><br /><AnnouncementsTab
+                    announcements={announcements ?? []}
+                    fetchMore={async () => {
+                      await accounts.fetchNextForViews(chain.cosmosAddress, ['latestAnnouncements']);
+                    }}
+                    hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? true}
+                  /></>}
+
+                  {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
+                    claimAlerts={claimAlerts ?? []}
+                    fetchMore={async () => {
+                      await accounts.fetchNextForViews(chain.cosmosAddress, ['latestClaimAlerts']);
+                    }}
+                    hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
+                  />
+                  </>}
+
+                  {tab === 'latestAddressMappings' && <><br />
+
+                    <div className='flex-center flex-wrap'>
+                      <InfiniteScroll
+                        dataLength={listsView.length}
+                        next={fetchMore}
+
+                        hasMore={hasMoreAddressMappings}
+                        loader={<div>
+                          <br />
+                          <Spin size={'large'} />
+                        </div>}
+                        scrollThreshold={"300px"}
+                        endMessage={
+                          <></>
+                        }
+                        initialScrollY={0}
+                        style={{ width: '100%', overflow: 'hidden' }}
+                      >
+                        <div className='full-width flex-center flex-wrap'>
+                          {listsView.map((addressMapping, idx) => {
+                            return <AddressListCard
+                              key={idx}
+                              addressMapping={addressMapping}
+                              addressOrUsername={signedInAccount?.address ?? ''}
+                            />
+                          })}
+                        </div>
+                      </InfiniteScroll>
+
+                      {listsView.length === 0 && !hasMoreAddressMappings && (
+                        <Empty
+                          className='primary-text'
+                          description={
+                            <span>
+                              No lists found.
+                            </span>
+                          }
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        />
+                      )}
+                    </div>
+                  </>}
+                </div>
+              </div>
+            </Content>
           }
         />
       }

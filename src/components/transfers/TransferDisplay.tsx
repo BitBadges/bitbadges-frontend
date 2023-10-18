@@ -19,6 +19,7 @@ export function TransferDisplay({
   setTransfers,
   initiatedBy,
   deletable,
+  isBalanceUpdate
 }: {
   collectionId: bigint;
   transfers: TransferWithIncrements<bigint>[],
@@ -27,6 +28,7 @@ export function TransferDisplay({
   setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
   deletable?: boolean;
   initiatedBy?: string
+  isBalanceUpdate?: boolean
 }) {
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
@@ -37,19 +39,20 @@ export function TransferDisplay({
   const transfer = transfers.length > 0 ? transfers[page] : undefined;
   const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
-  return <InformationDisplayCard title=''><div style={{ marginTop: 4 }}    >
+  return <InformationDisplayCard title='Badges Transferred'><div style={{ marginTop: 4 }}    >
     {
-      transfers.length === 0 ? <div style={{ textAlign: 'center' }}>
-        <Empty description='None'
+      toLength <= 0 ? <div style={{ textAlign: 'center' }}>
+        <Empty description='No badges transferred.'
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           style={{ marginTop: 20 }} className='primary-text'
         />
       </div> : <Pagination currPage={page} onChange={setPage} total={transfers.length} pageSize={1} />
     }
-    {!hideBalances && transfer && <div className="full-width">
+    {!hideBalances && transfer && toLength > 0 && <div className="full-width">
       {collection &&
         <BalanceDisplay
-          message={'Badges Transferred'}
+          message={'All Badges Transferred'}
+          hideMessage
           collectionId={collectionId}
           // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
           balances={transfer.balances}
@@ -63,15 +66,16 @@ export function TransferDisplay({
       !hideAddresses && transfer && <div className="full-width">
         <br />
         <div className="flex-center flex-wrap">
-          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
-            <br /><AddressDisplayList
-              users={[transfer.from]}
-              // toLength={Numberify(toLength)}
-              title={'From'}
-              fontSize={15}
-              center
-            />
-          </div>
+          {!isBalanceUpdate &&
+            <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
+              <br /><AddressDisplayList
+                users={[transfer.from]}
+                // toLength={Numberify(toLength)}
+                title={'From'}
+                fontSize={15}
+                center
+              />
+            </div>}
 
 
 

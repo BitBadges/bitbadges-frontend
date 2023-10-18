@@ -1,11 +1,11 @@
-import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Tag, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
+import { Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, getMetadataForBadgeId, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, BitBadgesCollection, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, bigIntMax, bigIntMin, getMetadataDetailsForBadgeId, getMetadataForBadgeId, removeUintRangeFromUintRange, removeUintsFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -23,6 +23,8 @@ import { ToolIcon } from '../../display/ToolIcon';
 import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import { DateRangeInput } from '../../inputs/DateRangeInput';
 import { MetadataUriSelect } from './MetadataUriSelect';
+import { compareObjects } from '../../../utils/compare';
+import { SHA256 } from 'crypto-js';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -38,19 +40,26 @@ export function MetadataForm({
   badgeIds,
   toBeFrozen,
   hideCollectionSelect,
-  isAddressMappingSelect
+  isAddressMappingSelect,
+  addMethod,
+  setAddMethod,
 }: {
   isCollectionSelect?: boolean;
   badgeIds: UintRange<bigint>[];
   toBeFrozen?: boolean;
   hideCollectionSelect?: boolean;
-  isAddressMappingSelect?: boolean
+  isAddressMappingSelect?: boolean;
+  addMethod?: MetadataAddMethod;
+  setAddMethod?: (addMethod: MetadataAddMethod) => void;
 }) {
   const collectionId = MSG_PREVIEW_ID;
-  const txTimelineContext = useTxTimelineContext();
-  const addMethod = txTimelineContext.addMethod;
+
+  console.log(addMethod);
 
   badgeIds = sortUintRangesAndMergeIfNecessary(badgeIds);
+
+  const txTimelineContext = useTxTimelineContext();
+  const existingCollectionId = txTimelineContext.existingCollectionId;
 
   const collections = useCollectionsContext();
   const collection = collections.collections[collectionId.toString()]
@@ -59,70 +68,35 @@ export function MetadataForm({
   const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(true);
 
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
+  const currMetadata = metadata;
 
-  const [currMetadata, setCurrMetadata] = useState<Metadata<bigint>>(metadata);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("MetadataForm: useEffect: collection: ", collectionId);
-    setCurrMetadata(metadata);
-  }, [badgeId]);
-
-
-  //TODO: Think about race conditions between the debounce time
   const setMetadata = (metadata: Metadata<bigint>) => {
-    setCurrMetadata(metadata);
+    if (!collection) return;
+    console.log("SETTING");
+    if (isCollectionSelect) {
+      collections.updateCollection({
+        ...collection,
+        cachedCollectionMetadata: metadata
+      });
+    } else {
 
-    const delayDebounceFn = setTimeout(async () => {
-      if (!collection) return;
-      if (isCollectionSelect) {
-        collections.updateCollection({
-          ...collection,
-          cachedCollectionMetadata: metadata
-        });
-      } else {
-        const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, { uri: undefined, toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] });
-        collections.updateCollection({
-          ...collection,
-          cachedBadgeMetadata: newBadgeMetadata
-        })
-      }
-    }, DELAY_TIME);
-
-    return () => clearTimeout(delayDebounceFn)
+      collections.updateCollection({
+        ...collection,
+        cachedBadgeMetadata: [{ uri: undefined, toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] }]
+      })
+    }
   }
 
   const populateOtherBadges = (collection: BitBadgesCollection<bigint>, badgeIds: UintRange<bigint>[], key: string, value: any) => {
-    if (key === 'all') {
-      const badgeMetadata = updateBadgeMetadata(deepCopy(collection.cachedBadgeMetadata),
-        {
-          badgeIds,
-          metadata: currMetadata,
-          toUpdate: true,
-        }
-      );
-
-      const res = collections.updateCollection({
-        ...collection,
-        cachedBadgeMetadata: badgeMetadata,
-      })
-
-      return res;
-    }
-
-    const badgeMetadata = deepCopy(collection.cachedBadgeMetadata);
-    const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(badgeMetadata, badgeIds, key, value);
-    const newCollection = collections.updateCollection(
-      deepCopy({
-        ...collection,
-        cachedBadgeMetadata: newBadgeMetadata,
-      }))
-    return newCollection
+    const newBadgeMetadata = setMetadataPropertyForSpecificBadgeIds(collection.cachedBadgeMetadata, badgeIds, key, value);
+    return newBadgeMetadata
   }
 
   const [items, setItems] = useState(['BitBadge', 'Attendance', 'Certification']);
   const [name, setName] = useState('');
   const [validForeverChecked, setValidForeverChecked] = useState((!metadata.validFrom) || (metadata.validFrom && metadata.validFrom.length === 0));
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds);
+  const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false);
 
   const sampleImages = [
     {
@@ -258,7 +232,7 @@ export function MetadataForm({
       {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='primary-text'>
         <InformationDisplayCard title={`Set other badges to have properties from this ${message}?`}>
           <div className='secondary-text' style={{ textAlign: 'center' }}>
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> This will overwrite the {message} of the selected badges.
+            <WarningOutlined style={{ marginRight: 4, color: 'orange' }} /> This will overwrite the {message} of the selected badges for the selected properties.
             <br />
             <br />
           </div>
@@ -358,27 +332,92 @@ export function MetadataForm({
             <br />
             <br />
           </div>}
-          <div className='secondary-text' style={{ textAlign: 'center' }}>
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> If you make any edits in the future, you will need to populate again. It is not automatic.
-            <br />
-            <br />
-          </div>
+          {!isAddressMappingSelect && !!existingCollectionId && <>
+            <div className='secondary-text' style={{ textAlign: 'center' }}>
+              <InfoCircleOutlined style={{ marginRight: 4 }} /> We will first need to fetch the metadata for the selected badges (if not already fetched). This may take some time.
+              <br />
+              <br />
+            </div>
+          </>}
+
+
           <div className='full-width flex-center'>
             <button
+              disabled={fieldNames.length === 0 || uintRanges.length === 0 || applyingBatchUpdate}
               className='landing-button full-width'
               style={{ width: '100%' }}
-              onClick={() => {
-
-                console.log(uintRanges, fieldNames);
+              onClick={async () => {
+                setApplyingBatchUpdate(true);
                 let cachedCollection = collection;
                 if (!cachedCollection) return;
 
-                for (const fieldName of fieldNames) {
-                  cachedCollection = populateOtherBadges(cachedCollection, uintRanges, fieldName, fieldName === 'all' ? '' : currMetadata[fieldName as keyof Metadata<bigint>]);
+
+                //We don't want to overwrite any edited metadata
+                //Should prob do this via a range implementation but badgeIdsToDisplay should only be max len of pageSize
+                let badgeIdsToFetch = deepCopy(uintRanges);
+                for (const badgeIdRange of uintRanges) {
+                  for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+                    const badgeId = i;
+                    const currMetadata = getMetadataDetailsForBadgeId(badgeId, cachedCollection.cachedBadgeMetadata);
+                    if (currMetadata && currMetadata.toUpdate && !currMetadata.uri) {
+                      //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
+                      //Remove badgeId from badgeIdsToFetch
+                      const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
+                      badgeIdsToFetch = remaining;
+                    }
+                  }
                 }
+
+                if (existingCollectionId && badgeIdsToFetch.length > 0) {
+
+                  console.time('fetchAndUpdateMetadata');
+                  const prevMetadata = deepCopy(cachedCollection?.cachedBadgeMetadata);
+                  const res = await collections.fetchAndUpdateMetadata(existingCollectionId, { badgeIds: uintRanges });
+                  console.timeEnd('fetchAndUpdateMetadata');
+                  console.time('batchUpdateBadgeMetadata');
+                  let newBadgeMetadata = res[0].cachedBadgeMetadata;
+                  if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
+
+                    if (cachedCollection) {
+                      //Only update newly fetched metadata
+                      for (const metadata of newBadgeMetadata) {
+                        const [, removed] = removeUintRangeFromUintRange(uintRanges, metadata.badgeIds);
+                        metadata.badgeIds = removed;
+                      }
+                      newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
+
+                      cachedCollection.cachedBadgeMetadata = batchUpdateBadgeMetadata(cachedCollection.cachedBadgeMetadata, newBadgeMetadata.map(x => {
+                        return {
+                          badgeIds: x.badgeIds,
+                          metadata: x.metadata,
+                          toUpdate: true,
+                        }
+                      }));
+                    }
+                  }
+                  console.timeEnd('batchUpdateBadgeMetadata');
+                }
+                console.log(cachedCollection.cachedBadgeMetadata);
+                console.time('populateOtherBadges');
+                for (const fieldName of fieldNames) {
+                  cachedCollection.cachedBadgeMetadata = populateOtherBadges(cachedCollection, uintRanges, fieldName, fieldName === 'all' ? '' : currMetadata[fieldName as keyof Metadata<bigint>]);
+                }
+                console.timeEnd('populateOtherBadges');
+
+                console.time('updateCollection');
+                collections.updateCollection({ ...cachedCollection });
+                console.timeEnd('updateCollection');
+                console.time('to end');
                 setPopulateIsOpen(false);
+                notification.success({
+                  message: 'Success',
+                  description: `Successfully batch applied metadata for selected badges.`,
+                });
+
+                setApplyingBatchUpdate(false);
+                console.timeEnd('to end');
               }}
-            >Update </button >
+            >Update {applyingBatchUpdate && <Spin />}</button >
           </div>
           <Divider />
         </ InformationDisplayCard>
@@ -389,11 +428,38 @@ export function MetadataForm({
   return (
     <>
       <div>
+        {!isAddressMappingSelect && setAddMethod && <>
+          <br />
+          <div className='flex-center flex-column'>
+            <Switch
+              checkedChildren="Manual"
+              unCheckedChildren="Enter URL"
+              checked={addMethod === MetadataAddMethod.Manual}
+              onChange={(e) => {
+                setAddMethod?.(e ? MetadataAddMethod.Manual : MetadataAddMethod.UploadUrl);
+              }}
+            />
+            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='secondary-text' style={{ marginTop: 4 }}>
+              {`Enter your metadata directly into this form, and we handle the metadata storage for you in a decentralized manner using IPFS.`}
+              <Tooltip
+                placement='bottom'
+                title={`IPFS, or Interplanetary File System, is a way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}
+              >
+                <InfoCircleOutlined
+                  style={{ marginLeft: 4, marginRight: 4 }}
+                />
+              </Tooltip>
+            </Typography.Text>}
+          </div>
+          <br />
+        </>}
+
         {addMethod === MetadataAddMethod.UploadUrl && <>
           <MetadataUriSelect
             startId={1n}
             endId={collection ? getTotalNumberOfBadges(collection) : 1n}
-            hideCollectionSelect={hideCollectionSelect}
+            hideCollectionSelect={!isAddressMappingSelect && !isCollectionSelect}
+            hideBadgeSelect={!isAddressMappingSelect && isCollectionSelect}
           />
         </>}
 

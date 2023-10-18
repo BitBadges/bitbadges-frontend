@@ -1,3 +1,4 @@
+import { Switch } from "antd";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
@@ -42,6 +43,9 @@ export function ChooseControlTypeStepItem() {
             message: 'All admin privileges will be enabled. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
             isSelected: completeControl,
             additionalNode: <>
+             
+
+              <br />
               <div className="flex-center">
                 <PermissionsOverview
                   span={24}

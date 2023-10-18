@@ -24,34 +24,31 @@ function Update() {
         <RegisteredWrapper
           message='Please register to access this page.'
           node={
-            <Layout>
-              <Content
+            <Content
+              style={{
+                textAlign: 'center',
+                minHeight: '100vh',
+              }}
+            >
+              <div
                 style={{
-                  background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-                  textAlign: 'center',
-                  minHeight: '100vh',
+                  marginLeft: '7vw',
+                  marginRight: '7vw',
+                  paddingLeft: '1vw',
+                  paddingRight: '1vw',
+                  paddingTop: '20px',
                 }}
               >
-                <div className='primary-blue-bg'
-                  style={{
-                    marginLeft: '7vw',
-                    marginRight: '7vw',
-                    paddingLeft: '1vw',
-                    paddingRight: '1vw',
-                    paddingTop: '20px',
-                  }}
-                >
-                  <TxTimeline
-                    addressMappingId={
-                      (id as string).indexOf("_") >= 0 ? id as string : undefined
-                    }
-                    collectionId={
-                      !((id as string).indexOf("_") >= 0) ? BigInt(id as string) : undefined
-                    } txType='UpdateCollection' />
+                <TxTimeline
+                  addressMappingId={
+                    (id as string).indexOf("_") >= 0 ? id as string : undefined
+                  }
+                  collectionId={
+                    !((id as string).indexOf("_") >= 0) ? BigInt(id as string) : undefined
+                  } txType='UpdateCollection' />
 
-                </div>
-              </Content>
-            </Layout>
+              </div>
+            </Content>
           }
         />
       }

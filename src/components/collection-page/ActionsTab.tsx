@@ -73,7 +73,7 @@ export function ActionsTab({
     });
 
     actions.push({
-      title: getTitleElem("Edit Incoming Approvals"),
+      title: getTitleElem("Set Incoming Approvals"),
       description: getDescriptionElem(
         "Update your incoming approvals."
       ),
@@ -83,7 +83,7 @@ export function ActionsTab({
     });
 
     actions.push({
-      title: getTitleElem("Edit Outgoing Approvals"),
+      title: getTitleElem("Set Outgoing Approvals"),
       description: getDescriptionElem(
         "Update your outgoing approvals."
       ),

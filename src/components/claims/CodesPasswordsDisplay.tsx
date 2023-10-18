@@ -172,7 +172,7 @@ export function CodesDisplay({
 
       />
       <br />
-      {merkleChallenge && !merkleChallenge.details?.hasPassword && merkleChallenge.maxOneUsePerLeaf && codes && <Typography.Text strong className='secondary-text'>
+      {merkleChallenge && !merkleChallenge.details?.hasPassword && !!merkleChallenge.maxUsesPerLeaf && codes && <Typography.Text strong className='secondary-text'>
         <InfoCircleOutlined /> Note that this code can only be used once.
         <br />
         Current Status: {

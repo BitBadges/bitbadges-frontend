@@ -138,22 +138,10 @@ export function UpdateSelectWrapper({
 
   return (
     <>
-      <div className='primary-text' >
+      <div className='primary-text flex-center flex-column' >
 
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
-          {!isMint &&
-            <div style={{ marginTop: 10 }}>
-              <Switch
-                checkedChildren="Update"
-                unCheckedChildren="Do not update"
-                style={{ marginLeft: 10 }}
-                checked={updateFlag}
-                onChange={(e) => {
-                  setUpdateFlag(e);
-                }}
-                className='primary-text'
-              />
-            </div>}
+
 
 
           {updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
@@ -217,7 +205,19 @@ export function UpdateSelectWrapper({
               }}
             />}
         </div>
-
+        {!isMint &&
+          <div style={{ marginTop: 10 }}>
+            <Switch
+              checkedChildren="Update"
+              unCheckedChildren="Do not update"
+              style={{ marginLeft: 10 }}
+              checked={updateFlag}
+              onChange={(e) => {
+                setUpdateFlag(e);
+              }}
+              className='primary-text'
+            />
+          </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag &&
           <div className='' style={{ textAlign: 'center' }}>
             <br />
@@ -240,7 +240,7 @@ export function UpdateSelectWrapper({
       <span color='black' style={{ margin: 16, }} />
 
       {!updateFlag &&
-        <div style={{ textAlign: 'center' }} className='primary-text flex-center flex-column' >
+        <div style={{ textAlign: 'center' }} className='primary-text' >
           <SwitchForm
             options={[{
               title: 'Do Not Update',
