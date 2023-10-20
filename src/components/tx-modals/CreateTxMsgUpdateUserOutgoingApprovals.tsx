@@ -14,7 +14,7 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
 }) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<UserOutgoingApprovalWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []);
+  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<UserOutgoingApprovalWithDetails<bigint>[]>(collections.getCollection(collectionId)?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []);
 
   useEffect(() => {
     async function getApproveeBalance() {

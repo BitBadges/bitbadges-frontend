@@ -41,16 +41,15 @@ export function SearchDropdown({
 
 
       const result = await getSearchResults(searchValue);
-      console.log(result);
       //Update context if we have new accounts or collections
       accounts.updateAccounts(result.accounts);
 
       for (const collection of result.collections) {
-        collections.updateCollection(collection);
+        collections.setCollection(collection);
       }
 
       for (const badge of result.badges) {
-        collections.updateCollection(badge.collection);
+        collections.setCollection(badge.collection);
       }
 
       setSearchResponse(result);

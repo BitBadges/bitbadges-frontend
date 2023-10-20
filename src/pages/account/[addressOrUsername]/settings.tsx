@@ -130,7 +130,8 @@ export function AccountSettings() {
     setCustomPages(signedInAccount.customPages ? signedInAccount.customPages : []);
     setCustomLinks(signedInAccount.customLinks ? signedInAccount.customLinks : []);
 
-  }, [signedInAccount]);
+  }, [signedInAccount?.cosmosAddress]);
+
   const uploadButton = (
     <div className='primary-text'>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}

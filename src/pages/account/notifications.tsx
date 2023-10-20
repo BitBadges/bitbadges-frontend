@@ -46,7 +46,7 @@ export function Notifications() {
     if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
       accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
-  }, [chain.connected, chain.loggedIn, chain.cosmosAddress, chain.address, chain.lastSeenActivity, accounts]);
+  }, [chain.connected, chain.loggedIn, chain.cosmosAddress, chain.address, chain.lastSeenActivity]);
 
 
   const listsTab = 'latestAddressMappings';

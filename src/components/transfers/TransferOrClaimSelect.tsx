@@ -1,5 +1,5 @@
 import { CloseOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip, Typography } from 'antd';
+import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -11,12 +11,9 @@ import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { ActivityTab } from '../collection-page/TransferActivityDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { BadgeIdRangesInput } from '../inputs/BadgeIdRangesInput';
-import { BalanceAmountInput } from '../inputs/BalanceAmountInput';
-import { DateRangeInput } from '../inputs/DateRangeInput';
+import { BalanceInput } from '../inputs/BalanceInput';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
-import { BalanceInput } from '../inputs/BalanceInput';
 
 const { Step } = Steps;
 
@@ -49,14 +46,11 @@ export function TransferSelect({
   const chain = useChainContext();
 
   const [numRecipients, setNumRecipients] = useState<bigint>(0n);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [warningMessage, setWarningMessage] = useState<string>('');
   const [postTransferBalances, setPostTransferBalance] = useState<Balance<bigint>[]>();
-  const [preTransferBalances, setPreTransferBalance] = useState<Balance<bigint>[]>();
   const [postTransferBalancesWithCurrent, setPostTransferBalancesWithCurrent] = useState<Balance<bigint>[]>();
   const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [currPage, setCurrPage] = useState(1);
+
   //For the current transfer we are going to add (we also use these fields to calculate the claim amounts and badges)
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalSenderBalances.map((x) => convertBalance(x, BigIntify)));
   const [toAddresses, setToAddresses] = useState<string[]>([]);
@@ -100,9 +94,6 @@ export function TransferSelect({
 
     if (!postTransferBalanceObj || postTransferBalanceObj.length == 0) return;
     if (!preTransferBalanceObj || preTransferBalanceObj.length == 0) return;
-
-    preTransferBalanceObj = getBalancesAfterTransfers(preTransferBalanceObj, [...convertedTransfers], true);
-    setPreTransferBalance(preTransferBalanceObj);
 
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true)
     setPostTransferBalance(deepCopy(postTransferBalanceObj));
@@ -181,8 +172,7 @@ export function TransferSelect({
       }
     </div >,
     disabled: balances.length == 0 || numRecipients <= 0 || (uintRangesOverlap || uintRangesLengthEqualsZero) || (ownedTimesOverlap || ownedTimesLengthEqualsZero) ||
-      (!!postTransferBalances?.find((balance) => balance.amount < 0)) ||
-      errorMessage ? true : false,
+      (!!postTransferBalances?.find((balance) => balance.amount < 0)),
   });
 
   steps.push({

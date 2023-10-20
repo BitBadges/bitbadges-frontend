@@ -23,7 +23,7 @@ export function OwnersTab({ collectionId, badgeId }: {
   const chain = useChainContext();
 
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
   const isPreview = collection?.collectionId === MSG_PREVIEW_ID;
 
   const [loaded, setLoaded] = useState(false);

@@ -1,20 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AccountMap, AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { Stringify } from 'bitbadgesjs-proto';
+import { AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BigIntify, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext } from 'react';
 import { useCookies } from 'react-cookie';
 import { useDispatch, useSelector } from 'react-redux';
+import { GlobalReduxState } from '../../../pages/_app';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../../api';
 import { updateAccountsRedux } from './actions';
-import { GlobalReduxState } from '../../../pages/_app';
 
 
 export type AccountsContextType = {
-  accounts: AccountMap<DesiredNumberType>,
-  getAccount: (addressOrUsername: string) => BitBadgesUserInfo<DesiredNumberType> | undefined,
+  getAccount: (addressOrUsername: string) => Readonly<BitBadgesUserInfo<DesiredNumberType> | undefined>,
   updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => void,
   updateAccounts: (userInfos: BitBadgesUserInfo<DesiredNumberType>[]) => void,
 
-  fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>[]>,
+  fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>[]>>,
   fetchAccountsWithOptions: (accountsToFetch: {
     address?: string,
     username?: string,
@@ -24,16 +24,16 @@ export type AccountsContextType = {
       viewKey: AccountViewKey,
       bookmark: string
     }[],
-  }[], forcefulRefresh?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>[]>,
+  }[], forcefulRefresh?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>[]>>,
 
 
   //Custom fetch functions (not paginated views)
-  updateProfileInfo: (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<DesiredNumberType>) => Promise<BitBadgesUserInfo<DesiredNumberType>>,
-  fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<BalanceInfo<DesiredNumberType>>,
+  updateProfileInfo: (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<DesiredNumberType>) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>>>,
+  fetchBalanceForUser: (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => Promise<Readonly<BalanceInfo<DesiredNumberType>>>,
 
 
   //Custom fetch functions (paginated views). This handles all pagination logic for you. Just pass in the viewKeys you want to fetch and it will fetch the next page for each of them.
-  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) => Promise<BitBadgesUserInfo<DesiredNumberType>>
+  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>>>
 
   //Helper functions for views
   viewHasMore: (addressOrUsername: string, viewKey: AccountViewKey) => boolean,
@@ -51,7 +51,6 @@ export type AccountsContextType = {
 }
 
 const AccountsContext = createContext<AccountsContextType>({
-  accounts: {},
   fetchAccountsWithOptions: async () => { return [] },
   fetchAccounts: async () => { return [] },
   fetchNextForViews: async () => { return BLANK_USER_INFO },
@@ -92,12 +91,13 @@ type Props = {
 };
 
 export interface AccountReducerState {
-  accounts: Record<string, BitBadgesUserInfo<DesiredNumberType> | undefined>;
+  accounts: Record<string, BitBadgesUserInfo<string> | undefined>;
   cosmosAddressesByUsernames: { [username: string]: string };
 }
+const defaultAccount = convertBitBadgesUserInfo(MINT_ACCOUNT, Stringify)
 
 export const initialState: AccountReducerState = {
-  accounts: { 'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': MINT_ACCOUNT, 'All Other': MINT_ACCOUNT },
+  accounts: { 'Mint': defaultAccount, 'Total': defaultAccount, 'All': defaultAccount, 'All Other': defaultAccount },
   cosmosAddressesByUsernames: {}
 };
 
@@ -122,7 +122,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
     } else {
       accountToReturn = accounts[cosmosAddressesByUsernames[addressOrUsername]];
     }
-    return accountToReturn;
+    return accountToReturn ? convertBitBadgesUserInfo(accountToReturn, BigIntify) : undefined;
   }
 
   const updateAccounts = (userInfos: BitBadgesUserInfo<DesiredNumberType>[], forcefulRefresh?: boolean) => {
@@ -255,10 +255,10 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
       for (const account of accountsToFetch) {
         if (account.address) {
-          const cachedAccount = accounts[convertToCosmosAddress(account.address)];
+          const cachedAccount = getAccount(convertToCosmosAddress(account.address))
           accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
         } else {
-          const cachedAccount = accounts[cosmosAddressesByUsernames[account.username || '']];
+          const cachedAccount = getAccount(cosmosAddressesByUsernames[account.username || ''])
           accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
         }
       }
@@ -395,7 +395,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const accountsContext: AccountsContextType = {
-    accounts,
     fetchAccountsWithOptions,
     fetchAccounts,
     fetchBalanceForUser,

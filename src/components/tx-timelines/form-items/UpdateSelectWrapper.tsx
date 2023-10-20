@@ -45,7 +45,7 @@ export function UpdateSelectWrapper({
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
@@ -191,13 +191,13 @@ export function UpdateSelectWrapper({
                     const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       [`${jsonPropertyPath}`]: existingValue
                     });
 
                   } else if (collection && !startingCollection) {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       [`${jsonPropertyPath}`]: []
                     });
                   }
@@ -261,7 +261,6 @@ export function UpdateSelectWrapper({
         <InformationDisplayCard title={question}>
           {
             PermissionDisplay(
-              permissionName,
               castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
               flags as any,
               undefined,

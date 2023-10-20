@@ -10,7 +10,7 @@ import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
-import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
+import { CHAIN_DETAILS } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { useAccountsContext } from '../accounts/AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';

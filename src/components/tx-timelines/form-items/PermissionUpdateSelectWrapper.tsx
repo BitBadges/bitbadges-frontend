@@ -1,12 +1,12 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
-import { Col, Divider, Row, Switch } from 'antd';
+import { Divider, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
-import { PermissionDisplay, PermissionsOverview } from '../../collection-page/PermissionsInfo';
+import { PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
@@ -33,7 +33,7 @@ export function PermissionUpdateSelectWrapper({
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
 
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<string>('');
@@ -163,7 +163,7 @@ export function PermissionUpdateSelectWrapper({
                   const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                   collections.updateCollection({
-                    ...collection,
+                    collectionId: MSG_PREVIEW_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: existingPermissions
@@ -171,7 +171,7 @@ export function PermissionUpdateSelectWrapper({
                   });
                 } else if (collection && !startingCollection) {
                   collections.updateCollection({
-                    ...collection,
+                    collectionId: MSG_PREVIEW_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: []
@@ -194,7 +194,7 @@ export function PermissionUpdateSelectWrapper({
                 const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                 collections.updateCollection({
-                  ...collection,
+                  collectionId: MSG_PREVIEW_ID,
                   collectionPermissions: {
                     ...collection.collectionPermissions,
                     [`${permissionName}`]: existingPermissions

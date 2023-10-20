@@ -1,5 +1,4 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { AddressMapping } from "bitbadgesjs-proto";
 import { ApprovalPermissionUsedFlags, CollectionApprovalPermissionWithDetails, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
@@ -14,11 +13,11 @@ import { SwitchForm } from "../form-items/SwitchForm";
 
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
-  fromMapping: getReservedAddressMapping("All") as AddressMapping,
+  fromMapping: getReservedAddressMapping("All"),
   fromMappingId: "All",
-  toMapping: getReservedAddressMapping("All") as AddressMapping,
+  toMapping: getReservedAddressMapping("All"),
   toMappingId: "All",
-  initiatedByMapping: getReservedAddressMapping("All") as AddressMapping,
+  initiatedByMapping: getReservedAddressMapping("All"),
   initiatedByMappingId: "All",
   amountTrackerId: "All",
   challengeTrackerId: "All",
@@ -30,11 +29,11 @@ const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermission
 }
 
 const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
-  fromMapping: getReservedAddressMapping("All") as AddressMapping,
+  fromMapping: getReservedAddressMapping("All"),
   fromMappingId: "All",
-  toMapping: getReservedAddressMapping("All") as AddressMapping,
+  toMapping: getReservedAddressMapping("All"),
   toMappingId: "All",
-  initiatedByMapping: getReservedAddressMapping("All") as AddressMapping,
+  initiatedByMapping: getReservedAddressMapping("All"),
   initiatedByMappingId: "All",
   amountTrackerId: "All",
   challengeTrackerId: "All",
@@ -47,7 +46,7 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 
 export function FreezeSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
 
@@ -72,8 +71,8 @@ export function FreezeSelectStepItem() {
   const handleSwitchChange = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
       ...AlwaysLockedPermission,
-      fromMapping: idx == 0 ? getReservedAddressMapping("AllWithMint") as AddressMapping
-        : idx == 1 ? getReservedAddressMapping("AllWithoutMint") as AddressMapping : getReservedAddressMapping("Mint") as AddressMapping,
+      fromMapping: idx == 0 ? getReservedAddressMapping("AllWithMint")
+        : idx == 1 ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("Mint"),
       fromMappingId: idx == 0 ? "AllWithMint" : idx == 1 ? "AllWithoutMint" : "Mint",
     }] : []
 
@@ -82,9 +81,8 @@ export function FreezeSelectStepItem() {
     }
 
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       collectionPermissions: {
-        ...collection.collectionPermissions,
         canUpdateCollectionApprovals: permissions
       }
     });

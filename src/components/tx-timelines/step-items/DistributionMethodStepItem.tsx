@@ -11,7 +11,7 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 export function DistributionMethodStepItem() {
 
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;

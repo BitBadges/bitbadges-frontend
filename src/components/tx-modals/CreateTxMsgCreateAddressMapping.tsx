@@ -20,7 +20,7 @@ export function CreateTxMsgCreateAddressMappingModal(
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
 

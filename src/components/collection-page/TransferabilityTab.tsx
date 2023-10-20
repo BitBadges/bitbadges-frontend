@@ -16,7 +16,7 @@ export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, on
   showDeletedGrayedOut?: boolean
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   if (!collection) return <></>;
 

@@ -33,7 +33,7 @@ export function JSONSetter({
 }) {
 
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const [inputJson, setInputJson] = useState<string>('');
 
@@ -54,7 +54,7 @@ export function JSONSetter({
       if (!isValid) return;
 
       collections.updateCollection({
-        ...collection,
+        collectionId: collection.collectionId,
         [`${jsonPropertyPath}`]: val
       });
     } : (val: any) => {
@@ -62,7 +62,7 @@ export function JSONSetter({
       if (!isValid) return;
 
       collections.updateCollection({
-        ...collection,
+        collectionId: collection.collectionId,
         collectionPermissions: {
           ...collection.collectionPermissions,
           [`${jsonPropertyPath}`]: val

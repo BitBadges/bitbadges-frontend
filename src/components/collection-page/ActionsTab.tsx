@@ -24,7 +24,7 @@ export function ActionsTab({
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);

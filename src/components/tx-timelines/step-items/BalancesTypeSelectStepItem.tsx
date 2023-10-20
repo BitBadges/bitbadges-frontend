@@ -1,18 +1,15 @@
-import { Divider } from "antd";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { InformationDisplayCard } from "../../display/InformationDisplayCard";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function BalanceTypeSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
   if (existingCollectionId) return EmptyStepItem;
-  const neverHasManager = collection?.managerTimeline.length == 0 || collection?.managerTimeline.every(x => !x.manager);
 
   const StandardOption = {
     title: 'Standard',
@@ -64,7 +61,7 @@ export function BalanceTypeSelectStepItem() {
           if (!collection) return;
 
           collections.updateCollection({
-            ...collection,
+            collectionId: MSG_PREVIEW_ID,
             balancesType: idx == 1 ? "Standard" : "Off-Chain",
             collectionApprovals: idx == 1 ? collection.collectionApprovals : [],
             offChainBalancesMetadataTimeline: idx == 0 ? collection.offChainBalancesMetadataTimeline : [],

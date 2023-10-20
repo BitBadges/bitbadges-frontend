@@ -1,15 +1,14 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances, removeBadgeMetadata, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
-import { getTotalNumberOfBadges } from '../utils/badges';
 import { getMintApprovals } from '../utils/mintVsNonMint';
-import { useAccountsContext } from './accounts/AccountsContext';
 import { useChainContext } from './ChainContext';
+import { useAccountsContext } from './accounts/AccountsContext';
 import { useCollectionsContext } from './collections/CollectionsContext';
 
 
@@ -228,8 +227,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
-  const existingCollection = existingCollectionId ? collections.collections[existingCollectionId.toString()] : undefined;
-  const simulatedCollection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
+  const simulatedCollection = collections.getCollection(MSG_PREVIEW_ID);
 
   const [size, setSize] = useState(0);
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
@@ -316,7 +315,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     // const existingNonMint = getNonMintApprovals(simulatedCollection, true);
 
     collections.updateCollection({
-      ...simulatedCollection,
+      collectionId: MSG_PREVIEW_ID,
       collectionApprovals: approvalsToAdd,
     });
   }, [approvalsToAdd]);
@@ -505,10 +504,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           collectionId: 0n
         }
 
-        console.log(existingCollectionId, JSON.stringify(startingCollectionDefault.cachedBadgeMetadata));
-
-
         setStartingCollection(deepCopy(startingCollectionDefault));
+        collections.setCollection(startingCollectionDefault);
       }
 
       if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
@@ -533,8 +530,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
 
 
-      const postSimulatedCollection = { ...currCollection, owners: newOwnersArr, merkleChallenges: combinedClaims };
-      collections.updateCollection(postSimulatedCollection, true);
+      const postSimulatedCollection = { owners: newOwnersArr, merkleChallenges: combinedClaims, collectionId: MSG_PREVIEW_ID };
+      console.log("POST SIMULATED COLLECTION");
+      collections.updateCollection(postSimulatedCollection);
     }
 
     initialize();

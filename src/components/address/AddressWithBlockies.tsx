@@ -24,9 +24,16 @@ export function AddressWithBlockies({
   doNotShowName?: boolean
 }) {
   const accounts = useAccountsContext();
+  const chainContext = useChainContext();
+
 
   const fetchedAccount = accounts.getAccount(addressOrUsername);
-  const userInfo = fetchedAccount ? convertBitBadgesUserInfo(fetchedAccount, BigIntify) : undefined; //deep copy
+
+  const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
+    ...fetchedAccount,
+    address: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
+    chain: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
+  }, BigIntify) : undefined; //deep copy
 
   if (userInfo?.chain === SupportedChain.UNKNOWN && overrideChain) {
     overrideChain = undefined;

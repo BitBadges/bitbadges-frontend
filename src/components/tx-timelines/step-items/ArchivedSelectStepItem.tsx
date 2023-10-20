@@ -8,7 +8,7 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function IsArchivedSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
@@ -48,12 +48,12 @@ export function IsArchivedSelectStepItem() {
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       isArchivedTimeline: [],
                     })
                   } else {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       isArchivedTimeline: [{
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         isArchived: true,

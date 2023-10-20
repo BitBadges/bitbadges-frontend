@@ -28,7 +28,7 @@ const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
 
 export function CanCreateMoreStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
@@ -71,9 +71,8 @@ export function CanCreateMoreStepItem() {
     }
 
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       collectionPermissions: {
-        ...collection.collectionPermissions,
         canCreateMoreBadges: permissions
       }
     });

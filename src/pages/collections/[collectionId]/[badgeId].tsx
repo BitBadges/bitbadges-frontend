@@ -49,7 +49,7 @@ export function BadgePage({ collectionPreview }
   const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? MSG_PREVIEW_ID : -1n;
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
-  const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
+  const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
 
   //Get collection information

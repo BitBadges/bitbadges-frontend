@@ -1,30 +1,24 @@
 import { MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary, validateCollectionMetadataUpdate } from "bitbadgesjs-utils";
 import { MetadataForm } from "../form-items/MetadataForm";
 
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
-import { PermissionIcon, getPermissionDetails, } from "../../collection-page/PermissionsInfo";
+import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { ErrDisplay } from "../form-items/ErrDisplay";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { useState } from "react";
 
 export function SetCollectionMetadataStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const existingCollectionId = txTimelineContext.existingCollectionId;
   const canUpdateCollectionMetadata = txTimelineContext.updateCollectionMetadataTimeline;
   const setCanUpdateCollectionMetadata = txTimelineContext.setUpdateCollectionMetadataTimeline;
   const addMethod = txTimelineContext.collectionAddMethod;
   const setAddMethod = txTimelineContext.setCollectionAddMethod;
-
-
-
-  const hideCollectionSelect = false;
 
   const err = startingCollection && collection ? validateCollectionMetadataUpdate(startingCollection.collectionMetadataTimeline, collection.collectionMetadataTimeline, startingCollection.collectionPermissions.canUpdateCollectionMetadata) : undefined;
 
@@ -37,7 +31,7 @@ export function SetCollectionMetadataStepItem() {
     [{ start: 1n, end: getTotalNumberOfBadges(collection) }]
   );
 
-  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat());
+  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat(), true);
 
   console.log(!collection, addMethod === MetadataAddMethod.Manual, collectionMetadata?.name, addMethod === MetadataAddMethod.UploadUrl, collection.collectionMetadataTimeline.length == 0, collection.badgeMetadataTimeline.length == 0, addMethod === MetadataAddMethod.CSV, !collectionMetadata?.name, !!err)
 
@@ -54,10 +48,9 @@ export function SetCollectionMetadataStepItem() {
       permissionName='canUpdateCollectionMetadata'
       disableJson
       node={<InformationDisplayCard title='Collection Metadata'>{
-        collection && collectionMetadata && <div>
+        collection && <div>
           <ErrDisplay err={err} />
           <MetadataForm
-            hideCollectionSelect={hideCollectionSelect}
             isCollectionSelect
             badgeIds={toUpdateBadges}
             addMethod={addMethod}

@@ -1,7 +1,8 @@
 import { Dropdown, Input } from 'antd';
 import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SearchDropdown } from '../navigation/SearchDropdown';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -17,8 +18,17 @@ export function AddressSelect({
   onUserSelect: (currUserInfo: string) => void,
   disabled?: boolean,
 }) {
+  const accounts = useAccountsContext();
+  const defaultAccount = defaultValue ? accounts.getAccount(defaultValue) : undefined;
+
   const [changed, setChanged] = useState<boolean>(false);
-  const [input, setInput] = useState<string>(defaultValue ? defaultValue : '');
+  const [input, setInput] = useState<string>(defaultAccount ? defaultAccount?.address : '');
+
+  useEffect(() => {
+    if (defaultAccount) {
+      setInput(defaultAccount.address);
+    }
+  }, [defaultAccount])
 
   return <>
     <br />

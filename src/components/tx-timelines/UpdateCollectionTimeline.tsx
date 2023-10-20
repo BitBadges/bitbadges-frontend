@@ -1,4 +1,4 @@
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
@@ -16,13 +16,13 @@ import { FreezeSelectStepItem } from './step-items/CanUpdateCollectionApprovals'
 import { UpdatableMetadataSelectStepItem } from './step-items/CanUpdateMetadata';
 import { CanUpdateBalancesStepItem } from './step-items/CanUpdateOffChainBalancesStepItem';
 import { ChooseBadgeTypeStepItem, MintType } from './step-items/ChooseBadgeTypeStepItem';
+import { CodesViewStepItem } from './step-items/CodesViewStepItem';
 import { ChooseControlTypeStepItem } from './step-items/CompleteControlStepItem';
 import { ConfirmManagerStepItem } from './step-items/ConfirmManagerStepItem';
 import { CreateAddressMappingStepItem } from './step-items/CreateAddressMappingStepItem';
 import { CreateCollectionStepItem } from './step-items/CreateCollectionStepItem';
 import { DefaultToApprovedSelectStepItem } from './step-items/DefaultToApprovedSelectStepItem';
 import { DistributionMethodStepItem } from './step-items/DistributionMethodStepItem';
-import { MetadataTooBigStepItem } from './step-items/MetadataTooBigStepItem';
 import { OffChainBalancesStorageSelectStepItem } from './step-items/OffChainBalancesStepItem';
 import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepItem';
 import { SetAddressMappingMetadataStepItem } from './step-items/SetAddressMappingMetadataStepItem';
@@ -36,7 +36,7 @@ export function UpdateCollectionTimeline() {
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const mintType = txTimelineContext.mintType;
   const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping;
   const formStepNum = txTimelineContext.formStepNum;
@@ -71,7 +71,7 @@ export function UpdateCollectionTimeline() {
   const AddressMappingSelectItem = AddressMappingSelectStepItem();
   const CreateAddressMappingStep = CreateAddressMappingStepItem();
   const BalanceTypeSelect = BalanceTypeSelectStepItem();
-
+  const CodesViewStep = CodesViewStepItem();
 
   const items: TimelineItem[] = [
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem : ChooseBadgeType
@@ -181,6 +181,7 @@ export function UpdateCollectionTimeline() {
       BalanceTypeSelect,
 
       !isOffChainBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
+      CodesViewStep,
 
       //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
       isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,

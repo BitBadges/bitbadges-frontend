@@ -15,7 +15,7 @@ function RegisterScreen({ message }: { message?: string }) {
   const accounts = useAccountsContext();
   const status = useStatusContext();
   const [loading, setLoading] = useState(false);
-
+  console.log(accounts.getAccount(chain.address))
   return (
     <Content
       style={{
@@ -75,9 +75,9 @@ function RegisterScreen({ message }: { message?: string }) {
                         currStatus = statusRes
                         await new Promise(resolve => setTimeout(resolve, 1000));
                       }
-                      
+
                       console.log("AIRDROPPED, now fetching", chain.address);
-                      await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }]);
+                      await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
 
                       notification.success({
                         message: "Success! Airdrop claimed successfully.",

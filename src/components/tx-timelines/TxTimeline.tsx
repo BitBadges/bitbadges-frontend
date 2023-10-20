@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
-import { MetadataAddMethod } from 'bitbadgesjs-utils';
 
 export function TxTimeline({
   txType,

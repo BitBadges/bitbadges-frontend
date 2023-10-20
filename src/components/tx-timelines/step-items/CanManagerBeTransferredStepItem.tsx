@@ -9,7 +9,7 @@ import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanManagerBeTransferredStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [checked, setChecked] = useState<boolean>(true);
 
   const [err, setErr] = useState<Error | null>(null);
@@ -22,9 +22,8 @@ export function CanManagerBeTransferredStepItem() {
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
 
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       collectionPermissions: {
-        ...collection.collectionPermissions,
         canUpdateManager: idx === 0 ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           permittedTimes: [],

@@ -71,9 +71,9 @@ export function BalanceDisplayEditRow({
   currTimeNextHour.setMilliseconds(0);
 
   //Does current supply cause a gap
-  let currBadgeIds = collections.collections[MSG_PREVIEW_ID.toString()]?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
+  let currBadgeIds = collections.getCollection(MSG_PREVIEW_ID)?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
   currBadgeIds.push(...currentSupply.badgeIds);
-  currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds);
+  currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
   let maxBadgeId = currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n;
   let invertedBadgeIds = invertUintRanges(currBadgeIds, 1n, maxBadgeId);
 

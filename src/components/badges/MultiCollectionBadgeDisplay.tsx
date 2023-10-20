@@ -68,7 +68,6 @@ export function MultiCollectionBadgeDisplay({
 
   useEffect(() => {
     async function fetchAndUpdate() {
-      const badgesToShow = accountsContext.getBalancesView(accountInfo?.cosmosAddress ?? '', showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
       let newPageSize = defaultPageSize;
       // if (!groupByCollection) {
 
@@ -160,7 +159,7 @@ export function MultiCollectionBadgeDisplay({
         }
       } else {
         for (const collectionId of collectionIds) {
-          const balances = collections.collections[collectionId.toString()]?.owners?.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
+          const balances = collections.getCollection(collectionId)?.owners?.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
           if (balances) {
             for (const balance of balances || []) {
               allBadgeIds.push({
@@ -173,12 +172,12 @@ export function MultiCollectionBadgeDisplay({
           }
         }
       }
+      console.log("allBadgeIds: ", allBadgeIds);
 
       //Calculate total number of badge IDs  to display
       let total = 0;
       if (!groupByCollection) {
         //If we do not group by collection, we calculate according to pageSize
-
 
         for (const obj of allBadgeIds) {
           for (const range of obj.badgeIds) {
@@ -195,17 +194,21 @@ export function MultiCollectionBadgeDisplay({
         }[] = getBadgesToDisplay(allBadgeIds, currPage, newPageSize);
         setBadgeIdsToDisplay(badgeIdsToDisplay);
 
-        await collections.batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
-          return {
-            collectionId: x.collectionId,
-            metadataToFetch: {
-              badgeIds: x.badgeIds
-            },
-          }
-        }));
+        if (badgeIdsToDisplay.length > 0) {
+
+          await collections.batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
+            return {
+              collectionId: x.collectionId,
+              metadataToFetch: {
+                badgeIds: x.badgeIds
+              },
+            }
+          }));
+        }
 
         setLoaded(true);
       } else {
+        console.log("FETCHING");
         //If we group by collection, we calculate according to the default view (10 badges per collection)
         //Note this is a hacky way to do this, but it works for now
         //We fetch the initial badges for each collection in a single batch request and use loaded to not trigger the inital fetch in BadgeAvatarDisplay
@@ -227,7 +230,7 @@ export function MultiCollectionBadgeDisplay({
     if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay);
     fetchAndUpdate();
     //Note still depends on a context (accountInfo / accountsContext).
-  }, [collectionIds, currPage, pageSize, accountInfo, groupByCollection, showCustomizeButtons, defaultPageSize, customPageBadges]);
+  }, [collectionIds, currPage, pageSize, groupByCollection, showCustomizeButtons, defaultPageSize, customPageBadges, addressOrUsernameToShowBalance]);
 
   const CustomizeButtons = (badgeIdObj: { collectionId: bigint, badgeIds: UintRange<bigint>[] }, badgeId: bigint, onlyShowCollectionOptions?: boolean) => {
     const isHidden = accountInfo?.hiddenBadges?.find(x => {
@@ -254,7 +257,7 @@ export function MultiCollectionBadgeDisplay({
     const addToArray = (arr: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[], badgeIdsToAdd: UintRange<bigint>[]) => {
       const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
       if (existingIdx != -1) {
-        arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd])
+        arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd], true)
       } else {
         arr.push({
           collectionId: badgeIdObj.collectionId,
@@ -474,7 +477,7 @@ export function MultiCollectionBadgeDisplay({
       <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
         {
           collectionIds.map((collectionId, idx) => {
-            const collection = collections.collections[collectionId.toString()];
+            const collection = collections.getCollection(collectionId);
             const balances = accountInfo ? badgesToShow.find(collected => collected.collectionId == collectionId)?.balances ?? []
               : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
             if (balances.length == 0) return <></>;

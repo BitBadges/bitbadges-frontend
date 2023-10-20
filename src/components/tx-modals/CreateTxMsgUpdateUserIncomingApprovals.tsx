@@ -16,7 +16,7 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
   const chain = useChainContext();
   const collections = useCollectionsContext();
 
-  const [newIncomingApprovals, setNewIncomingApprovals] = useState<UserIncomingApprovalWithDetails<bigint>[]>(collections.collections[`${collectionId}`]?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.incomingApprovals ?? []);
+  const [newIncomingApprovals, setNewIncomingApprovals] = useState<UserIncomingApprovalWithDetails<bigint>[]>(collections.getCollection(collectionId)?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.incomingApprovals ?? []);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: approvee balance ');

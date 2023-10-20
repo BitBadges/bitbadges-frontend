@@ -24,7 +24,7 @@ export function MetadataUriSelect({
   const collections = useCollectionsContext();
   const collectionId = MSG_PREVIEW_ID;
 
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
   const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
@@ -35,8 +35,8 @@ export function MetadataUriSelect({
     const delayDebounceFn = setTimeout(async () => {
       if (!collectionUri || !collection) return
 
-      collections.updateCollection({
-        ...collection,
+      collections.updateCollectionAndFetchMetadataDirectly({
+        collectionId: MSG_PREVIEW_ID,
         cachedCollectionMetadata: undefined,
         collectionMetadataTimeline: collectionUri ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -45,11 +45,7 @@ export function MetadataUriSelect({
             customData: '',
           }
         }] : []
-      })
-
-      collections.fetchAndUpdateMetadata(collectionId, {
-
-      }, true)
+      }, {}, true)
 
     }, DELAY_MS)
 
@@ -65,9 +61,10 @@ export function MetadataUriSelect({
         return
       }
 
-      collections.updateCollection({
+      //Slightly hacky but this will overwrite all cached metadata to [] -> means next badgeavatardisplay render, we fetch
+      collections.setCollection({
         ...collection,
-        // cachedBadgeMetadata: [],
+        cachedBadgeMetadata: [],
         badgeMetadataTimeline: badgeUri ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           badgeMetadata: [{

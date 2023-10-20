@@ -11,7 +11,7 @@ export function BadgesTab({ collectionId }: {
 }) {
   const [cardView, setCardView] = useState(true);
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   return (
     <div className='primary-text full-width'>

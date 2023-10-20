@@ -278,12 +278,12 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
 }
 
 
-export const PermissionDisplay = (permissionName: string, permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIdsToShow?: UintRange<bigint>[], mintOnly?: boolean, nonMintOnly?: boolean, onFreezePermitted?: (frozen: boolean) => void) => {
+export const PermissionDisplay = (permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIdsToShow?: UintRange<bigint>[], mintOnly?: boolean, nonMintOnly?: boolean, onFreezePermitted?: (frozen: boolean) => void) => {
 
 
   const { usesBadgeIds } = usedFlags;
 
-  const { columns, dataSource, hasForbiddenTimes, hasNeutralTimes, hasPermittedTimes } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIdsToShow);
+  const { columns, dataSource } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIdsToShow);
 
   return <>
     {/* :
@@ -551,13 +551,13 @@ export const PermissionDisplay = (permissionName: string, permissions: Universal
   </>
 }
 
-export const PermissionIcon = (permissionName: string, permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIds?: UintRange<bigint>[]) => {
+export const PermissionIcon = (permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager?: boolean, badgeIds?: UintRange<bigint>[]) => {
 
   const { hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIds);
 
   return <>
     <Popover color='black' className="primary-text" content={<>
-      {PermissionDisplay(permissionName, permissions, usedFlags, neverHasManager, badgeIds)}
+      {PermissionDisplay(permissions, usedFlags, neverHasManager, badgeIds)}
     </>}>
 
       {!(hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)
@@ -603,7 +603,7 @@ export function PermissionsOverview({
   onFreezePermitted?: (frozen: boolean) => void
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   if (!collection?.collectionPermissions) return <></>
 
@@ -613,67 +613,62 @@ export function PermissionsOverview({
   const isBadgeView = badgeId !== undefined;
 
   const badgeIdsToShow = isBadgeView ? [{ start: badgeId, end: badgeId }] : undefined;
-  let question = "";
+  // let question = "";
 
 
-  switch (permissionName) {
-    case 'canDeleteCollection':
-      question = "Can delete the collection?";
-      break;
-    case 'canArchiveCollection':
-      question = "Can archive the collection?";
-      break;
-    case 'canUpdateContractAddress':
-      question = "Can update the contract address?";
-      break;
-    case 'canUpdateOffChainBalancesMetadata':
-      question = "Can update the off-chain balances metadata?";
-      break;
-    case 'canUpdateStandards':
-      question = "Can update the standards?";
-      break;
-    case 'canUpdateCustomData':
-      question = "Can update the custom data?";
-      break;
-    case 'canUpdateManager':
-      question = "Can update the manager?";
-      break;
-    case 'canUpdateCollectionMetadata':
-      question = "Can update the collection metadata?";
-      break;
-    case 'canCreateMoreBadges':
-      question = "Can create more badges?";
-      break;
-    case 'canUpdateBadgeMetadata':
-      question = "Can update the badge metadata?";
-      break;
-    case 'canUpdateCollectionApprovals':
-      question = "Can update collection approved transfers?";
-      break;
-    // Add custom questions for other permissions as needed
-  }
+  // switch (permissionName) {
+  //   case 'canDeleteCollection':
+  //     question = "Can delete the collection?";
+  //     break;
+  //   case 'canArchiveCollection':
+  //     question = "Can archive the collection?";
+  //     break;
+  //   case 'canUpdateContractAddress':
+  //     question = "Can update the contract address?";
+  //     break;
+  //   case 'canUpdateOffChainBalancesMetadata':
+  //     question = "Can update the off-chain balances metadata?";
+  //     break;
+  //   case 'canUpdateStandards':
+  //     question = "Can update the standards?";
+  //     break;
+  //   case 'canUpdateCustomData':
+  //     question = "Can update the custom data?";
+  //     break;
+  //   case 'canUpdateManager':
+  //     question = "Can update the manager?";
+  //     break;
+  //   case 'canUpdateCollectionMetadata':
+  //     question = "Can update the collection metadata?";
+  //     break;
+  //   case 'canCreateMoreBadges':
+  //     question = "Can create more badges?";
+  //     break;
+  //   case 'canUpdateBadgeMetadata':
+  //     question = "Can update the badge metadata?";
+  //     break;
+  //   case 'canUpdateCollectionApprovals':
+  //     question = "Can update collection approved transfers?";
+  //     break;
+  //   // Add custom questions for other permissions as needed
+  // }
 
   return <InformationDisplayCard title={permissionName ? '' : 'Manager Permissions'} span={span}>
-    <>
-      <>
-        {(!permissionName || permissionName == "canCreateMoreBadges") && <TableRow label={"Create more badges?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canCreateMoreBadges", castBalancesActionPermissionToUniversalPermission(collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateCollectionApprovals") && collection.balancesType === "Standard" && <TableRow label={"Update collection transferability (including mints)?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateCollectionApprovals", castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateOffChainBalancesMetadata") && collection.balancesType === "Off-Chain" && <TableRow label={"Update off-chain balances URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateOffChainBalancesMetadata", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateBadgeMetadata") && <TableRow label={"Update badge metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateBadgeMetadata", castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection.collectionPermissions.canUpdateBadgeMetadata), TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateCollectionMetadata") && !isBadgeView && <TableRow label={"Update collection metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateCollectionMetadata", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionMetadata), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canDeleteCollection") && !isBadgeView && <TableRow label={"Delete collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canDeleteCollection", castActionPermissionToUniversalPermission(collection.collectionPermissions.canDeleteCollection), ActionPermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canArchiveCollection") && !isBadgeView && <TableRow label={"Archive collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canArchiveCollection", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canArchiveCollection), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateContractAddress") && !isBadgeView && <TableRow label={"Update contract address?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateContractAddress", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateContractAddress), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateStandards") && !isBadgeView && <TableRow label={"Update standards?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateStandards", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateStandards), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateCustomData") && !isBadgeView && <TableRow label={"Update custom data?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateCustomData", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCustomData), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
-        {(!permissionName || permissionName == "canUpdateManager") && !isBadgeView && <TableRow label={"Transfer manager?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon("canUpdateManager", castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateManager), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canCreateMoreBadges") && <TableRow label={"Create more badges?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castBalancesActionPermissionToUniversalPermission(collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateCollectionApprovals") && collection.balancesType === "Standard" && <TableRow label={"Update collection transferability (including mints)?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateOffChainBalancesMetadata") && collection.balancesType === "Off-Chain" && <TableRow label={"Update off-chain balances URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateBadgeMetadata") && <TableRow label={"Update badge metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection.collectionPermissions.canUpdateBadgeMetadata), TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager, badgeIdsToShow)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateCollectionMetadata") && !isBadgeView && <TableRow label={"Update collection metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionMetadata), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canDeleteCollection") && !isBadgeView && <TableRow label={"Delete collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castActionPermissionToUniversalPermission(collection.collectionPermissions.canDeleteCollection), ActionPermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canArchiveCollection") && !isBadgeView && <TableRow label={"Archive collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canArchiveCollection), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateContractAddress") && !isBadgeView && <TableRow label={"Update contract address?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateContractAddress), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateStandards") && !isBadgeView && <TableRow label={"Update standards?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateStandards), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateCustomData") && !isBadgeView && <TableRow label={"Update custom data?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCustomData), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
+    {(!permissionName || permissionName == "canUpdateManager") && !isBadgeView && <TableRow label={"Transfer manager?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : PermissionIcon(castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateManager), TimedUpdatePermissionUsedFlags, neverHasManager)} labelSpan={18} valueSpan={6} />}
 
-
-      </>
-      {permissionName && <>
-        <br />
-        <AfterPermission permissionName={permissionName} onFreezePermitted={onFreezePermitted} />
-      </>}
-    </>
+    {permissionName && <>
+      <br />
+      <AfterPermission permissionName={permissionName} onFreezePermitted={onFreezePermitted} />
+    </>}
   </InformationDisplayCard>
 }

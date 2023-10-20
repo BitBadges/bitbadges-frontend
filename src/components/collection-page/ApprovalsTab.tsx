@@ -1,25 +1,23 @@
 import { ClockCircleOutlined, CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Empty, Switch, Typography } from 'antd';
-import { AddressMapping, AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeIdDetails, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
+import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
+import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
+import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
+import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { Tabs } from '../navigation/Tabs';
+import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { compareObjects } from '../../utils/compare';
-import IconButton from '../display/IconButton';
-import { CreateClaims } from '../tx-timelines/form-items/CreateClaims';
-import { DevMode } from '../common/DevMode';
-import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { TransferabilityTab } from './TransferabilityTab';
 interface Props {
   approvals: CollectionApprovalWithDetails<bigint>[];
@@ -64,7 +62,7 @@ export const ApprovalsDisplay: FC<Props> = ({
     approvals = approvals.map(x => {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint') as AddressMapping,
+        fromMapping: getReservedAddressMapping('Mint'),
         fromMappingId: 'Mint',
       }
     })
@@ -73,7 +71,7 @@ export const ApprovalsDisplay: FC<Props> = ({
     disapproved = disapproved.map(x => {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint') as AddressMapping,
+        fromMapping: getReservedAddressMapping('Mint'),
         fromMappingId: 'Mint',
       }
     })
@@ -257,7 +255,7 @@ export function UserApprovalsTab({ collectionId,
 
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   const accounts = useAccountsContext();
   const [address, setAddress] = useState<string>(defaultApprover ?? chain.address);
@@ -355,8 +353,8 @@ export function UserApprovalsTab({ collectionId,
           if (value === 0) {
             setUserIncomingApprovals?.([{
               fromMappingId: "AllWithMint",
-              fromMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
-              initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+              fromMapping: getReservedAddressMapping("AllWithMint"),
+              initiatedByMapping: getReservedAddressMapping("AllWithMint"),
               initiatedByMappingId: "AllWithMint",
               transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -468,9 +466,9 @@ export function UserApprovalsTab({ collectionId,
                       <br />
                       <div>
                         <ApprovalSelect
-                          defaultToMapping={getReservedAddressMapping("All") as AddressMapping}
+                          defaultToMapping={getReservedAddressMapping("All")}
                           fromMappingLocked={true}
-                          defaultFromMapping={getReservedAddressMapping(approverAccount?.address) as AddressMapping}
+                          defaultFromMapping={getReservedAddressMapping(approverAccount?.address)}
                           collectionId={collectionId}
                           hideTransferDisplay={true}
                           setVisible={setVisible}
@@ -486,8 +484,16 @@ export function UserApprovalsTab({ collectionId,
                             castOutgoingTransfersToCollectionTransfers(collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.outgoingApprovals ?? [], approverAccount.address)
                           }
                           approvalPermissions={
-
-                            collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateOutgoingApprovals ?? []
+                            castUserOutgoingApprovalPermissionToCollectionApprovalPermission(
+                              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateOutgoingApprovals ?? []).map(x => {
+                                return {
+                                  ...x,
+                                  toMapping: getReservedAddressMapping(x.toMappingId),
+                                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                                }
+                              }),
+                              approverAccount.address
+                            )
                           }
 
                         />
@@ -527,9 +533,9 @@ export function UserApprovalsTab({ collectionId,
                       <br />
                       <div>
                         <ApprovalSelect
-                          defaultFromMapping={getReservedAddressMapping("All") as AddressMapping}
+                          defaultFromMapping={getReservedAddressMapping("All")}
                           toMappingLocked={true}
-                          defaultToMapping={getReservedAddressMapping(approverAccount?.address) as AddressMapping}
+                          defaultToMapping={getReservedAddressMapping(approverAccount?.address)}
                           collectionId={collectionId}
                           hideTransferDisplay={true}
                           setVisible={setVisible}
@@ -545,7 +551,16 @@ export function UserApprovalsTab({ collectionId,
                             castIncomingTransfersToCollectionTransfers(collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.incomingApprovals ?? [], approverAccount.address)
                           }
                           approvalPermissions={
-                            collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []
+                            castUserIncomingApprovalPermissionToCollectionApprovalPermission(
+                              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
+                                return {
+                                  ...x,
+                                  fromMapping: getReservedAddressMapping(x.fromMappingId),
+                                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                                }
+                              }),
+                              approverAccount.address
+                            )
                           }
                         />
                       </div>

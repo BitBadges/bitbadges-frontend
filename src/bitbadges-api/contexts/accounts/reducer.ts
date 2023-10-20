@@ -1,5 +1,5 @@
 import { deepCopy } from "bitbadgesjs-proto";
-import { AccountMap, BitBadgesUserInfo, DesiredNumberType, MINT_ACCOUNT } from "bitbadgesjs-utils";
+import { AccountMap, BigIntify, BitBadgesUserInfo, DesiredNumberType, MINT_ACCOUNT, Stringify, convertBitBadgesUserInfo } from "bitbadgesjs-utils";
 import { compareObjects } from "../../../utils/compare";
 import { AccountReducerState, initialState, reservedNames } from "./AccountsContext";
 
@@ -16,12 +16,12 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       continue;
     }
 
-    if (forcefulRefresh) {
-      accounts[account.cosmosAddress] = undefined;
-    }
+    // if (forcefulRefresh) {
+    //   accounts[account.cosmosAddress] = undefined;
+    // }
 
-
-    let cachedAccount = accounts[`${account.cosmosAddress}`];
+    let accountInMap = accounts[account.cosmosAddress];
+    let cachedAccount = forcefulRefresh || !accountInMap ? undefined : deepCopy(convertBitBadgesUserInfo(accountInMap, BigIntify));
     if (cachedAccount == undefined) {
       accountsToReturn.push({ account, needToCompare: false, ignore: false });
       continue;
@@ -33,8 +33,6 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.cosmosAddress) {
         publicKey = cookies.pub_key.split('-')[1];
       }
-
-      console.log("Cached public key", cachedAccount?.publicKey, "New public key", account.publicKey, "Cookies", cookies.pub_key, "Final public key", publicKey);
 
       //Append all views to the existing views
       const newViews = cachedAccount?.views || {};
@@ -70,7 +68,6 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
         resolvedName: account.resolvedName ? account.resolvedName : cachedAccount?.resolvedName ? cachedAccount.resolvedName : "",
       };
 
-      console.log(newAccount.collected);
 
       //Filter duplicates
       newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
@@ -79,35 +76,30 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
       newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      console.log("NEW ACCOUNT", newAccount);
+
+
       accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
     }
   }
 
   //Update the accounts map
-  const newUpdates: AccountMap<bigint> = {};
+  const newUpdates: AccountMap<string> = {};
   const newUsernameUpdates: { [username: string]: string } = {};
   for (const accountToReturn of accountsToReturn) {
     if (accountToReturn.ignore) continue;
     //Only trigger a rerender if the account has changed or we haev to
     if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
-      newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
+      newUpdates[accountToReturn.account.cosmosAddress] = convertBitBadgesUserInfo(accountToReturn.account, Stringify);
       if (accountToReturn.account.username) {
         newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
       }
     }
   }
 
-  if (Object.keys(newUpdates).length > 0) {
-    accounts = { ...accounts, ...newUpdates };
-  }
-
-  if (Object.keys(newUsernameUpdates).length > 0) {
-    cosmosAddressesByUsernames = { ...cosmosAddressesByUsernames, ...newUsernameUpdates };
-  }
-
   return {
-    ...state, accounts, cosmosAddressesByUsernames
+    ...state,
+    accounts: { ...accounts, ...newUpdates },
+    cosmosAddressesByUsernames: { ...cosmosAddressesByUsernames, ...newUsernameUpdates },
   }
 }
 

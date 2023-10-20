@@ -5,14 +5,13 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
   collectionId: bigint;
@@ -23,7 +22,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const collections = useCollectionsContext();
   const chain = useChainContext();
   const router = useRouter();
-  const isPreview = collectionId === MSG_PREVIEW_ID;
+
 
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [code, setCode] = useState<string>("");
@@ -33,7 +32,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const [recipient, setRecipient] = useState<string>(chain.address);
   // const [approvalCriteriaIdx, setApprovalCriteriaIdx] = useState<number>(0);
 
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
 
@@ -71,14 +70,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
 
 
 
-
-  if (isPreview) return <Empty
-    className='primary-text'
-    description={
-      "Claim displays are not supported for previews."
-    }
-    image={Empty.PRESENTED_IMAGE_SIMPLE}
-  />
+  console.log(claimItem);
 
   //Get IPFS cid and path
   let currClaimCid = '';
@@ -107,7 +99,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
         </div>
         <br />
       </>}
-      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} showOnSinglePage />
+      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
       <br />
 
       <div className='flex-center'>
@@ -115,7 +107,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
           <>
             <ClaimDisplay
               collectionId={collectionId}
-              approvals={approvals}
+              // approvals={approvals}
               approval={currApproval}
               approvalCriteria={approvalCriteria}
               openModal={(_x: any, leafIndex?: number) => {

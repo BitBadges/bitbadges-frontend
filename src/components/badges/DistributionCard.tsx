@@ -36,7 +36,7 @@ export function DistributionOverview({
   style?: React.CSSProperties
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   if (!collection) return <></>;
   if (!collection?.collectionPermissions) return <></>
@@ -80,7 +80,6 @@ export function DistributionOverview({
       {!isBadgeView &&
         <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
       {!isSelectStep && <TableRow label={"Can more badges be created?"} value={PermissionIcon(
-        "canCreateMoreBadges",
         castBalancesActionPermissionToUniversalPermission(
           collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
       collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)} labelSpan={20} valueSpan={4} />}
@@ -116,7 +115,6 @@ export function DistributionOverview({
       } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && !isSelectStep && <TableRow label={"Update balances URL?"} value={
         PermissionIcon(
-          "canUpdateOffChainBalancesMetadata",
           castTimedUpdatePermissionToUniversalPermission(
 
             collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||

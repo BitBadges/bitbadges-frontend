@@ -24,7 +24,7 @@ export function RecipientsSelectStep({ sender,
   // const chain = useChainContext();
   // const collections = useCollectionsContext();
 
-  // const collection = collections.collections[collectionId.toString()]
+  // const collection = collections.getCollection(collectionId)
   // const signedInAccount = accounts.getAccount(chain.cosmosAddress);
   const accounts = useAccountsContext();
   const senderAccount = accounts.getAccount(sender);

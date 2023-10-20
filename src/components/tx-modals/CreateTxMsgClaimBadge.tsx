@@ -28,7 +28,7 @@ export function CreateTxMsgClaimBadgeModal(
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   const precalculationId = approvalId
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;

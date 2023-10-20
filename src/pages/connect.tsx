@@ -17,7 +17,7 @@ function ConnectScreen({ message }: { message?: string }) {
 
   return (
       <Content
-        className='gradient-bg'
+        className='inherit-bg'
         style={{
           minHeight: '100vh',
           textAlign: 'center',

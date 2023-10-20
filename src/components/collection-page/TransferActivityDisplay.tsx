@@ -93,7 +93,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete }: {
             >
               {activity.map((activity, idx) => {
                 const collectionId = activity.collectionId;
-                const collection = collections.collections[collectionId.toString()]
+                const collection = collections.getCollection(collectionId)
                 let numBadgesTransferred = 0n;
                 activity.balances.forEach(balance => {
                   for (const badgeIdRange of balance.badgeIds) {

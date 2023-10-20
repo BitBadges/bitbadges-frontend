@@ -23,7 +23,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
 
   const collections = useCollectionsContext();
 
-  const collection = collectionId ? collections.collections[collectionId.toString()] : undefined;
+  const collection = collectionId ? collections.getCollection(collectionId) : undefined;
 
   const router = useRouter();
 
@@ -103,7 +103,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         ).map((announcement, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
 
-          const collectionToDisplay = collections.collections[announcement.collectionId.toString()];
+          const collectionToDisplay = collections.getCollection(announcement.collectionId);
           return (
             <div key={index} className='primary-text full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>

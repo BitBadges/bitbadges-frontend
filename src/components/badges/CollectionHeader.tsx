@@ -14,7 +14,7 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
   const collectionMetadata = collection?.cachedCollectionMetadata;
 

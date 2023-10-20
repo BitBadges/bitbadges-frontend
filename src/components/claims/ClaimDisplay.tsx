@@ -18,7 +18,6 @@ import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import IconButton from "../display/IconButton";
 import { NumberInput } from "../inputs/NumberInput";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
-import { TransferabilityRow } from "../collection-page/TransferabilityRow";
 
 //TODO: Will need to change when we allow approvalCriteria len > 0
 //TODO: per to/from/initiatedBy
@@ -30,7 +29,7 @@ import { TransferabilityRow } from "../collection-page/TransferabilityRow";
 export function ClaimDisplay({
   approval,
   approvalCriteria,
-  approvals,
+  // approvals,
   collectionId,
   openModal,
   isCodeDisplay,
@@ -44,7 +43,7 @@ export function ClaimDisplay({
 }: {
   approval: CollectionApprovalWithDetails<bigint>,
   approvalCriteria: ApprovalCriteriaWithDetails<bigint>,
-  approvals: CollectionApprovalWithDetails<bigint>[],
+  // approvals: CollectionApprovalWithDetails<bigint>[],
   collectionId: bigint,
   openModal?: (code?: string, leafIndex?: number, recipient?: string) => void,
   isCodeDisplay?: boolean
@@ -59,7 +58,7 @@ export function ClaimDisplay({
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
   const accounts = useAccountsContext();
 
   const claim = approval.approvalCriteria && approvalCriteria.merkleChallenge?.root ?

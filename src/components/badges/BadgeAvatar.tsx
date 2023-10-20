@@ -5,7 +5,7 @@ import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetada
 import { useRouter } from "next/router";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTimeRangesString } from "../../utils/dates";
-import { getTotalNumberOfBadgeIds, getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 
 export function BadgeAvatar({
   collectionId,
@@ -33,7 +33,7 @@ export function BadgeAvatar({
   const router = useRouter();
   const collections = useCollectionsContext();
 
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
   let metadata = metadataOverride ? metadataOverride :
     badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 

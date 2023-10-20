@@ -1,121 +1,20 @@
-import { BadgeMetadataDetails, BitBadgesCollection, DesiredNumberType, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { SHA256 } from "crypto-js";
+import { BitBadgesCollection, DesiredNumberType, batchUpdateBadgeMetadata, convertBitBadgesCollection } from "bitbadgesjs-utils";
 import { compareObjects } from "../../../utils/compare";
 import { MSG_PREVIEW_ID } from "../TxTimelineContext";
 import { CollectionReducerState, initialState } from "./CollectionsContext";
+import { BigIntify, Stringify, deepCopy } from "bitbadgesjs-proto";
 
-export function deepCopy<T>(obj: T): T {
-  return deepCopyWithBigInts(obj);
-}
-
-function deepCopyWithBigInts<T>(obj: T): T {
-  if (typeof obj !== 'object' || obj === null) {
-    // Base case: return primitive values as-is
-    return obj;
-  }
-
-  if (typeof obj === 'bigint') {
-    return BigInt(obj) as unknown as T;
-  }
-
-  if (Array.isArray(obj)) {
-    // Create a deep copy of an array
-    return obj.map((item) => deepCopyWithBigInts(item)) as unknown as T;
-  }
-
-  const copiedObj: Record<string, any> = {};
-
-  // Deep copy each property of the object
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      copiedObj[key] = deepCopyWithBigInts(obj[key]);
-    }
-  }
-
-  return copiedObj as unknown as T;
-}
+// const setCollection = (state = initialState, newCollection: BitBadgesCollection<DesiredNumberType>) => {
+//   const collections = state.collections;
+//   return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: newCollection } };
+// }
 
 
-const batchUpdateBadgeMetadata = (currBadgeMetadata: BadgeMetadataDetails<bigint>[], newBadgeMetadataDetailsArr: BadgeMetadataDetails<bigint>[]) => {
-
-  const allBadgeIds = sortUintRangesAndMergeIfNecessary(deepCopy(newBadgeMetadataDetailsArr.map(x => x.badgeIds).flat()))
-
-
-
-  for (let i = 0; i < currBadgeMetadata.length; i++) {
-    const val = currBadgeMetadata[i];
-    if (!val) continue; //For TS
-    const [remaining, _] = removeUintRangeFromUintRange(allBadgeIds, val.badgeIds);
-    val.badgeIds = remaining;
-  }
-
-  currBadgeMetadata = currBadgeMetadata.filter((val) => val && val.badgeIds.length > 0);
-
-
-  const hashTable = new Map<string, number>();
-  for (let i = 0; i < currBadgeMetadata.length; i++) {
-    const metadataDetails = currBadgeMetadata[i];
-    const hashedMetadata = SHA256(JSON.stringify(metadataDetails.metadata)).toString();
-    hashTable.set(hashedMetadata, i);
-  }
-
-
-  for (const newBadgeMetadataDetails of newBadgeMetadataDetailsArr) {
-    let currentMetadata = newBadgeMetadataDetails.metadata;
-    for (const badgeUintRange of newBadgeMetadataDetails.badgeIds) {
-
-      const startBadgeId = badgeUintRange.start;
-      const endBadgeId = badgeUintRange.end;
-
-      //If the metadata we are updating is already in the array (with matching uri and id), we can just insert the badge IDs
-      let currBadgeMetadataExists = false;
-      const idx = hashTable.get(SHA256(JSON.stringify(currentMetadata)).toString());
-      if (idx) {
-        const val = currBadgeMetadata[idx];
-        if (!val) continue; //For TS
-
-        if (val.uri === newBadgeMetadataDetails.uri && val.metadataId === newBadgeMetadataDetails.metadataId && val.customData === newBadgeMetadataDetails.customData && val.toUpdate === newBadgeMetadataDetails.toUpdate && compareObjects(val.metadata, currentMetadata)) {
-          currBadgeMetadataExists = true;
-          if (val.badgeIds.length > 0) {
-            val.badgeIds = [...val.badgeIds, { start: startBadgeId, end: endBadgeId }];
-            val.badgeIds = sortUintRangesAndMergeIfNecessary(val.badgeIds);
-          } else {
-            val.badgeIds = [{ start: startBadgeId, end: endBadgeId }];
-          }
-        }
-      }
-
-      //Recreate the array with the updated badge IDs
-      //If some metadata object no longer has any corresponding badge IDs, we can remove it from the array
-
-      //If we did not find the metadata in the array and metadata !== undefined, we need to add it
-      if (!currBadgeMetadataExists) {
-        currBadgeMetadata.push({
-          metadata: { ...currentMetadata },
-          badgeIds: [{
-            start: startBadgeId,
-            end: endBadgeId,
-          }],
-          uri: newBadgeMetadataDetails.uri,
-          metadataId: newBadgeMetadataDetails.metadataId,
-          customData: newBadgeMetadataDetails.customData,
-          toUpdate: newBadgeMetadataDetails.toUpdate,
-        })
-
-        const hashedMetadata = SHA256(JSON.stringify(newBadgeMetadataDetails.metadata)).toString();
-        hashTable.set(hashedMetadata, currBadgeMetadata.length - 1);
-      }
-    }
-  }
-
-  currBadgeMetadata = currBadgeMetadata.filter((val) => val && val.badgeIds.length > 0);
-  return currBadgeMetadata;
-}
-
-const updateCollection = (state = initialState, newCollection: BitBadgesCollection<DesiredNumberType>) => {
+const updateCollection = (state = initialState, newCollection: BitBadgesCollection<DesiredNumberType>, isUpdate: boolean) => {
   const collections = state.collections;
+  const currCollectionState = collections[`${newCollection.collectionId}`];
 
-  let cachedCollection = collections[`${newCollection.collectionId}`];
+  let cachedCollection = currCollectionState ? deepCopy(convertBitBadgesCollection(currCollectionState, BigIntify)) : undefined;
 
   const cachedCollectionCopy = deepCopy(cachedCollection);
 
@@ -124,25 +23,33 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     //TODO: No idea why the deep copy is necessary but it breaks the timeline batch updates for existing collections if not
     //      One place to look: somehow, I think that the indivudal elements in .badgeIds are the same object (cached[0].badgeIds === new[0].badgeIds)
     //      I think the cachedCollection deepCopy is the important one, but I'm not sure
-    let newBadgeMetadata = batchUpdateBadgeMetadata(deepCopy(cachedCollection.cachedBadgeMetadata), deepCopy(newCollection.cachedBadgeMetadata));
-    const newViews = cachedCollection?.views || {};
-    for (const [key, val] of Object.entries(newCollection.views)) {
-      if (!val) continue;
 
-      newViews[key] = {
-        ids: [...(newViews[key]?.ids || []), ...(val?.ids || []),],
-        pagination: {
-          ...val.pagination,
-          total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-        },
-        type: val.type
+    let newBadgeMetadata = newCollection.cachedBadgeMetadata
+      ? !isUpdate ? deepCopy(newCollection.cachedBadgeMetadata) : batchUpdateBadgeMetadata(cachedCollection.cachedBadgeMetadata, deepCopy(newCollection.cachedBadgeMetadata))
+      : cachedCollection.cachedBadgeMetadata;
+
+
+    const newViews = cachedCollection?.views || {};
+    if (newCollection.views) {
+      for (const [key, val] of Object.entries(newCollection.views)) {
+        if (!val) continue;
+
+        newViews[key] = {
+          ids: [...(newViews[key]?.ids || []), ...(val?.ids || []),],
+          pagination: {
+            ...val.pagination,
+            total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
+          },
+          type: val.type
+        }
       }
     }
 
     //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
     cachedCollection = {
+      ...cachedCollection,
       ...newCollection,
-      cachedCollectionMetadata: newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
+      cachedCollectionMetadata: !isUpdate ? newCollection.cachedCollectionMetadata : newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
       cachedBadgeMetadata: newBadgeMetadata,
       reviews: [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])],
       announcements: [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])],
@@ -174,20 +81,47 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
-      return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: cachedCollection } };
+      return {
+        ...state,
+        collections: {
+          ...collections,
+          [`${newCollection.collectionId}`]: convertBitBadgesCollection(cachedCollection, Stringify)
+        }
+      };
     }
 
     return state;
+
   } else {
-    return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: newCollection } };
+    return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: convertBitBadgesCollection(newCollection, Stringify) } };
   }
 }
 
 export const collectionReducer = (state = initialState, action: { type: string; payload: any }): CollectionReducerState => {
   switch (action.type) {
     case 'UPDATE_COLLECTIONS':
-      const newCollection = action.payload.newCollection as BitBadgesCollection<DesiredNumberType>;
-      return updateCollection(state, newCollection);
+      const onlyUpdateProvidedFields = action.payload.onlyUpdateProvidedFields as boolean;
+      const currCollection = state.collections[`${action.payload.newCollection.collectionId}`];
+
+      if (!onlyUpdateProvidedFields) {
+        const newCollection = action.payload.newCollection as BitBadgesCollection<DesiredNumberType>;
+        return updateCollection(state, newCollection, false);
+      }
+
+      if (currCollection && onlyUpdateProvidedFields) {
+        const newCollection = {
+          ...convertBitBadgesCollection(currCollection, BigIntify),
+          ...action.payload.newCollection,
+          collectionPermissions: {
+            ...currCollection.collectionPermissions,
+            ...action.payload.newCollection.collectionPermissions
+          }
+        };
+        return updateCollection(state, deepCopy(newCollection), true);
+      }
+
+
+      throw new Error("Collection not found and onlyUpdateProvidedFields is true");
     default:
       return state;
   }

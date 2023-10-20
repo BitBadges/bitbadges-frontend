@@ -31,7 +31,7 @@ export function BadgeIdRangesInput({
   fullWidthCards?: boolean
   hideNumberSelects?: boolean
 }) {
-  uintRangeBounds = uintRangeBounds ? sortUintRangesAndMergeIfNecessary(uintRangeBounds) : undefined;
+  uintRangeBounds = uintRangeBounds ? sortUintRangesAndMergeIfNecessary(uintRangeBounds, true) : undefined;
 
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
@@ -256,7 +256,7 @@ export function BadgeIdRangesInput({
             style={{ width: 200 }}
             className="landing-button"
             onClick={() => {
-              const newUintRanges = sortUintRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })));
+              const newUintRanges = sortUintRangesAndMergeIfNecessary(sliderValues.map(([start, end]) => ({ start, end })), true)
 
               setNumRanges(newUintRanges.length);
               setSliderValues(newUintRanges.map(({ start, end }) => [start, end]));

@@ -1,20 +1,20 @@
-import { Empty, Form, Input, Typography } from "antd";
-import { MerkleChallengeDetails } from "bitbadgesjs-utils";
+import { Form, Input, Typography } from "antd";
+import { ApprovalInfoDetails } from "bitbadgesjs-utils";
 import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 export function ClaimMetadataSelect({
   merkleChallengeDetails,
   setMerkleChallengeDetails,
 }: {
-  merkleChallengeDetails: MerkleChallengeDetails<bigint> | undefined,
-  setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
+  merkleChallengeDetails: ApprovalInfoDetails<bigint> | undefined,
+  setMerkleChallengeDetails: (merkleChallengeDetails: ApprovalInfoDetails<bigint>) => void,
 }) {
   return <>{ClaimMetadataSelectSelectStep(merkleChallengeDetails, setMerkleChallengeDetails).description}</>
 }
 
 export function ClaimMetadataSelectSelectStep(
-  merkleChallengeDetails: MerkleChallengeDetails<bigint> | undefined,
-  setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
+  merkleChallengeDetails: ApprovalInfoDetails<bigint> | undefined,
+  setMerkleChallengeDetails: (merkleChallengeDetails: ApprovalInfoDetails<bigint>) => void,
 ) {
   if (!merkleChallengeDetails) return EmptyStepItem
 

@@ -11,7 +11,6 @@ export async function broadcastTransaction(txRaw: TxToSend) {
     generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
   )
 
-  console.log(res);
   // let res = broadcastPost.data;
   if (DEV_MODE) console.log("Tx Response:", res)
 

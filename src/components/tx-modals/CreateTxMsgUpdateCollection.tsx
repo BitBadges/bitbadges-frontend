@@ -3,7 +3,7 @@ import { CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } 
 import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, OffChainBalancesMap, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { addBalancesToOffChainStorage, addMerkleChallengeToIpfs, addMetadataToIpfs } from '../../bitbadges-api/api';
+import { addBalancesToOffChainStorage, addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -24,7 +24,7 @@ export function CreateTxMsgUpdateCollectionModal(
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const collectionId = txTimelineContext.existingCollectionId ?? MSG_PREVIEW_ID;
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const msg: MsgUpdateCollection<bigint> = {
     creator: chain.cosmosAddress,
@@ -182,37 +182,31 @@ export function CreateTxMsgUpdateCollectionModal(
     if (collection.collectionApprovals?.length > 0 && txTimelineContext.updateCollectionApprovals) {
       if (simulate) {
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
-          const approvalCriteria = collection.collectionApprovals[i].approvalCriteria;
-          if (approvalCriteria && approvalCriteria.merkleChallenge) {
-            if (approvalCriteria.merkleChallenge?.uri) continue;
-            approvalCriteria.merkleChallenge.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
+          const approval = collection.collectionApprovals[i];
+          if (approval.details && !approval.uri) {
+            approval.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
           }
+
+
         }
       } else {
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
-          const approvalCriteria = collection.collectionApprovals[i].approvalCriteria;
-          if (approvalCriteria && approvalCriteria.merkleChallenge) {
-            if (approvalCriteria.merkleChallenge.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
-              approvalCriteria.merkleChallenge.uri = '';
-            }
+          const approval = collection.collectionApprovals[i];
+          if (approval.details && (
+            approval.details?.name || approval.details?.description
+            || approval.details?.challengeDetails
+            || approval.details?.password
+          ) && approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
+            console.log(approval.uri);
+            let res = await addApprovalDetailsToOffChainStorage({
+              name: approval.details?.name || '',
+              description: approval.details?.description || '',
+              challengeDetails: approval.details?.challengeDetails,
+            });
 
-            if (approvalCriteria.merkleChallenge.uri) continue; //If it already has a URI, we don't need to add it to IPFS
-
-            if (approvalCriteria.merkleChallenge.details && (approvalCriteria.merkleChallenge.details?.name || approvalCriteria.merkleChallenge.details?.description
-              || approvalCriteria.merkleChallenge.details?.challengeDetails
-              || approvalCriteria.merkleChallenge.details?.password
-            )) {
-              let res = await addMerkleChallengeToIpfs({
-                name: approvalCriteria.merkleChallenge.details?.name || '',
-                description: approvalCriteria.merkleChallenge.details?.description || '',
-                challengeDetails: approvalCriteria.merkleChallenge.details?.challengeDetails,
-              });
-
-              approvalCriteria.merkleChallenge.uri = 'ipfs://' + res.result.cid;
-            }
+            approval.uri = 'ipfs://' + res.result.cid;
           }
         }
-
       }
     }
     if (!txTimelineContext.updateOffChainBalancesMetadataTimeline) {
@@ -261,7 +255,7 @@ export function CreateTxMsgUpdateCollectionModal(
                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                 offChainBalancesMetadata: {
                   uri: res.uri,
-                  customData: '',
+                  customData: res.uri.split('/').pop() ?? '',
                 },
               }];
             } else throw new Error('Off-chain balances not added');

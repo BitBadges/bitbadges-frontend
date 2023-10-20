@@ -18,7 +18,7 @@ export function ConfirmManagerStepItem() {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const canUpdateManager = txTimelineContext.updateManagerTimeline;
@@ -44,7 +44,7 @@ export function ConfirmManagerStepItem() {
   return {
     title: 'Manager',
     disabled: !!err,
-    description: <>{'The manager is a special role which can have custom admin privileges. See full list of privileges '}
+    description: <>{'The manager is a special role which can have custom admin privileges where applicable. See full list of privileges '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a>
@@ -75,12 +75,12 @@ export function ConfirmManagerStepItem() {
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       managerTimeline: [],
                     })
                   } else {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       managerTimeline: [{
                         manager: convertToCosmosAddress(address),
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -131,7 +131,7 @@ export function ConfirmManagerStepItem() {
                             console.log("USER SELECT")
                             setAddress(address);
                             collections.updateCollection({
-                              ...collection,
+                              collectionId: MSG_PREVIEW_ID,
                               managerTimeline: [{
                                 manager: convertToCosmosAddress(address),
                                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],

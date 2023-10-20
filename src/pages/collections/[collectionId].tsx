@@ -34,7 +34,7 @@ function CollectionPage({
   const isPreview = collectionPreview ? true : false;
 
   const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? MSG_PREVIEW_ID : -1n;
-  const collection = collections.collections[collectionIdNumber.toString()]
+  const collection = collections.getCollection(collectionIdNumber)
   const badgeIdNumber = badgeId && typeof badgeId === 'string' ? BigInt(badgeId) : -1;
 
   const [tab, setTab] = useState(badgeIdNumber > 0 ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
@@ -164,7 +164,7 @@ function CollectionPage({
               fetchMore={async () => {
                 await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
               }}
-              hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestReviews?.pagination.hasMore ?? true}
+              hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
             />
           )}
 
@@ -187,7 +187,7 @@ function CollectionPage({
               fetchMore={async () => {
                 await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
               }}
-              hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestActivity?.pagination.hasMore ?? true}
+              hasMore={collections.getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore ?? true}
             />
           )}
 
@@ -198,7 +198,7 @@ function CollectionPage({
                 fetchMore={async () => {
                   await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
                 }}
-                hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestAnnouncements?.pagination.hasMore ?? true}
+                hasMore={collections.getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
               />
             </>
           )}

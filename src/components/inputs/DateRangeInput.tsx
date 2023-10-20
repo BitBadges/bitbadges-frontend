@@ -89,7 +89,7 @@ export function DateRangeInput({
                 style={{ width: 200 }}
                 className="landing-button"
                 onClick={() => {
-                  const newUintRanges = sortUintRangesAndMergeIfNecessary(timeRanges);
+                  const newUintRanges = sortUintRangesAndMergeIfNecessary(timeRanges, true);
 
                   setTimeRanges(newUintRanges);
                 }}>

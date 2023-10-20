@@ -1,27 +1,25 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { ApprovalPermissionUsedFlags, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { Divider } from "antd";
+import { deepCopy } from "bitbadgesjs-proto";
+import { getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
-import { PermissionIcon } from "../../collection-page/PermissionsInfo";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { ErrDisplay } from "../form-items/ErrDisplay";
-import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { Divider } from "antd";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { AddressMapping, deepCopy } from "bitbadgesjs-proto";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { compareObjects } from "../../../utils/compare";
+import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function TransferabilitySelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const existingCollectionId = txTimelineContext.existingCollectionId;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
   const approvalsToAdd = txTimelineContext.approvalsToAdd;
@@ -33,11 +31,11 @@ export function TransferabilitySelectStepItem() {
 
   const transferableApproval = {
     fromMappingId: 'AllWithoutMint',
-    fromMapping: getReservedAddressMapping("AllWithoutMint") as AddressMapping,
+    fromMapping: getReservedAddressMapping("AllWithoutMint"),
     toMappingId: "AllWithMint",
-    toMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+    toMapping: getReservedAddressMapping("AllWithMint"),
     initiatedByMappingId: "AllWithMint",
-    initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+    initiatedByMapping: getReservedAddressMapping("AllWithMint"),
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -49,28 +47,17 @@ export function TransferabilitySelectStepItem() {
   return {
     title: `Transferability - Post-Minting`,
     // description: 
-    description: <>{`Excluding transfers from the Mint address, should badges be transferable or non-transferable?`}
-      <br /><br />
-      {existingCollectionId ? <> {`Current Permission - Can Update Transferability?: `}
-        {
-          PermissionIcon(
-            "canUpdateCollectionApprovals",
-            castCollectionApprovalPermissionToUniversalPermission(startingCollection?.collectionPermissions.canUpdateCollectionApprovals ?? []), ApprovalPermissionUsedFlags
-          )
-        }
-      </> : <></>}
-
-    </>,
+    description: <>{`Excluding transfers from the Mint address, should badges be transferable or non-transferable?`}</>,
     node: <UpdateSelectWrapper
       updateFlag={updateCollectionApprovals}
       setUpdateFlag={setUpdateCollectionApprovals}
       jsonPropertyPath='collectionApprovals'
       permissionName='canUpdateCollectionApprovals'
       customRevertFunction={() => {
-        const existingNonMint = startingCollection ? getNonMintApprovals(startingCollection, true) : [];
+        const existingNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
 
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionApprovals: [
             ...approvalsToAdd,
             ...existingNonMint
@@ -88,12 +75,13 @@ export function TransferabilitySelectStepItem() {
               {
                 title: 'Non-Transferable',
                 message: 'Badges cannot be transferred between users.',
-                isSelected: getNonMintApprovals(collection, true).length === 0
+                isSelected: getNonMintApprovals(collection).length === 0
               },
               {
                 title: 'Transferable',
                 message: `Badges can be transferred between users.`,
-                isSelected: getNonMintApprovals(collection, true).length === 1 && compareObjects(getNonMintApprovals(collection, true)[0], transferableApproval)
+                isSelected: getNonMintApprovals(collection).length === 1 && approvalCriteriaHasNoAdditionalRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
+                  && approvalCriteriaHasNoAmountRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
               },
 
             ]}

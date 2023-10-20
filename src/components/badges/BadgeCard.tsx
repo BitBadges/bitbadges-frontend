@@ -21,7 +21,7 @@ export function BadgeCard({
 }) {
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
 
   //Calculate total, undistributed, claimable, and distributed supplys

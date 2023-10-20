@@ -14,7 +14,7 @@ export function BeforeAfterPermission({
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   let castFunction: any = () => { }
   let flags;
@@ -68,7 +68,6 @@ export function BeforeAfterPermission({
           <br />
           <br />
           {PermissionDisplay(
-            permissionName,
             castFunction(oldPermissions as any), flags as any
           )}
         </Col>}
@@ -80,7 +79,6 @@ export function BeforeAfterPermission({
 
           <br />
           {PermissionDisplay(
-            permissionName,
             castFunction(newPermissions as any), flags as any
           )}
         </Col>
@@ -99,7 +97,7 @@ export function AfterPermission({
   onFreezePermitted?: (frozen: boolean) => void
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   let castFunction: any = () => { }
   let flags;
@@ -148,7 +146,6 @@ export function AfterPermission({
 
       <Col md={24} xs={24} style={{ textAlign: 'center' }}>
         {PermissionDisplay(
-          permissionName,
           castFunction(newPermissions as any), flags as any,
           undefined,
           undefined,

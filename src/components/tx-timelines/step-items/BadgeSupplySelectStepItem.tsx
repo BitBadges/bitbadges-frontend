@@ -13,7 +13,7 @@ import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 export function BadgeSupplySelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[0n.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -36,7 +36,7 @@ export function BadgeSupplySelectStepItem() {
     }]);
 
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       cachedBadgeMetadata: newBadgeMetadata
     });
 
@@ -90,7 +90,7 @@ export function BadgeSupplySelectStepItem() {
 
               const newBadgesToCreate = deepCopyBalances([...badgesToCreate, balance])
               const prevNumberOfBadges = startingCollection ? getTotalNumberOfBadges(startingCollection) : 0n;
-              const maxBadgeIdAdded = sortUintRangesAndMergeIfNecessary(newBadgesToCreate.map(x => x.badgeIds).flat()).pop()?.end || 0n;
+              const maxBadgeIdAdded = sortUintRangesAndMergeIfNecessary(newBadgesToCreate.map(x => x.badgeIds).flat(), true).pop()?.end || 0n;
 
               const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, {
                 metadata: DefaultPlaceholderMetadata,
@@ -98,7 +98,7 @@ export function BadgeSupplySelectStepItem() {
               });
 
               collections.updateCollection({
-                ...collection,
+                collectionId: MSG_PREVIEW_ID,
                 cachedBadgeMetadata: newBadgeMetadata
               });
 

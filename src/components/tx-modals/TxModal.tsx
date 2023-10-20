@@ -1,20 +1,19 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
-import { BigIntify, CosmosCoin, Numberify, Stringify, TransactionStatus } from 'bitbadgesjs-utils';
+import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { getStatus, simulateTx } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
 import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { convertTransfer } from 'bitbadgesjs-proto';
 
 const { Step } = Steps;
 
@@ -48,7 +47,6 @@ export function TxModal(
   const router = useRouter();
   const statusContext = useStatusContext();
 
-  const [checked, setChecked] = useState(false);
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
   const [betaChecked, setBetaChecked] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -165,7 +163,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [txCosmosMsg, currentStep, visible, createTxFunction, chain, signedInAccount, beforeTx, msgSteps, gasPrice]);
+  }, [txCosmosMsg, currentStep, visible, createTxFunction, signedInAccount?.cosmosAddress, beforeTx, msgSteps, gasPrice]);
 
   useEffect(() => {
     if (!visible) return
@@ -252,11 +250,28 @@ export function TxModal(
 
       //Wait for transaction to be included in block and indexer to process that block
       let currIndexerHeight = 0n;
+      let maxTries = 60;
+      let numTries = 0;
       while (currIndexerHeight < Numberify(msgResponse.tx_response.height)) {
         if (currIndexerHeight != 0n) await new Promise(resolve => setTimeout(resolve, 1000));
 
         const response = await getStatus();
         currIndexerHeight = response.status.block.height;
+
+        numTries++;
+
+
+        if (numTries > maxTries) {
+          notification.info({
+            message: 'Heavy Load',
+            description: `BitBadges is experiencing heavy load currently. Your transaction was processed on the blockchain, but our servers are running slowly. Please check back later.`,
+            duration: 0
+          });
+
+          router.push('/');
+          setTransactionStatus(TransactionStatus.None);
+          return;
+        }
       }
 
       await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
@@ -377,18 +392,6 @@ export function TxModal(
 
 
         <div className='flex-center'>
-          <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }}>
-            I will confirm that all transaction details are as desired when signing the transaction.
-          </Typography.Text>
-        </div>
-        <div className='flex-center'>
-          <Checkbox
-            checked={checked}
-            onChange={(e) => setChecked(e.target.checked)}
-          />
-        </div>
-        <br />
-        <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
             I understand that this is a beta version of BitBadges, and there may be bugs.
           </Typography.Text>
@@ -481,7 +484,7 @@ export function TxModal(
       }}
       onOk={handleSubmitTx}
       okButtonProps={{
-        disabled: transactionStatus != TransactionStatus.None || currentStep != (msgSteps ?? []).length || !txDetails || exceedsBalance || (!checked || !irreversibleChecked || !betaChecked || disabled),
+        disabled: transactionStatus != TransactionStatus.None || currentStep != (msgSteps ?? []).length || !txDetails || exceedsBalance || (!irreversibleChecked || !betaChecked || disabled),
         loading: transactionStatus != TransactionStatus.None
       }}
       onCancel={() => {

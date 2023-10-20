@@ -3,14 +3,14 @@ import { faThumbTack } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, convertToCosmosAddress, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadgeIds } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
@@ -39,7 +39,7 @@ function PortfolioPage() {
 
 
   const { addressOrUsername } = router.query;
-  const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
+  const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
   const [tab, setTab] = useState(
     accountInfo?.readme ? 'overview' :
       'collected');
@@ -465,7 +465,7 @@ function PortfolioPage() {
 
           <div className='full-width flex-center flex-wrap'>
             {filteredCollections.map((filteredCollection, idx) => {
-              const collection = collections.collections[filteredCollection.collectionId.toString()];
+              const collection = collections.getCollection(filteredCollection.collectionId);
               const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
                 : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
               return <Tag

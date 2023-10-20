@@ -19,7 +19,7 @@ export function BalanceOverview({ collectionId, badgeId }: {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${collectionId}`];
+  const collection = collections.getCollection(collectionId);
 
   const isPreview = collectionId === MSG_PREVIEW_ID;
 

@@ -1,10 +1,9 @@
-import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalancesForId, getMetadataDetailsForBadgeId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { Balance, UintRange } from "bitbadgesjs-proto";
+import { Numberify, getBadgesToDisplay, getBalancesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useEffect, useRef, useState } from "react";
+import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
-import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
-import { compareObjects } from "../../utils/compare";
 import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
@@ -56,7 +55,6 @@ export function BadgeAvatarDisplay({
   const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
-  const currPreviewCollection = collections.collections[MSG_PREVIEW_ID.toString()];
 
   const userBalance = balance ? balance : undefined;
 
@@ -97,7 +95,7 @@ export function BadgeAvatarDisplay({
           sortUintRangesAndMergeIfNecessary(
             badgeIds.filter((badgeId, idx) => {
               return badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
-            })),
+            }), true),
         collectionId: collectionId
       }
     ], currPage, newPageSize);
@@ -112,8 +110,7 @@ export function BadgeAvatarDisplay({
     async function updateMetadata() {
       if (doNotFetchMetadata) return;
 
-      if (collectionId > 0n || (collectionId === 0n && fetchDirectly)
-      ) {
+      if (collectionId > 0n || (collectionId === 0n && fetchDirectly)) {
         await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       } else if (collectionId === 0n) {
         const existingCollectionId = txTimelineContext.existingCollectionId;

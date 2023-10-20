@@ -6,6 +6,7 @@ import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalHasApprovalAmounts } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
@@ -17,13 +18,11 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { BadgeIdRangesInput } from '../inputs/BadgeIdRangesInput';
 import { BalanceAmountInput } from '../inputs/BalanceAmountInput';
+import { BalanceInput } from '../inputs/BalanceInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { BalanceInput } from '../inputs/BalanceInput';
-import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
 const crypto = require('crypto');
 
@@ -53,7 +52,7 @@ const minNonZeroValue = (values: bigint[]) => {
 const getMaxIncrementsApplied = (
   approvalToAdd: RequiredApprovalProps,
 ) => {
-  const checkedKeyId = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(([key, val]) => val === true)?.[0];
+  const checkedKeyId = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(([, val]) => val === true)?.[0];
   let maxIncrementsApplied = 0n;
   if (checkedKeyId === 'useOverallNumTransfers' || checkedKeyId === 'useMerkleChallengeLeafIndex') {
     maxIncrementsApplied = approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers;
@@ -98,7 +97,7 @@ const getAllApprovedBadges = (
         incrementBadgeIdsBy: increment > 0 ? increment : 0n,
         incrementOwnershipTimesBy: 0n,
       }
-    ], true).map(x => x.badgeIds).flat());
+    ], true).map(x => x.badgeIds).flat(), true);
     return allApprovedBadges;
   }
 }
@@ -169,7 +168,7 @@ const OrderCalculationMethod = ({ approvalToAdd,
       }}
     />
   </>
-  }></TableRow>
+  } />
     {
       <div style={{ textAlign: 'start', marginLeft: 10, marginBottom: 10 }}>
         <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
@@ -343,12 +342,12 @@ const AddressMappingSelectComponent = ({
     });
   }
 
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
   const lockedBadges = getPermissionDetails(
     castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []),
     BalancesActionPermissionUsedFlags
   );
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]]);
+  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
   const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
 
   return <>
@@ -425,7 +424,7 @@ const MaxUses = ({ label, disabled, type,
       disabled={disabled}
     />
   </>
-  }></TableRow>
+  } />
     {trackedBehindTheScenes && <div style={{ marginLeft: 10, textAlign: 'start' }}>
       <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
         <InfoCircleOutlined /> Even if no max is set, this value is tracked behind the scenes (due to the selected method of assigning partitions).
@@ -487,7 +486,7 @@ const ApprovalAmounts = ({ label, disabled, type, approvalToAdd, setApprovalToAd
     />
 
   </>
-  }></TableRow>
+  } />
     {approvedAmount > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
       <NumberInput
 
@@ -543,7 +542,7 @@ export function ApprovalSelect({
   plusButton?: boolean;
   hideRemaining?: boolean;
   setVisible?: (visible: boolean) => void;
-  defaultApproval?: CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> };
+  defaultApproval?: CollectionApprovalWithDetails<bigint>
   showMintingOnlyFeatures?: boolean;
   approvalsToAdd: CollectionApprovalWithDetails<bigint>[];
   setApprovalsToAdd: (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => void;
@@ -552,8 +551,6 @@ export function ApprovalSelect({
   approvalPermissions: CollectionApprovalPermissionWithDetails<bigint>[]
 }) {
   const nonMintOnlyApproval = defaultFromMapping?.mappingId === 'AllWithoutMint';
-  const status = useStatusContext();
-  const [mustOwnCollectionId, setMustOwnCollectionId] = useState<bigint>(collectionId);
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(false);
   const [codeType, setCodeType] = useState(CodeType.None);
   const mustEditApprovalIds = !defaultApproval;
@@ -561,83 +558,83 @@ export function ApprovalSelect({
   const [editApprovalIds, setEditApprovalIds] = useState(false);
   const [claimPassword, setClaimPassword] = useState('');
 
-  const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
-  const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> } =
-    defaultApproval ?? {
-      fromMappingId: defaultFromMapping ? defaultFromMapping.mappingId : 'Mint',
-      fromMapping: defaultFromMapping ? defaultFromMapping : getReservedAddressMapping("Mint") as AddressMapping,
-      toMappingId: defaultToMapping ? defaultToMapping.mappingId : 'AllWithoutMint',
-      toMapping: defaultToMapping ? defaultToMapping : getReservedAddressMapping("AllWithoutMint") as AddressMapping,
-      initiatedByMappingId: defaultInitiatedByMapping ? defaultInitiatedByMapping.mappingId : 'AllWithMint',
-      initiatedByMapping: defaultInitiatedByMapping ? defaultInitiatedByMapping : getReservedAddressMapping("AllWithMint") as AddressMapping,
-      transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      badgeIds: [],
-      approvalId: '',
-      amountTrackerId: '',
-      challengeTrackerId: '',
-      approvalCriteria: {
-        mustOwnBadges: [],
-        approvalAmounts: {
-          overallApprovalAmount: 0n,
-          perFromAddressApprovalAmount: 0n,
-          perToAddressApprovalAmount: 0n,
-          perInitiatedByAddressApprovalAmount: 0n,
+  const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> } = {
+    fromMappingId: defaultFromMapping ? defaultFromMapping.mappingId : 'Mint',
+    fromMapping: defaultFromMapping ? defaultFromMapping : getReservedAddressMapping("Mint"),
+    toMappingId: defaultToMapping ? defaultToMapping.mappingId : 'AllWithoutMint',
+    toMapping: defaultToMapping ? defaultToMapping : getReservedAddressMapping("AllWithoutMint"),
+    initiatedByMappingId: defaultInitiatedByMapping ? defaultInitiatedByMapping.mappingId : 'AllWithMint',
+    initiatedByMapping: defaultInitiatedByMapping ? defaultInitiatedByMapping : getReservedAddressMapping("AllWithMint"),
+    transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    badgeIds: [],
+    approvalId: '',
+    amountTrackerId: '',
+    challengeTrackerId: '',
+    details: {
+      name: '',
+      description: '',
+      hasPassword: false,
+      challengeDetails: {
+        leavesDetails: {
+          leaves: [],
+          isHashed: false,
         },
-        maxNumTransfers: {
-          overallMaxNumTransfers: 0n,
-          perFromAddressMaxNumTransfers: 0n,
-          perToAddressMaxNumTransfers: 0n,
-          perInitiatedByAddressMaxNumTransfers: 0n,
-        },
-        predeterminedBalances: {
-          manualBalances: [],
-          incrementedBalances: {
-            startBalances: [],
-            incrementBadgeIdsBy: 0n,
-            incrementOwnershipTimesBy: 0n,
-          },
-          orderCalculationMethod: {
-            useMerkleChallengeLeafIndex: false,
-            useOverallNumTransfers: false,
-            usePerFromAddressNumTransfers: false,
-            usePerInitiatedByAddressNumTransfers: false,
-            usePerToAddressNumTransfers: false,
-          },
-        },
-        merkleChallenge: {
-          root: '',
-          expectedProofLength: 0n,
-          details: {
-            name: '',
-            description: '',
-            hasPassword: false,
-            challengeDetails: {
-              leavesDetails: {
-                leaves: [],
-                isHashed: false,
-              },
-            }
-          },
-          useCreatorAddressAsLeaf: false,
-          maxUsesPerLeaf: 1n,
-          uri: '',
-          customData: '',
-        }, //handled later
-        requireToEqualsInitiatedBy: false,
-        requireFromEqualsInitiatedBy: false,
-        requireToDoesNotEqualInitiatedBy: false,
-        requireFromDoesNotEqualInitiatedBy: false,
-
-        overridesToIncomingApprovals: false,
-        overridesFromOutgoingApprovals: true,
       }
+    },
+    approvalCriteria: {
+      mustOwnBadges: [],
+      approvalAmounts: {
+        overallApprovalAmount: 0n,
+        perFromAddressApprovalAmount: 0n,
+        perToAddressApprovalAmount: 0n,
+        perInitiatedByAddressApprovalAmount: 0n,
+      },
+      maxNumTransfers: {
+        overallMaxNumTransfers: 0n,
+        perFromAddressMaxNumTransfers: 0n,
+        perToAddressMaxNumTransfers: 0n,
+        perInitiatedByAddressMaxNumTransfers: 0n,
+      },
+      predeterminedBalances: {
+        manualBalances: [],
+        incrementedBalances: {
+          startBalances: [],
+          incrementBadgeIdsBy: 0n,
+          incrementOwnershipTimesBy: 0n,
+        },
+        orderCalculationMethod: {
+          useMerkleChallengeLeafIndex: false,
+          useOverallNumTransfers: false,
+          usePerFromAddressNumTransfers: false,
+          usePerInitiatedByAddressNumTransfers: false,
+          usePerToAddressNumTransfers: false,
+        },
+      },
+      merkleChallenge: {
+        root: '',
+        expectedProofLength: 0n,
+
+        useCreatorAddressAsLeaf: false,
+        maxUsesPerLeaf: 1n,
+        uri: '',
+        customData: '',
+      }, //handled later
+      requireToEqualsInitiatedBy: false,
+      requireFromEqualsInitiatedBy: false,
+      requireToDoesNotEqualInitiatedBy: false,
+      requireFromDoesNotEqualInitiatedBy: false,
+
+      overridesToIncomingApprovals: false,
+      overridesFromOutgoingApprovals: true,
+
+      ...defaultApproval
     }
+  }
 
 
 
@@ -659,13 +656,10 @@ export function ApprovalSelect({
   const mustOwnBadges = approvalToAdd?.approvalCriteria?.mustOwnBadges || [];
   const setMustOwnBadges = (mustOwnBadges: MustOwnBadges<bigint>[]) => { setApprovalToAdd({ ...approvalToAdd, approvalCriteria: { ...approvalToAdd.approvalCriteria, mustOwnBadges } }) };
 
-  const numPerToAddress = approvalToAdd?.approvalCriteria?.maxNumTransfers?.perToAddressMaxNumTransfers || 0n;
-  const numPerInitiatedByAddress = approvalToAdd?.approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers || 0n;
   const requireToEqualsInitiatedBy = approvalToAdd?.approvalCriteria?.requireToEqualsInitiatedBy || false;
   const requireToDoesNotEqualInitiatedBy = approvalToAdd?.approvalCriteria?.requireToDoesNotEqualInitiatedBy || false;
   const requireFromEqualsInitiatedBy = approvalToAdd?.approvalCriteria?.requireFromEqualsInitiatedBy || false;
   const requireFromDoesNotEqualInitiatedBy = approvalToAdd?.approvalCriteria?.requireFromDoesNotEqualInitiatedBy || false;
-  const orderMatters = approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod?.useMerkleChallengeLeafIndex;
   const increment = approvalToAdd?.approvalCriteria?.predeterminedBalances?.incrementedBalances?.incrementBadgeIdsBy || 0n;
   const startBalances = approvalToAdd?.approvalCriteria.predeterminedBalances?.incrementedBalances?.startBalances || [];
 
@@ -777,7 +771,7 @@ export function ApprovalSelect({
                   }
                 });
               }}
-            />}></TableRow>}
+            />} />}
             <TableRow labelSpan={16} valueSpan={8} label={'Sender must be initiator?'} value={<Switch
               checked={requireFromEqualsInitiatedBy}
               onChange={(checked) => {
@@ -790,7 +784,7 @@ export function ApprovalSelect({
                 });
               }}
               disabled={fromMappingLocked}
-            />}></TableRow>
+            />} />
             <TableRow labelSpan={16} valueSpan={8} label={'Sender must not be initiator?'} value={<Switch
               checked={requireFromDoesNotEqualInitiatedBy}
               onChange={(checked) => {
@@ -803,7 +797,7 @@ export function ApprovalSelect({
                 });
               }}
               disabled={fromMappingLocked}
-            />}></TableRow>
+            />} />
 
             {requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy && <div style={{ color: 'red' }}>Sender cannot be both initiator and not initiator.</div>}
 
@@ -833,7 +827,7 @@ export function ApprovalSelect({
                   }
                 });
               }}
-            />}></TableRow>}
+            />} />}
             <TableRow labelSpan={16} valueSpan={8} label={'Recipient must be initiator?'} value={<Switch
               disabled={toMappingLocked}
               checked={requireToEqualsInitiatedBy}
@@ -846,7 +840,7 @@ export function ApprovalSelect({
                   }
                 });
               }}
-            />}></TableRow>
+            />} />
             <TableRow labelSpan={16} valueSpan={8} label={'Recipient must not be initiator?'} value={<Switch
               disabled={toMappingLocked}
               checked={requireToDoesNotEqualInitiatedBy}
@@ -859,7 +853,7 @@ export function ApprovalSelect({
                   }
                 });
               }}
-            />}></TableRow>
+            />} />
             {requireToDoesNotEqualInitiatedBy && requireToEqualsInitiatedBy && <div style={{ color: 'red' }}>Recipient cannot be both initiator and not initiator.</div>}
             {requireFromEqualsInitiatedBy && requireToEqualsInitiatedBy && <div style={{ color: 'red' }}>Recipient cannot be sender, recipient, and initiator.</div>}
             <MaxUses disabled={toMappingLocked} approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per recipient'} type='to' />
@@ -880,7 +874,7 @@ export function ApprovalSelect({
                     setDistributionMethod(DistributionMethod.None);
                   }
                 }} />
-            }></TableRow>}
+            } />}
 
 
             {showMintingOnlyFeatures && !initiatedByMappingLocked &&
@@ -921,8 +915,7 @@ export function ApprovalSelect({
                   />
                 </div>
               </>
-              }>
-              </TableRow>}
+              } />}
 
 
             {distributionMethod === DistributionMethod.Codes && <>
@@ -980,7 +973,7 @@ export function ApprovalSelect({
                   }}
                 />
               </>
-              }></TableRow>
+              } />
             {showMustOwnBadges &&
               <InformationDisplayCard noBorder inheritBg
                 title={''}
@@ -1255,17 +1248,11 @@ export function ApprovalSelect({
             />
 
           </InformationDisplayCard>
-          <InformationDisplayCard noBorder inheritBg title='Approval Info' md={8} xs={24} sm={24} subtitle='Provide additional details for the approval.'>
-            <ClaimMetadataSelect merkleChallengeDetails={approvalToAdd.approvalCriteria.merkleChallenge?.details} setMerkleChallengeDetails={(details) => {
+          <InformationDisplayCard noBorder inheritBg title='Approval Info' md={8} xs={24} sm={24} subtitle=''>
+            <ClaimMetadataSelect merkleChallengeDetails={approvalToAdd.details} setMerkleChallengeDetails={(details) => {
               setApprovalToAdd({
                 ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  merkleChallenge: {
-                    ...approvalToAdd.approvalCriteria.merkleChallenge,
-                    details,
-                  }
-                }
+                details,
               });
             }} />
 
@@ -1277,17 +1264,14 @@ export function ApprovalSelect({
               onChange={(checked) => {
                 setAutoGenerateIds(checked);
               }}
-            />}>
-
-            </TableRow>
+            />} />
             {!autoGenerateIds && !mustEditApprovalIds && <div style={{ textAlign: 'center' }}>
               <TableRow labelSpan={16} valueSpan={8} label={'Edit approval IDs (advanced)?'} value={<Switch
                 checked={editApprovalIds}
                 onChange={(checked) => {
                   setEditApprovalIds(checked);
                 }}
-              />}>
-              </TableRow>
+              />} />
             </div>}
             {autoGenerateIds && <div style={{ textAlign: 'center' }}>
               <div style={{ textAlign: 'center' }}>
@@ -1408,23 +1392,47 @@ export function ApprovalSelect({
           const codesTree = new MerkleTree(hashedCodes, SHA256, treeOptions);
           const codesRoot = codesTree.getRoot().toString('hex');
 
-          const merkleChallenge: any = {};
+          const merkleChallenge: any = {
+            root: '',
+            expectedProofLength: 0n,
+            uri: '',
+            customData: '',
+            useCreatorAddressAsLeaf: false,
+            maxUsesPerLeaf: 0n,
+
+          };
+
+          const details = {
+            challengeDetails: {
+              leavesDetails: {
+                leaves: [],
+                isHashed: false
+              }
+            },
+            name: newApprovalToAdd.details?.name || '',
+            description: newApprovalToAdd.details?.description || ''
+          } as any
           merkleChallenge.root = codesRoot ? codesRoot : '';
           merkleChallenge.expectedProofLength = BigInt(codesTree.getLayerCount() - 1);
           merkleChallenge.useCreatorAddressAsLeaf = false;
           merkleChallenge.maxUsesPerLeaf = 1n;
-          merkleChallenge.details.challengeDetails.leavesDetails.leaves = hashedCodes;
-          merkleChallenge.details.challengeDetails.leavesDetails.isHashed = true;
-          merkleChallenge.details.challengeDetails.leavesDetails.preimages = codes;
-          merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
-          merkleChallenge.details.challengeDetails.password = claimPassword;
-          merkleChallenge.details.challengeDetails.hasPassword = claimPassword ? true : false;
-          merkleChallenge.details.challengeDetails.treeOptions = treeOptions;
+
+          details.challengeDetails.leavesDetails.leaves = hashedCodes;
+          details.challengeDetails.leavesDetails.isHashed = true;
+          details.challengeDetails.leavesDetails.preimages = codes;
+          details.challengeDetails.numLeaves = BigInt(numRecipients);
+          details.challengeDetails.password = claimPassword;
+          details.challengeDetails.hasPassword = claimPassword ? true : false;
+          details.challengeDetails.treeOptions = treeOptions;
+
+
+
+          newApprovalToAdd.details = details
 
           newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
         } else if (distributionMethod === DistributionMethod.Whitelist) {
           const toAddresses = approvalToAdd.toMapping.addresses;
-          newApprovalToAdd.initiatedByMapping = getReservedAddressMapping("AllWithMint") as AddressMapping;
+          newApprovalToAdd.initiatedByMapping = getReservedAddressMapping("AllWithMint");
           newApprovalToAdd.initiatedByMappingId = "AllWithMint";
 
           addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
@@ -1432,21 +1440,53 @@ export function ApprovalSelect({
           const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, treeOptions);
           const addressesRoot = addressesTree.getRoot().toString('hex');
 
-          const merkleChallenge: any = {};
+          const merkleChallenge: any = {
+            root: '',
+            expectedProofLength: 0n,
+            uri: '',
+            customData: '',
+            useCreatorAddressAsLeaf: false,
+            maxUsesPerLeaf: 0n,
+
+          };
+          const details = {
+            challengeDetails: {
+              leavesDetails: {
+                leaves: [],
+                isHashed: false
+              }
+            },
+            name: newApprovalToAdd.details?.name || '',
+            description: newApprovalToAdd.details?.description || ''
+          } as any
           merkleChallenge.root = addressesRoot ? addressesRoot : '';
           merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
           merkleChallenge.useCreatorAddressAsLeaf = true;
           merkleChallenge.maxUsesPerLeaf = 0n;
-          merkleChallenge.details.challengeDetails.leavesDetails.leaves = addresses
-          merkleChallenge.details.challengeDetails.leavesDetails.isHashed = false;
-          merkleChallenge.details.challengeDetails.numLeaves = BigInt(numRecipients);
-          merkleChallenge.details.challengeDetails.password = ''
-          merkleChallenge.details.challengeDetails.hasPassword = false;
-          merkleChallenge.details.challengeDetails.treeOptions = treeOptions;
 
+
+          details.challengeDetails.leavesDetails.leaves = addresses
+          details.challengeDetails.leavesDetails.isHashed = false;
+          details.challengeDetails.numLeaves = BigInt(numRecipients);
+          details.challengeDetails.password = ''
+          details.challengeDetails.hasPassword = false;
+          details.challengeDetails.treeOptions = treeOptions;
+
+          newApprovalToAdd.details = details
           newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
         } else {
           newApprovalToAdd.approvalCriteria.merkleChallenge = undefined;
+          const details = {
+            challengeDetails: {
+              leavesDetails: {
+                leaves: [],
+                isHashed: false
+              }
+            },
+            name: newApprovalToAdd.details?.name || '',
+            description: newApprovalToAdd.details?.description || ''
+          } as any
+          newApprovalToAdd.details = details
         }
 
         if (autoGenerateIds) {

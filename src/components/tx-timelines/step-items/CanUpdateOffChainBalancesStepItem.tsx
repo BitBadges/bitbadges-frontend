@@ -1,4 +1,4 @@
-import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, validateOffChainBalancesMetadataUpdate, validateTimedUpdatePermissionUpdate } from "bitbadgesjs-utils";
+import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
@@ -11,10 +11,9 @@ export function CanUpdateBalancesStepItem() {
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const addMethod = txTimelineContext.offChainAddMethod;
-  const setAddMethod = txTimelineContext.setOffChainAddMethod;
   // const existingCollectionId = txTimelineContext.existingCollectionId;
-  // const existingCollection = collections.collections[`${existingCollectionId}`];
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  // const existingCollection = collections.getCollection(existingCollectionId);
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [checked, setChecked] = useState<boolean>(true);
 
   const [err, setErr] = useState<Error | null>(null);
@@ -39,9 +38,9 @@ export function CanUpdateBalancesStepItem() {
     // }
 
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       collectionPermissions: {
-        ...collection.collectionPermissions,
+        
         canUpdateOffChainBalancesMetadata: idx === 0 ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           permittedTimes: [],

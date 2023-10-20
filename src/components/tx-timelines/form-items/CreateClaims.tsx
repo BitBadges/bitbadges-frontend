@@ -1,15 +1,17 @@
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DevMode } from '../../common/DevMode';
 
-import { AddressMapping } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, DistributionMethod, getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { ApprovalSelect } from '../../transfers/ApprovalSelect';
 
-export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: { setVisible: (visible: boolean) => void, nonMintApproval?: boolean, defaultApproval?: CollectionApprovalWithDetails<bigint> }) {
+export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: {
+  setVisible: (visible: boolean) => void, nonMintApproval?: boolean,
+  defaultApproval?: CollectionApprovalWithDetails<bigint>
+}) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const txTimelineContext = useTxTimelineContext();
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
@@ -23,7 +25,7 @@ export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: {
     <br />
     <div>
       <ApprovalSelect
-        defaultFromMapping={nonMintApproval ? getReservedAddressMapping("AllWithoutMint") as AddressMapping : getReservedAddressMapping("Mint") as AddressMapping}
+        defaultFromMapping={nonMintApproval ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("Mint")}
         fromMappingLocked={!nonMintApproval}
         collectionId={MSG_PREVIEW_ID}
         hideTransferDisplay={true}
@@ -34,6 +36,8 @@ export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: {
         showMintingOnlyFeatures={!nonMintApproval}
         approvalsToAdd={txTimelineContext.approvalsToAdd}
         setApprovalsToAdd={txTimelineContext.setApprovalsToAdd}
+        startingApprovals={txTimelineContext.startingCollection?.collectionApprovals ?? []}
+        approvalPermissions={txTimelineContext.startingCollection?.collectionPermissions.canUpdateCollectionApprovals ?? []}
       />
     </div>
     <DevMode obj={txTimelineContext.approvalsToAdd} />

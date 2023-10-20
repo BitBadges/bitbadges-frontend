@@ -91,9 +91,9 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
   const exceedsMaxNumTransfers = (transfer.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers ?? 0n) > 0n && orderNumber >= (transfer.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers ?? 0n);
 
 
-  const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
+  // const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
 
-  const hasMaxNumTransfers = approvalHasMaxNumTransfers(transfer.approvalCriteria?.maxNumTransfers);
+  // const hasMaxNumTransfers = approvalHasMaxNumTransfers(transfer.approvalCriteria?.maxNumTransfers);
 
   const hasIncrements = !!(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy || transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy);
 
@@ -213,7 +213,7 @@ export function TransferabilityRow({
     grayedOut?: boolean,
   }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
   const [showMoreIsVisible, setShowMoreIsVisible] = useState(false);
   const [editIsVisible, setEditIsVisible] = useState(false);
   const [orderNumber, setOrderNumber] = useState(0);
@@ -356,30 +356,30 @@ export function TransferabilityRow({
     </div>
   }
 
-  const incrementedBalances = transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.map(x => {
-    return {
-      ...x,
-      badgeIds: x.badgeIds.map(y => {
-        return {
-          ...y,
-          start: y.start + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n)),
-          end: y.end + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n)),
-        }
-      }),
-      ownershipTimes: x.ownershipTimes.map(y => {
-        return {
-          ...y,
-          start: y.start + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n)),
-          end: y.end + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n)),
-        }
-      }),
-    }
-  }) ?? []
-  const hasOverlap = incrementedBalances.length > 0 ?
-    filterZeroBalances(
-      getBalancesForIds(transfer.badgeIds, transfer.ownershipTimes, incrementedBalances)
-    ).length > 0 : orderNumber >= (transfer.approvalCriteria?.predeterminedBalances?.manualBalances.length ?? 0n);
-  const exceedsMaxNumTransfers = orderNumber >= (transfer.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers ?? 0n);
+  // const incrementedBalances = transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.map(x => {
+  //   return {
+  //     ...x,
+  //     badgeIds: x.badgeIds.map(y => {
+  //       return {
+  //         ...y,
+  //         start: y.start + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n)),
+  //         end: y.end + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n)),
+  //       }
+  //     }),
+  //     ownershipTimes: x.ownershipTimes.map(y => {
+  //       return {
+  //         ...y,
+  //         start: y.start + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n)),
+  //         end: y.end + (BigInt(orderNumber) * (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n)),
+  //       }
+  //     }),
+  //   }
+  // }) ?? []
+  // const hasOverlap = incrementedBalances.length > 0 ?
+  //   filterZeroBalances(
+  //     getBalancesForIds(transfer.badgeIds, transfer.ownershipTimes, incrementedBalances)
+  //   ).length > 0 : orderNumber >= (transfer.approvalCriteria?.predeterminedBalances?.manualBalances.length ?? 0n);
+  // const exceedsMaxNumTransfers = orderNumber >= (transfer.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers ?? 0n);
 
 
   const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
@@ -395,7 +395,8 @@ export function TransferabilityRow({
     && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
   );
 
-
+  console.log(transfer.details);
+  console.log(transfer)
   return <>
 
 
@@ -553,7 +554,7 @@ export function TransferabilityRow({
       </td> : <td> <StopFilled style={{ fontSize: 20, color: 'red' }} /></td>}
 
     </tr >
-    {editIsVisible && collection &&
+    {editIsVisible && collection && transfer &&
       <tr style={{ borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
         {!ignoreRow &&
           <td colSpan={1000} style={{ alignItems: 'center' }}>
@@ -618,7 +619,7 @@ export function TransferabilityRow({
                   style={{ fontSize: 12 }}
                   className='secondary-text'
                 ><InfoCircleOutlined /> If you meet the criteria, you can transfer the badges.</Typography.Text>
-
+                {transfer.details?.name}
                 <br />
                 {transferIsVisible &&
 
@@ -633,6 +634,8 @@ export function TransferabilityRow({
             <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
               <InformationDisplayCard style={{ margin: 8 }} title='Details' md={11} xs={24} sm={24}>
                 <ul style={{ textAlign: 'left' }}>
+                  {transfer.details?.name && <li>Name: {transfer.details?.name}</li>}
+                  {transfer.details?.description && <li>Description: {transfer.details?.description}</li>}
                   {transfer.approvalCriteria?.requireFromDoesNotEqualInitiatedBy && !isOutgoingDisplay && (
                     <li>{"From address must NOT equal initiator's address"}</li>
                   )}

@@ -7,7 +7,7 @@ import { useCollectionsContext } from '../bitbadges-api/contexts/collections/Col
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ClaimsTab } from '../components/collection-page/ClaimsTab';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
+import { COSMOS_LOGO, ETH_LOGO } from '../constants';
 
 
 export const LandingCard = ({ content, additionalContent, onClick }: {
@@ -98,17 +98,29 @@ const Home: NextPage = () => {
   ];
 
   useEffect(() => {
-    collections.batchFetchAndUpdateMetadata(featuredBadges.map(b => {
-      return {
-        collectionId: b.collectionId,
-        metadataToFetch: {
-          badgeIds: [{ start: b.badgeId, end: b.badgeId }]
-        }
+    // collections.batchFetchAndUpdateMetadata(featuredBadges.map(b => {
+    //   return {
+    //     collectionId: b.collectionId,
+    //     metadataToFetch: {
+    //       badgeIds: [{ start: b.badgeId, end: b.badgeId }]
+    //     }
+    //   }
+    // }));
+    collections.batchFetchAndUpdateMetadata([{
+      collectionId: 1n,
+      metadataToFetch: {
+        badgeIds: [{ start: 1n, end: 10n }]
       }
-    }));
+    }, {
+      collectionId: 2n,
+      metadataToFetch: {}
+    }
+
+
+    ]);
   }, []);
 
-  const claimCollection = collections.collections[2n.toString()];
+  const claimCollection = collections.getCollection(2n);
 
   return (
     <>

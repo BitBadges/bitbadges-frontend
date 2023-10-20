@@ -1,10 +1,9 @@
-import { AddressMapping } from "bitbadgesjs-proto";
-import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping, getUnhandledUserIncomingApprovals } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { compareObjects } from "../../../utils/compare";
+import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { ApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -12,7 +11,7 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function DefaultToApprovedSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const chain = useChainContext();
@@ -23,8 +22,8 @@ export function DefaultToApprovedSelectStepItem() {
 
   const forcefulOption = [{
     fromMappingId: "AllWithMint",
-    fromMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
-    initiatedByMapping: getReservedAddressMapping("AllWithMint") as AddressMapping,
+    fromMapping: getReservedAddressMapping("AllWithMint"),
+    initiatedByMapping: getReservedAddressMapping("AllWithMint"),
     initiatedByMappingId: "AllWithMint",
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -33,6 +32,8 @@ export function DefaultToApprovedSelectStepItem() {
     amountTrackerId: "default-incoming-allowed",
     challengeTrackerId: "default-incoming-allowed",
   }]
+
+  console.log(forcefulOption, collection.defaultUserIncomingApprovals)
 
   return {
     title: `Default Incoming Approvals`,
@@ -50,7 +51,9 @@ export function DefaultToApprovedSelectStepItem() {
             {
               title: 'Approved by Default',
               message: `For all users, all incoming transfers (including mints) will be approved by default. Users can opt-out of this in the future.`,
-              isSelected: compareObjects(collection.defaultUserIncomingApprovals, forcefulOption)
+              isSelected: getUnhandledUserIncomingApprovals(collection.defaultUserIncomingApprovals, chain.address, true).length === 0
+                && collection.defaultUserIncomingApprovals.every(x => approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria)
+                  && approvalCriteriaHasNoAdditionalRestrictions(x.approvalCriteria))
 
             },
             {
@@ -61,7 +64,7 @@ export function DefaultToApprovedSelectStepItem() {
           ]}
           onSwitchChange={(idx) => {
             collections.updateCollection({
-              ...collection,
+              collectionId: MSG_PREVIEW_ID,
               defaultUserIncomingApprovals: idx === 0 ? forcefulOption : [],
             });
           }}

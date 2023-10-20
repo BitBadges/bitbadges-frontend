@@ -1,20 +1,19 @@
-import { AddressMapping } from "bitbadgesjs-proto";
 import { BitBadgesCollection, CollectionApprovalWithDetails, getReservedAddressMapping, isAddressMappingEmpty, isInAddressMapping, removeAddressMappingFromAddressMapping } from "bitbadgesjs-utils";
 
-export const getNonMintApprovals = (collection: BitBadgesCollection<bigint>, throwOnUnresolvableId?: boolean) => {
+export const getNonMintApprovals = (collection: BitBadgesCollection<bigint>) => {
   let firstMatches = collection?.collectionApprovals.length > 0 ? collection?.collectionApprovals ?? [] : []
   const existingNonMint = firstMatches.map(x => {
     if (isInAddressMapping(x.fromMapping, "Mint")) {
       if (x.fromMappingId === 'AllWithMint') {
         return {
           ...x,
-          fromMapping: getReservedAddressMapping('AllWithoutMint') as AddressMapping,
+          fromMapping: getReservedAddressMapping('AllWithoutMint'),
           fromMappingId: 'AllWithoutMint'
         }
       }
 
 
-      const [remaining] = removeAddressMappingFromAddressMapping(getReservedAddressMapping('Mint') as AddressMapping, x.fromMapping);
+      const [remaining] = removeAddressMappingFromAddressMapping(getReservedAddressMapping('Mint'), x.fromMapping);
 
       if (isAddressMappingEmpty(remaining)) {
         return undefined;
@@ -42,7 +41,7 @@ export const getMintApprovals = (collection: BitBadgesCollection<bigint>) => {
     if (isInAddressMapping(x.fromMapping, "Mint")) {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint') as AddressMapping,
+        fromMapping: getReservedAddressMapping('Mint'),
         fromMappingId: 'Mint',
       }
     } else {

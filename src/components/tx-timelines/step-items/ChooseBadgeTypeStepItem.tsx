@@ -1,4 +1,3 @@
-import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { AddressDisplayList } from "../../address/AddressDisplayList";

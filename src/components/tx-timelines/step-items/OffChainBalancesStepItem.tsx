@@ -17,12 +17,12 @@ const { Text } = Typography
 // uploading metadata themselves or having it outsourced. It uses the SwitchForm component to render the options.
 export function OffChainBalancesStorageSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
-  const existingCollection = collections.collections[`${existingCollectionId}`];
+  const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
   const canUpdateOffChainBalancesMetadata = txTimelineContext.updateOffChainBalancesMetadataTimeline;
   const setCanUpdateOffChainBalancesMetadata = txTimelineContext.setUpdateOffChainBalancesMetadataTimeline;
 
@@ -44,7 +44,7 @@ export function OffChainBalancesStorageSelectStepItem() {
       }
 
       collections.updateCollection({
-        ...collection,
+        collectionId: MSG_PREVIEW_ID,
         offChainBalancesMetadataTimeline: [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
@@ -156,7 +156,7 @@ export function OffChainBalancesStorageSelectStepItem() {
         if (idx === 1) {
           setAddMethod(MetadataAddMethod.Manual);
           collections.updateCollection({
-            ...collection,
+            collectionId: MSG_PREVIEW_ID,
             offChainBalancesMetadataTimeline: existingCollection ?
               isBitBadgesHosted ? existingCollection.offChainBalancesMetadataTimeline : [{
                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -170,7 +170,7 @@ export function OffChainBalancesStorageSelectStepItem() {
           setAddMethod(MetadataAddMethod.UploadUrl);
           txTimelineContext.setTransfers([]);
           collections.updateCollection({
-            ...collection,
+            collectionId: MSG_PREVIEW_ID,
             offChainBalancesMetadataTimeline: [{
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               offChainBalancesMetadata: {

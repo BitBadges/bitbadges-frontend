@@ -180,7 +180,7 @@ export function BalanceDisplay({
                   <BadgeAvatarDisplay
                     collectionId={collectionId}
                     balance={allBalances}
-                    badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1))}
+                    badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1), true)}
                     showIds
                     showSupplys={true}
                     cardView={cardView}

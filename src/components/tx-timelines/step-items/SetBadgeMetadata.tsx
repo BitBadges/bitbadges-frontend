@@ -10,7 +10,7 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function SetBadgeMetadataStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const canUpdateBadgeMetadata = txTimelineContext.updateBadgeMetadataTimeline;
@@ -29,7 +29,7 @@ export function SetBadgeMetadataStepItem() {
     [{ start: 1n, end: getTotalNumberOfBadges(collection) }]
   );
 
-  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat());
+  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(canUpdateBadgeMetadataRes.dataSource.filter(x => !x.forbidden).map(x => x.badgeIds ?? []).flat(), true);
 
 
   return {

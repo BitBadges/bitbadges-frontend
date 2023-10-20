@@ -31,7 +31,7 @@ export function TransferDisplay({
   isBalanceUpdate?: boolean
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   const [page, setPage] = useState(0);
 

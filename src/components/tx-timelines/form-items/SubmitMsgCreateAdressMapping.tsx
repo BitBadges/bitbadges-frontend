@@ -25,7 +25,7 @@ export function SubmitMsgCreateAddressMapping() {
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
 
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
 
   return <div className='full-width'

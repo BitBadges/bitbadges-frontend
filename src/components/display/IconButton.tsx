@@ -9,6 +9,7 @@ interface IconButtonProps {
   onClick?: () => void
   size?: number
   disabled?: boolean
+  children?: ReactNode
 }
 
 const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tooltipMessage, size, disabled }) => {
