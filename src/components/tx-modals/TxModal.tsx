@@ -1,5 +1,5 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Tooltip, Typography, notification } from 'antd';
+import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -52,6 +52,7 @@ export function TxModal(
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [useRecommendedFee, setUseRecommendedFee] = useState(true);
 
   const [amount, setAmount] = useState(0n);
   const [simulatedGas, setSimulatedGas] = useState(200000n);
@@ -163,7 +164,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [txCosmosMsg, currentStep, visible, createTxFunction, signedInAccount?.cosmosAddress, beforeTx, msgSteps, gasPrice]);
+  }, [currentStep, visible, createTxFunction, msgSteps, signedInAccount?.cosmosAddress, gasPrice]);
 
   useEffect(() => {
     if (!visible) return
@@ -326,71 +327,84 @@ export function TxModal(
             <hr />
           </div>
         }
+        <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+          <div style={{ marginRight: 40 }}>
 
-        <div style={{ textAlign: 'center' }} className='primary-text'>
-          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-            This transaction is to be signed by:
-          </Typography.Text>
-        </div>
-        <br />
-        <div className='flex-center'>
-          <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} />
-        </div>
-        <Divider />
-        {txDetails?.fee && simulated ? <>
-          <div style={{ textAlign: 'center' }} className='primary-text'>
-            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-              Your Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
-            </Typography.Text>
-          </div>
-          <br />
-          <div style={{ textAlign: 'center' }} className='primary-text'>
-            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-              Transaction Fee:
-
-              <InputNumber
-                value={Numberify(txDetails.fee.amount)}
-                onChange={(value) => {
-
-
-                  value = value ? Math.round(value) : 0;
-                  setAmount(BigInt(value));
-                }}
-                min={0}
-                max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
-                step={1}
-                style={{ marginLeft: 5, marginRight: 5 }}
-                className='primary-text inherit-bg'
-              /> ${txDetails.fee.denom.toUpperCase()}
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
+              Signer
             </Typography.Text>
             <br />
+            <div className='flex-center'>
+              <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} fontSize={16} />
+            </div>
             <br />
-            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
-              Recommended Fee <Tooltip
-                color='black'
-                title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction."
-              >
-                <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
-              </Tooltip>: {recommendedAmount.toString()} ${txDetails.fee.denom.toUpperCase()}
-            </Typography.Text>
-
-          </div>
-
-          {exceedsBalance &&
             <div style={{ textAlign: 'center' }} className='primary-text'>
-              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
-                This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
+                Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
               </Typography.Text>
-            </div>}
+            </div>
+            <br />
+          </div>
+          {txDetails?.fee && simulated ? <>
 
-          <Divider />
-        </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-          <Spin size='large' />
-          <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
-          <Divider />
-        </div>}
+            <div style={{ textAlign: 'center' }} className='primary-text'>
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
+                Transaction Fee
+                <Tooltip
+                  color='black'
+                  title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction."
+                >
+                  <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
+                </Tooltip>
+              </Typography.Text>
+              <br />
+              <Switch
+                checked={useRecommendedFee}
+                onChange={(checked) => {
+                  setUseRecommendedFee(checked)
+                  setAmount(checked ? recommendedAmount : BigIntify(txDetails.fee.amount));
+                }}
+                checkedChildren="Recommended"
+                unCheckedChildren="Custom"
+              />
+              <br />
+              <br />
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 16 }} className='primary-text flex-center'>
 
 
+                {useRecommendedFee ? <>{recommendedAmount.toString()}</> : <InputNumber
+                  value={Numberify(txDetails.fee.amount)}
+                  onChange={(value) => {
+
+
+                    value = value ? Math.round(value) : 0;
+                    setAmount(BigInt(value));
+                  }}
+                  min={0}
+                  max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
+                  step={1}
+                  style={{ marginLeft: 5, marginRight: 5 }}
+                  className='primary-text inherit-bg'
+                />}
+                {' '}${txDetails.fee.denom.toUpperCase()}
+              </Typography.Text>
+            </div>
+
+            {exceedsBalance &&
+              <div style={{ textAlign: 'center' }} className='primary-text'>
+                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                  This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
+                </Typography.Text>
+              </div>}
+
+            <Divider />
+          </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+            <Spin size='large' />
+            <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Generating Transaction</Typography.Text>
+            <Divider />
+          </div>}
+
+        </div>
         <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
             I understand that this is a beta version of BitBadges, and there may be bugs.
@@ -415,7 +429,8 @@ export function TxModal(
           />
 
         </div >
-      </div >}
+      </div >
+      }
     </div >,
     disabled: (msgSteps ?? []).find((step) => step.disabled) ? true : false
   };

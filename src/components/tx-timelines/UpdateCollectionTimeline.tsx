@@ -164,22 +164,18 @@ export function UpdateCollectionTimeline() {
     items.push(
       toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
       hasManager && (!existingCollectionId || existingCollectionId == 0n) ? ChooseControlStepItem : EmptyStepItem,
+      !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
+
       toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
-      toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
-
-
 
 
       toShowUpdateCollectionMetadataAction ? SetCollectionMetadataStep : EmptyStepItem,
       toShowUpdateBadgeMetadataAction ? SetBadgeMetadataStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
       !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
-      BalanceTypeSelect,
 
+      BalanceTypeSelect,
       !isOffChainBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
       CodesViewStep,
 
@@ -187,13 +183,15 @@ export function UpdateCollectionTimeline() {
       isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,
       isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
 
-
       // distributionMethod === DistributionMethod.JSON ? JSONTransferability : EmptyStepItem,
       !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
-
       !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
 
+
+      !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
+      toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
+      !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
 
       CollectionPreviewStep,
       CreateCollectionStep,

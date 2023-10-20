@@ -307,6 +307,11 @@ export function CreateTxMsgUpdateCollectionModal(
     return msgUpdateCollection;
   }
 
+  const beforeTx = async (simulate: boolean) => {
+    const newMsg = await updateIPFSUris(simulate);
+    return newMsg
+  }
+
   return (
     <TxModal
       visible={visible}
@@ -314,10 +319,7 @@ export function CreateTxMsgUpdateCollectionModal(
       txName="Updated Collection"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUpdateCollection}
-      beforeTx={async (simulate: boolean) => {
-        const newMsg = await updateIPFSUris(simulate);
-        return newMsg
-      }}
+      beforeTx={beforeTx}
       onSuccessfulTx={async () => {
         notification.success({ message: 'Collection created / updated successfully! Note it may take some time for some of the details to populate.' });
 
