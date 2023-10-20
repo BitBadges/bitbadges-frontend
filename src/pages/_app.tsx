@@ -24,8 +24,9 @@ import { WagmiConfig } from 'wagmi';
 import { combineReducers } from 'redux';
 import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
-import '../styles/antd-override-styles.css';
 import '../styles/index.css';
+
+import '../styles/antd-override-styles.css';
 
 // 2. Create wagmiConfig
 const metadata = {
