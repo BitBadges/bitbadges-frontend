@@ -3,34 +3,34 @@ import { ApprovalInfoDetails } from "bitbadgesjs-utils";
 import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 export function ClaimMetadataSelect({
-  merkleChallengeDetails,
-  setMerkleChallengeDetails,
+  approvalDetails,
+  setApprovalDetails,
 }: {
-  merkleChallengeDetails: ApprovalInfoDetails<bigint> | undefined,
-  setMerkleChallengeDetails: (merkleChallengeDetails: ApprovalInfoDetails<bigint>) => void,
+  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
 }) {
-  return <>{ClaimMetadataSelectSelectStep(merkleChallengeDetails, setMerkleChallengeDetails).description}</>
+  return <>{ClaimMetadataSelectSelectStep(approvalDetails, setApprovalDetails).description}</>
 }
 
 export function ClaimMetadataSelectSelectStep(
-  merkleChallengeDetails: ApprovalInfoDetails<bigint> | undefined,
-  setMerkleChallengeDetails: (merkleChallengeDetails: ApprovalInfoDetails<bigint>) => void,
+  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
 ) {
-  if (!merkleChallengeDetails) return EmptyStepItem
+  if (!approvalDetails) return EmptyStepItem
 
-  const name = merkleChallengeDetails.name;
-  const description = merkleChallengeDetails.description;
+  const name = approvalDetails.name;
+  const description = approvalDetails.description;
 
   const setName = (name: string) => {
-    setMerkleChallengeDetails({
-      ...merkleChallengeDetails,
+    setApprovalDetails({
+      ...approvalDetails,
       name,
     });
   }
 
   const setDescription = (description: string) => {
-    setMerkleChallengeDetails({
-      ...merkleChallengeDetails,
+    setApprovalDetails({
+      ...approvalDetails,
       description,
     });
   }
@@ -84,6 +84,6 @@ export function ClaimMetadataSelectSelectStep(
         </Form>
       </>
     </div>,
-    // disabled: !merkleChallengeDetails.name || !merkleChallengeDetails.description,
+    // disabled: !approvalDetails.name || !approvalDetails.description,
   }
 }

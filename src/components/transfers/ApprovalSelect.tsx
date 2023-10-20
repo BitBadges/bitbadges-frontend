@@ -1249,7 +1249,7 @@ export function ApprovalSelect({
 
           </InformationDisplayCard>
           <InformationDisplayCard noBorder inheritBg title='Approval Info' md={8} xs={24} sm={24} subtitle=''>
-            <ClaimMetadataSelect merkleChallengeDetails={approvalToAdd.details} setMerkleChallengeDetails={(details) => {
+            <ClaimMetadataSelect approvalDetails={approvalToAdd.details} setApprovalDetails={(details) => {
               setApprovalToAdd({
                 ...approvalToAdd,
                 details,

@@ -9,6 +9,7 @@ export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: App
   return (approvalCriteria.predeterminedBalances.incrementedBalances.startBalances.length > 0
     || approvalCriteria.predeterminedBalances.manualBalances.length > 0);
 }
+
 export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<NumberType>) {
   return (
     !approvalCriteria ||
