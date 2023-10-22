@@ -43,7 +43,9 @@ export function Notifications() {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
     const signedInAccount = accounts.getAccount(chain.address);
 
+    console.log(signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress)
     if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
+      console.log('update profile info')
       accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
   }, [chain.connected, chain.loggedIn, chain.cosmosAddress, chain.address, chain.lastSeenActivity]);

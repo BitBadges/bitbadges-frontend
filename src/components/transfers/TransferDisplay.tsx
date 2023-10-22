@@ -33,13 +33,12 @@ export function TransferDisplay({
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId)
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
 
-
-  const transfer = transfers.length > 0 ? transfers[page] : undefined;
+  const transfer = transfers.length > 0 ? transfers[page - 1] : undefined;
   const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
-  return <InformationDisplayCard title='Badges Transferred'><div style={{ marginTop: 4 }}    >
+  return <InformationDisplayCard title=''><div style={{ marginTop: 4 }}    >
     {
       toLength <= 0 ? <div style={{ textAlign: 'center' }}>
         <Empty description='No badges transferred.'

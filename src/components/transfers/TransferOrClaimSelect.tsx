@@ -1,4 +1,4 @@
-import { CloseOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
@@ -27,7 +27,8 @@ export function TransferSelect({
   originalSenderBalances,
   hideTransferDisplay,
   hideRemaining,
-  showApprovalsMessage
+  showApprovalsMessage,
+  fetchExisting
 }: {
   transfers: (TransferWithIncrements<bigint>)[],
   setTransfers: (transfers: (TransferWithIncrements<bigint>)[]) => void;
@@ -39,6 +40,7 @@ export function TransferSelect({
   hideRemaining?: boolean;
   setVisible?: (visible: boolean) => void;
   showApprovalsMessage?: boolean;
+  fetchExisting?: () => Promise<void>;
 }
 ) {
 
@@ -54,6 +56,9 @@ export function TransferSelect({
   //For the current transfer we are going to add (we also use these fields to calculate the claim amounts and badges)
   const [balances, setBalances] = useState<Balance<bigint>[]>(originalSenderBalances.map((x) => convertBalance(x, BigIntify)));
   const [toAddresses, setToAddresses] = useState<string[]>([]);
+  const [incrementAmount, setIncrementAmount] = useState<bigint>(0n);
+  const [transfersToAdd, setTransfersToAdd] = useState<TransferWithIncrements<bigint>[]>([]);
+
 
   const currTimeNextHour = new Date();
   currTimeNextHour.setHours(currTimeNextHour.getHours() + 1);
@@ -61,11 +66,33 @@ export function TransferSelect({
   currTimeNextHour.setSeconds(0);
   currTimeNextHour.setMilliseconds(0);
 
-  let transfersToAdd: TransferWithIncrements<bigint>[] = [{
-    toAddresses: toAddresses,
-    balances: balances,
-    from: sender,
-  }];
+  useEffect(() => {
+    let transfersToAdd: TransferWithIncrements<bigint>[] = [];
+    let currBalances = deepCopyBalances(balances);
+    for (const address of toAddresses) {
+      transfersToAdd.push({
+        toAddresses: [address],
+        balances: currBalances,
+        from: sender,
+      });
+
+      if (incrementAmount > 0n) {
+        currBalances = currBalances.map((balance) => {
+          return {
+            ...balance,
+            badgeIds: balance.badgeIds.map((uintRange) => {
+              return {
+                start: uintRange.start + incrementAmount,
+                end: uintRange.end + incrementAmount
+              }
+            })
+          }
+        })
+      }
+    }
+
+    setTransfersToAdd(transfersToAdd);
+  }, [balances, incrementAmount, sender, toAddresses]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);
@@ -129,6 +156,7 @@ export function TransferSelect({
     steps.push(recipientsSelect);
   }
 
+
   //Add third step
   steps.push({
     title: 'Amounts',
@@ -139,7 +167,6 @@ export function TransferSelect({
           <TransferDisplay
             transfers={transfersToAdd}
             collectionId={collectionId}
-            hideAddresses
           />
         </Col>
       </div>
@@ -156,6 +183,9 @@ export function TransferSelect({
           onRemoveAll={() => {
             setBalances([]);
           }}
+          increment={incrementAmount}
+          setIncrement={numRecipients > 1n ? setIncrementAmount : undefined}
+          numIncrements={numRecipients}
         />
       </div >
       <br />
@@ -187,11 +217,12 @@ export function TransferSelect({
         }
       </div>}
       <br />
+
       <Button type='primary'
         className='full-width'
         onClick={async () => {
           if (isTransferSelect && setTransfers && transfers) {
-            setTransfers([...transfers, ...transfersToAdd]);
+            setTransfers([...transfersToAdd, ...transfers]);
             setBalances([]);
           }
           setNumRecipients(0n);
@@ -307,29 +338,56 @@ export function TransferSelect({
                   ))}
                 </div>
                 : <>
-                  {plusButton ? <div className='flex-center'>
-                    <IconButton
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setAddTransferIsVisible(true);
-                      }}
-                      src={<PlusOutlined />}
-                      text='Add Transfer'
-                    >
-                    </IconButton>
-                  </div> :
-                    <div className='flex-center'>
-                      <Button
-                        type='primary'
-                        onClick={() => {
-                          setAddTransferIsVisible(true);
-                        }}
-                        style={{ marginTop: 20, width: '100%' }}
-                      >
-                        Add New Transfer
-                      </Button>
-                    </div>}
+                  <div className='flex-center flex-wrap'>
+                    <div>
+                      {plusButton ? <div className='flex-center'>
+                        <IconButton
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            setAddTransferIsVisible(true);
+                          }}
+                          src={<PlusOutlined />}
+                          text='Add'
+                        >
+                        </IconButton>
+                      </div> :
+                        <div className='flex-center'>
+                          <Button
+                            type='primary'
+                            onClick={() => {
+                              setAddTransferIsVisible(true);
+                            }}
+                            style={{ marginTop: 20, width: '100%' }}
+                          >
+                            Add New Transfer
+                          </Button>
+                        </div>}
+                    </div>
+                    {fetchExisting &&
+                      <div className='flex-center'>
+                        <IconButton
+                          style={{ cursor: 'pointer' }}
+                          onClick={async () => {
+                            await fetchExisting();
+                          }}
+                          src={<CloudSyncOutlined />}
+                          text='Fetch Existing'
+                        >
+                        </IconButton>
 
+                      </div>}
+                    <div>
+                      <IconButton
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setTransfers([]);
+                        }}
+                        src={<DeleteOutlined />}
+                        text='Delete All'
+                      >
+                      </IconButton>
+                    </div>
+                  </div>
                 </>}
           </div >
 
@@ -351,6 +409,7 @@ export function TransferSelect({
 
                   {[...(transfers ?? [])].length > 0 && <>
                     <ActivityTab
+                      paginated
                       activity={transfers.map(x => {
 
                         return {

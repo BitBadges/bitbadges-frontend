@@ -3,8 +3,9 @@ import { Row } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import IconButton from "../display/IconButton";
@@ -27,7 +28,10 @@ export function BalanceDisplayEditRow({
   hideOwnershipTimeSelect,
   onRemoveAll,
   sequentialOnly,
-  fullWidthCards
+  fullWidthCards,
+  numRecipients = 0n,
+  incrementBadgeIdsBy = 0n,
+  setIncrementBadgeIdsBy,
 }: {
   collectionId: bigint;
   balances: Balance<bigint>[];
@@ -35,6 +39,7 @@ export function BalanceDisplayEditRow({
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
   hideOwnershipTimeSelect?: boolean
+  numRecipients?: bigint
 
   message?: string | ReactNode
   size?: number;
@@ -53,6 +58,7 @@ export function BalanceDisplayEditRow({
   onRemoveAll?: () => void
   sequentialOnly?: boolean
   fullWidthCards?: boolean
+  setIncrementBadgeIdsBy?: (value: bigint) => void
 }) {
   const collections = useCollectionsContext();
   const [selectIsVisible, setSelectIsVisible] = useState(false);
@@ -262,6 +268,38 @@ export function BalanceDisplayEditRow({
           }
         </InformationDisplayCard>
       </Row>
+      {!isDisabled && !isMustOwnBadgesInput && setIncrementBadgeIdsBy &&
+        <Row className="flex-between full-width" style={{ marginTop: 24, alignItems: 'normal' }}>
+          <InformationDisplayCard md={fullWidthCards ? 24 : 24} xs={24} sm={24} style={{}} title={''}>
+            <SwitchForm
+              options={[
+                {
+                  title: 'No Increment',
+                  message: `All ${numRecipients.toString()} recipients will receive x${currentSupply.amount.toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds)}.`,
+                  isSelected: !incrementBadgeIdsBy,
+                },
+                {
+                  title: 'Increment Badge IDs',
+                  message: `Increment badge IDs by a certain amount for each recipient. The first recipient will receive x${currentSupply.amount.toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds)}. The second recipient will receive x${(currentSupply.amount).toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds.map(x => { return { start: x.start + incrementBadgeIdsBy, end: x.end + incrementBadgeIdsBy } }))}, and so on.`,
+                  isSelected: !!incrementBadgeIdsBy,
+                  additionalNode: <NumberInput
+                    value={Number(incrementBadgeIdsBy)}
+                    setValue={(value) => {
+                      setIncrementBadgeIdsBy?.(BigInt(value));
+                    }}
+                    title='Increment Amount'
+                    min={1}
+                    max={Number.MAX_SAFE_INTEGER}
+                  />
+                },
+
+              ]}
+              onSwitchChange={(idx) => {
+                setIncrementBadgeIdsBy?.(idx === 0 ? 0n : 1n);
+              }}
+            />
+          </InformationDisplayCard>
+        </Row>}
       {!isDisabled && !isMustOwnBadgesInput &&
         <Row className="flex-between full-width" style={{ marginTop: 24, alignItems: 'normal' }}>
           <InformationDisplayCard md={fullWidthCards ? 24 : 24} xs={24} sm={24} style={{}} title={''}>
@@ -273,6 +311,8 @@ export function BalanceDisplayEditRow({
               isMustOwnBadgesInput={isMustOwnBadgesInput}
               editable={false}
               hideBadges
+              incrementBadgeIdsBy={incrementBadgeIdsBy}
+              numIncrements={numRecipients}
             />
           </InformationDisplayCard>
         </Row>}

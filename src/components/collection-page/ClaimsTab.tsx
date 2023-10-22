@@ -70,14 +70,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
 
 
 
-  console.log(claimItem);
-
-  //Get IPFS cid and path
-  let currClaimCid = '';
-  if (claimItem?.uri.startsWith('ipfs://')) {
-    currClaimCid = claimItem.uri.split('ipfs://')[1];
-    currClaimCid = currClaimCid.split('/')[0];
-  }
 
   let isRefreshing = false;
   if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
@@ -119,8 +111,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
               recipient={recipient}
               setRecipient={setRecipient}
               isCodeDisplay={codesAndPasswords ? true : false}
-              codes={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.codes : []}
-              claimPassword={codesAndPasswords ? codesAndPasswords.find(x => x.cid === currClaimCid)?.password : ""}
+              codes={codesAndPasswords ? codesAndPasswords[currPage - 1]?.codes : []}
+              claimPassword={codesAndPasswords ? codesAndPasswords[currPage - 1]?.password : ""}
             />
           </>
         }

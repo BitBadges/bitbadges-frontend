@@ -156,13 +156,15 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<bigint>) => {
     const account = getAccount(addressOrUsername);
     if (!account) throw new Error(`Account ${addressOrUsername} not found`);
-
+    console.log(newProfileInfo);
     await updateAccountInfo(newProfileInfo);
     const newAccount: BitBadgesUserInfo<bigint> = {
       ...account,
       ...newProfileInfo,
       seenActivity: newProfileInfo.seenActivity ? BigInt(newProfileInfo.seenActivity) : account.seenActivity,
     };
+
+    console.log(newAccount);
 
     updateAccount(newAccount);
     return newAccount;

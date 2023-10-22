@@ -34,7 +34,8 @@ export function BalanceDisplay({
   maximum,
   onRemoveAll,
   sequentialOnly,
-  fullWidthCards
+  fullWidthCards,
+  setIncrementBadgeIdsBy
 }: {
   mustOwnBadges?: MustOwnBadges<bigint>[]
   collectionId: bigint;
@@ -61,6 +62,7 @@ export function BalanceDisplay({
   onRemoveAll?: () => void
   sequentialOnly?: boolean
   fullWidthCards?: boolean
+  setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
 }) {
   console.log(balances)
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
@@ -113,6 +115,9 @@ export function BalanceDisplay({
     onRemoveAll={onRemoveAll}
     sequentialOnly={sequentialOnly}
     fullWidthCards={fullWidthCards}
+    incrementBadgeIdsBy={incrementBadgeIdsBy}
+    setIncrementBadgeIdsBy={setIncrementBadgeIdsBy}
+    numRecipients={numIncrements}
   />
 
   console.log(allBalances);

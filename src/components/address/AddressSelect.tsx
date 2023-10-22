@@ -13,10 +13,12 @@ export function AddressSelect({
   defaultValue,
   onUserSelect,
   disabled,
+  allowMintSearch
 }: {
   defaultValue?: string,
   onUserSelect: (currUserInfo: string) => void,
   disabled?: boolean,
+  allowMintSearch?: boolean
 }) {
   const accounts = useAccountsContext();
   const defaultAccount = defaultValue ? accounts.getAccount(defaultValue) : undefined;
@@ -39,6 +41,7 @@ export function AddressSelect({
         overlay={
           <SearchDropdown
             onlyAddresses
+            allowMintSearch={allowMintSearch}
             searchValue={input}
             onSearch={async (value: string | BitBadgesUserInfo<bigint>) => {
               if (typeof value === "string") return

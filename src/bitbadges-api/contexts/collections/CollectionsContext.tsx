@@ -185,7 +185,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
         const badgeId = i;
         const currMetadata = getMetadataDetailsForBadgeId(badgeId, currPreviewCollection.cachedBadgeMetadata);
-        console.log(currMetadata);
+   
         if (currMetadata) {
           //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
           //Remove badgeId from badgeIdsToFetch
@@ -195,17 +195,13 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
 
-    console.log('FETCH METADATA FOR PREVIEW', badgeIdsToFetch.length);
-
     if (badgeIdsToFetch.length > 0) {
       if (existingCollectionId) {
-        console.time("BadgeAvatarDisplay: fetchAndUpdateMetadata");
-        console.time('fethc')
         const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
         const res = await fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch });
-        console.timeEnd('fethc')
+       
         let newBadgeMetadata = deepCopy(res[0].cachedBadgeMetadata);
-        console.time('update')
+ 
 
         if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
           //Only update newly fetched metadata
@@ -216,15 +212,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
 
           if (currPreviewCollection) {
-            console.log(JSON.stringify(newBadgeMetadata));
             updateCollection({
               ...currPreviewCollection,
               cachedBadgeMetadata: newBadgeMetadata
             });
           }
         }
-        console.timeEnd('update')
-        console.timeEnd("BadgeAvatarDisplay: fetchAndUpdateMetadata");
       }
     }
   }
@@ -384,9 +377,8 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
         });
       } else {
-        console.time('prune')
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
-        console.timeEnd('prune')
+      
 
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
@@ -416,22 +408,18 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
 
-    console.log(batchRequestBody.collectionsToFetch.length);
 
     if (batchRequestBody.collectionsToFetch.length === 0) {
-      console.time('getCollection')
       //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in state
       const collectionsToReturn = [];
       for (const collectionToFetch of collectionsToFetch) {
         const collection = getCollection(collectionToFetch.collectionId);
         collectionsToReturn.push(collection ? collection : {} as BitBadgesCollection<DesiredNumberType>); //HACK: should never be undefined
       }
-
-      console.timeEnd('getCollection')
+      
       return collectionsToReturn.map(x => Object.freeze(x));
     }
 
-    console.log('bakdfjkladsfj');
     const res = await getCollections(batchRequestBody);
 
     //Update collections map
@@ -487,13 +475,11 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     if (!prunedMetadataToFetch.doNotFetchCollectionMetadata) {
       const { collectionMetadata } = getCurrentMetadata(updatedCollection);
       const collectionUri = collectionMetadata?.uri || '';
-      console.log(collectionUri);
       if (Joi.string().uri().validate(collectionUri).error) {
         updatedCollection.cachedCollectionMetadata = ErrorMetadata;
       } else {
         const collectionMetadataRes = await fetchMetadataDirectly({ uris: [collectionUri] });
         updatedCollection.cachedCollectionMetadata = collectionMetadataRes.metadata[0];
-        console.log(updatedCollection.cachedCollectionMetadata);
       }
     }
 

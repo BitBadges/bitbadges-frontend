@@ -18,6 +18,7 @@ import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import IconButton from "../display/IconButton";
 import { NumberInput } from "../inputs/NumberInput";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
+import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 //TODO: Will need to change when we allow approvalCriteria len > 0
 //TODO: per to/from/initiatedBy
@@ -364,13 +365,14 @@ export function ClaimDisplay({
                 tooltipMessage={showAllUnclaimed ? 'Show Each Claim' : 'Show All Unclaimed'}
                 size={40}
               />
-              <IconButton
-                src={<CloudSyncOutlined size={40} />}
-                onClick={() => refreshTrackers()}
-                text={'Refresh'}
-                tooltipMessage={'Refresh'}
-                size={40}
-              />
+              {collectionId !== MSG_PREVIEW_ID &&
+                <IconButton
+                  src={<CloudSyncOutlined size={40} />}
+                  onClick={() => refreshTrackers()}
+                  text={'Refresh'}
+                  tooltipMessage={'Refresh'}
+                  size={40}
+                />}
 
             </div>
             <br />

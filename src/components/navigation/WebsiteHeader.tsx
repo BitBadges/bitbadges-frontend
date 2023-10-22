@@ -75,6 +75,7 @@ export function WalletHeader() {
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
   for (const activity of allActivity) {
+    console.log(account?.seenActivity, activity.timestamp);
     if (account?.seenActivity && account.seenActivity < activity.timestamp) {
       unseenNotificationCount++;
 

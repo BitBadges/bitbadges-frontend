@@ -40,7 +40,6 @@ export function ClaimMetadataSelectSelectStep(
     description: <div>
       <>
         <br />
-        <br />
         <Form
           labelCol={{ span: 6 }}
           wrapperCol={{ span: 14 }}

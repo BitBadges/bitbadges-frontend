@@ -604,10 +604,11 @@ export function TransferabilityRow({
                   (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.length ?? 0n) > 0
                   || (transfer.approvalCriteria?.predeterminedBalances?.manualBalances.length ?? 0n) > 0
                 ) ? <>
-                <br />
+                {/* <br />
                 <div className='flex-center'>
                   <button className='landing-button' style={{ width: 200 }} onClick={() => setTab?.('claims')}>Go to Claims</button>
-                </div>
+                  
+                </div> */}
               </> : <>
                 <br />
                 <div className='flex-center'>
@@ -619,10 +620,8 @@ export function TransferabilityRow({
                   style={{ fontSize: 12 }}
                   className='secondary-text'
                 ><InfoCircleOutlined /> If you meet the criteria, you can transfer the badges.</Typography.Text>
-                {transfer.details?.name}
                 <br />
                 {transferIsVisible &&
-
                   <CreateTxMsgTransferBadgesModal
                     visible={transferIsVisible}
                     setVisible={setTransferIsVisible}

@@ -16,6 +16,9 @@ export function BalanceInput({
   sequentialOnly,
   fullWidthCards,
   mustOwnBadges,
+  increment,
+  setIncrement,
+  numIncrements
 }: {
   balancesToShow: Balance<bigint>[],
   onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint) => void,
@@ -31,6 +34,9 @@ export function BalanceInput({
   sequentialOnly?: boolean
   fullWidthCards?: boolean
   mustOwnBadges?: MustOwnBadges<bigint>[]
+  increment?: bigint
+  setIncrement?: (increment: bigint) => void
+  numIncrements?: bigint
 }) {
   return <>
     <BalanceDisplay
@@ -43,13 +49,15 @@ export function BalanceInput({
       hideMessage={hideDisplay}
       hideBadges={hideDisplay}
       hideTable={hideDisplay}
-
+      incrementBadgeIdsBy={increment}
+      setIncrementBadgeIdsBy={setIncrement}
+      numIncrements={numIncrements}
 
       //Edit props
       onAddBadges={onAddBadges}
       minimum={minimum}
       maximum={maximum}
-      
+
       hideOwnershipTimeSelect={hideOwnershipTimes}
       editable
       onRemoveAll={onRemoveAll}

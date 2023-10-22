@@ -173,6 +173,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       setVisible={setVisible}
       txName="Transfer Badge(s)"
       txCosmosMsg={txCosmosMsg}
+      width={'90%'}
       createTxFunction={createTxMsgTransferBadges}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);

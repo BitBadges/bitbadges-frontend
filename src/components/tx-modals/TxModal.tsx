@@ -21,7 +21,8 @@ export function TxModal(
   { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
     msgSteps, displayMsg, onSuccessfulTx, beforeTx, disabled,
     requireRegistration,
-    coinsToTransfer
+    coinsToTransfer,
+    width
   }: {
     createTxFunction: any,
     txCosmosMsg: object,
@@ -40,6 +41,7 @@ export function TxModal(
     disabled?: boolean,
     requireRegistration?: boolean
     coinsToTransfer?: CosmosCoin<bigint>[],
+    width?: number | string
   }
 ) {
   const chain = useChainContext();
@@ -489,7 +491,7 @@ export function TxModal(
         minWidth: '60vw',
         ...style
       }}
-      // width={width ? width : '80%'}
+      width={width ? width : undefined}
       closeIcon={<div className='primary-text inherit-bg'>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,

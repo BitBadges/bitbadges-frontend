@@ -13,11 +13,13 @@ export function SearchDropdown({
   onSearch,
   onlyAddresses,
   onlyCollections,
+  allowMintSearch
 }: {
   searchValue: string,
   onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => Promise<void>
   onlyAddresses?: boolean
   onlyCollections?: boolean
+  allowMintSearch?: boolean
 }) {
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
@@ -41,6 +43,20 @@ export function SearchDropdown({
 
 
       const result = await getSearchResults(searchValue);
+
+      const mintAccount = accounts.getAccount('Mint');
+      if (searchValue === 'Mint' && allowMintSearch && mintAccount) {
+        if (!result.accounts.find((a) => a.address === 'Mint')) {
+          result.accounts.unshift(mintAccount);
+        } else {
+          //bring to front
+          result.accounts = result.accounts.filter((a) => a.address !== 'Mint');
+          result.accounts.unshift(mintAccount);
+        }
+      } else if (!allowMintSearch) {
+        result.accounts = result.accounts.filter((a) => a.address !== 'Mint');
+      }
+
       //Update context if we have new accounts or collections
       accounts.updateAccounts(result.accounts);
 

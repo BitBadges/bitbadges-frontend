@@ -14,11 +14,13 @@ export function AddressMappingSelect({
   setAddressMapping,
   disabled,
   showErrorOnEmpty,
+  allowMintSearch
 }: {
   addressMapping: AddressMapping,
   setAddressMapping: (addressMapping: AddressMapping) => void,
   disabled?: boolean,
   showErrorOnEmpty?: boolean,
+  allowMintSearch?: boolean
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -113,6 +115,7 @@ export function AddressMappingSelect({
         }}
         hideAddresses
         disabled={disabled}
+        allowMintSearch={allowMintSearch}
       />
     </>}
     <br />

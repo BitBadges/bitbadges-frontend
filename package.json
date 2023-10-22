@@ -52,7 +52,6 @@
     "evmosjs": "^0.3.3",
     "file-saver": "^2.0.5",
     "html-to-react": "^1.5.1",
-    "immutable": "^5.0.0-beta.4",
     "ipfs-http-client": "^58.0.1",
     "isuri": "^2.0.3",
     "joi": "^17.7.1",

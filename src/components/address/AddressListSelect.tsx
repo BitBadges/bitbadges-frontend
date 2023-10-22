@@ -15,12 +15,14 @@ export function AddressListSelect({
   invalidUsers,
   hideAddresses,
   disabled,
+  allowMintSearch
 }: {
   users: string[],
   setUsers: (users: string[]) => void,
   invalidUsers?: { [user: string]: string; },
   hideAddresses?: boolean,
   disabled?: boolean,
+  allowMintSearch?: boolean
 }) {
   const accounts = useAccountsContext();
 
@@ -105,6 +107,7 @@ export function AddressListSelect({
           setUsers([...users, userInfo]);
         }}
         disabled={disabled}
+        allowMintSearch={allowMintSearch}
       />
     }
     {

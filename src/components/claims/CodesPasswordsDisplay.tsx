@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Card, Divider, Empty, Row, Tooltip, Typography } from "antd";
+import { Card, Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
 import { CollectionApprovalWithDetails, getAbbreviatedAddress } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
@@ -32,31 +32,22 @@ export function CodesDisplay({
 
   const [codePage, setCodePage] = useState(1);
 
-  const printStr = merkleChallenge?.details?.challengeDetails?.hasPassword ? 'password' : 'code';
-  const urlSuffix = merkleChallenge?.details?.challengeDetails?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
-  const hasPassword = merkleChallenge?.details?.challengeDetails?.hasPassword;
-  return <Card
-    className="primary-text inherit-bg"
-    style={{
-      // margin: 8,
-      textAlign: 'center',
-      border: 'none',
-      overflowWrap: 'break-word',
-    }}
+  const printStr = approval.details?.challengeDetails?.hasPassword ? 'password' : 'code';
+  const urlSuffix = approval.details?.challengeDetails?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
+  const hasPassword = approval.details?.challengeDetails?.hasPassword;
 
-  >
 
-    {/* // Show authenticated manager information (passwords, codes, distribution methods, etc...) */}
+  return <>
 
-    <div>
-      {"There are multiple ways to distribute. Select the option that best suits your needs. Keep these codes safe and secure! Anyone with the code can claim the badge."}
-    </div>
-    <br />
-    <Row className='flex' style={{ textAlign: 'center', width: '100%' }}>
+    <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
 
       <InformationDisplayCard md={12} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords can either be entered manually by users on the claim page, or they can be given a unique URL containing the code to claim. URLs can also be navigated to using a QR code.'} >
 
-        {!merkleChallenge?.details?.challengeDetails?.hasPassword && codes && codes.length > 0 && <>
+        {!approval.details?.challengeDetails?.hasPassword && codes && codes.length > 0 && <>
+          <br />
+          <div style={{ color: 'orange' }}>
+            <WarningOutlined /> Keep these codes safe and secure! Anyone with the code can claim the badge!
+          </div>
           <br />
           <div>
             <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Batch Download</Typography.Text>
@@ -66,7 +57,6 @@ export function CodesDisplay({
               <div className="flex-center flex-wrap">
                 <button
                   onClick={() => {
-                    alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                     const today = new Date();
 
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -84,7 +74,6 @@ export function CodesDisplay({
                 </button>
                 <button
                   onClick={() => {
-                    alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                     const today = new Date();
 
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -98,7 +87,6 @@ export function CodesDisplay({
                 </button>
                 <button
                   onClick={() => {
-                    alert('We will now download the codes to a file.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                     const today = new Date();
 
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -119,16 +107,22 @@ export function CodesDisplay({
               <div className="flex-center flex-wrap">
                 <button className="landing-button primary-text" style={{ width: 150 }}
                   onClick={() => {
-                    alert('We will now copy the codes to your clipboard.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                     navigator.clipboard.writeText(codes.join('\n'));
+                    notification.success({
+                      message: 'Copied!',
+                      description: 'We have copied the codes to your clipboard.'
+                    })
                   }}
                 >
                   Copy Codes
                 </button>
                 <button className="landing-button primary-text" style={{ width: 150 }}
                   onClick={() => {
-                    alert('We will now copy the code URLs to your clipboard.\n\nWARNING: Your badges can be redeemed by anyone who has these codes. Please keep these codes in safe hands and only give them to trusted parties (including tools)!');
                     navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x).join('\n'));
+                    notification.success({
+                      message: 'Copied!',
+                      description: 'We have copied the URLs to your clipboard.'
+                    })
                   }}
                 >
                   Copy URLs
@@ -185,8 +179,12 @@ export function CodesDisplay({
           <button className="landing-button primary-text" style={{ width: 150 }}
             onClick={() => {
               console.log(navigator.clipboard && window.isSecureContext)
-              alert('We will now copy the code / password to your clipboard.\n\nWARNING: Your badges can be redeemed by anyone who has this. Please keep this in safe hands and only give it to trusted parties!');
+
               navigator.clipboard.writeText((hasPassword ? claimPassword : codes?.[codePage - 1]) ?? '').catch(e => { console.error(e) });
+              notification.success({
+                message: 'Copied!',
+                description: 'We have copied them to your clipboard.'
+              })
             }}
           >
             Copy {printStr[0].toUpperCase() + printStr.slice(1)}
@@ -194,8 +192,12 @@ export function CodesDisplay({
           <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`}>
             <button className="landing-button primary-text" style={{ width: 150 }}
               onClick={() => {
-                alert('We will now copy the URL to your clipboard.\n\nWARNING: Your badges can be redeemed by anyone who has this. Please keep this in safe hands and only give it to trusted parties!');
+
                 navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`);
+                notification.success({
+                  message: 'Copied!',
+                  description: 'We have copied the URL to your clipboard.'
+                })
               }}
             >
               Copy URL
@@ -209,31 +211,6 @@ export function CodesDisplay({
         <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`} />
         <br />
       </InformationDisplayCard>
-
-      <InformationDisplayCard md={12} xs={24} sm={24} title={'Distribution'} subtitle={'You can distribute via your preferred method. You may find some of the tools below helpful.'} >
-        <div>
-          <br />
-          <div>
-            <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
-            {"Some of these are third-party tools. Use at your own risk."}
-          </div>
-          <br />
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {tools.map((tool, idx) => {
-              if (tool.toolType !== "Distribution" || tool.native) return <></>
-
-              return <div style={{
-                margin: 8, display: 'flex'
-              }} key={idx}>
-                <ToolIcon
-                  name={tool.name
-                  }
-                />
-              </div>
-            })}
-          </div>
-        </div>
-      </InformationDisplayCard>
     </Row>
 
     {
@@ -244,5 +221,5 @@ export function CodesDisplay({
         className='primary-text'
       />
     }
-  </Card >
+  </>
 }

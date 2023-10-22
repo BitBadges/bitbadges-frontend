@@ -136,7 +136,7 @@ const Home: NextPage = () => {
               <img src='/images/bitbadgeslogo.png' alt='BitBadges Logo' className='inline-logo primary-pink' />{' '} to build your digital identity!</span>
             <br />
             <br />
-            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. $BADGE will be redistributed  via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width'>
               <Button
                 size='large'
@@ -248,8 +248,8 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    Think of badges as digital tokens that you can collect and own, each offering unique utility and value.
-                    Chances are, you already own several badges, like a verification checkmark or concert tickets.
+                    Badges are digital assets that can be used to represent anything, such as achievements, memberships, and more.
+                    Collecting badges and expanding your portfolio is a great way to build your digital identity.
                   </Typography.Text>
 
                 </>
@@ -268,6 +268,7 @@ const Home: NextPage = () => {
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying these badges.
+                    
                   </Typography.Text>
                 </>
                 }
