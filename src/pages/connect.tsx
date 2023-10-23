@@ -16,10 +16,9 @@ function ConnectScreen({ message }: { message?: string }) {
   } = useChainContext();
 
   return (
-    <Layout>
       <Content
+        className='inherit-bg'
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           minHeight: '100vh',
           textAlign: 'center',
         }}
@@ -49,7 +48,6 @@ function ConnectScreen({ message }: { message?: string }) {
           </div>
         }
       </Content>
-    </Layout>
   );
 }
 

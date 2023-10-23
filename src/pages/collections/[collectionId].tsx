@@ -1,10 +1,10 @@
-import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import { Divider, Empty, Layout, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -34,7 +34,7 @@ function CollectionPage({
   const isPreview = collectionPreview ? true : false;
 
   const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? MSG_PREVIEW_ID : -1n;
-  const collection = collections.collections[collectionIdNumber.toString()]
+  const collection = collections.getCollection(collectionIdNumber)
   const badgeIdNumber = badgeId && typeof badgeId === 'string' ? BigInt(badgeId) : -1;
 
   const [tab, setTab] = useState(badgeIdNumber > 0 ? 'badges' : (password || code || claimsTab) ? 'claims' : 'overview');
@@ -50,7 +50,7 @@ function CollectionPage({
       { key: 'badges', content: 'Badges', disabled: false },
 
       { key: 'transferability', content: 'Transferability', disabled: false },
-      { key: 'claims', content: 'Claims', disabled: false },
+      { key: 'claims', content: 'Mints', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
 
@@ -107,133 +107,127 @@ function CollectionPage({
   }, [code, password, claimsTab])
 
   return (
-    <Layout>
-      <Content
+    <Content
+      style={{
+        textAlign: 'center',
+        minHeight: '100vh',
+      }}
+    >
+      <br />
+      <div
+        title=''
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-          textAlign: 'center',
-          minHeight: '100vh',
+          marginLeft: !isPreview ? '7vw' : undefined,
+          marginRight: !isPreview ? '7vw' : undefined,
+          paddingLeft: !isPreview ? '1vw' : undefined,
+          paddingRight: !isPreview ? '1vw' : undefined,
+          paddingTop: '20px',
         }}
       >
-        <br />
-        <div
-          title=''
-          style={{
-            marginLeft: !isPreview ? '7vw' : undefined,
-            marginRight: !isPreview ? '7vw' : undefined,
-            paddingLeft: !isPreview ? '1vw' : undefined,
-            paddingRight: !isPreview ? '1vw' : undefined,
-            paddingTop: '20px',
-          }}
-        >
-          {collection && <>
-            {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />}
-            {/* Overview and Tabs */}
-            {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
-            <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+        {collection && <>
+          {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />}
+          {/* Overview and Tabs */}
+          {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
+          <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+          <br />
+
+          {/* Tab Content */}
+          {tab === 'overview' && (
+            <OverviewTab
+              collectionId={collectionIdNumber}
+            />
+          )}
+          {tab === 'badges' && (
+            <BadgesTab collectionId={collectionIdNumber} />
+          )}
+          {tab === 'transferability' && (
+            <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} />
+          )}
+
+
+          {isPreview && (tab === 'claims' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
+            className='primary-text'
+            description={
+              "This tab is not supported for previews."
+            }
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />}
+
+          {tab === 'approvals' && !isPreview && (
+            <UserApprovalsTab collectionId={collectionIdNumber} />
+          )}
+
+          {tab === 'reputation' && !isPreview && (
+            <ReputationTab
+              reviews={collection.reviews}
+              collectionId={collectionIdNumber}
+              fetchMore={async () => {
+                await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
+              }}
+              hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
+            />
+          )}
+
+          {tab === 'claims' && !isPreview && (
+            <ClaimsTab
+              collectionId={collectionIdNumber}
+
+            />
+          )}
+
+          {tab === 'actions' && !isPreview && (
+            <ActionsTab
+              collectionId={collectionIdNumber}
+            />
+          )}
+
+          {tab === 'activity' && !isPreview && collection && (
+            <ActivityTab
+              activity={collections.getActivityView(collectionIdNumber, 'latestActivity') ?? []}
+              fetchMore={async () => {
+                await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
+              }}
+              hasMore={collections.getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore ?? true}
+            />
+          )}
+
+          {tab === 'announcements' && !isPreview && collection && (
+            <>
+              <AnnouncementsTab announcements={collections.getAnnouncementsView(collectionIdNumber, 'latestAnnouncements') ?? []}
+                collectionId={collectionIdNumber}
+                fetchMore={async () => {
+                  await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
+                }}
+                hasMore={collections.getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
+              />
+            </>
+          )}
+
+          {tab === 'history' && !isPreview && <div className='primary-text'>
             <br />
+            {collection.updateHistory.sort((a, b) => b.block - a.block > 0 ? -1 : 1).map((update, i) => {
+              return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
 
-            {/* Tab Content */}
-            {tab === 'overview' && (
-              <OverviewTab
-                collectionId={collectionIdNumber}
-              />
-            )}
-            {tab === 'badges' && (
-              <BadgesTab collectionId={collectionIdNumber} />
-            )}
-            {tab === 'transferability' && (
-              <TransferabilityTab collectionId={collectionIdNumber} />
-            )}
+                <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+                  <ClockCircleOutlined style={{ marginRight: '5px' }} />
+                  {i == 0 ? 'Created' : 'Updated'
+                  } at{' '}
+                  {new Date(Number(update.blockTimestamp)).toLocaleString()}
+                  {' '}(Block #{update.block.toString()})
 
-
-            {isPreview && (tab === 'claims' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
-              className='primary-text'
-              description={
-                "This tab is not supported for previews."
-              }
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />}
-
-            {tab === 'approvals' && !isPreview && (
-              <UserApprovalsTab collectionId={collectionIdNumber} />
-            )}
-
-            {tab === 'reputation' && !isPreview && (
-              <ReputationTab
-                reviews={collection.reviews}
-                collectionId={collectionIdNumber}
-                fetchMore={async () => {
-                  await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
-                }}
-                hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestReviews?.pagination.hasMore ?? true}
-              />
-            )}
-
-            {tab === 'claims' && !isPreview && (
-              <ClaimsTab
-                collectionId={collectionIdNumber}
-
-              />
-            )}
-
-            {tab === 'actions' && !isPreview && (
-              <ActionsTab
-                collectionId={collectionIdNumber}
-              />
-            )}
-
-            {tab === 'activity' && !isPreview && collection && (
-              <ActivityTab
-                activity={collections.getActivityView(collectionIdNumber, 'latestActivity') ?? []}
-                fetchMore={async () => {
-                  await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
-                }}
-                hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestActivity?.pagination.hasMore ?? true}
-              />
-            )}
-
-            {tab === 'announcements' && !isPreview && collection && (
-              <>
-                <AnnouncementsTab announcements={collections.getAnnouncementsView(collectionIdNumber, 'latestAnnouncements') ?? []}
-                  collectionId={collectionIdNumber}
-                  fetchMore={async () => {
-                    await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
-                  }}
-                  hasMore={collections.collections[collectionIdNumber.toString()]?.views.latestAnnouncements?.pagination.hasMore ?? true}
-                />
-              </>
-            )}
-
-            {tab === 'history' && !isPreview && <div className='primary-text'>
-              <br />
-              <InfoCircleOutlined />{' '}This is a history of all the blockchain transactions where the collection was created / updated.
-              <br />
-              <br />
-              {collection.updateHistory.map((update, i) => {
-                return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
-
-                  <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
-                    <ClockCircleOutlined style={{ marginRight: '5px' }} />
-                    Collection {i == 0 ? 'Created' : 'Updated'
-                    } at{' '}
-                    {new Date(Number(update.blockTimestamp)).toLocaleString()}
-                    {' '}(Block #{update.block.toString()})
-
-                  </Typography.Text>
-                  <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
-                    {update.txHash}
-                  </a></p>
-                  <Divider />
-                </div>
-              })}
-            </div>}
-          </>
-          }
-        </div>
-        <Divider />
-      </Content>
-    </Layout>
+                </Typography.Text>
+                <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                  {update.txHash}
+                </a></p>
+                <Divider />
+              </div>
+            })}
+          </div>}
+        </>
+        }
+      </div>
+      <Divider />
+    </Content>
   );
 }
 

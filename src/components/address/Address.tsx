@@ -1,9 +1,10 @@
 import { Spin, Tooltip, Typography } from 'antd';
-import { MINT_ACCOUNT, SupportedChain, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { BigIntify, MINT_ACCOUNT, SupportedChain, convertBitBadgesUserInfo, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from './AddressDisplay';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 const { Text } = Typography;
 
@@ -26,7 +27,15 @@ export function Address({
 }) {
   const router = useRouter();
   const accounts = useAccountsContext();
-  const userInfo = accounts.getAccount(addressOrUsername);
+
+  const chainContext = useChainContext();
+  const fetchedAccount = accounts.getAccount(addressOrUsername);
+
+  const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
+    ...fetchedAccount,
+    address: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
+    chain: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
+  }, BigIntify) : undefined; //deep copy
 
   let newAddress = '';
   if (userInfo && overrideChain && userInfo?.chain !== overrideChain && overrideChain === SupportedChain.COSMOS) {
@@ -64,7 +73,7 @@ export function Address({
                 textAlign: 'center',
               }}
             >
-              This represents all addresses that are not already handled in this list.
+              This represents all possible user addresses.
             </div> :
             <div
               className='primary-text'

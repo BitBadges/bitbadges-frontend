@@ -1,10 +1,11 @@
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { Row } from "antd";
-import { Balance, deepCopy } from "bitbadgesjs-proto";
+import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import IconButton from "../display/IconButton";
@@ -25,7 +26,12 @@ export function BalanceDisplayEditRow({
   message,
   defaultBalancesToShow,
   hideOwnershipTimeSelect,
-  onRemoveAll
+  onRemoveAll,
+  sequentialOnly,
+  fullWidthCards,
+  numRecipients = 0n,
+  incrementBadgeIdsBy = 0n,
+  setIncrementBadgeIdsBy,
 }: {
   collectionId: bigint;
   balances: Balance<bigint>[];
@@ -33,6 +39,7 @@ export function BalanceDisplayEditRow({
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
   hideOwnershipTimeSelect?: boolean
+  numRecipients?: bigint
 
   message?: string | ReactNode
   size?: number;
@@ -44,11 +51,14 @@ export function BalanceDisplayEditRow({
   floatToRight?: boolean;
   isMustOwnBadgesInput?: boolean
   editable?: boolean
-  onAddBadges?: (balances: Balance<bigint>) => void,
+  onAddBadges?: (balances: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint) => void,
   minimum?: bigint
   maximum?: bigint
   defaultBalancesToShow?: Balance<bigint>[],
   onRemoveAll?: () => void
+  sequentialOnly?: boolean
+  fullWidthCards?: boolean
+  setIncrementBadgeIdsBy?: (value: bigint) => void
 }) {
   const collections = useCollectionsContext();
   const [selectIsVisible, setSelectIsVisible] = useState(false);
@@ -57,6 +67,8 @@ export function BalanceDisplayEditRow({
     badgeIds: [],
     ownershipTimes: [{ start: BigInt(1n), end: GO_MAX_UINT_64 }],
   });
+  const [selectedCollectionId, setSelectedCollectionId] = useState<bigint>(1n);
+  const [selectedAmountRange, setSelectedAmountRange] = useState<UintRange<bigint>>({ start: 1n, end: 1n });
 
   const currTimeNextHour = new Date();
   currTimeNextHour.setHours(currTimeNextHour.getHours());
@@ -65,13 +77,13 @@ export function BalanceDisplayEditRow({
   currTimeNextHour.setMilliseconds(0);
 
   //Does current supply cause a gap
-  let currBadgeIds = collections.collections[MSG_PREVIEW_ID.toString()]?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
+  let currBadgeIds = collections.getCollection(MSG_PREVIEW_ID)?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
   currBadgeIds.push(...currentSupply.badgeIds);
-  currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds);
+  currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
   let maxBadgeId = currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n;
   let invertedBadgeIds = invertUintRanges(currBadgeIds, 1n, maxBadgeId);
 
-  const nonSequential = invertedBadgeIds.length > 0;
+  const nonSequential = invertedBadgeIds.length > 0 && sequentialOnly;
 
   const isDisabled = currentSupply.amount <= 0 || currentSupply.badgeIds.length === 0 || currentSupply.ownershipTimes.length === 0
     || checkIfUintRangesOverlap(currentSupply.ownershipTimes) || checkIfUintRangesOverlap(currentSupply.badgeIds) || nonSequential;
@@ -111,26 +123,77 @@ export function BalanceDisplayEditRow({
     </tr>
     {selectIsVisible && <>
       <Row className="flex-between full-width" style={{ marginTop: 24, alignItems: 'normal' }}>
-        <InformationDisplayCard md={4} xs={24} sm={24} style={{ marginTop: 16 }} title={'1. Select Amount'}>
-          <br />
-          <NumberInput
-            value={Number(currentSupply.amount)}
-            setValue={(value) => {
-              // currentSupply.amount = BigInt(value);
-              setCurrentSupply((currentSupply) => {
-                return {
-                  ...currentSupply,
-                  amount: BigInt(value)
-                }
-              })
-            }}
-            title='Amount'
-            min={0}
-            max={Number.MAX_SAFE_INTEGER}
-          />
+        {isMustOwnBadgesInput &&
+          <InformationDisplayCard md={fullWidthCards ? 24 : 4} xs={24} sm={24} style={{ marginTop: 16 }} title={'Collection ID'}>
+            <br />
+            <NumberInput
+              value={Number(selectedCollectionId)}
+              setValue={(value) => {
+                // currentSupply.amount = BigInt(value);
+                setSelectedCollectionId(BigInt(value))
+              }}
+              title='Collection ID'
+              min={1}
+              max={Number.MAX_SAFE_INTEGER}
+            />
 
-        </InformationDisplayCard>
-        <InformationDisplayCard md={10} xs={24} sm={24} style={{ marginTop: 16 }} title={'2. Select Badges'}>
+          </InformationDisplayCard>}
+        {isMustOwnBadgesInput &&
+          <InformationDisplayCard md={fullWidthCards ? 24 : 4} xs={24} sm={24} style={{ marginTop: 16 }} title={'Amount Range'}>
+            <br />
+            <NumberInput
+              value={Number(selectedAmountRange.start)}
+              setValue={(value) => {
+                // currentSupply.amount = BigInt(value);
+                setSelectedAmountRange((selectedAmountRange) => {
+                  return {
+                    ...selectedAmountRange,
+                    start: BigInt(value)
+                  }
+                })
+              }}
+              title='Min Amount'
+              min={0}
+              max={Number.MAX_SAFE_INTEGER}
+            />
+            <NumberInput
+              value={Number(selectedAmountRange.end)}
+              setValue={(value) => {
+                // currentSupply.amount = BigInt(value);
+                setSelectedAmountRange((selectedAmountRange) => {
+                  return {
+                    ...selectedAmountRange,
+                    end: BigInt(value)
+                  }
+                })
+              }}
+              title='Max Amount'
+              min={0}
+              max={Number.MAX_SAFE_INTEGER}
+            />
+
+          </InformationDisplayCard>}
+        {!isMustOwnBadgesInput &&
+          <InformationDisplayCard md={fullWidthCards ? 24 : 4} xs={24} sm={24} style={{ marginTop: 16 }} title={'Amount'}>
+            <br />
+            <NumberInput
+              value={Number(currentSupply.amount)}
+              setValue={(value) => {
+                // currentSupply.amount = BigInt(value);
+                setCurrentSupply((currentSupply) => {
+                  return {
+                    ...currentSupply,
+                    amount: BigInt(value)
+                  }
+                })
+              }}
+              title='Amount'
+              min={0}
+              max={Number.MAX_SAFE_INTEGER}
+            />
+
+          </InformationDisplayCard>}
+        <InformationDisplayCard md={fullWidthCards ? 24 : 10} xs={24} sm={24} style={{ marginTop: 16 }} title={'Badge IDs'}>
           <br />
           <BadgeIdRangesInput
             uintRanges={currentSupply.badgeIds}
@@ -144,13 +207,13 @@ export function BalanceDisplayEditRow({
             }}
             minimum={minimum ?? 1n}
             maximum={maximum ?? 100000n}
-            collectionId={collectionId}
+            collectionId={isMustOwnBadgesInput ? selectedCollectionId : collectionId}
             hideSelect
-            hideDisplay
+            hideNumberSelects
           />
 
         </InformationDisplayCard>
-        <InformationDisplayCard md={9} xs={24} sm={24} style={{ marginTop: 16 }} title={'3. Select Ownership Times'}>
+        <InformationDisplayCard md={fullWidthCards ? 24 : 9} xs={24} sm={24} style={{ marginTop: 16 }} title={'Ownership Times'}>
           <br />
           {isMustOwnBadgesInput ? 'Transfer Time' :
             hideOwnershipTimeSelect ? <><b>Select Ownership Times</b><br />
@@ -171,7 +234,18 @@ export function BalanceDisplayEditRow({
                       {
                         title: "Custom",
                         message: message == "Circulating Supplys" ? "Badges can be owned only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.",
-                        isSelected: !(isFullUintRanges(currentSupply.ownershipTimes))
+                        isSelected: !(isFullUintRanges(currentSupply.ownershipTimes)),
+                        additionalNode: <>
+                          {isFullUintRanges(currentSupply.ownershipTimes) ? <></> : <>
+
+                            <DateRangeInput
+                              timeRanges={currentSupply.ownershipTimes}
+                              setTimeRanges={(timeRanges) => {
+                                setCurrentSupply({ ...currentSupply, ownershipTimes: timeRanges });
+                              }}
+                              suggestedTimeRanges={defaultBalancesToShow?.map(x => x.ownershipTimes).flat()}
+                            />
+                          </>}</>
                       },
                     ]}
                     onSwitchChange={(value) => {
@@ -188,28 +262,47 @@ export function BalanceDisplayEditRow({
                       }
                     }}
                   />
-
-                  <>  <br />
-                    {isFullUintRanges(currentSupply.ownershipTimes) ? <></> : <>
-
-                      <DateRangeInput
-                        timeRanges={currentSupply.ownershipTimes}
-                        setTimeRanges={(timeRanges) => {
-                          setCurrentSupply({ ...currentSupply, ownershipTimes: timeRanges });
-                        }}
-                        suggestedTimeRanges={defaultBalancesToShow?.map(x => x.ownershipTimes).flat()}
-                      />
-                    </>}</>
-
                 </div>
               </>
 
           }
         </InformationDisplayCard>
       </Row>
-      {!isDisabled &&
+      {!isDisabled && !isMustOwnBadgesInput && setIncrementBadgeIdsBy &&
         <Row className="flex-between full-width" style={{ marginTop: 24, alignItems: 'normal' }}>
-          <InformationDisplayCard md={24} xs={24} sm={24} style={{}} title={''}>
+          <InformationDisplayCard md={fullWidthCards ? 24 : 24} xs={24} sm={24} style={{}} title={''}>
+            <SwitchForm
+              options={[
+                {
+                  title: 'No Increment',
+                  message: `All ${numRecipients.toString()} recipients will receive x${currentSupply.amount.toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds)}.`,
+                  isSelected: !incrementBadgeIdsBy,
+                },
+                {
+                  title: 'Increment Badge IDs',
+                  message: `Increment badge IDs by a certain amount for each recipient. The first recipient will receive x${currentSupply.amount.toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds)}. The second recipient will receive x${(currentSupply.amount).toString()} of the selected badges ${getBadgeIdsString(currentSupply.badgeIds.map(x => { return { start: x.start + incrementBadgeIdsBy, end: x.end + incrementBadgeIdsBy } }))}, and so on.`,
+                  isSelected: !!incrementBadgeIdsBy,
+                  additionalNode: <NumberInput
+                    value={Number(incrementBadgeIdsBy)}
+                    setValue={(value) => {
+                      setIncrementBadgeIdsBy?.(BigInt(value));
+                    }}
+                    title='Increment Amount'
+                    min={1}
+                    max={Number.MAX_SAFE_INTEGER}
+                  />
+                },
+
+              ]}
+              onSwitchChange={(idx) => {
+                setIncrementBadgeIdsBy?.(idx === 0 ? 0n : 1n);
+              }}
+            />
+          </InformationDisplayCard>
+        </Row>}
+      {!isDisabled && !isMustOwnBadgesInput &&
+        <Row className="flex-between full-width" style={{ marginTop: 24, alignItems: 'normal' }}>
+          <InformationDisplayCard md={fullWidthCards ? 24 : 24} xs={24} sm={24} style={{}} title={''}>
             <BalanceDisplay
               collectionId={collectionId}
               balances={!isDisabled ? deepCopy([currentSupply]) : []}
@@ -218,6 +311,8 @@ export function BalanceDisplayEditRow({
               isMustOwnBadgesInput={isMustOwnBadgesInput}
               editable={false}
               hideBadges
+              incrementBadgeIdsBy={incrementBadgeIdsBy}
+              numIncrements={numRecipients}
             />
           </InformationDisplayCard>
         </Row>}
@@ -228,7 +323,11 @@ export function BalanceDisplayEditRow({
           style={{ width: '100%' }}
           disabled={isDisabled}
           onClick={() => {
-            onAddBadges?.(deepCopy(currentSupply));
+            if (isMustOwnBadgesInput) {
+              onAddBadges?.(deepCopy(currentSupply), selectedAmountRange, selectedCollectionId);
+            } else {
+              onAddBadges?.(deepCopy(currentSupply));
+            }
 
             setCurrentSupply({
               amount: 1n,

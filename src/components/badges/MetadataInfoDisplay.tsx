@@ -32,7 +32,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   metadataUrl?: string
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride :
     badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 

@@ -32,8 +32,6 @@ export function DateRangeInput({
   return <>
     <div>
       <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
-        <b style={{ fontSize: 18 }}>Time Ranges</b>
-        <br />
         <div className='flex flex-column'>
 
           {timeRanges.length === 0 && <div className='primary-text' style={{ marginTop: 4 }}>
@@ -91,7 +89,7 @@ export function DateRangeInput({
                 style={{ width: 200 }}
                 className="landing-button"
                 onClick={() => {
-                  const newUintRanges = sortUintRangesAndMergeIfNecessary(timeRanges);
+                  const newUintRanges = sortUintRangesAndMergeIfNecessary(timeRanges, true);
 
                   setTimeRanges(newUintRanges);
                 }}>

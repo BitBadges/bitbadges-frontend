@@ -36,7 +36,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const collection of browseInfo.collections[category]) {
         if (!updatedIds.has(collection.collectionId)) {
-          collections.updateCollection(collection);
+          collections.setCollection(collection);
           updatedIds.add(collection.collectionId);
         }
       }
@@ -47,7 +47,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const profile of browseInfo.profiles[category]) {
         if (!updatedAccounts.has(profile.cosmosAddress)) {
-          console.log(profile);
           accounts.updateAccount({
             ...profile,
           });

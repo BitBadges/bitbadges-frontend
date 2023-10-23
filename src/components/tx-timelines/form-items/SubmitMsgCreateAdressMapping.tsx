@@ -25,7 +25,7 @@ export function SubmitMsgCreateAddressMapping() {
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
 
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
 
   return <div className='full-width'
@@ -109,7 +109,7 @@ export function SubmitMsgCreateAddressMapping() {
         setLoading(false);
       }}
     >
-      Create Address List!
+      Submit
     </Button>
     <CreateTxMsgCreateAddressMappingModal
       visible={visible}

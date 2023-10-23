@@ -62,7 +62,6 @@ function BrowsePage() {
 
 
   return (
-    <Layout>
       <Content
         style={{
           textAlign: 'center',
@@ -323,7 +322,6 @@ function BrowsePage() {
 
         <Divider />
       </Content >
-    </Layout >
   );
 }
 

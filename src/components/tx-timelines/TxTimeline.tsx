@@ -19,35 +19,23 @@ export function TxTimeline({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: tx timeline, collectionId changed ');
     if (!txTimelineContext) return;
-    if (addressMappingId && txTimelineContext.existingAddressMappingId !== addressMappingId) {
-      txTimelineContext.setExistingAddressMappingId(addressMappingId);
-      txTimelineContext.setFormStepNum(1);
-    }
-    if (collectionId !== undefined && txTimelineContext.existingCollectionId !== collectionId) {
-      txTimelineContext.setExistingCollectionId(collectionId);
-      txTimelineContext.setFormStepNum(1);
-    }
+
+    txTimelineContext.resetState(collectionId, addressMappingId);
+    console.log('test21', addressMappingId)
   }, []);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: tx timeline, collectionId changed ');
     if (!txTimelineContext) return;
-    if (addressMappingId && txTimelineContext.existingAddressMappingId !== addressMappingId) {
-      txTimelineContext.setExistingAddressMappingId(addressMappingId);
-      txTimelineContext.setFormStepNum(1);
-    }
-    if (collectionId !== undefined && txTimelineContext.existingCollectionId !== collectionId) {
-      txTimelineContext.setExistingCollectionId(collectionId);
-      txTimelineContext.setFormStepNum(1);
-    }
+    txTimelineContext.resetState(collectionId, addressMappingId);
+    console.log('test22', addressMappingId)
   }, [collectionId, addressMappingId]);
 
-
-  if (!txTimelineContext.initialLoad) return <div className='primary-text primary-blue-bg'>
+  if (!txTimelineContext.initialLoad) return <div className='primary-text inherit-bg' style={{ minHeight: '100vh' }} >
     <Spin size='large' />
     <Divider />
     {<p>Fetching all details for this collection. This may take some time.</p>}
-  </div>
+  </ div>
 
   if (txType === 'UpdateCollection') {
     return <UpdateCollectionTimeline />

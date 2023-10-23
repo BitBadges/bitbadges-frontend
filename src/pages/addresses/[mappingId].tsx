@@ -1,12 +1,15 @@
-import { Card, Col, Divider, Empty, Layout, Row, Spin } from 'antd';
-import { AddressMapping } from 'bitbadgesjs-proto';
-import { Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { Card, Col, Divider, Empty, Layout, Row, Spin, Typography } from 'antd';
+import { AddressMappingInfo, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
+import { ClockCircleOutlined } from '@ant-design/icons';
+import Meta from 'antd/lib/card/Meta';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
+import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
 import { AddressSelect } from '../../components/address/AddressSelect';
@@ -15,10 +18,8 @@ import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { Tabs } from '../../components/navigation/Tabs';
-import Meta from 'antd/lib/card/Meta';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NODE_URL } from '../../constants';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -28,7 +29,7 @@ function CollectionPage({ }: {}) {
   const { mappingId } = router.query;
 
   const [tab, setTab] = useState('overview');
-  const [mapping, setMapping] = useState<AddressMapping>();
+  const [mapping, setMapping] = useState<AddressMappingInfo<bigint>>();
   const [metadata, setMetadata] = useState<Metadata<bigint>>();
 
   const HtmlToReactParser = HtmlToReact.Parser();
@@ -125,206 +126,227 @@ function CollectionPage({ }: {}) {
   const tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
+    { key: 'history', content: 'Update History' },
     { key: 'actions', content: 'Actions' },
   );
   return (
-    <Layout>
-      <Content
+    <Content
+      style={{
+        textAlign: 'center',
+        minHeight: '100vh',
+      }}
+    >
+      <div
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-          textAlign: 'center',
-          minHeight: '100vh',
+          marginLeft: '7vw',
+          marginRight: '7vw',
+          paddingLeft: '1vw',
+          paddingRight: '1vw',
+          paddingTop: '20px',
         }}
       >
-        <div
-          className='primary-blue-bg'
-          style={{
-            marginLeft: '7vw',
-            marginRight: '7vw',
-            paddingLeft: '1vw',
-            paddingRight: '1vw',
-            paddingTop: '20px',
-          }}
-        >
-          <BadgeButtonDisplay website={metadata?.externalUrl} />
-          <CollectionHeader collectionId={MSG_PREVIEW_ID} metadataOverride={metadata} hideCollectionLink />
-          {!mapping && <Spin size='large' />}
-          <Tabs
-            tab={tab}
-            tabInfo={tabInfo}
-            setTab={setTab}
-            theme="dark"
-            fullWidth
-          />
-          {tab === 'overview' && <>
+        <BadgeButtonDisplay website={metadata?.externalUrl} />
+        <CollectionHeader collectionId={MSG_PREVIEW_ID} metadataOverride={metadata} hideCollectionLink />
+        {!mapping && <Spin size='large' />}
+        <Tabs
+          tab={tab}
+          tabInfo={tabInfo}
+          setTab={setTab}
+          theme="dark"
+          fullWidth
+        />
+        {tab === 'history' && <>
+          <div className='primary-text'>
             <br />
-            {metadata?.description && <>
-              <InformationDisplayCard
-                title="About"
-              >
-                <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                  <div className='custom-html-style primary-text' id="description">
-                    {reactElement}
-                  </div>
-                </div>
-              </InformationDisplayCard>
-              <br />
-            </>}
-            {
-              <div className='flex-center'>
-                <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
-                  <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+            {mapping?.updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
+              return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
 
+                <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+                  <ClockCircleOutlined style={{ marginRight: '5px' }} />
+                  {i == 0 ? 'Created' : 'Updated'
+                  } at{' '}
+                  {new Date(Number(update.blockTimestamp)).toLocaleString()}
+                  {' '}(Block #{update.block.toString()})
+
+                </Typography.Text>
+                {update.txHash && <>
+                  <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                    {update.txHash}
+                  </a></p></>}
+                <Divider />
+              </div>
+            })}
+          </div>
+        </>}
+        {tab === 'overview' && <>
+          <br />
+          {metadata?.description && <>
+            <InformationDisplayCard
+              title="About"
+            >
+              <div style={{ maxHeight: 200, overflow: 'auto' }} >
+                <div className='custom-html-style primary-text' id="description">
+                  {reactElement}
+                </div>
+              </div>
+            </InformationDisplayCard>
+            <br />
+          </>}
+
+          {
+            <div className='flex-center'>
+              <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
+                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+
+                  <InformationDisplayCard
+                    title="Info"
+                  >
+                    {mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
+                    {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
+                    {mapping?.createdBy && <TableRow label={"Created By"} value={
+                      <div className='flex-between' style={{ textAlign: 'right' }}>
+                        <div></div>
+                        <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+                          <AddressDisplay
+                            fontSize={13}
+                            addressOrUsername={mapping.createdBy}
+                          />
+                        </div>
+                      </div>
+                    } labelSpan={9} valueSpan={15} />}
+                    <TableRow label={"Storage"} value={
+                      mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
+
+                        "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
+                  </InformationDisplayCard>
+                  <br />
+
+                  <MetadataDisplay
+                    collectionId={0n}
+                    metadataOverride={metadata}
+                    span={24}
+                    isAddressListDisplay
+                    metadataUrl={mapping?.uri}
+                  />
+                </Col>
+                <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
+                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
+                  {mapping && <>
                     <InformationDisplayCard
-                      title="Info"
+                      title="Addresses"
                     >
-                      {mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
-                      {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
-                      {mapping?.createdBy && <TableRow label={"Created By"} value={
-                        <div className='flex-between' style={{ textAlign: 'right' }}>
-                          <div></div>
-                          <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
-                            <AddressDisplay
-                              fontSize={13}
-                              addressOrUsername={mapping.createdBy}
-                            />
+
+                      <AddressDisplayList
+                        // title='Addresses'
+                        users={mapping?.addresses || []}
+                        allExcept={!mapping?.includeAddresses}
+                      />
+
+                      <Divider />
+                      <b>Address Checker</b>
+                      <AddressSelect
+                        defaultValue={addressToCheck}
+                        onUserSelect={setAddressToCheck}
+
+                      />
+                      <br />
+                      {addressToCheck &&
+                        <AddressDisplay
+                          addressOrUsername={addressToCheck}
+
+                        />}
+                      <br />
+                      {addressToCheck ? addressInList ? <div className='flex-center'>
+                        <div className='flex-center' style={{ alignItems: 'center' }}>
+                          <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
+                            <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
+
                           </div>
                         </div>
-                      } labelSpan={9} valueSpan={15} />}
-                      <TableRow label={"Storage"} value={
-                        mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
-
-                          "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
-                    </InformationDisplayCard>
-                    <br />
-
-                    <MetadataDisplay
-                      collectionId={0n}
-                      metadataOverride={metadata}
-                      span={24}
-                      isAddressListDisplay
-                      metadataUrl={mapping?.uri}
-                    />
-                  </Col>
-                  <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
-                  <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
-                    {mapping && <>
-                      <InformationDisplayCard
-                        title="Addresses"
-                      >
-
-                        <AddressDisplayList
-                          // title='Addresses'
-                          users={mapping?.addresses || []}
-                          allExcept={!mapping?.includeAddresses}
-                        />
-
-                        <Divider />
-                        <b>Address Checker</b>
-                        <AddressSelect
-                          defaultValue={addressToCheck}
-                          onUserSelect={setAddressToCheck}
-
-                        />
-                        <br />
-                        {addressToCheck &&
-                          <AddressDisplay
-                            addressOrUsername={addressToCheck}
-
-                          />}
-                        <br />
-                        {addressToCheck ? addressInList ? <div className='flex-center'>
+                      </div> :
+                        <div className='flex-center'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
                             <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                              <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
+                              <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
 
                             </div>
                           </div>
-                        </div> :
-                          <div className='flex-center'>
-                            <div className='flex-center' style={{ alignItems: 'center' }}>
-                              <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                                <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
-
-                              </div>
-                            </div>
-                          </div>
-                          : <></>
-                        }
-                      </InformationDisplayCard>
-                    </>
-                    }
-                  </Col>
-                </Row>
-
-              </div>
-            }
-          </>}
-
-          {tab === 'actions' && <>
-            <div className='full-width' style={{ fontSize: 20 }}>
-              <div className='primary-text flex-center flex-wrap'
-                style={{
-                  padding: '0',
-                  textAlign: 'center',
-                  marginTop: 20,
-                }}
-              >
-                {actions.map((action, idx) => {
-                  return <Card
-                    key={idx}
-                    className='primary-text inherit-bg flex-center'
-                    style={{
-                      width: '300px',
-                      minHeight: '150px',
-                      margin: 8,
-                      textAlign: 'center',
-                      cursor: action.disabled ? 'not-allowed' : undefined,
-                    }}
-                    hoverable={!action.disabled}
-                    onClick={async () => {
-                      if (action.disabled) return;
-                      action.showModal();
-                    }}
-                  >
-                    <Meta
-                      title={
-                        <div
-                          className='primary-text'
-                          style={{
-                            fontSize: 20,
-                            fontWeight: 'bolder',
-                          }}
-                        >
-                          {action.title}
                         </div>
+                        : <></>
                       }
-                      description={
-                        <div className='secondary-text flex-center full-width'>
-                          {action.description}
-                        </div>
-                      }
-                    />
-                  </Card>
-                })}
-              </div>
-              {actions.length == 0 && (
-                <>
-                  <Empty
-                    className='primary-text'
-                    description="No actions can be taken."
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  />
-                </>
-              )}
+                    </InformationDisplayCard>
+                  </>
+                  }
+                </Col>
+              </Row>
+
             </div>
-          </>}
+          }
+        </>}
 
-        </div>
+        {tab === 'actions' && <>
+          <div className='full-width' style={{ fontSize: 20 }}>
+            <div className='primary-text flex-center flex-wrap'
+              style={{
+                padding: '0',
+                textAlign: 'center',
+                marginTop: 20,
+              }}
+            >
+              {actions.map((action, idx) => {
+                return <Card
+                  key={idx}
+                  className='primary-text gradient-bg flex-center'
+                  style={{
+                    width: '300px',
+                    minHeight: '150px',
+                    margin: 8,
+                    textAlign: 'center',
+                    cursor: action.disabled ? 'not-allowed' : undefined,
+                  }}
+                  hoverable={!action.disabled}
+                  onClick={async () => {
+                    if (action.disabled) return;
+                    action.showModal();
+                  }}
+                >
+                  <Meta
+                    title={
+                      <div
+                        className='primary-text'
+                        style={{
+                          fontSize: 20,
+                          fontWeight: 'bolder',
+                        }}
+                      >
+                        {action.title}
+                      </div>
+                    }
+                    description={
+                      <div className='secondary-text flex-center full-width'>
+                        {action.description}
+                      </div>
+                    }
+                  />
+                </Card>
+              })}
+            </div>
+            {actions.length == 0 && (
+              <>
+                <Empty
+                  className='primary-text'
+                  description="No actions can be taken."
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </>
+            )}
+          </div>
+        </>}
 
-        <Divider />
-      </Content>
-    </Layout>
+      </div>
+
+      <Divider />
+    </Content>
   );
 }
 

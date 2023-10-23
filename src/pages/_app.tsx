@@ -4,29 +4,29 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
+import { Provider } from 'react-redux';
 import { mainnet } from 'wagmi/chains';
-import { AccountReducerState, AccountsContextProvider } from '../bitbadges-api/contexts/accounts/AccountsContext';
 import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
 import { ChainContextProvider } from '../bitbadges-api/contexts/ChainContext';
-import { CollectionReducerState, CollectionsContextProvider } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { StatusContextProvider } from '../bitbadges-api/contexts/StatusContext';
 import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
+import { AccountReducerState, AccountsContextProvider } from '../bitbadges-api/contexts/accounts/AccountsContext';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../bitbadges-api/contexts/chains/EthereumContext';
+import { CollectionReducerState, CollectionsContextProvider } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
 import { INFINITE_LOOP_MODE } from '../constants';
-import { Provider } from 'react-redux'
 
+import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
 import { WagmiConfig } from 'wagmi';
 
-
-import '../styles/index.css';
-import '../styles/antd-override-styles.css';
-import { combineReducers, createStore } from 'redux';
+import { combineReducers } from 'redux';
 import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import '../styles/custom.css';
+import '../styles/index.css';
+import '../styles/antd-override-styles.css';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -44,12 +44,23 @@ const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
 // 3. Create modal
 createWeb3Modal({ wagmiConfig, projectId, chains })
 
+
+
 const combinedReducers = combineReducers({
   collections: collectionReducer,
   accounts: accountReducer,
 })
 
-const store = createStore(combinedReducers)
+//ignore payload serializable warning
+const serializableMiddleware = createSerializableStateInvariantMiddleware({
+  ignoreActions: true,
+});
+
+
+const store = configureStore({
+  reducer: combinedReducers,
+  middleware: [serializableMiddleware],
+})
 
 export interface GlobalReduxState {
   accounts: AccountReducerState

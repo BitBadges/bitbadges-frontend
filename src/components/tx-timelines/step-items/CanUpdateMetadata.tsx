@@ -14,11 +14,11 @@ export function UpdatableMetadataSelectStepItem(
   collectionMetadataUpdate: boolean,
 ) {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [checked, setChecked] = useState<boolean>(true);
 
   const txTimelineContext = useTxTimelineContext();
-  const addMethod = txTimelineContext.addMethod;
+  const addMethod = collectionMetadataUpdate ? txTimelineContext.collectionAddMethod : txTimelineContext.badgeAddMethod;
 
   const [err, setErr] = useState<Error | null>(null);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1); //Note this is the user clicked idx. The highlighted idx is the idx of the permission that is currently selected. These may be mismatched
@@ -38,7 +38,7 @@ export function UpdatableMetadataSelectStepItem(
     castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []),
     BalancesActionPermissionUsedFlags
   );
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]]);
+  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
@@ -108,29 +108,22 @@ export function UpdatableMetadataSelectStepItem(
 
       if (idx == 1 && !frozen) {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
             canUpdateCollectionMetadata: []
           }
         });
 
       } else if (idx == 1 && frozen) {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
             canUpdateCollectionMetadata: [{
-              defaultValues: {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [],
-              },
-              combinations: [{
-                permittedTimesOptions: { allValues: true },
-                forbiddenTimesOptions: { noValues: true },
-                timelineTimesOptions: { allValues: true },
-              }]
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              forbiddenTimes: [],
             }]
           }
 
@@ -139,17 +132,15 @@ export function UpdatableMetadataSelectStepItem(
 
       else {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
 
             canUpdateCollectionMetadata: [{
-              defaultValues: {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{}]
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+
             }]
           }
 
@@ -159,31 +150,23 @@ export function UpdatableMetadataSelectStepItem(
 
       if (idx == 1 && !frozen) {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
             canUpdateBadgeMetadata: []
           }
         });
 
       } else if (idx == 1 && frozen) {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
             canUpdateBadgeMetadata: [{
-              defaultValues: {
-                badgeIds: lockedBadgeIds,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [],
-              },
-              combinations: [{
-                permittedTimesOptions: { allValues: true },
-                forbiddenTimesOptions: { noValues: true },
-                timelineTimesOptions: { allValues: true },
-                badgeIdsOptions: { allValues: true },
-              }]
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              forbiddenTimes: [],
             }]
           }
 
@@ -192,18 +175,15 @@ export function UpdatableMetadataSelectStepItem(
 
       else {
         collections.updateCollection({
-          ...collection,
+          collectionId: MSG_PREVIEW_ID,
           collectionPermissions: {
-            ...collection.collectionPermissions,
+
 
             canUpdateBadgeMetadata: [{
-              defaultValues: {
-                badgeIds: lockedBadgeIds,
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-              combinations: [{}]
+              badgeIds: lockedBadgeIds,
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              permittedTimes: [],
+              forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }]
           }
 

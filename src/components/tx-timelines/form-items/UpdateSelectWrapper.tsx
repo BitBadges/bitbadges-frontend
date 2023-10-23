@@ -1,6 +1,6 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
@@ -45,7 +45,7 @@ export function UpdateSelectWrapper({
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
@@ -79,14 +79,14 @@ export function UpdateSelectWrapper({
         castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
         flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
         break;
-      case 'canUpdateCollectionApprovedTransfers':
-        castFunction = castCollectionApprovedTransferPermissionToUniversalPermission;
-        flags = ApprovedTransferPermissionUsedFlags;
+      case 'canUpdateCollectionApprovals':
+        castFunction = castCollectionApprovalPermissionToUniversalPermission;
+        flags = ApprovalPermissionUsedFlags;
         break;
     }
   }
 
-  const permissionDataSource = jsonPropertyPath === "defaultUserApprovedIncomingTransfers" ? undefined : getPermissionDetails(
+  const permissionDataSource = jsonPropertyPath === "defaultUserIncomingApprovals" ? undefined : getPermissionDetails(
     castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
     flags as any
   );
@@ -129,7 +129,7 @@ export function UpdateSelectWrapper({
     case 'canUpdateBadgeMetadata':
       question = "Can update the badge metadata?";
       break;
-    case 'canUpdateCollectionApprovedTransfers':
+    case 'canUpdateCollectionApprovals':
       question = "Can update collection approved transfers?";
       break;
     // Add custom questions for other permissions as needed
@@ -138,25 +138,13 @@ export function UpdateSelectWrapper({
 
   return (
     <>
-      <div className='primary-text' >
+      <div className='primary-text flex-center flex-column' >
 
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
-          {!isMint &&
-            <div style={{ marginTop: 10 }}>
-              <Switch
-                checkedChildren="Update"
-                unCheckedChildren="Do not update"
-                style={{ marginLeft: 10 }}
-                checked={updateFlag}
-                onChange={(e) => {
-                  setUpdateFlag(e);
-                }}
-                className='primary-text'
-              />
-            </div>}
 
 
-          {updateFlag && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" &&
+
+          {updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
             <IconButton
               src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
@@ -203,13 +191,13 @@ export function UpdateSelectWrapper({
                     const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       [`${jsonPropertyPath}`]: existingValue
                     });
 
                   } else if (collection && !startingCollection) {
                     collections.updateCollection({
-                      ...collection,
+                      collectionId: MSG_PREVIEW_ID,
                       [`${jsonPropertyPath}`]: []
                     });
                   }
@@ -217,7 +205,19 @@ export function UpdateSelectWrapper({
               }}
             />}
         </div>
-
+        {!isMint &&
+          <div style={{ marginTop: 10 }}>
+            <Switch
+              checkedChildren="Update"
+              unCheckedChildren="Do not update"
+              style={{ marginLeft: 10 }}
+              checked={updateFlag}
+              onChange={(e) => {
+                setUpdateFlag(e);
+              }}
+              className='primary-text'
+            />
+          </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag &&
           <div className='' style={{ textAlign: 'center' }}>
             <br />
@@ -240,15 +240,15 @@ export function UpdateSelectWrapper({
       <span color='black' style={{ margin: 16, }} />
 
       {!updateFlag &&
-        <div style={{ textAlign: 'center' }} className='primary-text flex-center flex-column' >
+        <div style={{ textAlign: 'center' }} className='primary-text' >
           <SwitchForm
             options={[{
               title: 'Do Not Update',
               message: `This value will remain as previously set.
                   ${!existingCollectionId && permissionName != 'canUpdateManager'
-                  && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" ? ' For new collections, this means the value will be empty or unset.' : ''}
+                  && jsonPropertyPath !== "defaultUserIncomingApprovals" ? ' For new collections, this means the value will be empty or unset.' : ''}
                   ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}
-                  ${existingCollectionId && permissionName == 'defaultUserApprovedIncomingTransfers' ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
+                  ${existingCollectionId && permissionName == 'defaultUserIncomingApprovals' ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
                   `,
               isSelected: true,
             },
@@ -257,11 +257,10 @@ export function UpdateSelectWrapper({
           />
         </div>}
 
-      {showPermission && jsonPropertyPath !== "defaultUserApprovedIncomingTransfers" ? <>
+      {showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
         <InformationDisplayCard title={question}>
           {
             PermissionDisplay(
-              permissionName,
               castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
               flags as any,
               undefined,

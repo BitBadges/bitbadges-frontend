@@ -52,7 +52,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
           (a, b) => Number(b.createdTimestamp) - Number(a.createdTimestamp)
         ).map((claimAlert, index) => {
 
-          const collectionToDisplay = collections.collections[claimAlert.collectionId.toString()];
+          const collectionToDisplay = collections.getCollection(claimAlert.collectionId);
           return (
             <div key={index} className='primary-text full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>

@@ -1,6 +1,6 @@
 import { isAddressMappingEmpty } from "bitbadgesjs-utils";
 import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { AddressMappingSelect } from "../form-items/AddressMappingSelect";
+import { AddressMappingSelect } from "../../address/AddressMappingSelect";
 
 export function AddressMappingSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
@@ -10,7 +10,9 @@ export function AddressMappingSelectStepItem() {
   return {
     title: 'Select Users',
     description: ``,
-    node: <AddressMappingSelect addressMapping={addressMapping} setAddressMapping={setAddressMapping} />,
+    node: <div className='flex-center full-width'>
+      <AddressMappingSelect addressMapping={addressMapping} setAddressMapping={setAddressMapping} />
+    </div>,
     disabled: isAddressMappingEmpty(addressMapping)
   }
 }

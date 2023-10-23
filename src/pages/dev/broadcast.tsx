@@ -1,6 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Button, Divider, Input, Layout, Select, Typography } from 'antd';
-import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUpdateCollection, convertMsgUpdateUserApprovedTransfers, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovedTransfers } from 'bitbadgesjs-proto';
+import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { useState } from 'react';
 import { TxModal } from '../../components/tx-modals/TxModal';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
@@ -20,13 +20,13 @@ function Broadcast() {
   const convertFunction = txType === 'MsgUpdateCollection' ? createTxMsgUpdateCollection
     : txType === 'MsgDeleteCollection' ? createTxMsgDeleteCollection
       : txType === 'MsgCreateAddressMappings' ? createTxMsgCreateAddressMappings
-        : txType === 'MsgUpdateUserApprovedTransfers' ? createTxMsgUpdateUserApprovedTransfers
+        : txType === 'MsgUpdateUserApprovals' ? createTxMsgUpdateUserApprovals
           : txType === 'MsgTransferBadges' ? createTxMsgTransferBadges
             : undefined
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet and sign im to access this page.'
+      message='Please connect a wallet and sign in to access this page.'
       node={
         <Layout>
           <Content
@@ -67,8 +67,8 @@ function Broadcast() {
                 <Select.Option key={2} value={'MsgCreateAddressMappings'}>
                   MsgCreateAddressMappings
                 </Select.Option>
-                <Select.Option key={3} value={'MsgUpdateUserApprovedTransfers'}>
-                  MsgUpdateUserApprovedTransfers
+                <Select.Option key={3} value={'MsgUpdateUserApprovals'}>
+                  MsgUpdateUserApprovals
                 </Select.Option>
                 <Select.Option key={4} value={'MsgTransferBadges'}>
                   MsgTransferBadges
@@ -88,7 +88,7 @@ function Broadcast() {
                     if (txType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
                     else if (txType === 'MsgDeleteCollection') setMsg(convertMsgDeleteCollection(msg, BigIntify));
                     else if (txType === 'MsgCreateAddressMappings') setMsg(msg);
-                    else if (txType === 'MsgUpdateUserApprovedTransfers') setMsg(convertMsgUpdateUserApprovedTransfers(msg, BigIntify));
+                    else if (txType === 'MsgUpdateUserApprovals') setMsg(convertMsgUpdateUserApprovals(msg, BigIntify));
                     else if (txType === 'MsgTransferBadges') setMsg(convertMsgTransferBadges(msg, BigIntify));
                   } catch (e: any) {
                     console.error(e);

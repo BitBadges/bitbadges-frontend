@@ -4,8 +4,10 @@ const { Text } = Typography;
 
 export function InformationDisplayCard({
   title,
+  subtitle,
   children,
   span,
+  inheritBg,
   noBorder,
   xs,
   sm,
@@ -17,9 +19,11 @@ export function InformationDisplayCard({
 
 }: {
   title: string | React.ReactNode
+  subtitle?: string | React.ReactNode
   children?: React.ReactNode
   span?: number,
   noBorder?: boolean
+  inheritBg?: boolean,
   xs?: number,
   sm?: number,
   md?: number,
@@ -34,11 +38,15 @@ export function InformationDisplayCard({
       xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
       className="gradient-bg bg-slate-50 border-0 dark:bg-blue-black"
       span={span ? span : undefined} style={{
-        ...style, padding: 17, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10,
-
+        ...style, minHeight: 100,
+        padding: 6
 
       }}>
-      <div className="primary-text">
+      <div className="primary-text gradient-bg " style={{
+        border: noBorder ? undefined : '1px solid darkgrey',
+        background: inheritBg ? 'inherit' : undefined,
+        borderRadius: 10, padding: 17, height: '100%'
+      }}>
         <Row className='full-width flex-center' style={{ alignItems: 'normal' }}>
           <Col className='full-width'>
             {title &&
@@ -47,6 +55,13 @@ export function InformationDisplayCard({
                   {title}
                 </Text>
               </Row>}
+            {subtitle &&
+              <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>
+                <Text strong style={{ fontSize: 12 }} className="secondary-text full-width">
+                  {subtitle}
+                </Text>
+              </Row>}
+
             {children}
           </Col>
         </Row>

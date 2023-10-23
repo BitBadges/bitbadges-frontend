@@ -1,15 +1,16 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Divider } from 'antd';
+import { Avatar, Divider, Typography } from 'antd';
 import { Balance, MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { DistributionMethod, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
+import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
@@ -61,7 +62,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       from: senderAccount?.cosmosAddress ?? '',
       balances: x.balances,
       toAddresses: x.toAddresses,
-      precalculationDetails: {
+      precalculateBalancesFromApproval: {
         approvalId: '',
         approvalLevel: '',
         approverAddress: '',
@@ -86,9 +87,11 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   const items = [
     {
-      title: 'Select Sender',
+      title: 'Sender',
       description: <div>
-        <div
+        <InformationDisplayCard
+          title=''
+          span={24}
           style={{
             padding: '0',
             textAlign: 'center',
@@ -122,30 +125,43 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
             defaultValue={senderAccount?.username ?? senderAccount?.address ?? ''}
             onUserSelect={setSender}
           />
-        </div>
+
+          <Divider />
+          <Typography.Text className='primary-text' style={{ fontSize: 16 }}>
+            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing approvals as well."}
+          </Typography.Text>
+          {/*
+          
+          <br />
+          <br />
+          <UserApprovalsTab
+            collectionId={collectionId}
+            hideSelect
+            defaultApprover={sender}
+            hideUpdateHistory
+            hideIncomingApprovals
+            showCollectionApprovals
+          /> */}
+        </InformationDisplayCard>
       </div >
     },
     {
       title: 'Add Transfers',
       description: <div>
-        {<div className=''>
-          <br />
-          <InfoCircleOutlined /> {"Note all transfers must be approved by a) the collection and b) the sender's and recipient's incoming / outgoing approvals."}
-        </div>}
-        <br />
+
 
         <div className=''>
           <TransferSelect
-            distributionMethod={DistributionMethod.DirectTransfer}
             collectionId={collectionId}
             sender={sender}
             originalSenderBalances={senderBalance}
             setTransfers={setTransfers}
             transfers={transfers}
             plusButton
+            showApprovalsMessage
           />
         </div >
-      </div >,
+      </div>,
       disabled: transfers.length === 0
     }
   ];
@@ -157,6 +173,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       setVisible={setVisible}
       txName="Transfer Badge(s)"
       txCosmosMsg={txCosmosMsg}
+      width={'90%'}
       createTxFunction={createTxMsgTransferBadges}
       onSuccessfulTx={async () => {
         await collections.fetchCollections([collectionId], true);

@@ -12,21 +12,23 @@ import { searchUintRangesForId } from 'bitbadgesjs-utils';
 import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 
-export function BalanceOverview({ collectionId, badgeId }: {
+export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress }: {
   collectionId: bigint;
   badgeId?: bigint
+  hideSelect?: boolean;
+  defaultAddress?: string;
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${collectionId}`];
+  const collection = collections.getCollection(collectionId);
 
   const isPreview = collectionId === MSG_PREVIEW_ID;
 
   const signedInAccount = accounts.getAccount(chain.address);
 
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
-  const [addressOrUsername, setAddressOrUsername] = useState<string>(signedInAccount?.username || signedInAccount?.address || '');
+  const [addressOrUsername, setAddressOrUsername] = useState<string>(defaultAddress || signedInAccount?.username || signedInAccount?.address || '');
 
   const DELAY_MS = 500;
 
@@ -69,9 +71,11 @@ export function BalanceOverview({ collectionId, badgeId }: {
 
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
-      <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} />
-      <br />
-
+      {!hideSelect && <>
+        <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} />
+        <br />
+      </>}
+      
       <div className='flex-center'>
         <AddressDisplay addressOrUsername={addressOrUsername} />
       </div>

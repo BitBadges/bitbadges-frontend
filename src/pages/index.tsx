@@ -6,14 +6,14 @@ import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { BITCOIN_LOGO, COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO , CHAIN_LOGO} from '../constants';
+import { BITCOIN_LOGO, COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO, CHAIN_LOGO } from '../constants';
 
 
-export const LandingCard = ({ content, additionalContent,customClass ,onClick }: {
+export const LandingCard = ({ content, additionalContent, customClass, onClick }: {
   content: JSX.Element,
   additionalContent?: JSX.Element,
   onClick?: () => void,
-  customClass:string
+  customClass: string
 }) => {
 
   const [showMore, setShowMore] = useState<boolean>(false);
@@ -144,7 +144,7 @@ const Home: NextPage = () => {
 
   return (
     <>
-    {/* gradient-bg  */}
+      {/* gradient-bg  */}
       <div className='landing-padding'      >
         <Row className='flex-around' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal' }}>
           <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh' }}>
@@ -203,7 +203,7 @@ const Home: NextPage = () => {
                 Feedback?
               </Button>
             </div>
-           
+
             {/* <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
               {status.status.nextCollectionId.toString()} Badges Created!
             </Typography.Text> */}
@@ -240,88 +240,88 @@ const Home: NextPage = () => {
         </Row>
 
         <Row className='grid grid-cols-1 gap-3 mt-12'>
-              <LandingCard
-                content={<>
-                  <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='h-[10rem]' />
+          <LandingCard
+            content={<>
+              <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='h-[10rem]' />
 
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
-                    What is BitBadges?
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
-                    Think of badges as digital tokens that you can collect and own.
-                    Chances are, you already own several digital badges, like a social media verification checkmark or concert tickets.
-                  </Typography.Text>
-                  <br />
-                  <br />
-                  <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
-                    BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying these badges.
-                  </Typography.Text>
-                </>
-                }
-                customClass = "bg-white border-0 dark:bg-blue-black"
-              />
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+                What is BitBadges?
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
+                Think of badges as digital tokens that you can collect and own.
+                Chances are, you already own several digital badges, like a social media verification checkmark or concert tickets.
+              </Typography.Text>
+              <br />
+              <br />
+              <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
+                BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying these badges.
+              </Typography.Text>
+            </>
+            }
+            customClass="bg-white border-0 dark:bg-blue-black"
+          />
         </Row>
 
         <Row className='grid lg:grid-cols-3 xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-3 mt-5'>
-        <LandingCard
-                content={<>
-                  <BarcodeOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
-                  >
+          <LandingCard
+            content={<>
+              <BarcodeOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
+              >
 
-                  </BarcodeOutlined>
+              </BarcodeOutlined>
 
-                  <SafetyOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-                  <IdcardOutlined className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
+              <SafetyOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
+              <IdcardOutlined className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
 
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
-                    How are badges used?
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text text-gray-400 ' style={{ fontSize: 14 }}>
-                    Badges can be used for all sorts of things, giving you various benefits and value.
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+                How are badges used?
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text text-gray-400 ' style={{ fontSize: 14 }}>
+                Badges can be used for all sorts of things, giving you various benefits and value.
 
-                    Some might be handy in the real world, like a ticket badge getting you into a concert, while others can be purely digital.
-                    Some may signify something about your reputation, like a community service badge.
-                    It all depends on the badge!
-                  </Typography.Text>
-                </>
-                }
-                customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
+                Some might be handy in the real world, like a ticket badge getting you into a concert, while others can be purely digital.
+                Some may signify something about your reputation, like a community service badge.
+                It all depends on the badge!
+              </Typography.Text>
+            </>
+            }
+            customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
+          />
+          <LandingCard
+
+            content={<>
+              <SendOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
               />
-              <LandingCard
 
-                content={<>
-                  <SendOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
-                  />
+              <QrcodeOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
+              <LockOutlined className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
 
-                  <QrcodeOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-                  <LockOutlined className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
-                    How to collect badges?
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
-                    The creator or manager of a badge collection decides how to distribute the badges for that collection. Distribution options include whitelists, passwords, codes, claims, emails, direct airdrops, QR codes, and more.
-                  </Typography.Text>
-                  {/* <br />
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+                How to collect badges?
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
+                The creator or manager of a badge collection decides how to distribute the badges for that collection. Distribution options include whitelists, passwords, codes, claims, emails, direct airdrops, QR codes, and more.
+              </Typography.Text>
+              {/* <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     BitBadges is also <b>multi-chain</b>, meaning the same badge can be collected by users from different blockchain ecosystems, such as Ethereum  <Avatar
@@ -334,45 +334,45 @@ const Home: NextPage = () => {
                   </Typography.Text> */}
 
 
-                </>
-                }
-                customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
+            </>
+            }
+            customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
+          />
+
+
+
+          <LandingCard
+            content={<>
+              <CloudServerOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
               />
 
+              <AuditOutlined
+                className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
+              <DeploymentUnitOutlined className='figma-blue text-vivid-pink'
+                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
 
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+                How is ownership verified?
+              </Typography.Text>
+              <br />
 
-              <LandingCard
-                content={<>
-                  <CloudServerOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
-                  />
-
-                  <AuditOutlined
-                    className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-                  <DeploymentUnitOutlined className='figma-blue text-vivid-pink'
-                    style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
-                    How is ownership verified?
-                  </Typography.Text>
-                  <br />
-
-                  <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
-                    {"All badges are public, meaning you can view anyone's portfolio and verify the authenticity and ownership of their badges at any time."}
-                  </Typography.Text>
-                  <br />
-                  <br />
-                  <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
-                    This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
-                  </Typography.Text>
-                </>
-                }
-                customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
-              />
+              <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
+                {"All badges are public, meaning you can view anyone's portfolio and verify the authenticity and ownership of their badges at any time."}
+              </Typography.Text>
+              <br />
+              <br />
+              <Typography.Text className='secondary-text text-gray-400' style={{ fontSize: 14 }}>
+                This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
+              </Typography.Text>
+            </>
+            }
+            customClass='bg-white border-0 dark:bg-blue-black h-[20rem]'
+          />
         </Row>
 
         <Divider />
@@ -714,7 +714,7 @@ const Home: NextPage = () => {
           </>
 
         </Row>
-        
+
         {/* <Row className='flex-center' style={{ alignItems: 'normal' }}>
             <br />
             <br />

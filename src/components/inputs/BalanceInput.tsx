@@ -1,4 +1,4 @@
-import { Balance } from 'bitbadgesjs-proto';
+import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-proto';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 
 export function BalanceInput({
@@ -11,10 +11,17 @@ export function BalanceInput({
   message,
   hideOwnershipTimes,
   isMustOwnBadgesInput,
-  setBalances
+  setBalances,
+  hideDisplay,
+  sequentialOnly,
+  fullWidthCards,
+  mustOwnBadges,
+  increment,
+  setIncrement,
+  numIncrements
 }: {
   balancesToShow: Balance<bigint>[],
-  onAddBadges: (balance: Balance<bigint>) => void,
+  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint) => void,
   onRemoveAll?: () => void,
   maximum?: bigint,
   minimum?: bigint,
@@ -22,24 +29,42 @@ export function BalanceInput({
   message?: string,
   hideOwnershipTimes?: boolean
   isMustOwnBadgesInput?: boolean,
-  setBalances?: (balances: Balance<bigint>[]) => void
+  setBalances?: (balances: Balance<bigint>[]) => void,
+  hideDisplay?: boolean
+  sequentialOnly?: boolean
+  fullWidthCards?: boolean
+  mustOwnBadges?: MustOwnBadges<bigint>[]
+  increment?: bigint
+  setIncrement?: (increment: bigint) => void
+  numIncrements?: bigint
 }) {
   return <>
     <BalanceDisplay
       collectionId={collectionId ?? 0n}
+      mustOwnBadges={mustOwnBadges}
       isMustOwnBadgesInput={isMustOwnBadgesInput}
       balances={balancesToShow}
       message={message ?? 'Balances'}
       showingSupplyPreview={message == "Circulating Supplys"}
+      hideMessage={hideDisplay}
+      hideBadges={hideDisplay}
+      hideTable={hideDisplay}
+      incrementBadgeIdsBy={increment}
+      setIncrementBadgeIdsBy={setIncrement}
+      numIncrements={numIncrements}
 
       //Edit props
       onAddBadges={onAddBadges}
       minimum={minimum}
       maximum={maximum}
+
       hideOwnershipTimeSelect={hideOwnershipTimes}
       editable
       onRemoveAll={onRemoveAll}
       setBalances={setBalances}
+
+      sequentialOnly={sequentialOnly}
+      fullWidthCards={fullWidthCards}
     />
   </>
 }

@@ -1,45 +1,23 @@
-import { Divider } from "antd";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { InformationDisplayCard } from "../../display/InformationDisplayCard";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function BalanceTypeSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
   if (existingCollectionId) return EmptyStepItem;
-  const neverHasManager = collection?.managerTimeline.length == 0 || collection?.managerTimeline.every(x => !x.manager);
 
   const StandardOption = {
     title: 'Standard',
     message: <>
 
-      {`Balances will be stored on the blockchain. Created badges will be sent to the Mint address, and you define the rules for how they are distributed and transferred from there. Everything occurs on the blockchain in a decentralized manner.`}
-      <Divider />
-      <InformationDisplayCard title='Pros and Cons'>
-        <div style={{ textAlign: 'start' }}>
-          <ul>
-            <li>
-              <strong>Pros:</strong>
-              <ul>
-                <li><strong>Functionality:</strong> Users can natively transfer and set approvals via blockchain transactions.</li>
-                <li><strong>Decentralization:</strong> Everything is handled in a decentralized manner on the blockchain.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Cons:</strong>
-              <ul>
-                <li><strong>Scalability:</strong> All balances are stored on the blockchain which means that the collection uses blockchain resources for storing balances and transfer transactions, meaning this option is more expensive.</li>
-                <li><strong>User Experience:</strong> Users must interact with the blochchain and pay transaction fees to receive badges and to transfer / approve badges.</li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </InformationDisplayCard>
+      {`Everything will be facilitated in a decentralized manner on the blockchain. Created badges will initially be sent to the Mint address.
+        Every transfer requires a blockchain transaction that satisifies the approval requirements for the collection, sender, and recipient.`}
+
     </>,
     isSelected: collection?.balancesType === "Standard"
   }
@@ -47,40 +25,22 @@ export function BalanceTypeSelectStepItem() {
   const OffChainBalancesStep = {
     title: 'Off-Chain Balances',
     isSelected: collection?.balancesType === "Off-Chain",
-    message: <div className='full-width'><span>Balances will be stored on a typical server (not the blockchain).
-      This option should only be used for specific use cases. Balances will be assigned manually by you in the following steps. If allowed, any future balance update for a user must also be done manually (users cannot transfer themselves).
+    message: <div className='full-width'><span>
+      Off-chain storage will be utilized to optimize the user experience and ensure scalability.
+      Balances will be managed exclusively by a centralized entity (you), which is responsible for assigning and updating the balances.
+      There will never be any blockchain transactions for transfers or approvals. 
+      Ownership of assets can only be granted by the centralized entity through assignment.
 
-      Learn more
+
+
+      <br /> <br />
+
+
+      This option should only be used for specific use cases. Learn more
       <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a></span>
-      {neverHasManager && <>
-        <br /> <br />
-        IMPORTANT: Updating balances in the future is a manager-only privilege, and this collection does / will not have a manager. The assigned balances in the following steps will be PERMANENT and FROZEN.
-      </>}
-      <Divider />
-      <InformationDisplayCard title='Pros and Cons'>
-        <div style={{ textAlign: 'start' }}>
-          <ul>
-            <li>
-              <strong>Pros:</strong>
-              <ul>
-                <li><strong>Enhanced User Experience:</strong> Users can receive badges without blockchain interaction.</li>
-                <li><strong>Scalability:</strong> No blockchain resources used for storing balances and no transaction fees paid for transfers / approvals means this option is much cheaper.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Cons:</strong>
-              <ul>
-                <li><strong>No Native Transfers:</strong> Transfers and approvals are not supported. All balances must be manually assigned off-chain, and users cannot transfer badges to other users on-chain.</li>
-                <li><strong>Centralization:</strong> Introduces trust in server for availability and a central entity for balance assignment.</li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </InformationDisplayCard>
-
-    </div>,
+    </div >,
   }
 
   const options = [
@@ -91,8 +51,10 @@ export function BalanceTypeSelectStepItem() {
 
 
   return {
-    title: `Balances Type`,
-    description: 'Select your preferred balance type. This cannot be changed later. Standard balances offer more customizability and decentralization, but off-chain balances offer enhanced scalability and user experience.',
+    title: `Balances Storage`,
+    description: <>
+      {"Select your preferred storage method for your balances. This cannot be changed later."} Learn more about the different options <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types" target="_blank" rel="noopener noreferrer">here</a>.
+    </>,
     node: <div>
       <SwitchForm
         options={options}
@@ -100,9 +62,9 @@ export function BalanceTypeSelectStepItem() {
           if (!collection) return;
 
           collections.updateCollection({
-            ...collection,
+            collectionId: MSG_PREVIEW_ID,
             balancesType: idx == 1 ? "Standard" : "Off-Chain",
-            collectionApprovedTransfers: idx == 1 ? collection.collectionApprovedTransfers : [],
+            collectionApprovals: idx == 1 ? collection.collectionApprovals : [],
             offChainBalancesMetadataTimeline: idx == 0 ? collection.offChainBalancesMetadataTimeline : [],
           })
         }}

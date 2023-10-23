@@ -1,23 +1,36 @@
 import { Form, Input, Typography } from "antd";
-import { MerkleChallengeDetails } from "bitbadgesjs-utils";
+import { ApprovalInfoDetails } from "bitbadgesjs-utils";
+import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
+
+export function ClaimMetadataSelect({
+  approvalDetails,
+  setApprovalDetails,
+}: {
+  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
+}) {
+  return <>{ClaimMetadataSelectSelectStep(approvalDetails, setApprovalDetails).description}</>
+}
 
 export function ClaimMetadataSelectSelectStep(
-  merkleChallengeDetails: MerkleChallengeDetails<bigint>,
-  setMerkleChallengeDetails: (merkleChallengeDetails: MerkleChallengeDetails<bigint>) => void,
+  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
 ) {
-  const name = merkleChallengeDetails.name;
-  const description = merkleChallengeDetails.description;
+  if (!approvalDetails) return EmptyStepItem
+
+  const name = approvalDetails.name;
+  const description = approvalDetails.description;
 
   const setName = (name: string) => {
-    setMerkleChallengeDetails({
-      ...merkleChallengeDetails,
+    setApprovalDetails({
+      ...approvalDetails,
       name,
     });
   }
 
   const setDescription = (description: string) => {
-    setMerkleChallengeDetails({
-      ...merkleChallengeDetails,
+    setApprovalDetails({
+      ...approvalDetails,
       description,
     });
   }
@@ -26,7 +39,6 @@ export function ClaimMetadataSelectSelectStep(
     title: 'Metadata',
     description: <div>
       <>
-        <br />
         <br />
         <Form
           labelCol={{ span: 6 }}
@@ -47,11 +59,8 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setName(e.target.value);
                 }}
-                className="form-input"
+                className="form-input inherit-bg primary-text"
               />
-              <Typography.Text strong className='secondary-text'>
-                Give this claim a name.
-              </Typography.Text>
             </Form.Item>
             <Form.Item
               label={<>
@@ -66,17 +75,14 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
-                className="form-input"
+                className="form-input inherit-bg primary-text"
                 rows={7}
               />
-              <Typography.Text strong className='secondary-text'>
-                Describe how users can earn this badge.
-              </Typography.Text>
             </Form.Item>
           </div>
         </Form>
       </>
     </div>,
-    // disabled: !merkleChallengeDetails.name || !merkleChallengeDetails.description,
+    // disabled: !approvalDetails.name || !approvalDetails.description,
   }
 }

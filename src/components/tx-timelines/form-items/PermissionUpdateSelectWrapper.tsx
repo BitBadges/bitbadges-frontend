@@ -1,12 +1,12 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
-import { Col, Divider, Row, Switch } from 'antd';
+import { Divider, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
-import { ActionPermissionUsedFlags, ApprovedTransferPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovedTransferPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovedTransferPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovedTransferPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
-import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
+import { PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
@@ -33,7 +33,7 @@ export function PermissionUpdateSelectWrapper({
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
 
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<string>('');
@@ -72,8 +72,8 @@ export function PermissionUpdateSelectWrapper({
           err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
 
           break;
-        case 'canUpdateCollectionApprovedTransfers':
-          err = validateCollectionApprovedTransferPermissionsUpdate(oldPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[], newPermissions as CollectionApprovedTransferPermissionWithDetails<bigint>[]);
+        case 'canUpdateCollectionApprovals':
+          err = validateCollectionApprovalPermissionsUpdate(oldPermissions as CollectionApprovalPermissionWithDetails<bigint>[], newPermissions as CollectionApprovalPermissionWithDetails<bigint>[]);
           break;
       }
 
@@ -109,9 +109,9 @@ export function PermissionUpdateSelectWrapper({
         castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
         flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
         break;
-      case 'canUpdateCollectionApprovedTransfers':
-        castFunction = castCollectionApprovedTransferPermissionToUniversalPermission;
-        flags = ApprovedTransferPermissionUsedFlags;
+      case 'canUpdateCollectionApprovals':
+        castFunction = castCollectionApprovalPermissionToUniversalPermission;
+        flags = ApprovalPermissionUsedFlags;
         break;
     }
   }
@@ -122,29 +122,8 @@ export function PermissionUpdateSelectWrapper({
     <>
       <div className='primary-text flex-center flex-column' >
 
-        <div style={{ alignItems: 'center', }} className='flex-center'>
-          {!isMint &&
-            <Switch
-              style={{ marginLeft: 10 }}
-              checked={checked}
-              checkedChildren="Update"
-              unCheckedChildren="Do Not Update"
-              onChange={(e) => {
-                setChecked(e);
-                if (startingCollection && collection) {
-                  const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-                  collections.updateCollection({
-                    ...collection,
-                    collectionPermissions: {
-                      ...collection.collectionPermissions,
-                      [`${permissionName}`]: existingPermissions
-                    }
-                  });
-                }
-              }}
-              className='primary-text'
-            />}
+        <div style={{ alignItems: 'center', }} className='flex-center'>
 
 
           {checked &&
@@ -184,7 +163,7 @@ export function PermissionUpdateSelectWrapper({
                   const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                   collections.updateCollection({
-                    ...collection,
+                    collectionId: MSG_PREVIEW_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: existingPermissions
@@ -192,7 +171,7 @@ export function PermissionUpdateSelectWrapper({
                   });
                 } else if (collection && !startingCollection) {
                   collections.updateCollection({
-                    ...collection,
+                    collectionId: MSG_PREVIEW_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: []
@@ -202,34 +181,54 @@ export function PermissionUpdateSelectWrapper({
               }}
             />}
         </div>
+
+        {!isMint &&
+          <Switch
+            style={{ marginLeft: 10 }}
+            checked={checked}
+            checkedChildren="Update"
+            unCheckedChildren="Do Not Update"
+            onChange={(e) => {
+              setChecked(e);
+              if (startingCollection && collection) {
+                const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
+
+                collections.updateCollection({
+                  collectionId: MSG_PREVIEW_ID,
+                  collectionPermissions: {
+                    ...collection.collectionPermissions,
+                    [`${permissionName}`]: existingPermissions
+                  }
+                });
+              }
+            }}
+            className='primary-text'
+          />}
       </div>
       {!checked && castFunction && flags &&
         <>
           <br />
-          <Row className="full-width flex-center" justify="center">
-            <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-              <SwitchForm
-                options={[{
-                  title: 'Do Not Update',
-                  message: `This value will remain as previously set.
-                  ${!existingCollectionId && permissionName != 'canUpdateManager' && ' For new collections, this means the value will be empty or unset.'}
-                  ${!existingCollectionId && permissionName == 'canUpdateManager' && ' For new collections, this means the manager will be set to your address by default.'}`,
-                  isSelected: true,
-                },
-                ]}
-                onSwitchChange={() => { }}
-              />
-              <br />
+          <div className="full-width">
+            <SwitchForm
+              options={[{
+                title: 'Do Not Update',
+                message: `This value will remain as previously set.
+                  ${!existingCollectionId && permissionName != 'canUpdateManager' ? ' For new collections, this means the value will be empty or unset.' : ''}
+                  ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}`,
+                isSelected: true,
+                additionalNode: <>
+                  <PermissionsOverview
+                    collectionId={MSG_PREVIEW_ID}
+                    permissionName={permissionName}
+                  />
+                </>,
+              },
+              ]}
+              onSwitchChange={() => { }}
+            />
 
-              <br />
-              {PermissionDisplay(
-                permissionName,
-                castFunction(
-                  startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []
-                ), flags as any
-              )}
-            </Col>
-          </Row>
+
+          </div>
         </>}
 
       {checked && customJson && <>

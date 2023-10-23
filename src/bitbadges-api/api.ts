@@ -1,12 +1,16 @@
 import { notification } from 'antd';
-import { AddAnnouncementRouteRequestBody, AddAnnouncementRouteSuccessResponse, AddBalancesToIpfsRouteRequestBody, AddBalancesToIpfsRouteSuccessResponse, AddMerkleChallengeToIpfsRouteRequestBody, AddMerkleChallengeToIpfsRouteSuccessResponse, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesAPI, BitBadgesCollection, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, CheckSignInStatusRequestBody, CheckSignInStatusRequestSuccessResponse, DeleteAddressMappingsRouteRequestBody, DeleteAddressMappingsRouteSuccessResponse, DeleteAnnouncementRouteRequestBody, DeleteAnnouncementRouteSuccessResponse, DeleteReviewRouteRequestBody, DeleteReviewRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse, GetAccountRouteRequestBody, GetAccountRouteSuccessResponse, GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAddressMappingsRouteRequestBody, GetAddressMappingsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse, GetApprovalsRouteRequestBody, GetApprovalsRouteSuccessResponse, GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse, GetCollectionByIdRouteRequestBody, GetCollectionRouteSuccessResponse, GetMerkleChallengeCodeViaPasswordRouteRequestBody, GetMerkleChallengeCodeViaPasswordRouteSuccessResponse, GetMerkleChallengeTrackersRouteRequestBody, GetMerkleChallengeTrackersRouteSuccessResponse, GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, MetadataFetchOptions, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressMappingsRouteRequestBody, UpdateAddressMappingsRouteSuccessResponse, VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse, updateBadgeMetadata } from 'bitbadgesjs-utils';
+import { AddAnnouncementRouteRequestBody, AddAnnouncementRouteSuccessResponse, AddBalancesToOffChainStorageRouteRequestBody, AddBalancesToOffChainStorageRouteSuccessResponse, AddApprovalDetailsToOffChainStorageRouteRequestBody, AddApprovalDetailsToOffChainStorageRouteSuccessResponse, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesAPI, BitBadgesCollection, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, CheckSignInStatusRequestBody, CheckSignInStatusRequestSuccessResponse, DeleteAddressMappingsRouteRequestBody, DeleteAddressMappingsRouteSuccessResponse, DeleteAnnouncementRouteRequestBody, DeleteAnnouncementRouteSuccessResponse, DeleteReviewRouteRequestBody, DeleteReviewRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse, GetAccountRouteRequestBody, GetAccountRouteSuccessResponse, GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAddressMappingsRouteRequestBody, GetAddressMappingsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse, GetApprovalsRouteRequestBody, GetApprovalsRouteSuccessResponse, GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse, GetCollectionByIdRouteRequestBody, GetCollectionRouteSuccessResponse, GetMerkleChallengeCodeViaPasswordRouteRequestBody, GetMerkleChallengeCodeViaPasswordRouteSuccessResponse, GetMerkleChallengeTrackersRouteRequestBody, GetMerkleChallengeTrackersRouteSuccessResponse, GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, MetadataFetchOptions, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressMappingsRouteRequestBody, UpdateAddressMappingsRouteSuccessResponse, VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse, updateBadgeMetadata } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
 
 export type DesiredNumberType = bigint;
 export const ConvertFunction = BigIntify;
 
-const BitBadgesApi = new BitBadgesAPI(BACKEND_URL, BigIntify);
+const BitBadgesApi = new BitBadgesAPI({
+  apiUrl: BACKEND_URL,
+  // apiKey: ...
+  convertFunction: BigIntify
+});
 
 async function handleApiError(error: any): Promise<void> {
   console.error(error);
@@ -199,7 +203,7 @@ export async function addReviewForCollection(collectionId: NumberType, requestBo
 export async function getAccounts(requestBody: GetAccountsRouteRequestBody): Promise<GetAccountsRouteSuccessResponse<DesiredNumberType>> {
   try {
     const res = await BitBadgesApi.getAccounts(requestBody);
-    
+
     return res;
   } catch (error) {
     await handleApiError(error);
@@ -234,9 +238,9 @@ export async function updateAccountInfo(requestBody: UpdateAccountInfoRouteReque
   }
 }
 
-export async function addBalancesToIpfs(requestBody: AddBalancesToIpfsRouteRequestBody): Promise<AddBalancesToIpfsRouteSuccessResponse<DesiredNumberType>> {
+export async function addBalancesToOffChainStorage(requestBody: AddBalancesToOffChainStorageRouteRequestBody): Promise<AddBalancesToOffChainStorageRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.addBalancesToIpfs(requestBody));
+    return (await BitBadgesApi.addBalancesToOffChainStorage(requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -252,9 +256,9 @@ export async function addMetadataToIpfs(requestBody: AddMetadataToIpfsRouteReque
   }
 }
 
-export async function addMerkleChallengeToIpfs(requestBody: AddMerkleChallengeToIpfsRouteRequestBody): Promise<AddMerkleChallengeToIpfsRouteSuccessResponse<DesiredNumberType>> {
+export async function addApprovalDetailsToOffChainStorage(requestBody: AddApprovalDetailsToOffChainStorageRouteRequestBody): Promise<AddApprovalDetailsToOffChainStorageRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.addMerkleChallengeToIpfs(requestBody));
+    return (await BitBadgesApi.addApprovalDetailsToOffChainStorage(requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

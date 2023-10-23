@@ -4,6 +4,7 @@ import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/Accoun
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
+import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 
 export function AddressWithBlockies({
   addressOrUsername,
@@ -23,9 +24,16 @@ export function AddressWithBlockies({
   doNotShowName?: boolean
 }) {
   const accounts = useAccountsContext();
+  const chainContext = useChainContext();
+
 
   const fetchedAccount = accounts.getAccount(addressOrUsername);
-  const userInfo = fetchedAccount ? convertBitBadgesUserInfo(fetchedAccount, BigIntify) : undefined; //deep copy
+
+  const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
+    ...fetchedAccount,
+    address: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
+    chain: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
+  }, BigIntify) : undefined; //deep copy
 
   if (userInfo?.chain === SupportedChain.UNKNOWN && overrideChain) {
     overrideChain = undefined;
@@ -39,7 +47,7 @@ export function AddressWithBlockies({
   return <div style={{ display: 'inline-flex', alignItems: 'center' }}>
     {address !== 'Mint' && address !== 'All' &&
       <Tooltip
-        title={getChainForAddress(address)}
+        title={getChainForAddress(address) !== SupportedChain.UNKNOWN ? `This address is for a ${getChainForAddress(address)} user` : `Unknown`}
         placement="bottom"
       >
         <Avatar

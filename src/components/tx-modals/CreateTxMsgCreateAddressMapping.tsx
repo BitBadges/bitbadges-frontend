@@ -20,7 +20,7 @@ export function CreateTxMsgCreateAddressMappingModal(
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[`${MSG_PREVIEW_ID}`];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
 
@@ -68,7 +68,7 @@ export function CreateTxMsgCreateAddressMappingModal(
     <TxModal
       visible={visible}
       setVisible={setVisible}
-      txName="Create Address List"
+      txName="Address List"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgCreateAddressMappings}
       msgSteps={msgSteps}

@@ -9,7 +9,7 @@ import { SwitchForm } from "../form-items/SwitchForm";
 
 export function CanDeleteStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
   const [checked, setChecked] = useState<boolean>(true);
 
   const [err, setErr] = useState<Error | null>(null);
@@ -21,27 +21,16 @@ export function CanDeleteStepItem() {
     handleSwitchChange(idx);
   }
 
-
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
     collections.updateCollection({
-      ...collection,
+      collectionId: MSG_PREVIEW_ID,
       collectionPermissions: {
-        ...collection.collectionPermissions,
         canDeleteCollection: idx === 0 ? [{
-          defaultValues: {
-            permittedTimes: [],
-            forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          },
-          combinations: [{}]
+          permittedTimes: [],
+          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
         }] : idx == 1 && !frozen ? [] : [{
-          defaultValues: {
-            permittedTimes: [],
-            forbiddenTimes: [],
-          },
-          combinations: [{
-            permittedTimesOptions: { allValues: true },
-            forbiddenTimesOptions: { noValues: true },
-          }]
+          permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          forbiddenTimes: [],
         }]
       }
     });
@@ -87,7 +76,6 @@ export function CanDeleteStepItem() {
             },
           ]}
           onSwitchChange={handleSwitchChangeIdxOnly}
-
         />
         <br />
         <br />

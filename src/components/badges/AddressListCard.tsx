@@ -75,11 +75,11 @@ export function AddressListCard({
           />
         </>
         }
-        {addressMapping.lastUpdated > 0n && <>
+        {addressMapping.updateHistory.length > 0 && <>
           <br />
           <b>Last Updated</b>
           <br />
-          {new Date(Number(addressMapping.lastUpdated)).toLocaleString()}
+          {new Date(Number(addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp)).toLocaleString()}
         </>
         }
       </Card>

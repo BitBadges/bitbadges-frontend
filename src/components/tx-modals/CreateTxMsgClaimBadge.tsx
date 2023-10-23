@@ -1,6 +1,6 @@
 import { notification } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { ApprovalDetailsWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { ApprovalCriteriaWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
@@ -10,16 +10,15 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
 
-//TODO: This only supports one specific merkle challenge so will fail when > 1 bc claimItem is singular
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvalDetails, claimItem, code, whitelistIndex, recipient, approvalId
+    collectionId, visible, setVisible, children, approvalCriteria, claimItem, code, whitelistIndex, recipient, approvalId
   }: {
     collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
-    approvalDetails?: ApprovalDetailsWithDetails<bigint>,
+    approvalCriteria?: ApprovalCriteriaWithDetails<bigint>,
     claimItem?: MerkleChallengeWithDetails<bigint>,
     code: string
     whitelistIndex?: number
@@ -29,12 +28,13 @@ export function CreateTxMsgClaimBadgeModal(
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()];
+  const collection = collections.getCollection(collectionId);
 
   const precalculationId = approvalId
   const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
+  const treeOptions = claimItem?.details?.challengeDetails?.treeOptions;
 
-  const requiresProof = !!approvalDetails?.merkleChallenge.root;
+  const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
 
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
   const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
@@ -42,7 +42,7 @@ export function CreateTxMsgClaimBadgeModal(
       return leavesDetails?.isHashed ? x : SHA256(x);
     }) ?? [],
     SHA256,
-    { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
+    treeOptions
   ) : null);
 
   const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
@@ -101,9 +101,7 @@ export function CreateTxMsgClaimBadgeModal(
     if (claimItem) {
       const tree = new MerkleTree(claimItem.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
         return claimItem.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
-      }) ?? [], SHA256, {
-        fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000'
-      });
+      }) ?? [], SHA256, claimItem.details?.challengeDetails?.treeOptions);
       setTree(tree);
     }
   }, [claimItem]);
@@ -122,7 +120,7 @@ export function CreateTxMsgClaimBadgeModal(
       from: "Mint",
       toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
       balances: [],
-      precalculationDetails: {
+      precalculateBalancesFromApproval: {
         approvalId: precalculationId ?? '',
         approvalLevel: "collection",
         approverAddress: "",
@@ -141,6 +139,7 @@ export function CreateTxMsgClaimBadgeModal(
       onlyCheckPrioritizedApprovals: false,
     }],
   };
+  console.log(txCosmosMsg);
 
   return (
     <TxModal

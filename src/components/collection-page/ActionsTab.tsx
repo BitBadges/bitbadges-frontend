@@ -8,11 +8,12 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
-import { CreateTxMsgUpdateUserApprovedIncomingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedIncomingTransfers';
-import { CreateTxMsgUpdateUserApprovedOutgoingTransfersModal } from '../tx-modals/CreateTxMsgUpdateUserApprovedOutgoingTransfers';
+import { CreateTxMsgUpdateUserIncomingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserIncomingApprovals';
+import { CreateTxMsgUpdateUserOutgoingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserOutgoingApprovals';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { getMintApprovedTransfers } from '../../bitbadges-api/utils/mintVsNonMint';
+import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
+import { UpdateBalancesModal } from '../tx-modals/UpdateBalancesModal';
 
 export function ActionsTab({
   collectionId,
@@ -24,7 +25,7 @@ export function ActionsTab({
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.collections[collectionId.toString()]
+  const collection = collections.getCollection(collectionId)
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
@@ -32,6 +33,7 @@ export function ActionsTab({
   const [approveIsVisible, setApproveIsVisible] = useState(false);
   const [outgoingApproveIsVisible, setOutgoingApproveIsVisible] = useState(false);
   const [distributeCodesIsVisible, setDistributeCodesIsVisible] = useState(false);
+  const [updateBalancesIsVisible, setUpdateBalancesIsVisible] = useState(false);
 
   const actions: {
     title: React.ReactNode,
@@ -40,6 +42,7 @@ export function ActionsTab({
     disabled?: boolean
   }[] = [];
 
+  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
 
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
@@ -73,7 +76,7 @@ export function ActionsTab({
     });
 
     actions.push({
-      title: getTitleElem("Edit Incoming Approvals"),
+      title: getTitleElem("Set Incoming Approvals"),
       description: getDescriptionElem(
         "Update your incoming approvals."
       ),
@@ -83,7 +86,7 @@ export function ActionsTab({
     });
 
     actions.push({
-      title: getTitleElem("Edit Outgoing Approvals"),
+      title: getTitleElem("Set Outgoing Approvals"),
       description: getDescriptionElem(
         "Update your outgoing approvals."
       ),
@@ -113,14 +116,26 @@ export function ActionsTab({
     actions.push({
       title: getTitleElem("Update Collection"),
       description: getDescriptionElem(
-        "Update the details of this collection."
+        "Update the details of this collection on the blockchain."
       ),
       showModal: () => {
         router.push('/update/' + collectionId);
       },
     });
 
-    if (getMintApprovedTransfers(collection).find(x => x.approvalDetails?.merkleChallenge.root && !x.approvalDetails?.merkleChallenge.useCreatorAddressAsLeaf)) {
+    if (isBitBadgesHosted) {
+      actions.push({
+        title: getTitleElem("Update Balances"),
+        description: getDescriptionElem(
+          "Update the balances of this collection. No blockchain transaction required."
+        ),
+        showModal: () => {
+          setUpdateBalancesIsVisible(!updateBalancesIsVisible);
+        },
+      });
+    }
+
+    if (getMintApprovals(collection).find(x => x.approvalCriteria?.merkleChallenge?.root && !x.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf)) {
       actions.push({
         title: getTitleElem("Distribute Codes"),
         description: getDescriptionElem(
@@ -219,7 +234,7 @@ export function ActionsTab({
             />}
 
           {approveIsVisible &&
-            <CreateTxMsgUpdateUserApprovedIncomingTransfersModal
+            <CreateTxMsgUpdateUserIncomingApprovalsModal
               visible={approveIsVisible}
               setVisible={setApproveIsVisible}
               collectionId={collectionId}
@@ -233,7 +248,7 @@ export function ActionsTab({
             />}
 
           {outgoingApproveIsVisible &&
-            <CreateTxMsgUpdateUserApprovedOutgoingTransfersModal
+            <CreateTxMsgUpdateUserOutgoingApprovalsModal
               visible={outgoingApproveIsVisible}
               setVisible={setOutgoingApproveIsVisible}
               collectionId={collectionId}
@@ -243,6 +258,13 @@ export function ActionsTab({
             <FetchCodesModal
               visible={distributeCodesIsVisible}
               setVisible={setDistributeCodesIsVisible}
+              collectionId={collectionId}
+            />}
+
+          {updateBalancesIsVisible &&
+            <UpdateBalancesModal
+              visible={updateBalancesIsVisible}
+              setVisible={setUpdateBalancesIsVisible}
               collectionId={collectionId}
             />}
         </div >

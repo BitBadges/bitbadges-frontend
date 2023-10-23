@@ -49,7 +49,7 @@ export function BadgePage({ collectionPreview }
   const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? MSG_PREVIEW_ID : -1n;
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
-  const collection = isPreview ? collectionPreview : collections.collections[`${collectionIdNumber}`];
+  const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
 
   //Get collection information
@@ -89,16 +89,14 @@ export function BadgePage({ collectionPreview }
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
   return (
-    <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
       >
         <div
-          className="primary-blue-bg"
+         
           style={{
             marginLeft: !isPreview ? '7vw' : undefined,
             marginRight: !isPreview ? '7vw' : undefined,
@@ -128,7 +126,7 @@ export function BadgePage({ collectionPreview }
             />
           </>}
           {tab === 'transferability' && (
-            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
+            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} setTab={setTab}/>
           )}
 
 
@@ -215,7 +213,6 @@ export function BadgePage({ collectionPreview }
         </div>
         <Divider />
       </Content>
-    </Layout>
   );
 }
 

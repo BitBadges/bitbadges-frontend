@@ -10,7 +10,7 @@ import { ethers } from 'ethers';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { useAccount } from "wagmi";
-import { CHAIN_DETAILS, INFINITE_LOOP_MODE } from '../../../constants';
+import { CHAIN_DETAILS } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { useAccountsContext } from '../accounts/AccountsContext';
 import { ChainSpecificContextType } from '../ChainContext';
@@ -52,7 +52,7 @@ type Props = {
 
 export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const accountsContext = useAccountsContext();
-  const [connected, setConnected] = useState<boolean>(false);
+
   const [chainId, setChainId] = useState<string>('Mainnet');
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);
@@ -62,6 +62,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const web3AccountContext = useAccount();
   const address = web3AccountContext.address || '';
   const cosmosAddress = convertToCosmosAddress(address);
+  const connected = web3AccountContext.address ? true : false;
+  const setConnected = () => { }
 
   const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
     viewKey: 'badgesCollected',
@@ -87,27 +89,21 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     bookmark: ''
   }]
 
-  useEffect(() => {
-    async function setDetails() {
-      if (INFINITE_LOOP_MODE) console.log('useEffect: ethereumContext');
-      if (web3AccountContext.address) {
-        connect();
-      }
-    }
-
-    setDetails();
-  }, [web3AccountContext.address, cookies.blockincookie])
-
-
   const selectedChainInfo = {};
   const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
 
   //If you would like to support this, you can call this with a useEffect every time connected or address is updated
   const ownedAssetIds: string[] = [];
 
+  useEffect(() => {
+    if (web3AccountContext.address) {
+      connect();
+
+    }
+  }, [web3AccountContext.address]);
+
   const connect = async () => {
     if (!web3AccountContext.address) {
-      setConnected(false);
       try {
         await open();
 
@@ -120,10 +116,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     } else if (web3AccountContext.address) {
 
       let loggedIn = false;
-
-      setConnected(true);
-
-
       if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
         const signedInRes = await checkIfSignedIn({});
         setLoggedIn(signedInRes.signedIn);
@@ -146,17 +138,18 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       }
 
 
-      await accountsContext.fetchAccountsWithOptions([{
+      const res = await accountsContext.fetchAccountsWithOptions([{
         address: web3AccountContext.address,
         fetchSequence: true,
         fetchBalance: true,
         viewsToFetch
       }]);
+
+      console.log(res);
     }
   }
 
   const disconnect = async () => {
-    setConnected(false);
     setLoggedIn(false);
     await disconnectWeb3();
   };
@@ -174,8 +167,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const pubKeyHex = pubKey.substring(2);
     const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
     const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
-    accountsContext.setPublicKey(address, base64PubKey);
-    setCookies('pub_key', `${address}-${base64PubKey}`, { path: '/' });
+    accountsContext.setPublicKey(cosmosAddress, base64PubKey);
+    setCookies('pub_key', `${cosmosAddress}-${base64PubKey}`, { path: '/' });
 
     return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
   }
@@ -216,11 +209,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const getPublicKey = async (_cosmosAddress: string) => {
     try {
       const currAccount = accountsContext.getAccount(_cosmosAddress);
+      console.log("currAccount", currAccount);
       if (currAccount && currAccount.publicKey) {
         return currAccount.publicKey
       }
 
-      const message = "Hello! We noticed that you haven't used the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your public key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
+      const message = "Hello! We noticed that you haven't interacted the BitBadges blockchain yet. To interact with the BitBadges blockchain, we need your PUBLIC key for your address to allow us to generate transactions.\n\nPlease kindly sign this message to allow us to compute your public key.\n\nNote that this message is not a blockchain transaction and signing this message has no purpose other than to compute your public key.\n\nThanks for your understanding!"
 
       const sig = await signMessage({
         message: message
@@ -234,9 +228,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       const pubKeyHex = pubKey.substring(2);
       const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
       const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
-      accountsContext.setPublicKey(address, base64PubKey);
-      setCookies('pub_key', `${address}-${base64PubKey}`, { path: '/' });
+      console.log("base64PubKey", base64PubKey);
+      accountsContext.setPublicKey(_cosmosAddress, base64PubKey);
+      setCookies('pub_key', `${_cosmosAddress}-${base64PubKey}`, { path: '/' });
 
+      console.log(accountsContext.getAccount(_cosmosAddress));
       return base64PubKey;
     } catch (e) {
       console.log(e);

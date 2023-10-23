@@ -24,9 +24,8 @@ export function SwitchForm({
   fullWidthCards?: boolean;
 }) {
   const filteredOptions = options.filter(x => x) as SwitchFormOption[];
-
   if (showCustomOption && filteredOptions.every(x => !x.isSelected)) {
-    options.push({
+    filteredOptions.push({
       title: 'Custom',
       message: 'A custom value has been set that does not match any of the other options.',
       isSelected: true,
@@ -92,7 +91,7 @@ export function SwitchForm({
                   {option.message}
                 </div>
                 {option.additionalNode && option.isSelected ?
-                  <div className='full-width'>
+                  <div className='full-width' onClick={(e) => e.stopPropagation()}>
                     <br />
                     <br />
                     {option.additionalNode}

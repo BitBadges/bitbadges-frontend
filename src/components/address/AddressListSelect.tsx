@@ -13,12 +13,16 @@ export function AddressListSelect({
   users,
   setUsers,
   invalidUsers,
-  hideAddresses
+  hideAddresses,
+  disabled,
+  allowMintSearch
 }: {
   users: string[],
   setUsers: (users: string[]) => void,
   invalidUsers?: { [user: string]: string; },
-  hideAddresses?: boolean
+  hideAddresses?: boolean,
+  disabled?: boolean,
+  allowMintSearch?: boolean
 }) {
   const accounts = useAccountsContext();
 
@@ -83,13 +87,15 @@ export function AddressListSelect({
         {enterMethod === EnterMethod.Single && <>Batch Add</>}
         {enterMethod === EnterMethod.Batch && <>Manual Add</>}
       </>}>
-        <SwapOutlined onClick={() => setEnterMethod(enterMethod == EnterMethod.Single ?
-          EnterMethod.Batch : EnterMethod.Single
-        )} style={{ cursor: 'pointer' }} />
+
+        <SwapOutlined
+          disabled={disabled}
+          onClick={() => setEnterMethod(enterMethod == EnterMethod.Single ?
+            EnterMethod.Batch : EnterMethod.Single
+          )} style={{ cursor: 'pointer' }} />
       </Tooltip>
-        <Tooltip title={<>Reset All
-        </>}>
-          <DeleteOutlined onClick={() => setUsers([])} style={{ cursor: 'pointer', marginLeft: 4 }} />
+        <Tooltip title={<>Reset All</>}>
+          <DeleteOutlined disabled={disabled} onClick={() => setUsers([])} style={{ cursor: 'pointer', marginLeft: 4 }} />
         </Tooltip>
       </>
       }
@@ -100,6 +106,8 @@ export function AddressListSelect({
         onUserSelect={(userInfo) => {
           setUsers([...users, userInfo]);
         }}
+        disabled={disabled}
+        allowMintSearch={allowMintSearch}
       />
     }
     {
@@ -111,6 +119,7 @@ export function AddressListSelect({
           style={{ minHeight: 200 }}
           placeholder="Enter addresses here (one per line)"
           value={batchAddAddressListInput}
+          disabled={disabled}
           onChange={(e) => setBatchAddAddressListInput(e.target.value)}
         />
         <br />
@@ -118,7 +127,7 @@ export function AddressListSelect({
         <Button
           type="primary"
           className="full-width"
-          disabled={batchAddAddressListInput.length === 0}
+          disabled={batchAddAddressListInput.length === 0 || disabled}
           loading={loading}
           onClick={async () => {
             setLoading(true);

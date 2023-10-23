@@ -1,11 +1,11 @@
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ChooseControlTypeStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.collections[MSG_PREVIEW_ID.toString()];
+  const collection = collections.getCollection(MSG_PREVIEW_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const completeControl = txTimelineContext.completeControl;
@@ -42,6 +42,9 @@ export function ChooseControlTypeStepItem() {
             message: 'All admin privileges will be enabled. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
             isSelected: completeControl,
             additionalNode: <>
+
+
+              <br />
               <div className="flex-center">
                 <PermissionsOverview
                   span={24}
@@ -57,13 +60,13 @@ export function ChooseControlTypeStepItem() {
           setCompleteControl(idx === 1);
           if (idx == 1) {
             collections.updateCollection({
-              ...collection,
+              collectionId: MSG_PREVIEW_ID,
               collectionPermissions: {
                 canArchiveCollection: [],
                 canCreateMoreBadges: [],
                 canDeleteCollection: [],
                 canUpdateBadgeMetadata: [],
-                canUpdateCollectionApprovedTransfers: [],
+                canUpdateCollectionApprovals: [],
                 canUpdateCollectionMetadata: [],
                 canUpdateContractAddress: [],
                 canUpdateCustomData: [],

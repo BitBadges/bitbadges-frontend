@@ -75,6 +75,7 @@ export function WalletHeader() {
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
   for (const activity of allActivity) {
+    console.log(account?.seenActivity, activity.timestamp);
     if (account?.seenActivity && account.seenActivity < activity.timestamp) {
       unseenNotificationCount++;
 
@@ -85,7 +86,7 @@ export function WalletHeader() {
   }
 
   for (const addressMapping of account?.addressMappings ?? []) {
-    if (account?.seenActivity && account.seenActivity < addressMapping.lastUpdated) {
+    if (account?.seenActivity && account.seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
       unseenNotificationCount++;
 
       if (unseenNotificationCount > overflowCount) {
@@ -193,11 +194,10 @@ export function WalletHeader() {
     {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
     {connected && signedIn && <>
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
-      <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => {
-        chain.disconnect();
+      <Menu.Item className='dropdown-item' onClick={() => {
         signOut();
-        chain.setLoggedIn(false);
         _setCookie('blockincookie', '', { path: '/' });
+        chain.disconnect();
       }}>Disconnect and Sign Out</Menu.Item>
     </>}
   </Menu>
@@ -240,9 +240,10 @@ export function WalletHeader() {
       setSearchValue(e.target.value);
     }}
     // style={{ marginLeft: 10, marginRight: 10 }}
-    className='form-input'
+    className='form-input inherit-bg'
     // enterButton
     size='large'
+    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />}
   />;
 
   const ExpandedSearchBar = <>

@@ -3,14 +3,14 @@ import { faThumbTack } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, convertToCosmosAddress, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadgeIds } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
@@ -39,7 +39,7 @@ function PortfolioPage() {
 
 
   const { addressOrUsername } = router.query;
-  const accountInfo = typeof addressOrUsername === 'string' ? accounts.accounts[`${convertToCosmosAddress(addressOrUsername as string)}`] : undefined;
+  const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
   const [tab, setTab] = useState(
     accountInfo?.readme ? 'overview' :
       'collected');
@@ -200,20 +200,20 @@ function PortfolioPage() {
   const fetchMoreLists = async () => {
     if (!accountInfo) return;
 
-    await accounts.fetchNextForViews(accountInfo.cosmosAddress, [`${listsTab}`]);
+    await accounts.fetchNextForViews(accountInfo.address, [`${listsTab}`]);
   }
 
   const fetchMoreCreatedBy = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['createdBy']);
+    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['createdBy']);
     await collections.fetchCollections([...new Set(res?.views['createdBy']?.ids.map(x => BigInt(x)) ?? [])]);
   }
 
   const fetchMoreManaging = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['managing', 'createdBy']);
+    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['managing', 'createdBy']);
     await collections.fetchCollections([...new Set(res?.views['managing']?.ids.map(x => BigInt(x)) ?? [])]);
   }
 
@@ -290,7 +290,7 @@ function PortfolioPage() {
   }, [accountInfo?.readme]);
 
 
-  const listsView = accounts.getAddressMappingsView(accountInfo?.cosmosAddress ?? '', listsTab) ?? [];
+  const listsView = accounts.getAddressMappingsView(accountInfo?.address ?? '', listsTab) ?? [];
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: list view created by');
 
@@ -308,101 +308,65 @@ function PortfolioPage() {
 
 
   return (
-    <Layout>
-      <Content
+    <Content
+      style={{
+        textAlign: 'center',
+        minHeight: '100vh',
+      }}
+    >
+      <div
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-          textAlign: 'center',
-          minHeight: '100vh',
+          marginLeft: '7vw',
+          marginRight: '7vw',
+          paddingLeft: '1vw',
+          paddingRight: '1vw',
+          paddingTop: '20px',
         }}
       >
-        <div
-          className='primary-blue-bg'
-          style={{
-            marginLeft: '7vw',
-            marginRight: '7vw',
-            paddingLeft: '1vw',
-            paddingRight: '1vw',
-            paddingTop: '20px',
-          }}
-        >
-          {/* Overview and Tabs */}
-          {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
+        {/* Overview and Tabs */}
+        {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
 
-          <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
-          {tab === 'overview' && (<>
-            <br />
-            <InformationDisplayCard
-              span={24}
-              title="About"
-            >
-              <div style={{ overflow: 'auto' }} >
-                <div className='custom-html-style primary-text' id="description">
-                  {/* <Markdown> */}
-                  {reactElement}
-                  {/* </Markdown> */}
-                </div>
+        <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+        {tab === 'overview' && (<>
+          <br />
+          <InformationDisplayCard
+            span={24}
+            title="About"
+          >
+            <div style={{ overflow: 'auto' }} >
+              <div className='custom-html-style primary-text' id="description">
+                {/* <Markdown> */}
+                {reactElement}
+                {/* </Markdown> */}
               </div>
-            </InformationDisplayCard>
-          </>)}
-          {((tab === 'collected') || (tab == 'hidden')) && (<>
+            </div>
+          </InformationDisplayCard>
+        </>)}
+        {((tab === 'collected') || (tab == 'hidden')) && (<>
 
-            <br />
-            <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-              {chain.cosmosAddress === accountInfo.cosmosAddress && chain.loggedIn && (
-                <div className='primary-text inherit-bg' style={{
-                  float: 'right',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: 16,
-                  marginTop: 5,
-                }}>
-                  Mode:
-
-                  <Select
-                    className='selector primary-text inherit-bg'
-                    value={editMode ? 'edit' : 'none'}
-                    placeholder="Default: None"
-                    onChange={(e: any) => {
-                      setEditMode(e === 'edit');
-                      setCardView(true);
-                    }}
-                    style={{
-                      float: 'right',
-                      marginLeft: 8,
-                    }}
-                    suffixIcon={
-                      <DownOutlined
-                        className='primary-text'
-                      />
-                    }
-                  >
-                    <Select.Option value="none">View as Normal User</Select.Option>
-                    <Select.Option value="edit">Customize Mode</Select.Option>
-                  </Select>
-                </div>
-              )}
-
-              {<div className='primary-text inherit-bg' style={{
+          <br />
+          <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
+            {chain.cosmosAddress === accountInfo.cosmosAddress && chain.loggedIn && (
+              <div className='primary-text inherit-bg' style={{
                 float: 'right',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: 16,
                 marginTop: 5,
               }}>
-                Group By:
+                Mode:
 
                 <Select
                   className='selector primary-text inherit-bg'
-                  value={groupByCollection ? 'collection' : 'none'}
+                  value={editMode ? 'edit' : 'none'}
                   placeholder="Default: None"
                   onChange={(e: any) => {
-                    setGroupByCollection(e === 'collection');
+                    setEditMode(e === 'edit');
+                    setCardView(true);
                   }}
                   style={{
                     float: 'right',
                     marginLeft: 8,
-                    minWidth: 90
                   }}
                   suffixIcon={
                     <DownOutlined
@@ -410,199 +374,46 @@ function PortfolioPage() {
                     />
                   }
                 >
-                  <Select.Option value="none">None</Select.Option>
-                  <Select.Option value="collection">Collection</Select.Option>
+                  <Select.Option value="none">View as Normal User</Select.Option>
+                  <Select.Option value="edit">Customize Mode</Select.Option>
                 </Select>
               </div>
-              }
+            )}
 
-              {!editMode && <div className='primary-text inherit-bg'
+            {<div className='primary-text inherit-bg' style={{
+              float: 'right',
+              display: 'flex',
+              alignItems: 'center',
+              marginRight: 16,
+              marginTop: 5,
+            }}>
+              Group By:
+
+              <Select
+                className='selector primary-text inherit-bg'
+                value={groupByCollection ? 'collection' : 'none'}
+                placeholder="Default: None"
+                onChange={(e: any) => {
+                  setGroupByCollection(e === 'collection');
+                }}
                 style={{
                   float: 'right',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginLeft: 16,
-                  marginRight: 16,
-                  marginTop: 5,
-                }}>
-                View:
-
-                <Select
-                  className="selector primary-text inherit-bg"
-                  value={cardView ? 'card' : 'image'}
-                  placeholder="Default: None"
-                  onChange={(e: any) => {
-                    setCardView(e === 'card');
-                  }}
-                  style={{
-                    float: 'right',
-                    marginLeft: 8
-                  }}
-                  suffixIcon={
-                    <DownOutlined
-                      className='primary-text'
-                    />
-                  }
-                >
-                  <Select.Option value="card">Card</Select.Option>
-                  <Select.Option value="image">Image</Select.Option>
-                </Select>
-              </div>}
-              {tab != 'hidden' && <>
-                <div className='primary-text inherit-bg'
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    // marginLeft: 16,
-                    marginRight: 16,
-                    marginTop: 5,
-                    flexGrow: 1
-                  }}>
-                  {drop}
-
-                </div>
-              </>}
-
-            </div>
-            <br />
-
-            <div className='full-width flex-center flex-wrap'>
-              {filteredCollections.map((filteredCollection, idx) => {
-                const collection = collections.collections[filteredCollection.collectionId.toString()];
-                const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
-                  : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
-                return <Tag
-                  className='primary-text inherit-bg flex-between'
-                  style={{ alignItems: 'center', marginBottom: 8 }}
-                  key={idx}
-                  closable
-                  closeIcon={<CloseCircleOutlined
-                    className='primary-text styled-button flex-center'
-                    style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
-                    size={50}
-                  />}
-                  onClose={() => {
-                    setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
-                  }}
-                >
-                  <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
-                    <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
-                      <div>
-                        <BadgeAvatar
-                          size={30}
-                          noHover
-                          collectionId={filteredCollection.collectionId}
-                          metadataOverride={metadata}
-                        />
-                      </div>
-                      <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
-                        <div style={{ marginBottom: 4 }}>
-                          {metadata?.name}
-                        </div>
-                        <div style={{ fontSize: 12 }}>
-                          Collection ID: {filteredCollection.collectionId.toString()}
-                          <br />
-
-                          {isFullUintRanges(filteredCollection.badgeIds) ? 'All' : `Badge IDs: ${filteredCollection.badgeIds.map(x =>
-                            x.start === x.end ? `${x.start}` :
-                              `${x.start}-${x.end}`).join(', ')}`}
-                        </div>
-                      </Typography.Text>
-                    </div>
-                  </div>
-                  <br />
-
-
-                </Tag>
-              })}
-            </div>
-
-
-            <Divider />
-          </>)}
-
-          {/* Tab Content */}
-          {tab === 'collected' && (<>
-            <div className='flex-center flex-wrap'>
-              {filteredCollections.length == 0 && !editMode && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
-                accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.some((collection) => collection.badgeIds.length > 0)
-                && <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>
-                    <FontAwesomeIcon
-                      icon={faThumbTack}
-                      style={{ marginRight: 4 }}
-                    />
-                    {badgeTab}
-                  </Typography.Text>
-
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
-                    customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
-                    cardView={cardView}
-                    groupByCollection={groupByCollection}
-                    defaultPageSize={groupByCollection ? (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length : numBadgesDisplayed}
-                    hidePagination={true}
-
-                    showCustomizeButtons={editMode}
+                  marginLeft: 8,
+                  minWidth: 90
+                }}
+                suffixIcon={
+                  <DownOutlined
+                    className='primary-text'
                   />
-                  <Divider />
-                  {badgesToShow.length > 0 &&
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
-                </>
-              }
-
-              <InfiniteScroll
-                dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                next={fetchMoreCollected}
-                hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
                 }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
               >
-                <MultiCollectionBadgeDisplay
-                  collectionIds={badgesToShow.map((collection) => collection.collectionId)}
-                  addressOrUsernameToShowBalance={accountInfo.address}
-                  customPageBadges={filteredCollections.length > 0 ? badgesToShow.map(x => {
-                    return {
-                      collectionId: x.collectionId,
-                      badgeIds: x.balances.map(balance => {
-                        return balance.badgeIds
-                      }).flat()
-                    }
-                  }) : undefined}
-                  cardView={cardView}
-                  groupByCollection={groupByCollection}
-                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
-
-                  showCustomizeButtons={editMode}
-                />
-              </InfiniteScroll>
-
-              {badgesToShow.every((collection) => collection.balances.length === 0) && !collectedHasMore && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
+                <Select.Option value="none">None</Select.Option>
+                <Select.Option value="collection">Collection</Select.Option>
+              </Select>
             </div>
-          </>)}
+            }
 
-          {tab === 'lists' && (<>
-            <br />
-            <div className='primary-text inherit-bg'
+            {!editMode && <div className='primary-text inherit-bg'
               style={{
                 float: 'right',
                 display: 'flex',
@@ -610,40 +421,226 @@ function PortfolioPage() {
                 marginLeft: 16,
                 marginRight: 16,
                 marginTop: 5,
-                textAlign: 'right'
               }}>
               View:
 
               <Select
                 className="selector primary-text inherit-bg"
-                value={listsTab}
+                value={cardView ? 'card' : 'image'}
                 placeholder="Default: None"
                 onChange={(e: any) => {
-                  setListsTab(e)
+                  setCardView(e === 'card');
                 }}
                 style={{
                   float: 'right',
-                  marginLeft: 8,
-
+                  marginLeft: 8
                 }}
-                dropdownStyle={{
-                  minWidth: 150
-                }}
-                placement='bottomRight'
                 suffixIcon={
                   <DownOutlined
                     className='primary-text'
                   />
                 }
               >
-                <Select.Option value="addressMappings">All</Select.Option>
-                <Select.Option value="explicitlyIncludedAddressMappings" >Explicitly Included</Select.Option>
-                <Select.Option value="explicitlyExcludedAddressMappings">Explicitly Excluded</Select.Option>
-
+                <Select.Option value="card">Card</Select.Option>
+                <Select.Option value="image">Image</Select.Option>
               </Select>
-            </div>
-            <Divider />
-            {/* <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
+            </div>}
+            {tab != 'hidden' && <>
+              <div className='primary-text inherit-bg'
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  // marginLeft: 16,
+                  marginRight: 16,
+                  marginTop: 5,
+                  flexGrow: 1
+                }}>
+                {drop}
+
+              </div>
+            </>}
+
+          </div>
+          <br />
+
+          <div className='full-width flex-center flex-wrap'>
+            {filteredCollections.map((filteredCollection, idx) => {
+              const collection = collections.getCollection(filteredCollection.collectionId);
+              const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
+                : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
+              return <Tag
+                className='primary-text inherit-bg flex-between'
+                style={{ alignItems: 'center', marginBottom: 8 }}
+                key={idx}
+                closable
+                closeIcon={<CloseCircleOutlined
+                  className='primary-text styled-button flex-center'
+                  style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
+                  size={50}
+                />}
+                onClose={() => {
+                  setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
+                }}
+              >
+                <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+                  <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
+                    <div>
+                      <BadgeAvatar
+                        size={30}
+                        noHover
+                        collectionId={filteredCollection.collectionId}
+                        metadataOverride={metadata}
+                      />
+                    </div>
+                    <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+                      <div style={{ marginBottom: 4 }}>
+                        {metadata?.name}
+                      </div>
+                      <div style={{ fontSize: 12 }}>
+                        Collection ID: {filteredCollection.collectionId.toString()}
+                        <br />
+
+                        {isFullUintRanges(filteredCollection.badgeIds) ? 'All' : `Badge IDs: ${filteredCollection.badgeIds.map(x =>
+                          x.start === x.end ? `${x.start}` :
+                            `${x.start}-${x.end}`).join(', ')}`}
+                      </div>
+                    </Typography.Text>
+                  </div>
+                </div>
+                <br />
+
+
+              </Tag>
+            })}
+          </div>
+
+
+          <Divider />
+        </>)}
+
+        {/* Tab Content */}
+        {tab === 'collected' && (<>
+          <div className='flex-center flex-wrap'>
+            {filteredCollections.length == 0 && !editMode && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
+              accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.some((collection) => collection.badgeIds.length > 0)
+              && <>
+                <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>
+                  <FontAwesomeIcon
+                    icon={faThumbTack}
+                    style={{ marginRight: 4 }}
+                  />
+                  {badgeTab}
+                </Typography.Text>
+
+                <MultiCollectionBadgeDisplay
+                  collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
+                  customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
+                  cardView={cardView}
+                  groupByCollection={groupByCollection}
+                  defaultPageSize={groupByCollection ? (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length : numBadgesDisplayed}
+                  hidePagination={true}
+
+                  showCustomizeButtons={editMode}
+                />
+                <Divider />
+                {badgesToShow.length > 0 &&
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
+              </>
+            }
+
+            <InfiniteScroll
+              dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
+              next={fetchMoreCollected}
+              hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
+              loader={<div>
+                <br />
+                <Spin size={'large'} />
+              </div>}
+              scrollThreshold={"300px"}
+              endMessage={
+                <></>
+              }
+              initialScrollY={0}
+              style={{ width: '100%', overflow: 'hidden' }}
+            >
+              <MultiCollectionBadgeDisplay
+                collectionIds={badgesToShow.map((collection) => collection.collectionId)}
+                addressOrUsernameToShowBalance={accountInfo.address}
+                customPageBadges={filteredCollections.length > 0 ? badgesToShow.map(x => {
+                  return {
+                    collectionId: x.collectionId,
+                    badgeIds: x.balances.map(balance => {
+                      return balance.badgeIds
+                    }).flat()
+                  }
+                }) : undefined}
+                cardView={cardView}
+                groupByCollection={groupByCollection}
+                defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
+                hidePagination={true}
+
+                showCustomizeButtons={editMode}
+              />
+            </InfiniteScroll>
+
+            {badgesToShow.every((collection) => collection.balances.length === 0) && !collectedHasMore && (
+              <Empty
+                className='primary-text'
+                description={
+                  <span>
+                    No badges found.
+                  </span>
+                }
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            )}
+          </div>
+        </>)}
+
+        {tab === 'lists' && (<>
+          <br />
+          <div className='primary-text inherit-bg'
+            style={{
+              float: 'right',
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: 16,
+              marginRight: 16,
+              marginTop: 5,
+              textAlign: 'right'
+            }}>
+            View:
+
+            <Select
+              className="selector primary-text inherit-bg"
+              value={listsTab}
+              placeholder="Default: None"
+              onChange={(e: any) => {
+                setListsTab(e)
+              }}
+              style={{
+                float: 'right',
+                marginLeft: 8,
+
+              }}
+              dropdownStyle={{
+                minWidth: 150
+              }}
+              placement='bottomRight'
+              suffixIcon={
+                <DownOutlined
+                  className='primary-text'
+                />
+              }
+            >
+              <Select.Option value="addressMappings">All</Select.Option>
+              <Select.Option value="explicitlyIncludedAddressMappings" >Explicitly Included</Select.Option>
+              <Select.Option value="explicitlyExcludedAddressMappings">Explicitly Excluded</Select.Option>
+
+            </Select>
+          </div>
+          <Divider />
+          {/* <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 8 }} />
               Soft included / excluded means that the address is in the list, but the address was not explicitly added to the list.
               <br />
@@ -651,219 +648,219 @@ function PortfolioPage() {
               For example, abc.eth would be soft included in the following list: all addresses except xyz.eth.
             </div>
             <br /> */}
-            <div className='flex-center flex-wrap'>
-              <InfiniteScroll
-                dataLength={listsView.length}
-                next={fetchMoreLists}
-                hasMore={hasMoreAddressMappings}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                <div className='full-width flex-center flex-wrap'>
-                  {listsView.map((addressMapping, idx) => {
-                    return <AddressListCard
-                      key={idx}
-                      addressMapping={addressMapping}
-                      addressOrUsername={accountInfo.address}
-                    />
-                  })}
-                </div>
-              </InfiniteScroll>
-
-              {listsView.length === 0 && !hasMoreAddressMappings && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No lists found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
-          </>)}
-          {tab === 'reputation' && (<>
-            <ReputationTab
-              reviews={accountInfo?.reviews ?? []}
-              fetchMore={async () => {
-                await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestReviews']);
-              }}
-              hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
-              addressOrUsername={accountInfo?.address ?? ''}
-            />
-          </>
-          )}
-
-
-          {tab === 'activity' && (<>
-            <br />
-            <ActivityTab
-              activity={accounts.getActivityView(accountInfo?.cosmosAddress ?? '', 'latestActivity') ?? []}
-              fetchMore={async () => {
-                await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestActivity']);
-              }}
-              hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
-            />
-          </>
-          )}
-
-          {tab === 'createdBy' && (<>
-            <br />
-            <div className='flex-center flex-wrap'>
-              <InfiniteScroll
-                dataLength={accountInfo?.views['createdBy']?.ids.length ?? 0}
-                next={fetchMoreCreatedBy}
-                hasMore={accountInfo?.views['createdBy']?.pagination?.hasMore ?? true}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={accountInfo?.views['createdBy']?.ids.map(x => BigInt(x)) ?? []}
-                    cardView={cardView}
-                    groupByCollection={true}
-                    defaultPageSize={cardView ? 1 : 10}
-                    hidePagination={true}
-
-                    showCustomizeButtons={editMode}
+          <div className='flex-center flex-wrap'>
+            <InfiniteScroll
+              dataLength={listsView.length}
+              next={fetchMoreLists}
+              hasMore={hasMoreAddressMappings}
+              loader={<div>
+                <br />
+                <Spin size={'large'} />
+              </div>}
+              scrollThreshold={"300px"}
+              endMessage={
+                <></>
+              }
+              initialScrollY={0}
+              style={{ width: '100%', overflow: 'hidden' }}
+            >
+              <div className='full-width flex-center flex-wrap'>
+                {listsView.map((addressMapping, idx) => {
+                  return <AddressListCard
+                    key={idx}
+                    addressMapping={addressMapping}
+                    addressOrUsername={accountInfo.address}
                   />
-                </div>
-              </InfiniteScroll>
-
-              {accountInfo?.views['createdBy']?.ids.length == 0 && !accountInfo?.views['createdBy']?.pagination?.hasMore && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
-          </>)}
-
-          {tab === 'managing' && (<>
-            <br />
-            <div className='flex-center flex-wrap'>
-              <InfiniteScroll
-                dataLength={accountInfo?.views['managing']?.ids.length ?? 0}
-                next={fetchMoreManaging}
-                hasMore={accountInfo?.views['managing']?.pagination?.hasMore ?? true}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={500}
-                style={{ width: '100%', overflow: 'hidden', }}
-              >
-                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
-                    cardView={cardView}
-                    groupByCollection={true}
-                    defaultPageSize={cardView ? 1 : 10}
-                    // defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                    hidePagination={true}
-
-                    showCustomizeButtons={editMode}
-                  />
-                </div>
-              </InfiniteScroll>
-
-              {accountInfo?.views['managing']?.ids.length == 0 && !accountInfo?.views['managing']?.pagination?.hasMore && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
-          </>)}
-
-          {tab === 'hidden' && (<>
-            {!chain.loggedIn ? <BlockinDisplay /> :
-              <div className='flex-center flex-wrap'>
-                <InfiniteScroll
-                  dataLength={!groupByCollection ? hiddenBadgesDisplayed : accountInfo.hiddenBadges?.length ?? 0}
-                  next={async () => {
-                    setHiddenBadgesDisplayed(hiddenBadgesDisplayed + 25);
-                  }}
-                  hasMore={(!groupByCollection && hiddenBadgesDisplayed < (getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0))}
-                  loader={<div>
-                    <br />
-                    <Spin size={'large'} />
-                  </div>}
-                  scrollThreshold={"300px"}
-                  endMessage={
-                    <></>
-                  }
-                  initialScrollY={0}
-                  style={{ width: '100%', overflow: 'hidden' }}
-                >
-                  {(getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0) > 0 &&
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={accountInfo.hiddenBadges?.map((collection) => collection.collectionId) ?? []}
-                    addressOrUsernameToShowBalance={accountInfo.address}
-                    customPageBadges={accountInfo.hiddenBadges ?? []}
-                    cardView={cardView}
-                    groupByCollection={groupByCollection}
-                    defaultPageSize={groupByCollection ? 1 : hiddenBadgesDisplayed}
-                    hidePagination={true}
-                    showCustomizeButtons={editMode}
-                  />
-                </InfiniteScroll>
-
-                {((accountInfo.hiddenBadges ?? [])?.length == 0 ||
-                  (accountInfo.hiddenBadges ?? []).every((collection) => collection.badgeIds.length === 0))
-                  && (
-                    <Empty
-                      className='primary-text'
-                      description={
-                        <span>
-                          No badges found.
-                        </span>
-                      }
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                  )}
-
-
+                })}
               </div>
-            }
-          </>)}
-        </div>
-        <DevMode obj={accountInfo} />
-        <Divider />
-      </Content >
-    </Layout >
+            </InfiniteScroll>
+
+            {listsView.length === 0 && !hasMoreAddressMappings && (
+              <Empty
+                className='primary-text'
+                description={
+                  <span>
+                    No lists found.
+                  </span>
+                }
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            )}
+          </div>
+        </>)}
+        {tab === 'reputation' && (<>
+          <ReputationTab
+            reviews={accountInfo?.reviews ?? []}
+            fetchMore={async () => {
+              await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestReviews']);
+            }}
+            hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
+            addressOrUsername={accountInfo?.address ?? ''}
+          />
+        </>
+        )}
+
+
+        {tab === 'activity' && (<>
+          <br />
+          <ActivityTab
+            activity={accounts.getActivityView(accountInfo?.cosmosAddress ?? '', 'latestActivity') ?? []}
+            fetchMore={async () => {
+              await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestActivity']);
+            }}
+            hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
+          />
+        </>
+        )}
+
+        {tab === 'createdBy' && (<>
+          <br />
+          <div className='flex-center flex-wrap'>
+            <InfiniteScroll
+              dataLength={accountInfo?.views['createdBy']?.ids.length ?? 0}
+              next={fetchMoreCreatedBy}
+              hasMore={accountInfo?.views['createdBy']?.pagination?.hasMore ?? true}
+              loader={<div>
+                <br />
+                <Spin size={'large'} />
+              </div>}
+              scrollThreshold={"300px"}
+              endMessage={
+                <></>
+              }
+              initialScrollY={0}
+              style={{ width: '100%', overflow: 'hidden' }}
+            >
+              <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+                <MultiCollectionBadgeDisplay
+                  collectionIds={accountInfo?.views['createdBy']?.ids.map(x => BigInt(x)) ?? []}
+                  cardView={cardView}
+                  groupByCollection={true}
+                  defaultPageSize={cardView ? 1 : 10}
+                  hidePagination={true}
+                  hideAddress
+                  showCustomizeButtons={editMode}
+                />
+              </div>
+            </InfiniteScroll>
+
+            {accountInfo?.views['createdBy']?.ids.length == 0 && !accountInfo?.views['createdBy']?.pagination?.hasMore && (
+              <Empty
+                className='primary-text'
+                description={
+                  <span>
+                    No badges found.
+                  </span>
+                }
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            )}
+          </div>
+        </>)}
+
+        {tab === 'managing' && (<>
+          <br />
+          <div className='flex-center flex-wrap'>
+            <InfiniteScroll
+              dataLength={accountInfo?.views['managing']?.ids.length ?? 0}
+              next={fetchMoreManaging}
+              hasMore={accountInfo?.views['managing']?.pagination?.hasMore ?? true}
+              loader={<div>
+                <br />
+                <Spin size={'large'} />
+              </div>}
+              scrollThreshold={"300px"}
+              endMessage={
+                <></>
+              }
+              initialScrollY={500}
+              style={{ width: '100%', overflow: 'hidden', }}
+            >
+              <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+                <MultiCollectionBadgeDisplay
+                  collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
+                  cardView={cardView}
+                  groupByCollection={true}
+                  defaultPageSize={cardView ? 1 : 10}
+                  // defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
+                  hidePagination={true}
+                  hideAddress
+
+                  showCustomizeButtons={editMode}
+                />
+              </div>
+            </InfiniteScroll>
+
+            {accountInfo?.views['managing']?.ids.length == 0 && !accountInfo?.views['managing']?.pagination?.hasMore && (
+              <Empty
+                className='primary-text'
+                description={
+                  <span>
+                    No badges found.
+                  </span>
+                }
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            )}
+          </div>
+        </>)}
+
+        {tab === 'hidden' && (<>
+          {!chain.loggedIn ? <BlockinDisplay /> :
+            <div className='flex-center flex-wrap'>
+              <InfiniteScroll
+                dataLength={!groupByCollection ? hiddenBadgesDisplayed : accountInfo.hiddenBadges?.length ?? 0}
+                next={async () => {
+                  setHiddenBadgesDisplayed(hiddenBadgesDisplayed + 25);
+                }}
+                hasMore={(!groupByCollection && hiddenBadgesDisplayed < (getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0))}
+                loader={<div>
+                  <br />
+                  <Spin size={'large'} />
+                </div>}
+                scrollThreshold={"300px"}
+                endMessage={
+                  <></>
+                }
+                initialScrollY={0}
+                style={{ width: '100%', overflow: 'hidden' }}
+              >
+                {(getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0) > 0 &&
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
+                <MultiCollectionBadgeDisplay
+                  collectionIds={accountInfo.hiddenBadges?.map((collection) => collection.collectionId) ?? []}
+                  addressOrUsernameToShowBalance={accountInfo.address}
+                  customPageBadges={accountInfo.hiddenBadges ?? []}
+                  cardView={cardView}
+                  groupByCollection={groupByCollection}
+                  defaultPageSize={groupByCollection ? 1 : hiddenBadgesDisplayed}
+                  hidePagination={true}
+                  showCustomizeButtons={editMode}
+                />
+              </InfiniteScroll>
+
+              {((accountInfo.hiddenBadges ?? [])?.length == 0 ||
+                (accountInfo.hiddenBadges ?? []).every((collection) => collection.badgeIds.length === 0))
+                && (
+                  <Empty
+                    className='primary-text'
+                    description={
+                      <span>
+                        No badges found.
+                      </span>
+                    }
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                )}
+
+
+            </div>
+          }
+        </>)}
+      </div>
+      <DevMode obj={accountInfo} />
+      <Divider />
+    </Content >
   );
 }
 

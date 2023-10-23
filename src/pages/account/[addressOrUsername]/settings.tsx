@@ -130,7 +130,8 @@ export function AccountSettings() {
     setCustomPages(signedInAccount.customPages ? signedInAccount.customPages : []);
     setCustomLinks(signedInAccount.customLinks ? signedInAccount.customLinks : []);
 
-  }, [signedInAccount]);
+  }, [signedInAccount?.cosmosAddress]);
+
   const uploadButton = (
     <div className='primary-text'>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
@@ -147,7 +148,7 @@ export function AccountSettings() {
 
           node={
             <Content
-              className="full-area primary-blue-bg"
+              className="full-area"
               style={{ minHeight: '100vh', padding: 8 }}
             >
 
@@ -483,8 +484,8 @@ export function AccountSettings() {
                       };
 
                       let file = null;
-                      console.log('fileList', fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
-                      if (fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl) {
+                      console.log('fileList', fileList, fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
+                      if (fileList.length > 0 && fileList[0].originFileObj) {
                         file = fileList[0].originFileObj;
 
                         const reader = new FileReader();
