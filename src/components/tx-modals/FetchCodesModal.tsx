@@ -60,7 +60,7 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
           : <ClaimsTab
             collectionId={collectionId}
             codesAndPasswords={codesAndPasswords}
-            isModal
+            
           />}
       </div>
       {children}

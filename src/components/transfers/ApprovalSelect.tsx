@@ -151,7 +151,7 @@ const OrderCalculationMethod = ({ approvalToAdd,
   if (somethingElseChecked) return <></>
 
   let maxUsesErrorMessage = '';
-  if (keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
+  if ((keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
     maxUsesErrorMessage = 'To calculate number of partitions, you must set an overall max uses.';
   } else if (keyId === 'usePerFromAddressNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers === 0n && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
     maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per sender.';
@@ -689,18 +689,7 @@ export function ApprovalSelect({
   const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> }>(deepCopy(defaultApprovalToAdd));
 
   const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
-  const setNumRecipients = (numRecipients: bigint) => {
-    setApprovalToAdd({
-      ...approvalToAdd,
-      approvalCriteria: {
-        ...approvalToAdd.approvalCriteria,
-        maxNumTransfers: {
-          ...approvalToAdd.approvalCriteria.maxNumTransfers,
-          overallMaxNumTransfers: numRecipients,
-        }
-      }
-    });
-  }
+  
   const mustOwnBadges = approvalToAdd?.approvalCriteria?.mustOwnBadges || [];
   const setMustOwnBadges = (mustOwnBadges: MustOwnBadges<bigint>[]) => { setApprovalToAdd({ ...approvalToAdd, approvalCriteria: { ...approvalToAdd.approvalCriteria, mustOwnBadges } }) };
 

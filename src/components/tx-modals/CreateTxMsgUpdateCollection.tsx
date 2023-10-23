@@ -178,7 +178,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
 
     //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
-
+    console.log("COLLECTION", collection, simulate);
     if (collection.collectionApprovals?.length > 0 && txTimelineContext.updateCollectionApprovals) {
       if (simulate) {
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
@@ -196,7 +196,7 @@ export function CreateTxMsgUpdateCollectionModal(
             approval.details?.name || approval.details?.description
             || approval.details?.challengeDetails
             || approval.details?.password
-          ) && approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub') {
+          ) && (!approval.uri || approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub')) {
             console.log(approval.uri);
             let res = await addApprovalDetailsToOffChainStorage({
               name: approval.details?.name || '',

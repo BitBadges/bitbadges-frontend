@@ -2,7 +2,6 @@
 import { Stringify } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BigIntify, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext } from 'react';
-import { useCookies } from 'react-cookie';
 import { useDispatch, useSelector } from 'react-redux';
 import { GlobalReduxState } from '../../../pages/_app';
 import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../../api';
@@ -107,8 +106,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   const accounts = useSelector((state: GlobalReduxState) => state.accounts.accounts);
   const cosmosAddressesByUsernames = useSelector((state: GlobalReduxState) => state.accounts.cosmosAddressesByUsernames);
   const dispatch = useDispatch();
-  const [cookies] = useCookies(['blockincookie', 'pub_key']);
-
 
   const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
     if (reservedNames.includes(addressOrUsername)) return { ...MINT_ACCOUNT, address: addressOrUsername, cosmosAddress: addressOrUsername };
@@ -126,7 +123,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const updateAccounts = (userInfos: BitBadgesUserInfo<DesiredNumberType>[], forcefulRefresh?: boolean) => {
-    dispatch(updateAccountsRedux(userInfos, forcefulRefresh, cookies));
+    dispatch(updateAccountsRedux(userInfos, forcefulRefresh));
   }
 
 
@@ -180,7 +177,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         fetchBalance: false,
         viewsToFetch: []
       }
-    }), forcefulRefresh);
+    }), forcefulRefresh)
   }
 
   const fetchAccountsWithOptions = async (accountsToFetch: {
@@ -203,6 +200,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
 
     //Iterate through and see which accounts + info we actually need to fetch versus which we already have enough for
     for (const accountToFetch of accountsToFetch) {
+
       // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
       accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
 
@@ -223,6 +221,8 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         if (accountToFetch.address) accountToFetch.address = cachedAccount.address;
         if (accountToFetch.username) accountToFetch.username = cachedAccount.username;
 
+        if (reservedNames.includes(accountToFetch.address || accountToFetch.username || '')) continue;
+
         //Do not fetch views where hasMore is false
         accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => {
           const currPagination = cachedAccount.views[x.viewKey]?.pagination;
@@ -238,6 +238,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
           !cachedAccount.fetchedProfile
 
         if (needToFetch) {
+
           batchRequestBody.accountsToFetch.push({
             address: accountToFetch.address,
             username: accountToFetch.username,
@@ -256,6 +257,11 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       //Note that we implement this by using our accounts map and not getAccount because there is no guarantee that the state is updated yet
       const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
       for (const account of accountsToFetch) {
+        if (reservedNames.includes(account.address || account.username || '')) {
+          accountsToReturn.push({ ...MINT_ACCOUNT, address: account.address || account.username || '', cosmosAddress: account.address || account.username || '' });
+          continue;
+        }
+
         if (account.address) {
           const cachedAccount = getAccount(convertToCosmosAddress(account.address))
           accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
@@ -387,11 +393,10 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       throw new Error(`Account ${addressOrUsername} not found`);
     }
 
-    console.log(publicKey);
     dispatch(updateAccountsRedux([{
       ...account,
       publicKey: publicKey
-    }], false, cookies))
+    }], false))
 
     console.log(getAccount(addressOrUsername))
   }

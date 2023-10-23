@@ -126,7 +126,7 @@ export function BadgePage({ collectionPreview }
             />
           </>}
           {tab === 'transferability' && (
-            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} setTab={setTab}/>
+            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber}/>
           )}
 
 

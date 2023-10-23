@@ -209,6 +209,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const getPublicKey = async (_cosmosAddress: string) => {
     try {
       const currAccount = accountsContext.getAccount(_cosmosAddress);
+
+      //If we have stored the public key in cookies, use that instead (for Ethereum)
+      if (currAccount && cookies.pub_key && cookies.pub_key.split('-')[0] === currAccount.cosmosAddress) {
+        return cookies.pub_key.split('-')[1];
+      }
+
       console.log("currAccount", currAccount);
       if (currAccount && currAccount.publicKey) {
         return currAccount.publicKey

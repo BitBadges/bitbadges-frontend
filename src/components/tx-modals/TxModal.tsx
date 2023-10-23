@@ -306,10 +306,9 @@ export function TxModal(
   const handleSubmitTx = async () => {
     try {
       await submitTx(createTxFunction, txCosmosMsg, false);
-      setVisible(false);
-
-
       if (onSuccessfulTx) onSuccessfulTx();
+
+      setVisible(false);
     } catch (err: any) {
       console.error(err);
     }

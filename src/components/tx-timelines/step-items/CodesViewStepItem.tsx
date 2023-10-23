@@ -14,7 +14,7 @@ export function CodesViewStepItem() {
   const collections = useCollectionsContext();
 
   const approvalDetails = collections.getCollection(MSG_PREVIEW_ID)?.collectionApprovals.map(x => x.details)
-  const codesAndPasswords: CodesAndPasswords[] = approvalDetails?.map(x => !x ? { codes: [], password: '', cid: '' } : { codes: x.challengeDetails.leavesDetails.leaves, password: x.challengeDetails.password ?? '', cid: '' }) ?? [];
+  const codesAndPasswords: CodesAndPasswords[] = approvalDetails?.map(x => !x ? { codes: [], password: '', cid: '' } : { codes: x.challengeDetails.leavesDetails.preimages ?? [], password: x.challengeDetails.password ?? '', cid: '' }) ?? [];
 
   if (codesAndPasswords.every(x => x.codes.length === 0)) {
     return EmptyStepItem
@@ -24,7 +24,7 @@ export function CodesViewStepItem() {
 
   return {
     title: 'View Codes / Passwords',
-    description: <div className="secondary-text" style={{  }}>
+    description: <div className="secondary-text" style={{}}>
       <InfoCircleOutlined /> For the code or password-based claims that you have created, you have the option to view, save, and download the codes now.
       Moving forward, they will only be viewable to whoever the current collection manager is. <span style={{ color: 'orange' }}>{neverHasManger
         ? "Since no manager was selected, this is the only time you will be able to see these codes." : ""}</span>
@@ -37,7 +37,6 @@ export function CodesViewStepItem() {
         <ClaimsTab
           collectionId={MSG_PREVIEW_ID}
           codesAndPasswords={codesAndPasswords}
-          isModal
 
         />
       </div>

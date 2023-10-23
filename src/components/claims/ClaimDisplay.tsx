@@ -1,19 +1,17 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Button, Divider, Input, Row, Typography } from "antd";
-import { deepCopy } from "bitbadgesjs-proto";
-import { ApprovalCriteriaWithDetails, CollectionApprovalWithDetails, searchUintRangesForId } from "bitbadgesjs-utils";
+import { ApprovalCriteriaWithDetails, CollectionApprovalWithDetails, isInAddressMapping, searchUintRangesForId } from "bitbadgesjs-utils";
 import { SHA256 } from "crypto-js";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { AddressSelect } from "../address/AddressSelect";
-import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
 import { TransferabilityRow, getTableHeader } from "../collection-page/TransferabilityRow";
+import { CreateTxMsgTransferBadgesModal } from "../tx-modals/CreateTxMsgTransferBadges";
 import { CodesDisplay } from "./CodesPasswordsDisplay";
 
 //TODO: Abstract to support all approved transfers criteria (incoming, outgoing, must own, everything)
@@ -29,8 +27,7 @@ export function ClaimDisplay({
   code,
   setCode,
   recipient,
-  setRecipient,
-  noBorder
+  setRecipient
 }: {
   approval: CollectionApprovalWithDetails<bigint>,
   approvalCriteria: ApprovalCriteriaWithDetails<bigint>,
@@ -44,14 +41,13 @@ export function ClaimDisplay({
   setCode?: (code: string) => void
   recipient?: string
   setRecipient?: (recipient: string) => void
-  noBorder?: boolean
 }) {
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId)
-  
 
+  const details = approval.details;
   const claim = approval.approvalCriteria && approvalCriteria.merkleChallenge?.root ?
     approvalCriteria.merkleChallenge : undefined;
 
@@ -61,6 +57,7 @@ export function ClaimDisplay({
 
   const [showClaimDisplay, setShowClaimDisplay] = useState(!isCodeDisplay);
   const [address, setAddress] = useState<string>(chain.address);
+  const [transferModalVisible, setTransferModalVisible] = useState<boolean>(false);
 
   //auto populate if URL query
   useEffect(() => {
@@ -72,20 +69,16 @@ export function ClaimDisplay({
     }
   }, [codeQuery, passwordQuery, setCode]);
 
-  //TODO: Will need to change with more supported features
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.amountTrackerId === approval.amountTrackerId && x.approvedAddress === '');
-  const initiatedByTracker = collection?.approvalsTrackers.find(x => x.amountTrackerId === approval.amountTrackerId && x.approvedAddress === chain.cosmosAddress);
-
   const calculationMethod = approvalCriteria.predeterminedBalances?.orderCalculationMethod;
   let leafIndex: number = (calculationMethod?.useMerkleChallengeLeafIndex ? claim?.useCreatorAddressAsLeaf ?
-    approvalCriteria.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-    : approvalCriteria.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
+    approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
+    : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())
     : -1) ?? -1;
 
-  const numIncrements = calculationMethod?.useMerkleChallengeLeafIndex ? leafIndex ?? 0 : approvalTracker?.numTransfers ?? 0n;
-  const numClaimsPerAddress = approvalCriteria.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n;
-  const currInitiatedByCount = initiatedByTracker?.numTransfers ?? 0n;
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
 
+  const hasPredetermined = approval.approvalCriteria?.predeterminedBalances && (approval.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
+    approval.approvalCriteria?.predeterminedBalances && approval.approvalCriteria?.predeterminedBalances.manualBalances.length > 0);
 
   if (approval.fromMappingId !== "Mint") return <></>;
 
@@ -106,53 +99,32 @@ export function ClaimDisplay({
     cantClaim = true;
     notConnected = true;
     errorMessage = 'Please connect your wallet to claim!';
-  } else if (claim && claim.details?.hasPassword && !chain.loggedIn) {
+  } else if (claim && details?.hasPassword && !chain.loggedIn) {
     cantClaim = true;
     notConnected = true;
     errorMessage = 'Please sign in with your wallet!';
-  } else if (numClaimsPerAddress > 0n && currInitiatedByCount >= numClaimsPerAddress) {
-    cantClaim = true;
-    errorMessage = 'You have exceeded the maximum number of times you can claim!';
-  }  // else if (claim.usedLeaves && claim.usedLeaves[0]?.find(x => x === SHA256(code).toString())) {
-  //   cantClaim = true;
-  //   errorMessage = 'This code has already been used!';
-  // } 
-  else if (claim && !claim.details && approvalCriteria.merkleChallenge?.root) {
+  } else if (!details && approvalCriteria.merkleChallenge?.root) {
     cantClaim = true;
     errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
-  } else if (!approvalCriteria.predeterminedBalances ||
-    approvalCriteria.predeterminedBalances.incrementedBalances.startBalances.length == 0 ||
-    (!approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
-      !approvalCriteria.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex)) {
+  } else if ((approvalCriteria.predeterminedBalances?.manualBalances ?? []).length > 0) {
     cantClaim = true;
-    errorMessage = 'This claim was custom created by the creator with a custom order calculation method. This is incompatible with the BitBadges website.';
+    errorMessage = 'This claim uses manual predetermined balances which is not currently supported.';
   } else if (!validTime) {
     cantClaim = true;
-    errorMessage = 'This claim is not currently active!';
-  } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
+    errorMessage = 'This claim is not currently active! Invalid time.';
+  } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
     cantClaim = true;
     errorMessage = 'You are not on the whitelist for this claim!';
+  } else if (code && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
+    cantClaim = true;
+    errorMessage = 'The entered code has already been used!';
+  } else if (code && leafIndex < 0) {
+    cantClaim = true;
+    errorMessage = 'The entered code / password is invalid!';
+  } else if (claim && claim.root && !claim.useCreatorAddressAsLeaf && !code) {
+    cantClaim = true;
+    errorMessage = 'No code / password has been entered.';
   }
-
-
-  const currentClaimAmounts = deepCopy(approvalCriteria.predeterminedBalances?.incrementedBalances.startBalances ?? []);
-  const incrementIdsBy = approvalCriteria.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n;
-  const incrementOwnershipTimesBy = approvalCriteria.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n;
-
-  for (let i = 0; i < numIncrements; i++) {
-    for (const balance of currentClaimAmounts) {
-      for (const badgeIdRange of balance.badgeIds) {
-        badgeIdRange.start += incrementIdsBy;
-        badgeIdRange.end += incrementIdsBy;
-      }
-
-      for (const ownershipTimeRange of balance.ownershipTimes) {
-        ownershipTimeRange.start += incrementOwnershipTimesBy;
-        ownershipTimeRange.end += incrementOwnershipTimesBy;
-      }
-    }
-  }
-
 
   return <div className='flex-center flex-column'>
     {/* <Divider /> */}
@@ -188,33 +160,23 @@ export function ClaimDisplay({
                       />
                     </table>
 
-
-
-
-
                     <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
-
-                      {errorMessage && <>
-                        <br />
-                        <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
-                        {errorMessage}
-                      </>}
 
 
                       {notConnected ? <>
                         <br />
                         <Divider />
                         <div>
-                          <BlockinDisplay hideLogo hideLogin />
+                          <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
                         </div>
                       </> : <>
-                        {claim && claim.root && !claim.useCreatorAddressAsLeaf && !errorMessage && setCode &&
+                        {claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode &&
                           <>
                             <br />
                             <br />
-                            <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Enter {claim.details?.hasPassword ? 'Password' : 'Code'} to Claim</Typography.Text>
+                            <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Enter {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
                             <Input
-                              placeholder={`Enter ${claim.details?.hasPassword ? 'Password' : 'Code'}`}
+                              placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
                               value={code}
                               onInput={(e: any) => {
                                 if (setCode) setCode(e.target.value);
@@ -227,33 +189,17 @@ export function ClaimDisplay({
                           </>
                         }
 
-                        {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code ? <></> : <>
-                          {/* <hr /> */}
+                        {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
                           <br />
                           <br />
-                          <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>Claim for Entered Code</Typography.Text>
-                          <BalanceDisplay
-                            message={'Current Claim'}
-                            hideMessage
-                            collectionId={collectionId}
-                            balances={leafIndex >= 0 ? currentClaimAmounts : []}
-                          /></>
+                          <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which corresponds to order #{leafIndex + 1}</Typography.Text>
+                        </>
                         }
-
-                        {claim && claim.root && claim.useCreatorAddressAsLeaf &&
-                          <>
-                            <br />
-                            {!claim.details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))
-                              ? <></> :
-                              <div>
-                                {chain.connected && <div>
-                                  <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> You have been whitelisted!</Typography.Text>
-                                </div>}
-                              </div>}
-                          </>
-                        }
+                        {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex ? <>
+                          Your address has been reserved order #{leafIndex + 1}.
+                        </> : <></>}
                       </>}
-                      {openModal && !errorMessage && <div className="full-width">
+                      {openModal && hasPredetermined && <div className="full-width">
                         <br />
                         <br />
 
@@ -266,18 +212,36 @@ export function ClaimDisplay({
                           <AddressDisplay
                             addressOrUsername={recipient ?? ''}
                           />
-                          {recipient != chain.cosmosAddress && recipient != chain.address && !approvalCriteria.overridesToIncomingApprovals && <>
-                            <InfoCircleOutlined style={{ marginRight: 4 }} />
-                            {"If selecting an address other than your own, you must obey their incoming approvals."}
-                          </>}
-                          <br />
-                          <br />
+                          <Divider />
                         </>}
-                        <button disabled={cantClaim} onClick={() => { if (openModal) openModal(code, leafIndex, recipient) }} className='landing-button full-width flex-center' style={{
+                        <button disabled={cantClaim || !!errorMessage || (!isInAddressMapping(approval.initiatedByMapping, chain.cosmosAddress) && !isInAddressMapping(approval.initiatedByMapping, chain.address))} onClick={() => { if (openModal) openModal(code, leafIndex, recipient) }} className='landing-button full-width flex-center' style={{
                           textAlign: 'center', width: '100%'
                         }}>
                           Claim
                         </button>
+                        {errorMessage && <>
+                          <br />
+                          <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
+                          {errorMessage}
+                        </>}
+                      </div>}
+
+                      {!hasPredetermined && <div className="full-width">
+                        <br />
+                        <br />
+                        <button disabled={cantClaim || !!errorMessage
+                          || (!isInAddressMapping(approval.initiatedByMapping, chain.cosmosAddress) && !isInAddressMapping(approval.initiatedByMapping, chain.address))
+                        } onClick={() => { setTransferModalVisible(true) }} className='landing-button full-width flex-center' style={{
+                          textAlign: 'center', width: '100%'
+                        }}>
+                          Transfer
+                        </button>
+                        <CreateTxMsgTransferBadgesModal
+                          collectionId={collectionId}
+                          visible={transferModalVisible}
+                          setVisible={setTransferModalVisible}
+                          defaultAddress={'Mint'}
+                        />
                       </div>}
                     </div>
                   </div>

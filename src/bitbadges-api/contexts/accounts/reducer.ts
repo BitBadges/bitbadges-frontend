@@ -3,7 +3,7 @@ import { AccountMap, BigIntify, BitBadgesUserInfo, DesiredNumberType, MINT_ACCOU
 import { compareObjects } from "../../../utils/compare";
 import { AccountReducerState, initialState, reservedNames } from "./AccountsContext";
 
-const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false, cookies: { [key: string]: string } = {}) => {
+const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false) => {
 
   let accounts = state.accounts;
   let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
@@ -29,10 +29,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       const cachedAccountCopy = deepCopy(cachedAccount);
 
       let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
-      //If we have stored the public key in cookies, use that instead (for Ethereum)
-      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.cosmosAddress) {
-        publicKey = cookies.pub_key.split('-')[1];
-      }
+
 
       //Append all views to the existing views
       const newViews = cachedAccount?.views || {};
@@ -108,9 +105,8 @@ export const accountReducer = (state = initialState, action: { type: string; pay
   switch (action.type) {
     case 'UPDATE_ACCOUNTS':
       const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
-      const cookies = action.payload.cookies as { [key: string]: string };
       const forcefulRefresh = action.payload.forcefulRefresh as boolean;
-      return updateAccounts(state, userInfos, forcefulRefresh, cookies);
+      return updateAccounts(state, userInfos, forcefulRefresh);
     default:
       return state;
   }

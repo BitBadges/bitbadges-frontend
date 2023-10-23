@@ -141,7 +141,7 @@ function CollectionPage({
             <BadgesTab collectionId={collectionIdNumber} />
           )}
           {tab === 'transferability' && (
-            <TransferabilityTab collectionId={collectionIdNumber} setTab={setTab} />
+            <TransferabilityTab collectionId={collectionIdNumber} />
           )}
 
 

@@ -1,23 +1,19 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { Button, Divider, Empty, Spin } from 'antd';
-import { CodesAndPasswords, CollectionApprovalWithDetails, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
+import { Empty, Spin } from 'antd';
+import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
-import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { DistributionOverview } from '../badges/DistributionCard';
 
-export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
+export function ClaimsTab({ collectionId, codesAndPasswords,  badgeId }: {
   collectionId: bigint;
   codesAndPasswords?: CodesAndPasswords[]
-  isModal?: boolean
   badgeId?: bigint;
 }) {
   const collections = useCollectionsContext();
@@ -29,7 +25,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   const [code, setCode] = useState<string>("");
   const [currPage, setCurrPage] = useState<number>(1);
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
-  const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
   const [recipient, setRecipient] = useState<string>(chain.address);
   // const [approvalCriteriaIdx, setApprovalCriteriaIdx] = useState<number>(0);
 
@@ -37,11 +32,10 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
 
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
 
-  const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? "";
   const approvals = collection?.collectionApprovals ?? [];
 
   for (const approval of approvals) {
-    if (approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria)) {
+    if (isInAddressMapping(approval.fromMapping, 'Mint')) {
       approvalsForClaims.push(approval);
     }
   }
@@ -55,7 +49,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   //TODO: This is hardcoded for only one merkle challenge. Technically an assumption, although it is a rare case where they may have more than one.
   const claimItem = approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
   const query = router.query;
-  const hasMerkleChallenge = approvals.find(x => x.approvalCriteria?.merkleChallenge?.root)
 
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
@@ -128,17 +121,19 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       }
 
       <DevMode obj={claimItem} />
-      <CreateTxMsgClaimBadgeModal
-        collectionId={collectionId}
-        visible={modalVisible}
-        setVisible={setModalVisible}
-        code={code}
-        approvalCriteria={approvalItem?.approvalCriteria}
-        claimItem={claimItem}
-        whitelistIndex={whitelistIndex}
-        recipient={recipient}
-        approvalId={approvalItem?.approvalId ?? ''}
-      />
+      {approvalItem &&
+        <CreateTxMsgClaimBadgeModal
+          collectionId={collectionId}
+          visible={modalVisible}
+          setVisible={setModalVisible}
+          code={code}
+          approval={approvalItem}
+          approvalCriteria={approvalItem?.approvalCriteria}
+          claimItem={claimItem}
+          whitelistIndex={whitelistIndex}
+          recipient={recipient}
+          approvalId={approvalItem?.approvalId ?? ''}
+        />}
 
     </div >
   );

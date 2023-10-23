@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Card, Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
+import { Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
 import { CollectionApprovalWithDetails, getAbbreviatedAddress } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
@@ -7,7 +7,6 @@ import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/
 import { WEBSITE_HOSTNAME } from "../../constants";
 import { downloadJson, downloadTxt } from "../../utils/downloadJson";
 import { Pagination } from "../common/Pagination";
-import { ToolIcon, tools } from "../display/ToolIcon";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 
 export function CodesDisplay({

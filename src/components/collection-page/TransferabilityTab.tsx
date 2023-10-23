@@ -3,13 +3,12 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/
 import { ApprovalsDisplay } from './ApprovalsTab';
 import { InfoCircleOutlined } from '@ant-design/icons';
 
-export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, setTab, onEdit, onDelete, addMoreNode, showDeletedGrayedOut }: {
+export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, onEdit, onDelete, addMoreNode, showDeletedGrayedOut }: {
   collectionId: bigint,
   badgeId?: bigint,
   onlyShowFromMint?: boolean,
   onlyShowNotFromMint?: boolean,
   hideHelperMessage?: boolean,
-  setTab?: (tab: string) => void,
   onDelete?: (approvalId: string) => void,
   onEdit?: (approval: any) => void,
   addMoreNode?: ReactNode
@@ -32,7 +31,6 @@ export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, on
         approvalLevel={"collection"}
         approverAddress=''
         showDeletedGrayedOut={showDeletedGrayedOut}
-        setTab={setTab}
         onDelete={onDelete}
         onEdit={onEdit}
         addMoreNode={addMoreNode}

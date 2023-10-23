@@ -1,12 +1,13 @@
 import { CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, StopFilled, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Divider, Empty, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
-import { CollectionApprovalWithDetails, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, isInAddressMapping, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { Button, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
+import { CollectionApprovalWithDetails, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
-import { DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -16,16 +17,11 @@ import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
+import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { CreateClaims } from '../tx-timelines/form-items/CreateClaims';
-import { Tabs } from '../navigation/Tabs';
 import { BalanceOverview } from './BalancesInfo';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { chain } from 'lodash';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { SHA256 } from 'crypto-js';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 export const getTableHeader = () => {
   return <tr >
@@ -75,7 +71,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
 
 }) => {
 
-
+  const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
@@ -137,15 +133,22 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
       {transfer.approvalCriteria?.merkleChallenge?.root && (
         <>
           {transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? (<>
-            <li>{"Whitelist"}</li>
-            <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address` : "No limit on claims per address"}</li>
-            {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0n &&
-              <li>
-                {transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()} {`whitelisted addresses`}
+            <li>{"Must be on whitelist"}</li>
+            {transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf > 0n ? <li>`Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address`</li> : <></>}
+            {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0n && <div className='flex-center flex-column'>
+              <br />
+              <Button className="styled-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
+
+              <br />
+              {whitelistIsVisible && <>
+
                 <AddressDisplayList
-                  users={transfer.details?.challengeDetails.leavesDetails.leaves ?? []}
+                  users={transfer.details?.challengeDetails?.leavesDetails.leaves ?? []}
+                  allExcept={false}
                 />
-              </li>
+                <br />
+              </>}
+            </div>
             }
           </>) : <>
 
@@ -155,15 +158,17 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
               <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()} {`valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
                 ? 'password' : 'code' : 'password / code'}(s)`}</li>
             )}
-            <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per code / password` : "No limit on claims per code / password"}</li>
+            {/* <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per code / password` : "No limit on claims per code / password"}</li> */}
           </>}
         </>
       )}
-      {transfer.approvalCriteria?.predeterminedBalances && (transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
-        transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.manualBalances.length > 0) &&
+      {
+        transfer.approvalCriteria?.predeterminedBalances && (transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
+          transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.manualBalances.length > 0) &&
         (
           <li>{"Predetermined balances for each transfer"}</li>
-        )}
+        )
+      }
 
 
       <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="list" setAddress={setAddress} />
@@ -174,34 +179,38 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="list" setAddress={setAddress} />
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="list" setAddress={setAddress} />
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="list" setAddress={setAddress} />
-      {approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && (
-        <li>
-          No amount restrictions
-        </li>
-      )}
-    </ul>
+      {
+        approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && (
+          <li>
+            No amount restrictions
+          </li>
+        )
+      }
+    </ul >
     <br />
     <div className='flex-center'>
       <button className='styled-button' style={{ width: 200, cursor: 'pointer', background: 'inherit !important' }} onClick={() => setShowAdvanced(!showAdvanced)}>{showAdvanced ? 'Hide' : 'Show'} Advanced</button>
     </div>
-    {showAdvanced && <>
-      <ul style={{ textAlign: 'start' }}>
-        <li><Typography.Text style={{ fontSize: 16 }} className='primary-text'>
-          Approval ID: {transfer.approvalId.toString()}
-        </Typography.Text>
-        </li>
-        <li>
-          <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
-            Amount Tracker ID: {transfer.amountTrackerId.toString()}
+    {
+      showAdvanced && <>
+        <ul style={{ textAlign: 'start' }}>
+          <li><Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+            Approval ID: {transfer.approvalId.toString()}
           </Typography.Text>
-        </li>
-        <li>
-          <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
-            Challenge Tracker ID: {transfer.challengeTrackerId.toString()}
-          </Typography.Text>
-        </li>
-      </ul>
-    </>}
+          </li>
+          <li>
+            <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+              Amount Tracker ID: {transfer.amountTrackerId.toString()}
+            </Typography.Text>
+          </li>
+          <li>
+            <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+              Challenge Tracker ID: {transfer.challengeTrackerId.toString()}
+            </Typography.Text>
+          </li>
+        </ul>
+      </>
+    }
 
     <div style={{ textAlign: 'start' }}>
       {hasSameTrackerId && (
@@ -217,7 +226,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
         </>
       )}
     </div>
-  </InformationDisplayCard>
+  </InformationDisplayCard >
 }
 
 export const MustOwnBadgesCard = ({ transfer }: {
@@ -264,9 +273,10 @@ export const MustOwnBadgesCard = ({ transfer }: {
   </>
 }
 
-export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber, collectionId
-}: {
-  span?: number, collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void
+export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, collectionId, address, setAddress }: {
+  address?: string,
+  setAddress: (address: string) => void,
+   collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void
 }) => {
 
   const claim = transfer.approvalCriteria?.merkleChallenge
@@ -274,20 +284,33 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
   const collections = useCollectionsContext();
   const accounts = useAccountsContext();
   const collection = collections.getCollection(collectionId);
-  const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
+
   const approvalCriteria = transfer.approvalCriteria;
   const calculationMethod = transfer.approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
-  const approvalTracker = collection?.approvalsTrackers.find(x => x.amountTrackerId === approval.amountTrackerId && x.approvedAddress === '');
+  let trackerType = '';
+  if (calculationMethod?.useMerkleChallengeLeafIndex) { }
+  else if (calculationMethod?.useOverallNumTransfers) trackerType = 'overall';
+  else if (calculationMethod?.usePerFromAddressNumTransfers) trackerType = 'from';
+  else if (calculationMethod?.usePerToAddressNumTransfers) trackerType = 'to';
+  else if (calculationMethod?.usePerInitiatedByAddressNumTransfers) trackerType = 'initiatedBy';
+
+  const approvalTracker = collection?.approvalsTrackers.find(x => x.amountTrackerId === approval.amountTrackerId && x.approvedAddress === ''
+    && x.trackerType === trackerType);
 
   useEffect(() => {
     //fetch accounts as needed if we iterate through whitelist
     if (claim?.useCreatorAddressAsLeaf && approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber]) {
-      accounts.fetchAccounts([approvalCriteria.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
+      accounts.fetchAccounts([approvalCriteria?.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
     }
   }, [orderNumber, claim]);
 
 
   const numIncrements = approvalTracker?.numTransfers ?? 0n;
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set order number');
+    if (numIncrements > 0n) setOrderNumber(Number(numIncrements));
+  }, [numIncrements]);
 
   const incrementedBalances = transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.map(x => {
     return {
@@ -319,9 +342,8 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
   // const hasMaxNumTransfers = approvalHasMaxNumTransfers(transfer.approvalCriteria?.maxNumTransfers);
 
   const hasIncrements = !!(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy || transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy);
+  const [showSelect, setShowSelect] = useState(false);
 
-
-  console.log("APPROVAL", approval)
   return <>{transfer.approvalCriteria?.predeterminedBalances && (transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
     transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.manualBalances.length > 0) &&
     (
@@ -330,7 +352,7 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
           {hasIncrements && <>
 
             <li>{Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
-              <>{"Order number starts at 1 and increments by 1 every use."}</>
+              <>{"Order number starts at 1 and increments by 1 every use by any user."}</>
               : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
                 <>{`The creator of this claim prereserved specific order numbers for specific ${transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? 'whitelisted addresses' : 'claim codes'}.`}</>
                 : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerFromAddressNumTransfers" ?
@@ -340,7 +362,34 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
                     : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerInitiatedByAddressNumTransfers" ?
                       <>{"Order number starts at 1 for each unique initiator (initiated by address) and increments by 1 every transfer initiated by that address."}</>
                       : <>{'Unknown'}</>
-            }</li>
+            }
+              {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
+
+                <WarningOutlined style={{ color: 'orange', margin: 4 }} /> The order number is calculated at processing time. Below is the next order number to be processed, but note it is subject to change.
+
+              </>}
+            </li>
+            {calculationMethod?.useMerkleChallengeLeafIndex ? <></> : <div className='flex-center flex-column'><br />
+
+
+              {!calculationMethod?.useOverallNumTransfers &&
+                <>
+                  <div className='flex-center flex primary-text'>
+                    <AddressDisplay addressOrUsername={address ?? ''} fontSize={14} />
+
+                    {!calculationMethod?.usePerInitiatedByAddressNumTransfers && <IconButton src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />}
+                  </div>
+                  {showSelect && !calculationMethod?.usePerInitiatedByAddressNumTransfers && <><AddressSelect defaultValue={address} onUserSelect={(address) => setAddress?.(address)} /><br /></>}
+
+                </>
+              }
+
+              <Typography.Text className="primary-text" style={{ fontSize: 18 }} strong>
+                {`Next Order #${BigInt(numIncrements) + 1n}`}
+              </Typography.Text>
+
+              <br />
+            </div>}
 
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0 && (<li>
               Each order number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
@@ -351,44 +400,15 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0 && (<li>
               Each order number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
             </li>)}
-
-
           </>}
         </ul>
+        <br />
         <div className='flex-center inherit-bg primary-text'>
           <div>
             {hasIncrements ? <>
               <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
                 Order #
               </Typography.Text>
-              {claim && claim.root && calculationMethod?.useMerkleChallengeLeafIndex && <>
-                Reserved for
-                {claim?.useCreatorAddressAsLeaf ? <>
-                  <AddressDisplay
-                    addressOrUsername={approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? ''}
-                  // size={20}
-                  />
-                  <br />
-                </> : <>
-                  Code #{orderNumber + 1}
-                  <br />
-                </>}
-
-
-              </>}
-              {claim && claim.root && claim.useCreatorAddressAsLeaf &&
-                <>
-                  <Button className="styled-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
-                  <br />
-                  {whitelistIsVisible && <>
-
-                    <AddressDisplayList
-                      users={approval.details?.challengeDetails?.leavesDetails.leaves ?? []}
-                      allExcept={false}
-                    />
-                    <br />
-                  </>}
-                </>}
 
               <InputNumber
                 style={{ width: 100 }}
@@ -399,14 +419,26 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
                 }}
                 className='primary-text inherit-bg'
               />
+              {claim && claim.root && calculationMethod?.useMerkleChallengeLeafIndex && <><br />
+                Reserved for{' '}
+                {claim?.useCreatorAddressAsLeaf ? <>
+                  <AddressDisplay
+                    addressOrUsername={approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? ''}
+                  // size={20}
+                  />
+                </> : <>
+                  Code #{orderNumber + 1}
+                </>}
+              </>}
+
               <br />
               <br />
             </> : <><br /></>}
             {!hasOverlap || exceedsMaxNumTransfers ? <div className='primary-text'>
               <br />
               <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> This order number is not possible because
-              {exceedsMaxNumTransfers && <> it exceeds the max cumulative uses for this approval</>}
-              {!hasOverlap && <> the badge IDs are no longer in range.</>}
+              {exceedsMaxNumTransfers && <> it exceeds the max cumulative uses for this approval.</>}
+              {!hasOverlap && !exceedsMaxNumTransfers && <> the badge IDs are no longer in range.</>}
             </div> : <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                 <BalanceDisplay
@@ -435,12 +467,6 @@ export const PredeterminedCard = ({ span, transfer, orderNumber, setOrderNumber,
       </>
     )}
 
-    {calculationMethod?.useOverallNumTransfers && <>
-
-      <Typography.Text className="secondary-text" style={{ fontSize: 14 }}>
-        {`Current Claim - #${BigInt(numIncrements) + 1n}`}
-      </Typography.Text>
-    </>}
   </>
 }
 
@@ -454,7 +480,6 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
     showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType: 'list' | 'card'
   }) => {
   const collections = useCollectionsContext();
-  const chain = useChainContext();
   const collection = collections.getCollection(collectionId);
   const [showSelect, setShowSelect] = useState(false);
 
@@ -463,7 +488,6 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.maxNumTransfers) return null;
 
   const maxNumTransfersKey = type === "overall" ? "overallMaxNumTransfers" : type === "to" ? "perToAddressMaxNumTransfers" : type === "from" ? "perFromAddressMaxNumTransfers" : "perInitiatedByAddressMaxNumTransfers";
-  const title = type === "overall" ? "Overall (All Users)" : type === "to" ? "Per To Address" : type === "from" ? "Per From Address" : "Per Initiated By Address";
   const message = type === "overall" ?
     `All users cumulatively can transfer x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
     type === "to" ?
@@ -483,8 +507,9 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
   if (!(transfer.approvalCriteria?.maxNumTransfers && transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0)) return null;
 
+  console.log(collection?.approvalsTrackers);
   const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type)?.numTransfers ?? 0n
-  const percent = Math.floor(Number(numUsed / transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] * 100n))
+  const percent = (Number(numUsed) / Number(transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey])) * 100;
   return <>
     {componentType === 'list' && <>
       {transfer.approvalCriteria?.maxNumTransfers && transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0 ? (
@@ -606,12 +631,12 @@ export function TransferabilityRow({
   grayedOut,
   onDelete,
   expandedSingleView,
-  onEdit,
-  setTab, transfer, badgeId, collectionId, filterFromMint, noBorder, ignoreRow, disapproved, isIncomingDisplay, isOutgoingDisplay }: {
+  onEdit, 
+  transfer, badgeId, collectionId, filterFromMint, noBorder, ignoreRow, disapproved, isIncomingDisplay, isOutgoingDisplay }: {
     transfer: CollectionApprovalWithDetails<bigint>,
     allTransfers: CollectionApprovalWithDetails<bigint>[],
     badgeId?: bigint,
-    setTab?: (tab: string) => void,
+  
     collectionId: bigint,
     filterFromMint?: boolean,
     noBorder?: boolean,
@@ -632,7 +657,6 @@ export function TransferabilityRow({
   const [showMoreIsVisible, setShowMoreIsVisible] = useState(expandedSingleView ? true : false);
   const [editIsVisible, setEditIsVisible] = useState(false);
   const [orderNumber, setOrderNumber] = useState(0);
-  const [transferIsVisible, setTransferIsVisible] = useState(false);
   const chain = useChainContext();
 
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
@@ -657,91 +681,88 @@ export function TransferabilityRow({
 
   const approval = transfer;
   const approvalCriteria = approval.approvalCriteria;
-
-  const claim = approval.approvalCriteria && approvalCriteria?.merkleChallenge?.root ?
-    approvalCriteria.merkleChallenge : undefined;
   const claimId = approval.challengeTrackerId;
 
-  // async function refreshTrackers() {
-  //   const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
-  //     collectionId,
-  //     amountTrackerId: approval.amountTrackerId,
-  //     approvalLevel: "collection",
-  //     approvedAddress: "",
-  //     approverAddress: "",
-  //     trackerType: "overall",
-  //   }];
-  //   if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
-  //     approvalsIdsToFetch.push({
-  //       collectionId,
-  //       amountTrackerId: approval.amountTrackerId,
-  //       approvalLevel: "collection",
-  //       approvedAddress: chain.cosmosAddress,
-  //       approverAddress: "",
-  //       trackerType: "initiatedBy",
-  //     });
-  //   }
+  async function refreshTrackers() {
+    const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
+      collectionId,
+      amountTrackerId: approval.amountTrackerId,
+      approvalLevel: "collection",
+      approvedAddress: "",
+      approverAddress: "",
+      trackerType: "overall",
+    }];
+    if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
+      approvalsIdsToFetch.push({
+        collectionId,
+        amountTrackerId: approval.amountTrackerId,
+        approvalLevel: "collection",
+        approvedAddress: chain.cosmosAddress,
+        approverAddress: "",
+        trackerType: "initiatedBy",
+      });
+    }
 
-  //   await collections.fetchCollectionsWithOptions([{
-  //     collectionId,
-  //     viewsToFetch: [],
-  //     merkleChallengeIdsToFetch: [{
-  //       collectionId,
-  //       challengeId: claimId ?? '',
-  //       challengeLevel: "collection",
-  //       approverAddress: "",
-  //     }],
-  //     approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-  //     handleAllAndAppendDefaults: true,
-  //     forcefulFetchTrackers: true,
-  //   }]);
+    await collections.fetchCollectionsWithOptions([{
+      collectionId,
+      viewsToFetch: [],
+      merkleChallengeIdsToFetch: [{
+        collectionId,
+        challengeId: claimId ?? '',
+        challengeLevel: "collection",
+        approverAddress: "",
+      }],
+      approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+      handleAllAndAppendDefaults: true,
+      forcefulFetchTrackers: true,
+    }]);
 
-  //   notification.success({
-  //     message: 'Refreshed!',
-  //     description: 'The claim has been refreshed!',
-  //     duration: 5,
-  //   });
-  // }
-  // useEffect(() => {
-  //   if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
-  //   if (collectionId > 0) {
-  //     async function fetchTrackers() {
-  //       const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
-  //         collectionId,
-  //         amountTrackerId: approval.amountTrackerId,
-  //         approvalLevel: "collection",
-  //         approvedAddress: "",
-  //         approverAddress: "",
-  //         trackerType: "overall",
-  //       }];
-  //       if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
-  //         approvalsIdsToFetch.push({
-  //           collectionId,
-  //           amountTrackerId: approval.amountTrackerId,
-  //           approvalLevel: "collection",
-  //           approvedAddress: chain.cosmosAddress,
-  //           approverAddress: "",
-  //           trackerType: "initiatedBy",
-  //         });
-  //       }
+    notification.success({
+      message: 'Refreshed!',
+      description: 'The claim has been refreshed!',
+      duration: 5,
+    });
+  }
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
+    if (collectionId > 0 && showMoreIsVisible) {
+      async function fetchTrackers() {
+        const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
+          collectionId,
+          amountTrackerId: approval.amountTrackerId,
+          approvalLevel: "collection",
+          approvedAddress: "",
+          approverAddress: "",
+          trackerType: "overall",
+        }];
+        if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
+          approvalsIdsToFetch.push({
+            collectionId,
+            amountTrackerId: approval.amountTrackerId,
+            approvalLevel: "collection",
+            approvedAddress: chain.cosmosAddress,
+            approverAddress: "",
+            trackerType: "initiatedBy",
+          });
+        }
 
-  //       collections.fetchCollectionsWithOptions([{
-  //         collectionId,
-  //         viewsToFetch: [],
-  //         merkleChallengeIdsToFetch: [{
-  //           collectionId,
-  //           challengeId: claimId ?? '',
-  //           challengeLevel: "collection",
-  //           approverAddress: "",
-  //         }],
-  //         approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-  //         handleAllAndAppendDefaults: true,
-  //       }]);
-  //     }
+        collections.fetchCollectionsWithOptions([{
+          collectionId,
+          viewsToFetch: [],
+          merkleChallengeIdsToFetch: [{
+            collectionId,
+            challengeId: claimId ?? '',
+            challengeLevel: "collection",
+            approverAddress: "",
+          }],
+          approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+          handleAllAndAppendDefaults: true,
+        }]);
+      }
 
-  //     fetchTrackers();
-  //   }
-  // }, [collectionId, approval, claimId, chain]);
+      fetchTrackers();
+    }
+  }, [collectionId, claimId, showMoreIsVisible]);
 
 
   //Only show rows that have at least one address (after filtration)
@@ -964,7 +985,7 @@ export function TransferabilityRow({
             <br />
             <div className="flex-center flex-wrap">
 
-              {currentManager === chain.cosmosAddress && <div>
+              {currentManager && currentManager === chain.cosmosAddress && <div>
 
                 <IconButton
                   src={<DatabaseOutlined size={40} />}
@@ -1033,6 +1054,8 @@ export function TransferabilityRow({
                       orderNumber={orderNumber}
                       setOrderNumber={setOrderNumber}
                       collectionId={collectionId}
+                      address={address}
+                      setAddress={setAddress}
                     />
                   </>}
 

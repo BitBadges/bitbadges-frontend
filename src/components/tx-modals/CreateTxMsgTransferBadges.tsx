@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider, Typography } from 'antd';
-import { Balance, MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
+import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
 import { TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -15,22 +15,24 @@ import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children }: {
+export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode
+  defaultAddress?: string
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-
+  const collection = collections.getCollection(collectionId);
 
 
 
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
-  const [sender, setSender] = useState<string>(chain.address);
-  const [senderBalance, setSenderBalance] = useState<Balance<bigint>[]>([]);
+  const [sender, setSender] = useState<string>(defaultAddress ?? chain.address);
+
+  const senderBalance = collection?.owners.find(x => x.cosmosAddress === accounts.getAccount(sender)?.cosmosAddress)?.balances ?? [];
 
   const senderAccount = accounts.getAccount(sender);
 
@@ -38,11 +40,12 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
+
+
       const account = await accounts.fetchAccounts([sender]);
       const senderAccount = account[0];
 
-      const balanceRes = await collections.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
-      setSenderBalance(balanceRes.balances);
+      await collections.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
     }
 
     const delayDebounceFn = setTimeout(async () => {
