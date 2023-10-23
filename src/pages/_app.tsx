@@ -26,6 +26,7 @@ import '../styles/antd-override-styles.css';
 import { combineReducers, createStore } from 'redux';
 import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
+import '../styles/custom.css';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -87,40 +88,40 @@ const App = ({ Component, pageProps }: AppProps) => {
                   <BrowseContextProvider>
                     <StatusContextProvider>
                       <TxTimelineContextProvider>
-
-                        <Layout className="layout">
-                          <WalletHeader />
-                          <Component {...pageProps} />
-                          {myCookieValue !== 'accepted' &&
-                            <div className='primary-text primary-blue-bg'
-                              style={{
-                                textAlign: 'center',
-                                borderTop: '1px solid white',
-                                paddingBottom: 16,
-                                paddingTop: 16,
-                                position: 'fixed',
-                                bottom: 0,
-                                width: '100%',
-                                zIndex: 200
-                              }}>
-                              <div style={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                flexWrap: 'wrap'
-                              }}>
-                                This website uses cookies to ensure you get the best experience.
-                                By continuing to use this website, you agree to our use of cookies, {" "}
-                                <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a>privacy policy</a></p>, and
-                                <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a>terms of service</a></p>.
-                              </div>
-                              <Button key="accept" className='styled-button' onClick={() => handleCookieResponse(true)}>
-                                Close
-                              </Button>
-                              <br />
-                            </div>}
-                          <WalletFooter />
-                        </Layout>
-
+                        <div className="dark">
+                          <Layout className="layout bg-slate-100 dark:bg-[#131233]">
+                            <WalletHeader />
+                            <Component {...pageProps} />
+                            {myCookieValue !== 'accepted' &&
+                              <div className='primary-text primary-blue-bg bg-slate-50 border-0 dark:bg-blue-black-200 dark:text-slate-200 text-blue-black-100'
+                                style={{
+                                  textAlign: 'center',
+                                  borderTop: '1px solid white',
+                                  paddingBottom: 16,
+                                  paddingTop: 16,
+                                  position: 'fixed',
+                                  bottom: 0,
+                                  width: '100%',
+                                  zIndex: 200
+                                }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  flexWrap: 'wrap'
+                                }}>
+                                  This website uses cookies to ensure you get the best experience.
+                                  By continuing to use this website, you agree to our use of cookies, {" "}
+                                  <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a className='text-vivid-pink'>privacy policy</a></p>, and
+                                  <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a className='text-vivid-pink'>terms of service</a></p>.
+                                </div>
+                                <Button key="accept" className='styled-button bg-vivid-pink rounded border-0 text-white hover:bg-transparent hover:text-vivid-pink focus:bg-vivid-pink focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-pink mt-3' onClick={() => handleCookieResponse(true)}>
+                                  Close
+                                </Button>
+                                <br />
+                              </div>}
+                            <WalletFooter />
+                          </Layout>
+                        </div>
                       </TxTimelineContextProvider>
                     </StatusContextProvider>
                   </BrowseContextProvider>

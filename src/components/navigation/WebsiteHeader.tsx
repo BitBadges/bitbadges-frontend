@@ -59,15 +59,15 @@ export function WalletHeader() {
 
   const HomeTabMenu = <></>
   const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
-  const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
   const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -108,7 +108,7 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu theme='dark' className='dropdown gradient-bg' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
+  const UserTabMenu = <Menu theme='dark' className='dropdown bg-slate-950 border-0 rounded-xl' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
     <div className='flex-center primary-text inherit-bg' style={{ marginTop: 10 }}>
       <p>
         <b>{address ? <div className='primary-text'>
@@ -168,7 +168,7 @@ export function WalletHeader() {
       </Tooltip>
     </div>
 
-    <hr />
+    {/* <hr /> */}
     {connected &&
       <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/account/notifications')}>
         <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
@@ -180,20 +180,20 @@ export function WalletHeader() {
       </Menu.Item>
     }
 
-    {!connected && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
-    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
+    {!connected && <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
+    {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
     {connected && <>
-      <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
     {connected && <>
-      <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
 
-    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
+    {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
     {connected && signedIn && <>
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
-      <Menu.Item className='dropdown-item' onClick={() => {
+      <Menu.Item className='dropdown-item text-sm text-vivid-pink hover:bg-transparent hover:text-pink-400' onClick={() => {
         chain.disconnect();
         signOut();
         chain.setLoggedIn(false);
@@ -253,7 +253,7 @@ export function WalletHeader() {
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
       }
       overlayClassName='primary-text inherit-bg'
-      className='inherit-bg'
+      className='primary-blue-bg rounded bg-blue-black-50 border border-blue-black-50 focus:border-blue-black-50 hover:border-blue-black-50'
       trigger={['hover', 'click']}
     >
       {SearchBar}
@@ -276,9 +276,9 @@ export function WalletHeader() {
   //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
   return (
     <>
-      <Header className="App-header " style={{ zIndex: 49 }} >
+      <Header className="App-header bg-slate-950" style={{ zIndex: 49 }} >
         <div onClick={() => router.push('/')}>
-          <div className="navbar-super-collapsed">
+          <div className="navbar-super-collapsed ml-3">
             <Image
               src={'/images/bitbadgeslogo.png'}
               className="App-logo"

@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'DM Sans', sans-serif !important;
+}
+
+:root {
+    --primary-color: #DA0C91;
+    --secondry-color: #001529;
+    --color-white: #fff;
+}
+
+/* .styled-button {
+    background-color: var(--primary-color) !important;
+    border-color: var(--secondry-color) !important;
+    border-radius: 6px;
+} */
+
+/* .styled-button:hover {
+    background-color: transparent !important;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color) !important;
+} */
+
+.primary-text-custom {
+    color: var(--primary-color) !important;
+}
+
+.anticon-custom svg {
+    font-size: 30px;
+}
+
+.anticon-down svg{
+    color: var(--primary-color) !important;
+}
+
+.ant-layout-header{
+    height: 70px;
+}
+
+.ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub{
+    background-color: rgb(2 6 23) !important;
+}
+
+.accounting{
+    line-height: 30px !important;
+}
+
+.accounting svg{
+    font-size: 30px;
+}

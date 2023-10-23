@@ -32,7 +32,7 @@ export function InformationDisplayCard({
     <Col
       xl={xl ? xl : undefined} xxl={xxl ? xxl : undefined}
       xs={xs ? xs : undefined} md={md ? md : undefined} sm={sm ? sm : undefined} lg={lg ? lg : undefined}
-      className="gradient-bg"
+      className="gradient-bg bg-slate-50 border-0 dark:bg-blue-black"
       span={span ? span : undefined} style={{
         ...style, padding: 17, minHeight: 100, border: noBorder ? undefined : '1px solid white', borderRadius: 10,
 

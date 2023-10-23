@@ -22,6 +22,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
         {title}
         <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
           <Button
+          className='bg-vivid-pink hover:bg-pink-400 text-white border-0'
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -37,6 +38,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             }}
           />
           <Button
+          className='bg-vivid-pink hover:bg-pink-400 text-white border-0'
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -51,7 +53,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
               }
             }}
           />
-          <div style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
+          <div className='text-blue-black dark:text-gray-400' style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
 
             {page ?? currPage + 1}/{total ?? items.length}
           </div>

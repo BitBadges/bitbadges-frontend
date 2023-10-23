@@ -65,12 +65,12 @@ function BrowsePage() {
     <Layout>
       <Content
         style={{
-          background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
           textAlign: 'center',
           minHeight: '100vh',
         }}
+        className='dark:bg-[#131233]'
       >
-        <div className='primary-blue-bg'
+        <div className=''
           style={{
             marginLeft: '4vw',
             marginRight: '4vw',
@@ -119,7 +119,7 @@ function BrowsePage() {
               </Select>
             </div> */}
 
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            <Typography.Text strong className='primary-text text-4xl text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
               Profiles
             </Typography.Text>
             <div className="profile-carousel">
@@ -188,7 +188,7 @@ function BrowsePage() {
 
 
                         <div style={{ marginTop: '1rem' }}></div>
-                        <a onClick={() => {
+                        <a className='text-vivid-pink' onClick={() => {
                           router.push(`/account/${profile.address}`)
                         }}
                           style={{ fontSize: 16 }}
@@ -202,7 +202,7 @@ function BrowsePage() {
               />
             </div>
             < Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
               Badges
             </Typography.Text>
             <CustomCarousel
@@ -258,7 +258,7 @@ function BrowsePage() {
               }).filter(x => x)) ?? []}
             />
             <Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
               Address Lists
             </Typography.Text>
             <CustomCarousel
@@ -306,7 +306,7 @@ function BrowsePage() {
             />
 
             <Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            <Typography.Text strong className='primary-text text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
               Activity
             </Typography.Text>
             <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
