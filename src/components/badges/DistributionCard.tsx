@@ -1,7 +1,7 @@
 import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
-import { BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
@@ -83,6 +83,13 @@ export function DistributionOverview({
         castBalancesActionPermissionToUniversalPermission(
           collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
       collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)} labelSpan={20} valueSpan={4} />}
+
+      {!isSelectStep && <TableRow label={"Can transferability be updated (including mints)?"} value={PermissionIcon(
+        castCollectionApprovalPermissionToUniversalPermission(
+          collection.collectionPermissions.canUpdateCollectionApprovals),
+        ApprovalPermissionUsedFlags, collection.managerTimeline.length == 0 ||
+      collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)}
+        labelSpan={20} valueSpan={4} />}
       {isOffChainBalances && !isSelectStep && <TableRow label={"Balances URL"} value={
         <div>
           <>

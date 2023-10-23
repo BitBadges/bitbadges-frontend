@@ -217,7 +217,8 @@ export const ApprovalsDisplay: FC<Props> = ({
         <Divider />
         <p>
           <InfoCircleOutlined />{' '}The table is broken down into multiple criteria: who can send? who can receive? etc.
-          Each row represents a different set of criteria. For a transfer to be approved, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
+          Each row represents a different set of criteria. 
+          For a transfer to be approved, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
         </p></>}
       <Divider />
     </InformationDisplayCard >

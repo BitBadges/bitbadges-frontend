@@ -50,7 +50,7 @@ function CollectionPage({
       { key: 'badges', content: 'Badges', disabled: false },
 
       { key: 'transferability', content: 'Transferability', disabled: false },
-      { key: 'claims', content: 'Claims', disabled: false },
+      { key: 'claims', content: 'Mints', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
 

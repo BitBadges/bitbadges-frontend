@@ -185,7 +185,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
         const badgeId = i;
         const currMetadata = getMetadataDetailsForBadgeId(badgeId, currPreviewCollection.cachedBadgeMetadata);
-   
+
         if (currMetadata) {
           //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
           //Remove badgeId from badgeIdsToFetch
@@ -199,9 +199,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       if (existingCollectionId) {
         const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
         const res = await fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch });
-       
+
         let newBadgeMetadata = deepCopy(res[0].cachedBadgeMetadata);
- 
+
 
         if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
           //Only update newly fetched metadata
@@ -378,7 +378,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         });
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
-      
+
 
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
@@ -416,11 +416,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         const collection = getCollection(collectionToFetch.collectionId);
         collectionsToReturn.push(collection ? collection : {} as BitBadgesCollection<DesiredNumberType>); //HACK: should never be undefined
       }
-      
+
       return collectionsToReturn.map(x => Object.freeze(x));
     }
 
     const res = await getCollections(batchRequestBody);
+    console.log("RES", res);
 
     //Update collections map
     for (let i = 0; i < res.collections.length; i++) {

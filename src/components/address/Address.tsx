@@ -73,7 +73,7 @@ export function Address({
                 textAlign: 'center',
               }}
             >
-              This represents all addresses that are not already handled in this list.
+              This represents all possible user addresses.
             </div> :
             <div
               className='primary-text'

@@ -111,15 +111,7 @@ export function ActionsTab({
       }
     },
   })
-  actions.push({
-    title: getTitleElem("Update Balances"),
-    description: getDescriptionElem(
-      "Update the balances of this collection. No blockchain transaction required."
-    ),
-    showModal: () => {
-      setUpdateBalancesIsVisible(!updateBalancesIsVisible);
-    },
-  });
+
   if (isManager && !badgeView) {
     actions.push({
       title: getTitleElem("Update Collection"),
@@ -132,7 +124,15 @@ export function ActionsTab({
     });
 
     if (isBitBadgesHosted) {
-      
+      actions.push({
+        title: getTitleElem("Update Balances"),
+        description: getDescriptionElem(
+          "Update the balances of this collection. No blockchain transaction required."
+        ),
+        showModal: () => {
+          setUpdateBalancesIsVisible(!updateBalancesIsVisible);
+        },
+      });
     }
 
     if (getMintApprovals(collection).find(x => x.approvalCriteria?.merkleChallenge?.root && !x.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf)) {
