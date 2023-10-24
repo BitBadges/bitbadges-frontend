@@ -101,7 +101,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   const getCollection = (collectionId: DesiredNumberType) => {
     const collection = collections[`${collectionId}`];
     if (!collection) return undefined;
-    return Object.freeze(convertBitBadgesCollection(collection, BigIntify));
+    return convertBitBadgesCollection(collection, BigIntify)
   }
 
   const setCollection = (collection: BitBadgesCollection<DesiredNumberType>) => {

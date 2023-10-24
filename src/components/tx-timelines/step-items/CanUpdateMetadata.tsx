@@ -46,6 +46,9 @@ export function UpdatableMetadataSelectStepItem(
   const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
   const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
 
+  const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(deepCopy(collection) as BitBadgesCollection<bigint>, undefined, true); //Get badge IDs that will have locked supply moving forward
+  const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply], true);
+
 
   //Since we depend on maxBadgeId and lockedBadges, we need to update the lastClickedIdx when these change (even if in other steps)
   useEffect(() => {
@@ -53,15 +56,13 @@ export function UpdatableMetadataSelectStepItem(
     if (lastClickedIdx !== -1 && !collectionMetadataUpdate) {
       handleSwitchChange(lastClickedIdx, lastClickedFrozen);
     }
-  }, [maxBadgeId, collectionMetadataUpdate,]) //collection?.collectionPermissions.canCreateMoreBadges
+  }, [maxBadgeId, collectionMetadataUpdate, JSON.stringify(collection?.collectionPermissions.canCreateMoreBadges)]);
 
   if (!collection) return EmptyStepItem;
   const permissionDetails = collectionMetadataUpdate ?
     getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateCollectionMetadata ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection)) :
     getPermissionDetails(castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager(collection), [{ start: 1n, end: maxBadgeId }]);
 
-  const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(deepCopy(collection) as BitBadgesCollection<bigint>, undefined, true); //Get badge IDs that will have locked supply moving forward
-  const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply], true);
 
   function AdditionalNode({ noOption }: {
     noOption?: boolean,

@@ -81,7 +81,7 @@ export function UpdateCollectionTimeline() {
 
   if (mintType === MintType.BitBadge) {
     const isOffChainBalances = collection.balancesType === "Off-Chain";
-    const hasManager = neverHasManager(collection);
+    const hasManager = !neverHasManager(collection);
 
     //For the following, we show the PERMISSION UPDATE if it has neutral times (i.e. it's not always permitted or always forbidden at all times)
     //We show the ACTION if the previous permissions allow it, meaning it has neutral (currently permitted) or permitted times (always permitted)

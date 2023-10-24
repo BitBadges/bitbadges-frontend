@@ -40,7 +40,7 @@ export function ConfirmManagerStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const hasManager = !neverHasManager(collection);
+  const hasManager = !!collection.managerTimeline.find(x => x.manager)
 
 
   return {
