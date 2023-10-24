@@ -9,8 +9,8 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
-import { broadcastTransaction } from '../../cosmos-sdk/broadcast';
-import { formatAndCreateGenericTx } from '../../cosmos-sdk/transactions';
+import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
+import { formatAndCreateGenericTx } from '../../bitbadges-api/cosmos-sdk/transactions';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
@@ -166,7 +166,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [currentStep, visible, createTxFunction, msgSteps, signedInAccount?.cosmosAddress, gasPrice]);
+  }, [currentStep, visible, signedInAccount?.cosmosAddress, gasPrice]);
 
   useEffect(() => {
     if (!visible) return
@@ -258,16 +258,28 @@ export function TxModal(
       while (currIndexerHeight < Numberify(msgResponse.tx_response.height)) {
         if (currIndexerHeight != 0n) await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const response = await getStatus();
-        currIndexerHeight = response.status.block.height;
+        try {
+          const response = await getStatus();
+          currIndexerHeight = response.status.block.height;
 
-        numTries++;
+          numTries++;
+        } catch (e) {
 
+          notification.info({
+            message: 'Fetch Error',
+            description: `There was an error communicating with the BitBadges servers. Your transaction was processed on the blockchain, but our servers are running slowly or down. In the meantime, you may not see your transaction results until our servers are synced back up. However, your transaction was successful.`,
+            duration: 0
+          });
+
+          router.push('/');
+          setTransactionStatus(TransactionStatus.None);
+          return;
+        }
 
         if (numTries > maxTries) {
           notification.info({
             message: 'Heavy Load',
-            description: `BitBadges is experiencing heavy load currently. Your transaction was processed on the blockchain, but our servers are running slowly. Please check back later.`,
+            description: `BitBadges is experiencing heavy load currently. Your transaction was processed on the blockchain, but our servers are running slowly or down. In the meantime, you may not see your transaction results until our servers are synced back up. However, your transaction was successful.`,
             duration: 0
           });
 
@@ -297,7 +309,13 @@ export function TxModal(
       setTransactionStatus(TransactionStatus.None);
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      if (err?.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err?.message) {
+        setError(err.message)
+      } else {
+        setError("Unknown error")
+      }
       setTransactionStatus(TransactionStatus.None);
       throw err;
     }

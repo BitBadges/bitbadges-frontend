@@ -64,7 +64,6 @@ export function BalanceDisplay({
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
 }) {
-  console.log(balances)
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
 
@@ -120,7 +119,6 @@ export function BalanceDisplay({
     numRecipients={numIncrements}
   />
 
-  console.log(allBalances);
 
   const castedMustOwnBadges = mustOwnBadges ? mustOwnBadges : allBalances.map(x => { return { ...x, amountRange: { start: x.amount, end: GO_MAX_UINT_64 }, collectionId: 0n } });
   return <div className="flex-center flex-column full-width" >

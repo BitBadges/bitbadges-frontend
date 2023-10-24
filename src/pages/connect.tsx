@@ -36,6 +36,7 @@ function ConnectScreen({ message }: { message?: string }) {
             <BlockinDisplay />
           </Content>
         </div>
+        
         {true && DEV_MODE && connected && loggedIn &&
           <div>
             <Content style={{ paddingTop: '15px' }}>

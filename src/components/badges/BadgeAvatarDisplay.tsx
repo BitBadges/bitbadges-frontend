@@ -1,6 +1,6 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
 import { Numberify, getBadgesToDisplay, getBalancesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE, } from "../../constants";
@@ -52,7 +52,6 @@ export function BadgeAvatarDisplay({
   showPageJumper?: boolean
   onClick?: (id: bigint) => void
 }) {
-  const divRef = useRef<HTMLDivElement>(null);
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
 
@@ -60,23 +59,11 @@ export function BadgeAvatarDisplay({
 
   const [currPage, setCurrPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
-  const [pageSize, setPageSize] = useState<number>(defaultPageSize); //Number of badges to display per page
+  const pageSize = defaultPageSize;
 
   const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
 
   useEffect(() => {
-    let newPageSize = pageSize;
-    // if (!doNotAdaptToWidth) {
-    //   if (divRef.current && !cardView) {
-    //     const divWidth = divRef.current.offsetWidth as any;
-    //     newPageSize = 3 * Math.floor(divWidth / 58); // Adjust as needed
-    //   } else if (divRef.current && cardView) {
-    //     const divWidth = divRef.current.offsetWidth as any;
-    //     newPageSize = Math.floor(divWidth / 220); // Adjust as needed
-    //   }
-    // }
-    setPageSize(newPageSize);
-
     if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
 
 
@@ -98,7 +85,7 @@ export function BadgeAvatarDisplay({
             }), true),
         collectionId: collectionId
       }
-    ], currPage, newPageSize);
+    ], currPage, pageSize);
 
     const badgeIdsToDisplay: UintRange<bigint>[] = [];
     for (const badgeIdObj of badgeIdsToDisplayResponse) {
@@ -120,7 +107,7 @@ export function BadgeAvatarDisplay({
     }
 
     updateMetadata();
-  }, [badgeIds, currPage, divRef.current, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
+  }, [badgeIds, currPage, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
 
   //Calculate pageSize based on the width of this componetnt
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
@@ -128,48 +115,39 @@ export function BadgeAvatarDisplay({
       showPageJumper={showPageJumper}
     />
 
-    <>
-      {/* <Carousel
-        title={<b>Badges</b>}
-        page={currPage}
-        setPage={(page) => setCurrPage(page + 1)}
-        total={Math.ceil(total / pageSize)}
-        items={[ */}
-      <div key={currPage} className='flex-center flex-wrap full-width primary-text' ref={divRef}>
-        {
-          badgeIdsToDisplay.map((badgeUintRange) => {
-            const badgeIds: bigint[] = [];
-            for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
-              badgeIds.push(i);
-            }
 
-            return badgeIds.map((badgeId, idx) => {
-              return <div key={idx} className='flex-center flex-wrap' style={{ margin: 0, flexWrap: 'wrap' }}>
-                {!cardView ?
-                  <BadgeAvatar
-                    size={selectedId === badgeId ? 50 * 1.5 : size}
-                    collectionId={collectionId}
-                    badgeId={badgeId}
-                    showId={showIds}
-                    noBorder={noBorder}
-                    showSupplys={showSupplys}
-                    balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
-                    onClick={onClick ? () => { onClick(badgeId) } : undefined}
-                  /> : <BadgeCard
-                    size={size && selectedId === badgeId ? size * 1.5 : size}
-                    collectionId={collectionId}
-                    badgeId={badgeId}
-                    hideCollectionLink={hideCollectionLink}
-                  />
-                }
-              </div>
-            })
+    <div key={currPage} className='flex-center flex-wrap full-width primary-text'>
+      {
+        badgeIdsToDisplay.map((badgeUintRange) => {
+          const badgeIds: bigint[] = [];
+          for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
+            badgeIds.push(i);
+          }
+
+          return badgeIds.map((badgeId, idx) => {
+            return <div key={idx} className='flex-center flex-wrap' style={{ margin: 0, flexWrap: 'wrap' }}>
+              {!cardView ?
+                <BadgeAvatar
+                  size={selectedId === badgeId ? 50 * 1.5 : size}
+                  collectionId={collectionId}
+                  badgeId={badgeId}
+                  showId={showIds}
+                  noBorder={noBorder}
+                  showSupplys={showSupplys}
+                  balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
+                  onClick={onClick ? () => { onClick(badgeId) } : undefined}
+                /> : <BadgeCard
+                  size={size && selectedId === badgeId ? size * 1.5 : size}
+                  collectionId={collectionId}
+                  badgeId={badgeId}
+                  hideCollectionLink={hideCollectionLink}
+                />
+              }
+            </div>
           })
-        }
-      </div>
-      {/* ]}
-      /> */}
-    </>
+        })
+      }
+    </div>
 
   </div>
 }

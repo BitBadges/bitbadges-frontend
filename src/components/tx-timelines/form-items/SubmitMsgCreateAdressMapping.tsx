@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
 import { SwitchForm } from './SwitchForm';
@@ -25,7 +25,7 @@ export function SubmitMsgCreateAddressMapping() {
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
 
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
 
   return <div className='full-width'

@@ -9,7 +9,6 @@ import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/
 import { NODE_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
@@ -18,6 +17,7 @@ import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
+
 interface Props {
   approvals: CollectionApprovalWithDetails<bigint>[];
   collection: BitBadgesCollection<bigint>;
@@ -27,31 +27,37 @@ interface Props {
   approvalLevel: string;
   approverAddress: string;
   onlyShowFromMint?: boolean;
+  title?: string;
+  subtitle?: React.ReactNode;
+
+  //Edit features
   onDelete?: (approvalId: string) => void;
   onEdit?: (approval: any) => void;
   addMoreNode?: React.ReactNode;
-  title?: string;
-  subtitle?: React.ReactNode;
   defaultShowDisallowed?: boolean;
   showDeletedGrayedOut?: boolean;
+  startingApprovals?: CollectionApprovalWithDetails<bigint>[];
 }
 
 export const ApprovalsDisplay: FC<Props> = ({
+  startingApprovals,
   showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, onEdit, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
-  let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true) :
-    approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true) : getUnhandledCollectionApprovals(approvals, true, true) : [];
+
+  let disapproved = showHidden ?
+    approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
+      : approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true)
+        : getUnhandledCollectionApprovals(approvals, true, true) : [];
 
   //filter approvals to only take first time an approvalId is seen (used for duplicates "default-incoming" and "default-outgoing")
   approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i);
 
   const [address, setAddress] = useState<string>(chain.address);
 
+  const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
   const txTimelineContext = useTxTimelineContext();
-  const startingCollection = txTimelineContext.startingCollection;
-  const deletedApprovals = startingCollection?.collectionApprovals.filter(x => !approvals.find(y => compareObjects(x, y)));
 
   if (onlyShowFromMint) {
     approvals = approvals.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
@@ -72,8 +78,6 @@ export const ApprovalsDisplay: FC<Props> = ({
       }
     })
   }
-
-
 
   return <>
     <br />
@@ -112,14 +116,26 @@ export const ApprovalsDisplay: FC<Props> = ({
         <div className='flex-between' style={{ overflow: 'auto' }}>
 
           <table style={{ width: '100%', fontSize: 16 }}>
-            {getTableHeader()}
+            {getTableHeader(false)}
             <br />
             {
               <>
                 {approvals.map((x, idx) => {
                   const result = <TransferabilityRow
+                    startingApprovals={startingApprovals}
                     onEdit={onEdit}
-                    onDelete={onDelete} allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                    approverAddress={approverAddress}
+                    onDelete={onDelete}
+                    allTransfers={approvals}
+                    address={address}
+                    setAddress={setAddress}
+                    isIncomingDisplay={approvalLevel === "incoming"}
+                    isOutgoingDisplay={approvalLevel === "outgoing"}
+                    transfer={x} key={idx}
+                    badgeId={badgeId}
+                    collectionId={collection.collectionId}
+                    filterFromMint={filterFromMint}
+                  />
                   return result
                 })}
 
@@ -162,7 +178,8 @@ export const ApprovalsDisplay: FC<Props> = ({
 }
 
 
-export function UserApprovalsTab({ collectionId,
+export function UserApprovalsTab({
+  collectionId,
   badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
   userIncomingApprovals, userOutgoingApprovals,
   setUserIncomingApprovals,
@@ -203,6 +220,10 @@ export function UserApprovalsTab({ collectionId,
 
   const approverAccount = address ? accounts.getAccount(address) : undefined;
 
+  //Initial or currently set ones
+  const startingOutgoingApprovals = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.outgoingApprovals ?? [];
+  const startingIncomingApprovals = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.incomingApprovals ?? [];
+
   const outgoingApprovals = userOutgoingApprovals ? userOutgoingApprovals : collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.outgoingApprovals ?? [];
   const incomingApprovals = userIncomingApprovals ? userIncomingApprovals : collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.incomingApprovals ?? [];
   const updateHistory = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.updateHistory ?? [];
@@ -214,6 +235,8 @@ export function UserApprovalsTab({ collectionId,
 
 
   if (!collection) return <></>;
+
+  
   const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? false;
   const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? false;
 
@@ -307,18 +330,13 @@ export function UserApprovalsTab({ collectionId,
         }}
       />
       </>}
-      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
+      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <br />}
 
     </div >
 
     <div className='primary-text'>
 
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && <>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
-        <AddressDisplay
-          addressOrUsername={address}
-          fontSize={16}
-        />
         <AddressSelect
           defaultValue={chain.address}
           onUserSelect={(value) => {
@@ -381,6 +399,7 @@ export function UserApprovalsTab({ collectionId,
             collection={collection}
             badgeId={badgeId}
             approvalLevel='outgoing'
+            startingApprovals={castOutgoingTransfersToCollectionTransfers(startingOutgoingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
             onDelete={setUserOutgoingApprovals ? (approvalId: string) => {
               setUserOutgoingApprovals?.((userOutgoingApprovals ?? []).filter(x => x.approvalId !== approvalId));
@@ -448,6 +467,7 @@ export function UserApprovalsTab({ collectionId,
             collection={collection}
             badgeId={badgeId}
             approvalLevel='incoming'
+            startingApprovals={castIncomingTransfersToCollectionTransfers(startingIncomingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
             onDelete={setUserIncomingApprovals ? (approvalId: string) => {
               setUserIncomingApprovals?.((userIncomingApprovals ?? []).filter(x => x.approvalId !== approvalId));

@@ -17,7 +17,7 @@ import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 
 //TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
@@ -33,8 +33,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
 }) {
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId)
-  const metadata = metadataOverride ? metadataOverride :
-    badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
+  const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const isCollectionInfo = !badgeId;
 
@@ -61,7 +60,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           span={span}
         >
           {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
-          {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === MSG_PREVIEW_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
+          {isCollectionInfo && <TableRow label={"Collection ID"} value={collectionId === NEW_COLLECTION_ID ? 'N/A (Preview)' : `${collectionId}`} labelSpan={9} valueSpan={15} />}
 
           {<TableRow label={"Standards"} value={
             <TimelineFieldWrapper
@@ -272,7 +271,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   }
 
                   return <Tooltip placement='bottom' title={uri}>
-                    <a href={uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${uri.slice(7)}` : uri
+                    <a href={(uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${uri.slice(7)}` : uri).replace("{id}", badgeId.toString())
                     } target="_blank" rel="noreferrer">
                       View
                       <LinkOutlined style={{ marginLeft: 4 }} /></a>

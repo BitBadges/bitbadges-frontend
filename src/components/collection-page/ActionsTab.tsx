@@ -15,6 +15,70 @@ import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
 import { UpdateBalancesModal } from '../tx-modals/UpdateBalancesModal';
 
+export interface Action {
+  title: string,
+  description: string,
+  showModal: () => void,
+  disabled?: boolean
+}
+
+
+const getTitleElem = (title: string) => {
+  return (
+    <div className='primary-text'>
+      {title}
+    </div>
+  );
+};
+
+const getDescriptionElem = (description: string) => {
+  return (
+    <div className='secondary-text'>
+      {description}
+    </div>
+  );
+};
+
+export function ActionCard({ action }: { action: Action }) {
+  const title = getTitleElem(action.title);
+  const description = getDescriptionElem(action.description);
+
+  return <Card
+    className='primary-text gradient-bg flex-center'
+    style={{
+      width: '300px',
+      minHeight: '150px',
+      margin: 8,
+      textAlign: 'center',
+      cursor: action.disabled ? 'not-allowed' : undefined,
+    }}
+    hoverable={!action.disabled}
+    onClick={async () => {
+      if (action.disabled) return;
+      action.showModal();
+    }}
+  >
+    <Meta
+      title={
+        <div
+          className='primary-text'
+          style={{
+            fontSize: 20,
+            fontWeight: 'bolder',
+          }}
+        >
+          {title}
+        </div>
+      }
+      description={
+        <div className='secondary-text flex-center full-width'>
+          {description}
+        </div>
+      }
+    />
+  </Card>
+}
+
 export function ActionsTab({
   collectionId,
   badgeView
@@ -35,61 +99,33 @@ export function ActionsTab({
   const [distributeCodesIsVisible, setDistributeCodesIsVisible] = useState(false);
   const [updateBalancesIsVisible, setUpdateBalancesIsVisible] = useState(false);
 
-  const actions: {
-    title: React.ReactNode,
-    description: React.ReactNode,
-    showModal: () => void,
-    disabled?: boolean
-  }[] = [];
+  const actions: Action[] = [];
 
   const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
-
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
 
-  const getTitleElem = (title: string) => {
-    return (
-      <div className='primary-text'>
-        {title}
-      </div>
-    );
-  };
-
-  const getDescriptionElem = (description: string) => {
-    return (
-      <div className='secondary-text'>
-        {description}
-      </div>
-    );
-  };
-
   if (isOnChainBalances) {
     actions.push({
-      title: getTitleElem("Transfer"),
-      description: getDescriptionElem(
-        "Transfer badge(s) in this collection, if allowed."
-      ),
+      title: "Transfer",
+      description: "Transfer badge(s) in this collection, if allowed.",
       showModal: () => {
         setTransferIsVisible(!transferIsVisible);
       },
     });
 
     actions.push({
-      title: getTitleElem("Set Incoming Approvals"),
-      description: getDescriptionElem(
-        "Update your incoming approvals."
-      ),
+      title: "Set Incoming Approvals",
+      description: "Update your incoming approvals.",
       showModal: () => {
         setApproveIsVisible(!approveIsVisible);
       }
     });
 
     actions.push({
-      title: getTitleElem("Set Outgoing Approvals"),
-      description: getDescriptionElem(
-        "Update your outgoing approvals."
-      ),
+      title: "Set Outgoing Approvals",
+      description: "Update your outgoing approvals.",
       showModal: () => {
         setOutgoingApproveIsVisible(!outgoingApproveIsVisible);
       }
@@ -97,10 +133,8 @@ export function ActionsTab({
   }
 
   actions.push({
-    title: getTitleElem(isOffChainBalances ? "Refresh Metadata / Balances" : "Refresh Metadata"),
-    description: getDescriptionElem(
-      "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection."
-    ),
+    title: isOffChainBalances ? "Refresh Metadata / Balances" : "Refresh Metadata",
+    description: "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection.",
     showModal: async () => {
       try {
         await collections.triggerMetadataRefresh(collectionId);
@@ -114,10 +148,8 @@ export function ActionsTab({
 
   if (isManager && !badgeView) {
     actions.push({
-      title: getTitleElem("Update Collection"),
-      description: getDescriptionElem(
-        "Update the details of this collection on the blockchain."
-      ),
+      title: "Update Collection",
+      description: "Update the details of this collection on the blockchain.",
       showModal: () => {
         router.push('/update/' + collectionId);
       },
@@ -125,10 +157,8 @@ export function ActionsTab({
 
     if (isBitBadgesHosted) {
       actions.push({
-        title: getTitleElem("Update Balances"),
-        description: getDescriptionElem(
-          "Update the balances of this collection. No blockchain transaction required."
-        ),
+        title: "Update Balances",
+        description: "Update the balances of this collection. No blockchain transaction required.",
         showModal: () => {
           setUpdateBalancesIsVisible(!updateBalancesIsVisible);
         },
@@ -137,10 +167,8 @@ export function ActionsTab({
 
     if (getMintApprovals(collection).find(x => x.approvalCriteria?.merkleChallenge?.root && !x.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf)) {
       actions.push({
-        title: getTitleElem("Distribute Codes"),
-        description: getDescriptionElem(
-          "Distribute the claim codes / passwords so users can receive these badges!"
-        ),
+        title: "Distribute Codes",
+        description: "Distribute the claim codes / passwords so users can receive these badges!",
         showModal: () => {
           setDistributeCodesIsVisible(!distributeCodesIsVisible);
         },
@@ -149,10 +177,8 @@ export function ActionsTab({
 
     if (collection.collectionPermissions.canDeleteCollection.length == 0) {
       actions.push({
-        title: getTitleElem("Delete Collection"),
-        description: getDescriptionElem(
-          "Delete this collection."
-        ),
+        title: "Delete Collection",
+        description: "Delete this collection.",
         showModal: () => {
           setDeleteIsVisible(!deleteIsVisible);
         },
@@ -179,41 +205,10 @@ export function ActionsTab({
             }}
           >
             {actions.map((action, idx) => {
-              return <Card
+              return <ActionCard
                 key={idx}
-                className='primary-text gradient-bg flex-center'
-                style={{
-                  width: '300px',
-                  minHeight: '150px',
-                  margin: 8,
-                  textAlign: 'center',
-                  cursor: action.disabled ? 'not-allowed' : undefined,
-                }}
-                hoverable={!action.disabled}
-                onClick={async () => {
-                  if (action.disabled) return;
-                  action.showModal();
-                }}
-              >
-                <Meta
-                  title={
-                    <div
-                      className='primary-text'
-                      style={{
-                        fontSize: 20,
-                        fontWeight: 'bolder',
-                      }}
-                    >
-                      {action.title}
-                    </div>
-                  }
-                  description={
-                    <div className='secondary-text flex-center full-width'>
-                      {action.description}
-                    </div>
-                  }
-                />
-              </Card>
+                action={action}
+              />
             })}
           </div>
           {actions.length == 0 && (

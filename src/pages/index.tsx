@@ -5,7 +5,6 @@ import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
 import { useCollectionsContext } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
-import { ClaimsTab } from '../components/collection-page/ClaimsTab';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
 import { COSMOS_LOGO, ETH_LOGO } from '../constants';
 
@@ -111,16 +110,13 @@ const Home: NextPage = () => {
       metadataToFetch: {
         badgeIds: [{ start: 1n, end: 10n }]
       }
-    }, {
-      collectionId: 2n,
-      metadataToFetch: {}
     }
 
 
     ]);
   }, []);
 
-  const claimCollection = collections.getCollection(2n);
+  // const claimCollection = collections.getCollection(2n);
 
   return (
     <>
@@ -268,7 +264,7 @@ const Home: NextPage = () => {
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying these badges.
-                    
+
                   </Typography.Text>
                 </>
                 }
@@ -380,10 +376,18 @@ const Home: NextPage = () => {
       <div className='black-bg landing-padding' style={{ textAlign: 'center' }}>
         <Row className='flex-around' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal' }}>
           <Col md={12} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '30px' }} className='flex-center flex-column'>
-            {claimCollection &&
-              <ClaimsTab
-                collectionId={2n}
-              />}
+            <div className="container" style={{ marginTop: 12, }}>
+              <iframe
+                className='responsive-iframe'
+                // width={'60%'}
+                // height={209 * 1.2}
+                src="https://www.youtube.com/embed/vgL1BR4PZNU"
+                title="Create a Badge in 45 Seconds w/ BitBadges"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
           </Col>
           <Col md={12} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '30px' }} className='flex-center flex-column'>
 

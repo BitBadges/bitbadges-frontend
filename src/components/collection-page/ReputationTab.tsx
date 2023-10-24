@@ -18,7 +18,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
     addressOrUsername?: string,
     reviews: ReviewInfo<bigint>[];
     collectionId?: bigint,
-    fetchMore: () => void,
+    fetchMore: () => Promise<void>,
     hasMore: boolean
   }
 ) {

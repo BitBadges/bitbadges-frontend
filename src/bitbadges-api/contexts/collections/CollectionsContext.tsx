@@ -5,7 +5,7 @@ import { createContext, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DesiredNumberType, fetchMetadataDirectly, getBadgeBalanceByAddress, getCollections, refreshMetadata } from '../../api';
 import { getCurrentMetadata } from '../../utils/metadata';
-import { MSG_PREVIEW_ID } from '../TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../TxTimelineContext';
 import { useAccountsContext } from '../accounts/AccountsContext';
 import { updateCollectionsRedux } from './actions';
 import { GlobalReduxState } from '../../../pages/_app';
@@ -51,7 +51,7 @@ export type CollectionsContextType = {
   getMerkleChallengeTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => Readonly<MerkleChallengeInfo<DesiredNumberType>>[],
   getApprovalTrackersView: (collectionId: DesiredNumberType, viewKey: CollectionViewKey) => Readonly<ApprovalsTrackerInfo<DesiredNumberType>>[],
 
-  fetchMetadataForPreview: (existingCollectionId: DesiredNumberType, badgeIds: UintRange<bigint>[]) => Promise<void>,
+  fetchMetadataForPreview: (existingCollectionId: DesiredNumberType, badgeIds: UintRange<bigint>[]) => Promise<BadgeMetadataDetails<DesiredNumberType>[]>,
 
 }
 
@@ -74,7 +74,7 @@ const CollectionsContext = createContext<CollectionsContextType>({
   viewHasMore: () => false,
   fetchBalanceForUser: async () => { return {} as BalanceInfoWithDetails<DesiredNumberType> },
   batchFetchAndUpdateMetadata: async () => { return [] },
-  fetchMetadataForPreview: async () => { },
+  fetchMetadataForPreview: async () => { return [] },
   setCollection: () => { },
   updateCollectionAndFetchMetadataDirectly: async () => { return {} as BitBadgesCollection<DesiredNumberType> },
 });
@@ -158,7 +158,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const fetchCollections = async (collectionsToFetch: DesiredNumberType[], forcefulRefresh?: boolean) => {
-    if (collectionsToFetch.some(x => x === MSG_PREVIEW_ID)) {
+    if (collectionsToFetch.some(x => x === NEW_COLLECTION_ID)) {
       throw new Error('Cannot fetch preview collection ID === 0');
     }
 
@@ -172,10 +172,10 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }), forcefulRefresh);
   }
 
-  const fetchMetadataForPreview = async (existingCollectionId: DesiredNumberType, badgeIdsToDisplay: UintRange<bigint>[]) => {
+  const fetchMetadataForPreview = async (existingCollectionId: DesiredNumberType | undefined, badgeIdsToDisplay: UintRange<bigint>[]) => {
     //We only fetch if undefined
 
-    const currPreviewCollection = getCollection(MSG_PREVIEW_ID);
+    const currPreviewCollection = getCollection(NEW_COLLECTION_ID);
     if (!currPreviewCollection) throw new Error('Collection does not exist');
 
     //We don't want to overwrite any edited metadata
@@ -195,31 +195,59 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
 
+    let newBadgeMetadata: BadgeMetadataDetails<bigint>[] = [];
+    let badgeMetadataToReturn: BadgeMetadataDetails<bigint>[] = [];
     if (badgeIdsToFetch.length > 0) {
       if (existingCollectionId) {
         const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
-        const res = await fetchAndUpdateMetadata(existingCollectionId, { badgeIds: badgeIdsToFetch });
-
-        let newBadgeMetadata = deepCopy(res[0].cachedBadgeMetadata);
 
 
-        if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
-          //Only update newly fetched metadata
-          for (const metadata of newBadgeMetadata) {
-            const [, removed] = removeUintRangeFromUintRange(badgeIdsToFetch, metadata.badgeIds);
-            metadata.badgeIds = removed;
+        while (badgeIdsToFetch.length > 0) {
+          let next250Badges: UintRange<bigint>[] = [];
+          for (let i = 0; i < 250; i++) {
+            if (badgeIdsToFetch.length === 0) break;
+
+            const badgeIdRange = badgeIdsToFetch.shift();
+            if (badgeIdRange) {
+              const badgeId = badgeIdRange.start;
+              next250Badges.push({ start: badgeId, end: badgeId });
+              next250Badges = sortUintRangesAndMergeIfNecessary(next250Badges, true);
+
+              if (badgeIdRange.start != badgeIdRange.end) {
+                badgeIdsToFetch = [{ start: badgeId + 1n, end: badgeIdRange.end }, ...badgeIdsToFetch];
+              }
+            }
           }
-          newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
 
-          if (currPreviewCollection) {
-            updateCollection({
-              ...currPreviewCollection,
-              cachedBadgeMetadata: newBadgeMetadata
-            });
+
+          console.log("FETCHING", next250Badges);
+          const res = await fetchAndUpdateMetadata(existingCollectionId, { badgeIds: next250Badges });
+
+          newBadgeMetadata = deepCopy(res[0].cachedBadgeMetadata);
+          console.log(newBadgeMetadata)
+
+          if (newBadgeMetadata && !compareObjects(newBadgeMetadata, prevMetadata)) {
+            //Only update newly fetched metadata
+            for (const metadata of newBadgeMetadata) {
+              const [, removed] = removeUintRangeFromUintRange(next250Badges, metadata.badgeIds);
+              metadata.badgeIds = removed;
+            }
+            newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
+            badgeMetadataToReturn.push(...deepCopy(newBadgeMetadata));
+
+            if (currPreviewCollection) {
+              updateCollection({
+                ...currPreviewCollection,
+                cachedBadgeMetadata: newBadgeMetadata
+              });
+            }
           }
+
         }
       }
     }
+
+    return badgeMetadataToReturn;
   }
 
   //Check existing cached collection and see what metadata we already have
@@ -344,7 +372,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     & GetAdditionalCollectionDetailsRequestBody)[], forcefulRefresh?: boolean) => {
 
 
-    if (collectionsToFetch.some(x => x.collectionId === MSG_PREVIEW_ID)) {
+    if (collectionsToFetch.some(x => x.collectionId === NEW_COLLECTION_ID)) {
       throw new Error('Cannot fetch preview collection ID === 0');
     }
 

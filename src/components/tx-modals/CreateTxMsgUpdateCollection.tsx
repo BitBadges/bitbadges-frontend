@@ -1,16 +1,19 @@
 import { notification } from 'antd';
-import { CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, OffChainBalancesMap, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, createBalanceMapForOffChainBalances, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
+import { BadgeMetadataTimeline, CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { addBalancesToOffChainStorage, addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
+import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { TxModal } from './TxModal';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
+import { TxModal } from './TxModal';
+import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
+import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffChainBalancesStepItem';
+import { neverHasManager } from '../../bitbadges-api/utils/manager';
 
 export function CreateTxMsgUpdateCollectionModal(
   { visible, setVisible, children }
@@ -23,8 +26,8 @@ export function CreateTxMsgUpdateCollectionModal(
   const router = useRouter();
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
-  const collectionId = txTimelineContext.existingCollectionId ?? MSG_PREVIEW_ID;
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const msg: MsgUpdateCollection<bigint> = {
     creator: chain.cosmosAddress,
@@ -76,20 +79,19 @@ export function CreateTxMsgUpdateCollectionModal(
   }
 
   //This function basically takes all relevant details from collection / txTimelineContext that need to be added to IPFS and adds them
-  //It then returns a new msg with the updated URIs to be broadcasted on-chain
+  //It then returns a new final msg with the updated URIs to be broadcasted on-chain
   //If simulate is true, it will return a msg with dummy URIs
-
   //Eventually, we should probably parallelize this
-  async function updateIPFSUris(simulate: boolean) {
+  async function getFinalMsgWithStoredUris(simulate: boolean) {
     if (!txTimelineContext || !collection) return;
-
 
     let offChainBalancesMetadataTimeline = collection.offChainBalancesMetadataTimeline;
     let collectionMetadataTimeline = collection.collectionMetadataTimeline;
     let badgeMetadataTimeline = collection.badgeMetadataTimeline;
-    let prunedMetadata: BadgeMetadataDetails<bigint>[] = collection.cachedBadgeMetadata;
+    let prunedMetadata: BadgeMetadataDetails<bigint>[] = collection.cachedBadgeMetadata.filter(x => x.badgeIds.length > 0 && x.toUpdate && !compareObjects(DefaultPlaceholderMetadata, x.metadata));
 
     //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
+    //If metadata was added with a URI, the timeline should already be updated with the final URI
     if ((txTimelineContext.updateBadgeMetadataTimeline || txTimelineContext.updateCollectionMetadataTimeline)) {
       if (simulate) {
         if (txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual && txTimelineContext.updateCollectionMetadataTimeline) {
@@ -117,11 +119,6 @@ export function CreateTxMsgUpdateCollectionModal(
           });
         }
       } else {
-
-        //TODO: Test this
-        //TODO: Same with collection metadata and claims and balances
-        prunedMetadata = prunedMetadata.filter(x => x.badgeIds.length > 0 && x.toUpdate && !compareObjects(DefaultPlaceholderMetadata, x.metadata))
-
         let res = await addMetadataToIpfs({
           collectionMetadata: txTimelineContext.updateCollectionMetadataTimeline && txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual
             ? collection.cachedCollectionMetadata : undefined,
@@ -141,16 +138,17 @@ export function CreateTxMsgUpdateCollectionModal(
         }
 
         if (txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual) {
-          badgeMetadataTimeline = [{
+          let newBadgeMetadataTimeline: BadgeMetadataTimeline<bigint>[] = [{
             timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             badgeMetadata: []
           }]
 
+          //First, we add the new metadata that should be updated
           for (let i = 0; i < prunedMetadata.length; i++) {
             const metadata = prunedMetadata[i];
             const result = res.badgeMetadataResults[i];
 
-            badgeMetadataTimeline[0].badgeMetadata.push({
+            newBadgeMetadataTimeline[0].badgeMetadata.push({
               uri: 'ipfs://' + result.cid,
               badgeIds: metadata.badgeIds,
               customData: ''
@@ -159,18 +157,23 @@ export function CreateTxMsgUpdateCollectionModal(
             metadata.uri = 'ipfs://' + result.cid;
           }
 
+          //Next, we add any existing metadata that wasn't updated
           if (collection.badgeMetadataTimeline.length > 0 && collection.badgeMetadataTimeline[0].badgeMetadata.length > 0) {
-            badgeMetadataTimeline[0].badgeMetadata.push(...collection.badgeMetadataTimeline[0].badgeMetadata);
+            newBadgeMetadataTimeline[0].badgeMetadata.push(...collection.badgeMetadataTimeline[0].badgeMetadata);
           }
 
-          badgeMetadataTimeline[0].badgeMetadata.push({
+          //Add default placeholder metadata for any badges that don't have metadata (IDs > max)
+          //Permissions should be set to allow updating this metadata
+          newBadgeMetadataTimeline[0].badgeMetadata.push({
             uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub',
             badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
             customData: ''
           });
 
+          //Get first match only. Thus, we prioritize updates -> existing -> not handled in that order
+          newBadgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
 
-          badgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
+          badgeMetadataTimeline = newBadgeMetadataTimeline;
         }
       }
     }
@@ -178,7 +181,6 @@ export function CreateTxMsgUpdateCollectionModal(
 
 
     //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
-    console.log("COLLECTION", collection, simulate);
     if (collection.collectionApprovals?.length > 0 && txTimelineContext.updateCollectionApprovals) {
       if (simulate) {
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
@@ -186,18 +188,13 @@ export function CreateTxMsgUpdateCollectionModal(
           if (approval.details && !approval.uri) {
             approval.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
           }
-
-
         }
       } else {
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
+          //If we actually have details to add, we should add them to storage
           const approval = collection.collectionApprovals[i];
-          if (approval.details && (
-            approval.details?.name || approval.details?.description
-            || approval.details?.challengeDetails
-            || approval.details?.password
-          ) && (!approval.uri || approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub')) {
-            console.log(approval.uri);
+          if (approval.details && (approval.details?.name || approval.details?.description || approval.details?.challengeDetails || approval.details?.password)
+            && (!approval.uri || approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub')) {
             let res = await addApprovalDetailsToOffChainStorage({
               name: approval.details?.name || '',
               description: approval.details?.description || '',
@@ -209,35 +206,35 @@ export function CreateTxMsgUpdateCollectionModal(
         }
       }
     }
+
+
     if (!txTimelineContext.updateOffChainBalancesMetadataTimeline) {
       //Do nothing, not even if self-hosted
-      offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection
+      offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection since update flag is false
     } else if (collection.balancesType == "Off-Chain" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
-      if (txTimelineContext.transfers.length == 0) {
+      if (txTimelineContext.offChainAddMethod === MetadataAddMethod.UploadUrl) {
         //Do nothing (already set to self-hosted URL)
       }
-      if (txTimelineContext.transfers.length > 0) {
+
+      if (txTimelineContext.offChainAddMethod === MetadataAddMethod.Manual) {
+        //Even if transfers are empty, we still need to add the empty map to storage
 
         if (!simulate) {
-          //User entered manually, so we need to add to storage
-          const _balanceMap = await createBalanceMapForOffChainBalances(txTimelineContext.transfers);
-
-          const balanceMap: OffChainBalancesMap<bigint> = {};
-          for (const entries of Object.entries(_balanceMap)) {
-            const [key, value] = entries;
-            balanceMap[convertToCosmosAddress(key)] = value;
-          }
+          //If it can be updated, we add it to centralized storage. If not, we add it to IPFS storage.
+          const noManager = neverHasManager(collection)
 
           const details = getPermissionDetails(
             castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []),
-            TimedUpdatePermissionUsedFlags
+            TimedUpdatePermissionUsedFlags,
+            noManager
           );
 
-          const frozenForever = !details.hasNeutralTimes && !details.hasPermittedTimes;
+          const frozenForever = isCompletelyForbidden(details);
 
           const updatable = !frozenForever;
+          const method = updatable ? 'centralized' : 'ipfs';
+          const res = await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, method);
 
-          let res = await addBalancesToOffChainStorage({ balances: balanceMap, method: updatable ? 'centralized' : 'ipfs', collectionId: collectionId });
           if (!updatable) {
             if (res.result.cid) {
               offChainBalancesMetadataTimeline = [{
@@ -272,23 +269,10 @@ export function CreateTxMsgUpdateCollectionModal(
       }
     }
 
+    //I don't think this actually does anything, but the logic is we don't want any passswords / codes in the final msg accidentally
     const collectionApprovalsWithoutDetails: CollectionApproval<bigint>[] = collection.collectionApprovals?.map(y => {
-      const approvalCriteria = y.approvalCriteria;
-
-      if (!approvalCriteria) return y;
-
-      return {
-        ...y,
-        approvalCriteria: {
-          ...approvalCriteria,
-          merkleChallenge: approvalCriteria.merkleChallenge ? {
-            ...approvalCriteria.merkleChallenge,
-            details: undefined,
-          } : undefined,
-        }
-      }
-    }
-    ) || [];
+      return { ...y, details: undefined }
+    }) || [];
 
 
     const msgUpdateCollection: MsgUpdateCollection<bigint> = {
@@ -303,12 +287,11 @@ export function CreateTxMsgUpdateCollectionModal(
     }
 
     console.log("FINAL MSG", msgUpdateCollection);
-
     return msgUpdateCollection;
   }
 
   const beforeTx = async (simulate: boolean) => {
-    const newMsg = await updateIPFSUris(simulate);
+    const newMsg = await getFinalMsgWithStoredUris(simulate);
     return newMsg
   }
 
@@ -327,7 +310,7 @@ export function CreateTxMsgUpdateCollectionModal(
           await collections.fetchCollections([collectionId], true);
           router.push(`/collections/${collectionId}`);
         } else {
-          //navigating to a new collection page is handled in TxModal
+          //navigating to a new collection page is handled in TxModal bc we need nextCollectionId
         }
 
         txTimelineContext.resetState();

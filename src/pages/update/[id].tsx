@@ -1,5 +1,4 @@
 import { Layout } from 'antd';
-// import { MSG_PREVIEW_ID, TxTimeline } from '../../components/tx-timelines/TxTimeline';
 import { useRouter } from 'next/router';
 import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';

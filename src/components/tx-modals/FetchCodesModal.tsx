@@ -8,6 +8,7 @@ import { ClaimsTab } from '../collection-page/ClaimsTab';
 import { CodesAndPasswords } from 'bitbadgesjs-utils';
 import { INFINITE_LOOP_MODE } from '../../constants';
 
+//TODO: have option to only show a single claim?
 export function FetchCodesModal({ visible, setVisible, children, collectionId }: {
   collectionId: bigint,
   visible: boolean,
@@ -33,16 +34,8 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
       open={visible}
-
-      style={{
-        // paddingLeft: '12px',
-        // paddingRight: '0px',
-        // paddingTop: '0px',
-        // paddingBottom: '0px',
-        // borderBottom: '0px',
-      }}
+      style={{}}
       width={'90%'}
-
       footer={null}
       closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{
@@ -60,7 +53,6 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
           : <ClaimsTab
             collectionId={collectionId}
             codesAndPasswords={codesAndPasswords}
-            
           />}
       </div>
       {children}

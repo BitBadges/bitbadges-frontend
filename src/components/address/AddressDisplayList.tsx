@@ -48,23 +48,11 @@ export function AddressDisplayList({
   let usersToDisplay = deepCopy(users);
   usersToDisplay = usersToDisplay.filter(x => x !== 'Total');
 
-  // let allExceptMint = false;
-  // if (usersToDisplay.length == 1 && usersToDisplay[0] == 'Mint' && allExcept) {
-  //   allExceptMint = true;
-  //   usersToDisplay = [];
-  // }
-
-
-
   if (filterMint) usersToDisplay = usersToDisplay.filter(x => x !== 'Mint');
 
   if (allExcept) {
     //append it at beginning
     usersToDisplay = ['All', ...usersToDisplay];
-
-    // if (!filterMint) {
-    //   usersToDisplay.push('Mint');
-    // }
   } else if (usersToDisplay.length == 0) {
     usersToDisplay = ['All'];
   }
@@ -85,30 +73,10 @@ export function AddressDisplayList({
 
 
 
-
-  // const str = title
-  //   ? title
-  //   : allExcept
-  //     ? allExceptMint
-  //       ? 'All'
-  //       : usersToDisplay.length === 0
-  //         ? !filterMint
-  //           ? 'All + Mint'
-  //           : 'All'
-  //         : 'All Except'
-  //     : usersToDisplay.length === 1
-  //       ? ''
-  //       : 'Addresses';
-
   return <div style={{ maxHeight: 500, overflow: 'auto', color: fontColor ?? 'white', fontSize: fontSize, alignItems: 'center' }}>
     {!hideTitle &&
       title ? <h3 style={{ color: fontColor ?? 'white' }}>{title}</h3> : <></>
-
-      // <h3 style={{ color: fontColor ?? 'white' }}>{title ? title : allExcept ? allExceptMint ? 'All' : usersToDisplay.length == 0 ?
-      //   !filterMint ? 'All + Mint' :
-      //     'All' : 'All Except' : usersToDisplay.length == 1 ? <></> : 'Addresses'} </h3>
     }
-    {/* {!(allExcept && usersToDisplay.length == 0) && !allExceptMint && (toLength ? toLength : usersToDisplay.length) > 1 && <>({toLength ? toLength : usersToDisplay.length})</>}</h3>} */}
     <Pagination total={usersToDisplay.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
 
     {usersToDisplay.map((user, index) => {

@@ -4,7 +4,7 @@ import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto'
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
@@ -28,7 +28,7 @@ export function TransferSelect({
   hideTransferDisplay,
   hideRemaining,
   showApprovalsMessage,
-  fetchExisting
+  fetchExisting,
 }: {
   transfers: (TransferWithIncrements<bigint>)[],
   setTransfers: (transfers: (TransferWithIncrements<bigint>)[]) => void;
@@ -43,8 +43,6 @@ export function TransferSelect({
   fetchExisting?: () => Promise<void>;
 }
 ) {
-
-  const isTransferSelect = true;
   const chain = useChainContext();
 
   const [numRecipients, setNumRecipients] = useState<bigint>(0n);
@@ -54,11 +52,10 @@ export function TransferSelect({
   const [currentStep, setCurrentStep] = useState(0);
 
   //For the current transfer we are going to add (we also use these fields to calculate the claim amounts and badges)
-  const [balances, setBalances] = useState<Balance<bigint>[]>(originalSenderBalances.map((x) => convertBalance(x, BigIntify)));
+  const [balances, setBalances] = useState<Balance<bigint>[]>([]);
   const [toAddresses, setToAddresses] = useState<string[]>([]);
   const [incrementAmount, setIncrementAmount] = useState<bigint>(0n);
   const [transfersToAdd, setTransfersToAdd] = useState<TransferWithIncrements<bigint>[]>([]);
-
 
   const currTimeNextHour = new Date();
   currTimeNextHour.setHours(currTimeNextHour.getHours() + 1);
@@ -125,6 +122,7 @@ export function TransferSelect({
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true)
     setPostTransferBalance(deepCopy(postTransferBalanceObj));
 
+    //with existing ones to add
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
     setPostTransferBalancesWithCurrent(postTransferBalanceObj);
   }, [originalSenderBalances, transfers, balances, sender, toAddresses]);
@@ -144,17 +142,12 @@ export function TransferSelect({
   const steps: StepProps[] = [];
   const recipientsSelect = RecipientsSelectStep({
     sender: sender,
-    // collectionId: collectionId,
-    // senderBalance: originalSenderBalances,
     setNumRecipients,
     toAddresses: toAddresses,
     setToAddresses: setToAddresses,
     showApprovalsMessage: showApprovalsMessage,
   });
-
-  if (isTransferSelect) {
-    steps.push(recipientsSelect);
-  }
+  steps.push(recipientsSelect);
 
 
   //Add third step
@@ -221,10 +214,8 @@ export function TransferSelect({
       <Button type='primary'
         className='full-width'
         onClick={async () => {
-          if (isTransferSelect && setTransfers && transfers) {
-            setTransfers([...transfersToAdd, ...transfers]);
-            setBalances([]);
-          }
+          setTransfers([...transfersToAdd, ...transfers]);
+          setBalances([]);
           setNumRecipients(0n);
           setToAddresses([]);
           setAddTransferIsVisible(false);
@@ -243,7 +234,7 @@ export function TransferSelect({
 
     <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
 
-      {!hideRemaining && isTransferSelect && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
+      {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }}>
           <div className='flex-center'>
             <AddressDisplay
@@ -259,7 +250,7 @@ export function TransferSelect({
             >
               <BalanceDisplay
                 hideMessage
-                collectionId={collectionId ?? MSG_PREVIEW_ID}
+                collectionId={collectionId ?? NEW_COLLECTION_ID}
                 balances={originalSenderBalances ?? []}
               />
             </InformationDisplayCard>
@@ -271,7 +262,7 @@ export function TransferSelect({
             >
               <BalanceDisplay
                 hideMessage
-                collectionId={collectionId ?? MSG_PREVIEW_ID}
+                collectionId={collectionId ?? NEW_COLLECTION_ID}
                 balances={postTransferBalances ?? []}
               />
             </InformationDisplayCard>
@@ -285,7 +276,7 @@ export function TransferSelect({
                 <BalanceDisplay
                   hideMessage
 
-                  collectionId={collectionId ?? MSG_PREVIEW_ID}
+                  collectionId={collectionId ?? NEW_COLLECTION_ID}
                   balances={postTransferBalancesWithCurrent ?? []}
                 />
               </InformationDisplayCard>}
@@ -425,7 +416,7 @@ export function TransferSelect({
                         }
                       }).flat()
                       }
-                      fetchMore={() => { }}
+                      fetchMore={async () => { }}
                       hasMore={false}
                       onDelete={(idx) => {
                         const newTransfers = transfers.filter((_, i) => i !== idx);

@@ -1,46 +1,45 @@
 import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+
+export const isCompletelyForbidden = (permissionDetails: ReturnType<typeof getPermissionDetails>) => {
+  return !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes;
+}
+
+export const isCompletelyNeutralOrCompletelyPermitted = (permissionDetails: ReturnType<typeof getPermissionDetails>) => {
+  // With the way we structure our timelines, we either check if it is completely neutral or completely permitted
+  return (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes)
+    || (permissionDetails.hasPermittedTimes && !permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes);
+}
 
 export function CanUpdateBalancesStepItem() {
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const addMethod = txTimelineContext.offChainAddMethod;
-  // const existingCollectionId = txTimelineContext.existingCollectionId;
-  // const existingCollection = collections.getCollection(existingCollectionId);
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
-
   const [err, setErr] = useState<Error | null>(null);
+
   if (!collection) return EmptyStepItem;
 
   const handleSwitchChangeIdxOnly = (idx: number) => {
     handleSwitchChange(idx);
   }
 
-  // const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
-  // const isStillBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
-
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
-    //TODO:  Handle weird edge cases where it is updated behind the scenes (not via form) and we can't actually update BB hosted -> IPFS if selected (or other weird edge cases)
-    //We make some assumptions 
-
-    // if (idx == 0 && isBitBadgesHosted && isStillBitBadgesHosted && txTimelineContext.transfers.length > 0) {
-    //   //This is just a check in case the collection was updated behind the scenes and not through the stanard timeline form
-    //   //would throw if we can't update from bitbadges hosted to IPFS hosted
-    //   const validateErr = validateOffChainBalancesMetadataUpdate(existingCollection.offChainBalancesMetadataTimeline, collection.offChainBalancesMetadataTimeline, existingCollection.collectionPermissions.canUpdateOffChainBalancesMetadata);
-    //   setErr(validateErr);
-    // }
+    //TODO:  Handle weird edge cases where it is updated behind the scenes by the user (not via form) and we can't actually update BB hosted -> IPFS if selected (or other weird edge cases)
+    //Currently it is caught by simulation
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
-        
+
         canUpdateOffChainBalancesMetadata: idx === 0 ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           permittedTimes: [],
@@ -54,9 +53,8 @@ export function CanUpdateBalancesStepItem() {
     });
   }
 
-  const neverHasManager = collection.managerTimeline.every(x => !x);
-
-  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []), TimedUpdatePermissionUsedFlags);
+  const noManager = neverHasManager(collection);
+  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []), TimedUpdatePermissionUsedFlags, noManager);
 
   return {
     title: 'Can update balances?',
@@ -82,7 +80,7 @@ export function CanUpdateBalancesStepItem() {
                     ` :
                     `The previously assigned balances will be permanently frozen and can never be updated. 
                 The URL for the balances will be set to non-updatable, and we will store using IPFS, a permanent and decentralized file storage solution.`,
-                isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes,
+                isSelected: isCompletelyForbidden(permissionDetails),
               },
               {
                 title: 'Yes',
@@ -95,18 +93,17 @@ export function CanUpdateBalancesStepItem() {
                 `}
                       < br />
                       <br />
-                      {neverHasManager ? 'Disabled because no manager was selected.' : 'Note that this permission is tied to the manager. Please make sure the manager is set correctly.'}
+                      {noManager ? 'Disabled because no manager was selected.' : 'Note that this permission is tied to the manager. Please make sure the manager is set correctly.'}
                     </>,
-                isSelected: (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes),
-                disabled: neverHasManager
+                isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+                disabled: noManager
               },
             ]}
             onSwitchChange={handleSwitchChangeIdxOnly}
-
           />
         </>
         }
       />,
-    disabled: !!err || (neverHasManager && (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes)),
+    disabled: !!err || (noManager && (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes)),
   }
 }

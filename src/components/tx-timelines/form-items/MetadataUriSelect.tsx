@@ -6,7 +6,7 @@ import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { DevMode } from "../../common/DevMode";
-import { MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 const { Text } = Typography;
 
@@ -22,9 +22,9 @@ export function MetadataUriSelect({
   hideBadgeSelect?: boolean;
 }) {
   const collections = useCollectionsContext();
-  const collectionId = MSG_PREVIEW_ID;
+  const collectionId = NEW_COLLECTION_ID;
 
-  const collection = collections.getCollection(collectionId)
+  const collection = collections.getCollection(collectionId);
 
   const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
   const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
@@ -36,7 +36,7 @@ export function MetadataUriSelect({
       if (!collectionUri || !collection) return
 
       collections.updateCollectionAndFetchMetadataDirectly({
-        collectionId: MSG_PREVIEW_ID,
+        collectionId: NEW_COLLECTION_ID,
         cachedCollectionMetadata: undefined,
         collectionMetadataTimeline: collectionUri ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],

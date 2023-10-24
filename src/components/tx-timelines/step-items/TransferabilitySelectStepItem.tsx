@@ -3,7 +3,7 @@ import { Divider } from "antd";
 import { deepCopy } from "bitbadgesjs-proto";
 import { getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
@@ -11,13 +11,12 @@ import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
-import { ErrDisplay } from "../form-items/ErrDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function TransferabilitySelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
@@ -25,9 +24,9 @@ export function TransferabilitySelectStepItem() {
   const approvalsToAdd = txTimelineContext.approvalsToAdd;
 
   const [visible, setVisible] = useState<boolean>(false);
-  if (!collection) return EmptyStepItem;
+  const [err, setErr] = useState<Error | null>(null);
 
-  const err = startingCollection ? validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, collection.collectionApprovals, startingCollection.collectionPermissions.canUpdateCollectionApprovals) : undefined;
+  if (!collection) return EmptyStepItem;
 
   const transferableApproval = {
     fromMappingId: 'AllWithoutMint',
@@ -46,18 +45,18 @@ export function TransferabilitySelectStepItem() {
 
   return {
     title: `Transferability - Post-Minting`,
-    // description: 
     description: <>{`Excluding transfers from the Mint address, should badges be transferable or non-transferable?`}</>,
     node: <UpdateSelectWrapper
       updateFlag={updateCollectionApprovals}
       setUpdateFlag={setUpdateCollectionApprovals}
       jsonPropertyPath='collectionApprovals'
       permissionName='canUpdateCollectionApprovals'
+      setErr={(err) => { setErr(err) }}
       customRevertFunction={() => {
         const existingNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
 
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionApprovals: [
             ...approvalsToAdd,
             ...existingNonMint
@@ -67,8 +66,6 @@ export function TransferabilitySelectStepItem() {
       nonMintOnly
       node={
         <div className="primary-text">
-
-          <ErrDisplay err={err} />
           <SwitchForm
             showCustomOption
             options={[
@@ -80,7 +77,8 @@ export function TransferabilitySelectStepItem() {
               {
                 title: 'Transferable',
                 message: `Badges can be transferred between users.`,
-                isSelected: getNonMintApprovals(collection).length === 1 && approvalCriteriaHasNoAdditionalRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
+                isSelected: getNonMintApprovals(collection).length === 1
+                  && approvalCriteriaHasNoAdditionalRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
                   && approvalCriteriaHasNoAmountRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
               },
 
@@ -95,7 +93,9 @@ export function TransferabilitySelectStepItem() {
           />
           <Divider />
           <div className='flex-center' style={{ textAlign: 'center' }}>
-            <TransferabilityTab collectionId={0n} onlyShowNotFromMint
+            <TransferabilityTab
+              collectionId={NEW_COLLECTION_ID}
+              onlyShowNotFromMint
               hideHelperMessage
               showDeletedGrayedOut
               onDelete={(approvalId: string) => {

@@ -1,14 +1,12 @@
-import { Card, Col, Divider, Empty, Layout, Row, Spin, Typography } from 'antd';
+import { Col, Divider, Empty, Layout, Row, Spin } from 'antd';
 import { AddressMappingInfo, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
-import { ClockCircleOutlined } from '@ant-design/icons';
-import Meta from 'antd/lib/card/Meta';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
@@ -16,14 +14,17 @@ import { AddressSelect } from '../../components/address/AddressSelect';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
+import { Action, ActionCard } from '../../components/collection-page/ActionsTab';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TableRow } from '../../components/display/TableRow';
+import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
-import { NODE_URL } from '../../constants';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
-function CollectionPage({ }: {}) {
+
+
+function AddressMappingPage() {
   const router = useRouter()
   const accounts = useAccountsContext();
   const { mappingId } = router.query;
@@ -37,44 +38,20 @@ function CollectionPage({ }: {}) {
 
   const [addressToCheck, setAddressToCheck] = useState<string>('');
 
-  const actions: {
-    title: React.ReactNode,
-    description: React.ReactNode,
-    showModal: () => void,
-    disabled?: boolean
-  }[] = [];
-  const getTitleElem = (title: string) => {
-    return (
-      <div className='primary-text'>
-        {title}
-      </div>
-    );
-  };
-
-  const getDescriptionElem = (description: string) => {
-    return (
-      <div className='secondary-text'>
-        {description}
-      </div>
-    );
-  };
+  const actions: Action[] = [];
 
   if ((mappingId as string)?.indexOf('_') >= 0) {
     actions.push({
-      title: getTitleElem("Update"),
-      description: getDescriptionElem(
-        "Update the details of this list."
-      ),
+      title: "Update",
+      description: "Update the details of this list.",
       showModal: () => {
         router.push('/update/' + mappingId);
       },
     });
 
     actions.push({
-      title: getTitleElem("Delete"),
-      description: getDescriptionElem(
-        "Delete this list."
-      ),
+      title: "Delete",
+      description: "Delete this list.",
       showModal: async () => {
         confirm("This list will be permanently deleted. Please confirm this action.");
         await deleteAddressMappings({ mappingIds: [mappingId as string] });
@@ -96,31 +73,22 @@ function CollectionPage({ }: {}) {
       const mapping = mappings.addressMappings[0];
 
       setMapping(mapping);
-      // if (mapping.addresses.length > 0) {
-      //   await accounts.fetchAccounts(mapping?.addresses || []);
-      // }
 
       await accounts.fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
       if (mapping.metadata) {
-
         setMetadata(mapping.metadata);
-
         if (mapping.metadata?.description) {
           setReactElement(HtmlToReactParser.parse(mdParser.render(mapping.metadata?.description)));
         }
       }
     }
     fetch();
-
   }, [mappingId])
 
-
-  console.log(reactElement);
-
-  let addressInList = (mapping?.addresses.includes(addressToCheck) || mapping?.addresses.includes(convertToCosmosAddress(addressToCheck)));
+  let isAddressInList = (mapping?.addresses.includes(addressToCheck) || mapping?.addresses.includes(convertToCosmosAddress(addressToCheck)));
 
   if (!mapping?.includeAddresses) {
-    addressInList = !addressInList;
+    isAddressInList = !isAddressInList;
   }
 
   const tabInfo = []
@@ -129,6 +97,7 @@ function CollectionPage({ }: {}) {
     { key: 'history', content: 'Update History' },
     { key: 'actions', content: 'Actions' },
   );
+
   return (
     <Content
       style={{
@@ -146,7 +115,7 @@ function CollectionPage({ }: {}) {
         }}
       >
         <BadgeButtonDisplay website={metadata?.externalUrl} />
-        <CollectionHeader collectionId={MSG_PREVIEW_ID} metadataOverride={metadata} hideCollectionLink />
+        <CollectionHeader collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />
         {!mapping && <Spin size='large' />}
         <Tabs
           tab={tab}
@@ -159,22 +128,7 @@ function CollectionPage({ }: {}) {
           <div className='primary-text'>
             <br />
             {mapping?.updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
-              return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
-
-                <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
-                  <ClockCircleOutlined style={{ marginRight: '5px' }} />
-                  {i == 0 ? 'Created' : 'Updated'
-                  } at{' '}
-                  {new Date(Number(update.blockTimestamp)).toLocaleString()}
-                  {' '}(Block #{update.block.toString()})
-
-                </Typography.Text>
-                {update.txHash && <>
-                  <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
-                    {update.txHash}
-                  </a></p></>}
-                <Divider />
-              </div>
+              return <TxHistory tx={update} key={i} creationTx={i == 0} />
             })}
           </div>
         </>}
@@ -214,10 +168,8 @@ function CollectionPage({ }: {}) {
                         </div>
                       </div>
                     } labelSpan={9} valueSpan={15} />}
-                    <TableRow label={"Storage"} value={
-                      mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
-
-                        "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
+                    <TableRow label={"Storage"} value={mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
+                      "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                   </InformationDisplayCard>
                   <br />
 
@@ -247,16 +199,9 @@ function CollectionPage({ }: {}) {
                       <AddressSelect
                         defaultValue={addressToCheck}
                         onUserSelect={setAddressToCheck}
-
                       />
                       <br />
-                      {addressToCheck &&
-                        <AddressDisplay
-                          addressOrUsername={addressToCheck}
-
-                        />}
-                      <br />
-                      {addressToCheck ? addressInList ? <div className='flex-center'>
+                      {addressToCheck ? isAddressInList ? <div className='flex-center'>
                         <div className='flex-center' style={{ alignItems: 'center' }}>
                           <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
                             <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
@@ -294,41 +239,10 @@ function CollectionPage({ }: {}) {
               }}
             >
               {actions.map((action, idx) => {
-                return <Card
+                return <ActionCard
                   key={idx}
-                  className='primary-text gradient-bg flex-center'
-                  style={{
-                    width: '300px',
-                    minHeight: '150px',
-                    margin: 8,
-                    textAlign: 'center',
-                    cursor: action.disabled ? 'not-allowed' : undefined,
-                  }}
-                  hoverable={!action.disabled}
-                  onClick={async () => {
-                    if (action.disabled) return;
-                    action.showModal();
-                  }}
-                >
-                  <Meta
-                    title={
-                      <div
-                        className='primary-text'
-                        style={{
-                          fontSize: 20,
-                          fontWeight: 'bolder',
-                        }}
-                      >
-                        {action.title}
-                      </div>
-                    }
-                    description={
-                      <div className='secondary-text flex-center full-width'>
-                        {action.description}
-                      </div>
-                    }
-                  />
-                </Card>
+                  action={action}
+                />
               })}
             </div>
             {actions.length == 0 && (
@@ -350,4 +264,4 @@ function CollectionPage({ }: {}) {
   );
 }
 
-export default CollectionPage;
+export default AddressMappingPage;

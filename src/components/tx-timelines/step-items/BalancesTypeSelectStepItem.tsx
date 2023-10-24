@@ -1,10 +1,10 @@
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function BalanceTypeSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -28,14 +28,9 @@ export function BalanceTypeSelectStepItem() {
     message: <div className='full-width'><span>
       Off-chain storage will be utilized to optimize the user experience and ensure scalability.
       Balances will be managed exclusively by a centralized entity (you), which is responsible for assigning and updating the balances.
-      There will never be any blockchain transactions for transfers or approvals. 
+      There will never be any blockchain transactions for transfers or approvals.
       Ownership of assets can only be granted by the centralized entity through assignment.
-
-
-
       <br /> <br />
-
-
       This option should only be used for specific use cases. Learn more
       <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
         {' '}here.
@@ -62,7 +57,7 @@ export function BalanceTypeSelectStepItem() {
           if (!collection) return;
 
           collections.updateCollection({
-            collectionId: MSG_PREVIEW_ID,
+            collectionId: NEW_COLLECTION_ID,
             balancesType: idx == 1 ? "Standard" : "Off-Chain",
             collectionApprovals: idx == 1 ? collection.collectionApprovals : [],
             offChainBalancesMetadataTimeline: idx == 0 ? collection.offChainBalancesMetadataTimeline : [],

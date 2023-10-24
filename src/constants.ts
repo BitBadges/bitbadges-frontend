@@ -11,22 +11,13 @@ export const NODE_URL = `http://${HOSTNAME}:1317`;
 export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
-export const DEV_MODE = false;
-export const INFINITE_LOOP_MODE = true;
-
-
+export const DEV_MODE = process.env.PRODUCTION ? false : false;
+export const INFINITE_LOOP_MODE = process.env.PRODUCTION ? false : true;
 
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
 export const BITCOIN_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png';
 export const SOLANA_LOGO = 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png';
-
-// export const BLANK_USER_INFO = {
-//   accountNumber: -1,
-//   address: '',
-//   cosmosAddress: '',
-//   chain: SupportedChain.UNKNOWN,
-// }
 
 export function getChainLogo(chain: string) {
   let chainLogo = '';

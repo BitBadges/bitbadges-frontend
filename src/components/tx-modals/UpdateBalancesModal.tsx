@@ -1,11 +1,32 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Divider, Modal, Spin, notification } from 'antd';
-import { OffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { OffChainBalancesMap, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
 import React, { useEffect } from 'react';
 import { addBalancesToOffChainStorage, refreshMetadata } from '../../bitbadges-api/api';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
+
+export const createBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized') => {
+  const _balanceMap = await createBalanceMapForOffChainBalances(transfers);
+
+  const balanceMap: OffChainBalancesMap<bigint> = {};
+  for (const entries of Object.entries(_balanceMap)) {
+    const [key, value] = entries;
+    balanceMap[convertToCosmosAddress(key)] = value;
+  }
+
+  const res = await addBalancesToOffChainStorage({ balances: balanceMap, method, collectionId: collectionId, });
+
+  await refreshMetadata(collectionId);
+
+  notification.success({
+    message: 'Success',
+    description: 'Balances updated. Note it may take a few minutes for the changes to be reflected.',
+  });
+
+  return res
+}
 
 export function UpdateBalancesModal({ visible, setVisible, children, collectionId }: {
   collectionId: bigint,
@@ -20,8 +41,6 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
   useEffect(() => {
     txTimelineContext.resetState(collectionId);
   }, []);
-
-
 
   return (
     <Modal
@@ -48,22 +67,7 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
           style={{ width: '100%', marginTop: 20 }}
           onClick={async () => {
             setLoading(true);
-            const _balanceMap = await createBalanceMapForOffChainBalances(txTimelineContext.transfers);
-
-            const balanceMap: OffChainBalancesMap<bigint> = {};
-            for (const entries of Object.entries(_balanceMap)) {
-              const [key, value] = entries;
-              balanceMap[convertToCosmosAddress(key)] = value;
-            }
-
-            await addBalancesToOffChainStorage({ balances: balanceMap, method: 'centralized', collectionId: collectionId });
-
-            await refreshMetadata(collectionId);
-
-            notification.success({
-              message: 'Success',
-              description: 'Balances updated. Note it may take a few minutes for the changes to be reflected.',
-            });
+            await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized');
             setLoading(false);
             setVisible(false);
           }}>

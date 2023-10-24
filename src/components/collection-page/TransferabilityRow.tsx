@@ -1,13 +1,15 @@
 import { CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, StopFilled, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
-import { CollectionApprovalWithDetails, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
+import { CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -20,10 +22,8 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { CreateClaims } from '../tx-timelines/form-items/CreateClaims';
 import { BalanceOverview } from './BalancesInfo';
-import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { INFINITE_LOOP_MODE } from '../../constants';
 
-export const getTableHeader = () => {
+export const getTableHeader = (expandedSingleView: boolean) => {
   return <tr >
     <td style={{ verticalAlign: 'top', minWidth: 70 }}><b>
       From
@@ -54,12 +54,14 @@ export const getTableHeader = () => {
     <td style={{ verticalAlign: 'top', minWidth: 40 }}><b>
       Tags
     </b></td>
-    <td style={{ verticalAlign: 'top', minWidth: 40 }}><b>
+    {!expandedSingleView && <>
+      <td style={{ verticalAlign: 'top', minWidth: 40 }}><b>
 
-    </b></td>
-    <td style={{ verticalAlign: 'top' }}></td>
+      </b></td>
+      <td style={{ verticalAlign: 'top' }}></td>
 
-    <td style={{ verticalAlign: 'top' }}></td>
+      <td style={{ verticalAlign: 'top' }}></td>
+    </>}
   </tr>
 }
 
@@ -86,10 +88,8 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     && x.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.root
     && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
   );
-  return <InformationDisplayCard title='Details' md={11} xs={24} sm={24}>
+  return <InformationDisplayCard title='Restrictions' md={11} xs={24} sm={24}>
     <ul style={{ textAlign: 'left' }}>
-      {transfer.details?.name && <li>Name: {transfer.details?.name}</li>}
-      {transfer.details?.description && <li>Description: {transfer.details?.description}</li>}
       {transfer.approvalCriteria?.requireFromDoesNotEqualInitiatedBy && !isOutgoingDisplay && (
         <li>{"From address must NOT equal initiator's address"}</li>
       )}
@@ -134,7 +134,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
         <>
           {transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? (<>
             <li>{"Must be on whitelist"}</li>
-            {transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf > 0n ? <li>`Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address`</li> : <></>}
+            {transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf > 0n ? <li>{`Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address`}</li> : <></>}
             {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0n && <div className='flex-center flex-column'>
               <br />
               <Button className="styled-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
@@ -153,7 +153,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
           </>) : <>
 
             <li>{`Must provide valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
-              ? 'password' : 'code' : 'password / code'}(s)`}</li>
+              ? 'password' : 'code' : 'password / code'}`}</li>
             {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0 && (
               <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()} {`valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
                 ? 'password' : 'code' : 'password / code'}(s)`}</li>
@@ -193,18 +193,19 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     </div>
     {
       showAdvanced && <>
+        <br />
         <ul style={{ textAlign: 'start' }}>
-          <li><Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+          <li><Typography.Text className='primary-text'>
             Approval ID: {transfer.approvalId.toString()}
           </Typography.Text>
           </li>
           <li>
-            <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+            <Typography.Text className='primary-text'>
               Amount Tracker ID: {transfer.amountTrackerId.toString()}
             </Typography.Text>
           </li>
           <li>
-            <Typography.Text style={{ fontSize: 16 }} className='primary-text'>
+            <Typography.Text className='primary-text'>
               Challenge Tracker ID: {transfer.challengeTrackerId.toString()}
             </Typography.Text>
           </li>
@@ -276,7 +277,7 @@ export const MustOwnBadgesCard = ({ transfer }: {
 export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, collectionId, address, setAddress }: {
   address?: string,
   setAddress: (address: string) => void,
-   collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void
+  collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void
 }) => {
 
   const claim = transfer.approvalCriteria?.merkleChallenge
@@ -308,7 +309,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
   const numIncrements = approvalTracker?.numTransfers ?? 0n;
 
   useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: set order number');
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set claim number');
     if (numIncrements > 0n) setOrderNumber(Number(numIncrements));
   }, [numIncrements]);
 
@@ -352,20 +353,20 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
           {hasIncrements && <>
 
             <li>{Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
-              <>{"Order number starts at 1 and increments by 1 every use by any user."}</>
+              <>{"Claim number starts at 1 and increments by 1 every use by any user."}</>
               : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
-                <>{`The creator of this claim prereserved specific order numbers for specific ${transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? 'whitelisted addresses' : 'claim codes'}.`}</>
+                <>{`Specific claim numbers are reserved for specific ${transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? 'whitelisted addresses' : 'claim codes'}.`}</>
                 : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerFromAddressNumTransfers" ?
-                  <>{"Order number starts at 1 for each unique sender (from address) and increments by 1 every transfer from that address."}</>
+                  <>{"Claim number starts at 1 for each unique sender (from address) and increments by 1 every transfer from that address."}</>
                   : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerToAddressNumTransfers" ?
-                    <>{"Order number starts at 1 for each unique recipient (to address) and increments by 1 every transfer to that address."}</>
+                    <>{"Claim number starts at 1 for each unique recipient (to address) and increments by 1 every transfer to that address."}</>
                     : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerInitiatedByAddressNumTransfers" ?
-                      <>{"Order number starts at 1 for each unique initiator (initiated by address) and increments by 1 every transfer initiated by that address."}</>
+                      <>{"Claim number starts at 1 for each unique initiator (initiated by address) and increments by 1 every transfer initiated by that address."}</>
                       : <>{'Unknown'}</>
             }
               {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
 
-                <WarningOutlined style={{ color: 'orange', margin: 4 }} /> The order number is calculated at processing time. Below is the next order number to be processed, but note it is subject to change.
+                <WarningOutlined style={{ color: 'orange', margin: 4 }} /> The claim number is calculated at processing time. Below is the next claim number to be processed, but it is subject to change if others are processed before your claim.
 
               </>}
             </li>
@@ -385,29 +386,30 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
               }
 
               <Typography.Text className="primary-text" style={{ fontSize: 18 }} strong>
-                {`Next Order #${BigInt(numIncrements) + 1n}`}
+                {`Current - Claim #${BigInt(numIncrements) + 1n}`}
               </Typography.Text>
 
               <br />
             </div>}
 
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0 && (<li>
-              Each order number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
+              Each claim number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
 
             </li>)}
 
 
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0 && (<li>
-              Each order number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
+              Each claim number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
             </li>)}
           </>}
         </ul>
-        <br />
         <div className='flex-center inherit-bg primary-text'>
           <div>
             {hasIncrements ? <>
+
+              <br />
               <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
-                Order #
+                Claim #
               </Typography.Text>
 
               <InputNumber
@@ -420,7 +422,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
                 className='primary-text inherit-bg'
               />
               {claim && claim.root && calculationMethod?.useMerkleChallengeLeafIndex && <><br />
-                Reserved for{' '}
+
                 {claim?.useCreatorAddressAsLeaf ? <>
                   <AddressDisplay
                     addressOrUsername={approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? ''}
@@ -433,17 +435,25 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 
               <br />
               <br />
-            </> : <><br /></>}
-            {!hasOverlap || exceedsMaxNumTransfers ? <div className='primary-text'>
+            </> : <></>}
+            {!hasIncrements ? <>
+              {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
+                <BalanceDisplay
+                  message={hasIncrements ? `Balances for Claim #${orderNumber + 1}` : 'Balances - All or Nothing'}
+                  balances={hasOverlap ? incrementedBalances : []}
+                  collectionId={collectionId}
+                />
+              </>
+              )}
+            </> : !hasOverlap || exceedsMaxNumTransfers ? <div className='primary-text'>
               <br />
-              <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> This order number is not possible because
+              <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> This claim number is not possible because
               {exceedsMaxNumTransfers && <> it exceeds the max cumulative uses for this approval.</>}
               {!hasOverlap && !exceedsMaxNumTransfers && <> the badge IDs are no longer in range.</>}
             </div> : <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                 <BalanceDisplay
-                  message='Incremented Balances'
-                  hideMessage
+                  message={hasIncrements ? `Balances for Claim #${orderNumber + 1}` : 'Balances - All or Nothing'}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />
@@ -471,18 +481,19 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 }
 
 const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked,
+  address,
   setAddress,
-  collectionId, address }: {
-    transfer: CollectionApprovalWithDetails<bigint>,
-    address?: string,
-    setAddress: (address: string) => void,
-    collectionId: bigint,
-    showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType: 'list' | 'card'
-  }) => {
+  collectionId
+}: {
+  transfer: CollectionApprovalWithDetails<bigint>,
+  address?: string,
+  setAddress: (address: string) => void,
+  collectionId: bigint,
+  showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType: 'list' | 'card'
+}) => {
   const collections = useCollectionsContext();
+  const accounts = useAccountsContext();
   const collection = collections.getCollection(collectionId);
-  const [showSelect, setShowSelect] = useState(false);
-
 
 
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.maxNumTransfers) return null;
@@ -507,8 +518,8 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
   if (!(transfer.approvalCriteria?.maxNumTransfers && transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0)) return null;
 
-  console.log(collection?.approvalsTrackers);
-  const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type)?.numTransfers ?? 0n
+  const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
+    && y.approvedAddress === (type === "overall" ? "" : accounts.getAccount(address ?? '')?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
   const percent = (Number(numUsed) / Number(transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey])) * 100;
   return <>
     {componentType === 'list' && <>
@@ -522,13 +533,11 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
     <div className='flex-center flex-column primary-text' style={{ textAlign: 'center' }}>
       <br />
-      {(<>{type === "overall" ? <b>All Users</b> : <> <div className='flex-center flex primary-text'>
-        <AddressDisplay addressOrUsername={address ?? ''} fontSize={14} /> <IconButton src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
-      </div>
-        {showSelect && <><AddressSelect defaultValue={address} onUserSelect={(address) => setAddress?.(address)} /><br /></>}
-
+      {(<>{type === "overall" ? <b>All Users</b> : <>
+        <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
       </>
-      }</>)}
+      }
+      </>)}
 
       {transfer.approvalCriteria?.maxNumTransfers &&
         <Progress percent={percent} type='line' className='primary-text' format={() => {
@@ -538,8 +547,7 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
           </div>
         }} />
       }
-
-    </div>
+    </div >
   </>
 }
 
@@ -558,7 +566,7 @@ const ApprovalAmountsComponent = ({
   }) => {
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId);
-  const [showSelect, setShowSelect] = useState(false);
+  const accounts = useAccountsContext();
 
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.approvalAmounts) return null;
 
@@ -584,6 +592,13 @@ const ApprovalAmountsComponent = ({
 
   if (!(transfer.approvalCriteria?.approvalAmounts && transfer.approvalCriteria?.approvalAmounts[approvalAmountsKey] > 0)) return null;
 
+  const approvedAmounts = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
+    && y.approvedAddress === (type === "overall" ? "" : accounts.getAccount(address ?? '')?.cosmosAddress ?? ''))?.amounts ?? [{
+      amount: 0n,
+      badgeIds: transfer.badgeIds,
+      ownershipTimes: transfer.ownershipTimes,
+    }];
+
   return <>
     {componentType === 'list' && <>
       <>
@@ -602,20 +617,12 @@ const ApprovalAmountsComponent = ({
             message={<>
               {title + ' - Transferred (Max x' + transfer.approvalCriteria?.approvalAmounts[approvalAmountsKey].toString() + ')'}
               <br />
-              {(<>{type === "overall" ? <b>All Users</b> : <> <div className='flex-center flex primary-text'>
-                <AddressDisplay addressOrUsername={address ?? ''} fontSize={14} /> <IconButton src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
-              </div>
-                {showSelect && <><AddressSelect defaultValue={address} onUserSelect={(address) => setAddress?.(address)} /><br /></>}
-
+              {(<>{type === "overall" ? <b>All Users</b> : <> <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress?.(address)} />
               </>
-              }</>)}
+              }
+              </>)}
             </>}
-            balances={collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type)?.amounts
-              ?? [{
-                amount: 0n,
-                badgeIds: transfer.badgeIds,
-                ownershipTimes: transfer.ownershipTimes,
-              }]}
+            balances={approvedAmounts}
             collectionId={collectionId}
           />
         </>
@@ -627,16 +634,23 @@ const ApprovalAmountsComponent = ({
 export function TransferabilityRow({
   address, setAddress,
   allTransfers,
+  startingApprovals,
   onRestore,
   grayedOut,
   onDelete,
   expandedSingleView,
-  onEdit, 
-  transfer, badgeId, collectionId, filterFromMint, noBorder, ignoreRow, disapproved, isIncomingDisplay, isOutgoingDisplay }: {
+  onEdit,
+  transfer,
+  badgeId,
+  collectionId,
+  filterFromMint,
+  noBorder, ignoreRow, disapproved, isIncomingDisplay, isOutgoingDisplay, approverAddress }: {
     transfer: CollectionApprovalWithDetails<bigint>,
     allTransfers: CollectionApprovalWithDetails<bigint>[],
+    startingApprovals?: CollectionApprovalWithDetails<bigint>[],
+    approverAddress?: string,
     badgeId?: bigint,
-  
+
     collectionId: bigint,
     filterFromMint?: boolean,
     noBorder?: boolean,
@@ -674,31 +688,30 @@ export function TransferabilityRow({
   const initiatedByAddresses = transfer.initiatedByMapping.addresses.filter(x => x !== 'Mint');
   const fromAddresses = filterFromMint ? transfer.fromMapping.addresses.filter(x => x !== 'Mint') : transfer.fromMapping.addresses;
 
-  const txTimelineContext = useTxTimelineContext();
-  const startingCollection = txTimelineContext.startingCollection;
-
   const editable = !!onDelete;
 
   const approval = transfer;
   const approvalCriteria = approval.approvalCriteria;
-  const claimId = approval.challengeTrackerId;
+  const challengeTrackerId = approval.challengeTrackerId;
+
+  const approvalLevel = isIncomingDisplay ? 'incoming' : isOutgoingDisplay ? 'outgoing' : 'collection';
 
   async function refreshTrackers() {
     const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
       collectionId,
       amountTrackerId: approval.amountTrackerId,
-      approvalLevel: "collection",
+      approvalLevel: approvalLevel,
       approvedAddress: "",
-      approverAddress: "",
+      approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
       trackerType: "overall",
     }];
     if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
       approvalsIdsToFetch.push({
         collectionId,
         amountTrackerId: approval.amountTrackerId,
-        approvalLevel: "collection",
+        approvalLevel: approvalLevel,
         approvedAddress: chain.cosmosAddress,
-        approverAddress: "",
+        approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
         trackerType: "initiatedBy",
       });
     }
@@ -708,9 +721,9 @@ export function TransferabilityRow({
       viewsToFetch: [],
       merkleChallengeIdsToFetch: [{
         collectionId,
-        challengeId: claimId ?? '',
-        challengeLevel: "collection",
-        approverAddress: "",
+        challengeId: challengeTrackerId ?? '',
+        challengeLevel: approvalLevel,
+        approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
       }],
       approvalsTrackerIdsToFetch: approvalsIdsToFetch,
       handleAllAndAppendDefaults: true,
@@ -730,18 +743,18 @@ export function TransferabilityRow({
         const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
           collectionId,
           amountTrackerId: approval.amountTrackerId,
-          approvalLevel: "collection",
+          approvalLevel: approvalLevel,
           approvedAddress: "",
-          approverAddress: "",
+          approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
           trackerType: "overall",
         }];
         if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
           approvalsIdsToFetch.push({
             collectionId,
             amountTrackerId: approval.amountTrackerId,
-            approvalLevel: "collection",
+            approvalLevel: approvalLevel,
             approvedAddress: chain.cosmosAddress,
-            approverAddress: "",
+            approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
             trackerType: "initiatedBy",
           });
         }
@@ -751,9 +764,9 @@ export function TransferabilityRow({
           viewsToFetch: [],
           merkleChallengeIdsToFetch: [{
             collectionId,
-            challengeId: claimId ?? '',
-            challengeLevel: "collection",
-            approverAddress: "",
+            challengeId: challengeTrackerId ?? '',
+            challengeLevel: approvalLevel,
+            approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
           }],
           approvalsTrackerIdsToFetch: approvalsIdsToFetch,
           handleAllAndAppendDefaults: true,
@@ -762,11 +775,12 @@ export function TransferabilityRow({
 
       fetchTrackers();
     }
-  }, [collectionId, claimId, showMoreIsVisible]);
+  }, [collectionId, challengeTrackerId, showMoreIsVisible]);
 
 
   //Only show rows that have at least one address (after filtration)
   if ((toAddresses.length == 0 && transfer.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && transfer.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && transfer.fromMapping.includeAddresses)) {
+
     return null;
   }
 
@@ -793,7 +807,7 @@ export function TransferabilityRow({
   return <>
 
 
-    <tr style={{ borderBottom: noBorder ? undefined : '1px solid gray', opacity: grayedOut ? 0.5 : undefined }}
+    <tr style={{ opacity: grayedOut ? 0.5 : undefined }}
       className=
       {!disapproved && !expandedSingleView ? 'transferability-row' : undefined}
       onClick={!disapproved && !expandedSingleView ? () => setShowMoreIsVisible(!showMoreIsVisible) : () => { }}>
@@ -835,7 +849,7 @@ export function TransferabilityRow({
         {!disapproved &&
           <div style={{ alignItems: 'center', marginLeft: 8, height: '100%', }} className='flex-center flex-wrap flex-column'>
             {onDelete && <>
-              {startingCollection?.collectionApprovals.find(x => x.approvalId === transfer.approvalId) ? <Tag
+              {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
                 style={{ margin: 4, backgroundColor: '#1890ff' }}
                 color='#1890ff'
                 className='primary-text'
@@ -965,27 +979,34 @@ export function TransferabilityRow({
             {editable && <>
               <br />
               <div className='flex-center'>
-                This approval is  <div style={{ alignItems: 'center', marginLeft: 8, height: '100%' }}>
-                  {startingCollection?.collectionApprovals.find(x => x.approvalId === transfer.approvalId) ? <Tag
-                    style={{ backgroundColor: '#1890ff' }}
-                    color='#1890ff'
-                    className='primary-text'
-                  >Existing</Tag> :
-                    <Tag
-                      style={{ backgroundColor: '#52c41a' }}
-                      color='#52c41a'
+                <div>
+                  This approval is  <span style={{ alignItems: 'center', marginLeft: 8, height: '100%' }}>
+                    {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
+                      style={{ backgroundColor: '#1890ff' }}
+                      color='#1890ff'
                       className='primary-text'
-                    >New</Tag>}
-                  meaning, if applicable, any trackers (amounts, number of transfers, which codes are used, which addresses have claimed, etc.)
-                  {startingCollection?.collectionApprovals.find(x => x.approvalId === transfer.approvalId) ? ' will continue adding on to the existing tally.' : ' will start from scratch.'}
+                    >Existing</Tag> :
+                      <Tag
+                        style={{ backgroundColor: '#52c41a' }}
+                        color='#52c41a'
+                        className='primary-text'
+                      >New</Tag>}
+                    meaning, if applicable, any trackers (amounts, number of transfers, which codes are used, which addresses have claimed, etc.)
+                    {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? ' will continue adding on to the existing tally.' : ' will start from scratch.'}
 
+                  </span>
                 </div>
               </div>
             </>}
             <br />
+
+            {transfer.details?.name && <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>{transfer.details?.name}</Typography.Text>}
+            <br />
+            {transfer.details?.description && <Typography.Text style={{ fontSize: 16 }} className='primary-text'>{transfer.details?.description}</Typography.Text>}
+            <br />
             <div className="flex-center flex-wrap">
 
-              {currentManager && currentManager === chain.cosmosAddress && <div>
+              {currentManager && currentManager === chain.cosmosAddress && transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria.merkleChallenge.useCreatorAddressAsLeaf && <div>
 
                 <IconButton
                   src={<DatabaseOutlined size={40} />}
@@ -1001,7 +1022,7 @@ export function TransferabilityRow({
                   collectionId={collectionId}
                 />
               </div>}
-              {collectionId !== MSG_PREVIEW_ID &&
+              {collectionId !== NEW_COLLECTION_ID &&
                 <IconButton
                   src={<CloudSyncOutlined size={40} />}
                   onClick={() => refreshTrackers()}
@@ -1013,7 +1034,7 @@ export function TransferabilityRow({
 
 
             </div>
-            <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+            <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
               <DetailsCard transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
 
               <InformationDisplayCard title='Balances' md={11} xs={24} sm={24}>
@@ -1043,8 +1064,8 @@ export function TransferabilityRow({
                 {balanceTab === 'remaining' && <>
                   <BalanceOverview
                     collectionId={collectionId}
-                    hideSelect={transfer.fromMapping?.addresses.length === 1}
-                    defaultAddress={transfer.fromMapping?.addresses.length >= 1 ? transfer.fromMapping?.addresses[0] : undefined}
+                    hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
+                    defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
                   />
                 </>}
                 {balanceTab === 'current' && <>

@@ -1,8 +1,6 @@
 import { BroadcastMode, TxToSend, generatePostBodyBroadcast } from "bitbadgesjs-provider";
-import { broadcastTx } from "../bitbadges-api/api";
-import { DEV_MODE } from "../constants";
-
-
+import { broadcastTx } from "../api";
+import { DEV_MODE } from "../../constants";
 
 // Broadcasts a transaction to the blockchain. Uses NODE_URL from constants.ts.
 export async function broadcastTransaction(txRaw: TxToSend) {
@@ -11,7 +9,6 @@ export async function broadcastTransaction(txRaw: TxToSend) {
     generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
   )
 
-  // let res = broadcastPost.data;
   if (DEV_MODE) console.log("Tx Response:", res)
 
   if (res.tx_response.code !== 0 && res.tx_response.codespace !== 'badges') {

@@ -1,7 +1,7 @@
 import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping, getUnhandledUserIncomingApprovals } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -11,12 +11,12 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function DefaultToApprovedSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const chain = useChainContext();
 
-  const [updatelag, setUpdateFlag] = useState<boolean>(true);
+  const [updateFlag, setUpdateFlag] = useState<boolean>(true);
 
   if (!collection || existingCollectionId) return EmptyStepItem; //Only for new collections
 
@@ -33,13 +33,12 @@ export function DefaultToApprovedSelectStepItem() {
     challengeTrackerId: "default-incoming-allowed",
   }]
 
-  console.log(forcefulOption, collection.defaultUserIncomingApprovals)
-
   return {
     title: `Default Incoming Approvals`,
     description: `If not forcefully overriden, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
     node: <UpdateSelectWrapper
-      updateFlag={updatelag}
+      setErr={() => { }}
+      updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
       permissionName='canUpdateDefaultUserIncomingApprovals'
@@ -64,7 +63,7 @@ export function DefaultToApprovedSelectStepItem() {
           ]}
           onSwitchChange={(idx) => {
             collections.updateCollection({
-              collectionId: MSG_PREVIEW_ID,
+              collectionId: NEW_COLLECTION_ID,
               defaultUserIncomingApprovals: idx === 0 ? forcefulOption : [],
             });
           }}
@@ -73,9 +72,8 @@ export function DefaultToApprovedSelectStepItem() {
           <ApprovalsDisplay
             approvals={
               castIncomingTransfersToCollectionTransfers(
-                collection.defaultUserIncomingApprovals.length > 0 ? collection.defaultUserIncomingApprovals : appendDefaultForIncoming([], chain.address)
-
-                , chain.address)}
+                collection.defaultUserIncomingApprovals.length > 0 ?
+                  collection.defaultUserIncomingApprovals : appendDefaultForIncoming([], chain.address), chain.address)}
             collection={collection}
             approvalLevel='incoming'
             approverAddress={chain.address}

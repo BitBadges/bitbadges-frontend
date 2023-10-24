@@ -1,16 +1,18 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { ApprovalPermissionUsedFlags, CollectionApprovalPermissionWithDetails, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, CollectionApprovalPermissionWithDetails, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
+import { isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
-
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
   fromMapping: getReservedAddressMapping("All"),
@@ -46,27 +48,16 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 
 export function FreezeSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
-
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;
 
-  const lockedBadgeIds = collection.collectionPermissions.canCreateMoreBadges.length > 0 ? collection.collectionPermissions.canCreateMoreBadges.map(x => x.badgeIds).flat() : [];
-  const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
+  const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
 
-  const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags);
-
-  const overallHasPermittedTimes = permissionDetails.dataSource.some(x => x.permitted);
-  const overallHasForbiddenTimes = permissionDetails.dataSource.some(x => x.forbidden);
-  const overallHasNeutralTimes = permissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
-
-  const mintPermissionDetails = permissionDetails.dataSource.filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, "Mint"));
-  const mintHasPermittedTimes = mintPermissionDetails.some(x => x.permitted);
-  const mintHasForbiddenTimes = mintPermissionDetails.some(x => x.forbidden);
-  const mintHasNeutralTimes = mintPermissionDetails.some(x => !x.permitted && !x.forbidden);
+  const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager(collection));
 
   const handleSwitchChange = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
@@ -81,7 +72,7 @@ export function FreezeSelectStepItem() {
     }
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canUpdateCollectionApprovals: permissions
       }
@@ -104,9 +95,20 @@ export function FreezeSelectStepItem() {
     </>
   }
 
-  const completelyFrozen = overallHasForbiddenTimes && !overallHasNeutralTimes && !overallHasPermittedTimes;
-  const mintFrozen = mintHasForbiddenTimes && !mintHasNeutralTimes && !mintHasPermittedTimes;
-  const nonMintFrozen = !completelyFrozen && !mintFrozen && overallHasForbiddenTimes;
+  const completelyFrozen = isCompletelyForbidden(permissionDetails);
+  const mintPermissionDetails = getPermissionDetails(
+    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, 'Mint')),
+    ApprovalPermissionUsedFlags,
+    neverHasManager(collection),
+  )
+  const nonMintPermissionDetails = getPermissionDetails(
+    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && !isInAddressMapping(x.fromMapping, 'Mint')),
+    ApprovalPermissionUsedFlags,
+    neverHasManager(collection),
+  )
+
+  const mintFrozen = !completelyFrozen && isCompletelyForbidden(mintPermissionDetails);
+  const nonMintFrozen = !completelyFrozen && !mintFrozen && isCompletelyForbidden(nonMintPermissionDetails);
 
   const nonMintFrozenButMintUnfrozen = !completelyFrozen && nonMintFrozen && !mintFrozen;
   const mintFrozenButNonMintUnfrozen = !completelyFrozen && mintFrozen && !nonMintFrozen;
@@ -123,9 +125,9 @@ export function FreezeSelectStepItem() {
         permissionName="canUpdateCollectionApprovals"
         node={<>
           <br />
-          {unlockedBadgeIds.length > 0 && <>
+          {badgesIdsWithUnlockedSupply.length > 0 && <>
             <div className='primary-text' style={{ color: 'orange', textAlign: 'center' }}>
-              <InfoCircleOutlined style={{ marginRight: 4 }} /> Note that you have selected to be able to create more of the following badges: {getBadgeIdsString(unlockedBadgeIds)}.
+              <InfoCircleOutlined style={{ marginRight: 4 }} /> Note that you have selected to be able to create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
               Please make sure the transferability of these badges is either a) set to not frozen or b) pre-handled via the previously selected transferability.
 
             </div>
@@ -166,9 +168,7 @@ export function FreezeSelectStepItem() {
                 handleSwitchChange(idx, false);
               }
             }}
-
           />
-
         </>
         }
       />

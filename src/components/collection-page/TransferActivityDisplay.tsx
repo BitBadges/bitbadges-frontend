@@ -1,5 +1,7 @@
+import { DeleteOutlined } from '@ant-design/icons';
 import { Col, Collapse, Divider, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
+import { deepCopy } from 'bitbadgesjs-proto';
 import { TransferActivityInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -11,20 +13,17 @@ import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
-import { TransferDisplay } from '../transfers/TransferDisplay';
-import { DeleteOutlined } from '@ant-design/icons';
-import IconButton from '../display/IconButton';
-import { deepCopy } from 'bitbadgesjs-proto';
 import { Pagination } from '../common/Pagination';
+import IconButton from '../display/IconButton';
+import { TransferDisplay } from '../transfers/TransferDisplay';
 
 export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated }: {
   activity: TransferActivityInfo<DesiredNumberType>[],
-  fetchMore: () => void,
+  fetchMore: () => Promise<void>,
   hasMore: boolean,
   onDelete?: (idx: number) => void
   paginated?: boolean
 }) {
-  activity = deepCopy(activity);
   const accounts = useAccountsContext();
 
   const router = useRouter();
@@ -32,13 +31,13 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
   const [numShown, setNumShown] = useState(10);
   const [currPage, setCurrPage] = useState(1);
 
-  const fetchMoreWrapper = () => {
-
+  //Shows 10 at a time even if we have like length 1000 activity
+  //Only fetches more from source when we have run out of +10s
+  const fetchMoreWrapper = async () => {
     if (activity.length > numShown) {
-      console.log("setting num shown");
       setNumShown(Math.min(numShown + 10, activity.length));
     } else {
-      fetchMore();
+      await fetchMore();
       setNumShown(numShown + 10);
     }
   }
@@ -80,10 +79,6 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
         : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
     </div>
   }
-
-  console.log(hasMore, numShown, activity.length);
-  console.log(hasMore || numShown < activity.length);
-  console.log(activity);
 
   const CollapseComponent = <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}

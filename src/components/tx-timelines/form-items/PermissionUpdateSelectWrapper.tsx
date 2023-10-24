@@ -3,7 +3,7 @@ import { Divider, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
 import { PermissionsOverview } from '../../collection-page/PermissionsInfo';
@@ -11,6 +11,7 @@ import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
+import { ErrDisplay } from './ErrDisplay';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -33,10 +34,10 @@ export function PermissionUpdateSelectWrapper({
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
 
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
-  const [jsonErr, setJsonErr] = useState<string>('');
+  const [jsonErr, setJsonErr] = useState<Error | null>(null)
 
   const isMint = !existingCollectionId;
 
@@ -121,11 +122,7 @@ export function PermissionUpdateSelectWrapper({
   return (
     <>
       <div className='primary-text flex-center flex-column' >
-
-
         <div style={{ alignItems: 'center', }} className='flex-center'>
-
-
           {checked &&
             <IconButton
               src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
@@ -163,7 +160,7 @@ export function PermissionUpdateSelectWrapper({
                   const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                   collections.updateCollection({
-                    collectionId: MSG_PREVIEW_ID,
+                    collectionId: NEW_COLLECTION_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: existingPermissions
@@ -171,7 +168,7 @@ export function PermissionUpdateSelectWrapper({
                   });
                 } else if (collection && !startingCollection) {
                   collections.updateCollection({
-                    collectionId: MSG_PREVIEW_ID,
+                    collectionId: NEW_COLLECTION_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
                       [`${permissionName}`]: []
@@ -194,7 +191,7 @@ export function PermissionUpdateSelectWrapper({
                 const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                 collections.updateCollection({
-                  collectionId: MSG_PREVIEW_ID,
+                  collectionId: NEW_COLLECTION_ID,
                   collectionPermissions: {
                     ...collection.collectionPermissions,
                     [`${permissionName}`]: existingPermissions
@@ -218,16 +215,13 @@ export function PermissionUpdateSelectWrapper({
                 isSelected: true,
                 additionalNode: <>
                   <PermissionsOverview
-                    collectionId={MSG_PREVIEW_ID}
+                    collectionId={NEW_COLLECTION_ID}
                     permissionName={permissionName}
                   />
                 </>,
-              },
-              ]}
+              }]}
               onSwitchChange={() => { }}
             />
-
-
           </div>
         </>}
 
@@ -238,9 +232,7 @@ export function PermissionUpdateSelectWrapper({
           isPermissionUpdate
         />
 
-        {jsonErr && <div className='flex-center' style={{ color: 'red' }}>
-          {jsonErr}
-        </div>}
+        {jsonErr && <ErrDisplay err={jsonErr} />}
         <br />
         <Divider />
       </>}

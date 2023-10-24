@@ -27,6 +27,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
@@ -40,10 +41,8 @@ function PortfolioPage() {
 
   const { addressOrUsername } = router.query;
   const accountInfo = typeof addressOrUsername === 'string' ? accounts.getAccount(addressOrUsername) : undefined;
-  const [tab, setTab] = useState(
-    accountInfo?.readme ? 'overview' :
-      'collected');
-  // const [badgeTab, setBadgeTab] = useState('Pinned Badges');
+  const [tab, setTab] = useState(accountInfo?.readme ? 'overview' : 'collected');
+
   const badgeTab = 'Pinned Badges';
   const [cardView, setCardView] = useState(true);
   const [filteredCollections, setFilteredCollections] = useState<{
@@ -58,11 +57,10 @@ function PortfolioPage() {
 
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
-  // const [showHidden, setShowHidden] = useState(false);
   const [searchValue, setSearchValue] = useState<string>('');
+
   const showHidden = false;
 
-  // const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
 
   const tabInfo = [];
   if (accountInfo?.readme) {
@@ -78,13 +76,11 @@ function PortfolioPage() {
     { key: 'reputation', content: 'Reviews' },
   )
 
-  if (accountInfo?.cosmosAddress === chain.cosmosAddress) {
+  if (accountInfo?.address === chain.address) {
     tabInfo.push(
       { key: 'hidden', content: 'Hidden', disabled: false },
     )
   }
-
-
 
   const badgePageTabInfo = [
     { key: 'collected', content: 'All', disabled: false },
@@ -95,6 +91,7 @@ function PortfolioPage() {
       badgePageTabInfo.push({ key: customPage.title, content: customPage.title, disabled: false });
     }
   }
+
   const SearchBar = <Input
     defaultValue=""
     placeholder="Filter by collection or badge"
@@ -106,7 +103,7 @@ function PortfolioPage() {
     style={{}}
   />;
 
-  const drop = <Dropdown
+  const FilterSearchDropdown = <Dropdown
     open={searchValue !== ''}
     placement="bottom"
     overlay={
@@ -146,16 +143,16 @@ function PortfolioPage() {
     if (!accountInfo) return;
 
     for (const id of filteredCollections) {
-      accounts.fetchBalanceForUser(id.collectionId, accountInfo?.cosmosAddress);
+      accounts.fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
   }, [filteredCollections]);
 
-  let badgesToShow = accounts.getBalancesView(accountInfo?.cosmosAddress ?? '', editMode ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
+  let badgesToShow = accounts.getBalancesView(accountInfo?.address ?? '', editMode ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
 
   if (filteredCollections.length > 0) {
     badgesToShow = [];
     for (const filteredCollection of filteredCollections) {
-      const balanceInfo = accounts.getAccount(accountInfo?.cosmosAddress ?? '')?.collected.find(x => x.collectionId === filteredCollection.collectionId);
+      const balanceInfo = accounts.getAccount(accountInfo?.address ?? '')?.collected.find(x => x.collectionId === filteredCollection.collectionId);
       if (balanceInfo) {
         const balancesToAdd = [];
         for (const balance of balanceInfo.balances) {
@@ -183,7 +180,7 @@ function PortfolioPage() {
     if (!accountInfo) return;
 
     if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-      await accounts.fetchNextForViews(accountInfo.cosmosAddress, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
+      await accounts.fetchNextForViews(accountInfo.address, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
     }
 
     if (!groupByCollection) {
@@ -278,7 +275,7 @@ function PortfolioPage() {
       }
     }
     setNumTotalBadges(Numberify(total));
-  }, [accountInfo, editMode, showHidden, filteredCollections, badgesToShow]);
+  }, [accountInfo, editMode, showHidden, filteredCollections]);
 
   const [reactElement, setReactElement] = useState<ReactElement | null>(null);
 
@@ -346,7 +343,7 @@ function PortfolioPage() {
 
           <br />
           <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-            {chain.cosmosAddress === accountInfo.cosmosAddress && chain.loggedIn && (
+            {chain.address === accountInfo.address && chain.loggedIn && (
               <div className='primary-text inherit-bg' style={{
                 float: 'right',
                 display: 'flex',
@@ -455,7 +452,7 @@ function PortfolioPage() {
                   marginTop: 5,
                   flexGrow: 1
                 }}>
-                {drop}
+                {FilterSearchDropdown}
 
               </div>
             </>}
@@ -640,14 +637,6 @@ function PortfolioPage() {
             </Select>
           </div>
           <Divider />
-          {/* <div className='primary-text' style={{ fontSize: 14, textAlign: 'center' }}>
-              <InfoCircleOutlined style={{ marginRight: 8 }} />
-              Soft included / excluded means that the address is in the list, but the address was not explicitly added to the list.
-              <br />
-              <br />
-              For example, abc.eth would be soft included in the following list: all addresses except xyz.eth.
-            </div>
-            <br /> */}
           <div className='flex-center flex-wrap'>
             <InfiniteScroll
               dataLength={listsView.length}
@@ -688,11 +677,12 @@ function PortfolioPage() {
             )}
           </div>
         </>)}
+        
         {tab === 'reputation' && (<>
           <ReputationTab
             reviews={accountInfo?.reviews ?? []}
             fetchMore={async () => {
-              await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestReviews']);
+              await accounts.fetchNextForViews(accountInfo?.address ?? '', ['latestReviews']);
             }}
             hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
             addressOrUsername={accountInfo?.address ?? ''}
@@ -704,9 +694,9 @@ function PortfolioPage() {
         {tab === 'activity' && (<>
           <br />
           <ActivityTab
-            activity={accounts.getActivityView(accountInfo?.cosmosAddress ?? '', 'latestActivity') ?? []}
+            activity={accounts.getActivityView(accountInfo?.address ?? '', 'latestActivity') ?? []}
             fetchMore={async () => {
-              await accounts.fetchNextForViews(accountInfo?.cosmosAddress ?? '', ['latestActivity']);
+              await accounts.fetchNextForViews(accountInfo?.address ?? '', ['latestActivity']);
             }}
             hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
           />

@@ -1,28 +1,28 @@
 import { InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Col, Divider, Input, Radio, Row, Switch, Tag, Tooltip, Typography } from 'antd';
-import { AddressMapping, Balance, MustOwnBadges, Numberify, UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, castBalancesActionPermissionToUniversalPermission, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, invertUintRanges, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { Col, Input, Radio, Row, Switch, Tag, Tooltip, Typography } from 'antd';
+import { AddressMapping, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
+import { ApprovalCriteriaWithDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalHasApprovalAmounts } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
-import { AddressMappingSelect } from '../address/AddressMappingSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { BadgeIdRangesInput } from '../inputs/BadgeIdRangesInput';
-import { BalanceAmountInput } from '../inputs/BalanceAmountInput';
 import { BalanceInput } from '../inputs/BalanceInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
+import { AddressMappingSelectComponent } from './ApprovalSelectHelpers/AddressMappingSelectComponent';
+import { ApprovalAmounts } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
+import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
+import { OrderCalculationMethod } from './ApprovalSelectHelpers/OrderCalculationComponent';
 
 const crypto = require('crypto');
 
@@ -42,7 +42,8 @@ export enum PredeterminedType {
   Same,
 }
 
-type RequiredApprovalProps = CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> };
+export type RequiredApprovalProps = CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> };
+
 //Get minimum value but ignore 0 values 
 const minNonZeroValue = (values: bigint[]) => {
   let min = GO_MAX_UINT_64;
@@ -54,7 +55,9 @@ const minNonZeroValue = (values: bigint[]) => {
   return min;
 }
 
-const getMaxIncrementsApplied = (
+//Gets the max increments applied to the approval
+//Basicallly, it is the minimum value set for overall max uses and the selected usePer max uses (where applicable)
+export const getMaxIncrementsApplied = (
   approvalToAdd: RequiredApprovalProps,
 ) => {
   const checkedKeyId = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(([, val]) => val === true)?.[0];
@@ -73,7 +76,7 @@ const getMaxIncrementsApplied = (
 }
 
 
-const getAllApprovedBadges = (
+export const getAllApprovedBadges = (
   approvalToAdd: RequiredApprovalProps,
   amountType: AmountType,
   startBalances: Balance<bigint>[],
@@ -86,16 +89,6 @@ const getAllApprovedBadges = (
     const allApprovedBadges = sortUintRangesAndMergeIfNecessary(getAllBalancesToBeTransferred([
       {
         from: '',
-        merkleProofs: [],
-        precalculateBalancesFromApproval: {
-          approvalId: '',
-          approvalLevel: '',
-          approverAddress: '',
-        },
-        memo: '',
-        prioritizedApprovals: [],
-        onlyCheckPrioritizedApprovals: false,
-
         balances: startBalances.map(x => { return { ...x, amount: 1n } }),
         toAddressesLength: maxIncrementsApplied,
         toAddresses: [],
@@ -107,453 +100,7 @@ const getAllApprovedBadges = (
   }
 }
 
-const OrderCalculationMethod = ({ approvalToAdd,
-  setApprovalToAdd,
-  distributionMethod,
-  codeType,
-  increment,
-  startBalances,
-  collectionId,
-  amountType,
 
-  keyId, label }:
-  {
-    amountType: AmountType,
-    distributionMethod: DistributionMethod, codeType: CodeType, increment: bigint, startBalances: Balance<bigint>[], collectionId: bigint,
-    setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
-    approvalToAdd: RequiredApprovalProps, label: string, keyId: 'useOverallNumTransfers' | 'usePerToAddressNumTransfers' | 'usePerFromAddressNumTransfers' | 'usePerInitiatedByAddressNumTransfers' | 'useMerkleChallengeLeafIndex'
-
-  }) => {
-  const checked = approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod?.[keyId] || false;
-  const setChecked = (checked: boolean) => {
-    setApprovalToAdd({
-      ...approvalToAdd,
-      approvalCriteria: {
-        ...approvalToAdd.approvalCriteria,
-        predeterminedBalances: {
-          ...approvalToAdd.approvalCriteria.predeterminedBalances,
-          orderCalculationMethod: {
-            ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-            useMerkleChallengeLeafIndex: false,
-            useOverallNumTransfers: false,
-            usePerFromAddressNumTransfers: false,
-            usePerInitiatedByAddressNumTransfers: false,
-            usePerToAddressNumTransfers: false,
-            [keyId]: checked,
-          }
-        }
-      }
-    });
-
-  }
-
-  const somethingElseChecked = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).some(([key, val]) => key !== keyId && val === true);
-  if (somethingElseChecked) return <></>
-
-  let maxUsesErrorMessage = '';
-  if ((keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
-    maxUsesErrorMessage = 'To calculate number of partitions, you must set an overall max uses.';
-  } else if (keyId === 'usePerFromAddressNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers === 0n && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
-    maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per sender.';
-  } else if (keyId === 'usePerInitiatedByAddressNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers === 0n && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
-    maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per initiator.';
-  } else if (keyId === 'usePerToAddressNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers === 0n && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
-    maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per recipient.';
-  }
-
-  const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
-
-  return <><TableRow labelSpan={16} valueSpan={8} label={label} value={<>
-    <Switch
-      disabled={keyId === 'useMerkleChallengeLeafIndex' && distributionMethod !== DistributionMethod.Codes && distributionMethod !== DistributionMethod.Whitelist}
-      checked={checked}
-      onChange={(checked) => {
-        setChecked(checked);
-      }}
-    />
-  </>
-  } />
-    {
-      <div style={{ textAlign: 'start', marginLeft: 10, marginBottom: 10 }}>
-        <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
-          <InfoCircleOutlined />
-          {keyId == 'useOverallNumTransfers' ? ' First use of this approval will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates.' : ''}
-          {keyId == 'usePerFromAddressNumTransfers' ? ' Each unique sender will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
-          {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique initiator will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
-          {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
-          {keyId == 'useMerkleChallengeLeafIndex' ?
-            distributionMethod === DistributionMethod.Whitelist ? ' Reserve specific partitions for specific whitelisted users.' :
-              distributionMethod === DistributionMethod.Codes ? codeType === CodeType.Unique ?
-                ' Reserve specific partitions for specific codes.' :
-                ' Reserve specific partitions for specific passwords.' :
-                ' Reserve specific partitions for specific users / codes.' : ''}
-        </Typography.Text>
-      </div>
-    }
-    {checked && <>
-      <hr />
-      <b style={{ fontSize: 16 }}> Number of Partitions</b>
-      <br />
-      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
-        <InfoCircleOutlined /> The number of partitions is calculated according to how many times users can send, receive, and / or initiate.
-        Note the Max Uses selections are the same as above in the address boxes.
-      </Typography.Text>
-      <br />
-
-      <br />
-      {<div style={{}}>
-        {maxUsesErrorMessage && <div style={{ color: 'red' }}>{maxUsesErrorMessage}</div>}
-        {!maxUsesErrorMessage && <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>Total Partitions: {maxIncrementsApplied.toString()}</Typography.Text>}
-        <br />
-        <br />
-      </div>}
-
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-
-        label={'Max uses (all cumulatively)'} type='overall' disabled={distributionMethod === DistributionMethod.Codes} />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-
-        label={'Max uses per initiator'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable} />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-
-        label={'Max uses per sender'} type='from' disabled />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-        label={'Max uses per recipient'} type='to' />
-      <br />
-
-      {maxIncrementsApplied > 0n && !maxUsesErrorMessage && <>
-        <hr />
-        <b style={{ fontSize: 16 }}> Amounts and IDs per Partition</b>
-        <br />
-        {(increment ? increment : 0) > 0 && <div style={{ textAlign: 'center', margin: 10 }}>
-          {<div>
-            {<div className='flex-center'>
-              <NumberInput
-
-                value={increment ? Numberify(increment.toString()) : 0}
-                setValue={(value) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    approvalCriteria: {
-                      ...approvalToAdd.approvalCriteria,
-                      predeterminedBalances: {
-                        ...approvalToAdd.approvalCriteria.predeterminedBalances,
-                        incrementedBalances: {
-                          ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                          incrementBadgeIdsBy: BigInt(value),
-                        }
-                      }
-                    }
-                  });
-                }}
-                min={1}
-                title="IDs Increment"
-              />
-
-              <div style={{ textAlign: 'center', margin: 10 }}>
-                <BalanceAmountInput
-                  title={'Amount'}
-                  balances={startBalances}
-                  setBalances={(balances) => {
-                    setApprovalToAdd({
-                      ...approvalToAdd,
-                      approvalCriteria: {
-                        ...approvalToAdd.approvalCriteria,
-                        predeterminedBalances: {
-                          ...approvalToAdd.approvalCriteria.predeterminedBalances,
-                          incrementedBalances: {
-                            ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                            startBalances: balances,
-                          }
-                        }
-                      }
-                    });
-                  }}
-                />
-              </div>
-            </div>}
-          </div>}
-        </div>}
-
-        <div style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div>
-            <div style={{ marginLeft: 8 }}>
-              {increment === 0n && 'Each use of this approval will transfer the following badges: '}
-              {increment ? `Partition #1 = x${startBalances[0].amount} of ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat())}.` : ''}
-            </div>
-
-            {maxIncrementsApplied > 1n &&
-              <div style={{ marginLeft: 8 }}>
-
-                {increment ? `Partition #2 = x${startBalances[0].amount} of ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat().map(x => { return { start: x.start + increment, end: x.end + increment } }))}.` : ''}
-
-              </div>}
-
-            {maxIncrementsApplied > 2n &&
-              <div style={{ marginLeft: 8 }}>
-                <div style={{ marginLeft: 8 }}>
-                  ...
-                </div>
-                <div style={{ marginLeft: 8 }}>
-                  {increment ? `Partition #${maxIncrementsApplied} = x${startBalances[0].amount} of ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat().map(x => { return { start: x.start + increment * (maxIncrementsApplied - 1n), end: x.end + increment * (maxIncrementsApplied - 1n) } }))}.` : ''}
-                </div>
-              </div>}
-          </div>
-        </div>
-        <br />
-        <hr />
-        <BalanceDisplay
-          message={'Approved Badges - All Partitions'}
-          collectionId={collectionId}
-          balances={startBalances}
-          incrementBadgeIdsBy={increment}
-          numIncrements={maxIncrementsApplied}
-        />
-      </>}
-    </>
-    }
-  </>
-}
-
-
-const AddressMappingSelectComponent = ({
-  approvalToAdd, setApprovalToAdd,
-  type, disabled,
-  collectionId,
-  nonMintOnlyApproval
-}: {
-  approvalToAdd: RequiredApprovalProps, setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
-  type: 'to' | 'from' | 'initiatedBy', disabled?: boolean, storedOffChain?: boolean,
-  collectionId: bigint
-  nonMintOnlyApproval?: boolean
-}) => {
-  const collections = useCollectionsContext();
-
-  const key = type === 'to' ? 'toMapping' : type === 'initiatedBy' ? 'initiatedByMapping' : 'fromMapping';
-  const idKey = type === 'to' ? 'toMappingId' : type === 'initiatedBy' ? 'initiatedByMappingId' : 'fromMappingId';
-
-  const mapping = approvalToAdd[key];
-  const setMapping = (mapping: AddressMapping) => {
-
-    setApprovalToAdd({
-      ...approvalToAdd,
-      [key]: mapping,
-      [idKey]: mapping.mappingId,
-    });
-  }
-
-  const collection = collections.getCollection(collectionId);
-  const lockedBadges = getPermissionDetails(
-    castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []),
-    BalancesActionPermissionUsedFlags
-  );
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
-  const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
-
-  return <>
-    <AddressMappingSelect
-      addressMapping={mapping}
-      setAddressMapping={setMapping}
-      disabled={disabled}
-      showErrorOnEmpty
-      allowMintSearch={type === 'from'}
-    />
-    {!disabled && <>
-      <div className=''>
-        <InfoCircleOutlined /> Each added address increases your transaction fee{type === 'initiatedBy' && mapping.includeAddresses ? ' if stored on-chain' : ''}.
-      </div> </>}
-
-    {key === 'fromMapping' && approvalToAdd.fromMappingId === 'Mint' && <>
-      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
-        <InfoCircleOutlined /> Below is the current balances of the Mint address (including any newly created badges).
-        {unlockedBadgeIds.length > 0 && <>
-          Also, note that you have selected to be able to create more badges in the future for the following IDs: {getBadgeIdsString(unlockedBadgeIds)}.</>}
-      </Typography.Text>
-      <BalanceDisplay
-        message={'Unminted Balances'}
-        hideMessage
-        hideBadges
-        collectionId={collectionId}
-        balances={collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances || []}
-      />
-    </>
-    }
-    {key === 'fromMapping' && nonMintOnlyApproval && isInAddressMapping(mapping, 'Mint') && <>
-      <div style={{ color: 'red' }}>
-        <WarningOutlined /> Please remove the Mint address from the list of possible senders.
-      </div>
-    </>}
-    <Divider />
-  </>
-}
-
-const MaxUses = ({ label, disabled, type,
-  approvalToAdd, setApprovalToAdd, amountType, codeType, distributionMethod,
-  isCodeDisplay,
-  isPasswordDisplay,
-}: {
-  type: 'overall' | 'to' | 'initiatedBy' | 'from', label: ReactNode, disabled?: boolean
-  approvalToAdd: RequiredApprovalProps, setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
-  amountType: AmountType, codeType: CodeType, distributionMethod: DistributionMethod,
-  isCodeDisplay?: boolean, isPasswordDisplay?: boolean
-}) => {
-  const key = type === 'overall' ? 'overallMaxNumTransfers' : type === 'to' ? 'perToAddressMaxNumTransfers' : type === 'initiatedBy' ? 'perInitiatedByAddressMaxNumTransfers' : 'perFromAddressMaxNumTransfers';
-  const numUses = approvalToAdd?.approvalCriteria?.maxNumTransfers?.[key] || 0n;
-  const setNumUses = (numUses: bigint) => {
-    setApprovalToAdd({
-      ...approvalToAdd,
-      approvalCriteria: {
-        ...approvalToAdd.approvalCriteria,
-        maxNumTransfers: {
-          ...approvalToAdd.approvalCriteria.maxNumTransfers,
-          [key]: numUses,
-        }
-      }
-    });
-  }
-
-  let greaterThanOverall = false;
-  if (approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers > 0n) {
-    if (type === 'to') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers > approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers;
-    } else if (type === 'initiatedBy') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers > approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers;
-    } else if (type === 'from') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers > approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers;
-    }
-  }
-
-  const trackedBehindTheScenes =
-    (key === 'overallMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) ||
-    (key === 'perFromAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers === 0n) ||
-    (key === 'perInitiatedByAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers === 0n) ||
-    (key === 'perToAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers === 0n)
-  return <> <TableRow labelSpan={16} valueSpan={8} label={<>
-    {label} <Tooltip color='black' title="Max uses = the maximum number of times this approval can be used.">
-      <InfoCircleOutlined />
-    </Tooltip>
-
-  </>} value={<>
-    <Switch
-      checked={numUses > 0n}
-      onChange={(checked) => {
-        setNumUses(checked ? 1n : 0n);
-      }}
-      disabled={disabled || isCodeDisplay || isPasswordDisplay}
-    />
-  </>
-  } />
-    {trackedBehindTheScenes && <div style={{ marginLeft: 10, textAlign: 'start' }}>
-      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
-        <InfoCircleOutlined /> Even if no max is set, this value is tracked behind the scenes (due to the selected method of assigning partitions).
-      </Typography.Text>
-      <br /><br />
-    </div>}
-    {numUses > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
-      <NumberInput
-        title='Max Uses'
-        value={Number(numUses)}
-        disabled={disabled}
-        setValue={(val) => {
-          setNumUses(BigInt(val));
-        }}
-        min={1}
-        max={100000}
-      />
-      <br />
-      {disabled && <div style={{ marginLeft: 10 }}>
-
-        <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of ' + (codeType === CodeType.Unique ? 'codes.' : 'password uses.') : ''}
-        {type !== 'overall' && <>
-          Locked due to distribution method: {distributionMethod === DistributionMethod.Codes ?
-            codeType === CodeType.Unique ? 'Codes' : 'Password' : distributionMethod}
-        </>}
-      </div>}
-      {isCodeDisplay && <div style={{ marginLeft: 10 }}>
-
-        {"This is the number of codes that will be generated."}
-      </div>}
-      {isPasswordDisplay && <div style={{ marginLeft: 10 }}>
-
-        {"This is the number of uses for the password."}
-      </div>}
-    </div>}
-    {greaterThanOverall && <div style={{ color: 'orange' }}>
-      <WarningOutlined /> The selected max uses is greater than the cumulative max uses.
-    </div>}
-  </>
-}
-
-const ApprovalAmounts = ({ label, disabled, type, approvalToAdd, setApprovalToAdd, collectionId }: {
-  type: 'overall' | 'to' | 'initiatedBy' | 'from', label: ReactNode, disabled?: boolean,
-  approvalToAdd: RequiredApprovalProps, setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
-  collectionId: bigint
-}) => {
-  const key = type === 'overall' ? 'overallApprovalAmount' : type === 'to' ? 'perToAddressApprovalAmount' : type === 'initiatedBy' ? 'perInitiatedByAddressApprovalAmount' : 'perFromAddressApprovalAmount';
-  const approvedAmount = approvalToAdd?.approvalCriteria?.approvalAmounts?.[key] || 0n;
-  const setApprovedAmount = (approvedAmount: bigint) => {
-    setApprovalToAdd({
-      ...approvalToAdd,
-      approvalCriteria: {
-        ...approvalToAdd.approvalCriteria,
-        approvalAmounts: {
-          ...approvalToAdd.approvalCriteria.approvalAmounts,
-          [key]: approvedAmount,
-        }
-      }
-    });
-  }
-
-  let greaterThanOverall = false;
-  if (approvalToAdd.approvalCriteria.approvalAmounts.overallApprovalAmount > 0n) {
-    if (type === 'to') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.approvalAmounts.perToAddressApprovalAmount > approvalToAdd.approvalCriteria.approvalAmounts.overallApprovalAmount;
-    } else if (type === 'initiatedBy') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.approvalAmounts.perInitiatedByAddressApprovalAmount > approvalToAdd.approvalCriteria.approvalAmounts.overallApprovalAmount;
-    } else if (type === 'from') {
-      greaterThanOverall = approvalToAdd.approvalCriteria.approvalAmounts.perFromAddressApprovalAmount > approvalToAdd.approvalCriteria.approvalAmounts.overallApprovalAmount;
-    }
-  }
-
-  return <> <TableRow labelSpan={16} valueSpan={8} label={label} value={<>
-    <Switch
-      checked={approvedAmount > 0n}
-      onChange={(checked) => {
-        setApprovedAmount(checked ? 1n : 0n);
-      }}
-      disabled={disabled}
-    />
-
-  </>
-  } />
-    {approvedAmount > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
-      <NumberInput
-
-        title='Max Amount Approved'
-        value={Number(approvedAmount)}
-        disabled={disabled}
-        setValue={(val) => {
-          setApprovedAmount(BigInt(val));
-        }}
-        min={1}
-        max={100000}
-      />
-      <BalanceDisplay
-        hideBadges
-
-        hideMessage collectionId={collectionId}
-        balances={[{ amount: approvedAmount, badgeIds: approvalToAdd.badgeIds, ownershipTimes: approvalToAdd.ownershipTimes }]} />
-    </div>}
-    
-    {greaterThanOverall && <div style={{ color: 'orange' }}>
-      <WarningOutlined /> The selected max amount is greater than the cumulative max amount.
-    </div>}
-  </>
-}
 
 
 export function ApprovalSelect({
@@ -689,7 +236,7 @@ export function ApprovalSelect({
   const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> }>(deepCopy(defaultApprovalToAdd));
 
   const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
-  
+
   const mustOwnBadges = approvalToAdd?.approvalCriteria?.mustOwnBadges || [];
   const setMustOwnBadges = (mustOwnBadges: MustOwnBadges<bigint>[]) => { setApprovalToAdd({ ...approvalToAdd, approvalCriteria: { ...approvalToAdd.approvalCriteria, mustOwnBadges } }) };
 
@@ -705,9 +252,6 @@ export function ApprovalSelect({
 
   const ownedTimesOverlap = checkIfUintRangesOverlap(approvalToAdd?.ownershipTimes || []);
   const ownedTimesLengthEqualsZero = approvalToAdd?.ownershipTimes.length === 0;
-
-
-
 
   const [amountType, setAmountType] = useState<AmountType>(AmountType.Tally);
 
@@ -842,8 +386,9 @@ export function ApprovalSelect({
             {requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy && <div style={{ color: 'red' }}>Sender cannot be both initiator and not initiator.</div>}
 
             <MaxUses
+              disabled={fromMappingLocked}
               approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-              label={'Max uses per sender'} type='from' disabled />
+              label={'Max uses per sender'} type='from' />
 
 
           </InformationDisplayCard>
@@ -952,7 +497,7 @@ export function ApprovalSelect({
               </>
               } />}
 
-            {distributionMethod !== DistributionMethod.Codes && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
+            {distributionMethod !== DistributionMethod.Codes && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
 
               <Typography.Text strong className='secondary-text' style={{ fontSize: 12 }}>
                 <InfoCircleOutlined /> {distributionMethod === DistributionMethod.Whitelist ? "Incompatible with off-chain whitelists."
@@ -1480,7 +1025,7 @@ export function ApprovalSelect({
                 />
               </>}
             {!autoGenerateIds && <div style={{ textAlign: 'center' }}>
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', color: 'orange' }}>
                 <br />
                 <span style={{ marginLeft: 8 }}>
                   <InfoCircleOutlined /> Editing IDs is advanced and not recommended. Learn more <a href='https://docs.bitbadges.io/for-developers/concepts/approval-criteria' target='_blank'>here</a>.
@@ -1575,9 +1120,11 @@ export function ApprovalSelect({
 
           newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
         } else if (distributionMethod === DistributionMethod.Whitelist) {
-          const toAddresses = approvalToAdd.toMapping.addresses;
+          const toAddresses = approvalToAdd.initiatedByMapping.addresses;
           newApprovalToAdd.initiatedByMapping = getReservedAddressMapping("AllWithMint");
           newApprovalToAdd.initiatedByMappingId = "AllWithMint";
+
+          console.log("toAddresses", toAddresses);
 
           addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
           const treeOptions = { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
@@ -1638,6 +1185,11 @@ export function ApprovalSelect({
           newApprovalToAdd.approvalId = amountTrackerId.current;
           newApprovalToAdd.challengeTrackerId = amountTrackerId.current;
         }
+
+        if (!newApprovalToAdd.details?.name && !newApprovalToAdd.details?.description && !newApprovalToAdd.details?.challengeDetails.leavesDetails.leaves.length) {
+          newApprovalToAdd.details = undefined;
+        }
+
 
         if (amountType === AmountType.Predetermined) {
           //We have been using approvalToAdd.badgeIds as the start badges, but we need to now set this to all possible badges

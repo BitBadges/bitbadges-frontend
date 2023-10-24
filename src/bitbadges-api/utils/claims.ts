@@ -1,7 +1,7 @@
-import { ApprovalAmounts, MaxNumTransfers, NumberType } from "bitbadgesjs-proto";
+import { ApprovalAmounts, MaxNumTransfers } from "bitbadgesjs-proto";
 import { ApprovalCriteriaWithDetails } from "bitbadgesjs-utils";
 
-export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: ApprovalCriteriaWithDetails<NumberType>) {
+export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>) {
   if (!approvalCriteria || !approvalCriteria.predeterminedBalances) {
     return false;
   }
@@ -10,30 +10,16 @@ export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: App
     || approvalCriteria.predeterminedBalances.manualBalances.length > 0);
 }
 
-export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<NumberType>) {
-  return (
-    !approvalCriteria ||
-    (!approvalCriteria.approvalAmounts || (
-      approvalCriteria.approvalAmounts.overallApprovalAmount == 0n &&
-      approvalCriteria.approvalAmounts.perFromAddressApprovalAmount == 0n &&
-      approvalCriteria.approvalAmounts.perInitiatedByAddressApprovalAmount == 0n &&
-      approvalCriteria.approvalAmounts.perToAddressApprovalAmount == 0n
-    )) &&
-    (!approvalCriteria.maxNumTransfers || (
-      approvalCriteria.maxNumTransfers.overallMaxNumTransfers == 0n &&
-      approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers == 0n &&
-      approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers == 0n &&
-      approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers == 0n
-    )) &&
-    (!approvalCriteria.predeterminedBalances || (
-      approvalCriteria.predeterminedBalances.incrementedBalances.startBalances.length == 0 &&
-      approvalCriteria.predeterminedBalances.manualBalances.length == 0
-    ))
-  );
+export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>) {
+  if (!approvalCriteria) return true;
+
+  return !approvalHasApprovalAmounts(approvalCriteria.approvalAmounts)
+    && !approvalHasMaxNumTransfers(approvalCriteria.maxNumTransfers)
+    && !approvalCriteriaUsesPredeterminedBalances(approvalCriteria)
 }
 
 
-export function approvalCriteriaHasNoAdditionalRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<NumberType>, allowMintOverrides?: boolean) {
+export function approvalCriteriaHasNoAdditionalRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>, allowMintOverrides?: boolean) {
   return (!approvalCriteria || (
     !approvalCriteria.requireFromDoesNotEqualInitiatedBy
     && !approvalCriteria.requireFromDoesNotEqualInitiatedBy

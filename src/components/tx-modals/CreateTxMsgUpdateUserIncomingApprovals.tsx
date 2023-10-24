@@ -27,8 +27,6 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
     getApproveeBalance();
   }, []);
 
-  console.log(newIncomingApprovals);
-
 
   const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,

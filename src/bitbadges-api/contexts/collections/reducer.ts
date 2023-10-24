@@ -1,6 +1,6 @@
 import { BitBadgesCollection, DesiredNumberType, batchUpdateBadgeMetadata, convertBitBadgesCollection } from "bitbadgesjs-utils";
 import { compareObjects } from "../../../utils/compare";
-import { MSG_PREVIEW_ID } from "../TxTimelineContext";
+import { NEW_COLLECTION_ID } from "../TxTimelineContext";
 import { CollectionReducerState, initialState } from "./CollectionsContext";
 import { BigIntify, Stringify, deepCopy } from "bitbadgesjs-proto";
 
@@ -60,7 +60,7 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
       views: newViews,
     };
 
-    if (cachedCollection.collectionId === MSG_PREVIEW_ID) {
+    if (cachedCollection.collectionId === NEW_COLLECTION_ID) {
       //Filter out fetchedAt and fetchedAtBlock 
       delete cachedCollection.cachedCollectionMetadata?.fetchedAt;
       delete cachedCollection.cachedCollectionMetadata?.fetchedAtBlock;
@@ -79,6 +79,13 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
     cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
 
+    //Sort activity, history etc
+    cachedCollection.activity = cachedCollection.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+    cachedCollection.reviews = cachedCollection.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+    cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+    cachedCollection.updateHistory = cachedCollection.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? -1 : 1)
+
+    
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
       return {

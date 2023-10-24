@@ -1,44 +1,46 @@
 import { Avatar, Divider } from "antd";
-import { convertToCosmosAddress, getCurrentValueForTimeline, validateManagerUpdate } from "bitbadgesjs-utils";
+import { convertToCosmosAddress, getCurrentValueForTimeline } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { useAccountsContext } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useAccountsContext } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { AddressDisplay } from "../../address/AddressDisplay";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 
 export function ConfirmManagerStepItem() {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const canUpdateManager = txTimelineContext.updateManagerTimeline;
   const setCanUpdateManager = txTimelineContext.setUpdateManagerTimeline;
-  const startingCollection = txTimelineContext.startingCollection;
 
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
   const signedInAccount = accounts.getAccount(chain.address);
   const currentManagerAccount = accounts.getAccount(currentManager);
+
   const [address, setAddress] = useState<string>(currentManagerAccount?.address || signedInAccount?.address || '');
-  const hasManager = collection?.managerTimeline.some(x => x.manager) ?? false
+  const [err, setErr] = useState<Error | null>(null);
+
+
+
 
   useEffect(() => {
     setAddress(currentManagerAccount?.address || signedInAccount?.address || '');
-  }, [currentManagerAccount, signedInAccount])
+  }, [currentManagerAccount?.address, signedInAccount?.address])
 
   if (!collection) return EmptyStepItem;
 
-  const err = startingCollection ? validateManagerUpdate(startingCollection.managerTimeline, collection.managerTimeline, startingCollection.collectionPermissions.canUpdateManager) : undefined;
-
+  const hasManager = !neverHasManager(collection);
 
 
   return {
@@ -51,11 +53,11 @@ export function ConfirmManagerStepItem() {
     </>,
     node:
       <UpdateSelectWrapper
+        setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateManager}
         setUpdateFlag={setCanUpdateManager}
         jsonPropertyPath="managerTimeline"
         permissionName="canUpdateManager"
-        validationErr={err}
         node={
 
           <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
@@ -68,19 +70,17 @@ export function ConfirmManagerStepItem() {
                 marginTop: 20,
               }}
             >
-
-
               <SwitchForm
                 showCustomOption
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       managerTimeline: [],
                     })
                   } else {
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       managerTimeline: [{
                         manager: convertToCosmosAddress(address),
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -117,13 +117,6 @@ export function ConfirmManagerStepItem() {
                           />
                         }
                       />
-
-                      <AddressDisplay
-                        addressOrUsername={currentManager}
-                        hidePortfolioLink
-                      />
-
-
                       <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
                         <AddressSelect
                           defaultValue={address}
@@ -131,7 +124,7 @@ export function ConfirmManagerStepItem() {
                             console.log("USER SELECT")
                             setAddress(address);
                             collections.updateCollection({
-                              collectionId: MSG_PREVIEW_ID,
+                              collectionId: NEW_COLLECTION_ID,
                               managerTimeline: [{
                                 manager: convertToCosmosAddress(address),
                                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -144,7 +137,6 @@ export function ConfirmManagerStepItem() {
                       <div className="flex-center">
                         <PermissionsOverview
                           span={24}
-
                           tbd
                           collectionId={collection.collectionId}
                         />
@@ -156,10 +148,6 @@ export function ConfirmManagerStepItem() {
                 },
                 ]}
               />
-
-
-
-
             </div>
             <DevMode obj={collection.managerTimeline} />
           </div >

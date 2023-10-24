@@ -83,39 +83,6 @@ function BrowsePage() {
           {!browseInfo && <Spin size='large' />}
           <div className='full-width'>
             <br />
-            {/* 
-            <div className='primary-text primary-blue-bg'
-              style={{
-                float: 'right',
-                display: 'flex',
-                alignItems: 'center',
-                marginLeft: 16,
-                marginRight: 16,
-                marginTop: 5,
-              }}>
-              View:
-
-              <Select
-                className="selector primary-text primary-blue-bg"
-                value={cardView ? 'card' : 'image'}
-                placeholder="Default: None"
-                onChange={(e: any) => {
-                  setCardView(e === 'card');
-                }}
-                style={{
-                  float: 'right',
-                  marginLeft: 8
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-              >
-                <Select.Option value="card">Card</Select.Option>
-                <Select.Option value="image">Image</Select.Option>
-              </Select>
-            </div> */}
 
             <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
               Profiles

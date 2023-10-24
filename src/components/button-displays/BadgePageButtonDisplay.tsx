@@ -86,8 +86,6 @@ export function BadgeButtonDisplay({
             <FlagOutlined />
           </Avatar>
         </Tooltip>
-
-
       </div>
     </div>
   );

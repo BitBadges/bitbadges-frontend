@@ -15,7 +15,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
   announcements: AnnouncementInfo<bigint>[],
   collectionId?: bigint,
   hideCollection?: boolean,
-  fetchMore: () => void,
+  fetchMore: () => Promise<void>,
   hasMore: boolean
 }) {
   const chain = useChainContext();

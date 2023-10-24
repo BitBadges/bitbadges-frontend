@@ -1,30 +1,30 @@
-import { getFullIsArchivedTimeline, validateIsArchivedUpdate } from "bitbadgesjs-utils";
+import { getFullIsArchivedTimeline } from "bitbadgesjs-utils";
+import { useState } from "react";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { ErrDisplay } from "../form-items/ErrDisplay";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function IsArchivedSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
-  const startingCollection = txTimelineContext.startingCollection;
   const canArchiveCollection = txTimelineContext.updateIsArchivedTimeline;
   const setCanArchiveCollection = txTimelineContext.setUpdateIsArchivedTimeline;
 
+  const [err, setErr] = useState<Error | null>(null);
+
   if (!collection) return EmptyStepItem;
-  const err = startingCollection ? validateIsArchivedUpdate(startingCollection.isArchivedTimeline, collection.isArchivedTimeline, startingCollection.collectionPermissions.canArchiveCollection) : undefined;
 
   return {
     title: 'Archived Status',
-    description: <>{'Is this collection archived (read-only)?'}
-    </>,
+    description: <>{'Is this collection archived (read-only)?'}</>,
     disabled: !!err,
     node:
       <UpdateSelectWrapper
+        setErr={(err) => { setErr(err) }}
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}
         jsonPropertyPath="isArchivedTimeline"
@@ -40,7 +40,6 @@ export function IsArchivedSelectStepItem() {
                 alignItems: 'center',
               }}
             >
-              <ErrDisplay err={err} />
 
               <SwitchForm
                 // noSelectUntilClick
@@ -48,12 +47,12 @@ export function IsArchivedSelectStepItem() {
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       isArchivedTimeline: [],
                     })
                   } else {
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       isArchivedTimeline: [{
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                         isArchived: true,

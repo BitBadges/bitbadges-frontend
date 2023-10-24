@@ -1,28 +1,29 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { BitBadgesCollection, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { deepCopy } from "bitbadgesjs-proto";
+import { getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 
 export function DistributionMethodStepItem() {
 
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  // const approvals = txTimelineContext.approvalsToAdd;
-  // const transfers = txTimelineContext.transfers;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
-
   const isOffChainBalances = collection?.balancesType === "Off-Chain";
 
   const [visible, setVisible] = useState(false);
+  const [err, setErr] = useState<Error | null>(null);
+
   if (!collection) return EmptyStepItem;
 
   const DistributionComponent = <div>
@@ -34,16 +35,17 @@ export function DistributionMethodStepItem() {
               const approvalsToAdd = txTimelineContext.approvalsToAdd;
               const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
 
-              let isValidUpdateError = null;
+              let hasValidateUpdateError = null;
               if (startingCollection) {
-                isValidUpdateError = validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, postApprovalsToAdd, startingCollection.collectionPermissions.canUpdateCollectionApprovals);
+                hasValidateUpdateError = validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, postApprovalsToAdd, startingCollection.collectionPermissions.canUpdateCollectionApprovals);
               }
 
-              if (isValidUpdateError && confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + isValidUpdateError.message)) {
-                txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
-              } else if (!isValidUpdateError) {
-                txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+              if (hasValidateUpdateError && !confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + hasValidateUpdateError.message)) {
+                return;
               }
+
+              //Overwrite duplicate approval IDs
+              txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
             }}
             // onEdit={(approval: CollectionApprovalWithDetails<bigint>) => {
             //   const approvalsToAdd = txTimelineContext.approvalsToAdd;
@@ -54,7 +56,7 @@ export function DistributionMethodStepItem() {
             //   }
             // }}
             showDeletedGrayedOut
-            collectionId={MSG_PREVIEW_ID}
+            collectionId={NEW_COLLECTION_ID}
             onlyShowFromMint
             hideHelperMessage
             addMoreNode={<>
@@ -87,17 +89,20 @@ export function DistributionMethodStepItem() {
       {
         collection?.balancesType === "Off-Chain" ? DistributionComponent :
           <UpdateSelectWrapper
+            setErr={(err) => { setErr(err) }}
             updateFlag={updateCollectionApprovals}
             setUpdateFlag={setUpdateCollectionApprovals}
             jsonPropertyPath='collectionApprovals'
             permissionName='canUpdateCollectionApprovals'
             customRevertFunction={() => {
-              txTimelineContext.resetApprovalsToAdd();
+              const nonMintApprovals = getNonMintApprovals(deepCopy(collection) as BitBadgesCollection<bigint>);
+              txTimelineContext.setApprovalsToAdd(nonMintApprovals);
             }}
             mintOnly
             node={DistributionComponent}
           />
       }
-    </>
+    </>,
+    disabled: !collection || !!err
   }
 }

@@ -1,11 +1,11 @@
-import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ChooseControlTypeStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const completeControl = txTimelineContext.completeControl;
@@ -31,7 +31,7 @@ export function ChooseControlTypeStepItem() {
               <div className="flex-center">
                 <PermissionsOverview
                   span={24}
-                  collectionId={MSG_PREVIEW_ID}
+                  collectionId={NEW_COLLECTION_ID}
                   tbd
                 />
               </div>
@@ -48,7 +48,7 @@ export function ChooseControlTypeStepItem() {
               <div className="flex-center">
                 <PermissionsOverview
                   span={24}
-                  collectionId={MSG_PREVIEW_ID}
+                  collectionId={NEW_COLLECTION_ID}
                 />
               </div>
             </>
@@ -60,7 +60,7 @@ export function ChooseControlTypeStepItem() {
           setCompleteControl(idx === 1);
           if (idx == 1) {
             collections.updateCollection({
-              collectionId: MSG_PREVIEW_ID,
+              collectionId: NEW_COLLECTION_ID,
               collectionPermissions: {
                 canArchiveCollection: [],
                 canCreateMoreBadges: [],

@@ -75,33 +75,32 @@ export function WalletHeader() {
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
   for (const activity of allActivity) {
-    console.log(account?.seenActivity, activity.timestamp);
     if (account?.seenActivity && account.seenActivity < activity.timestamp) {
       unseenNotificationCount++;
+    }
 
-      if (unseenNotificationCount > overflowCount) {
-        break;
-      }
+    if (unseenNotificationCount > overflowCount) {
+      break;
     }
   }
 
   for (const addressMapping of account?.addressMappings ?? []) {
     if (account?.seenActivity && account.seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
-      unseenNotificationCount++;
+      unseenNotificationCount++; 
+    }
 
-      if (unseenNotificationCount > overflowCount) {
-        break;
-      }
+    if (unseenNotificationCount > overflowCount) {
+      break;
     }
   }
 
   for (const claimAlert of claimAlerts) {
     if (account?.seenActivity && account.seenActivity < claimAlert.createdTimestamp) {
       unseenNotificationCount++;
+    }
 
-      if (unseenNotificationCount > overflowCount) {
-        break;
-      }
+    if (unseenNotificationCount > overflowCount) {
+      break;
     }
   }
 

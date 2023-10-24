@@ -26,8 +26,8 @@ export function CodesDisplay({
   const approvalCriteria = approval.approvalCriteria;
   const merkleChallenge = approvalCriteria ? approvalCriteria.merkleChallenge : undefined;
 
-  const claimId = approval.challengeTrackerId;
-  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === claimId);
+  const approvalId = approval.challengeTrackerId;
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approvalId);
 
   const [codePage, setCodePage] = useState(1);
 
@@ -62,10 +62,10 @@ export function CodesDisplay({
                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
                     downloadJson({
-                      prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=ADD_CODE_HERE',
+                      prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=ADD_CODE_HERE',
                       codes,
-                      codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x)
-                    }, `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.json`);
+                      codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x)
+                    }, `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.json`);
                   }}
                   className="landing-button primary-text" style={{ width: 150 }}
                 >
@@ -78,7 +78,7 @@ export function CodesDisplay({
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
-                    downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.txt`);
+                    downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                   }}
                   className="landing-button primary-text" style={{ width: 150 }}
                 >
@@ -91,7 +91,7 @@ export function CodesDisplay({
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
-                    downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-claimId=${claimId}-${dateString}-${timeString}.txt`);
+                    downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                   }}
                   className="landing-button primary-text" style={{ width: 150 }}
                 >
@@ -117,7 +117,7 @@ export function CodesDisplay({
                 </button>
                 <button className="landing-button primary-text" style={{ width: 150 }}
                   onClick={() => {
-                    navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?claimId=' + claimId + '&code=' + x).join('\n'));
+                    navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
                     notification.success({
                       message: 'Copied!',
                       description: 'We have copied the URLs to your clipboard.'
@@ -188,11 +188,11 @@ export function CodesDisplay({
           >
             Copy {printStr[0].toUpperCase() + printStr.slice(1)}
           </button>
-          <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`}>
+          <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`}>
             <button className="landing-button primary-text" style={{ width: 150 }}
               onClick={() => {
 
-                navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`);
+                navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`);
                 notification.success({
                   message: 'Copied!',
                   description: 'We have copied the URL to your clipboard.'
@@ -207,7 +207,7 @@ export function CodesDisplay({
 
         <br />
         <br />
-        <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?claimId=${claimId}&${urlSuffix}`} />
+        <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`} />
         <br />
       </InformationDisplayCard>
     </Row>
