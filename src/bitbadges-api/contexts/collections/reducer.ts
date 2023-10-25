@@ -18,7 +18,13 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
   const cachedCollectionCopy = deepCopy(cachedCollection);
 
+  if (newCollection.collectionId === 2n) {
+    console.log("newCollection", newCollection);
+  }
+
+
   if (cachedCollection) {
+
 
     //TODO: No idea why the deep copy is necessary but it breaks the timeline batch updates for existing collections if not
     //      One place to look: somehow, I think that the indivudal elements in .badgeIds are the same object (cached[0].badgeIds === new[0].badgeIds)
@@ -85,7 +91,7 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
     cachedCollection.updateHistory = cachedCollection.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? -1 : 1)
 
-    
+
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
       return {

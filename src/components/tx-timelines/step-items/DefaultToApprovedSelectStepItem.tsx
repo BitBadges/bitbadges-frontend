@@ -37,6 +37,7 @@ export function DefaultToApprovedSelectStepItem() {
     title: `Default Incoming Approvals`,
     description: `If not forcefully overriden, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
     node: <UpdateSelectWrapper
+    err={null}
       setErr={() => { }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}

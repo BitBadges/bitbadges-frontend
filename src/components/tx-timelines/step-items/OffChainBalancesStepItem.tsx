@@ -189,6 +189,7 @@ export function OffChainBalancesStorageSelectStepItem() {
     description: `For off-chain balances, you are responsible for assigning who owns what badges. This is done off-chain, so this will not add to your on-chain transaction fee.`,
     node: <>
       <UpdateSelectWrapper
+        err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateOffChainBalancesMetadata}
         setUpdateFlag={setCanUpdateOffChainBalancesMetadata}

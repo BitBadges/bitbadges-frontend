@@ -44,6 +44,7 @@ export function SetBadgeMetadataStepItem() {
     title: 'Set Badge Metadata',
     description: <>Customize each individual badge in the collection.</>,
     node: <UpdateSelectWrapper
+    err={err}
       setErr={(err) => { setErr(err) }}
       updateFlag={canUpdateBadgeMetadata}
       setUpdateFlag={setUpdateBadgeMetadata}

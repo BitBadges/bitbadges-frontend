@@ -1,11 +1,11 @@
 import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
+import { Button, Checkbox, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useState } from 'react';
 
 import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataForBadgeId, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataForBadgeId, removeUintRangeFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -200,6 +200,23 @@ export function MetadataForm({
     >{label}</Checkbox>
   }
 
+  let numBadgesFetched = 0n;
+  const existingCollection = collections.getCollection(existingCollectionId || 0n);
+  for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
+    const uintRangesToSearch = uintRanges;
+    const [, removed] = removeUintRangeFromUintRange(uintRangesToSearch, metadata.badgeIds);
+    for (const badgeIdRange of removed) {
+      numBadgesFetched += badgeIdRange.end - badgeIdRange.start + 1n;
+    }
+  }
+
+  let totalNeedToFetch = 0n;
+  for (const range of uintRanges) {
+    totalNeedToFetch += range.end - range.start + 1n;
+  }
+
+  let percent = Number(numBadgesFetched) / Number(totalNeedToFetch);
+
   const PopulateComponent = () => {
     let message = 'metadata';
 
@@ -236,9 +253,21 @@ export function MetadataForm({
             <br />
             <br />
           </div>}
-          {!isAddressMappingSelect && !!existingCollectionId && <>
+          {!isAddressMappingSelect && !!existingCollectionId && numBadgesFetched < totalNeedToFetch && <>
             <div className='secondary-text' style={{ textAlign: 'center' }}>
+
               <InfoCircleOutlined style={{ marginRight: 4 }} /> We will first need to fetch the metadata for the selected badges (if not already fetched). This may take some time.
+              <br /><br />
+              {numBadgesFetched.toString()}/{totalNeedToFetch.toString()} badges fetched. <br />
+              <Progress percent={Math.ceil(percent * 100)}
+                type='line'
+
+                format={() => {
+                  return <Typography.Text className='primary-text'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
+                }}
+
+              />
+
               <br />
               <br />
             </div>
@@ -255,9 +284,9 @@ export function MetadataForm({
                 let cachedCollection = collection;
                 if (!cachedCollection) return;
 
-                const newBadgeMetadata = await collections.fetchMetadataForPreview(existingCollectionId || 0n, uintRanges);
+                const fetchedMetadata = await collections.fetchMetadataForPreview(existingCollectionId || 0n, uintRanges, false);
 
-                let previewMetadata = batchUpdateBadgeMetadata(deepCopy(cachedCollection?.cachedBadgeMetadata), newBadgeMetadata.map(x => {
+                let batchUpdatedMetadata = batchUpdateBadgeMetadata(deepCopy(cachedCollection?.cachedBadgeMetadata), fetchedMetadata.map(x => {
                   return {
                     badgeIds: x.badgeIds,
                     metadata: x.metadata,
@@ -267,13 +296,14 @@ export function MetadataForm({
 
 
                 for (const fieldName of fieldNames) {
-                  previewMetadata = populateOtherBadges(previewMetadata, uintRanges, fieldName, currMetadata[fieldName as keyof Metadata<bigint>]);
+                  batchUpdatedMetadata = populateOtherBadges(batchUpdatedMetadata, uintRanges, fieldName, currMetadata[fieldName as keyof Metadata<bigint>]);
                 }
 
                 collections.updateCollection({
                   collectionId: NEW_COLLECTION_ID,
-                  cachedBadgeMetadata: previewMetadata
+                  cachedBadgeMetadata: batchUpdatedMetadata
                 });
+
                 setPopulateIsOpen(false);
 
                 notification.success({
@@ -287,8 +317,9 @@ export function MetadataForm({
           </div>
           <Divider />
         </ InformationDisplayCard>
-      </div>}
-    </div>
+      </div>
+      }
+    </div >
   }
 
   return (

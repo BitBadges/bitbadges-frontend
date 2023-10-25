@@ -1,14 +1,13 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { BitBadgesCollection, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getNonMintApprovals, getMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { deepCopy } from "bitbadgesjs-proto";
-import { getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 
 export function DistributionMethodStepItem() {
 
@@ -89,14 +88,23 @@ export function DistributionMethodStepItem() {
       {
         collection?.balancesType === "Off-Chain" ? DistributionComponent :
           <UpdateSelectWrapper
+            err={err}
             setErr={(err) => { setErr(err) }}
             updateFlag={updateCollectionApprovals}
             setUpdateFlag={setUpdateCollectionApprovals}
             jsonPropertyPath='collectionApprovals'
             permissionName='canUpdateCollectionApprovals'
             customRevertFunction={() => {
-              const nonMintApprovals = getNonMintApprovals(deepCopy(collection) as BitBadgesCollection<bigint>);
-              txTimelineContext.setApprovalsToAdd(nonMintApprovals);
+              const prevMint = startingCollection ? getMintApprovals(startingCollection) : [];
+              const currentNonMint = getNonMintApprovals(collection);
+
+              collections.updateCollection({
+                collectionId: NEW_COLLECTION_ID,
+                collectionApprovals: [
+                  ...prevMint,
+                  ...currentNonMint
+                ],
+              });
             }}
             mintOnly
             node={DistributionComponent}

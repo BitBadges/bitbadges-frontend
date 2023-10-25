@@ -61,7 +61,7 @@ export function MetadataUriSelect({
         return
       }
 
-      //Slightly hacky but this will overwrite all cached metadata to [] -> means next badgeavatardisplay render, we fetch
+      //Slightly hacky but this will overwrite all cached metadata to [] -> means next badgeavatardisplay render, we fetch since it is empty
       collections.setCollection({
         ...collection,
         cachedBadgeMetadata: [],

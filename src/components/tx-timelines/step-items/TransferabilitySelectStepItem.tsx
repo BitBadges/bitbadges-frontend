@@ -47,19 +47,21 @@ export function TransferabilitySelectStepItem() {
     title: `Transferability - Post-Minting`,
     description: <>{`Excluding transfers from the Mint address, should badges be transferable or non-transferable?`}</>,
     node: <UpdateSelectWrapper
+      err={err}
       updateFlag={updateCollectionApprovals}
       setUpdateFlag={setUpdateCollectionApprovals}
       jsonPropertyPath='collectionApprovals'
       permissionName='canUpdateCollectionApprovals'
       setErr={(err) => { setErr(err) }}
       customRevertFunction={() => {
-        const existingNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
+        const prevNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
+        const currentMint = getMintApprovals(collection);
 
         collections.updateCollection({
           collectionId: NEW_COLLECTION_ID,
           collectionApprovals: [
-            ...approvalsToAdd,
-            ...existingNonMint
+            ...currentMint,
+            ...prevNonMint
           ],
         });
       }}

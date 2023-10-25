@@ -477,6 +477,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
       let noStartingCollection = false;
       if (!startingCollection) {
+        //wait three seconds 
+       
+
         noStartingCollection = true;
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
           [{

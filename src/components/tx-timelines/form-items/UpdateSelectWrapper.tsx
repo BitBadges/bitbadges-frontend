@@ -11,6 +11,7 @@ import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { JSONSetter } from './CustomJSONSetter';
 import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
+import { INFINITE_LOOP_MODE } from '../../../constants';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -26,6 +27,7 @@ export function UpdateSelectWrapper({
   customSetValueFunction,
   customRevertFunction,
   onlyShowJson = false,
+  err,
   setErr
 }: {
   setUpdateFlag: (val: boolean) => void,
@@ -41,6 +43,7 @@ export function UpdateSelectWrapper({
   customSetValueFunction?: (val: any) => void,
   customRevertFunction?: () => void,
   onlyShowJson?: boolean,
+  err: Error | null,
   setErr: (err: Error | null) => void,
 }) {
   const collections = useCollectionsContext();
@@ -50,10 +53,9 @@ export function UpdateSelectWrapper({
   const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
-  const [jsonErr, setJsonErr] = useState<Error | null>(null);
   const [customJson, setCustomJson] = useState<boolean>(onlyShowJson);
   const [showPermission, setShowPermission] = useState<boolean>(false);
-
+  const [jsonErr, setJsonErr] = useState<Error | null>(null);
 
   let castFunction: any = () => { }
   let validateFunction: any = undefined;
@@ -112,6 +114,7 @@ export function UpdateSelectWrapper({
         break;
       case 'canUpdateCollectionApprovals':
         validateFunction = validateCollectionApprovalsUpdate
+        console.log('collection approval update')
         break;
     }
   }
@@ -126,17 +129,18 @@ export function UpdateSelectWrapper({
 
   const currValue = collection ? collection[jsonPropertyPath as keyof typeof collection] : undefined;
   const startingValue = startingCollection ? startingCollection[jsonPropertyPath as keyof typeof startingCollection] : undefined;
-  let validateErr: Error | null = null;
-  if (validateFunction && startingValue !== undefined && currValue !== undefined) {
-    console.log(startingValue, currValue, castFunction(prevPermissions))
-    validateErr = validateFunction(startingValue, currValue, castFunction(prevPermissions));
-  }
+
 
   useEffect(() => {
-    if (setErr && (validateErr || jsonErr)) {
-      setErr(validateErr || jsonErr);
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update select wrapper: ', jsonPropertyPath);
+    let validateErr: Error | null = null;
+    if (validateFunction && startingValue !== undefined && currValue !== undefined) {
+      validateErr = validateFunction(startingValue, currValue, prevPermissions);
+      setErr(validateErr);
+      console.log('validateErr: ', validateErr);
     }
-  }, [validateErr, jsonErr])
+
+  }, [JSON.stringify(currValue), JSON.stringify(startingValue), JSON.stringify(prevPermissions), permissionName, jsonPropertyPath])
 
   useEffect(() => {
     setCustomJson(onlyShowJson);
@@ -259,7 +263,7 @@ export function UpdateSelectWrapper({
               className='primary-text'
             />
           </div>}
-        {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(validateErr || jsonErr) &&
+        {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
           <div className='' style={{ textAlign: 'center' }}>
             <br />
             {<>
@@ -269,8 +273,10 @@ export function UpdateSelectWrapper({
             </>}
 
           </div>}
+
+        {(err) && <><br /><ErrDisplay err={err} /></>}
       </div>
-      <span color='black' style={{ margin: 16, }} />
+      <span color='black' style={{ margin: 16 }} />
 
       {!updateFlag &&
         <div style={{ textAlign: 'center' }} className='primary-text' >
@@ -312,9 +318,8 @@ export function UpdateSelectWrapper({
           customValue={customValue}
           customSetValueFunction={customSetValueFunction}
         />
-
-        {(validateErr || jsonErr) && <ErrDisplay err={validateErr || jsonErr} />}
         <br />
+        {jsonErr && <ErrDisplay err={jsonErr} />}
       </>}
     </>
   )

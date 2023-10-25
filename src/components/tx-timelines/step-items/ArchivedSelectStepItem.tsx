@@ -24,6 +24,7 @@ export function IsArchivedSelectStepItem() {
     disabled: !!err,
     node:
       <UpdateSelectWrapper
+        err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}

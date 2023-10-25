@@ -17,6 +17,7 @@ import { neverHasManager } from "../../bitbadges-api/utils/manager";
 
 
 export function getPermissionDetails(permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager: boolean, badgeIds?: UintRange<bigint>[]) {
+
   const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToMapping, usesFromMapping, usesInitiatedByMapping, usesOwnershipTimes, usesAmountTrackerIdMapping, usesChallengeTrackerIdMapping } = usedFlags;
   const hideIfFull = true;
   let columns = [{

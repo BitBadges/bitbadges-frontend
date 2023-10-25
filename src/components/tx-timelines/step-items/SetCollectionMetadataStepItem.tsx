@@ -30,6 +30,7 @@ export function SetCollectionMetadataStepItem() {
     </>,
 
     node: <UpdateSelectWrapper
+    err={err}
       updateFlag={canUpdateCollectionMetadata}
       setUpdateFlag={setCanUpdateCollectionMetadata}
       setErr={(err) => { setErr(err) }}

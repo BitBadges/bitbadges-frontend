@@ -42,17 +42,14 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   const senderBalance = collection?.owners.find(x => x.cosmosAddress === accounts.getAccount(sender)?.cosmosAddress)?.balances ?? [];
   const senderAccount = accounts.getAccount(sender);
 
-  console.log(sender);
-
   const DELAY_MS = 500;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
 
-      const account = await accounts.fetchAccounts([sender]);
-      const senderAccount = account[0];
+      await accounts.fetchAccounts([sender]);
 
-      await collections.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
+      await collections.fetchBalanceForUser(collectionId, sender);
     }
 
     const delayDebounceFn = setTimeout(async () => {

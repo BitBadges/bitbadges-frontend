@@ -72,6 +72,7 @@ function CollectionPage({
     async function fetchCollections() {
       if (collectionIdNumber > 0) {
         const collectionsRes = await collections.fetchCollections([collectionIdNumber]);
+        //IMPORTANT: Note that collectionsRes is the fetched collection which may be paginated, incomplete, etc
         const currCollection = collectionsRes[0];
 
         const managers = currCollection.managerTimeline.map(x => x.manager).filter(x => x);

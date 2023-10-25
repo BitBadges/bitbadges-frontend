@@ -159,12 +159,14 @@ export function UpdateCollectionTimeline() {
     );
 
     const canUpdateNonMintCollectionApprovalsDetails = getPermissionDetails(
-      castCollectionApprovalPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateCollectionApprovals ?? []).filter(x => x.fromMapping && !isInAddressMapping(x.fromMapping, 'Mint')),
+      castCollectionApprovalPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateCollectionApprovals ?? []).filter(x => !(x.fromMapping.includeAddresses && x.fromMapping.addresses.length == 1 && x.fromMapping.addresses[0] === 'Mint')),
       ApprovalPermissionUsedFlags,
       !hasManager
     );
 
     const toShowUpdateMintTransfersAction = (canUpdateMintCollectionApprovalsDetails.hasNeutralTimes || canUpdateMintCollectionApprovalsDetails.hasPermittedTimes)
+
+    console.log(canUpdateNonMintCollectionApprovalsDetails)
     const toShowUpdateNonMintTransfersAction = (canUpdateNonMintCollectionApprovalsDetails.hasNeutralTimes || canUpdateNonMintCollectionApprovalsDetails.hasPermittedTimes)
 
     items.push(
@@ -190,7 +192,8 @@ export function UpdateCollectionTimeline() {
       isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
 
 
-      !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+      TransferabilityStep,
+      // !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
       !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
 

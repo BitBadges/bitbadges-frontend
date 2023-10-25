@@ -53,6 +53,7 @@ export function ConfirmManagerStepItem() {
     </>,
     node:
       <UpdateSelectWrapper
+        err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateManager}
         setUpdateFlag={setCanUpdateManager}

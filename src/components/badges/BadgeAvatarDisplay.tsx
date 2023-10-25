@@ -102,7 +102,7 @@ export function BadgeAvatarDisplay({
       } else if (collectionId === 0n) {
         const existingCollectionId = txTimelineContext.existingCollectionId;
         if (!existingCollectionId) return;
-        await collections.fetchMetadataForPreview(existingCollectionId, badgeIdsToDisplay);
+        await collections.fetchMetadataForPreview(existingCollectionId, badgeIdsToDisplay, true);
       }
     }
 

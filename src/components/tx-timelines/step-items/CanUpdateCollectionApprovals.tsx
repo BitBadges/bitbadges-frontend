@@ -102,7 +102,7 @@ export function FreezeSelectStepItem() {
     neverHasManager(collection),
   )
   const nonMintPermissionDetails = getPermissionDetails(
-    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && !isInAddressMapping(x.fromMapping, 'Mint')),
+    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && x.fromMapping.includeAddresses && x.fromMapping.addresses.length == 1 && x.fromMapping.addresses[0] === 'Mint'),
     ApprovalPermissionUsedFlags,
     neverHasManager(collection),
   )

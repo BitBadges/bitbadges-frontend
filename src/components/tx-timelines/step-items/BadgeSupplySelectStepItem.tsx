@@ -45,6 +45,7 @@ export function BadgeSupplySelectStepItem() {
     title: `Create Badges`,
     description: 'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
+    err={err}
       setErr={(err) => { setErr(err) }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
