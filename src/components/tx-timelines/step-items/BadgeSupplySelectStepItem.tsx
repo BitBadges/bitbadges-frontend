@@ -1,19 +1,18 @@
 import { Divider } from "antd";
-import { DefaultPlaceholderMetadata, checkBalancesActionPermission, deepCopyBalances, removeBadgeMetadata, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { DefaultPlaceholderMetadata, deepCopyBalances, removeBadgeMetadata, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
 import { useState } from "react";
+import { NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
+import { DistributionOverview } from "../../badges/DistributionCard";
 import { DevMode } from "../../common/DevMode";
 import { BalanceInput } from "../../inputs/BalanceInput";
 import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { ErrDisplay } from "../form-items/ErrDisplay";
-import { DistributionOverview } from "../../badges/DistributionCard";
-import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 export function BadgeSupplySelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -21,8 +20,7 @@ export function BadgeSupplySelectStepItem() {
   const setBadgesToCreate = txTimelineContext.setBadgesToCreate;
 
   const balancesToShow = collection?.owners.find(x => x.cosmosAddress === "Total")?.balances || []
-
-  const err = startingCollection ? checkBalancesActionPermission(badgesToCreate, startingCollection.collectionPermissions.canCreateMoreBadges) : undefined;
+  const [err, setErr] = useState<Error | null>(null);
   const [updateFlag, setUpdateFlag] = useState<boolean>(true);
 
   const revertFunction = () => {
@@ -36,7 +34,7 @@ export function BadgeSupplySelectStepItem() {
     }]);
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       cachedBadgeMetadata: newBadgeMetadata
     });
 
@@ -47,11 +45,12 @@ export function BadgeSupplySelectStepItem() {
     title: `Create Badges`,
     description: 'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
+    err={err}
+      setErr={(err) => { setErr(err) }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath=''
       permissionName='canCreateMoreBadges'
-      validationErr={err}
       customValue={badgesToCreate}
       customSetValueFunction={(val: any) => {
         //Check it is a valid balance sarray
@@ -70,14 +69,11 @@ export function BadgeSupplySelectStepItem() {
       }}
       customRevertFunction={revertFunction}
       node={
-
         <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-          <ErrDisplay err={err} />
           <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-
             <DistributionOverview
               md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}
-              collectionId={MSG_PREVIEW_ID}
+              collectionId={NEW_COLLECTION_ID}
               isSelectStep={true}
             />
           </div>
@@ -98,7 +94,7 @@ export function BadgeSupplySelectStepItem() {
               });
 
               collections.updateCollection({
-                collectionId: MSG_PREVIEW_ID,
+                collectionId: NEW_COLLECTION_ID,
                 cachedBadgeMetadata: newBadgeMetadata
               });
 

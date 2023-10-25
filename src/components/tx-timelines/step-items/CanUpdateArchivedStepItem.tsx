@@ -1,21 +1,25 @@
 import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 
-export function CanArchiveCollectionStepItem(
-) {
+export function CanArchiveCollectionStepItem() {
+
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
+
   if (!collection) return EmptyStepItem;
 
-  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags);
+  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
   const AdditionalNode = <>
     <div className="flex-center">
       <PermissionsOverview
@@ -27,7 +31,8 @@ export function CanArchiveCollectionStepItem(
         }}
       />
     </div>
-  </>;
+  </>
+
   const handleSwitchChangeIdxOnly = (idx: number) => {
     handleSwitchChange(idx);
   }
@@ -35,7 +40,7 @@ export function CanArchiveCollectionStepItem(
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canArchiveCollection: idx === 0 ? [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -67,13 +72,13 @@ export function CanArchiveCollectionStepItem(
             {
               title: 'No',
               message: `The collection can never be archived or unarchived by the manager. This permission can not be updated. It will be frozen forever.`,
-              isSelected: !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes,
+              isSelected: isCompletelyForbidden(permissionDetails),
               additionalNode: AdditionalNode
             },
             {
               title: 'Yes',
               message: `The collection can be archived or unarchived by the manager.`,
-              isSelected: (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes),
+              isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
               additionalNode: AdditionalNode
             }
           ]}

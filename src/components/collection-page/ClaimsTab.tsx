@@ -1,47 +1,33 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { Button, Divider, Empty, Spin } from 'antd';
-import { CodesAndPasswords, CollectionApprovalWithDetails, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
+import { Empty, Spin } from 'antd';
+import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
-import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
-import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { DistributionOverview } from '../badges/DistributionCard';
 
-export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }: {
+export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   collectionId: bigint;
   codesAndPasswords?: CodesAndPasswords[]
-  isModal?: boolean
   badgeId?: bigint;
 }) {
   const collections = useCollectionsContext();
-  const chain = useChainContext();
   const router = useRouter();
 
 
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [code, setCode] = useState<string>("");
+
   const [currPage, setCurrPage] = useState<number>(1);
-  const [whitelistIndex, setWhitelistIndex] = useState<number>();
-  const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
-  const [recipient, setRecipient] = useState<string>(chain.address);
-  // const [approvalCriteriaIdx, setApprovalCriteriaIdx] = useState<number>(0);
 
   const collection = collections.getCollection(collectionId)
 
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
-
-  const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? "";
   const approvals = collection?.collectionApprovals ?? [];
 
   for (const approval of approvals) {
-    if (approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria)) {
+    if (isInAddressMapping(approval.fromMapping, 'Mint')) {
       approvalsForClaims.push(approval);
     }
   }
@@ -55,21 +41,15 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
   //TODO: This is hardcoded for only one merkle challenge. Technically an assumption, although it is a rare case where they may have more than one.
   const claimItem = approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
   const query = router.query;
-  const hasMerkleChallenge = approvals.find(x => x.approvalCriteria?.merkleChallenge?.root)
 
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
-    if (query.claimId && typeof query.claimId === 'string') {
-      const idx = approvals.findIndex((x) => x.challengeTrackerId === query.claimId);
-      // const approvalIdx = approvals[idx]?.approvalCriteria.findIndex(y => y.merkleChallenges.find(z => z.challengeId === query.claimId));
-
-      // if (approvalIdx >= 0) setApprovalCriteriaIdx(approvalIdx);
+    if (query.approvalId && typeof query.approvalId === 'string') {
+      const idx = approvals.findIndex((x) => x.approvalId === query.approvalId);
       if (idx >= 0) setCurrPage(idx + 1);
     }
-  }, [query.claimId]);
-
-
+  }, [query.approvalId]);
 
 
   let isRefreshing = false;
@@ -96,21 +76,12 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       <br />
 
       <div className='flex-center'>
-        {currApproval && approvalCriteria &&
+        {currApproval &&
           <>
             <ClaimDisplay
               collectionId={collectionId}
               approvals={approvals}
               approval={currApproval}
-              approvalCriteria={approvalCriteria}
-              openModal={(_x: any, leafIndex?: number) => {
-                setWhitelistIndex(leafIndex);
-                setModalVisible(true);
-              }}
-              code={code}
-              setCode={setCode}
-              recipient={recipient}
-              setRecipient={setRecipient}
               isCodeDisplay={codesAndPasswords ? true : false}
               codes={codesAndPasswords ? codesAndPasswords[currPage - 1]?.codes : []}
               claimPassword={codesAndPasswords ? codesAndPasswords[currPage - 1]?.password : ""}
@@ -128,17 +99,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, isModal, badgeId }:
       }
 
       <DevMode obj={claimItem} />
-      <CreateTxMsgClaimBadgeModal
-        collectionId={collectionId}
-        visible={modalVisible}
-        setVisible={setModalVisible}
-        code={code}
-        approvalCriteria={approvalItem?.approvalCriteria}
-        claimItem={claimItem}
-        whitelistIndex={whitelistIndex}
-        recipient={recipient}
-        approvalId={approvalItem?.approvalId ?? ''}
-      />
+
 
     </div >
   );

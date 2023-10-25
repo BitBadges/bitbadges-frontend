@@ -38,7 +38,7 @@ export function TransferDisplay({
   const transfer = transfers.length > 0 ? transfers[page - 1] : undefined;
   const toLength = transfer?.toAddressesLength ? transfer.toAddressesLength : BigInt(transfer?.toAddresses.length ?? 0n);
 
-  return <InformationDisplayCard title=''><div style={{ marginTop: 4 }}    >
+  return <InformationDisplayCard inheritBg noBorder title=''><div style={{ marginTop: 4 }}    >
     {
       toLength <= 0 ? <div style={{ textAlign: 'center' }}>
         <Empty description='No badges transferred.'
@@ -47,6 +47,8 @@ export function TransferDisplay({
         />
       </div> : <Pagination currPage={page} onChange={setPage} total={transfers.length} pageSize={1} />
     }
+
+
     {!hideBalances && transfer && toLength > 0 && <div className="full-width">
       {collection &&
         <BalanceDisplay
@@ -76,8 +78,6 @@ export function TransferDisplay({
               />
             </div>}
 
-
-
           <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
             <br /> <AddressDisplayList
               users={transfer.toAddresses}
@@ -96,8 +96,6 @@ export function TransferDisplay({
 
 
           {initiatedBy && transfer.from !== initiatedBy && <> <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
-
-
             <br />
             <AddressDisplayList
               users={[initiatedBy]}

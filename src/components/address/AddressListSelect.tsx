@@ -108,6 +108,7 @@ export function AddressListSelect({
         }}
         disabled={disabled}
         allowMintSearch={allowMintSearch}
+        switchable={false}
       />
     }
     {

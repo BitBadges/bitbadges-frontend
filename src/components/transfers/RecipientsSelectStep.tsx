@@ -5,27 +5,20 @@ import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/Accoun
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressListSelect } from "../address/AddressListSelect";
 
-export function RecipientsSelectStep({ sender,
+export function RecipientsSelectStep({
+  sender,
   toAddresses,
   showApprovalsMessage,
   setToAddresses,
-  // collectionId, senderBalance, 
   setNumRecipients }
   : {
     sender: string,
     toAddresses: string[],
     showApprovalsMessage?: boolean,
     setToAddresses: (addresses: string[]) => void,
-    // collectionId: bigint, 
-    // senderBalance: UserBalance<bigint>, 
     setNumRecipients: (numRecipients: bigint) => void
   }
 ) {
-  // const chain = useChainContext();
-  // const collections = useCollectionsContext();
-
-  // const collection = collections.getCollection(collectionId)
-  // const signedInAccount = accounts.getAccount(chain.cosmosAddress);
   const accounts = useAccountsContext();
   const senderAccount = accounts.getAccount(sender);
 
@@ -35,7 +28,7 @@ export function RecipientsSelectStep({ sender,
   }, [toAddresses, setNumRecipients]);
 
   //TODO: Actually thoroughly check for approvals rather than relying on simulation and naive implementations. See past code in Git. Or run simulation here ?!?!
-
+  //This is relic code. Can probably be removed.
   let forbiddenUsersMap: { [cosmosAddress: string]: string } = {}; //Map of cosmosAddress to an error message
   for (const address of toAddresses) {
     const account = accounts.getAccount(address);
@@ -63,7 +56,7 @@ export function RecipientsSelectStep({ sender,
       />
       {showApprovalsMessage && <>
         <Divider />
-        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>
+        <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
           <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the recipient's incoming approvals as well."}
         </Typography.Text></>}
     </div>,

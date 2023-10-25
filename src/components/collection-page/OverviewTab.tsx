@@ -23,8 +23,8 @@ export function OverviewTab({
   const collection = collections.getCollection(collectionId)
 
   if (!collection) return <></>;
-  const collectionMetadata = collection?.cachedCollectionMetadata;
 
+  const collectionMetadata = collection?.cachedCollectionMetadata;
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(collectionMetadata?.description ?? ''));
 

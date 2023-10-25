@@ -1,48 +1,55 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Avatar, Divider, Typography } from 'antd';
-import { Balance, MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
+import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
+import { SHA256 } from 'crypto-js';
+import MerkleTree from 'merkletreejs';
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children }: {
+
+export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode
+  defaultAddress?: string
+  approval?: CollectionApprovalWithDetails<bigint>,
+  tree?: MerkleTree | null,
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
   const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
 
-
-
+  const requiresWhitelistProof = !!(approval && approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf) ?? false;
+  const leaf = requiresWhitelistProof ? SHA256(chain.cosmosAddress).toString() : '';
+  const proofObj = tree?.getProof(leaf);
+  const isValidProof = (proofObj && tree && proofObj.length === tree.getLayerCount() - 1) ?? false;
 
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
-  const [sender, setSender] = useState<string>(chain.address);
-  const [senderBalance, setSenderBalance] = useState<Balance<bigint>[]>([]);
+  const [sender, setSender] = useState<string>(defaultAddress ?? chain.address);
 
+  const senderBalance = collection?.owners.find(x => x.cosmosAddress === accounts.getAccount(sender)?.cosmosAddress)?.balances ?? [];
   const senderAccount = accounts.getAccount(sender);
 
   const DELAY_MS = 500;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
-      const account = await accounts.fetchAccounts([sender]);
-      const senderAccount = account[0];
 
-      const balanceRes = await collections.fetchBalanceForUser(collectionId, senderAccount.cosmosAddress);
-      setSenderBalance(balanceRes.balances);
+      await accounts.fetchAccounts([sender]);
+
+      await collections.fetchBalanceForUser(collectionId, sender);
     }
 
     const delayDebounceFn = setTimeout(async () => {
@@ -67,7 +74,15 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         approvalLevel: '',
         approverAddress: '',
       },
-      merkleProofs: [],
+      merkleProofs: requiresWhitelistProof ? [{
+        aunts: proofObj ? proofObj.map((proof) => {
+          return {
+            aunt: proof.data.toString('hex'),
+            onRight: proof.position === 'right'
+          }
+        }) : [],
+        leaf: '',
+      }] : [],
       memo: '',
       prioritizedApprovals: [],
       onlyCheckPrioritizedApprovals: false,
@@ -112,36 +127,15 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
             }
           />
 
-          <div className='flex-center' style={{ marginBottom: 10, marginTop: 4 }}>
-            <AddressDisplay
-              addressOrUsername={sender}
-              hidePortfolioLink
-            />
-          </div>
-
-
-
           <AddressSelect
-            defaultValue={senderAccount?.username ?? senderAccount?.address ?? ''}
+            defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
             onUserSelect={setSender}
           />
 
           <Divider />
-          <Typography.Text className='primary-text' style={{ fontSize: 16 }}>
+          <Typography.Text className='secondary-text'>
             <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing approvals as well."}
           </Typography.Text>
-          {/*
-          
-          <br />
-          <br />
-          <UserApprovalsTab
-            collectionId={collectionId}
-            hideSelect
-            defaultApprover={sender}
-            hideUpdateHistory
-            hideIncomingApprovals
-            showCollectionApprovals
-          /> */}
         </InformationDisplayCard>
       </div >
     },
@@ -169,7 +163,8 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   return (
     <TxModal
       msgSteps={items}
-      visible={visible}
+      visible={visible && (isValidProof || !requiresWhitelistProof)}
+      disabled={requiresWhitelistProof && !isValidProof}
       setVisible={setVisible}
       txName="Transfer Badge(s)"
       txCosmosMsg={txCosmosMsg}

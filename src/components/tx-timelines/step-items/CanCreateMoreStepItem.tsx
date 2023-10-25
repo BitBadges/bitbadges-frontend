@@ -3,7 +3,7 @@ import { BalancesActionPermission } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -11,6 +11,8 @@ import { PermissionsOverview, getPermissionDetails } from "../../collection-page
 import { DevMode } from "../../common/DevMode";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 
 const EverythingElsePermanentlyPermittedPermission: BalancesActionPermission<bigint> = {
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -28,7 +30,7 @@ const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
 
 export function CanCreateMoreStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
@@ -46,20 +48,14 @@ export function CanCreateMoreStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags);
+  const noManager = neverHasManager(collection);
 
-  const currentlyMintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, undefined, [{ start: 1n, end: maxBadgeId }]);
-  const currentlyMintedHasPermittedTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.permitted);
-  const currentlyMintedHasNeutralTimes = currentlyMintedPermissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
-  const currentlyMintedHasForbiddenTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.forbidden);
+  const permissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, noManager);
 
-  const allUnmintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, undefined, [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }]);
-  const allUnmintedHasPermittedTimes = allUnmintedPermissionDetails.dataSource.some(x => x.permitted);
-  const allUnmintedHasNeutralTimes = allUnmintedPermissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
-  const allUnmintedHasForbiddenTimes = allUnmintedPermissionDetails.dataSource.some(x => x.forbidden);
+  const currentlyMintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, noManager, [{ start: 1n, end: maxBadgeId }]);
+  const allUnmintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, noManager, [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }]);
 
   const everythingLocked = !permissionDetails.hasNeutralTimes;
-
   const handleSwitchChange = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
       ...AlwaysLockedPermission,
@@ -71,7 +67,7 @@ export function CanCreateMoreStepItem() {
     }
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canCreateMoreBadges: permissions
       }
@@ -94,7 +90,8 @@ export function CanCreateMoreStepItem() {
     </>
   }
 
-  const completelyFrozen = !permissionDetails.hasPermittedTimes && !permissionDetails.hasNeutralTimes
+  const completelyFrozen = isCompletelyForbidden(permissionDetails);
+
   return {
     title: 'Can create more badges?',
     description: `Can new badges be created and added to this collection by the manager in the future?`,
@@ -118,21 +115,21 @@ export function CanCreateMoreStepItem() {
               title: 'Unique Badges Only',
               message: `In the future, new unique badges (i.e. badges with new IDs) can be added, but any existing badge's supply can never be increased.`,
               isSelected: //all are forbidden explicitly for the currently minted badges
-                !completelyFrozen && !currentlyMintedHasPermittedTimes && !currentlyMintedHasNeutralTimes && !allUnmintedHasForbiddenTimes,
+                !completelyFrozen && isCompletelyForbidden(currentlyMintedPermissionDetails) && isCompletelyNeutralOrCompletelyPermitted(allUnmintedPermissionDetails),
               additionalNode: <AdditionalNode />
             },
             {
               title: 'Increment Supply Only',
               message: `In the future, the supply of existing badges can be increased, but no new unique badges (i.e. badges with new IDs) can ever be created.`,
               isSelected: //all are forbidden explicitly for all future badges
-                !completelyFrozen && !allUnmintedHasPermittedTimes && !allUnmintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes,
+                !completelyFrozen && isCompletelyForbidden(allUnmintedPermissionDetails) && isCompletelyNeutralOrCompletelyPermitted(currentlyMintedPermissionDetails),
               additionalNode: <AdditionalNode />
 
             },
             {
               title: 'Any',
               message: `In the future, new unique badges (i.e. badges with new IDs) can be added, and the supply of existing badges can be increased.`,
-              isSelected: !permissionDetails.hasForbiddenTimes,
+              isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
               additionalNode: <AdditionalNode />
             },
           ]}

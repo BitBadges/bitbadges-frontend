@@ -3,7 +3,7 @@ import { Layout } from 'antd';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
 import { TxTimeline } from '../../components/tx-timelines/TxTimeline';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Content } = Layout;
 
@@ -32,7 +32,7 @@ function Mint() {
                   paddingTop: '20px',
                 }}
               >
-                <TxTimeline collectionId={MSG_PREVIEW_ID} txType='UpdateCollection' />
+                <TxTimeline collectionId={NEW_COLLECTION_ID} txType='UpdateCollection' />
               </div>
             </Content>
           }

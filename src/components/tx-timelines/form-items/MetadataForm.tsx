@@ -1,18 +1,17 @@
 import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Form, Input, InputNumber, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
+import { Button, Checkbox, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useState } from 'react';
 
 import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataDetailsForBadgeId, getMetadataForBadgeId, removeUintRangeFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataForBadgeId, removeUintRangeFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
-import { compareObjects } from '../../../utils/compare';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { BadgeCard } from '../../badges/BadgeCard';
 import { CollectionHeader } from '../../badges/CollectionHeader';
@@ -28,8 +27,6 @@ const { Text } = Typography;
 const { Option } = Select;
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
-
-//TODO: abstract and clean this
 
 //Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
@@ -47,8 +44,7 @@ export function MetadataForm({
   addMethod?: MetadataAddMethod;
   setAddMethod?: (addMethod: MetadataAddMethod) => void;
 }) {
-  const collectionId = MSG_PREVIEW_ID;
-
+  const collectionId = NEW_COLLECTION_ID;
   badgeIds = sortUintRangesAndMergeIfNecessary(badgeIds, true)
 
   const txTimelineContext = useTxTimelineContext();
@@ -67,13 +63,14 @@ export function MetadataForm({
     if (!collection) return;
     if (isCollectionSelect) {
       collections.updateCollection({
-        collectionId: MSG_PREVIEW_ID,
+        collectionId: NEW_COLLECTION_ID,
         cachedCollectionMetadata: metadata
       });
     } else {
-
+      //This is handled in the context. It applies the array below to the existing metadata
+      //We use setCollection for complete overwrites
       collections.updateCollection({
-        collectionId: MSG_PREVIEW_ID,
+        collectionId: NEW_COLLECTION_ID,
         cachedBadgeMetadata: [{ uri: undefined, toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] }]
       })
     }
@@ -189,36 +186,39 @@ export function MetadataForm({
     // console.log('handleEditorChange', html, text);
   }
 
-  console.log(fieldNames);
+  const FieldCheckbox = ({ fieldName, label }: { fieldName: string, label: string }) => {
+    return <Checkbox
+      className='primary-text'
+      checked={fieldNames.includes(fieldName)}
+      onChange={(e) => {
+        if (e.target.checked) {
+          setFieldNames([...fieldNames, fieldName]);
+        } else {
+          setFieldNames(fieldNames.filter(x => x !== fieldName));
+        }
+      }}
+    >{label}</Checkbox>
+  }
 
-  const populateComponent = (_fieldName: string) => {
-    let message = 'metadata';
-    switch (_fieldName) {
-      case 'name':
-        message = 'title';
-        break;
-      case 'image':
-        message = 'image';
-        break;
-      case 'description':
-        message = 'description';
-        break;
-      case 'validFrom':
-        message = 'valid from';
-        break;
-      case 'category':
-        message = 'category';
-        break;
-      case 'tags':
-        message = 'tags';
-        break;
-      case 'externalUrl':
-        message = 'URL';
-        break;
-      default:
-        break;
+  let numBadgesFetched = 0n;
+  const existingCollection = collections.getCollection(existingCollectionId || 0n);
+  for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
+    const uintRangesToSearch = uintRanges;
+    const [, removed] = removeUintRangeFromUintRange(uintRangesToSearch, metadata.badgeIds);
+    for (const badgeIdRange of removed) {
+      numBadgesFetched += badgeIdRange.end - badgeIdRange.start + 1n;
     }
+  }
 
+  let totalNeedToFetch = 0n;
+  for (const range of uintRanges) {
+    totalNeedToFetch += range.end - range.start + 1n;
+  }
+
+  let percent = Number(numBadgesFetched) / Number(totalNeedToFetch);
+
+  const PopulateComponent = () => {
+    let message = 'metadata';
 
     return <div>
       {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='primary-text'>
@@ -230,85 +230,14 @@ export function MetadataForm({
           </div>
           <br />
           <div className='flex-center flex-wrap primary-text'>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('name')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'name']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'name'));
-                }
-              }}
-            >Title</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('image')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'image']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'image'));
-                }
-              }}
-            >Image</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('description')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'description']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'description'));
-                }
-              }}
-            >Description</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('validFrom')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'validFrom']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'validFrom'));
-                }
-              }}
-            >Validity</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('category')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'category']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'category'));
-                }
-              }}
-            >Category</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('tags')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'tags']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'tags'));
-                }
-              }}
-            >Tags</Checkbox>
-            <Checkbox
-              className='primary-text'
-              checked={fieldNames.includes('externalUrl')}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setFieldNames([...fieldNames, 'externalUrl']);
-                } else {
-                  setFieldNames(fieldNames.filter(x => x !== 'externalUrl'));
-                }
-              }}
-            >Website</Checkbox>
+            <FieldCheckbox fieldName='name' label='Title' />
+            <FieldCheckbox fieldName='image' label='Image' />
+            <FieldCheckbox fieldName='description' label='Description' />
+            <FieldCheckbox fieldName='validFrom' label='Validity' />
+            <FieldCheckbox fieldName='category' label='Category' />
+            <FieldCheckbox fieldName='tags' label='Tags' />
+            <FieldCheckbox fieldName='externalUrl' label='Website' />
           </div>
-
 
           <br />
           <BadgeIdRangesInput
@@ -324,9 +253,21 @@ export function MetadataForm({
             <br />
             <br />
           </div>}
-          {!isAddressMappingSelect && !!existingCollectionId && <>
+          {!isAddressMappingSelect && !!existingCollectionId && numBadgesFetched < totalNeedToFetch && <>
             <div className='secondary-text' style={{ textAlign: 'center' }}>
+
               <InfoCircleOutlined style={{ marginRight: 4 }} /> We will first need to fetch the metadata for the selected badges (if not already fetched). This may take some time.
+              <br /><br />
+              {numBadgesFetched.toString()}/{totalNeedToFetch.toString()} badges fetched. <br />
+              <Progress percent={Math.ceil(percent * 100)}
+                type='line'
+
+                format={() => {
+                  return <Typography.Text className='primary-text'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
+                }}
+
+              />
+
               <br />
               <br />
             </div>
@@ -343,105 +284,44 @@ export function MetadataForm({
                 let cachedCollection = collection;
                 if (!cachedCollection) return;
 
+                const fetchedMetadata = await collections.fetchMetadataForPreview(existingCollectionId || 0n, uintRanges, false);
 
-                //We don't want to overwrite any edited metadata
-                //Should prob do this via a range implementation but badgeIdsToDisplay should only be max len of pageSize
-                let badgeIdsToFetch = deepCopy(uintRanges);
-                for (const badgeIdRange of uintRanges) {
-                  for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
-                    const badgeId = i;
-                    const currMetadata = getMetadataDetailsForBadgeId(badgeId, cachedCollection.cachedBadgeMetadata);
-                    if (currMetadata && currMetadata.toUpdate && !currMetadata.uri) {
-                      //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
-                      //Remove badgeId from badgeIdsToFetch
-                      const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
-                      badgeIdsToFetch = remaining;
-                    }
+                let batchUpdatedMetadata = batchUpdateBadgeMetadata(deepCopy(cachedCollection?.cachedBadgeMetadata), fetchedMetadata.map(x => {
+                  return {
+                    badgeIds: x.badgeIds,
+                    metadata: x.metadata,
+                    toUpdate: true,
                   }
-                }
-                let previewMetadata = deepCopy(cachedCollection?.cachedBadgeMetadata);
-                if (existingCollectionId && badgeIdsToFetch.length > 0) {
-                  while (badgeIdsToFetch.length > 0) {
-                    let next250Badges: UintRange<bigint>[] = [];
-                    for (let i = 0; i < 250; i++) {
-                      if (badgeIdsToFetch.length === 0) break;
-
-                      const badgeIdRange = badgeIdsToFetch.shift();
-                      if (badgeIdRange) {
-                        const badgeId = badgeIdRange.start;
-                        next250Badges.push({ start: badgeId, end: badgeId });
-                        next250Badges = sortUintRangesAndMergeIfNecessary(next250Badges, true);
-
-                        if (badgeIdRange.start != badgeIdRange.end) {
-                          badgeIdsToFetch = [{ start: badgeId + 1n, end: badgeIdRange.end }, ...badgeIdsToFetch];
-                        }
-                      }
-                    }
-
-                    console.time('fetchAndUpdateMetadata');
-                    const res = await collections.fetchAndUpdateMetadata(existingCollectionId, { badgeIds: next250Badges });
-                    console.timeEnd('fetchAndUpdateMetadata');
+                }));
 
 
-                    console.time('batchUpdateBadgeMetadata');
-                    let newBadgeMetadata = res[0].cachedBadgeMetadata;
-                    if (newBadgeMetadata && !compareObjects(newBadgeMetadata, previewMetadata)) {
-
-                      if (cachedCollection) {
-                        //Only update newly fetched metadata
-                        for (const metadata of newBadgeMetadata) {
-                          const [, removed] = removeUintRangeFromUintRange(uintRanges, metadata.badgeIds);
-                          metadata.badgeIds = removed;
-                        }
-                        newBadgeMetadata = newBadgeMetadata.filter(metadata => metadata.badgeIds.length > 0);
-
-                        previewMetadata = batchUpdateBadgeMetadata(previewMetadata, newBadgeMetadata.map(x => {
-                          return {
-                            badgeIds: x.badgeIds,
-                            metadata: x.metadata,
-                            toUpdate: true,
-                          }
-                        }));
-                      }
-                    }
-
-
-                  }
-                  console.timeEnd('batchUpdateBadgeMetadata');
-                }
-                console.log(cachedCollection.cachedBadgeMetadata);
-                console.time('populateOtherBadges');
                 for (const fieldName of fieldNames) {
-                  previewMetadata = populateOtherBadges(previewMetadata, uintRanges, fieldName, fieldName === 'all' ? '' : currMetadata[fieldName as keyof Metadata<bigint>]);
+                  batchUpdatedMetadata = populateOtherBadges(batchUpdatedMetadata, uintRanges, fieldName, currMetadata[fieldName as keyof Metadata<bigint>]);
                 }
-                console.timeEnd('populateOtherBadges');
 
-                console.time('updateCollection');
                 collections.updateCollection({
-                  collectionId: MSG_PREVIEW_ID,
-                  cachedBadgeMetadata: previewMetadata
+                  collectionId: NEW_COLLECTION_ID,
+                  cachedBadgeMetadata: batchUpdatedMetadata
                 });
-                console.timeEnd('updateCollection');
-                console.time('to end');
+
                 setPopulateIsOpen(false);
+
                 notification.success({
                   message: 'Success',
                   description: `Successfully batch applied metadata for selected badges.`,
                 });
 
                 setApplyingBatchUpdate(false);
-                console.timeEnd('to end');
               }}
             >Update {applyingBatchUpdate && <Spin />}</button >
           </div>
           <Divider />
         </ InformationDisplayCard>
-      </div>}
-    </div>
+      </div>
+      }
+    </div >
   }
 
-
-  console.log(!isAddressMappingSelect && !isCollectionSelect)
   return (
     <>
       <div>
@@ -456,6 +336,7 @@ export function MetadataForm({
                 if (!collection) return;
 
                 const hasExistingCollection = !!txTimelineContext.existingCollectionId;
+
                 //HACK: We use setCollection to override and set the cached metadata. Should probably handle this better, but it works
                 if (isCollectionSelect) {
                   let collectionMetadataToSet: Metadata<bigint> | undefined = DefaultPlaceholderMetadata;
@@ -508,8 +389,7 @@ export function MetadataForm({
             <div>
               <div>
                 <br />
-                <br />
-                <CollectionHeader collectionId={MSG_PREVIEW_ID} hideCollectionLink />
+                <CollectionHeader collectionId={NEW_COLLECTION_ID} hideCollectionLink />
               </div>
             </div>
           }
@@ -520,6 +400,7 @@ export function MetadataForm({
 
                 <div><b style={{ fontSize: 18 }}>Setting Metadata for Badge ID:{' '}</b></div>
                 <InputNumber
+                  //badgeIds are sorted above 
                   min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
                   max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
                   value={Numberify(badgeId.toString())}
@@ -568,7 +449,7 @@ export function MetadataForm({
                   onClick={(id: bigint) => {
                     setBadgeId(id);
                   }}
-                  collectionId={MSG_PREVIEW_ID}
+                  collectionId={NEW_COLLECTION_ID}
                   badgeIds={badgeIds}
                   showIds={true}
                   selectedId={badgeId}
@@ -584,14 +465,12 @@ export function MetadataForm({
                 badgeId={badgeId}
                 collectionId={collectionId}
                 size={75}
-
               />
             </div>
-
           </div>
-
           }
-          {populateComponent('all')}
+          {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
+          {PopulateComponent()}
 
           <br />
           <Form.Item
@@ -693,8 +572,6 @@ export function MetadataForm({
                   </Option>
                 ))}
               </Select>
-
-
             </div>
           </Form.Item>
 

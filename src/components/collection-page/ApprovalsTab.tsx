@@ -1,16 +1,14 @@
 import { ClockCircleOutlined, CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Empty, Switch, Typography } from 'antd';
-import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
+import { NODE_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
@@ -19,6 +17,7 @@ import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
+
 interface Props {
   approvals: CollectionApprovalWithDetails<bigint>[];
   collection: BitBadgesCollection<bigint>;
@@ -28,34 +27,37 @@ interface Props {
   approvalLevel: string;
   approverAddress: string;
   onlyShowFromMint?: boolean;
-  setTab?: (tab: string) => void;
+  title?: string;
+  subtitle?: React.ReactNode;
+
+  //Edit features
   onDelete?: (approvalId: string) => void;
   onEdit?: (approval: any) => void;
   addMoreNode?: React.ReactNode;
-  title?: string;
-  subtitle?: React.ReactNode;
   defaultShowDisallowed?: boolean;
   showDeletedGrayedOut?: boolean;
+  startingApprovals?: CollectionApprovalWithDetails<bigint>[];
 }
 
 export const ApprovalsDisplay: FC<Props> = ({
-  showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, onEdit, setTab, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
+  startingApprovals,
+  showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, onEdit, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
-  const collections = useCollectionsContext();
-  let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true) :
-    approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true) : getUnhandledCollectionApprovals(approvals, true, true) : [];
+
+  let disapproved = showHidden ?
+    approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
+      : approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true)
+        : getUnhandledCollectionApprovals(approvals, true, true) : [];
 
   //filter approvals to only take first time an approvalId is seen (used for duplicates "default-incoming" and "default-outgoing")
   approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i);
 
   const [address, setAddress] = useState<string>(chain.address);
 
+  const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
   const txTimelineContext = useTxTimelineContext();
-  const existingCollectionId = txTimelineContext.existingCollectionId;
-  const startingCollection = txTimelineContext.startingCollection;
-  const deletedApprovals = startingCollection?.collectionApprovals.filter(x => !approvals.find(y => compareObjects(x, y)));
 
   if (onlyShowFromMint) {
     approvals = approvals.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
@@ -76,68 +78,6 @@ export const ApprovalsDisplay: FC<Props> = ({
       }
     })
   }
-
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: fetch trackers b');
-    const collectionId = collection?.collectionId > 0 ? collection?.collectionId : existingCollectionId;
-
-    if (collectionId) {
-      async function fetchTrackers() {
-        if (collection && collection?.collectionApprovals.length > 0 && collectionId) {
-
-          const approvals = collection?.collectionApprovals.filter(x => x.amountTrackerId);
-
-          const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] =
-            approvals.map(approval => {
-              return [{
-                collectionId,
-                amountTrackerId: approval.amountTrackerId,
-                approvalLevel: approvalLevel,
-                approvedAddress: "",
-                approverAddress: approverAddress,
-                trackerType: "overall",
-              },
-              {
-                collectionId,
-                amountTrackerId: approval.amountTrackerId,
-                approvalLevel: approvalLevel,
-                approvedAddress: address,
-                approverAddress: approverAddress,
-                trackerType: "initiatedBy",
-              },
-              {
-                collectionId,
-                amountTrackerId: approval.amountTrackerId,
-                approvalLevel: approvalLevel,
-                approvedAddress: address,
-                approverAddress: approverAddress,
-                trackerType: "to",
-              },
-              {
-                collectionId,
-                amountTrackerId: approval.amountTrackerId,
-                approvalLevel: approvalLevel,
-                approvedAddress: address,
-                approverAddress: approverAddress,
-                trackerType: "from",
-              },
-              ] as AmountTrackerIdDetails<bigint>[];
-            }).flat();
-          collections.fetchCollectionsWithOptions([{
-            collectionId,
-            viewsToFetch: [],
-            merkleChallengeIdsToFetch: [],
-            approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-            handleAllAndAppendDefaults: true,
-          }]);
-        }
-
-      }
-      fetchTrackers();
-
-    }
-  }, [collection, approvalLevel, approverAddress, address]);
 
   return <>
     <br />
@@ -176,14 +116,26 @@ export const ApprovalsDisplay: FC<Props> = ({
         <div className='flex-between' style={{ overflow: 'auto' }}>
 
           <table style={{ width: '100%', fontSize: 16 }}>
-            {getTableHeader()}
+            {getTableHeader(false)}
             <br />
             {
               <>
                 {approvals.map((x, idx) => {
                   const result = <TransferabilityRow
+                    startingApprovals={startingApprovals}
                     onEdit={onEdit}
-                    onDelete={onDelete} allTransfers={approvals} address={address} setAddress={setAddress} setTab={setTab} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                    approverAddress={approverAddress}
+                    onDelete={onDelete}
+                    allTransfers={approvals}
+                    address={address}
+                    setAddress={setAddress}
+                    isIncomingDisplay={approvalLevel === "incoming"}
+                    isOutgoingDisplay={approvalLevel === "outgoing"}
+                    transfer={x} key={idx}
+                    badgeId={badgeId}
+                    collectionId={collection.collectionId}
+                    filterFromMint={filterFromMint}
+                  />
                   return result
                 })}
 
@@ -198,12 +150,12 @@ export const ApprovalsDisplay: FC<Props> = ({
                       const approvalsToAdd = txTimelineContext.approvalsToAdd;
                       txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
                     }}
-                    allTransfers={approvals} address={address} setAddress={setAddress} setTab={setTab} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                    allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
                   return result
                 })}
 
                 {disapproved.map((x, idx) => {
-                  const result = <TransferabilityRow onDelete={onDelete} allTransfers={approvals} address={address} setAddress={setAddress} setTab={setTab} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                  const result = <TransferabilityRow onDelete={onDelete} allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
                   return result
                 })}
               </>
@@ -217,7 +169,7 @@ export const ApprovalsDisplay: FC<Props> = ({
         <Divider />
         <p>
           <InfoCircleOutlined />{' '}The table is broken down into multiple criteria: who can send? who can receive? etc.
-          Each row represents a different set of criteria. 
+          Each row represents a different set of criteria.
           For a transfer to be approved, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
         </p></>}
       <Divider />
@@ -226,7 +178,8 @@ export const ApprovalsDisplay: FC<Props> = ({
 }
 
 
-export function UserApprovalsTab({ collectionId,
+export function UserApprovalsTab({
+  collectionId,
   badgeId, isIncomingApprovalEdit, isOutgoingApprovalEdit,
   userIncomingApprovals, userOutgoingApprovals,
   setUserIncomingApprovals,
@@ -267,17 +220,23 @@ export function UserApprovalsTab({ collectionId,
 
   const approverAccount = address ? accounts.getAccount(address) : undefined;
 
+  //Initial or currently set ones
+  const startingOutgoingApprovals = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.outgoingApprovals ?? [];
+  const startingIncomingApprovals = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.incomingApprovals ?? [];
+
   const outgoingApprovals = userOutgoingApprovals ? userOutgoingApprovals : collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.outgoingApprovals ?? [];
   const incomingApprovals = userIncomingApprovals ? userIncomingApprovals : collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.incomingApprovals ?? [];
   const updateHistory = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.updateHistory ?? [];
 
 
   useEffect(() => {
-    collections.fetchBalanceForUser(collectionId, address);
+    if (address) collections.fetchBalanceForUser(collectionId, address);
   }, [address]);
 
 
   if (!collection) return <></>;
+
+  
   const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? false;
   const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? false;
 
@@ -371,18 +330,13 @@ export function UserApprovalsTab({ collectionId,
         }}
       />
       </>}
-      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <Divider />}
+      {(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <br />}
 
     </div >
 
     <div className='primary-text'>
 
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && <>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 22 }}>Showing approvals for:</Typography.Text>
-        <AddressDisplay
-          addressOrUsername={address}
-          fontSize={16}
-        />
         <AddressSelect
           defaultValue={chain.address}
           onUserSelect={(value) => {
@@ -445,6 +399,7 @@ export function UserApprovalsTab({ collectionId,
             collection={collection}
             badgeId={badgeId}
             approvalLevel='outgoing'
+            startingApprovals={castOutgoingTransfersToCollectionTransfers(startingOutgoingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
             onDelete={setUserOutgoingApprovals ? (approvalId: string) => {
               setUserOutgoingApprovals?.((userOutgoingApprovals ?? []).filter(x => x.approvalId !== approvalId));
@@ -512,6 +467,7 @@ export function UserApprovalsTab({ collectionId,
             collection={collection}
             badgeId={badgeId}
             approvalLevel='incoming'
+            startingApprovals={castIncomingTransfersToCollectionTransfers(startingIncomingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
             onDelete={setUserIncomingApprovals ? (approvalId: string) => {
               setUserIncomingApprovals?.((userIncomingApprovals ?? []).filter(x => x.approvalId !== approvalId));

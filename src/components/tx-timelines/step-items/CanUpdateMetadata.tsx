@@ -1,20 +1,41 @@
-import { UintRange } from "bitbadgesjs-proto";
-import { BalancesActionPermissionUsedFlags, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { UintRange, deepCopy } from "bitbadgesjs-proto";
+import { BalancesActionPermissionUsedFlags, BitBadgesCollection, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, invertUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+
+export const getBadgesWithLockedSupply = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
+  const collectionToCheck = currentCollection ? collection : startingCollection;
+  if (!collectionToCheck) return [];
+
+  const canCreateMoreBadgesRes = getPermissionDetails(
+    collectionToCheck ? castBalancesActionPermissionToUniversalPermission(collectionToCheck.collectionPermissions.canCreateMoreBadges ?? []) : [],
+    BalancesActionPermissionUsedFlags,
+    neverHasManager(collectionToCheck)
+  );
+
+  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([...canCreateMoreBadgesRes.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
+  return lockedBadgeIds
+}
+
+export const getBadgesWithUnlockedSupply = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
+  return invertUintRanges(getBadgesWithLockedSupply(collection, startingCollection, currentCollection), 1n, GO_MAX_UINT_64);
+}
+
 
 export function UpdatableMetadataSelectStepItem(
   collectionMetadataUpdate: boolean,
 ) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
 
   const txTimelineContext = useTxTimelineContext();
@@ -25,32 +46,23 @@ export function UpdatableMetadataSelectStepItem(
   const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
   const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
 
-  const permissionDetails = collectionMetadataUpdate ?
-    getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateCollectionMetadata ?? []), TimedUpdatePermissionUsedFlags) :
-    getPermissionDetails(castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags);
+  const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(deepCopy(collection) as BitBadgesCollection<bigint>, undefined, true); //Get badge IDs that will have locked supply moving forward
+  const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply], true);
 
-  const currentlyMintedPermissionDetails = getPermissionDetails(castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags, undefined, [{ start: 1n, end: maxBadgeId }]);
-  const currentlyMintedHasPermittedTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.permitted);
-  const currentlyMintedHasForbiddenTimes = currentlyMintedPermissionDetails.dataSource.some(x => x.forbidden);
-  const currentlyMintedHasNeutralTimes = currentlyMintedPermissionDetails.dataSource.some(x => !x.permitted && !x.forbidden);
 
-  const lockedBadges = getPermissionDetails(
-    castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []),
-    BalancesActionPermissionUsedFlags
-  );
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...lockedBadges.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
-
+  //Since we depend on maxBadgeId and lockedBadges, we need to update the lastClickedIdx when these change (even if in other steps)
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
     if (lastClickedIdx !== -1 && !collectionMetadataUpdate) {
-
-
       handleSwitchChange(lastClickedIdx, lastClickedFrozen);
     }
-  }, [maxBadgeId, collectionMetadataUpdate, lockedBadges])
-
+  }, [maxBadgeId, collectionMetadataUpdate, JSON.stringify(collection?.collectionPermissions.canCreateMoreBadges)]);
 
   if (!collection) return EmptyStepItem;
+  const permissionDetails = collectionMetadataUpdate ?
+    getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateCollectionMetadata ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection)) :
+    getPermissionDetails(castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(collection?.collectionPermissions.canUpdateBadgeMetadata ?? []), TimedUpdateWithBadgeIdsPermissionUsedFlags, neverHasManager(collection), [{ start: 1n, end: maxBadgeId }]);
+
 
   function AdditionalNode({ noOption }: {
     noOption?: boolean,
@@ -74,10 +86,7 @@ export function UpdatableMetadataSelectStepItem(
   options.push({
     title: 'No',
     message: `${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the metadata (i.e. the self-hosted ones provided by you)' : 'The metadata'} will be frozen and cannot be updated after this transaction.`,
-    isSelected:
-      collectionMetadataUpdate ?
-        !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes
-        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes,
+    isSelected: isCompletelyForbidden(permissionDetails),
     additionalNode: <AdditionalNode noOption />
   })
 
@@ -86,14 +95,7 @@ export function UpdatableMetadataSelectStepItem(
     message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can be updated.
     `}</div>,
     additionalNode: <AdditionalNode />,
-    isSelected:
-      (collectionMetadataUpdate ?
-        permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes
-        : currentlyMintedHasNeutralTimes && !currentlyMintedHasPermittedTimes && !currentlyMintedHasForbiddenTimes)
-      ||
-      (collectionMetadataUpdate ?
-        !permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes
-        : !currentlyMintedHasNeutralTimes && !currentlyMintedHasForbiddenTimes)
+    isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
   });
 
   const handleSwitchChangeIdxOnly = (idx: number) => {
@@ -108,60 +110,51 @@ export function UpdatableMetadataSelectStepItem(
 
       if (idx == 1 && !frozen) {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
             canUpdateCollectionMetadata: []
           }
         });
 
       } else if (idx == 1 && frozen) {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
             canUpdateCollectionMetadata: [{
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               forbiddenTimes: [],
             }]
           }
-
         });
       }
 
       else {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
-
             canUpdateCollectionMetadata: [{
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               permittedTimes: [],
               forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-
             }]
           }
-
         });
       }
     } else {
 
       if (idx == 1 && !frozen) {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
             canUpdateBadgeMetadata: []
           }
         });
 
       } else if (idx == 1 && frozen) {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
             canUpdateBadgeMetadata: [{
               badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -169,33 +162,25 @@ export function UpdatableMetadataSelectStepItem(
               forbiddenTimes: [],
             }]
           }
-
         });
       }
-
       else {
         collections.updateCollection({
-          collectionId: MSG_PREVIEW_ID,
+          collectionId: NEW_COLLECTION_ID,
           collectionPermissions: {
-
-
             canUpdateBadgeMetadata: [{
-              badgeIds: lockedBadgeIds,
+              badgeIds: badgeIdsToLockMetadata,
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               permittedTimes: [],
               forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             }]
           }
-
         });
       }
-
     }
   }
 
-  let description = `Following this transaction, do you want to be able to update the metadata for ${collectionMetadataUpdate ? 'the collection' : 'the created badges'}? This includes the name, description, image, and other metadata.`
-
-
+  let description = `Following this transaction, do you want to be able to update the metadata for ${collectionMetadataUpdate ? 'the collection' : 'the created badges'}?`
 
   return {
     title: collectionMetadataUpdate ? 'Update collection metadata?' : 'Updatable badge metadata?',

@@ -13,7 +13,7 @@ import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { BalanceOverview } from './BalancesInfo';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 export function OwnersTab({ collectionId, badgeId }: {
   collectionId: bigint;
@@ -24,7 +24,7 @@ export function OwnersTab({ collectionId, badgeId }: {
 
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId)
-  const isPreview = collection?.collectionId === MSG_PREVIEW_ID;
+  const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
 
   const [loaded, setLoaded] = useState(false);
   const [owners, setOwners] = useState<BalanceInfo<bigint>[]>([]);
@@ -83,8 +83,6 @@ export function OwnersTab({ collectionId, badgeId }: {
     getOwners();
   }, []);
 
-  const isMobile = window.innerWidth < 768;
-
   return (
     <InformationDisplayCard
       title="Balances"
@@ -123,7 +121,7 @@ export function OwnersTab({ collectionId, badgeId }: {
               return <TableRow
                 key={idx}
                 label={
-                  <div style={{ float: isMobile ? undefined : 'left' }}>
+                  <div>
                     <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
                   </div>
                 } value={

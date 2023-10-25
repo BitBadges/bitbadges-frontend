@@ -13,8 +13,6 @@ interface CustomCarouselProps {
 const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total }) => {
   const [currPage, setCurrPage] = React.useState(page ?? 0);
 
-
-
   return (
     <div className="custom-carousel primary-text">
       <div className='flex-between flex-wrap'>

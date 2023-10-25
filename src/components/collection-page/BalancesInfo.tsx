@@ -1,15 +1,14 @@
 import { Empty } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
+import { searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { searchUintRangesForId } from 'bitbadgesjs-utils';
-import { MSG_PREVIEW_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 
 export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress }: {
@@ -23,7 +22,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId);
 
-  const isPreview = collectionId === MSG_PREVIEW_ID;
+  const isPreview = collectionId === NEW_COLLECTION_ID;
 
   const signedInAccount = accounts.getAccount(chain.address);
 
@@ -71,14 +70,9 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
-      {!hideSelect && <>
-        <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} />
-        <br />
+      {<>
+        <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
       </>}
-      
-      <div className='flex-center'>
-        <AddressDisplay addressOrUsername={addressOrUsername} />
-      </div>
     </div>
     <div
       className='primary-text flex-center full-width'

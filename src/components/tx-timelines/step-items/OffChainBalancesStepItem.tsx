@@ -3,7 +3,7 @@ import { Transfer } from "bitbadgesjs-proto";
 import { BigIntify, MetadataAddMethod, convertOffChainBalancesMap } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { fetchMetadataDirectly } from "../../../bitbadges-api/api";
-import { EmptyStepItem, MSG_PREVIEW_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -15,10 +15,9 @@ const { Text } = Typography
 
 export const DistributionComponent = () => {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
-
 
   if (!collection) return <></>;
 
@@ -27,9 +26,9 @@ export const DistributionComponent = () => {
 
     <div className=''>
       <TransferSelect
-        collectionId={MSG_PREVIEW_ID}
+        collectionId={NEW_COLLECTION_ID}
         sender={'Mint'}
-        originalSenderBalances={collection.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? []}
+        originalSenderBalances={collection.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? []} //We use total balances and allow them to fetch currently minted
         setTransfers={txTimelineContext.setTransfers}
         transfers={txTimelineContext.transfers}
         plusButton
@@ -66,8 +65,7 @@ export const DistributionComponent = () => {
 // uploading metadata themselves or having it outsourced. It uses the SwitchForm component to render the options.
 export function OffChainBalancesStorageSelectStepItem() {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
-
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -79,6 +77,7 @@ export function OffChainBalancesStorageSelectStepItem() {
   const setAddMethod = txTimelineContext.setOffChainAddMethod;
 
   const [uri, setUri] = useState('');
+  const [err, setErr] = useState<Error | null>(null);
 
   const DELAY_MS = 200;
   useEffect(() => {
@@ -90,7 +89,7 @@ export function OffChainBalancesStorageSelectStepItem() {
       }
 
       collections.updateCollection({
-        collectionId: MSG_PREVIEW_ID,
+        collectionId: NEW_COLLECTION_ID,
         offChainBalancesMetadataTimeline: [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           offChainBalancesMetadata: {
@@ -107,8 +106,6 @@ export function OffChainBalancesStorageSelectStepItem() {
   if (!collection) return EmptyStepItem;
 
   const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
-
-
 
   const Component = <>
 
@@ -154,7 +151,7 @@ export function OffChainBalancesStorageSelectStepItem() {
         if (idx === 1) {
           setAddMethod(MetadataAddMethod.Manual);
           collections.updateCollection({
-            collectionId: MSG_PREVIEW_ID,
+            collectionId: NEW_COLLECTION_ID,
             offChainBalancesMetadataTimeline: existingCollection ?
               isBitBadgesHosted ? existingCollection.offChainBalancesMetadataTimeline : [{
                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -168,7 +165,7 @@ export function OffChainBalancesStorageSelectStepItem() {
           setAddMethod(MetadataAddMethod.UploadUrl);
           txTimelineContext.setTransfers([]);
           collections.updateCollection({
-            collectionId: MSG_PREVIEW_ID,
+            collectionId: NEW_COLLECTION_ID,
             offChainBalancesMetadataTimeline: [{
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               offChainBalancesMetadata: {
@@ -192,6 +189,8 @@ export function OffChainBalancesStorageSelectStepItem() {
     description: `For off-chain balances, you are responsible for assigning who owns what badges. This is done off-chain, so this will not add to your on-chain transaction fee.`,
     node: <>
       <UpdateSelectWrapper
+        err={err}
+        setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateOffChainBalancesMetadata}
         setUpdateFlag={setCanUpdateOffChainBalancesMetadata}
         jsonPropertyPath='offChainBalancesMetadataTimeline'
@@ -200,6 +199,6 @@ export function OffChainBalancesStorageSelectStepItem() {
         node={Component}
       />
     </>,
-    disabled: addMethod === MetadataAddMethod.None
+    disabled: addMethod === MetadataAddMethod.None || !!err
   }
 }

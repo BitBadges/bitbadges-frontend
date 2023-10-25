@@ -20,7 +20,7 @@ import { InformationDisplayCard } from '../../../components/display/InformationD
 import { Tabs } from '../../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
-import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -46,7 +46,7 @@ export function BadgePage({ collectionPreview }
 
   const isPreview = collectionPreview ? true : false;
 
-  const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? MSG_PREVIEW_ID : -1n;
+  const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? NEW_COLLECTION_ID : -1n;
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
   const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
@@ -85,134 +85,125 @@ export function BadgePage({ collectionPreview }
       { key: 'actions', content: 'Actions' },
     );
   }
+
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
   return (
-      <Content
+    <Content
+      style={{
+        textAlign: 'center',
+        minHeight: '100vh',
+      }}
+    >
+      <div
         style={{
-          textAlign: 'center',
-          minHeight: '100vh',
+          marginLeft: !isPreview ? '7vw' : undefined,
+          marginRight: !isPreview ? '7vw' : undefined,
+          paddingLeft: !isPreview ? '1vw' : undefined,
+          paddingRight: !isPreview ? '1vw' : undefined,
+          paddingTop: '20px',
         }}
       >
-        <div
-         
-          style={{
-            marginLeft: !isPreview ? '7vw' : undefined,
-            marginRight: !isPreview ? '7vw' : undefined,
-            paddingLeft: !isPreview ? '1vw' : undefined,
-            paddingRight: !isPreview ? '1vw' : undefined,
-            paddingTop: '20px',
-          }}
-        >
-          <BadgeButtonDisplay website={metadata?.externalUrl} />
+        <BadgeButtonDisplay website={metadata?.externalUrl} />
 
-          {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+        {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
-          <Tabs
-            tab={tab}
-            tabInfo={tabInfo}
-            setTab={setTab}
-            theme="dark"
-            fullWidth
+        <Tabs tab={tab} tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
+
+        {tab === 'claims' && collection && <>
+          <br />
+          <ClaimsTab
+            collectionId={collectionIdNumber}
+
+            badgeId={badgeIdNumber}
           />
-
-          {tab === 'claims' && collection && <>
-            <br />
-            <ClaimsTab
-              collectionId={collectionIdNumber}
-
-              badgeId={badgeIdNumber}
-            />
-          </>}
-          {tab === 'transferability' && (
-            <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} setTab={setTab}/>
-          )}
+        </>}
+        {tab === 'transferability' && (
+          <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
+        )}
 
 
-          {tab === 'overview' && (<>
-            <br />
+        {tab === 'overview' && (<>
+          <br />
 
 
-            {collection &&
-              <div className='flex-center'>
-                <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
-                  <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
-                    {metadata?.description && <>
-                      <InformationDisplayCard
-                        title="About"
-                      >
-                        <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                          <div className='custom-html-style primary-text' id="description">
-                            {reactElement}
-                          </div>
+          {collection &&
+            <div className='flex-center'>
+              <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
+                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                  {metadata?.description && <>
+                    <InformationDisplayCard
+                      title="About"
+                    >
+                      <div style={{ maxHeight: 200, overflow: 'auto' }} >
+                        <div className='custom-html-style primary-text' id="description">
+                          {reactElement}
                         </div>
-                      </InformationDisplayCard>
-                      <br />
-                    </>}
-                    <MetadataDisplay
+                      </div>
+                    </InformationDisplayCard>
+                    <br />
+                  </>}
+                  <MetadataDisplay
+                    collectionId={collectionIdNumber}
+                    badgeId={badgeIdNumber}
+                    span={24}
+                  />
+                  <br />
+                  {collection &&
+                    <PermissionsOverview
                       collectionId={collectionIdNumber}
                       badgeId={badgeIdNumber}
                       span={24}
                     />
-                    <br />
-                    {collection &&
-                      <PermissionsOverview
-                        collectionId={collectionIdNumber}
-                        badgeId={badgeIdNumber}
-                        span={24}
-                      />
-                    }
+                  }
 
-                  </Col>
-                  <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
-                  <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
+                </Col>
+                <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
+                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
 
-                    <DistributionOverview
-                      collectionId={collectionIdNumber}
-                      span={24}
-                      badgeId={badgeIdNumber}
-                    />
-                    <br />
+                  <DistributionOverview
+                    collectionId={collectionIdNumber}
+                    span={24}
+                    badgeId={badgeIdNumber}
+                  />
+                  <br />
 
-                    {collection && <OwnersTab
-                      collectionId={collectionIdNumber}
-                      badgeId={badgeIdNumber}
-                    />}
-                  </Col>
-                </Row>
-              </div>
-            }
-          </>
-          )}
+                  {collection && <OwnersTab
+                    collectionId={collectionIdNumber}
+                    badgeId={badgeIdNumber}
+                  />}
+                </Col>
+              </Row>
+            </div>
+          }
+        </>
+        )}
 
-          {tab === 'activity' && collection && (<>
-            <br />
-            <ActivityTab
-              activity={activity}
-              fetchMore={async () => {
-                const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, { bookmark });
-                if (activityRes) {
-                  setActivity([...activity, ...activityRes.activity]);
-                  setHasMore(activityRes.pagination.hasMore);
-                  setBookmark(activityRes.pagination.bookmark);
-                }
-              }}
-              hasMore={hasMore}
-            />
-          </>
-          )}
+        {tab === 'activity' && collection && (<>
+          <br />
+          <ActivityTab
+            activity={activity}
+            fetchMore={async () => {
+              const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, { bookmark });
+              if (activityRes) {
+                setActivity([...activity, ...activityRes.activity]);
+                setHasMore(activityRes.pagination.hasMore);
+                setBookmark(activityRes.pagination.bookmark);
+              }
+            }}
+            hasMore={hasMore}
+          />
+        </>
+        )}
 
-          {tab === 'actions' && (<>
-            <ActionsTab
-              collectionId={collectionIdNumber}
-              badgeView
-            />
-          </>
-          )}
-        </div>
-        <Divider />
-      </Content>
+        {tab === 'actions' && (<>
+          <ActionsTab collectionId={collectionIdNumber} badgeView />
+        </>
+        )}
+      </div>
+      <Divider />
+    </Content>
   );
 }
 

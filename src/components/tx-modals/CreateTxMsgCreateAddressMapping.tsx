@@ -6,7 +6,7 @@ import React from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { TxModal } from './TxModal';
 
 export function CreateTxMsgCreateAddressMappingModal(
@@ -20,7 +20,7 @@ export function CreateTxMsgCreateAddressMappingModal(
   const chain = useChainContext();
   const router = useRouter();
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
 
@@ -43,7 +43,6 @@ export function CreateTxMsgCreateAddressMappingModal(
       let res = await addMetadataToIpfs({
         collectionMetadata: inheritedTxState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
       });
-
 
       uri = 'ipfs://' + res.collectionMetadataResult?.cid;
     }
@@ -78,11 +77,9 @@ export function CreateTxMsgCreateAddressMappingModal(
       }}
 
       onSuccessfulTx={async () => {
-
         notification.success({ message: 'Created successfully!' });
         router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
-
-
+        
         txTimelineContext.resetState();
       }}
       requireRegistration

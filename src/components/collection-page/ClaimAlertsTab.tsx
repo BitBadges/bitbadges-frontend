@@ -9,7 +9,7 @@ import { BadgeAvatar } from '../badges/BadgeAvatar';
 
 export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
   claimAlerts: ClaimAlertInfo<bigint>[],
-  fetchMore: () => void,
+  fetchMore: () => Promise<void>,
   hasMore: boolean
 }) {
   const collections = useCollectionsContext();
@@ -48,9 +48,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}
       >
-        {claimAlerts.sort(
-          (a, b) => Number(b.createdTimestamp) - Number(a.createdTimestamp)
-        ).map((claimAlert, index) => {
+        {claimAlerts.map((claimAlert, index) => {
 
           const collectionToDisplay = collections.getCollection(claimAlert.collectionId);
           return (

@@ -3,7 +3,7 @@ import { Row } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
-import { MSG_PREVIEW_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
+import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
@@ -77,7 +77,7 @@ export function BalanceDisplayEditRow({
   currTimeNextHour.setMilliseconds(0);
 
   //Does current supply cause a gap
-  let currBadgeIds = collections.getCollection(MSG_PREVIEW_ID)?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
+  let currBadgeIds = collections.getCollection(NEW_COLLECTION_ID)?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
   currBadgeIds.push(...currentSupply.badgeIds);
   currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
   let maxBadgeId = currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n;

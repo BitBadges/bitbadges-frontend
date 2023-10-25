@@ -1,12 +1,11 @@
-import { Avatar, Button, Divider, Form, Input, Layout, Typography, Upload } from 'antd';
+import { Avatar, Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
-
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { SupportedChain } from 'bitbadgesjs-utils';
+import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -26,67 +25,43 @@ export function AccountSettings() {
   const accounts = useAccountsContext();
   const signedInAccount = accounts.getAccount(chain.cosmosAddress);
 
+
   const [loading, setLoading] = useState<boolean>(false);
+  const [newAccount, setNewAccount] = useState<BitBadgesUserInfo<bigint>>(signedInAccount ?? BLANK_USER_INFO);
 
-  const [twitter, setTwitter] = useState(
-    signedInAccount?.twitter ? signedInAccount.twitter : ''
-  );
 
-  const [discord, setDiscord] = useState(
-    signedInAccount?.discord ? signedInAccount.discord : ''
-  );
+  const twitter = newAccount?.twitter ? newAccount.twitter : '';
+  const discord = newAccount?.discord ? newAccount.discord : '';
+  const github = newAccount?.github ? newAccount.github : '';
+  const telegram = newAccount?.telegram ? newAccount.telegram : '';
+  const readme = newAccount?.readme ? newAccount.readme : '';
+  const customLinks = newAccount?.customLinks ? newAccount.customLinks : [];
 
-  const [github, setGithub] = useState(
-    signedInAccount?.github ? signedInAccount.github : ''
-  );
+  const setTwitter = (twitter: string) => { setNewAccount({ ...newAccount, twitter }) };
+  const setDiscord = (discord: string) => { setNewAccount({ ...newAccount, discord }) };
+  const setGithub = (github: string) => { setNewAccount({ ...newAccount, github }) };
+  const setTelegram = (telegram: string) => { setNewAccount({ ...newAccount, telegram }) };
+  const setReadme = (readme: string) => { setNewAccount({ ...newAccount, readme }) };
+  const setCustomLinks = (customLinks: any[]) => { setNewAccount({ ...newAccount, customLinks }) };
 
-  const [telegram, setTelegram] = useState(
-    signedInAccount?.telegram ? signedInAccount.telegram : ''
-  );
+  const showAllByDefault = newAccount?.onlyShowApproved ? false : true;
+  const shownBadges = newAccount?.shownBadges ? newAccount.shownBadges : [];
+  const hiddenBadges = newAccount?.hiddenBadges ? newAccount.hiddenBadges : [];
+  const customPages = newAccount?.customPages ? newAccount.customPages : [];
+  const username = newAccount?.username ? newAccount.username : '';
 
-  // const [name, setName] = useState(
-  //   signedInAccount?.username ? signedInAccount.username : ''
-  // );
+  // const setShowAllByDefault = (showAllByDefault: boolean) => { setNewAccount({ ...newAccount, onlyShowApproved: !showAllByDefault }) };
+  // const setShownBadges = (shownBadges: any[]) => { setNewAccount({ ...newAccount, shownBadges }) };
+  // const setHiddenBadges = (hiddenBadges: any[]) => { setNewAccount({ ...newAccount, hiddenBadges }) };
+  // const setCustomPages = (customPages: any[]) => { setNewAccount({ ...newAccount, customPages }) };
+  const setUsername = (username: string) => { setNewAccount({ ...newAccount, username }) };
 
-  const [readme, setReadme] = useState(
-    signedInAccount?.readme ? signedInAccount.readme : ''
-  );
-
-  const [customLinks, setCustomLinks] = useState(
-    signedInAccount?.customLinks ? signedInAccount.customLinks : []
-  );
 
   const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
 
   const [newCustomLinkUrl, setNewCustomLinkUrl] = useState('');
 
   const [newCustomLinkImage, setNewCustomLinkImage] = useState('');
-
-  const [showAllByDefault, setShowAllByDefault] = useState<boolean>(
-    signedInAccount?.onlyShowApproved ? false : true
-  );
-  // const showAllByDefault = true;
-
-  const [shownBadges, setShownBadges] = useState(
-    signedInAccount?.shownBadges ? signedInAccount.shownBadges : []
-  );
-  // const shownBadges: any[] = [];
-
-  const [hiddenBadges, setHiddenBadges] = useState(
-    signedInAccount?.hiddenBadges ? signedInAccount.hiddenBadges : []
-  );
-  // const hiddenBadges: any[] = [];
-
-  const [customPages, setCustomPages] = useState(
-    signedInAccount?.customPages ? signedInAccount.customPages : []
-  );
-  // const customPages: any[] = []
-
-  const [
-    username, setUsername
-  ] = useState(
-    signedInAccount?.username ? signedInAccount.username : ''
-  );
 
   function handleEditorChange({ text }: any) {
     setReadme(text);
@@ -118,18 +93,7 @@ export function AccountSettings() {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
     if (!signedInAccount) return;
-    setTwitter(signedInAccount.twitter ? signedInAccount.twitter : '');
-    setDiscord(signedInAccount.discord ? signedInAccount.discord : '');
-    setGithub(signedInAccount.github ? signedInAccount.github : '');
-    setTelegram(signedInAccount.telegram ? signedInAccount.telegram : '');
-    setReadme(signedInAccount.readme ? signedInAccount.readme : '');
-    setUsername(signedInAccount.username ? signedInAccount.username : '');
-    setShowAllByDefault(signedInAccount.onlyShowApproved ? false : true);
-    setShownBadges(signedInAccount.shownBadges ? signedInAccount.shownBadges : []);
-    setHiddenBadges(signedInAccount.hiddenBadges ? signedInAccount.hiddenBadges : []);
-    setCustomPages(signedInAccount.customPages ? signedInAccount.customPages : []);
-    setCustomLinks(signedInAccount.customLinks ? signedInAccount.customLinks : []);
-
+    setNewAccount(signedInAccount);
   }, [signedInAccount?.cosmosAddress]);
 
   const uploadButton = (
@@ -155,7 +119,7 @@ export function AccountSettings() {
               <AccountButtonDisplay
                 hideButtons
                 addressOrUsername={chain.cosmosAddress}
-                profilePic={signedInAccount?.profilePicUrl}
+                profilePic={newAccount?.profilePicUrl}
               />
               <Divider></Divider>
               <Form
@@ -202,17 +166,6 @@ export function AccountSettings() {
                         showUploadList={true}
                       >
                         {uploadButton}
-                        {/* <div className='flex' style={{ alignItems: 'center' }}>
-                          <Button type='primary' icon={<UploadOutlined />}>Select File</Button>
-                          <div className='flex primary-text' style={{ alignItems: 'center', marginLeft: 10 }}>
-                            {fileList && fileList.length > 0 ? fileList[0].name : ''}
-                          </div>
-                        </div>
-                        {/* {
-                          <img src={
-                            fileList && fileList.length > 0 ? fileList[0].thumbUrl : imageUrl
-                          } style={{ width: '100%' }}></img>
-                        } */}
                       </Upload>
 
                     </div>
@@ -242,57 +195,7 @@ export function AccountSettings() {
                     <Typography.Text strong className='secondary-text'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
-                    {/* </Form.Item>
-                  <Form.Item
-                    label={
-                      <Text className='primary-text' strong>
-                        Show All Badges?
-                      </Text>
-                    }
-                    className='primary-text'
-                  >
-                    <Checkbox
-                      defaultChecked={showAllByDefault}
-                      checked={showAllByDefault}
-                      onChange={(e) => {
-                        setShowAllByDefault(e.target.checked);
-                      }}
-                    /> */}
-                    {/* <Typography.Text strong className='secondary-text'>
-                      {' '}{showAllByDefault ? 'All badges ' : 'Only badges you approve'} will be shown on your profile {showAllByDefault ? 'unless you hide them' : 'and all others will be hidden'}.
-                       </Typography.Text>
-                    <br />
-                    <Typography.Text className='secondary-text'>
-                      {' '}{'You can also select to hide/show individual badges on your portfolio page. Make sure you are signed in to see the Customize Mode option.'}
-                      </Typography.Text> */}
-                    {/* <br />
-                    <br />
-                    <b>{showAllByDefault ? 'Hidden Badges' : 'Shown Badges'}</b>
-                    {showAllByDefault ?
-                      <>{hiddenBadges.map(x => {
-                        return <div key={x.collectionId.toString()} className='flex'>
-                          Collection: {x.collectionId.toString()}
-                          <br />
-                          Badge Ids: {x.badgeIds.map(y => {
-                            return y.start == y.end ? y.start.toString() : y.start.toString() + '-' + y.end.toString()
-                          }).join(', ')}
-                          <br />
-                          <br />
-                        </div>
-                      })}</>
-                      :
-                      <>
-                        {shownBadges.map(x => {
-                          return <div key={x.collectionId.toString()}>
-                            {x.collectionId.toString()}
-                          </div>
-                        })}
-                      </>
-                    } */}
                   </Form.Item>
-
-
-
                   <br />
                   <Form.Item
                     label={
@@ -466,7 +369,7 @@ export function AccountSettings() {
                   onClick={async () => {
                     setLoading(true);
                     try {
-                      if (!signedInAccount) return;
+                      if (!newAccount) return;
                       const data = {
                         twitter,
                         discord,
@@ -484,7 +387,7 @@ export function AccountSettings() {
                       };
 
                       let file = null;
-                      console.log('fileList', fileList, fileList.length > 0 && fileList[0].url !== signedInAccount.profilePicUrl);
+
                       if (fileList.length > 0 && fileList[0].originFileObj) {
                         file = fileList[0].originFileObj;
 
@@ -498,7 +401,7 @@ export function AccountSettings() {
                             await updateAccountInfo(data);
 
                             accounts.updateAccount({
-                              ...signedInAccount,
+                              ...newAccount,
                               ...data
                             });
                             router.push(`/account/${chain.cosmosAddress}`);
@@ -511,16 +414,18 @@ export function AccountSettings() {
                       } else {
 
                         await updateAccountInfo({
-                          ...signedInAccount,
+                          ...newAccount,
                           ...data,
-                          profilePicUrl: fileList.length == 0 ? '' : signedInAccount.profilePicUrl
+                          profilePicUrl: fileList.length == 0 ? '' : newAccount.profilePicUrl
                         });
 
                         accounts.updateAccount({
-                          ...signedInAccount,
+                          ...newAccount,
                           ...data,
-                          profilePicUrl: fileList.length == 0 ? '' : signedInAccount.profilePicUrl
+                          profilePicUrl: fileList.length == 0 ? '' : newAccount.profilePicUrl
                         });
+
+                        notification.success({ message: "Account updated!", description: "It may take a couple minutes to display changes." });
                         router.push(`/account/${chain.cosmosAddress}`);
                       }
                     } catch (err) {

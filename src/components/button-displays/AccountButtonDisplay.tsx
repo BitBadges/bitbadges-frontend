@@ -70,7 +70,6 @@ export function AccountButtonDisplay({
   const discordLink = 'https://discord.com/users/' + accountInfo?.discord;
   const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
   const blurLink = 'https://blur.network/0x' + address;
-  //https://blur.io/0x020cA66C30beC2c4Fe3861a94E4DB4A498A35872
 
   return (
     <div>

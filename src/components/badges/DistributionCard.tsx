@@ -1,14 +1,15 @@
 import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
-import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
+import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
-import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 
 export function DistributionOverview({
   collectionId,
@@ -79,16 +80,23 @@ export function DistributionOverview({
       </>}
       {!isBadgeView &&
         <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
-      {!isSelectStep && <TableRow label={"Can more badges be created?"} value={PermissionIcon(
-        castBalancesActionPermissionToUniversalPermission(
-          collection.collectionPermissions.canCreateMoreBadges), BalancesActionPermissionUsedFlags, collection.managerTimeline.length == 0 ||
-      collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)} labelSpan={20} valueSpan={4} />}
+      {!isSelectStep && <TableRow label={"Can more badges be created?"} value={
+        <PermissionIcon
+          permissions={castBalancesActionPermissionToUniversalPermission(
+            collection.collectionPermissions.canCreateMoreBadges)}
+          usedFlags={BalancesActionPermissionUsedFlags}
+          neverHasManager={neverHasManager(collection)}
+          badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
+        />} labelSpan={20} valueSpan={4} />}
 
-      {!isSelectStep && <TableRow label={"Can transferability be updated (including mints)?"} value={PermissionIcon(
-        castCollectionApprovalPermissionToUniversalPermission(
-          collection.collectionPermissions.canUpdateCollectionApprovals),
-        ApprovalPermissionUsedFlags, collection.managerTimeline.length == 0 ||
-      collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)}
+      {!isSelectStep && <TableRow label={"Can transferability be updated (including mints)?"} value={
+        <PermissionIcon
+          permissions={castBalancesActionPermissionToUniversalPermission(
+            collection.collectionPermissions.canUpdateCollectionApprovals)}
+          usedFlags={ApprovalPermissionUsedFlags}
+          neverHasManager={neverHasManager(collection)}
+          badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
+        />}
         labelSpan={20} valueSpan={4} />}
       {isOffChainBalances && !isSelectStep && <TableRow label={"Balances URL"} value={
         <div>
@@ -121,12 +129,14 @@ export function DistributionOverview({
         </div>
       } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && !isSelectStep && <TableRow label={"Update balances URL?"} value={
-        PermissionIcon(
-          castTimedUpdatePermissionToUniversalPermission(
+        <PermissionIcon
+          permissions={castTimedUpdatePermissionToUniversalPermission(
+            collection.collectionPermissions.canUpdateOffChainBalancesMetadata)}
+          usedFlags={TimedUpdatePermissionUsedFlags}
+          neverHasManager={neverHasManager(collection)}
+          badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
+        />} labelSpan={9} valueSpan={15} />}
 
-            collection.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, collection.managerTimeline.length == 0 ||
-        collection.managerTimeline.every(x => !x.manager), badgeId ? [{ start: badgeId, end: badgeId }] : undefined)
-      } labelSpan={9} valueSpan={15} />}
       {isOffChainBalances && !isSelectStep && <TableRow label={"Last Updated"} value={
         <div>
           <>

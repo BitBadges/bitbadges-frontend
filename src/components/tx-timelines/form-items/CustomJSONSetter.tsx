@@ -3,7 +3,7 @@ import { WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Input, Row, Typography } from 'antd';
 import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { MSG_PREVIEW_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
@@ -26,14 +26,14 @@ export function JSONSetter({
   customSetValueFunction
 }: {
   jsonPropertyPath: string,
-  setErr: (err: string) => void,
+  setErr: (err: Error | null) => void,
   isPermissionUpdate?: boolean,
   customValue?: any,
   customSetValueFunction?: (val: any) => void
 }) {
 
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const [inputJson, setInputJson] = useState<string>('');
 
@@ -47,7 +47,7 @@ export function JSONSetter({
       try {
         customSetValueFunction(val);
       } catch (e: any) {
-        setErr(e.message);
+        setErr(e);
       }
     } : !isPermissionUpdate ? (val: any) => {
       const isValid = preClean(val);
@@ -234,7 +234,7 @@ export function JSONSetter({
           placeholder={'Enter JSON here'}
           onChange={(e) => {
             setInputJson(e.target.value);
-            setErr('');
+            setErr(null);
 
           }}
         />
@@ -244,7 +244,7 @@ export function JSONSetter({
           type='primary'
           className='full-width styled-button primary-text'
           onClick={() => {
-            setErr('');
+            setErr(null);
             try {
               if (!collection) return;
               const msg = JSON.parse(inputJson);

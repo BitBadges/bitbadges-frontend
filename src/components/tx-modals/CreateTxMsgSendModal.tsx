@@ -3,7 +3,6 @@ import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
 import React, { useState } from 'react';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
 
@@ -20,8 +19,10 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
   const [currUserInfo, setCurrUserInfo] = useState<string>('');
   const [sendAmount, setSendAmount] = useState<number>(0);
 
+  const currSelectedAccount = accounts.getAccount(currUserInfo);
+
   const msgSend: MsgSend<bigint> = {
-    destinationAddress: accounts.getAccount(currUserInfo)?.cosmosAddress ?? '',
+    destinationAddress: currSelectedAccount?.cosmosAddress ?? '',
     amount: BigInt(sendAmount),
     denom: 'badge'
   }
@@ -30,11 +31,9 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
     {
       title: 'Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <AddressSelect onUserSelect={setCurrUserInfo} />
-        <br />
-        <AddressDisplay addressOrUsername={currUserInfo} />
+        <AddressSelect onUserSelect={setCurrUserInfo} defaultValue={signedInAccount?.address} />
       </div>,
-      disabled: !accounts.getAccount(currUserInfo)
+      disabled: !currSelectedAccount
     },
     {
       title: 'Amount',
@@ -43,12 +42,10 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
         <InputNumber
           value={sendAmount}
           onChange={(e) => {
-
             setSendAmount(e ?? 0);
           }}
           className='primary-text inherit-bg'
           min={0}
-        // max={signedInAccount?.balance?.amount.toString() ? Numberify(signedInAccount?.balance?.amount.toString()) : 0}
         />
         <br />
         <b>Current Balance: {`${signedInAccount?.balance?.amount}`} $BADGE</b>

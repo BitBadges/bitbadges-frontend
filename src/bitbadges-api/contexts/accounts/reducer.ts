@@ -3,7 +3,7 @@ import { AccountMap, BigIntify, BitBadgesUserInfo, DesiredNumberType, MINT_ACCOU
 import { compareObjects } from "../../../utils/compare";
 import { AccountReducerState, initialState, reservedNames } from "./AccountsContext";
 
-const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false, cookies: { [key: string]: string } = {}) => {
+const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false) => {
 
   let accounts = state.accounts;
   let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
@@ -29,10 +29,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       const cachedAccountCopy = deepCopy(cachedAccount);
 
       let publicKey = cachedAccount?.publicKey ? cachedAccount.publicKey : account.publicKey ? account.publicKey : '';
-      //If we have stored the public key in cookies, use that instead (for Ethereum)
-      if (cookies.pub_key && cookies.pub_key.split('-')[0] === account.cosmosAddress) {
-        publicKey = cookies.pub_key.split('-')[1];
-      }
+
 
       //Append all views to the existing views
       const newViews = cachedAccount?.views || {};
@@ -77,6 +74,11 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
       newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
 
+      //sort in descending order
+      newAccount.activity = newAccount.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? 1 : -1);
+      newAccount.announcements = newAccount.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? 1 : -1);
+      newAccount.reviews = newAccount.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? 1 : -1);
+      newAccount.claimAlerts = newAccount.claimAlerts.sort((a, b) => b.createdTimestamp - a.createdTimestamp > 0 ? 1 : -1);
 
       accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
     }
@@ -108,9 +110,8 @@ export const accountReducer = (state = initialState, action: { type: string; pay
   switch (action.type) {
     case 'UPDATE_ACCOUNTS':
       const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
-      const cookies = action.payload.cookies as { [key: string]: string };
       const forcefulRefresh = action.payload.forcefulRefresh as boolean;
-      return updateAccounts(state, userInfos, forcefulRefresh, cookies);
+      return updateAccounts(state, userInfos, forcefulRefresh);
     default:
       return state;
   }

@@ -32,7 +32,7 @@ export function SearchDropdown({
   const addressMappingsResults = searchResponse?.addressMappings || [];
   const badgeResults = searchResponse?.badges || [];
 
-  const DELAY_MS = 250;
+  const DELAY_MS = 500;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: search dropdown, search value changed ');
     const delayDebounceFn = setTimeout(async () => {

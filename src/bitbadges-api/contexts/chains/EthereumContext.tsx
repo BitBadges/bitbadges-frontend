@@ -138,14 +138,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       }
 
 
-      const res = await accountsContext.fetchAccountsWithOptions([{
+      await accountsContext.fetchAccountsWithOptions([{
         address: web3AccountContext.address,
         fetchSequence: true,
         fetchBalance: true,
         viewsToFetch
       }]);
-
-      console.log(res);
     }
   }
 
@@ -174,8 +172,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
-    const accounts = await accountsContext.fetchAccountsWithOptions([{ address: address, fetchSequence: true, fetchBalance: true }]);
-    const account = accounts[0];
+    const account = accountsContext.getAccount(cosmosAddress);
+    if (!account) throw new Error('Account not found.');
 
     const chain = { ...CHAIN_DETAILS, chain: SupportedChain.ETH };
     const sender = {
@@ -209,6 +207,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const getPublicKey = async (_cosmosAddress: string) => {
     try {
       const currAccount = accountsContext.getAccount(_cosmosAddress);
+
+      //If we have stored the public key in cookies, use that instead (for Ethereum)
+      if (currAccount && cookies.pub_key && cookies.pub_key.split('-')[0] === currAccount.cosmosAddress) {
+        return cookies.pub_key.split('-')[1];
+      }
+
       console.log("currAccount", currAccount);
       if (currAccount && currAccount.publicKey) {
         return currAccount.publicKey

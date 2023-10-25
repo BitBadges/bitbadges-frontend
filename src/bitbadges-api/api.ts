@@ -17,7 +17,7 @@ async function handleApiError(error: any): Promise<void> {
 
   if (error && error.response && error.response.data) {
     const data: ErrorResponse = error.response.data;
-
+    
     notification.error({
       message: "Oops! We ran into an error!",
       description: data.message ? data.message : "Unknown error",

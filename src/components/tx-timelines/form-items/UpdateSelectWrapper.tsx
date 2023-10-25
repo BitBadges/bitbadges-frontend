@@ -1,15 +1,17 @@
 import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateContractAddressUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { DEV_MODE } from '../../../constants';
+import { neverHasManager } from '../../../bitbadges-api/utils/manager';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
-import { JSONSetter } from './CustomJSONSetter';
-import { SwitchForm } from './SwitchForm';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { JSONSetter } from './CustomJSONSetter';
+import { ErrDisplay } from './ErrDisplay';
+import { SwitchForm } from './SwitchForm';
+import { INFINITE_LOOP_MODE } from '../../../constants';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -17,7 +19,6 @@ export function UpdateSelectWrapper({
   node,
   jsonPropertyPath,
   permissionName,
-  validationErr,
   mintOnly,
   nonMintOnly,
   disableJson,
@@ -26,13 +27,14 @@ export function UpdateSelectWrapper({
   customSetValueFunction,
   customRevertFunction,
   onlyShowJson = false,
+  err,
+  setErr
 }: {
   setUpdateFlag: (val: boolean) => void,
   updateFlag: boolean,
   node: JSX.Element,
   jsonPropertyPath: string,
   permissionName: string,
-  validationErr?: Error | null,
   mintOnly?: boolean,
   disableUndo?: boolean,
   nonMintOnly?: boolean,
@@ -41,18 +43,22 @@ export function UpdateSelectWrapper({
   customSetValueFunction?: (val: any) => void,
   customRevertFunction?: () => void,
   onlyShowJson?: boolean,
+  err: Error | null,
+  setErr: (err: Error | null) => void,
 }) {
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
   const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
-  const [err, setErr] = useState<string>('');
   const [customJson, setCustomJson] = useState<boolean>(onlyShowJson);
   const [showPermission, setShowPermission] = useState<boolean>(false);
+  const [jsonErr, setJsonErr] = useState<Error | null>(null);
+
   let castFunction: any = () => { }
+  let validateFunction: any = undefined;
   let flags;
   if (collection) {
     switch (permissionName) {
@@ -84,20 +90,63 @@ export function UpdateSelectWrapper({
         flags = ApprovalPermissionUsedFlags;
         break;
     }
+
+    switch (permissionName) {
+      case 'canArchiveCollection':
+        validateFunction = validateIsArchivedUpdate;
+        break;
+      case 'canUpdateContractAddress':
+        validateFunction = validateContractAddressUpdate;
+        break;
+      case 'canUpdateOffChainBalancesMetadata':
+        validateFunction = validateOffChainBalancesMetadataUpdate;
+        break;
+      // case 'canUpdateStandards':
+      // case 'canUpdateCustomData':
+      case 'canUpdateManager':
+        validateFunction = validateManagerUpdate
+        break;
+      case 'canUpdateCollectionMetadata':
+        validateFunction = validateCollectionMetadataUpdate;
+        break;
+      case 'canUpdateBadgeMetadata':
+        validateFunction = validateBadgeMetadataUpdate;
+        break;
+      case 'canUpdateCollectionApprovals':
+        validateFunction = validateCollectionApprovalsUpdate
+        console.log('collection approval update')
+        break;
+    }
   }
 
+  const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? [];
+  const noManager = collection ? neverHasManager(collection) : true;
   const permissionDataSource = jsonPropertyPath === "defaultUserIncomingApprovals" ? undefined : getPermissionDetails(
-    castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
-    flags as any
+    castFunction(prevPermissions),
+    flags as any,
+    noManager
   );
+
+  const currValue = collection ? collection[jsonPropertyPath as keyof typeof collection] : undefined;
+  const startingValue = startingCollection ? startingCollection[jsonPropertyPath as keyof typeof startingCollection] : undefined;
+
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update select wrapper: ', jsonPropertyPath);
+    let validateErr: Error | null = null;
+    if (validateFunction && startingValue !== undefined && currValue !== undefined) {
+      validateErr = validateFunction(startingValue, currValue, prevPermissions);
+      setErr(validateErr);
+      console.log('validateErr: ', validateErr);
+    }
+
+  }, [JSON.stringify(currValue), JSON.stringify(startingValue), JSON.stringify(prevPermissions), permissionName, jsonPropertyPath])
 
   useEffect(() => {
     setCustomJson(onlyShowJson);
   }, [onlyShowJson])
 
   let question = "";
-
-
   switch (permissionName) {
     case 'canDeleteCollection':
       question = "Can delete the collection?";
@@ -139,11 +188,7 @@ export function UpdateSelectWrapper({
   return (
     <>
       <div className='primary-text flex-center flex-column' >
-
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
-
-
-
           {updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
             <IconButton
               src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
@@ -191,13 +236,13 @@ export function UpdateSelectWrapper({
                     const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       [`${jsonPropertyPath}`]: existingValue
                     });
 
                   } else if (collection && !startingCollection) {
                     collections.updateCollection({
-                      collectionId: MSG_PREVIEW_ID,
+                      collectionId: NEW_COLLECTION_ID,
                       [`${jsonPropertyPath}`]: []
                     });
                   }
@@ -218,26 +263,20 @@ export function UpdateSelectWrapper({
               className='primary-text'
             />
           </div>}
-        {(permissionDataSource?.hasForbiddenTimes) && updateFlag &&
+        {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
           <div className='' style={{ textAlign: 'center' }}>
             <br />
-            {validationErr ?
-              <div style={{ color: 'red', textAlign: 'center' }}>
-                <b>Error: </b>You are attempting to update a previously frozen value. Please resolve this error before continuing. See permission for more details.
-                {DEV_MODE && <>
-                  <br />
-                  {validationErr.message}
-                </>}
-              </div>
-              : <>
-                <WarningOutlined style={{ color: 'orange', fontSize: 16, marginRight: 4 }} />
-                <b>Updating certain values may be frozen and disallowed. See permission for more details.</b>
-                <br />
-              </>}
+            {<>
+              <WarningOutlined style={{ color: 'orange', fontSize: 16, marginRight: 4 }} />
+              <b>Updating certain values may be frozen and disallowed. See permission for more details.</b>
+              <br />
+            </>}
 
           </div>}
+
+        {(err) && <><br /><ErrDisplay err={err} /></>}
       </div>
-      <span color='black' style={{ margin: 16, }} />
+      <span color='black' style={{ margin: 16 }} />
 
       {!updateFlag &&
         <div style={{ textAlign: 'center' }} className='primary-text' >
@@ -259,16 +298,13 @@ export function UpdateSelectWrapper({
 
       {showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
         <InformationDisplayCard title={question}>
-          {
-            PermissionDisplay(
-              castFunction(startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? []),
-              flags as any,
-              undefined,
-              undefined,
-              mintOnly,
-              nonMintOnly,
-            )
-          }
+          <PermissionDisplay
+            permissions={castFunction(prevPermissions)}
+            usedFlags={flags as UsedFlags}
+            neverHasManager={noManager}
+            mintOnly={mintOnly}
+            nonMintOnly={nonMintOnly}
+          />
         </InformationDisplayCard>
         <br />
       </> : <></>}
@@ -277,16 +313,13 @@ export function UpdateSelectWrapper({
       </>}
       {updateFlag && customJson && <>
         <JSONSetter
-          setErr={setErr}
+          setErr={setJsonErr}
           jsonPropertyPath={jsonPropertyPath}
           customValue={customValue}
           customSetValueFunction={customSetValueFunction}
         />
-
-        {err && <div className='flex-center' style={{ color: 'red' }}>
-          {err}
-        </div>}
         <br />
+        {jsonErr && <ErrDisplay err={jsonErr} />}
       </>}
     </>
   )

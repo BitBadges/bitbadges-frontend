@@ -1,54 +1,55 @@
 import { notification } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, MerkleChallengeWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { CollectionApprovalWithDetails, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
 
+
+//Claim badge is exclusively used for predetermined balances
+//For other standard tramsfers, use CreateTxMsgTransferBadgesModal
 export function CreateTxMsgClaimBadgeModal(
   {
-    collectionId, visible, setVisible, children, approvalCriteria, claimItem, code, whitelistIndex, recipient, approvalId
+    collectionId, visible, approval, setVisible, children, code, whitelistIndex, recipient, tree
   }: {
     collectionId: bigint,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     children?: React.ReactNode,
-    approvalCriteria?: ApprovalCriteriaWithDetails<bigint>,
-    claimItem?: MerkleChallengeWithDetails<bigint>,
+    approval: CollectionApprovalWithDetails<bigint>,
     code: string
     whitelistIndex?: number
     recipient?: string
-    approvalId: string
+    tree?: MerkleTree | null,
   }
 ) {
   const chain = useChainContext();
   const collections = useCollectionsContext();
   const collection = collections.getCollection(collectionId);
 
-  const precalculationId = approvalId
-  const leavesDetails = claimItem?.details?.challengeDetails?.leavesDetails;
-  const treeOptions = claimItem?.details?.challengeDetails?.treeOptions;
+  const approvalId = approval.approvalId;
+  const approvalCriteria = approval?.approvalCriteria;
+  const hasPredetermined = approvalCriteriaUsesPredeterminedBalances(approvalCriteria);
+  const precalculationId = hasPredetermined ? approvalId : '';
+  const claimItem = approval.approvalCriteria?.merkleChallenge;
+
 
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
+
 
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>(code);
-  const [tree, setTree] = useState<MerkleTree | null>(claimItem ? new MerkleTree(
-    leavesDetails?.leaves.map(x => {
-      return leavesDetails?.isHashed ? x : SHA256(x);
-    }) ?? [],
-    SHA256,
-    treeOptions
-  ) : null);
 
   const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
 
   useEffect(() => {
-    if (claimItem && claimItem.details?.hasPassword) {
+    if (claimItem && approval.details?.hasPassword) {
 
     }
     else {
@@ -61,7 +62,7 @@ export function CreateTxMsgClaimBadgeModal(
     if (INFINITE_LOOP_MODE) console.log('useEffect: code to submit ');
     // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
     async function fetchCode() {
-      if (claimItem && claimItem.details?.hasPassword) {
+      if (claimItem && approval.details?.hasPassword) {
         let claimItemCid = '';
         if (claimItem.uri.startsWith('ipfs://')) {
           claimItemCid = claimItem.uri.split('ipfs://')[1];
@@ -76,12 +77,18 @@ export function CreateTxMsgClaimBadgeModal(
           }
         }
       } else if (claimItem) {
-        // setPasswordCodeToSubmit(code);
         const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(code).toString();
-
         const proofObj = tree?.getProof(leaf, whitelistIndex !== undefined && whitelistIndex >= 0 ? whitelistIndex : undefined);
-        // console.log(whitelistIndex, proofObj);
         const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
+        const leafIndex = tree?.getLeafIndex(Buffer.from(leaf, 'hex'));
+
+        if (challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex ?? -1))) {
+          notification.error({
+            message: 'Code already used',
+            description: 'The provided code has already been used. This transaction will fail.',
+          });
+          setVisible(false);
+        }
 
         if (!isValidProof) {
           notification.error({
@@ -94,18 +101,6 @@ export function CreateTxMsgClaimBadgeModal(
     }
     fetchCode();
   }, [claimItem, code, collectionId, visible]);
-
-  useEffect(() => {
-
-    if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
-    if (claimItem) {
-      const tree = new MerkleTree(claimItem.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
-        return claimItem.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
-      }) ?? [], SHA256, claimItem.details?.challengeDetails?.treeOptions);
-      setTree(tree);
-    }
-  }, [claimItem]);
-
 
   if (!collection || !visible) return <></>;
 
@@ -122,7 +117,7 @@ export function CreateTxMsgClaimBadgeModal(
       balances: [],
       precalculateBalancesFromApproval: {
         approvalId: precalculationId ?? '',
-        approvalLevel: "collection",
+        approvalLevel: hasPredetermined ? "collection" : "",
         approverAddress: "",
       },
       merkleProofs: requiresProof ? [{
@@ -132,13 +127,19 @@ export function CreateTxMsgClaimBadgeModal(
             onRight: proof.position === 'right'
           }
         }) : [],
-        leaf: passwordCodeToSubmit,
+        leaf: isWhitelist ? '' : passwordCodeToSubmit,
       }] : [],
       memo: '',
-      prioritizedApprovals: [],
+      prioritizedApprovals: hasPredetermined ? [{
+        approvalId: precalculationId ?? '',
+        approvalLevel: hasPredetermined ? "collection" : "",
+        approverAddress: "",
+      }] : [],
       onlyCheckPrioritizedApprovals: false,
     }],
   };
+
+
   console.log(txCosmosMsg);
 
   return (

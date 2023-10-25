@@ -22,9 +22,10 @@ export function Notifications() {
 
   const [tab, setTab] = useState('announcements');
 
-  const transferActivity = accounts.getActivityView(chain.cosmosAddress, 'latestActivity') ?? [];
-  const announcements = accounts.getAnnouncementsView(chain.cosmosAddress, 'latestAnnouncements') ?? [];
-  const claimAlerts = accounts.getClaimAlertsView(chain.cosmosAddress, 'latestClaimAlerts') ?? [];
+  const transferActivity = accounts.getActivityView(chain.address, 'latestActivity') ?? [];
+  const announcements = accounts.getAnnouncementsView(chain.address, 'latestAnnouncements') ?? [];
+  const claimAlerts = accounts.getClaimAlertsView(chain.address, 'latestClaimAlerts') ?? [];
+
   const [prevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
 
   const [seenAnnouncements, setSeenAnnouncements] = useState<boolean>(false);
@@ -35,7 +36,7 @@ export function Notifications() {
   const fetchMore = async () => {
     if (!signedInAccount) return;
 
-    await accounts.fetchNextForViews(signedInAccount.cosmosAddress, [`${listsTab}`]);
+    await accounts.fetchNextForViews(signedInAccount.address, [`${listsTab}`]);
   }
 
 
@@ -43,18 +44,15 @@ export function Notifications() {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
     const signedInAccount = accounts.getAccount(chain.address);
 
-    console.log(signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress)
-    if (signedInAccount && chain.connected && chain.loggedIn && chain.cosmosAddress) {
-      console.log('update profile info')
-      accounts.updateProfileInfo(chain.cosmosAddress, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
+    if (signedInAccount && chain.connected && chain.loggedIn && chain.address) {
+      accounts.updateProfileInfo(chain.address, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
-  }, [chain.connected, chain.loggedIn, chain.cosmosAddress, chain.address, chain.lastSeenActivity]);
+  }, [chain.connected, chain.loggedIn, chain.address, chain.address, chain.lastSeenActivity]);
 
 
   const listsTab = 'latestAddressMappings';
   const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
-
-  const listsView = signedInAccount ? accounts.getAddressMappingsView(signedInAccount.cosmosAddress, listsTab) ?? [] : [];
+  const listsView = signedInAccount ? accounts.getAddressMappingsView(signedInAccount.address, listsTab) ?? [] : [];
 
   useEffect(() => {
     const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
@@ -161,31 +159,32 @@ export function Notifications() {
                       disabled: false
                     }]}
                 />
+                
                 <div style={{ textAlign: 'center' }}>
                   {tab === 'transferActivity' && <>
                     <br /><ActivityTab
                       activity={transferActivity ?? []}
                       fetchMore={async () => {
-                        await accounts.fetchNextForViews(chain.cosmosAddress, ['latestActivity']);
+                        await accounts.fetchNextForViews(chain.address, ['latestActivity']);
                       }}
-                      hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestActivity?.pagination.hasMore ?? true}
+                      hasMore={accounts.getAccount(chain.address)?.views.latestActivity?.pagination.hasMore ?? true}
                     />
                   </>}
 
                   {tab === 'announcements' && <><br /><AnnouncementsTab
                     announcements={announcements ?? []}
                     fetchMore={async () => {
-                      await accounts.fetchNextForViews(chain.cosmosAddress, ['latestAnnouncements']);
+                      await accounts.fetchNextForViews(chain.address, ['latestAnnouncements']);
                     }}
-                    hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestAnnouncements?.pagination.hasMore ?? true}
+                    hasMore={accounts.getAccount(chain.address)?.views.latestAnnouncements?.pagination.hasMore ?? true}
                   /></>}
 
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
                     claimAlerts={claimAlerts ?? []}
                     fetchMore={async () => {
-                      await accounts.fetchNextForViews(chain.cosmosAddress, ['latestClaimAlerts']);
+                      await accounts.fetchNextForViews(chain.address, ['latestClaimAlerts']);
                     }}
-                    hasMore={accounts.getAccount(chain.cosmosAddress)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
+                    hasMore={accounts.getAccount(chain.address)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
                   />
                   </>}
 

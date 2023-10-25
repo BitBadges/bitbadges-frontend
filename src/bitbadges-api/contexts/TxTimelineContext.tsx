@@ -19,7 +19,7 @@ export const EmptyStepItem = {
   doNotDisplay: true,
 }
 
-export const MSG_PREVIEW_ID = 0n;
+export const NEW_COLLECTION_ID = 0n;
 
 //Each timeline makes use of the necessary, reusable components in the step-items and form-items folders.
 //The step-items are the individual steps in the timeline, and the form-items are the helper components that are displayed in each step.
@@ -29,7 +29,7 @@ export const MSG_PREVIEW_ID = 0n;
   IMPORTANT FOR DEVELOPERS: Read below
   
   Do not update any of the existingCollection or collectionsContext.getCollection(existingCollectionId) fields.
-  Instead, use the simulated collection with ID === 0n aka ID === MSG_PREVIEW_ID.
+  Instead, use the simulated collection with ID === 0n aka ID === NEW_COLLECTION_ID.
 
   The simulated collection is a copy of the existing collection with the changes specified by the Msg applied to it.
   This is because we want to be able to simulate the changes to the collection and access them without actually updating the existing collection in the cache.
@@ -228,7 +228,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
   const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
-  const simulatedCollection = collections.getCollection(MSG_PREVIEW_ID);
+  const simulatedCollection = collections.getCollection(NEW_COLLECTION_ID);
 
   const [size, setSize] = useState(0);
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
@@ -315,7 +315,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     // const existingNonMint = getNonMintApprovals(simulatedCollection, true);
 
     collections.updateCollection({
-      collectionId: MSG_PREVIEW_ID,
+      collectionId: NEW_COLLECTION_ID,
       collectionApprovals: approvalsToAdd,
     });
   }, [approvalsToAdd]);
@@ -477,6 +477,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
       let noStartingCollection = false;
       if (!startingCollection) {
+        //wait three seconds 
+       
+
         noStartingCollection = true;
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
           [{
@@ -530,7 +533,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
 
 
-      const postSimulatedCollection = { owners: newOwnersArr, merkleChallenges: combinedClaims, collectionId: MSG_PREVIEW_ID };
+      const postSimulatedCollection = { owners: newOwnersArr, merkleChallenges: combinedClaims, collectionId: NEW_COLLECTION_ID };
       console.log("POST SIMULATED COLLECTION");
       collections.updateCollection(postSimulatedCollection);
     }

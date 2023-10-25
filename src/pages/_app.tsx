@@ -38,12 +38,10 @@ const metadata = {
 
 const chains = [mainnet]
 const projectId = 'febf8d9986a2cd637fa4004338dad39b'
-
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
 
 // 3. Create modal
 createWeb3Modal({ wagmiConfig, projectId, chains })
-
 
 
 const combinedReducers = combineReducers({

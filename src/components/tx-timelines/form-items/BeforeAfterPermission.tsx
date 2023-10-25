@@ -1,7 +1,7 @@
 import { Col, Row, Typography } from 'antd';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { MSG_PREVIEW_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 
@@ -14,7 +14,7 @@ export function BeforeAfterPermission({
   const collections = useCollectionsContext();
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   let castFunction: any = () => { }
   let flags;
@@ -67,9 +67,7 @@ export function BeforeAfterPermission({
           </Typography.Text>
           <br />
           <br />
-          {PermissionDisplay(
-            castFunction(oldPermissions as any), flags as any
-          )}
+          <PermissionDisplay permissions={castFunction(oldPermissions as any)} usedFlags={flags as any} />
         </Col>}
         <Col md={11} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
@@ -78,9 +76,7 @@ export function BeforeAfterPermission({
           <br />
 
           <br />
-          {PermissionDisplay(
-            castFunction(newPermissions as any), flags as any
-          )}
+          <PermissionDisplay permissions={castFunction(newPermissions as any)} usedFlags={flags as any} />
         </Col>
       </Row>
     </InformationDisplayCard>
@@ -97,7 +93,7 @@ export function AfterPermission({
   onFreezePermitted?: (frozen: boolean) => void
 }) {
   const collections = useCollectionsContext();
-  const collection = collections.getCollection(MSG_PREVIEW_ID);
+  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   let castFunction: any = () => { }
   let flags;
@@ -145,14 +141,11 @@ export function AfterPermission({
       <br />
 
       <Col md={24} xs={24} style={{ textAlign: 'center' }}>
-        {PermissionDisplay(
-          castFunction(newPermissions as any), flags as any,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          onFreezePermitted
-        )}
+        <PermissionDisplay
+          permissions={castFunction(newPermissions as any)}
+          usedFlags={flags as any}
+          onFreezePermitted={onFreezePermitted}
+        />
       </Col>
     </Row>
   </>
