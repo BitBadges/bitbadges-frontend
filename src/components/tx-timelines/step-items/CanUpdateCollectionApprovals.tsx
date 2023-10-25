@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { ApprovalPermissionUsedFlags, CollectionApprovalPermissionWithDetails, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
@@ -11,6 +11,8 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
 import { isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { getNonMintApprovals, getMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 
@@ -51,13 +53,27 @@ export function FreezeSelectStepItem() {
   const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
+  const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
   const [err, setErr] = useState<Error | null>(null);
+  const allMintAmountTrackerIds = collection ? getMintApprovals(collection).map(x => x.amountTrackerId) : [];
+  const allMintChallengeTrackerIds = collection ? getMintApprovals(collection).map(x => x.challengeTrackerId) : [];
+  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.amountTrackerId) : [];
+  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.challengeTrackerId) : [];
+
+  const allIdsString = JSON.stringify(allMintAmountTrackerIds) + JSON.stringify(allMintChallengeTrackerIds) + JSON.stringify(allNonMintAmountTrackerIds) + JSON.stringify(allNonMintChallengeTrackerIds);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log("FreezeSelectStepItem", { allMintAmountTrackerIds, allMintChallengeTrackerIds, allNonMintAmountTrackerIds, allNonMintChallengeTrackerIds })
+    handleSwitchChange(lastClickedIdx, lastClickedFrozen);
+  }, [allIdsString])
 
   if (!collection) return EmptyStepItem;
 
   const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
 
+
   const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager(collection));
+
 
   const handleSwitchChange = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
@@ -67,9 +83,63 @@ export function FreezeSelectStepItem() {
       fromMappingId: idx == 0 ? "AllWithMint" : idx == 1 ? "AllWithoutMint" : "Mint",
     }] : []
 
+
+
+    if (idx == 1) {
+      //need to lock allwithout mint
+      for (const id of allNonMintAmountTrackerIds) {
+        permissions.push({
+          ...AlwaysLockedPermission,
+          amountTrackerId: id,
+        })
+
+        if (allMintAmountTrackerIds.find(x => x === id)) {
+          setErr(new Error(`You have selected to freeze the transferability of all non-mint, but you also have a mint approval with the same amount tracker ID (${id}).`))
+        }
+      }
+
+      for (const id of allNonMintChallengeTrackerIds) {
+        permissions.push({
+          ...AlwaysLockedPermission,
+          challengeTrackerId: id,
+        })
+
+        if (allMintChallengeTrackerIds.find(x => x === id)) {
+          setErr(new Error(`You have selected to freeze the transferability of all non-mint, but you also have a mint approval with the same challenge tracker ID (${id}).`))
+        }
+      }
+    }
+
+    if (idx == 2) {
+      for (const id of allMintAmountTrackerIds) {
+        permissions.push({
+          ...AlwaysLockedPermission,
+          amountTrackerId: id,
+        })
+
+        if (allNonMintAmountTrackerIds.find(x => x === id)) {
+          setErr(new Error(`You have selected to freeze the transferability of all mint, but you also have a non-mint approval with the same amount tracker ID (${id}).`))
+        }
+      }
+
+      for (const id of allMintChallengeTrackerIds) {
+        permissions.push({
+          ...AlwaysLockedPermission,
+          challengeTrackerId: id,
+        })
+
+        if (allNonMintChallengeTrackerIds.find(x => x === id)) {
+          setErr(new Error(`You have selected to freeze the transferability of all mint, but you also have a non-mint approval with the same challenge tracker ID (${id}).`))
+        }
+      }
+    }
+
+
     if (locked) {
       permissions.push(EverythingElsePermanentlyPermittedPermission)
     }
+
+
 
     collections.updateCollection({
       collectionId: NEW_COLLECTION_ID,
@@ -89,6 +159,7 @@ export function FreezeSelectStepItem() {
           permissionName="canUpdateCollectionApprovals"
           onFreezePermitted={(frozen: boolean) => {
             handleSwitchChange(lastClickedIdx, frozen);
+            setLastClickedFrozen(frozen);
           }}
         />
       </div>
@@ -113,6 +184,8 @@ export function FreezeSelectStepItem() {
   const nonMintFrozenButMintUnfrozen = !completelyFrozen && nonMintFrozen && !mintFrozen;
   const mintFrozenButNonMintUnfrozen = !completelyFrozen && mintFrozen && !nonMintFrozen;
 
+  const completelyPermitted = !permissionDetails.hasForbiddenTimes
+
   return {
     title: `Update transferability?`,
     description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from how badges are distributed, freezing addresses, revoking badges, etc.`,
@@ -128,7 +201,7 @@ export function FreezeSelectStepItem() {
           {badgesIdsWithUnlockedSupply.length > 0 && <>
             <div className='primary-text' style={{ color: 'orange', textAlign: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 4 }} /> Note that you have selected to be able to create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
-              Please make sure the transferability of these badges is either a) set to not frozen or b) pre-handled via the previously selected transferability.
+              Please make sure the transferability of these badges is either a) set to not frozen or b) you pre-handled the future transferability for these badges when you previously selected transferability.
 
             </div>
             <br />
@@ -140,25 +213,25 @@ export function FreezeSelectStepItem() {
               {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: completelyFrozen,
+                isSelected: lastClickedIdx == 0,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: nonMintFrozenButMintUnfrozen,
+                isSelected: lastClickedIdx == 1,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: mintFrozenButNonMintUnfrozen,
+                isSelected: lastClickedIdx == 2,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: !permissionDetails.hasForbiddenTimes,
+                isSelected: lastClickedIdx == 3,
                 additionalNode: <AdditionalNode />
               },
             ]}

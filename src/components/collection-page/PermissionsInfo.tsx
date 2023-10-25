@@ -172,7 +172,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
   }
 
 
-
   let hasNeutralTimes = false;
   let hasPermittedTimes = false;
   let hasForbiddenTimes = false;
@@ -252,28 +251,39 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
   //Isn't worth confusing the average user
   if (hideIfFull) {
     for (const column of columns) {
+
+      console.log(columns);
       if ((column.key.endsWith('Times') || column.key.endsWith('Ids')) && column.key !== 'permissionTimes') {
         const key = column.key as keyof typeof dataSource[0];
+        let allAreFull = true;
         for (const x of dataSource) {
           const val = x[key] as any
-          if (val?.length === 1 && val[0].start === 1n && val[0].end === GO_MAX_UINT_64) {
-            columns = columns.filter(x => x.key !== column.key);
+          if (!(val?.length === 1 && val[0].start === 1n && val[0].end === GO_MAX_UINT_64)) {
+            allAreFull = false;
           }
+        }
+
+        if (allAreFull) {
+          columns = columns.filter(x => x.key !== column.key);
         }
 
       } else if (column.key.endsWith('Mapping') || column.key.endsWith('Id')) {
         let key = column.key as keyof typeof dataSource[0];
         if (column.key.endsWith('Id')) key = key + 'Mapping' as keyof typeof dataSource[0];
+        let allAreFull = true;
         for (const x of dataSource) {
           const val = x[key] as any
-          if (val?.addresses?.length === 0 && val.includeAddresses === false) {
-            columns = columns.filter(x => x.key !== column.key);
+          if (!(val?.addresses?.length === 0 && val.includeAddresses === false)) {
+            allAreFull = false;
           }
+        }
+
+        if (allAreFull) {
+          columns = columns.filter(x => x.key !== column.key);
         }
       }
     }
   }
-
 
   return { columns, dataSource, hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes, neverHasManager }
 }
@@ -350,7 +360,7 @@ export const PermissionDisplay = (
                         y.badgeIds = removed;
                       }
 
-
+                      console.log(y, columns)
                       //we previously may have filtered out columns, here we should not display them
                       const columnKeys = columns.map(x => x.key);
 

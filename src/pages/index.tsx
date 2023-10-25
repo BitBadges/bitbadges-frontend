@@ -506,7 +506,7 @@ const Home: NextPage = () => {
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Natively, BitBadges dos its accounting in a way that supports time-dependent ownership for balances (e.g. Bob owns x1 from January to March).
+                    Natively, BitBadges does its accounting in a way that supports time-dependent ownership for balances (e.g. Bob owns x1 from January to March).
                   </Typography.Text>
                 </>
               }

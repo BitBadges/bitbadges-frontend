@@ -7,6 +7,7 @@ import { AddressDisplay } from "./AddressDisplay"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { deepCopy } from "bitbadgesjs-proto"
 import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+import { getAbbreviatedAddress } from "bitbadgesjs-utils"
 
 export function AddressDisplayList({
   users,
@@ -67,8 +68,7 @@ export function AddressDisplayList({
     setCurrPageEnd(currPageEnd);
 
     const reservedNames = ['All', 'Mint'];
-
-    accounts.fetchAccounts(usersToDisplay.slice(currPageStart, currPageEnd + 1).filter(x => !reservedNames.includes(x)));
+    if (!trackerIdList) accounts.fetchAccounts(usersToDisplay.slice(currPageStart, currPageEnd + 1).filter(x => !reservedNames.includes(x)));
   }, [currPage, pageSize, usersToDisplay]);
 
 
@@ -86,7 +86,9 @@ export function AddressDisplayList({
 
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
-          {trackerIdList ? <> {user} </> : <AddressDisplay
+          {trackerIdList ? <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
+
+            {getAbbreviatedAddress(user)} </div> : <AddressDisplay
             icon={
               !hideIcons && setUsers && user != 'All' &&
               <Tooltip title={"Remove User"}>
