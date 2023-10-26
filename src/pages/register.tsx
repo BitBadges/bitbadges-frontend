@@ -41,7 +41,9 @@ function RegisterScreen({ message }: { message?: string }) {
                   </Text>
                 </Content>
                 <br />
-                <img src='/images/bitbadgeslogo.png' style={{ height: 200 }} />
+                <div className='flex-center'>
+                  <img src='/images/bitbadgeslogo.png' style={{ height: 200 }} />
+                </div>
                 <br />
                 <br />
                 <div className='' style={{ alignItems: 'center', fontSize: 16, fontWeight: 'bold' }}>
