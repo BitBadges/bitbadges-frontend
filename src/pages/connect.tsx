@@ -16,39 +16,39 @@ function ConnectScreen({ message }: { message?: string }) {
   } = useChainContext();
 
   return (
-      <Content
-        className='inherit-bg'
-        style={{
-          minHeight: '100vh',
-          textAlign: 'center',
-        }}
-      >
+    <div
+      className='inherit-bg'
+      style={{
+        minHeight: '100vh',
+        textAlign: 'center',
+      }}
+    >
+      <div>
+        <Content>
+          <Text
+            strong
+            style={{ fontSize: 20 }} className='dark:text-white'
+          >
+            {message ? message : 'Welcome!'}
+          </Text>
+        </Content>
+        <Content style={{ paddingTop: '15px' }}>
+          <BlockinDisplay />
+        </Content>
+      </div>
+
+      {true && DEV_MODE && connected && loggedIn &&
         <div>
-          <Content>
-            <Text
-              strong
-              style={{ fontSize: 20 }} className='primary-text'
-            >
-              {message ? message : 'Welcome!'}
-            </Text>
-          </Content>
           <Content style={{ paddingTop: '15px' }}>
-            <BlockinDisplay />
+            <Button type='primary' style={{ width: '50%' }} onClick={() => {
+              router.back();
+            }}>
+              Go Back to Previous Page
+            </Button>
           </Content>
         </div>
-        
-        {true && DEV_MODE && connected && loggedIn &&
-          <div>
-            <Content style={{ paddingTop: '15px' }}>
-              <Button type='primary' style={{ width: '50%' }} onClick={() => {
-                router.back();
-              }}>
-                Go Back to Previous Page
-              </Button>
-            </Content>
-          </div>
-        }
-      </Content>
+      }
+    </div>
   );
 }
 

@@ -1,18 +1,18 @@
-import { Avatar, Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
-import Text from 'antd/lib/typography/Text';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
-import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
+import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
+import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
+import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -97,7 +97,7 @@ export function AccountSettings() {
   }, [signedInAccount?.cosmosAddress]);
 
   const uploadButton = (
-    <div className='primary-text'>
+    <div className='dark:text-white'>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
       <div style={{ marginTop: 8 }}>Upload</div>
     </div>
@@ -131,7 +131,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Username
                       </Text>
                     }
@@ -149,7 +149,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Profile Pic
                       </Text>
                     }
@@ -170,7 +170,7 @@ export function AccountSettings() {
 
                     </div>
                     {chain.chain === SupportedChain.ETH &&
-                      <Typography.Text strong className='secondary-text'>
+                      <Typography.Text strong className='text-gray-400'>
                         If username or profile pic URL is not specified, we will display your ENS name / avatar.
                       </Typography.Text>}
                   </Form.Item>
@@ -178,7 +178,7 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text
-                        className='primary-text'
+                        className='dark:text-white'
                         strong
                       >
                         About
@@ -187,19 +187,19 @@ export function AccountSettings() {
                   >
                     <div className='flex-between'>
                       <MdEditor
-                        className='primary-text inherit-bg full-width'
+                        className='dark:text-white inherit-bg full-width'
                         style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                         value={readme}
                       />
                     </div>
-                    <Typography.Text strong className='secondary-text'>
+                    <Typography.Text strong className='text-gray-400'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
                   </Form.Item>
                   <br />
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Twitter
                       </Text>
                     }
@@ -216,7 +216,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         GitHub
                       </Text>
                     }
@@ -233,7 +233,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Telegram
                       </Text>
                     }
@@ -250,7 +250,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Discord
                       </Text>
                     }
@@ -269,9 +269,9 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Typography.Text strong className='secondary-text' style={{ textAlign: 'center' }}>
+                      <div className='dark:text-white font-bold' style={{ textAlign: 'center' }}>
                         Add a new custom link?
-                      </Typography.Text>
+                      </div>
                     }
                   >
                     <AccountButtonDisplay
@@ -284,7 +284,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Link Title
                       </Text>
                     }
@@ -300,7 +300,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Link URL
                       </Text>
                     }
@@ -316,7 +316,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className='dark:text-white' strong>
                         Image URL
                       </Text>
                     }
@@ -335,35 +335,34 @@ export function AccountSettings() {
                     label={<></>
                     }
                   ><div className='flex-center full-width'>
-                      <Avatar
-                        className='styled-button'
-                        src={
-                          <PlusOutlined
 
-                            type='primary'
-                            // className='styled-button'
-                            onClick={() => {
-                              if (!newCustomLinkTitle || !newCustomLinkUrl) return;
-                              const newCustomLink = {
-                                title: newCustomLinkTitle,
-                                url: newCustomLinkUrl,
-                                image: newCustomLinkImage
-                              }
-                              setCustomLinks([...customLinks, newCustomLink]);
-                              setNewCustomLinkTitle('');
-                              setNewCustomLinkUrl('');
-                              setNewCustomLinkImage('');
-                            }}
-                          />} />
+                      <Button
+                        disabled={!newCustomLinkTitle || !newCustomLinkUrl}
+                        type='primary'
+                        // className='styled-button'
+                        onClick={() => {
+                          if (!newCustomLinkTitle || !newCustomLinkUrl) return;
+                          const newCustomLink = {
+                            title: newCustomLinkTitle,
+                            url: newCustomLinkUrl,
+                            image: newCustomLinkImage
+                          }
+                          setCustomLinks([...customLinks, newCustomLink]);
+                          setNewCustomLinkTitle('');
+                          setNewCustomLinkUrl('');
+                          setNewCustomLinkImage('');
+                        }}
+                      >Add Link</Button>
                     </div>
                   </Form.Item>
                 </div>
               </Form>
+              <Divider />
 
               <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <Button
-                  type="primary"
-                  loading={loading}
+                <button
+                  className='landing-button'
+                  disabled={loading}
                   // disabled={!regex.test(name) && name.length > 0}
                   style={{ width: '80%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}
                   onClick={async () => {
@@ -434,8 +433,8 @@ export function AccountSettings() {
                     setLoading(false);
                   }}
                 >
-                  Update
-                </Button>
+                  Update Profile
+                </button>
               </div>
 
             </ Content>

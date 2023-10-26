@@ -43,7 +43,7 @@ export function DefaultToApprovedSelectStepItem() {
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
       permissionName='canUpdateDefaultUserIncomingApprovals'
-      validationErr={undefined}
+
       node={<>
         <SwitchForm
           showCustomOption

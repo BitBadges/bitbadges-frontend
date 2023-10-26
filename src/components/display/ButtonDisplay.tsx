@@ -49,7 +49,7 @@ export function ButtonDisplay({
                   </Avatar>
                 </Badge>
                 <div style={{ marginTop: 3 }}>
-                  <Text className='primary-text'>
+                  <Text className='dark:text-white'>
                     {button.name}
                   </Text>
                 </div>

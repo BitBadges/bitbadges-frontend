@@ -48,7 +48,7 @@ export function ClaimMetadataSelectSelectStep(
           <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
             <Form.Item
               label={<>
-                <Typography.Text className='primary-text' strong>
+                <Typography.Text className='dark:text-white' strong>
                   Name
                 </Typography.Text >
               </>}
@@ -59,12 +59,12 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setName(e.target.value);
                 }}
-                className="form-input inherit-bg primary-text"
+                className="form-input inherit-bg dark:text-white"
               />
             </Form.Item>
             <Form.Item
               label={<>
-                <Typography.Text className='primary-text' strong>
+                <Typography.Text className='dark:text-white' strong>
                   Description
                 </Typography.Text>
               </>}
@@ -75,7 +75,7 @@ export function ClaimMetadataSelectSelectStep(
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
-                className="form-input inherit-bg primary-text"
+                className="form-input inherit-bg dark:text-white"
                 rows={7}
               />
             </Form.Item>

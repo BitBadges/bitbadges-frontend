@@ -30,7 +30,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
   const msgSteps = [
     {
       title: 'Recipient',
-      description: <div style={{ alignItems: 'center', justifyContent: 'center' }}>
+      description: <div style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <AddressSelect onUserSelect={setCurrUserInfo} defaultValue={signedInAccount?.address} />
       </div>,
       disabled: !currSelectedAccount
@@ -44,7 +44,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
           onChange={(e) => {
             setSendAmount(e ?? 0);
           }}
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
           min={0}
         />
         <br />

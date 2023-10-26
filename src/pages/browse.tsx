@@ -62,135 +62,55 @@ function BrowsePage() {
 
 
   return (
-      <Content
+    <Content
+      style={{
+        textAlign: 'center',
+        minHeight: '100vh',
+      }}
+      className=''
+    >
+      <div className=''
         style={{
-          textAlign: 'center',
-          minHeight: '100vh',
+          marginLeft: '4vw',
+          marginRight: '4vw',
+          paddingLeft: '2vw',
+          paddingRight: '2vw',
+          paddingTop: '20px',
         }}
       >
-        <div 
-          style={{
-            marginLeft: '4vw',
-            marginRight: '4vw',
-            paddingLeft: '2vw',
-            paddingRight: '2vw',
-            paddingTop: '20px',
-          }}
-        >
-          {/* antd tabs */}
+        {/* antd tabs */}
 
 
-          {!browseInfo && <Spin size='large' />}
-          <div className='full-width'>
-            <br />
+        {!browseInfo && <Spin size='large' />}
+        <div className='full-width'>
+          <br />
 
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
-              Profiles
-            </Typography.Text>
-            <div className="profile-carousel">
-              <CustomCarousel
-
-                title={
-                  <Tabs
-
-                    theme='dark'
-                    tabInfo={browseInfo ? Object.keys(browseInfo.profiles).map(category => {
-
-                      return {
-                        key: category,
-                        label: category.charAt(0).toUpperCase() + category.slice(1),
-                        content: <Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </Typography.Text>
-                      }
-                    }) : []}
-                    setTab={setTab}
-                    tab={tab}
-                  />
-                }
-                items={browseInfo?.profiles[tab]?.map((profile, idx) => {
-                  const itemWidth = 251 + 16 * 2; // Set the width of each carousel item (adjust as needed)
-                  const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
-
-                  const idxArr = new Array(numItems);
-                  for (let i = 0; i < idxArr.length; i++) {
-                    idxArr[i] = idx + i;
-                  }
-                  if (idx % numItems !== 0) return null
-
-                  return <div key={idx} className='flex flex-center-if-mobile'
-
-                  >{idxArr.map(idx => {
-                    if (idx >= browseInfo?.profiles[tab]?.length) return null
-                    profile = browseInfo?.profiles[tab][idx];
-                    return <InformationDisplayCard title='' key={idx} style={{ margin: 16 }}>
-                      <>
-                        <div style={{ alignItems: 'normal' }}>
-                          <AccountButtonDisplay
-                            addressOrUsername={profile.address}
-                            hideButtons
-                          />
-                        </div>
-
-
-                        <b>Pinned <FontAwesomeIcon
-                          icon={faThumbtack}
-                          style={{
-                            color: 'gold',
-                            marginRight: 8,
-                          }}
-                        />
-                        </b>
-                        <MultiCollectionBadgeDisplay
-                          collectionIds={profile.collected.map(collected => collected.collectionId)}
-                          addressOrUsernameToShowBalance={profile.address}
-                          cardView={cardView}
-                          customPageBadges={profile.customPages?.find(x => x.title === 'Pinned Badges')?.badges ?? []}
-                          // size={75}
-                          hidePagination
-                          defaultPageSize={3}
-                        />
-
-
-                        <div style={{ marginTop: '1rem' }}></div>
-                        <a onClick={() => {
-                          router.push(`/account/${profile.address}`)
-                        }}
-                          style={{ fontSize: 16 }}
-                        >
-                          See full profile
-                        </a>
-                      </>
-                    </InformationDisplayCard>
-                  }).filter(x => x)}</div>
-                }).filter(x => x) ?? []}
-              />
-            </div>
-            < Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
-              Badges
-            </Typography.Text>
+          <Typography.Text strong className='dark:text-white text-4xl text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Profiles
+          </Typography.Text>
+          <div className="profile-carousel">
             <CustomCarousel
+
               title={
                 <Tabs
-                  fullWidth
+
                   theme='dark'
-                  tabInfo={browseInfo ? Object.keys(browseInfo.collections).map(category => {
+                  tabInfo={browseInfo ? Object.keys(browseInfo.profiles).map(category => {
 
                     return {
                       key: category,
                       label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
                       </Typography.Text>
                     }
                   }) : []}
-                  setTab={setBadgesTab}
-                  tab={badgesTab}
+                  setTab={setTab}
+                  tab={tab}
                 />
               }
-              items={(browseInfo && browseInfo.collections[badgesTab]?.map((collection, idx) => {
-                const itemWidth = 350 + 16 * 2; // Set the width of each carousel item (adjust as needed)
+              items={browseInfo?.profiles[tab]?.map((profile, idx) => {
+                const itemWidth = 251 + 16 * 2; // Set the width of each carousel item (adjust as needed)
                 const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
 
                 const idxArr = new Array(numItems);
@@ -198,96 +118,177 @@ function BrowsePage() {
                   idxArr[i] = idx + i;
                 }
                 if (idx % numItems !== 0) return null
-                return <div key={idx} className='flex flex-center-if-mobile full-width'
-                >{idxArr.map(idx => {
-                  if (idx >= browseInfo?.collections[badgesTab]?.length) return null
-                  collection = browseInfo?.collections[badgesTab][idx];
-                  return <div title='' key={idx} style={{ margin: 16, width: 350 }}>
-                    <MultiCollectionBadgeDisplay
-                      collectionIds={[collection.collectionId]}
-                      groupByCollection
-                      cardView={cardView}
-                      key={idx}
-                    />
-                  </div>
-                }).filter(x => x)}</div>
 
-
-                // console.log(collection);
-                // return <MultiCollectionBadgeDisplay
-                //   collectionIds={[collection.collectionId]}
-                //   groupByCollection
-                //   cardView={cardView}
-                //   key={idx}
-                // />
-              }).filter(x => x)) ?? []}
-            />
-            <Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
-              Address Lists
-            </Typography.Text>
-            <CustomCarousel
-              title={
-                <Tabs
-
-                  theme='dark'
-                  tabInfo={browseInfo ? Object.keys(browseInfo.addressMappings).map(category => {
-
-                    return {
-                      key: category,
-                      label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Typography.Text>
-                    }
-                  }) : []}
-                  setTab={setListsTab}
-                  tab={listsTab}
-                />
-              }
-              items={browseInfo?.addressMappings[listsTab]?.map((addressMapping, idx) => {
-                const itemWidth = 225 + 16 * 2; // Set the width of each carousel item (adjust as needed)
-                const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
-
-                const idxArr = new Array(numItems);
-                for (let i = 0; i < idxArr.length; i++) {
-                  idxArr[i] = idx + i;
-                }
-                if (idx % numItems !== 0) return null
                 return <div key={idx} className='flex flex-center-if-mobile'
 
                 >{idxArr.map(idx => {
-                  if (idx >= browseInfo?.addressMappings[listsTab]?.length) return null
-                  addressMapping = browseInfo?.addressMappings[listsTab][idx];
-                  return <div className='primary-text' key={idx} style={{ margin: 16 }}>
-                    <> <AddressListCard
-                      addressMapping={addressMapping}
-                      key={idx}
-                    />
+                  if (idx >= browseInfo?.profiles[tab]?.length) return null
+                  profile = browseInfo?.profiles[tab][idx];
+                  return <InformationDisplayCard title='' key={idx} style={{ margin: 16 }}>
+                    <>
+                      <div style={{ alignItems: 'normal' }}>
+                        <AccountButtonDisplay
+                          addressOrUsername={profile.address}
+                          hideButtons
+                        />
+                      </div>
+
+
+                      <b>Pinned <FontAwesomeIcon
+                        icon={faThumbtack}
+                        style={{
+                          color: 'gold',
+                          marginRight: 8,
+                        }}
+                      />
+                      </b>
+                      <MultiCollectionBadgeDisplay
+                        collectionIds={profile.collected.map(collected => collected.collectionId)}
+                        addressOrUsernameToShowBalance={profile.address}
+                        cardView={cardView}
+                        customPageBadges={profile.customPages?.find(x => x.title === 'Pinned Badges')?.badges ?? []}
+                        // size={75}
+                        hidePagination
+                        defaultPageSize={3}
+                      />
+
+
+                      <div style={{ marginTop: '1rem' }}></div>
+                      <a className='text-vivid-blue' onClick={() => {
+                        router.push(`/account/${profile.address}`)
+                      }}
+                        style={{ fontSize: 16 }}
+                      >
+                        See full profile
+                      </a>
                     </>
-                  </div>
+                  </InformationDisplayCard>
                 }).filter(x => x)}</div>
               }).filter(x => x) ?? []}
             />
-
-            <Divider />
-            <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
-              Activity
-            </Typography.Text>
-            <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <ActivityTab
-                activity={browseInfo?.activity ?? []}
-                hasMore={false}
-                fetchMore={() => { }}
-              />
-            </div>
           </div>
+          < Divider />
+          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Badges
+          </Typography.Text>
+          <CustomCarousel
+            title={
+              <Tabs
+                fullWidth
+                theme='dark'
+                tabInfo={browseInfo ? Object.keys(browseInfo.collections).map(category => {
 
+                  return {
+                    key: category,
+                    label: category.charAt(0).toUpperCase() + category.slice(1),
+                    content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </Typography.Text>
+                  }
+                }) : []}
+                setTab={setBadgesTab}
+                tab={badgesTab}
+              />
+            }
+            items={(browseInfo && browseInfo.collections[badgesTab]?.map((collection, idx) => {
+              const itemWidth = 350 + 16 * 2; // Set the width of each carousel item (adjust as needed)
+              const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
+
+              const idxArr = new Array(numItems);
+              for (let i = 0; i < idxArr.length; i++) {
+                idxArr[i] = idx + i;
+              }
+              if (idx % numItems !== 0) return null
+              return <div key={idx} className='flex flex-center-if-mobile full-width'
+              >{idxArr.map(idx => {
+                if (idx >= browseInfo?.collections[badgesTab]?.length) return null
+                collection = browseInfo?.collections[badgesTab][idx];
+                return <div title='' key={idx} style={{ margin: 16, width: 350 }}>
+                  <MultiCollectionBadgeDisplay
+                    collectionIds={[collection.collectionId]}
+                    groupByCollection
+                    cardView={cardView}
+                    key={idx}
+                  />
+                </div>
+              }).filter(x => x)}</div>
+
+
+              // console.log(collection);
+              // return <MultiCollectionBadgeDisplay
+              //   collectionIds={[collection.collectionId]}
+              //   groupByCollection
+              //   cardView={cardView}
+              //   key={idx}
+              // />
+            }).filter(x => x)) ?? []}
+          />
+          <Divider />
+          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Address Lists
+          </Typography.Text>
+          <CustomCarousel
+            title={
+              <Tabs
+
+                theme='dark'
+                tabInfo={browseInfo ? Object.keys(browseInfo.addressMappings).map(category => {
+
+                  return {
+                    key: category,
+                    label: category.charAt(0).toUpperCase() + category.slice(1),
+                    content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </Typography.Text>
+                  }
+                }) : []}
+                setTab={setListsTab}
+                tab={listsTab}
+              />
+            }
+            items={browseInfo?.addressMappings[listsTab]?.map((addressMapping, idx) => {
+              const itemWidth = 225 + 16 * 2; // Set the width of each carousel item (adjust as needed)
+              const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
+
+              const idxArr = new Array(numItems);
+              for (let i = 0; i < idxArr.length; i++) {
+                idxArr[i] = idx + i;
+              }
+              if (idx % numItems !== 0) return null
+              return <div key={idx} className='flex flex-center-if-mobile'
+
+              >{idxArr.map(idx => {
+                if (idx >= browseInfo?.addressMappings[listsTab]?.length) return null
+                addressMapping = browseInfo?.addressMappings[listsTab][idx];
+                return <div className='dark:text-white' key={idx} style={{ margin: 16 }}>
+                  <> <AddressListCard
+                    addressMapping={addressMapping}
+                    key={idx}
+                  />
+                  </>
+                </div>
+              }).filter(x => x)}</div>
+            }).filter(x => x) ?? []}
+          />
+
+          <Divider />
+          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Activity
+          </Typography.Text>
+          <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <ActivityTab
+              activity={browseInfo?.activity ?? []}
+              hasMore={false}
+              fetchMore={async () => { }}
+            />
+          </div>
         </div>
 
+      </div>
 
-        <Divider />
-      </Content >
+
+      <Divider />
+    </Content >
   );
 }
 

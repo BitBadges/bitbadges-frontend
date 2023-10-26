@@ -16,9 +16,9 @@ export function TxHistory({
   creationTx: boolean
 }) {
 
-  return <div style={{ textAlign: 'left' }} className='primary-text'>
+  return <div style={{ textAlign: 'left' }} className='dark:text-white'>
 
-    <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+    <Typography.Text strong className='dark:text-white' style={{ fontSize: '1.2em' }}>
       <ClockCircleOutlined style={{ marginRight: '5px' }} />
       {creationTx ? 'Created' : 'Updated'
       } at{' '}
@@ -26,9 +26,10 @@ export function TxHistory({
       {' '}(Block #{tx.block.toString()})
 
     </Typography.Text>
-    <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer'>
+    <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer' className="text-blue-600 dark:text-blue-500 hover:underline">
       {tx.txHash}
-    </a></p>
+    </a>
+    </p>
     <Divider />
   </div>
 }

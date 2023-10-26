@@ -38,7 +38,7 @@ export function CodesDisplay({
 
   return <>
 
-    <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
+    <Row className='flex-center dark:text-white' style={{ textAlign: 'center', width: '100%' }}>
 
       <InformationDisplayCard md={12} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords can either be entered manually by users on the claim page, or they can be given a unique URL containing the code to claim. URLs can also be navigated to using a QR code.'} >
 
@@ -49,7 +49,7 @@ export function CodesDisplay({
           </div>
           <br />
           <div>
-            <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Batch Download</Typography.Text>
+            <Typography.Text strong className='dark:text-white' style={{ fontSize: 18 }}>Batch Download</Typography.Text>
             <br />
             <br />
             <div style={{ textAlign: 'center' }}>
@@ -67,7 +67,7 @@ export function CodesDisplay({
                       codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x)
                     }, `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.json`);
                   }}
-                  className="landing-button primary-text" style={{ width: 150 }}
+                  className="landing-button dark:text-white" style={{ width: 150 }}
                 >
                   JSON File
                 </button>
@@ -80,7 +80,7 @@ export function CodesDisplay({
 
                     downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                   }}
-                  className="landing-button primary-text" style={{ width: 150 }}
+                  className="landing-button dark:text-white" style={{ width: 150 }}
                 >
                   Codes .txt File
                 </button>
@@ -93,18 +93,18 @@ export function CodesDisplay({
 
                     downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                   }}
-                  className="landing-button primary-text" style={{ width: 150 }}
+                  className="landing-button dark:text-white" style={{ width: 150 }}
                 >
                   URLs .txt File
                 </button>
               </div>
               <br />
               <br />
-              <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Batch Copy</Typography.Text>
+              <Typography.Text strong className='dark:text-white' style={{ fontSize: 18 }}>Batch Copy</Typography.Text>
               <br />
               <br />
               <div className="flex-center flex-wrap">
-                <button className="landing-button primary-text" style={{ width: 150 }}
+                <button className="landing-button dark:text-white" style={{ width: 150 }}
                   onClick={() => {
                     navigator.clipboard.writeText(codes.join('\n'));
                     notification.success({
@@ -115,7 +115,7 @@ export function CodesDisplay({
                 >
                   Copy Codes
                 </button>
-                <button className="landing-button primary-text" style={{ width: 150 }}
+                <button className="landing-button dark:text-white" style={{ width: 150 }}
                   onClick={() => {
                     navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
                     notification.success({
@@ -137,14 +137,14 @@ export function CodesDisplay({
             <Divider />
           </div>
 
-          <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Individual</Typography.Text>
+          <Typography.Text strong className='dark:text-white' style={{ fontSize: 18 }}>Individual</Typography.Text>
 
           <br />
         </>
         }
         {hasPassword && <div>
           <Divider />
-          <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}> Password: {claimPassword}</Typography.Text>
+          <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}> Password: {claimPassword}</Typography.Text>
         </div>}
         <br />
         <Pagination
@@ -158,11 +158,11 @@ export function CodesDisplay({
 
 
         <br />
-        {!hasPassword && <><Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+        {!hasPassword && <><Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
           Code: <Tooltip color='black' title={`${codes?.[codePage - 1] ?? ''}`}>{getAbbreviatedAddress(codes?.[codePage - 1] ?? '')}</Tooltip>
         </Typography.Text>
           <br /><br />
-          {merkleChallenge && !merkleChallenge.details?.challengeDetails?.hasPassword && !!merkleChallenge.maxUsesPerLeaf && codes && <Typography.Text strong className='secondary-text'>
+          {merkleChallenge && !merkleChallenge.details?.challengeDetails?.hasPassword && !!merkleChallenge.maxUsesPerLeaf && codes && <Typography.Text strong className='text-gray-400'>
             <InfoCircleOutlined /> Note that this code can only be used once.
             <br />
             <br />
@@ -175,7 +175,7 @@ export function CodesDisplay({
           <br />
         </>}
         <div className="flex-center flex-wrap">
-          <button className="landing-button primary-text" style={{ width: 150 }}
+          <button className="landing-button dark:text-white" style={{ width: 150 }}
             onClick={() => {
               console.log(navigator.clipboard && window.isSecureContext)
 
@@ -189,7 +189,7 @@ export function CodesDisplay({
             Copy {printStr[0].toUpperCase() + printStr.slice(1)}
           </button>
           <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`}>
-            <button className="landing-button primary-text" style={{ width: 150 }}
+            <button className="landing-button dark:text-white" style={{ width: 150 }}
               onClick={() => {
 
                 navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`);
@@ -215,9 +215,9 @@ export function CodesDisplay({
     {
       merkleChallenge && !merkleChallenge.details?.challengeDetails?.hasPassword && (!codes || codes.length === 0) &&
       <Empty
-        description={<span className='primary-text'>There are no {printStr}s for this claim.</span>}
+        description={<span className='dark:text-white'>There are no {printStr}s for this claim.</span>}
         image={Empty.PRESENTED_IMAGE_SIMPLE}
-        className='primary-text'
+        className='dark:text-white'
       />
     }
   </>

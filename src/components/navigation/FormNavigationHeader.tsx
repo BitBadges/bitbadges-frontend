@@ -32,7 +32,7 @@ export function FormNavigationHeader({
             visibility: stepNum === 1 ? 'hidden' : undefined
           }}
           onClick={() => decrementStep()}
-          className="landing-button"
+          className="landing-button bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue  hover:border-color-pink-600 hover:border hover:border-vivid-blue"
           disabled={backButtonDisabled || stepNum === 1}
         >
           <CaretLeftFilled size={40} />
@@ -46,7 +46,7 @@ export function FormNavigationHeader({
       >
         <Typography.Text
           strong
-          className='primary-text flex-center'
+          className='dark:text-white flex-center'
           style={{
             fontSize: 20,
           }}
@@ -66,7 +66,7 @@ export function FormNavigationHeader({
             visibility: stepNum === finalStepNumber ? 'hidden' : undefined
           }}
           onClick={() => incrementStep()}
-          className="landing-button"
+          className="landing-button landing-button bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue  hover:border-color-pink-600 hover:border hover:border-vivid-blue"
           disabled={nextButtonDisabled || stepNum === finalStepNumber}
         >
           Next
@@ -83,7 +83,7 @@ export function FormNavigationHeader({
     >
       <Typography.Text
         strong
-        className='primary-text full-width flex-center'
+        className='dark:text-white full-width flex-center'
         style={{
           fontSize: 20,
           textAlign: 'center',

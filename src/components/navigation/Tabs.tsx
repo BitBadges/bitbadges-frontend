@@ -32,7 +32,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
             }
         }
         id={tab.key}
-        className='inherit-bg'
+        className='inherit-bg hover:bg-vivid-blue'
       >
         {tab.content}
       </Menu.Item>
@@ -40,8 +40,12 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
     if (tab.subMenuOverlay) {
       return (
         <Dropdown
+          className='dark:text-white dark'
           placement="bottom"
-          overlay={tab.subMenuOverlay ? tab.subMenuOverlay : <></>}
+          overlay={tab.subMenuOverlay ?
+            <div className='dark:text-white'>
+              {tab.subMenuOverlay}
+            </div> : <></>}
           trigger={tab.subMenuTrigger}
           key={`${tab.key}`}
         >
@@ -49,7 +53,10 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
         </Dropdown>
       );
     } else if (tab.popoverContent) {
-      return <Popover key={`${tab.key}`} content={tab.popoverContent} placement='bottom'>{menuItem}</Popover>;
+      return <Popover key={`${tab.key}`}
+        className='full-width'
+        style={{ width: widthPerTab }}
+        content={tab.popoverContent} placement='bottom'>{menuItem}</Popover>;
     } else {
       return menuItem;
     }

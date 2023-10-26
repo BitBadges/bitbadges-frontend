@@ -35,7 +35,7 @@ export function SwitchForm({
   return (
     <>
       <div>
-        <Row className='flex-center flex-wrap primary-text'
+        <Row className='flex-center flex-wrap dark:text-white'
           style={{
             padding: '0',
             textAlign: 'center',
@@ -44,13 +44,12 @@ export function SwitchForm({
           }}
         >
           {filteredOptions.map((option, index) => {
-            return <Col md={fullWidthCards ? 24 : 12} sm={24} xs={24} key={index} className='flex' >
+            return <Col md={fullWidthCards ? 24 : 12} sm={24} xs={24} key={index} className='flex' style={{ padding: 8 }}>
               <Card
                 key={index}
                 hoverable
-                className={option.disabled ? 'primary-text tertiary-blue-bg full-width flex-center' : 'primary-text inherit-bg full-width flex-center'}
+                className={option.disabled ? 'dark:text-white tertiary-blue-bg full-width flex-center' : 'dark:text-white inherit-bg full-width flex-center'}
                 style={{
-                  margin: 8,
                   textAlign: 'center',
                   border: option.isSelected ? '3px solid #1890ff' : undefined,
                   cursor: option.disabled ? 'not-allowed' : undefined,
@@ -67,7 +66,7 @@ export function SwitchForm({
                   onSwitchChange(index, option.title);
                 }}
               >
-                <div className='primary-text'
+                <div className='dark:text-white'
                   style={{
                     fontSize: 24,
                     fontWeight: 'bolder',
@@ -77,7 +76,7 @@ export function SwitchForm({
                 >
                   {option.title}
                 </div>
-                <div className='secondary-text full-width'
+                <div className='text-gray-400 full-width'
                   style={{
                     // display: 'flex',
                     alignItems: 'center',

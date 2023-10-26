@@ -121,7 +121,7 @@ export function PermissionUpdateSelectWrapper({
 
   return (
     <>
-      <div className='primary-text flex-center flex-column' >
+      <div className='dark:text-white flex-center flex-column' >
         <div style={{ alignItems: 'center', }} className='flex-center'>
           {checked &&
             <IconButton
@@ -199,7 +199,7 @@ export function PermissionUpdateSelectWrapper({
                 });
               }
             }}
-            className='primary-text'
+            className='dark:text-white'
           />}
       </div>
       {!checked && castFunction && flags &&

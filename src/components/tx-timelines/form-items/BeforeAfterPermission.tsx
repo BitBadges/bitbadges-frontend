@@ -4,6 +4,7 @@ import { useCollectionsContext } from '../../../bitbadges-api/contexts/collectio
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { neverHasManager } from '../../../bitbadges-api/utils/manager';
 
 
 export function BeforeAfterPermission({
@@ -55,6 +56,7 @@ export function BeforeAfterPermission({
 
   if (!collection) return <></>;
 
+  const noManager = neverHasManager(collection);
 
   return (<>
     {/* <hr /> */}
@@ -62,21 +64,21 @@ export function BeforeAfterPermission({
       <Row className="full-width flex-between" justify="center" style={{ alignItems: 'normal' }}>
 
         {startingCollection && <Col md={11} xs={24} style={{ textAlign: 'center' }}>
-          <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
+          <Typography.Text className='dark:text-white' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
             Previous
           </Typography.Text>
           <br />
           <br />
-          <PermissionDisplay permissions={castFunction(oldPermissions as any)} usedFlags={flags as any} />
+          <PermissionDisplay permissions={castFunction(oldPermissions as any)} usedFlags={flags as any} neverHasManager={noManager} />
         </Col>}
         <Col md={11} xs={24} style={{ textAlign: 'center' }}>
-          <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
+          <Typography.Text className='dark:text-white' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
             Selected
           </Typography.Text>
           <br />
 
           <br />
-          <PermissionDisplay permissions={castFunction(newPermissions as any)} usedFlags={flags as any} />
+          <PermissionDisplay permissions={castFunction(newPermissions as any)} usedFlags={flags as any} neverHasManager={noManager} />
         </Col>
       </Row>
     </InformationDisplayCard>
@@ -133,6 +135,7 @@ export function AfterPermission({
 
   if (!collection) return <></>;
 
+  const noManager = neverHasManager(collection);
 
   return (<>
     {/* <hr /> */}
@@ -145,6 +148,7 @@ export function AfterPermission({
           permissions={castFunction(newPermissions as any)}
           usedFlags={flags as any}
           onFreezePermitted={onFreezePermitted}
+          neverHasManager={noManager}
         />
       </Col>
     </Row>

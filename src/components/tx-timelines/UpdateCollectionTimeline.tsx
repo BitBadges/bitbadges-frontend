@@ -166,7 +166,6 @@ export function UpdateCollectionTimeline() {
 
     const toShowUpdateMintTransfersAction = (canUpdateMintCollectionApprovalsDetails.hasNeutralTimes || canUpdateMintCollectionApprovalsDetails.hasPermittedTimes)
 
-    console.log(canUpdateNonMintCollectionApprovalsDetails)
     const toShowUpdateNonMintTransfersAction = (canUpdateNonMintCollectionApprovalsDetails.hasNeutralTimes || canUpdateNonMintCollectionApprovalsDetails.hasPermittedTimes)
 
     items.push(
@@ -192,8 +191,7 @@ export function UpdateCollectionTimeline() {
       isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
 
 
-      TransferabilityStep,
-      // !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+      !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
       !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
       !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
 

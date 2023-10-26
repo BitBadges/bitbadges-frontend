@@ -34,7 +34,7 @@ export function BadgeCard({
   return (
     <div>
       <Card
-        className='primary-text gradient-bg'
+        className='dark:text-white gradient-bg'
         style={{
           width: 200,
           margin: 8,
@@ -47,7 +47,7 @@ export function BadgeCard({
           router.push(`/collections/${collectionId}/${badgeId}`);
         }}
         cover={
-          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+          <div className='flex-center full-width dark:text-white' style={{ marginTop: '1rem' }}>
             <BadgeAvatar
               collectionId={collectionId}
               badgeId={badgeId}
@@ -57,10 +57,10 @@ export function BadgeCard({
           </div>
         }
       >
-        <div className='flex-center full-width primary-text'>
+        <div className='flex-center full-width dark:text-white'>
           <Meta
             title={<div>
-              <div className='primary-text'
+              <div className='dark:text-white'
                 style={{
                   fontSize: 20,
                   fontWeight: 'bolder',
@@ -73,7 +73,7 @@ export function BadgeCard({
               </div>
               {!hideCollectionLink &&
                 <div
-                  className='primary-text'
+                  className='dark:text-white'
                   style={{
                     fontSize: 14,
                     fontWeight: 'bolder',
@@ -92,7 +92,7 @@ export function BadgeCard({
             }
             description={
               <div
-                className='secondary-text full-width'
+                className='text-gray-400 full-width'
                 style={{
                   alignItems: 'center',
                   fontSize: 17,

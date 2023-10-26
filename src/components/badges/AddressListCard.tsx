@@ -23,7 +23,7 @@ export function AddressListCard({
   return (
     <div style={{}}>
       <Card
-        className='primary-text gradient-bg'
+        className='dark:text-white gradient-bg'
         style={{
           width: 225,
           marginTop: 8,
@@ -36,7 +36,7 @@ export function AddressListCard({
           router.push(`/addresses/${addressMapping.mappingId}`);
         }}
         cover={<>
-          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
+          <div className='flex-center full-width dark:text-white' style={{ marginTop: '1rem' }}>
             <BadgeAvatar
               collectionId={0n}
               metadataOverride={addressMapping.metadata}
@@ -45,7 +45,7 @@ export function AddressListCard({
           </div>
         </>}
       >
-        <Typography.Text strong className='primary-text'>
+        <Typography.Text strong className='dark:text-white'>
           {addressMapping.metadata?.name}
         </Typography.Text>
         {accountInfo && <>
@@ -53,12 +53,12 @@ export function AddressListCard({
           <br />
         </>}
         {accountInfo ? addressMapping.includeAddresses ?
-          <Typography.Text strong className='primary-text' style={{ color: 'green' }}>
+          <Typography.Text strong style={{ color: 'green' }}>
             {/* {explicitly ? '' : 'SOFT'} */}
             INCLUDED
           </Typography.Text>
           :
-          <Typography.Text strong className='primary-text' style={{ color: 'red' }}>
+          <Typography.Text strong style={{ color: 'red' }}>
             {/* {explicitly ? 'SOFT' : ''}  */}
             EXCLUDED
           </Typography.Text>

@@ -86,7 +86,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            className='primary-text'
+            className='dark:text-white'
             strong
           >
             Collection Metadata URI
@@ -99,7 +99,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setCollectionUri(e.target.value);
           }}
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
         />
       </Form.Item>
 
@@ -113,7 +113,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            className='primary-text'
+            className='dark:text-white'
             strong
           >
             Badge Metadata URI
@@ -126,7 +126,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setBadgeUri(e.target.value);
           }}
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
         />
         <div style={{ fontSize: 12 }}>
           <Text style={{ color: 'lightgray' }}>

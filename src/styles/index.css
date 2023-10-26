@@ -65,12 +65,8 @@ code {
     color: #Ea1795;
 }
 
-.primary-text {
+.primary-text  {
     color: white;
-}
-
-.secondary-text {
-    color: #dedede;
 }
 
 .link-color {
@@ -516,16 +512,17 @@ transform: scale(1.01);
   padding: 4px 8px;
   justify-content: center;
   border: 1px solid black;
+  background: #1890ff;
   align-items: center;
   gap: 8px;
   border-radius: 39px;
-  background: #1890ff;
   cursor: pointer;
   color: white;
   font-weight: bold;
   opacity: 1;
   display: flex;
   align-items: center;
+ 
 }
 
 .landing-button:disabled {
@@ -535,6 +532,7 @@ transform: scale(1.01);
   cursor: not-allowed;
 }
 
+
 .landing-button:hover {
   border: 1px solid black;
   opacity: 1;
@@ -542,6 +540,7 @@ transform: scale(1.01);
   border: 1px solid #1890ff;
   color: #1890ff;
 }
+
 /* 
 .blockin-button {
   display: flex !important;

@@ -338,3 +338,11 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #001529;
   border: 1px solid gray;
 }
+
+.ant-popover-inner-content {
+  width: 100%;
+}
+
+.blockin-listitem-logo {
+  display: flex;
+}

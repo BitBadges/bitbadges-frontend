@@ -343,7 +343,7 @@ export function AccountButtonDisplay({
 
               {bio && (
                 <div
-                  className='secondary-text'
+                  className='text-gray-400'
                   style={{
                     fontSize: 18,
                   }}

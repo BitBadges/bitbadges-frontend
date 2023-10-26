@@ -232,10 +232,10 @@ export function TransferSelect({
 
   return <>
 
-    <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
+    <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='dark:text-white'>
 
       {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }}>
+        <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }} noBorder inheritBg>
           <div className='flex-center'>
             <AddressDisplay
               addressOrUsername={sender}
@@ -281,7 +281,7 @@ export function TransferSelect({
                 />
               </InformationDisplayCard>}
           </div>
-          <div style={{ alignItems: 'center' }} className='primary-text full-width'>
+          <div style={{ alignItems: 'center' }} className='dark:text-white full-width'>
             {
               !addTransferIsVisible && !hideTransferDisplay && <div>
                 <br />
@@ -301,7 +301,7 @@ export function TransferSelect({
                             setAddTransferIsVisible(false);
                             if (setVisible) setVisible(false);
                           }}
-                          style={{ fontSize: 20, cursor: 'pointer' }} className='primary-text'
+                          style={{ fontSize: 20, cursor: 'pointer' }} className='dark:text-white'
                         />
                       </Tooltip>
                     </div>
@@ -321,7 +321,7 @@ export function TransferSelect({
                     ))}
                   </Steps>
                   {steps.map((item, index) => (
-                    <div key={index} className='primary-text full-width'>
+                    <div key={index} className='dark:text-white full-width'>
                       {currentStep === index && <div className='full-width'>
                         {item.description}
                       </div>}
@@ -394,7 +394,7 @@ export function TransferSelect({
               >
                 <>
                   {[...(transfers ?? [])].length === 0 && <Empty
-                    className='primary-text'
+                    className='dark:text-white'
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={'None added.'} />}
 

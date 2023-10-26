@@ -40,6 +40,8 @@ export function Notifications() {
   }
 
 
+
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
     const signedInAccount = accounts.getAccount(chain.address);
@@ -100,7 +102,7 @@ export function Notifications() {
 
 
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-      <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>
+      <Typography.Text className='dark:text-white' strong style={{ fontSize: 16 }}>
         {title}
       </Typography.Text>
       {'      '}
@@ -159,7 +161,7 @@ export function Notifications() {
                       disabled: false
                     }]}
                 />
-                
+
                 <div style={{ textAlign: 'center' }}>
                   {tab === 'transferActivity' && <>
                     <br /><ActivityTab
@@ -220,7 +222,7 @@ export function Notifications() {
 
                       {listsView.length === 0 && !hasMoreAddressMappings && (
                         <Empty
-                          className='primary-text'
+                          className='dark:text-white'
                           description={
                             <span>
                               No lists found.

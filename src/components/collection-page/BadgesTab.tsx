@@ -14,10 +14,10 @@ export function BadgesTab({ collectionId }: {
   const collection = collections.getCollection(collectionId)
 
   return (
-    <div className='primary-text full-width'>
+    <div className='dark:text-white full-width'>
       <br />
 
-      <div className='primary-text inherit-bg' style={{
+      <div className='dark:text-white inherit-bg' style={{
         float: 'right',
         display: 'flex',
         alignItems: 'center',
@@ -27,7 +27,7 @@ export function BadgesTab({ collectionId }: {
         View:
 
         <Select
-          className="selector primary-text inherit-bg"
+          className="selector dark:text-white inherit-bg"
           value={cardView ? 'card' : 'image'}
           placeholder="Default: None"
           onChange={(e: any) => {
@@ -39,7 +39,7 @@ export function BadgesTab({ collectionId }: {
           }}
           suffixIcon={
             <DownOutlined
-              className='primary-text'
+              className='dark:text-white'
             />
           }
         >

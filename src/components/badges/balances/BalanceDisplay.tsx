@@ -175,7 +175,7 @@ export function BalanceDisplay({
               <div className='full-width flex-center'>
                 {(!balances || balances?.length === 0) ? <div className='full-width flex-center' style={{ textAlign: 'center', display: 'flex' }}>
                   <Empty
-                    className='primary-text inherit-bg'
+                    className='dark:text-white inherit-bg'
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={'No balances found.'}
                   />
@@ -187,7 +187,7 @@ export function BalanceDisplay({
                     showIds
                     showSupplys={true}
                     cardView={cardView}
-                    size={size ? size : 50}
+                    size={size ? size : 45}
                   />
                 </div>}
               </div>

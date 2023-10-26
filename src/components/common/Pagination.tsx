@@ -5,7 +5,7 @@ export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePa
 }) {
   return <div className='flex-center'>
     <PaginationAntD
-      className={lightTheme ? undefined : 'primary-text inherit-bg dark'}
+      className={lightTheme ? undefined : 'dark:text-white inherit-bg dark'}
       style={{ fontSize: 14 }}
       defaultCurrent={1}
       current={currPage}

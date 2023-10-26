@@ -8,7 +8,7 @@ import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 
 export function AddressWithBlockies({
   addressOrUsername,
-  fontSize = 20,
+  fontSize = 16,
   fontColor,
   hideTooltip,
   hidePortfolioLink,

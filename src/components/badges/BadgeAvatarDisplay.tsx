@@ -116,7 +116,7 @@ export function BadgeAvatarDisplay({
     />
 
 
-    <div key={currPage} className='flex-center flex-wrap full-width primary-text'>
+    <div key={currPage} className='flex-center flex-wrap full-width dark:text-white'>
       {
         badgeIdsToDisplay.map((badgeUintRange) => {
           const badgeIds: bigint[] = [];

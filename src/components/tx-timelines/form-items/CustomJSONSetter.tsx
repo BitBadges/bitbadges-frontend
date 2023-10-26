@@ -207,12 +207,12 @@ export function JSONSetter({
   return <>
     <br />
     <Row className='full-width'>
-      <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
-        <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
+      <Col md={24} xs={24} style={{ textAlign: 'center' }} className='dark:text-white'>
+        <Typography.Text strong style={{ fontSize: 20 }} className='dark:text-white'>
           Custom JSON Form
         </Typography.Text>
 
-        <div className='primary-text full-width' style={{ textAlign: 'center' }}>
+        <div className='dark:text-white full-width' style={{ textAlign: 'center' }}>
           <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: 'orange' }} />
           This is an advanced and experimental feature. Use at your own risk. Custom values may break the normal form UI now or in the future.
         </div>
@@ -225,12 +225,12 @@ export function JSONSetter({
       </Col>
 
       <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='primary-text'>Enter JSON</b>
+        <b className='dark:text-white'>Enter JSON</b>
         <Input.TextArea
           rows={20}
           value={inputJson}
 
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
           placeholder={'Enter JSON here'}
           onChange={(e) => {
             setInputJson(e.target.value);
@@ -242,7 +242,7 @@ export function JSONSetter({
         <br />
         <Button
           type='primary'
-          className='full-width styled-button primary-text'
+          className='full-width styled-button dark:text-white'
           onClick={() => {
             setErr(null);
             try {
@@ -265,12 +265,12 @@ export function JSONSetter({
 
       </Col>
       <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='primary-text'>Selected Value</b>
+        <b className='dark:text-white'>Selected Value</b>
         <Input.TextArea
           rows={20}
           value={JSON.stringify(currValue, null, 2)}
           style={{ cursor: 'not-allowed', backgroundColor: 'black', color: 'white' }}
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
           placeholder={'Enter JSON here'}
           disabled
         />

@@ -44,18 +44,18 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
 
   return (
     <Modal
-      title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
+      title={<div className='dark:text-white inherit-bg'><b>{'Distribute'}</b></div>}
       open={visible}
       width={'90%'}
       footer={null}
-      closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
+      closeIcon={<div className='dark:text-white inherit-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,
         backgroundColor: '#001529',
       }}
       onCancel={() => setVisible(false)}
       destroyOnClose={true}
-      className='primary-text'
+      className='dark:text-white'
     >
       {!txTimelineContext.initialLoad ? <Spin /> : <>
         <DistributionComponent />

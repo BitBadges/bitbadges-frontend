@@ -1,4 +1,4 @@
-import { Empty, Spin } from 'antd';
+import { Empty, Spin, Typography } from 'antd';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -88,7 +88,7 @@ export function OwnersTab({ collectionId, badgeId }: {
       title="Balances"
     >
       {loaded ?
-        <div className='primary-text flex-center flex-column'>
+        <div className='dark:text-white flex-center flex-column'>
           {chain.address && <div className='full-width'>
 
 
@@ -98,10 +98,9 @@ export function OwnersTab({ collectionId, badgeId }: {
                 badgeId={badgeId}
               />
             </div>
-            <hr />
           </div>}
 
-          <h2 className='primary-text'>All Owners</h2>
+          <Typography.Text className='dark:text-white mt-10' style={{ fontSize: 20, fontWeight: 600 }}>All Owners</Typography.Text>
           {/* <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} /> */}
           <InfiniteScroll
             dataLength={owners.length}
@@ -146,7 +145,7 @@ export function OwnersTab({ collectionId, badgeId }: {
           {totalNumOwners <= 0 && <Empty //<= 2 because of Mint and Total always being there
             description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            className='primary-text'
+            className='dark:text-white'
           />}
         </div>
         : <div>

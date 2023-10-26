@@ -10,7 +10,7 @@ const { Text } = Typography;
 
 export function Address({
   addressOrUsername,
-  fontSize = 20,
+  fontSize = 16,
   fontColor,
   hideTooltip,
   hidePortfolioLink,
@@ -60,7 +60,7 @@ export function Address({
       title={
         address === MINT_ACCOUNT.address ?
           <div
-            className='primary-text'
+            className='dark:text-white'
             style={{
               textAlign: 'center',
             }}
@@ -68,7 +68,7 @@ export function Address({
             This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
           </div> : address == "All" ?
             <div
-              className='primary-text'
+              className='dark:text-white'
               style={{
                 textAlign: 'center',
               }}
@@ -76,7 +76,7 @@ export function Address({
               This represents all possible user addresses.
             </div> :
             <div
-              className='primary-text'
+              className='dark:text-white'
               style={{
                 textAlign: 'center',
               }}
@@ -90,7 +90,7 @@ export function Address({
               <br />
               <br />
 
-              {"Other equivalent addresses include: "}
+              {"Other equivalent addresses: "}
               <br />
               {!doNotShowName && (addressName || resolvedName) && <div className='flex-center'>
                 <AddressDisplay
@@ -143,6 +143,7 @@ export function Address({
           paddingLeft: 5,
           fontSize: fontSize,
         }}
+        className='whitespace-nowrap'
       >
         <Text
           className={!showLink ? undefined : 'link-button-nav'}

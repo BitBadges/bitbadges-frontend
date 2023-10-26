@@ -61,7 +61,7 @@ export function OverviewTab({
             span={24}
           >
             <div style={{ maxHeight: 400, overflow: 'auto', }} >
-              <div className='custom-html-style primary-text' id="description" >
+              <div className='custom-html-style dark:text-white' id="description" >
                 {reactElement}
               </div>
             </div>

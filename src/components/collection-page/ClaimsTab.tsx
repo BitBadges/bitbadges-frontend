@@ -1,5 +1,5 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { Empty, Spin } from 'antd';
+import { Empty, Spin, notification } from 'antd';
 import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -48,6 +48,10 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
     if (query.approvalId && typeof query.approvalId === 'string') {
       const idx = approvals.findIndex((x) => x.approvalId === query.approvalId);
       if (idx >= 0) setCurrPage(idx + 1);
+      notification.info({
+        message: 'Code / Password',
+        description: `Code / password was found in the URL. We have automatically inserted it into the input field for you.`,
+      });
     }
   }, [query.approvalId]);
 
@@ -60,7 +64,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   if (!collection) return <Spin />
 
   return (
-    <div className='primary-text'
+    <div className='dark:text-white'
       style={{
         justifyContent: 'center',
         width: '100%',
@@ -75,7 +79,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
       <br />
 
-      <div className='flex-center'>
+      <div className=''>
         {currApproval &&
           <>
             <ClaimDisplay
@@ -92,7 +96,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
       </div>
       {
         numActiveClaims == 0 && <Empty
-          className='primary-text'
+          className='dark:text-white'
           description={`No active claims found${badgeId ? ' for this badge' : ''}.`}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />

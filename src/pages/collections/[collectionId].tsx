@@ -135,7 +135,7 @@ function CollectionPage({
 
 
           {isPreview && (tab === 'claims' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
-            className='primary-text'
+            className='dark:text-white'
             description={
               "This tab is not supported for previews."
             }
@@ -192,7 +192,7 @@ function CollectionPage({
             </>
           )}
 
-          {tab === 'history' && !isPreview && <div className='primary-text'>
+          {tab === 'history' && !isPreview && <div className='dark:text-white'>
             <br />
             {collection.updateHistory.map((update, i) => {
               return <TxHistory key={i} tx={update} creationTx={i == 0} />

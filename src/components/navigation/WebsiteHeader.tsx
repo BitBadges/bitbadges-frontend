@@ -2,7 +2,6 @@ import {
   BlockOutlined,
   GlobalOutlined,
   HomeOutlined,
-  InfoCircleOutlined,
   PlusOutlined,
   SearchOutlined,
   SwapOutlined,
@@ -16,14 +15,14 @@ import { useCookies } from 'react-cookie';
 import { signOut } from '../../bitbadges-api/api';
 
 import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
+import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
-import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -58,16 +57,16 @@ export function WalletHeader() {
 
 
   const HomeTabMenu = <></>
-  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
-  const HomeTabWithText = { key: '', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithText = { key: '', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
-  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text strong className='primary-text' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -86,7 +85,7 @@ export function WalletHeader() {
 
   for (const addressMapping of account?.addressMappings ?? []) {
     if (account?.seenActivity && account.seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
-      unseenNotificationCount++; 
+      unseenNotificationCount++;
     }
 
     if (unseenNotificationCount > overflowCount) {
@@ -108,69 +107,70 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu theme='dark' className='dropdown gradient-bg' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
-    <div className='flex-center primary-text inherit-bg' style={{ marginTop: 10 }}>
-      <p>
-        <b>{address ? <div className='primary-text'>
-          <AddressDisplay
-            addressOrUsername={address}
-            hidePortfolioLink
-          />
+  const UserTabMenu = <Menu theme='dark' className='dropdown bg-slate-950 border-0 rounded-xl' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
+    <div className='flex-center dark:text-white inherit-bg' style={{ marginTop: 10 }}>
 
-          {account?.balance?.amount ? <>
-            <br />
-            {account.balance?.amount.toString()} $BADGE
-          </> : ''}
+      {address ? <div className='primary-text'>
+        <AddressDisplay
+          addressOrUsername={address}
+          hidePortfolioLink
+        />
 
+        {account?.balance?.amount ? <>
           <br />
-          <div className='flex-center full-width' style={{ padding: '10', marginTop: 8 }}>
-            <Tooltip
-              title={<div style={{ textAlign: 'center' }}> {'Send $BADGE'}</div>}
-              placement='bottom'
-              style={{ textAlign: 'center' }}
-            >
-              <div style={{ minWidth: 75 }} className='primary-text'>
-                <Avatar
-                  style={{
-                    marginBottom: 1,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    fontSize: 20,
-                    padding: 0,
-                    margin: 0,
-                    alignItems: 'center',
+          {account.balance?.amount.toString()} $BADGE
+        </> : ''}
 
-                  }}
-                  size="large"
-                  onClick={disabled ? () => { } : () => { setVisible(true) }}
-                  className="styled-button"
-                >
-                  <SwapOutlined />
-                </Avatar>
-                <div style={{ marginTop: 3 }}>
-                  <Text strong className='primary-text'>
-                    Send $BADGE
-                  </Text>
-                </div>
+        <br />
+        <div className='flex-center full-width' style={{ padding: '10', marginTop: 8 }}>
+          <Tooltip
+            title={<div style={{ textAlign: 'center' }}> {'Send $BADGE'}</div>}
+            placement='bottom'
+            style={{ textAlign: 'center' }}
+          >
+            <div style={{ minWidth: 75 }} className='primary-text'>
+              <Avatar
+                style={{
+                  marginBottom: 1,
+                  cursor: disabled ? 'not-allowed' : 'pointer',
+                  fontSize: 20,
+                  padding: 0,
+                  margin: 0,
+                  alignItems: 'center',
+
+                }}
+                size="large"
+                onClick={disabled ? () => { } : () => { setVisible(true) }}
+                className="styled-button"
+              >
+                <SwapOutlined />
+              </Avatar>
+              <div style={{ marginTop: 3 }}>
+                <Text strong className='primary-text'>
+                  Send $BADGE
+                </Text>
               </div>
-            </Tooltip>
-          </div>
+            </div>
+          </Tooltip>
         </div>
-          : `Not Connected`}
-        </b>
+      </div>
+        : `Not Connected`}
 
-      </p>
+
 
     </div>
-    <div className='flex-center full-width primary-text' style={{ padding: '10', marginTop: 8 }}>
-      <BlockOutlined style={{ marginRight: 4 }} /> <b>Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})</b>
-      <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
+    <div className='flex-center full-width primary-text my-3' style={{ padding: '10' }}>
+      <BlockOutlined style={{ marginRight: 4 }} /> Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})
+      {/* <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
-      </Tooltip>
+      </Tooltip> */}
     </div>
 
-    <hr />
+    {/* <hr /> */}
+
+
     {connected &&
-      <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item' onClick={() => router.push('/account/notifications')}>
+      <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/notifications')}>
         <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
           Notifications{'      '}
           {overflowCount > 0 && unseenNotificationCount > 0 && <Badge style={{ marginLeft: 6 }} count={unseenNotificationCount} overflowCount={overflowCount}>
@@ -180,24 +180,24 @@ export function WalletHeader() {
       </Menu.Item>
     }
 
-    {!connected && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
-    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
 
     {connected && <>
-      <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
     {connected && <>
-      <Menu.Item className='dropdown-item' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
 
-    {connected && !signedIn && <Menu.Item className='dropdown-item' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
+    {!connected && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
+    {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
+
+    {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => chain.disconnect()}>Disconnect</Menu.Item>}
     {connected && signedIn && <>
       {/* <Menu.Item className='dropdown-item'>Sign Out</Menu.Item> */}
-      <Menu.Item className='dropdown-item' onClick={() => {
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => {
         signOut();
         _setCookie('blockincookie', '', { path: '/' });
         chain.disconnect();
-
       }}>Disconnect and Sign Out</Menu.Item>
     </>}
   </Menu>
@@ -207,7 +207,7 @@ export function WalletHeader() {
     content: (
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {!address ? (
-          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
+          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' size={40} />} />
         ) : (
           <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
             <Avatar src={
@@ -243,7 +243,7 @@ export function WalletHeader() {
     className='form-input inherit-bg'
     // enterButton
     size='large'
-    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />}
+    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />}
   />;
 
   const ExpandedSearchBar = <>
@@ -253,8 +253,8 @@ export function WalletHeader() {
       overlay={
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
       }
-      overlayClassName='primary-text inherit-bg'
-      className='inherit-bg'
+      overlayClassName='dark:text-white inherit-bg'
+      className='primary-blue-bg rounded bg-blue-black-50 border border-blue-black-50 focus:border-blue-black-50 hover:border-blue-black-50'
       trigger={['hover', 'click']}
     >
       {SearchBar}
@@ -263,7 +263,7 @@ export function WalletHeader() {
 
   const CollapsedSearchIconTab = {
     key: 'search',
-    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />,
+    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />,
     onClick: () => {
       // console.log('Do Nothing');
     },
@@ -277,9 +277,9 @@ export function WalletHeader() {
   //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
   return (
     <>
-      <Header className="App-header " style={{ zIndex: 49 }} >
+      <Header className="App-header bg-slate-950" style={{ zIndex: 49 }} >
         <div onClick={() => router.push('/')}>
-          <div className="navbar-super-collapsed">
+          <div className="navbar-super-collapsed ml-3">
             <Image
               src={'/images/bitbadgeslogo.png'}
               className="App-logo"

@@ -55,6 +55,7 @@ export const ApprovalsDisplay: FC<Props> = ({
   approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i);
 
   const [address, setAddress] = useState<string>(chain.address);
+  const [filterByBadgeId, setFilterByBadgeId] = useState<boolean>(!!badgeId);
 
   const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
   const txTimelineContext = useTxTimelineContext();
@@ -102,6 +103,14 @@ export const ApprovalsDisplay: FC<Props> = ({
           checked={true}
         />}
 
+        {!!badgeId && <Switch
+          style={{ margin: 10 }}
+          checkedChildren={`Filter by Badge ID ${badgeId}`}
+          unCheckedChildren="Show All"
+          checked={filterByBadgeId}
+          onChange={(checked) => setFilterByBadgeId(checked)}
+        />}
+
         <Switch
           checkedChildren="Show Approvals Only"
           unCheckedChildren="Show All"
@@ -113,55 +122,61 @@ export const ApprovalsDisplay: FC<Props> = ({
       <div>
         <br />
         <br />
-        <div className='flex-between' style={{ overflow: 'auto' }}>
+        <div className='overflow-x-auto'>
+          <table className="table-auto overflow-x-scroll w-full table-wrp">
+            <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
+              {getTableHeader(false)}
+            </thead>
+            <tbody>
+              {
+                <>
+                  {approvals.map((x, idx) => {
+                    const result = <TransferabilityRow
+                      startingApprovals={startingApprovals}
+                      onEdit={onEdit}
+                      approverAddress={approverAddress}
+                      onDelete={onDelete}
+                      allTransfers={approvals}
+                      address={address}
+                      setAddress={setAddress}
+                      isIncomingDisplay={approvalLevel === "incoming"}
+                      isOutgoingDisplay={approvalLevel === "outgoing"}
+                      transfer={x} key={idx}
+                      badgeId={filterByBadgeId ? badgeId : undefined}
+                      collectionId={collection.collectionId}
+                      filterFromMint={filterFromMint}
+                    />
+                    return result
+                  })}
 
-          <table style={{ width: '100%', fontSize: 16 }}>
-            {getTableHeader(false)}
-            <br />
-            {
-              <>
-                {approvals.map((x, idx) => {
-                  const result = <TransferabilityRow
-                    startingApprovals={startingApprovals}
-                    onEdit={onEdit}
-                    approverAddress={approverAddress}
-                    onDelete={onDelete}
-                    allTransfers={approvals}
-                    address={address}
-                    setAddress={setAddress}
-                    isIncomingDisplay={approvalLevel === "incoming"}
-                    isOutgoingDisplay={approvalLevel === "outgoing"}
-                    transfer={x} key={idx}
-                    badgeId={badgeId}
-                    collectionId={collection.collectionId}
-                    filterFromMint={filterFromMint}
-                  />
-                  return result
-                })}
+                  {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
+                    const result = <TransferabilityRow grayedOut
+                      onRestore={() => {
+                        if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
+                          alert('This approval ID is already used.');
+                          return;
+                        }
 
-                {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
-                  const result = <TransferabilityRow grayedOut
-                    onRestore={() => {
-                      if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
-                        alert('This approval ID is already used.');
-                        return;
-                      }
+                        const approvalsToAdd = txTimelineContext.approvalsToAdd;
+                        txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
+                      }}
+                      allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                    return result
+                  })}
 
-                      const approvalsToAdd = txTimelineContext.approvalsToAdd;
-                      txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
-                    }}
-                    allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
-                  return result
-                })}
-
-                {disapproved.map((x, idx) => {
-                  const result = <TransferabilityRow onDelete={onDelete} allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
-                  return result
-                })}
-              </>
-            }
+                  {disapproved.map((x, idx) => {
+                    const result = <TransferabilityRow
+                      onDelete={onDelete} allTransfers={approvals}
+                      address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"}
+                      isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx}
+                      badgeId={filterByBadgeId ? badgeId : undefined} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
+                    return result
+                  })}
+                </>
+              }
+            </tbody>
           </table>
-        </div >
+        </div>
       </div>
       <br />
       {addMoreNode}
@@ -236,7 +251,7 @@ export function UserApprovalsTab({
 
   if (!collection) return <></>;
 
-  
+
   const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? false;
   const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? false;
 
@@ -292,7 +307,7 @@ export function UserApprovalsTab({
   }
 
   return (<>
-    <div className='primary-text'>
+    <div className='dark:text-white'>
 
       {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
         showCustomOption
@@ -334,7 +349,7 @@ export function UserApprovalsTab({
 
     </div >
 
-    <div className='primary-text'>
+    <div className='dark:text-white'>
 
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && <>
         <AddressSelect
@@ -362,11 +377,11 @@ export function UserApprovalsTab({
 
       </div>}
 
-      {tab === 'history' && <div className='primary-text'>
+      {tab === 'history' && <div className='dark:text-white'>
         <br />
         {updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
-          return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
-            <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
+          return <div key={i} style={{ textAlign: 'left' }} className='dark:text-white'>
+            <Typography.Text strong className='dark:text-white' style={{ fontSize: '1.2em' }}>
               <ClockCircleOutlined style={{ marginRight: '5px' }} />
               {new Date(Number(update.blockTimestamp)).toLocaleString()}
               {' '}(Block #{update.block.toString()})
@@ -381,11 +396,9 @@ export function UserApprovalsTab({
         })}
         {updateHistory.length === 0 && <div>
           <Empty
-            className='primary-text'
+            className='dark:text-white'
             description={<>
-              <Typography.Text className='primary-text'>
-                This user has never updated their approvals.
-              </Typography.Text>
+              This user has never updated their approvals.
             </>}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />

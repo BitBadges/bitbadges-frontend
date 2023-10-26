@@ -10,9 +10,10 @@ interface IconButtonProps {
   size?: number
   disabled?: boolean
   children?: ReactNode
+  hideText?: boolean
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tooltipMessage, size, disabled }) => {
+const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
 
 
   return (
@@ -31,9 +32,10 @@ const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tool
           onClick={onClick}
           size={size}
         />
-        <div className='primary-text' style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 12, marginTop: 4, whiteSpace: 'nowrap' }}>
-          {text}
-        </div>
+        {!hideText &&
+          <div className='dark:text-white' style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 12, marginTop: 4, whiteSpace: 'nowrap' }}>
+            {text}
+          </div>}
       </div>
     </Tooltip >
   );

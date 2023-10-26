@@ -1,20 +1,19 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Divider, Typography } from 'antd';
+import { Divider, Typography } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { SHA256 } from 'crypto-js';
+import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
-import { BlockiesAvatar } from '../address/Blockies';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
-import { SHA256 } from 'crypto-js';
-import MerkleTree from 'merkletreejs';
 
 
 export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree }: {
@@ -105,7 +104,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       title: 'Sender',
       description: <div>
         <InformationDisplayCard
-          title=''
+          title='Sender'
           span={24}
           style={{
             padding: '0',
@@ -114,26 +113,16 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
             alignItems: 'center',
             marginTop: 20,
           }}
+          noBorder
+          inheritBg
         >
-          <Avatar
-            size={150}
-            src={
-              <BlockiesAvatar
-                avatar={senderAccount?.profilePicUrl ?? senderAccount?.avatar}
-                address={senderAccount?.address.toLowerCase() ?? ''}
-                fontSize={150}
-                shape='circle'
-              />
-            }
-          />
-
           <AddressSelect
             defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
             onUserSelect={setSender}
           />
 
           <Divider />
-          <Typography.Text className='secondary-text'>
+          <Typography.Text className='text-gray-400'>
             <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing approvals as well."}
           </Typography.Text>
         </InformationDisplayCard>
@@ -175,7 +164,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         // await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
-      displayMsg={<div className='primary-text'>
+      displayMsg={<div className='dark:text-white'>
         <TransferDisplay
 
           transfers={convertedTransfers}

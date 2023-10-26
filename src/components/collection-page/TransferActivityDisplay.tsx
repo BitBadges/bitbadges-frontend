@@ -1,7 +1,6 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Col, Collapse, Divider, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { deepCopy } from 'bitbadgesjs-proto';
 import { TransferActivityInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -66,7 +65,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
       await accounts.fetchAccounts(accountsToFetch);
     }
     getActivity();
-  }, [activity]);
+  }, [activity, numShown]);
 
 
   // Gets the address to display on the panel header (either address or "X addresses" if there are multiple)
@@ -74,7 +73,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
     return <div className='flex-center flex-column'>
       {addresses.length > 1 ?
         <div className='flex-center flex-column'>
-          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
+          <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
         </div>
         : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
     </div>
@@ -87,7 +86,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
     {
       activity.length > 0 &&
       <Collapse
-        className='full-width primary-text inherit-bg'
+        className='full-width dark:text-white inherit-bg'
         style={{ alignItems: 'center' }}
         expandIconPosition='start'
       >
@@ -114,7 +113,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
             key={idx}
             className='full-width gradient-bg'
             header={<>
-              <Row className='flex-between  primary-text' style={{ textAlign: 'left' }} >
+              <Row className='flex-between  dark:text-white' style={{ textAlign: 'left' }} >
                 <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                   {collection?.balancesType === 'Standard' ? <>
                     {getPanelHeaderAddress([activity.from])}
@@ -136,7 +135,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
 
               <Row>
                 <div
-                  className='primary-text'
+                  className='dark:text-white'
                   style={{
                     marginTop: 4,
                     fontSize: 14,
@@ -160,8 +159,8 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
             {
               <div className='full-width gradient-bg'>
                 <br />
-                <div className='flex-center primary-text'>
-                  <div key={idx} className='primary-text'>
+                <div className='flex-center dark:text-white'>
+                  <div key={idx} className='dark:text-white'>
                     <Row>
                       <Col span={24}>
 
@@ -206,7 +205,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
 
   return (
     <div className='full-width'>
-      <div className='flex-center primary-text'>
+      <div className='flex-center dark:text-white'>
         {!paginated ?
           <InfiniteScroll
             dataLength={numShown}

@@ -1,10 +1,11 @@
-import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, InfoCircleOutlined, LockOutlined, QuestionCircleFilled, StopFilled } from "@ant-design/icons";
+import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, InfoCircleOutlined, LockOutlined, QuestionCircleFilled } from "@ant-design/icons";
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { compareObjects } from "../../utils/compare";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
@@ -12,7 +13,7 @@ import { AddressDisplayList } from "../address/AddressDisplayList";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
-import { neverHasManager } from "../../bitbadges-api/utils/manager";
+import { useState } from "react";
 
 
 
@@ -303,6 +304,16 @@ export const PermissionDisplay = (
   const { usesBadgeIds } = usedFlags;
 
   const { columns, dataSource } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIds);
+  const hasPermitted = dataSource.find(x => !x.forbidden)
+  const hasForbidden = dataSource.find(x => x.forbidden && !x.permitted);
+  const hasBothPermittedAndForbidden = hasPermitted && hasForbidden;
+
+  const [showForbidden, setShowForbidden] = useState<boolean>(!hasPermitted ? true : false)
+
+  dataSource.sort((a) => {
+    return a.forbidden ? 1 : -1;
+  })
+
 
   return <>
     <div className='full-width' style={{ textAlign: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', color: 'white', }}>
@@ -313,15 +324,34 @@ export const PermissionDisplay = (
             {` There is and will never be a manager for this collection, so this permission can never be executed.`}
           </p> :
 
-            <div style={{ textAlign: 'center' }} className='primary-text flex-center '>
-              {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='primary-text'>{question} </Typography.Text> */}
+            <div style={{ textAlign: 'center' }} className='dark:text-white flex-center '>
+              {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='dark:text-white'>{question} </Typography.Text> */}
               {/* <br /> */}
               <br />
 
-              <div className="primary-text" style={{ textAlign: 'center', overflow: 'auto' }}>
+              <div className="dark:text-white" style={{ textAlign: 'center', overflow: 'auto' }}>
                 <div>
-                  <table >
 
+                  <table className="table-auto overflow-x-scroll">
+                    {hasBothPermittedAndForbidden && <>
+                      <tr>
+                        <td colSpan={1000}>
+
+                          <div style={{ float: 'right' }}>
+                            <Switch
+                              checked={showForbidden}
+                              onChange={(checked) => {
+                                setShowForbidden(checked);
+                              }}
+                              checkedChildren={<>Show Forbidden</>}
+                              unCheckedChildren={<>Show Permitted Only</>}
+                            />
+
+                          </div>
+                        </td>
+                      </tr>
+                      <br />
+                    </>}
 
                     < tr style={{ border: '1px solid white' }}>
                       {columns.map((x, idx) => {
@@ -342,6 +372,10 @@ export const PermissionDisplay = (
               </tr> */}
 
                     {dataSource.map((y, idx) => {
+
+                      if (y.forbidden && !showForbidden) {
+                        return null;
+                      }
 
                       if ((mintOnly && (!y.fromMapping || !isInAddressMapping(y.fromMapping, "Mint")))) {
                         return null;
@@ -505,6 +539,18 @@ export const PermissionDisplay = (
         </>
       }
 
+
+      {
+        columns.find(x => x.key === 'amountTrackerIdMapping' || x.key === 'challengeTrackerIdMapping') &&
+        <>
+          <br />
+          <div className="full-width">
+
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> Amount tracker IDs and the challenge tracker ID are used for locking specific approvals / transferability.
+          </div>
+        </>
+      }
+
       {
         usesBadgeIds && badgeIds != undefined && <p>
           <br />
@@ -521,7 +567,7 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
   const { hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIds);
 
   return <>
-    <Popover color='black' className="primary-text" content={<>
+    <Popover color='black' className="dark:text-white" content={<>
       <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={neverHasManager} badgeIds={badgeIds} />
     </>}>
       {!(hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)
@@ -529,7 +575,7 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
         !neverHasManager &&
         <>
           <CheckCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'green' }} />
-          {hasForbiddenTimes && <StopFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />}
+          {hasForbiddenTimes && <CloseCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />}
           <ClockCircleFilled style={{ marginLeft: 4, fontSize: 18, }} />
         </>
       }

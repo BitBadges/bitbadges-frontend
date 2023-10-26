@@ -1,18 +1,16 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { ApprovalPermissionUsedFlags, CollectionApprovalPermissionWithDetails, castCollectionApprovalPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping } from "bitbadgesjs-utils";
+import { CollectionApprovalPermissionWithDetails, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
-import { isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { getNonMintApprovals, getMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
-import { INFINITE_LOOP_MODE } from "../../../constants";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 
@@ -72,10 +70,7 @@ export function FreezeSelectStepItem() {
   const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
 
 
-  const permissionDetails = getPermissionDetails(castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals), ApprovalPermissionUsedFlags, neverHasManager(collection));
-
-
-  const handleSwitchChange = (idx: number, locked?: boolean) => {
+  const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
       ...AlwaysLockedPermission,
       fromMapping: idx == 0 ? getReservedAddressMapping("AllWithMint")
@@ -139,12 +134,16 @@ export function FreezeSelectStepItem() {
       permissions.push(EverythingElsePermanentlyPermittedPermission)
     }
 
+    return permissions;
+  }
+
+  const handleSwitchChange = (idx: number, locked?: boolean) => {
 
 
     collections.updateCollection({
       collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
-        canUpdateCollectionApprovals: permissions
+        canUpdateCollectionApprovals: getPermissionsToSet(idx, locked)
       }
     });
   }
@@ -166,25 +165,25 @@ export function FreezeSelectStepItem() {
     </>
   }
 
-  const completelyFrozen = isCompletelyForbidden(permissionDetails);
-  const mintPermissionDetails = getPermissionDetails(
-    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, 'Mint')),
-    ApprovalPermissionUsedFlags,
-    neverHasManager(collection),
-  )
-  const nonMintPermissionDetails = getPermissionDetails(
-    castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && x.fromMapping.includeAddresses && x.fromMapping.addresses.length == 1 && x.fromMapping.addresses[0] === 'Mint'),
-    ApprovalPermissionUsedFlags,
-    neverHasManager(collection),
-  )
+  // const completelyFrozen = isCompletelyForbidden(permissionDetails);
+  // const mintPermissionDetails = getPermissionDetails(
+  //   castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, 'Mint')),
+  //   ApprovalPermissionUsedFlags,
+  //   neverHasManager(collection),
+  // )
+  // const nonMintPermissionDetails = getPermissionDetails(
+  //   castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && x.fromMapping.includeAddresses && x.fromMapping.addresses.length == 1 && x.fromMapping.addresses[0] === 'Mint'),
+  //   ApprovalPermissionUsedFlags,
+  //   neverHasManager(collection),
+  // )
 
-  const mintFrozen = !completelyFrozen && isCompletelyForbidden(mintPermissionDetails);
-  const nonMintFrozen = !completelyFrozen && !mintFrozen && isCompletelyForbidden(nonMintPermissionDetails);
+  // const mintFrozen = !completelyFrozen && isCompletelyForbidden(mintPermissionDetails);
+  // const nonMintFrozen = !completelyFrozen && !mintFrozen && isCompletelyForbidden(nonMintPermissionDetails);
 
-  const nonMintFrozenButMintUnfrozen = !completelyFrozen && nonMintFrozen && !mintFrozen;
-  const mintFrozenButNonMintUnfrozen = !completelyFrozen && mintFrozen && !nonMintFrozen;
+  // const nonMintFrozenButMintUnfrozen = !completelyFrozen && nonMintFrozen && !mintFrozen;
+  // const mintFrozenButNonMintUnfrozen = !completelyFrozen && mintFrozen && !nonMintFrozen;
 
-  const completelyPermitted = !permissionDetails.hasForbiddenTimes
+  // const completelyPermitted = !permissionDetails.hasForbiddenTimes
 
   return {
     title: `Update transferability?`,
@@ -199,8 +198,8 @@ export function FreezeSelectStepItem() {
         node={<>
           <br />
           {badgesIdsWithUnlockedSupply.length > 0 && <>
-            <div className='primary-text' style={{ color: 'orange', textAlign: 'center' }}>
-              <InfoCircleOutlined style={{ marginRight: 4 }} /> Note that you have selected to be able to create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
+            <div className='' style={{ color: 'orange', textAlign: 'center' }}>
+              <InfoCircleOutlined style={{ marginRight: 4 }} /> You have selected to be able to increment supply / create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
               Please make sure the transferability of these badges is either a) set to not frozen or b) you pre-handled the future transferability for these badges when you previously selected transferability.
 
             </div>
@@ -209,29 +208,30 @@ export function FreezeSelectStepItem() {
 
           <SwitchForm
             showCustomOption
+            fullWidthCards
             options={[
               {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: lastClickedIdx == 0,
+                isSelected: JSON.stringify(getPermissionsToSet(0, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: lastClickedIdx == 1,
+                isSelected: JSON.stringify(getPermissionsToSet(1, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: lastClickedIdx == 2,
+                isSelected: JSON.stringify(getPermissionsToSet(2, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: lastClickedIdx == 3,
+                isSelected: JSON.stringify(getPermissionsToSet(3, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
             ]}

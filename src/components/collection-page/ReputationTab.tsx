@@ -57,7 +57,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
           color2="#ffd700"
         />
         <Input.TextArea
-          className='primary-text inherit-bg'
+          className='dark:text-white inherit-bg'
           value={newReview}
           onChange={(e) => setNewReview(e.target.value)}
           placeholder={`Is this ${addressOrUsername ? 'user' : 'badge'} legit? What was your experience? Leave a review (Max 2048 Characters)`}
@@ -92,7 +92,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
       {reviews.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No reviews."
-        className='primary-text'
+        className='dark:text-white'
       />}
       <InfiniteScroll
         dataLength={reviews.length}
@@ -111,15 +111,15 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         ).map((review, index) => {
           // if (index < currPageStart || index > currPageEnd) return <></>;
           return (
-            <div key={index} className='primary-text full-width'>
+            <div key={index} className='dark:text-white full-width'>
               <Row className='full-width' style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-                <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+                <Col md={12} sm={24} xs={24} className='dark:text-white' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
                   <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'start' }} >
                     <AddressDisplay addressOrUsername={review.from} />
                   </div>
-                  <div className='primary-text full-width flex-between'>
-                    <div className='primary-text full-width flex-between'>
-                      <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                  <div className='dark:text-white full-width flex-between'>
+                    <div className='dark:text-white full-width flex-between'>
+                      <Typography.Text className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
                         <ReactStars
                           edit={false}
                           count={5}
@@ -131,7 +131,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                     </div>
                   </div>
 
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 15, textAlign: 'left', marginRight: 8 }}>
+                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 15, textAlign: 'left', marginRight: 8 }}>
                     {new Date(Number(review.timestamp.toString())).toLocaleDateString() + ' '}
                     {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
                   </Typography.Text>

@@ -25,7 +25,7 @@ export interface Action {
 
 const getTitleElem = (title: string) => {
   return (
-    <div className='primary-text'>
+    <div className='dark:text-white'>
       {title}
     </div>
   );
@@ -33,7 +33,7 @@ const getTitleElem = (title: string) => {
 
 const getDescriptionElem = (description: string) => {
   return (
-    <div className='secondary-text'>
+    <div className='text-gray-400'>
       {description}
     </div>
   );
@@ -44,7 +44,7 @@ export function ActionCard({ action }: { action: Action }) {
   const description = getDescriptionElem(action.description);
 
   return <Card
-    className='primary-text gradient-bg flex-center'
+    className='dark:text-white gradient-bg flex-center'
     style={{
       width: '300px',
       minHeight: '150px',
@@ -61,7 +61,7 @@ export function ActionCard({ action }: { action: Action }) {
     <Meta
       title={
         <div
-          className='primary-text'
+          className='dark:text-white'
           style={{
             fontSize: 20,
             fontWeight: 'bolder',
@@ -71,7 +71,7 @@ export function ActionCard({ action }: { action: Action }) {
         </div>
       }
       description={
-        <div className='secondary-text flex-center full-width'>
+        <div className='text-gray-400 flex-center full-width'>
           {description}
         </div>
       }
@@ -197,7 +197,7 @@ export function ActionsTab({
     <RegisteredWrapper
       node={
         <div className='full-width' style={{ fontSize: 20 }}>
-          <div className='primary-text flex-center flex-wrap'
+          <div className='dark:text-white flex-center flex-wrap'
             style={{
               padding: '0',
               textAlign: 'center',
@@ -214,7 +214,7 @@ export function ActionsTab({
           {actions.length == 0 && (
             <>
               <Empty
-                className='primary-text'
+                className='dark:text-white'
                 description="No actions can be taken."
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />

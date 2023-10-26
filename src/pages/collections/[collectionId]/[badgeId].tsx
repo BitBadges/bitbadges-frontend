@@ -137,7 +137,7 @@ export function BadgePage({ collectionPreview }
                       title="About"
                     >
                       <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                        <div className='custom-html-style primary-text' id="description">
+                        <div className='custom-html-style dark:text-white' id="description">
                           {reactElement}
                         </div>
                       </div>

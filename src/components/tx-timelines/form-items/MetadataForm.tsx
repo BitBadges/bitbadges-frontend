@@ -188,7 +188,7 @@ export function MetadataForm({
 
   const FieldCheckbox = ({ fieldName, label }: { fieldName: string, label: string }) => {
     return <Checkbox
-      className='primary-text'
+      className='dark:text-white'
       checked={fieldNames.includes(fieldName)}
       onChange={(e) => {
         if (e.target.checked) {
@@ -221,15 +221,15 @@ export function MetadataForm({
     let message = 'metadata';
 
     return <div>
-      {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='primary-text'>
+      {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='dark:text-white'>
         <InformationDisplayCard title={`Set other badges to have properties from this ${message}?`}>
-          <div className='secondary-text' style={{ textAlign: 'center' }}>
+          <div className='' style={{ textAlign: 'center' }}>
             <WarningOutlined style={{ marginRight: 4, color: 'orange' }} /> This will overwrite the {message} of the selected badges for the selected properties.
             <br />
             <br />
           </div>
           <br />
-          <div className='flex-center flex-wrap primary-text'>
+          <div className='flex-center flex-wrap dark:text-white'>
             <FieldCheckbox fieldName='name' label='Title' />
             <FieldCheckbox fieldName='image' label='Image' />
             <FieldCheckbox fieldName='description' label='Description' />
@@ -248,13 +248,13 @@ export function MetadataForm({
           />
 
           <Divider />
-          {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
+          {isCollectionSelect && !isAddressMappingSelect && <div className='text-gray-400' style={{ textAlign: 'center' }}>
             <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
             <br />
             <br />
           </div>}
           {!isAddressMappingSelect && !!existingCollectionId && numBadgesFetched < totalNeedToFetch && <>
-            <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <div className='text-gray-400' style={{ textAlign: 'center' }}>
 
               <InfoCircleOutlined style={{ marginRight: 4 }} /> We will first need to fetch the metadata for the selected badges (if not already fetched). This may take some time.
               <br /><br />
@@ -263,7 +263,7 @@ export function MetadataForm({
                 type='line'
 
                 format={() => {
-                  return <Typography.Text className='primary-text'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
+                  return <Typography.Text className='dark:text-white'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
                 }}
 
               />
@@ -358,7 +358,7 @@ export function MetadataForm({
                 setAddMethod?.(e ? MetadataAddMethod.Manual : MetadataAddMethod.UploadUrl);
               }}
             />
-            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='secondary-text' style={{ marginTop: 4 }}>
+            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='text-gray-400' style={{ marginTop: 4 }}>
               {`Enter your metadata directly into this form, and we handle the metadata storage for you in a decentralized manner using IPFS.`}
               <Tooltip
                 placement='bottom'
@@ -382,109 +382,110 @@ export function MetadataForm({
           />
         </>}
 
-        {addMethod === MetadataAddMethod.Manual && <Form layout="vertical">
+        {addMethod === MetadataAddMethod.Manual &&
+          <Form layout="vertical">
 
 
-          {isCollectionSelect && addMethod === MetadataAddMethod.Manual &&
-            <div>
+            {isCollectionSelect && addMethod === MetadataAddMethod.Manual &&
               <div>
-                <br />
-                <CollectionHeader collectionId={NEW_COLLECTION_ID} hideCollectionLink />
+                <div>
+                  <br />
+                  <CollectionHeader collectionId={NEW_COLLECTION_ID} hideCollectionLink />
+                </div>
               </div>
-            </div>
-          }
-          <div className='flex-center flex-wrap'>
-            {!isCollectionSelect && !isAddressMappingSelect && badgeId > 0 &&
-              <div className='primary-text flex-center' >
-
-
-                <div><b style={{ fontSize: 18 }}>Setting Metadata for Badge ID:{' '}</b></div>
-                <InputNumber
-                  //badgeIds are sorted above 
-                  min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
-                  max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
-                  value={Numberify(badgeId.toString())}
-                  onChange={(e) => {
-                    if (e && e > 0 && setBadgeId) {
-                      const [, found] = searchUintRangesForId(BigInt(e), badgeIds);
-                      if (found) setBadgeId(BigInt(e));
-                    }
-                  }}
-                  style={{
-                    marginLeft: 8,
-                  }}
-                  className='primary-text inherit-bg'
-                />
-
-              </div>}
-            {!isAddressMappingSelect && <IconButton
-              text='Batch Apply'
-              tooltipMessage='Populate the metadata of other badges with the metadata of this badge.'
-              src={<FontAwesomeIcon
-                icon={populateIsOpen ? faMinus : faReplyAll}
-              />}
-              onClick={() => {
-                setPopulateIsOpen(!populateIsOpen);
-              }}
-              style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
-            />}
-            {!isCollectionSelect && !isAddressMappingSelect && <IconButton
-              text='Show All'
-              tooltipMessage='Show all badges in this collection.'
-              src={showAvatarDisplay ? <FontAwesomeIcon
-                icon={faMinus}
-              /> : <FontAwesomeIcon
-                icon={faPlus}
-              />}
-              onClick={() => {
-                setShowAvatarDisplay(!showAvatarDisplay);
-              }}
-              style={{ cursor: 'pointer', marginLeft: 8 }}
-            />}
-          </div>
-          {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay && <div className='flex-center flex-column full-width'>
-            <div className='flex-center flex-column full-width'>
-              <div className='primary-text full-width'>
-                <BadgeAvatarDisplay
-                  onClick={(id: bigint) => {
-                    setBadgeId(id);
-                  }}
-                  collectionId={NEW_COLLECTION_ID}
-                  badgeIds={badgeIds}
-                  showIds={true}
-                  selectedId={badgeId}
-                />
-              </div>
-            </div>
-
-          </div>}
-          {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <div>
-            <br />
-            <div className='primary-text flex-center'>
-              <BadgeCard
-                badgeId={badgeId}
-                collectionId={collectionId}
-                size={75}
-              />
-            </div>
-          </div>
-          }
-          {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
-          {PopulateComponent()}
-
-          <br />
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Title
-              </Text>
             }
-            required
-          >
-            <div className='flex-between' style={{}}>
+            <div className='flex-center flex-wrap'>
+              {!isCollectionSelect && !isAddressMappingSelect && badgeId > 0 &&
+                <div className='dark:text-white flex-center' >
+
+
+                  <div><b style={{ fontSize: 18 }}>Setting Metadata for Badge ID:{' '}</b></div>
+                  <InputNumber
+                    //badgeIds are sorted above 
+                    min={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[0].start.toString()) : 1}
+                    max={badgeIds && badgeIds.length > 0 ? Numberify(badgeIds[badgeIds.length - 1].end.toString()) : Number.MAX_SAFE_INTEGER}
+                    value={Numberify(badgeId.toString())}
+                    onChange={(e) => {
+                      if (e && e > 0 && setBadgeId) {
+                        const [, found] = searchUintRangesForId(BigInt(e), badgeIds);
+                        if (found) setBadgeId(BigInt(e));
+                      }
+                    }}
+                    style={{
+                      marginLeft: 8,
+                    }}
+                    className='dark:text-white inherit-bg'
+                  />
+
+                </div>}
+              {!isAddressMappingSelect && <IconButton
+                text='Batch Apply'
+                tooltipMessage='Populate the metadata of other badges with the metadata of this badge.'
+                src={<FontAwesomeIcon
+                  icon={populateIsOpen ? faMinus : faReplyAll}
+                />}
+                onClick={() => {
+                  setPopulateIsOpen(!populateIsOpen);
+                }}
+                style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
+              />}
+              {!isCollectionSelect && !isAddressMappingSelect && <IconButton
+                text='Show All'
+                tooltipMessage='Show all badges in this collection.'
+                src={showAvatarDisplay ? <FontAwesomeIcon
+                  icon={faMinus}
+                /> : <FontAwesomeIcon
+                  icon={faPlus}
+                />}
+                onClick={() => {
+                  setShowAvatarDisplay(!showAvatarDisplay);
+                }}
+                style={{ cursor: 'pointer', marginLeft: 8 }}
+              />}
+            </div>
+            {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay && <div className='flex-center flex-column full-width'>
+              <div className='flex-center flex-column full-width'>
+                <div className='dark:text-white full-width'>
+                  <BadgeAvatarDisplay
+                    onClick={(id: bigint) => {
+                      setBadgeId(id);
+                    }}
+                    collectionId={NEW_COLLECTION_ID}
+                    badgeIds={badgeIds}
+                    showIds={true}
+                    selectedId={badgeId}
+                  />
+                </div>
+              </div>
+
+            </div>}
+            {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <div>
+              <br />
+              <div className='dark:text-white flex-center'>
+                <BadgeCard
+                  badgeId={badgeId}
+                  collectionId={collectionId}
+                  size={75}
+                />
+              </div>
+            </div>
+            }
+            {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
+            {PopulateComponent()}
+
+            <br />
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Title
+                </Text>
+              }
+              required
+
+            >
               <Input
                 value={currMetadata.name}
                 onChange={(e: any) => {
@@ -495,347 +496,346 @@ export function MetadataForm({
                 }}
                 style={{
                 }}
-                className='primary-text inherit-bg'
+                className='dark:text-white inherit-bg'
               />
 
-            </div>
 
-          </Form.Item>
+            </Form.Item>
 
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Image
-              </Text>
-            }
-            required
-          >
-            <div className='flex-between' style={{}}>
-              <Select
-                className="selector primary-text inherit-bg"
-                value={images.find((item: any) => item.value === currMetadata.image)?.label}
-                onChange={(e) => {
-                  const newImage = images.find((item: any) => e === item.label)?.value;
-                  if (newImage) {
-                    setMetadata({
-                      ...currMetadata,
-                      image: newImage
-                    });
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Image
+                </Text>
+              }
+              required
+            >
+              <div className='flex-between' style={{}}>
+                <Select
+                  className="selector dark:text-white inherit-bg"
+                  value={images.find((item: any) => item.value === currMetadata.image)?.label}
+                  onChange={(e) => {
+                    const newImage = images.find((item: any) => e === item.label)?.value;
+                    if (newImage) {
+                      setMetadata({
+                        ...currMetadata,
+                        image: newImage
+                      });
+                    }
+                  }}
+                  style={{
+                  }}
+                  suffixIcon={
+                    <DownOutlined
+                      className='dark:text-white'
+                    />
                   }
-                }}
-                style={{
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-                dropdownRender={(menu) => (
-                  <>
-                    {menu}
-                    <Divider
-                      style={{ margin: '8px 0' }}
-                    />
-                    <Space
-                      align="center"
-                      style={{ padding: '0 8px 4px' }}
-                    >
-                      <Upload {...props}>
-                        <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
-                      </Upload>
-                    </Space>
-                  </>
-                )}
-              >
-                {images.map((item: any) => (
-                  <Option
-                    key={item.label}
-                    value={item.label}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <img
-                        src={item.value}
-                        height="20px"
-                        style={{ paddingRight: 10 }}
-                        alt="Label"
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider
+                        style={{ margin: '8px 0' }}
                       />
-                      <div>{item.label}</div>
-                    </div>
-                  </Option>
-                ))}
-              </Select>
-            </div>
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Category
-              </Text>
-            }
-          // required={type === 0}
-          >
-            <div className='flex-between' style={{}}>
-              <Select
-                className="selector primary-text inherit-bg"
-                value={currMetadata.category}
-                placeholder="Default: None"
-                onChange={(e: any) => {
-                  setMetadata({
-                    ...currMetadata,
-                    category: e
-                  });
-
-                }}
-                style={{
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-                dropdownRender={(menu) => (
-                  <>
-                    {menu}
-                    <Divider
-                      style={{ margin: '8px 0' }}
-                    />
-                    <Space
-                      align="center"
-                      style={{ padding: '0 8px 4px' }}
+                      <Space
+                        align="center"
+                        style={{ padding: '0 8px 4px' }}
+                      >
+                        <Upload {...props}>
+                          <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
+                        </Upload>
+                      </Space>
+                    </>
+                  )}
+                >
+                  {images.map((item: any) => (
+                    <Option
+                      key={item.label}
+                      value={item.label}
                     >
-                      <Input
-                        placeholder="Add Custom Category"
-                        value={name}
-                        onChange={onNameChange}
-                      />
-                      <Typography.Link
-                        onClick={addItem}
+                      <div
                         style={{
-                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
                         }}
                       >
-                        <PlusOutlined /> Add
-                        Category
-                      </Typography.Link>
-                    </Space>
-                  </>
-                )}
-              >
-                {items.map((item: any) => (
-                  <Option key={item} value={item}>
-                    {item}
-                  </Option>
-                ))}
-              </Select>
+                        <img
+                          src={item.value}
 
-            </div>
-          </Form.Item>
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Description
-              </Text>
-            }
-          >
-            <div className='flex-between' style={{}}>
-              <MdEditor
-                className='primary-text'
-                style={{
-                  width: '100%',
-                  minHeight: '250px',
-                  background: 'inherit',
+                          style={{ paddingRight: 10, height: 20 }}
+                          alt="Label"
+                        />
+                        <div>{item.label}</div>
+                      </div>
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+            </Form.Item>
 
-                }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
-                value={currMetadata.description}
-              />
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Category
+                </Text>
+              }
+            // required={type === 0}
+            >
+              <div className='flex-between' style={{}}>
+                <Select
+                  className="selector dark:text-white inherit-bg"
+                  value={currMetadata.category}
+                  placeholder="Default: None"
+                  onChange={(e: any) => {
+                    setMetadata({
+                      ...currMetadata,
+                      category: e
+                    });
 
-            </div>
-          </Form.Item>
+                  }}
+                  style={{
+                  }}
+                  suffixIcon={
+                    <DownOutlined
+                      className='dark:text-white'
+                    />
+                  }
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider
+                        style={{ margin: '8px 0' }}
+                      />
+                      <Space
+                        align="center"
+                        style={{ padding: '0 8px 4px' }}
+                      >
+                        <Input
+                          placeholder="Add Custom Category"
+                          value={name}
+                          onChange={onNameChange}
+                        />
+                        <Typography.Link
+                          onClick={addItem}
+                          style={{
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <PlusOutlined /> Add
+                          Category
+                        </Typography.Link>
+                      </Space>
+                    </>
+                  )}
+                >
+                  {items.map((item: any) => (
+                    <Option key={item} value={item}>
+                      {item}
+                    </Option>
+                  ))}
+                </Select>
+
+              </div>
+            </Form.Item>
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Description
+                </Text>
+              }
+            >
+              <div className='flex-between' style={{}}>
+                <MdEditor
+                  className='dark:text-white'
+                  style={{
+                    width: '100%',
+                    minHeight: '250px',
+                    background: 'inherit',
+
+                  }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
+                  value={currMetadata.description}
+                />
+
+              </div>
+            </Form.Item>
 
 
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Website <Tooltip color='black' title={'Provide a website link for users to learn more.'}>
-                  <InfoCircleOutlined />
-                </Tooltip>
-              </Text>
-            }
-          >
-            <div className='flex-between' style={{}}>
-              <Input
-                value={currMetadata.externalUrl}
-                onChange={(e) => {
-                  setMetadata({
-                    ...currMetadata,
-                    externalUrl: e.target.value
-                  });
-                }}
-                style={{
-                }}
-                className='primary-text inherit-bg'
-              />
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Website <Tooltip color='black' title={'Provide a website link for users to learn more.'}>
+                    <InfoCircleOutlined />
+                  </Tooltip>
+                </Text>
+              }
+            >
+              <div className='flex-between' style={{}}>
+                <Input
+                  value={currMetadata.externalUrl}
+                  onChange={(e) => {
+                    setMetadata({
+                      ...currMetadata,
+                      externalUrl: e.target.value
+                    });
+                  }}
+                  style={{
+                  }}
+                  className='dark:text-white inherit-bg'
+                />
 
-            </div>
-            <div style={{ fontSize: 12 }}>
-              <Text style={{ color: 'lightgray' }}>
-                {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
-              </Text>
-            </div>
-          </Form.Item>
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Validity <Tooltip color='black' title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational. Could be used for subscriptions, memberships, etc.'}>
-                  <InfoCircleOutlined />
-                </Tooltip>
-              </Text>
-            }
-          >
-            <div className='flex-between' style={{}}>
-              <div className='primary-text inherit-bg full-width'>
-                <div className='primary-text'>
-                  Always Valid?
-                  <Checkbox
-                    checked={validForeverChecked}
-                    style={{ marginLeft: 5 }}
-                    onChange={(e) => {
-                      if (e.target.checked) {
+              </div>
+              <div style={{ fontSize: 12 }}>
+                <Text style={{ color: 'lightgray' }}>
+                  {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
+                </Text>
+              </div>
+            </Form.Item>
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Validity <Tooltip color='black' title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational. Could be used for subscriptions, memberships, etc.'}>
+                    <InfoCircleOutlined />
+                  </Tooltip>
+                </Text>
+              }
+            >
+              <div className='flex-between' style={{}}>
+                <div className='dark:text-white inherit-bg full-width'>
+                  <div className='dark:text-white'>
+                    Always Valid?
+                    <Checkbox
+                      checked={validForeverChecked}
+                      style={{ marginLeft: 5 }}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setMetadata({
+                            ...currMetadata,
+                            validFrom: []
+                          });
+                        } else {
+                          const maxDate = new Date();
+                          maxDate.setFullYear(9999);
+                          maxDate.setMonth(11);
+                          maxDate.setDate(31);
+                          maxDate.setHours(0);
+                          maxDate.setMinutes(0);
+                          maxDate.setSeconds(0);
+
+                          setMetadata({
+                            ...currMetadata,
+                            validFrom: [{
+                              start: BigInt(Date.now()),
+                              end: BigInt(maxDate.valueOf())
+                            }]
+                          });
+                        }
+                        setValidForeverChecked(e.target.checked);
+                      }}
+                    />
+
+                  </div>
+
+                  {!validForeverChecked && <>
+                    <DateRangeInput
+                      timeRanges={currMetadata.validFrom ?? []}
+                      setTimeRanges={(timeRanges: UintRange<bigint>[]) => {
                         setMetadata({
                           ...currMetadata,
-                          validFrom: []
-                        });
-                      } else {
-                        const maxDate = new Date();
-                        maxDate.setFullYear(9999);
-                        maxDate.setMonth(11);
-                        maxDate.setDate(31);
-                        maxDate.setHours(0);
-                        maxDate.setMinutes(0);
-                        maxDate.setSeconds(0);
-
-                        setMetadata({
-                          ...currMetadata,
-                          validFrom: [{
-                            start: BigInt(Date.now()),
-                            end: BigInt(maxDate.valueOf())
-                          }]
+                          validFrom: timeRanges
                         });
                       }
-                      setValidForeverChecked(e.target.checked);
-                    }}
-                  />
+                      }
+                    />
+                  </>
+                  }
 
                 </div>
 
-                {!validForeverChecked && <>
-                  <DateRangeInput
-                    timeRanges={currMetadata.validFrom ?? []}
-                    setTimeRanges={(timeRanges: UintRange<bigint>[]) => {
-                      setMetadata({
-                        ...currMetadata,
-                        validFrom: timeRanges
-                      });
-                    }
-                    }
-                  />
-                </>
-                }
+              </div>
+            </Form.Item>
+
+
+
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Tags / Keywords <Tooltip color='black' title={'Use tags and keywords to further categorize your badge and make it more searchable!'}>
+                    <InfoCircleOutlined />
+                  </Tooltip>
+                </Text>
+              }
+            >
+              <div className='flex-between' style={{}}>
+                <Input
+                  value={currMetadata.tags}
+                  onChange={(e) => {
+                    setMetadata({
+                      ...currMetadata,
+                      tags: e.target.value.split(','),
+                    })
+                  }}
+                  style={{
+                  }}
+                  className='dark:text-white inherit-bg'
+                />
 
               </div>
-
-            </div>
-          </Form.Item>
-
-
-
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Tags / Keywords <Tooltip color='black' title={'Use tags and keywords to further categorize your badge and make it more searchable!'}>
-                  <InfoCircleOutlined />
-                </Tooltip>
-              </Text>
-            }
-          >
-            <div className='flex-between' style={{}}>
-              <Input
-                value={currMetadata.tags}
-                onChange={(e) => {
-                  setMetadata({
-                    ...currMetadata,
-                    tags: e.target.value.split(','),
-                  })
-                }}
-                style={{
-                }}
-                className='primary-text inherit-bg'
-              />
-
-            </div>
-            <div style={{ fontSize: 12, }}>
-              <Text style={{ color: 'lightgray' }}>
-                *Separate with a comma.
-              </Text>
-            </div>
-            <div style={{ display: 'flex', marginTop: 4 }}>
-              {currMetadata.tags?.map((tag: any, idx: number) => {
-                if (tag === '') return;
-                return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
-                  {tag}
-                </Tag>
-              })}
-
-            </div>
-          </Form.Item>
-
-
-          <Form.Item
-            label={
-              <Text
-                className='primary-text'
-                strong
-              >
-                Useful Tools
-              </Text>
-            }
-          >
-            <div className='flex-between' style={{}}>
-              <div style={{ display: 'flex' }} className='flex-wrap'>
-                <ToolIcon name="Sketch.io" />
-                <ToolIcon name="Excalidraw" />
+              <div style={{ fontSize: 12, }}>
+                <Text style={{ color: 'lightgray' }}>
+                  *Separate with a comma.
+                </Text>
               </div>
+              <div style={{ display: 'flex', marginTop: 4 }}>
+                {currMetadata.tags?.map((tag: any, idx: number) => {
+                  if (tag === '') return;
+                  return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
+                    {tag}
+                  </Tag>
+                })}
 
-            </div>
-          </Form.Item>
+              </div>
+            </Form.Item>
+
+
+            <Form.Item
+              label={
+                <Text
+                  className='dark:text-white'
+                  strong
+                >
+                  Useful Tools
+                </Text>
+              }
+            >
+              <div className='flex-between' style={{}}>
+                <div style={{ display: 'flex' }} className='flex-wrap'>
+                  <ToolIcon name="Sketch.io" />
+                  <ToolIcon name="Excalidraw" />
+                </div>
+
+              </div>
+            </Form.Item>
 
 
 
-        </Form>}
+          </Form>}
         <DevMode obj={collection?.collectionMetadataTimeline} />
         <DevMode obj={collection?.cachedCollectionMetadata} />
         <DevMode obj={collection?.cachedBadgeMetadata} />

@@ -21,7 +21,6 @@ export function TransferabilitySelectStepItem() {
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
-  const approvalsToAdd = txTimelineContext.approvalsToAdd;
 
   const [visible, setVisible] = useState<boolean>(false);
   const [err, setErr] = useState<Error | null>(null);
@@ -67,7 +66,7 @@ export function TransferabilitySelectStepItem() {
       }}
       nonMintOnly
       node={
-        <div className="primary-text">
+        <div className="dark:text-white">
           <SwitchForm
             showCustomOption
             options={[

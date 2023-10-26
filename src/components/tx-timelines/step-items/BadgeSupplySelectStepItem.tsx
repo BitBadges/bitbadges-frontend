@@ -45,7 +45,7 @@ export function BadgeSupplySelectStepItem() {
     title: `Create Badges`,
     description: 'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
-    err={err}
+      err={err}
       setErr={(err) => { setErr(err) }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
@@ -69,7 +69,7 @@ export function BadgeSupplySelectStepItem() {
       }}
       customRevertFunction={revertFunction}
       node={
-        <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+        <div className='dark:text-white' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
           <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
             <DistributionOverview
               md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}

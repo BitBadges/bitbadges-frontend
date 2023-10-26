@@ -63,7 +63,7 @@ export const MaxUses = ({ label, disabled, type,
   </>
   } />
     {trackedBehindTheScenes && <div style={{ marginLeft: 10, textAlign: 'start' }}>
-      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
+      <Typography.Text className='text-gray-400' style={{ fontSize: 12, textAlign: 'start' }}>
         <InfoCircleOutlined /> Even if no max is set, this value is tracked behind the scenes (due to the selected method of assigning partitions).
       </Typography.Text>
       <br /><br />

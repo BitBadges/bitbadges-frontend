@@ -1,5 +1,4 @@
 import {
-  Form,
   Typography
 } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
@@ -66,9 +65,10 @@ export function FormTimeline({
           justifyContent: 'center',
           display: 'flex',
         }}
+
       >
         <Typography.Text
-          className='flex-center primary-text'
+          className='flex-center dark:text-white capitalize'
           style={{
             fontSize: 20,
             marginBottom: 10,
@@ -91,7 +91,7 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
-          className='flex-center secondary-text'
+          className='flex-center text-gray-400'
           style={{
             fontSize: 14,
             textAlign: 'center',
@@ -107,26 +107,20 @@ export function FormTimeline({
 
   return (
     <div style={{ textAlign: 'left' }}>
-      <Form.Provider>
-        <FormNavigationHeader
-          decrementStep={decrementStep}
-          incrementStep={incrementStep}
-          stepNum={formStepNum}
-          finalStepNumber={filteredItems.length}
-          nextButtonDisabled={nextButtonDisabled}
-        />
 
-        <Form
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 14 }}
-          layout="horizontal"
-        >
-          {getTitleElem(filteredItems[formStepNum - 1].title)}
-          {getTitleDescription(filteredItems[formStepNum - 1].description)}
-          {filteredItems[formStepNum - 1].node}
-        </Form>
+      <FormNavigationHeader
+        decrementStep={decrementStep}
+        incrementStep={incrementStep}
+        stepNum={formStepNum}
+        finalStepNumber={filteredItems.length}
+        nextButtonDisabled={nextButtonDisabled}
+      />
 
-      </Form.Provider>
+
+      {getTitleElem(filteredItems[formStepNum - 1].title)}
+      {getTitleDescription(filteredItems[formStepNum - 1].description)}
+      {filteredItems[formStepNum - 1].node}
+
     </div>
   );
 }

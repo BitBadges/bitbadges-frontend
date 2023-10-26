@@ -187,7 +187,7 @@ export function UpdateSelectWrapper({
 
   return (
     <>
-      <div className='primary-text flex-center flex-column' >
+      <div className='dark:text-white flex-center flex-column' >
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
           {updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
             <IconButton
@@ -260,7 +260,7 @@ export function UpdateSelectWrapper({
               onChange={(e) => {
                 setUpdateFlag(e);
               }}
-              className='primary-text'
+              className='dark:text-white'
             />
           </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
@@ -279,7 +279,7 @@ export function UpdateSelectWrapper({
       <span color='black' style={{ margin: 16 }} />
 
       {!updateFlag &&
-        <div style={{ textAlign: 'center' }} className='primary-text' >
+        <div style={{ textAlign: 'center' }} className='dark:text-white' >
           <SwitchForm
             options={[{
               title: 'Do Not Update',

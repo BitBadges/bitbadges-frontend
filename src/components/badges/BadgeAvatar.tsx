@@ -55,7 +55,7 @@ export function BadgeAvatar({
     src={metadata?.image
       ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
       : metadata && !metadata.image ? DefaultPlaceholderMetadata.image : <Spin />}
-    size={size ? size : 50}
+    size={size ? size : 45}
     onClick={() => {
       if (onClick) {
         onClick();
@@ -78,7 +78,7 @@ export function BadgeAvatar({
         <div style={{ textAlign: 'center' }}>
           <Badge
             count={metadata?._isUpdating ? <Tooltip title={`This collection\'s metadata${collection && collection.balancesType === "Off-Chain" ? ' and balances are' : ' is'} currently being refreshed.`}>
-              <CloudSyncOutlined className='primary-text' size={30} style={{ fontSize: 20 }} />
+              <CloudSyncOutlined className='dark:text-white' size={30} style={{ fontSize: 20 }} />
             </Tooltip> : <></>
             }
             style={{ backgroundColor: 'blue' }}

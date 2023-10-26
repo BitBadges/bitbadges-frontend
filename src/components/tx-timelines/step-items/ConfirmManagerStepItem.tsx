@@ -12,7 +12,6 @@ import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 
 export function ConfirmManagerStepItem() {
   const chain = useChainContext();
@@ -61,8 +60,8 @@ export function ConfirmManagerStepItem() {
         permissionName="canUpdateManager"
         node={
 
-          <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-            <div className='primary-text'
+          <div className='dark:text-white' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+            <div className='dark:text-white'
               style={{
                 padding: '0',
                 textAlign: 'center',

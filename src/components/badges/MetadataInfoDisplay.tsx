@@ -68,7 +68,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                 const standards = timelineVal.standards;
                 return <>
                   {standards && standards.length > 0 ? standards.map((standard) => {
-                    return <Tag key={standard} className='secondary-text inherit-bg' style={{ margin: 2 }}>
+                    return <Tag key={standard} className='text-gray-400 inherit-bg' style={{ margin: 2 }}>
                       {standard}
                     </Tag>
                   }) : 'Default'}
@@ -324,7 +324,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
         {metadata?.tags && <TableRow label={"Tags"} value={<div style={{ display: 'flex', justifyContent: 'right', alignItems: 'center' }}>
           {
             metadata?.tags?.map((tag, index) => {
-              return <Tag key={index} className='secondary-text inherit-bg' style={{ margin: 2 }}>
+              return <Tag key={index} className='text-gray-400 inherit-bg' style={{ margin: 2 }}>
                 {tag}
               </Tag>
             })

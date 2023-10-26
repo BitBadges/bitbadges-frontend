@@ -119,7 +119,7 @@ export function OffChainBalancesStorageSelectStepItem() {
             <Form.Item
               label={
                 <Text
-                  className='primary-text'
+                  className='dark:text-white'
                   strong
                 >
                   Balances URI
@@ -132,7 +132,7 @@ export function OffChainBalancesStorageSelectStepItem() {
                 onChange={(e: any) => {
                   setUri(e.target.value);
                 }}
-                className='primary-text inherit-bg'
+                className='dark:text-white inherit-bg'
               />
             </Form.Item>
           </>

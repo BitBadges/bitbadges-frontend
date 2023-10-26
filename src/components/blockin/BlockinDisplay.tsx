@@ -130,7 +130,7 @@ export const BlockinDisplay = ({
   }
 
   return <>
-    <div className='flex-center primary-text'>
+    <div className='flex-center dark:text-white img-overrides'>
       {
         <BlockinUIDisplay
           connected={connected}
@@ -247,7 +247,7 @@ export const BlockinDisplay = ({
         </div>
         <div> {connected && <Text
           strong
-          className="primary-text"
+          className="dark:text-white"
           style={{ fontSize: 20 }}
         >
           {loggedIn ? 'Signed In' : 'Not Signed In'}

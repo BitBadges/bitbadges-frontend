@@ -37,7 +37,7 @@ export function CreateTxMsgClaimBadgeModal(
   const approvalCriteria = approval?.approvalCriteria;
   const hasPredetermined = approvalCriteriaUsesPredeterminedBalances(approvalCriteria);
   const precalculationId = hasPredetermined ? approvalId : '';
-  const claimItem = approval.approvalCriteria?.merkleChallenge;
+  const claimItem = approval.approvalCriteria?.merkleChallenge?.root ? approval.approvalCriteria?.merkleChallenge : undefined;
 
 
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;

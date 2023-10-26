@@ -33,7 +33,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
       {claimAlerts.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No Alerts"
-        className='primary-text'
+        className='dark:text-white'
       />}
 
       <InfiniteScroll
@@ -52,9 +52,9 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
 
           const collectionToDisplay = collections.getCollection(claimAlert.collectionId);
           return (
-            <div key={index} className='primary-text full-width'>
+            <div key={index} className='dark:text-white full-width'>
               <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-                <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+                <Col md={12} sm={24} xs={24} className='dark:text-white' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
                   {collectionToDisplay &&
                     <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
                       <BadgeAvatar
@@ -76,7 +76,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
                     </div>}
 
 
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
                     {new Date(Number(claimAlert.createdTimestamp)).toLocaleDateString() + ' '}
                     {new Date(Number(claimAlert.createdTimestamp)).toLocaleTimeString()}
                   </Typography.Text>
@@ -84,10 +84,10 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
                 </Col>
               </Row>
 
-              <div className='flex-between full-width primary-text'>
+              <div className='flex-between full-width dark:text-white'>
 
-                <div className='flex-between full-width primary-text'>
-                  <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+                <div className='flex-between full-width dark:text-white'>
+                  <Typography.Text className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
                     {claimAlert.message}
                   </Typography.Text>
                 </div>

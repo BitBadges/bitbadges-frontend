@@ -36,7 +36,7 @@ export function NumberInput({
             }
           }
         }
-        className='primary-text inherit-bg'
+        className='dark:text-white inherit-bg'
       />
     </div>
   </div>

@@ -12,7 +12,7 @@ import { approvalCriteriaUsesPredeterminedBalances } from "../../bitbadges-api/u
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressSelect } from "../address/AddressSelect";
 import { BlockinDisplay } from "../blockin/BlockinDisplay";
-import { TransferabilityRow, getTableHeader } from "../collection-page/TransferabilityRow";
+import { TransferabilityRow } from "../collection-page/TransferabilityRow";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { CreateTxMsgClaimBadgeModal } from "../tx-modals/CreateTxMsgClaimBadge";
 import { CreateTxMsgTransferBadgesModal } from "../tx-modals/CreateTxMsgTransferBadges";
@@ -147,13 +147,13 @@ export function ClaimDisplay({
     errorMessage = 'No code / password has been entered.';
   } else if (approval && !(isInAddressMapping(approval.initiatedByMapping, chain.cosmosAddress) || isInAddressMapping(approval.initiatedByMapping, chain.address))) {
     cantClaim = true;
-    errorMessage = 'You are excluded from the list of addresses that can initiate.';
+    errorMessage = 'You are excluded from the list of approved addresses.';
   } else if (approval && !(isInAddressMapping(approval.toMapping, recipientAccount?.cosmosAddress ?? '') || isInAddressMapping(approval.toMapping, recipientAccount?.cosmosAddress ?? ''))) {
     cantClaim = true;
     errorMessage = 'The recipient is excluded from the list of addresses that can receive.';
   }
 
-  return <div className='flex-center flex-column'>
+  return <>
     <div>
       {isCodeDisplay && <Row>
         <div className="full-width">
@@ -164,124 +164,117 @@ export function ClaimDisplay({
       </Row>}
     </div>
     {showClaimDisplay && <>
-      <div style={{ textAlign: 'center', alignItems: 'center', justifyContent: 'center' }} >
-        <div>
-          <div className="flex-center flex-column">
-            <table style={{ width: '100%', fontSize: 16 }}>
-              {getTableHeader(true)}
-              <TransferabilityRow
-                address={address}
-                setAddress={setAddress}
-                allTransfers={approvals}
-                transfer={approval}
-                collectionId={collectionId}
-                expandedSingleView
-                noBorder
+      <div className="">
 
-              />
-            </table>
+        <TransferabilityRow
+          address={address}
+          setAddress={setAddress}
+          allTransfers={approvals}
+          transfer={approval}
+          collectionId={collectionId}
+          expandedSingleView
+          noBorder
 
-            <div className="flex-center full-width">
-              <InformationDisplayCard title='Claim Details' span={22} style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ alignItems: 'center', justifyContent: 'center', overflow: 'auto' }} >
-                  <div className="flex-center flex-wrap" style={{ alignItems: 'normal' }}>
-                    {notConnected ? <>
+        />
 
-                      <div>
-                        <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
-                      </div>
-                    </> : <>
-                      {claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
-                        <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
-                          {
-                            <>
-                              <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Enter {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
-                              <br />< br />
-                              <Input
-                                placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
-                                value={code}
-                                onInput={(e: any) => {
-                                  if (setCode) setCode(e.target.value);
-                                }}
-                                className="primary-text inherit-bg"
-                                style={{
-                                  textAlign: 'center'
-                                }}
-                              />
-                            </>
-                          }
+        <div className="flex-center full-width">
+          <InformationDisplayCard title='Claim' md={22} xs={24} sm={24} style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ alignItems: 'center', justifyContent: 'center'}} >
+              <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+                {notConnected ? <>
 
-                          {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
-                            <br />
-                            <br />
-                            <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which corresponds to claim #{leafIndex + 1}</Typography.Text>
-                          </>
-                          }
-
-                        </InformationDisplayCard> : <></>}
-                    </>}
-
-                    {hasPredetermined && chain.connected && <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
-
-
-                      {<>
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}> Recipient</Typography.Text>
-
-                        <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
-                          if (setRecipient) setRecipient(val);
-                        }}
-                          disabled={approvalCriteria?.requireToEqualsInitiatedBy}
-                        />
-                        <br />
-                      </>}
-                      {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0) ? <>
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>
-                          This address has been reserved claim #{leafIndex + 1}.
-                        </Typography.Text>
-
-                      </> : <></>}
-                    </InformationDisplayCard>}
+                  <div>
+                    <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
                   </div>
+                </> : <>
+                  {claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
+                    <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
+                      {
+                        <>
+                          <Typography.Text strong className='dark:text-white' style={{ fontSize: 18 }}> Enter {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
+                          <br />< br />
+                          <Input
+                            placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
+                            value={code}
+                            onInput={(e: any) => {
+                              if (setCode) setCode(e.target.value);
+                            }}
+                            className="dark:text-white inherit-bg"
+                            style={{
+                              textAlign: 'center'
+                            }}
+                          />
+                        </>
+                      }
 
-                  {/* If it is predetermined balances, we use claim modal */}
-                  {hasPredetermined && chain.connected && <div className="full-width">
-                    <button disabled={cantClaim || !!errorMessage} onClick={() => { if (openModal) openModal(leafIndex) }} className='landing-button full-width flex-center' style={{
-                      textAlign: 'center', width: '100%'
-                    }}>
-                      Claim
-                    </button>
-                  </div>}
+                      {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
+                        <br />
+                        <br />
+                        <Typography.Text strong className='dark:text-white' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which corresponds to claim #{leafIndex + 1}</Typography.Text>
+                      </>
+                      }
 
-                  {/* If it is not predetermined balances, we use transfer modal */}
-                  {!hasPredetermined && chain.connected && <div className="full-width">
-                    <br />
-                    <br />
-                    <button disabled={cantClaim || !!errorMessage} 
-                    onClick={() => { setTransferModalVisible(true) }} className='landing-button full-width flex-center' style={{
-                      textAlign: 'center', width: '100%'
-                    }}>
-                      Transfer
-                    </button>
-                    <CreateTxMsgTransferBadgesModal
-                      collectionId={collectionId}
-                      visible={transferModalVisible}
-                      setVisible={setTransferModalVisible}
-                      defaultAddress={'Mint'}
-                      approval={approval}
-                      tree={tree}
+                    </InformationDisplayCard> : <></>}
+                </>}
+
+                {hasPredetermined && chain.connected && <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
+
+
+                  {<>
+                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 18 }}> Recipient</Typography.Text>
+
+                    <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
+                      if (setRecipient) setRecipient(val);
+                    }}
+                      disabled={approvalCriteria?.requireToEqualsInitiatedBy}
                     />
-                  </div>}
-
-                  {errorMessage && <>
                     <br />
-                    <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
-                    {errorMessage}
                   </>}
-                </div>
-              </InformationDisplayCard>
-            </div>
-          </div>
+                  {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0) ? <>
+                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 16 }}>
+                      This address has been reserved claim #{leafIndex + 1}.
+                    </Typography.Text>
 
+                  </> : <></>}
+                </InformationDisplayCard>}
+              </div>
+
+              {/* If it is predetermined balances, we use claim modal */}
+              {hasPredetermined && chain.connected && <div className="full-width">
+                <button disabled={cantClaim || !!errorMessage} onClick={() => { if (openModal) openModal(leafIndex) }} className='landing-button full-width flex-center' style={{
+                  textAlign: 'center', width: '100%'
+                }}>
+                  Claim
+                </button>
+              </div>}
+
+              {/* If it is not predetermined balances, we use transfer modal */}
+              {!hasPredetermined && chain.connected && <div className="full-width">
+                <br />
+                <br />
+                <button disabled={cantClaim || !!errorMessage}
+                  onClick={() => { setTransferModalVisible(true) }} className='landing-button full-width flex-center' style={{
+                    textAlign: 'center', width: '100%'
+                  }}>
+                  Transfer
+                </button>
+                <CreateTxMsgTransferBadgesModal
+                  collectionId={collectionId}
+                  visible={transferModalVisible}
+                  setVisible={setTransferModalVisible}
+                  defaultAddress={'Mint'}
+                  approval={approval}
+                  tree={tree}
+                />
+              </div>}
+
+              {errorMessage && <>
+                <br />
+                <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
+                {errorMessage}
+              </>}
+            </div>
+          </InformationDisplayCard>
         </div>
       </div>
     </>
@@ -296,7 +289,8 @@ export function ClaimDisplay({
       />
     }
 
-    {approval &&
+    {
+      approval &&
       <CreateTxMsgClaimBadgeModal
         collectionId={collectionId}
         visible={modalVisible}
@@ -305,6 +299,7 @@ export function ClaimDisplay({
         approval={approval}
         whitelistIndex={whitelistIndex}
         recipient={recipient}
-      />}
-  </div >
+      />
+    }
+  </ >
 }

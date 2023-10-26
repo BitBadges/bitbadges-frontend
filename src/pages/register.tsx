@@ -30,18 +30,18 @@ function RegisterScreen({ message }: { message?: string }) {
           requireLogin
           node={
             <div className='flex-center'>
-              <Content style={{ paddingTop: '15px', maxWidth: 600, }} className='primary-text'>
+              <Content style={{ paddingTop: '15px', maxWidth: 600, }} className='dark:text-white'>
                 <Content>
                   <Text
                     strong
-                    style={{ fontSize: 20 }} className='primary-text'
+                    style={{ fontSize: 20 }} className='dark:text-white'
                   >
                     {message ? message
                       : 'It looks like you have not claimed your airdrop yet!'}
                   </Text>
                 </Content>
                 <br />
-                <img src='/images/bitbadgeslogo.png' height="200" />
+                <img src='/images/bitbadgeslogo.png' style={{ height: 200 }} />
                 <br />
                 <br />
                 <div className='' style={{ alignItems: 'center', fontSize: 16, fontWeight: 'bold' }}>

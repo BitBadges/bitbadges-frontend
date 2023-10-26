@@ -17,7 +17,7 @@ function Mint() {
           message='Please register to access the Mint page.'
           node={
             <Content
-              className='gradient-bg'
+              className=''
               style={{
                 textAlign: 'center',
                 minHeight: '100vh',
