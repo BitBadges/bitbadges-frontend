@@ -1,4 +1,4 @@
-import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';

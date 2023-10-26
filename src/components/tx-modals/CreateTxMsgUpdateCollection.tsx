@@ -1,4 +1,3 @@
-import { notification } from 'antd';
 import { BadgeMetadataTimeline, CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
 import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -7,13 +6,13 @@ import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bi
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { neverHasManager } from '../../bitbadges-api/utils/manager';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
+import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffChainBalancesStepItem';
 import { TxModal } from './TxModal';
 import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
-import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffChainBalancesStepItem';
-import { neverHasManager } from '../../bitbadges-api/utils/manager';
 
 export function CreateTxMsgUpdateCollectionModal(
   { visible, setVisible, children }
