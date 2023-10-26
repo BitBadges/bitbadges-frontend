@@ -1,8 +1,6 @@
-import { Divider, Typography } from "antd";
-import React from "react";
-import { NODE_URL } from "../../constants";
 import { ClockCircleOutlined } from '@ant-design/icons';
-import { getAbbreviatedAddress } from "bitbadgesjs-utils";
+import { Divider, Typography } from "antd";
+import { NODE_URL } from "../../constants";
 
 
 export function TxHistory({
