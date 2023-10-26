@@ -304,7 +304,6 @@ export function CreateTxMsgUpdateCollectionModal(
       createTxFunction={createTxMsgUpdateCollection}
       beforeTx={beforeTx}
       onSuccessfulTx={async () => {
-        notification.success({ message: 'Collection created / updated successfully! Note it may take some time for some of the details to populate.' });
 
         if (collectionId && collectionId > 0n) {
           await collections.fetchCollections([collectionId], true);

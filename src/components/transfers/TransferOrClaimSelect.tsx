@@ -1,4 +1,4 @@
-import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
@@ -29,6 +29,7 @@ export function TransferSelect({
   hideRemaining,
   showApprovalsMessage,
   fetchExisting,
+  isOffChainBalancesUpdate
 }: {
   transfers: (TransferWithIncrements<bigint>)[],
   setTransfers: (transfers: (TransferWithIncrements<bigint>)[]) => void;
@@ -41,6 +42,7 @@ export function TransferSelect({
   setVisible?: (visible: boolean) => void;
   showApprovalsMessage?: boolean;
   fetchExisting?: () => Promise<void>;
+  isOffChainBalancesUpdate?: boolean;
 }
 ) {
   const chain = useChainContext();
@@ -184,7 +186,7 @@ export function TransferSelect({
       <br />
 
       {
-        postTransferBalances?.find((balance) => balance.amount < 0) && <div style={{ textAlign: 'center' }}>
+        postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0) && <div style={{ textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'red' }} />
           <span style={{ marginLeft: 8, color: 'red' }}>
             You are distributing more badges than {'the sender owns'}.
@@ -195,7 +197,7 @@ export function TransferSelect({
       }
     </div >,
     disabled: balances.length == 0 || numRecipients <= 0 || (uintRangesOverlap || uintRangesLengthEqualsZero) || (ownedTimesOverlap || ownedTimesLengthEqualsZero) ||
-      (!!postTransferBalances?.find((balance) => balance.amount < 0)),
+      (!!postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0)),
   });
 
   steps.push({
@@ -226,7 +228,8 @@ export function TransferSelect({
         Add Transfer(s)
       </Button>
     </div >,
-    disabled: false
+    disabled: balances.length == 0 || numRecipients <= 0 || (uintRangesOverlap || uintRangesLengthEqualsZero) || (ownedTimesOverlap || ownedTimesLengthEqualsZero) ||
+      (!!postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0))
   });
 
 
@@ -235,15 +238,19 @@ export function TransferSelect({
     <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='dark:text-white'>
 
       {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }} noBorder inheritBg>
+        <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }}>
           <div className='flex-center'>
             <AddressDisplay
               addressOrUsername={sender}
             />
           </div>
+          {isOffChainBalancesUpdate &&
+            <div className="text-gray-400">
+              <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
+            </div>}
           <div className='flex flex-wrap flex-center' style={{ alignItems: 'normal' }}>
             <InformationDisplayCard noBorder inheritBg
-              title='Start'
+              title='Start Balances'
               md={8}
               sm={24}
               xs={24}

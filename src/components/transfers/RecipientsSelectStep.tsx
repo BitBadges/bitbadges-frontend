@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { Divider, Typography } from "antd";
+import { Col, Divider, Typography } from "antd";
 import { useEffect } from "react";
 import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
@@ -48,7 +48,7 @@ export function RecipientsSelectStep({
 
   return {
     title: `Recipients (${toAddresses.length})`,
-    description: <div className=''>
+    description: <div className="flex-center"><Col className='' md={12} xs={24} >
       <AddressListSelect
         users={toAddresses}
         setUsers={setToAddresses}
@@ -59,6 +59,7 @@ export function RecipientsSelectStep({
         <Typography.Text className='text-gray-400' style={{ fontSize: 16 }}>
           <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the recipient's incoming approvals as well."}
         </Typography.Text></>}
+    </Col>
     </div>,
     disabled: !canTransfer || toAddresses.length === 0,
   }

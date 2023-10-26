@@ -56,6 +56,7 @@ export function AddressSelect({
     >
       <Input
         value={input}
+        placeholder='Enter an address or username'
         className='dark:text-white inherit-bg'
         onChange={async (e) => {
           e.preventDefault();

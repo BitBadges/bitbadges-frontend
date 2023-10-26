@@ -32,6 +32,7 @@ export const DistributionComponent = () => {
         setTransfers={txTimelineContext.setTransfers}
         transfers={txTimelineContext.transfers}
         plusButton
+        isOffChainBalancesUpdate
         fetchExisting={!!txTimelineContext.existingCollectionId && txTimelineContext.existingCollectionId > 0n && collection.offChainBalancesMetadataTimeline.length > 0 ? async () => {
 
           const offChainBalancesMapRes = await fetchMetadataDirectly({

@@ -337,7 +337,7 @@ export function ApprovalSelect({
     <br /><br />
     <Row style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='dark:text-white'>
 
-      <div className='flex flex-wrap'>
+      <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title={<>From <LockOutlined /></>} md={8} xs={24} sm={24} subtitle='Who can send the badges?'>
           <AddressMappingSelectComponent
             approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} nonMintOnlyApproval={nonMintOnlyApproval}
@@ -618,7 +618,7 @@ export function ApprovalSelect({
 
 
 
-      <div className='flex flex-wrap'>
+      <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title='Badge IDs' md={8} xs={24} sm={24} subtitle='Which badges are approved to be transferred?'>
           <br />
           <BadgeIdRangesInput
@@ -894,7 +894,7 @@ export function ApprovalSelect({
       </div>
 
 
-      <div className='flex flex-wrap'>
+      <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title='Transfer Times' md={8} xs={24} sm={24} subtitle='When is this approval valid?'>
           <SwitchForm
             fullWidthCards
@@ -943,7 +943,7 @@ export function ApprovalSelect({
           />
 
         </InformationDisplayCard>
-        <InformationDisplayCard title='Approval Info' md={8} xs={24} sm={24} subtitle='Provide optional metadata for the approval.'>
+        <InformationDisplayCard title='Approval Info' md={8} xs={24} sm={24} subtitle='Provide optional metadata for the approval. Explain what it is for, how to get approved, etc.'>
           <ClaimMetadataSelect approvalDetails={approvalToAdd.details} setApprovalDetails={(details) => {
             setApprovalToAdd({
               ...approvalToAdd,

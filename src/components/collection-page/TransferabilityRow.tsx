@@ -1,4 +1,4 @@
-import { CloseCircleFilled, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
@@ -915,7 +915,11 @@ export function TransferabilityRow({
       {!disapproved && !expandedSingleView ? <td>
       </td> :
         expandedSingleView ? <></> :
-          <td className='flex-center'> <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} /></td>}
+          <td className='flex-center'> <Tag
+            style={{ margin: 4, backgroundColor: 'red' }}
+            color='#1890ff'
+            className='dark:text-white'
+          > Disallowed</Tag></td>}
     </td>
     {onRestore && <td>
       {!disapproved &&
@@ -978,19 +982,16 @@ export function TransferabilityRow({
       <InformationDisplayCard title={transfer.details?.name ?? 'Approval Info'} md={22} xs={24} sm={24}>
 
         {expandedSingleView && <><br />
-          <div>
-            <br />
-            <br />
-            <div className='overflow-x-auto'>
-              <table className="table-auto overflow-x-scroll w-full table-wrp">
-                <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
-                  {getTableHeader(expandedSingleView)}
-                </thead>
-                <tbody>
-                  {TableRow}
-                </tbody>
-              </table>
-            </div>
+
+          <div className='overflow-x-auto'>
+            <table className="table-auto overflow-x-scroll w-full table-wrp">
+              <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
+                {getTableHeader(expandedSingleView)}
+              </thead>
+              <tbody>
+                {TableRow}
+              </tbody>
+            </table>
           </div>
         </>
         }

@@ -62,6 +62,7 @@ function CollectionPage({
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
+      { key: 'history', content: 'Update History', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
     )
   }

@@ -70,6 +70,7 @@ export function AddressListSelect({
           users={users}
           setUsers={setUsers}
           invalidUsers={invalidUsers}
+          title="Added Addresses"
         />
       </div>
 
