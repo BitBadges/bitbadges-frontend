@@ -108,9 +108,9 @@ export function WalletHeader() {
   let connected = chain.connected;
   let disabled = false;
   const UserTabMenu = <Menu theme='dark' className='dropdown bg-slate-950 border-0 rounded-xl' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
-    <div className='flex-center dark:text-white inherit-bg' style={{ marginTop: 10 }}>
+    <div className='dark flex-center primary-text inherit-bg' style={{ marginTop: 10 }}>
 
-      {address ? <div className='primary-text'>
+      {address ? <div className='primary-text '>
         <AddressDisplay
           addressOrUsername={address}
           hidePortfolioLink

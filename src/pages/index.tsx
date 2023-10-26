@@ -129,10 +129,10 @@ const Home: NextPage = () => {
       <div className='landing-padding'>
         <Row className='flex-around ' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal', minHeight: '60vh' }}>
           <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh' }}>
-            <span className='dark:text-white capitalize collect-title flex flex-wrap' style={{
+            <div className='dark:text-white capitalize collect-title flex flex-wrap' style={{
               alignItems: 'center'
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
-              <img src='/images/bitbadgeslogo.png' alt='BitBadges Logo' className='inline-logo primary-pink' />{' '} to build your digital identity!</span>
+              {' '} to build your digital identity!</div>
             <br />
             <p className='text-gray-400' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width mt-3'>

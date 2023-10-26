@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Empty, Switch, Typography } from 'antd';
-import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getAbbreviatedAddress, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -387,8 +387,8 @@ export function UserApprovalsTab({
               {' '}(Block #{update.block.toString()})
             </Typography.Text>
             {update.txHash &&
-              <p>Blockchain Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
-                {update.txHash}
+              <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+                See Blockchain Transaction
               </a></p>
             }
             <Divider />

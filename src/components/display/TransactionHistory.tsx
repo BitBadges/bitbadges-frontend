@@ -2,6 +2,7 @@ import { Divider, Typography } from "antd";
 import React from "react";
 import { NODE_URL } from "../../constants";
 import { ClockCircleOutlined } from '@ant-design/icons';
+import { getAbbreviatedAddress } from "bitbadgesjs-utils";
 
 
 export function TxHistory({
@@ -26,8 +27,8 @@ export function TxHistory({
       {' '}(Block #{tx.block.toString()})
 
     </Typography.Text>
-    <p>Transaction Hash: <a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer' className="text-blue-600 dark:text-blue-500 hover:underline">
-      {tx.txHash}
+    <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer' className="text-blue-600 dark:text-blue-500 hover:underline">
+      See Blockchain Transaction
     </a>
     </p>
     <Divider />
