@@ -171,7 +171,7 @@ export function CreateTxMsgUpdateCollectionModal(
           });
 
           //Get first match only. Thus, we prioritize updates -> existing -> not handled in that order
-          newBadgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(badgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
+          newBadgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(newBadgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
 
           badgeMetadataTimeline = newBadgeMetadataTimeline;
         }
