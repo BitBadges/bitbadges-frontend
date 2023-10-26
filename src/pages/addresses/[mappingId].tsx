@@ -42,7 +42,7 @@ function AddressMappingPage() {
 
   if ((mappingId as string)?.indexOf('_') >= 0) {
     actions.push({
-      title: "Update",
+      title: "Update List",
       description: "Update the details of this list.",
       showModal: () => {
         router.push('/update/' + mappingId);
@@ -50,8 +50,8 @@ function AddressMappingPage() {
     });
 
     actions.push({
-      title: "Delete",
-      description: "Delete this list.",
+      title: "Delete List",
+      description: "Permanently delete this list.",
       showModal: async () => {
         confirm("This list will be permanently deleted. Please confirm this action.");
         await deleteAddressMappings({ mappingIds: [mappingId as string] });

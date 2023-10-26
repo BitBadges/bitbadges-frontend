@@ -1,3 +1,4 @@
+import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { MetadataForm } from "../form-items/MetadataForm";
 
 export function SetAddressMappingMetadataStepItem() {
@@ -11,6 +12,7 @@ export function SetAddressMappingMetadataStepItem() {
         isCollectionSelect
         badgeIds={[]}
         isAddressMappingSelect
+        addMethod={MetadataAddMethod.Manual}
       />
     </>,
   }

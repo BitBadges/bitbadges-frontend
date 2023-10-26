@@ -979,7 +979,7 @@ export function TransferabilityRow({
 
     <div className='flex-center flex-wrap'>
 
-      <InformationDisplayCard title={transfer.details?.name ?? 'Approval Info'} md={22} xs={24} sm={24}>
+      <InformationDisplayCard title={transfer.details?.name ?? 'Overview'} md={22} xs={24} sm={24}>
 
         {expandedSingleView && <><br />
 
