@@ -123,7 +123,7 @@ export function PermissionUpdateSelectWrapper({
     <>
       <div className='dark:text-white flex-center flex-column' >
         <div style={{ alignItems: 'center', }} className='flex-center'>
-          {checked &&
+          {checked && !!existingCollectionId &&
             <IconButton
               src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
               text={showBeforeAndAfter ? 'Hide' : 'Before/After'}

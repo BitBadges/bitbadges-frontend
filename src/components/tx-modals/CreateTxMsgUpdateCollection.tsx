@@ -233,7 +233,7 @@ export function CreateTxMsgUpdateCollectionModal(
 
           const updatable = !frozenForever;
           const method = updatable ? 'centralized' : 'ipfs';
-          const res = await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, method);
+          const res = await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, method, false);
 
           if (!updatable) {
             if (res.result.cid) {

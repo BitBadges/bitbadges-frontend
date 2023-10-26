@@ -7,7 +7,7 @@ import { addBalancesToOffChainStorage, refreshMetadata } from '../../bitbadges-a
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
 
-export const createBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized') => {
+export const createBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized', notify: boolean) => {
   const _balanceMap = await createBalanceMapForOffChainBalances(transfers);
 
   const balanceMap: OffChainBalancesMap<bigint> = {};
@@ -18,12 +18,14 @@ export const createBalancesMapAndAddToStorage = async (collectionId: bigint, tra
 
   const res = await addBalancesToOffChainStorage({ balances: balanceMap, method, collectionId: collectionId, });
 
-  await refreshMetadata(collectionId);
+  if (collectionId > 0n) await refreshMetadata(collectionId);
 
-  notification.success({
-    message: 'Success',
-    description: 'Balances updated. Note it may take a few minutes for the changes to be reflected.',
-  });
+  if (notify) {
+    notification.success({
+      message: 'Success',
+      description: 'Balances updated in off-chain storage. Note it may take a few minutes for the changes to be reflected.',
+    });
+  }
 
   return res
 }
@@ -67,7 +69,7 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
           style={{ width: '100%', marginTop: 20 }}
           onClick={async () => {
             setLoading(true);
-            await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized');
+            await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized', true);
             setLoading(false);
             setVisible(false);
           }}>

@@ -6,7 +6,7 @@ export const HOSTNAME = publicRuntimeConfig.HOSTNAME;
 export const BACKEND_PORT = publicRuntimeConfig.BACKEND_PORT;
 export const CHAIN_DETAILS = publicRuntimeConfig.MAINNET ? MAINNET_CHAIN_DETAILS : BETANET_CHAIN_DETAILS;
 
-export const NODE_URL = `http://${HOSTNAME}:1317`;
+export const NODE_URL = `http://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}:1317`;
 export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
@@ -17,7 +17,7 @@ export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
 export const BITCOIN_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png';
 export const SOLANA_LOGO = 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png';
-export const CHAIN_LOGO= '/images/encryption-icon.svg';
+export const CHAIN_LOGO = '/images/encryption-icon.svg';
 
 export function getChainLogo(chain: string) {
   let chainLogo = '';

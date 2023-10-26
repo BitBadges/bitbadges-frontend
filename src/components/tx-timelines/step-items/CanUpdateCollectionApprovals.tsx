@@ -213,25 +213,25 @@ export function FreezeSelectStepItem() {
               {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: JSON.stringify(getPermissionsToSet(0, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: JSON.stringify(getPermissionsToSet(0, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: JSON.stringify(getPermissionsToSet(1, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: JSON.stringify(getPermissionsToSet(1, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: JSON.stringify(getPermissionsToSet(2, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: JSON.stringify(getPermissionsToSet(2, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: JSON.stringify(getPermissionsToSet(3, false)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: JSON.stringify(getPermissionsToSet(3, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
                 additionalNode: <AdditionalNode />
               },
             ]}

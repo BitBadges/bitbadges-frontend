@@ -189,7 +189,7 @@ export function UpdateSelectWrapper({
     <>
       <div className='dark:text-white flex-center flex-column' >
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
-          {updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
+          {!!existingCollectionId && updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
             <IconButton
               src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
