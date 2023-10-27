@@ -1,22 +1,20 @@
 import { Form, Input, Typography } from "antd";
 import { ApprovalInfoDetails } from "bitbadgesjs-utils";
-import { EmptyStepItem } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 export function ClaimMetadataSelect({
   approvalDetails,
   setApprovalDetails,
 }: {
-  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  approvalDetails: ApprovalInfoDetails<bigint>,
   setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
 }) {
   return <>{ClaimMetadataSelectSelectStep(approvalDetails, setApprovalDetails).description}</>
 }
 
 export function ClaimMetadataSelectSelectStep(
-  approvalDetails: ApprovalInfoDetails<bigint> | undefined,
+  approvalDetails: ApprovalInfoDetails<bigint>,
   setApprovalDetails: (approvalDetails: ApprovalInfoDetails<bigint>) => void,
 ) {
-  if (!approvalDetails) return EmptyStepItem
 
   const name = approvalDetails.name;
   const description = approvalDetails.description;

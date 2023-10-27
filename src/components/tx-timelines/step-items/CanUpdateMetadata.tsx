@@ -16,11 +16,14 @@ export const getBadgesWithLockedSupply = (collection: BitBadgesCollection<bigint
   const collectionToCheck = currentCollection ? collection : startingCollection;
   if (!collectionToCheck) return [];
 
+  console.log(collectionToCheck.collectionPermissions.canCreateMoreBadges);
+
   const canCreateMoreBadgesRes = getPermissionDetails(
     collectionToCheck ? castBalancesActionPermissionToUniversalPermission(collectionToCheck.collectionPermissions.canCreateMoreBadges ?? []) : [],
     BalancesActionPermissionUsedFlags,
     neverHasManager(collectionToCheck)
   );
+
 
   const lockedBadgeIds = sortUintRangesAndMergeIfNecessary([...canCreateMoreBadgesRes.dataSource.map(x => x.forbidden ? x.badgeIds : undefined).filter(x => x !== undefined).flat() as UintRange<bigint>[]], true);
   return lockedBadgeIds
@@ -49,7 +52,7 @@ export function UpdatableMetadataSelectStepItem(
   const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(deepCopy(collection) as BitBadgesCollection<bigint>, undefined, true); //Get badge IDs that will have locked supply moving forward
   const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply], true);
 
-
+  console.log(maxBadgeId, badgeIdsToLockMetadata, badgeIdsWithLockedSupply);
   //Since we depend on maxBadgeId and lockedBadges, we need to update the lastClickedIdx when these change (even if in other steps)
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');

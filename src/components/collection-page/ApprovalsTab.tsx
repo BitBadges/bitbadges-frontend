@@ -32,7 +32,7 @@ interface Props {
 
   //Edit features
   onDelete?: (approvalId: string) => void;
-  onEdit?: (approval: any) => void;
+  editable?: boolean;
   addMoreNode?: React.ReactNode;
   defaultShowDisallowed?: boolean;
   showDeletedGrayedOut?: boolean;
@@ -41,7 +41,7 @@ interface Props {
 
 export const ApprovalsDisplay: FC<Props> = ({
   startingApprovals,
-  showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, onEdit, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
+  showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, editable, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
@@ -133,7 +133,7 @@ export const ApprovalsDisplay: FC<Props> = ({
                   {approvals.map((x, idx) => {
                     const result = <TransferabilityRow
                       startingApprovals={startingApprovals}
-                      onEdit={onEdit}
+                      editable={editable}
                       approverAddress={approverAddress}
                       onDelete={onDelete}
                       allTransfers={approvals}
@@ -145,12 +145,14 @@ export const ApprovalsDisplay: FC<Props> = ({
                       badgeId={filterByBadgeId ? badgeId : undefined}
                       collectionId={collection.collectionId}
                       filterFromMint={filterFromMint}
+                      
                     />
                     return result
                   })}
 
                   {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
                     const result = <TransferabilityRow grayedOut
+                    
                       onRestore={() => {
                         if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
                           alert('This approval ID is already used.');

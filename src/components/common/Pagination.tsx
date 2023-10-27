@@ -1,4 +1,5 @@
 import { Pagination as PaginationAntD } from 'antd';
+import { Numberify } from 'bitbadgesjs-proto';
 
 export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePage, lightTheme, showPageJumper }: {
   lightTheme?: boolean, currPage: number, onChange: (page: number) => void, total: number, pageSize: number, showOnSinglePage?: boolean, showPageJumper?: boolean
@@ -8,10 +9,16 @@ export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePa
       className={lightTheme ? undefined : 'dark:text-white inherit-bg dark'}
       style={{ fontSize: 14 }}
       defaultCurrent={1}
-      current={currPage}
+      current={Numberify(currPage)}
       total={total}
       pageSize={pageSize}
       onChange={(page) => {
+        //if > safe intefer
+        if (page > Number.MAX_SAFE_INTEGER) {
+          alert('The selected page number is too big.');
+          return
+        }
+
         onChange(page);
       }}
       showLessItems

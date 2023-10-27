@@ -30,6 +30,7 @@ export function TxTimeline({
 
   if (txType === 'UpdateCollection') {
     return <UpdateCollectionTimeline />
+    return <></>
   } else {
     return <></>
   }

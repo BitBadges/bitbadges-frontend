@@ -1,12 +1,15 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
-import { Numberify, getBadgesToDisplay, getBalancesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { Numberify, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE, } from "../../constants";
+import { GO_MAX_UINT_64 } from "../../utils/dates";
 import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 
 export function BadgeAvatarDisplay({
   collectionId,
@@ -19,7 +22,6 @@ export function BadgeAvatarDisplay({
   showSupplys = true,
   defaultPageSize = 10,
   maxWidth,
-  noBorder,
 
   cardView,
   hideCollectionLink,
@@ -29,7 +31,8 @@ export function BadgeAvatarDisplay({
   doNotFetchMetadata,
   // doNotAdaptToWidth,
   showPageJumper,
-  onClick
+  onClick,
+  filterGreaterThanMax,
 }: {
   collectionId: bigint;
   addressOrUsernameToShowBalance?: string;
@@ -48,11 +51,16 @@ export function BadgeAvatarDisplay({
   lightTheme?: boolean;
   doNotFetchMetadata?: boolean;
   // doNotAdaptToWidth?: boolean;
-  noBorder?: boolean;
   showPageJumper?: boolean
-  onClick?: (id: bigint) => void
+  onClick?: (id: bigint) => void,
+  filterGreaterThanMax?: boolean
 }) {
   const collections = useCollectionsContext();
+  const collection = collections.getCollection(collectionId);
+  const maxId = collection ? getTotalNumberOfBadges(collection) : 0n;
+  const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds);
+  const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds;
+
   const txTimelineContext = useTxTimelineContext();
 
   const userBalance = balance ? balance : undefined;
@@ -68,10 +76,12 @@ export function BadgeAvatarDisplay({
 
 
     let total = 0;
-    for (const range of badgeIds) {
+    for (const range of inRangeBadgeIds) {
       const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
       total += numBadgesInRange;
     }
+
+
     setTotal(total);
 
     //Remove duplicates
@@ -80,8 +90,8 @@ export function BadgeAvatarDisplay({
       {
         badgeIds:
           sortUintRangesAndMergeIfNecessary(
-            badgeIds.filter((badgeId, idx) => {
-              return badgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
+            inRangeBadgeIds.filter((badgeId, idx) => {
+              return inRangeBadgeIds.findIndex(badgeId2 => badgeId2.start === badgeId.start && badgeId2.end === badgeId.end) === idx;
             }), true),
         collectionId: collectionId
       }
@@ -107,7 +117,7 @@ export function BadgeAvatarDisplay({
     }
 
     updateMetadata();
-  }, [badgeIds, currPage, fetchDirectly, addressOrUsernameToShowBalance, cardView]);
+  }, [badgeIds, currPage, fetchDirectly, addressOrUsernameToShowBalance, cardView, maxId]);
 
   //Calculate pageSize based on the width of this componetnt
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
@@ -132,7 +142,6 @@ export function BadgeAvatarDisplay({
                   collectionId={collectionId}
                   badgeId={badgeId}
                   showId={showIds}
-                  noBorder={noBorder}
                   showSupplys={showSupplys}
                   balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
                   onClick={onClick ? () => { onClick(badgeId) } : undefined}
@@ -148,6 +157,9 @@ export function BadgeAvatarDisplay({
         })
       }
     </div>
-
+    <br />
+    {removed.length > 0 && <div className="text-gray-400">
+      Badge IDs {getBadgeIdsString(removed)} have placeholder metadata.
+    </div>}
   </div>
 }

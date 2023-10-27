@@ -37,9 +37,9 @@ export function TransferabilitySelectStepItem() {
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    approvalId: 'transferable',
-    amountTrackerId: 'transferable',
-    challengeTrackerId: 'transferable',
+    approvalId: 'transferable-approval',
+    amountTrackerId: 'transferable-approval',
+    challengeTrackerId: 'transferable-approval',
   }
 
   return {
@@ -99,6 +99,7 @@ export function TransferabilitySelectStepItem() {
               onlyShowNotFromMint
               hideHelperMessage
               showDeletedGrayedOut
+              editable
               onDelete={(approvalId: string) => {
                 const approvalsToAdd = txTimelineContext.approvalsToAdd;
                 const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);

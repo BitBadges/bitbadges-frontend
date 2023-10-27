@@ -13,7 +13,6 @@ import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/
 import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
-import { BadgeCard } from '../../badges/BadgeCard';
 import { CollectionHeader } from '../../badges/CollectionHeader';
 import { DevMode } from '../../common/DevMode';
 import IconButton from '../../display/IconButton';
@@ -54,7 +53,7 @@ export function MetadataForm({
   const collection = collections.getCollection(collectionId)
 
   const [badgeId, setBadgeId] = useState<bigint>(badgeIds.length > 0 ? badgeIds[0].start : 1n);
-  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(true);
+  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(false);
 
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
   const currMetadata = metadata;
@@ -102,14 +101,17 @@ export function MetadataForm({
     },
   ]
 
-  const [images, setImages] = useState([
+  console.log(currMetadata.image)
+
+  const images = [
     ...sampleImages,
-    metadata?.image && !sampleImages.find(x => x.value === currMetadata.image)
+    currMetadata.image && !sampleImages.find(x => x.value === currMetadata.image)
       ? {
-        value: currMetadata.image,
+        value: currMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/'),
         label: 'Custom Image',
       } : undefined
-  ].filter(x => !!x));
+  ].filter(x => !!x);
+
   const [imageIsUploading, setImageIsUploading] = useState(false);
 
   const [populateIsOpen, setPopulateIsOpen] = useState(false);
@@ -149,11 +151,7 @@ export function MetadataForm({
 
       if (info.file.status === 'done') {
         await file2Base64(info.file.originFileObj as File).then((base64) => {
-          images.push({
-            value: base64,
-            label: info.file.url ? info.file.url : info.file.name,
-          })
-          setImages(images);
+
           setMetadata({
             ...currMetadata,
             image: base64
@@ -443,33 +441,38 @@ export function MetadataForm({
                 style={{ cursor: 'pointer', marginLeft: 8 }}
               />}
             </div>
-            {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay && <div className='flex-center flex-column full-width'>
-              <div className='flex-center flex-column full-width'>
-                <div className='dark:text-white full-width'>
-                  <BadgeAvatarDisplay
-                    onClick={(id: bigint) => {
-                      setBadgeId(id);
-                    }}
-                    collectionId={NEW_COLLECTION_ID}
-                    badgeIds={badgeIds}
-                    showIds={true}
-                    selectedId={badgeId}
-                  />
-                </div>
+            <div className='flex-center flex-column full-width'>
+              <div className='flex-center flex full-width'>
+                {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay &&
+                  <div className='dark:text-white mx-10'>
+                    <BadgeAvatarDisplay
+                      onClick={(id: bigint) => {
+                        setBadgeId(id);
+                      }}
+                      collectionId={NEW_COLLECTION_ID}
+                      badgeIds={badgeIds}
+                      showIds={true}
+                      selectedId={badgeId}
+                    />
+                  </div>}
+                {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <>
+
+                  <div className='dark:text-white flex-center mx-10'>
+                    {/* Slight hack here. Instead of putting BadgeCard directly, we use BadgeAvatarDisplay which has support for fetching the metadata from source */}
+                    <BadgeAvatarDisplay
+                      collectionId={NEW_COLLECTION_ID}
+                      badgeIds={[{ start: badgeId, end: badgeId }]}
+                      showIds={true}
+                      selectedId={badgeId}
+                      cardView
+                    />
+                  </div>
+                </>
+                }
               </div>
 
-            </div>}
-            {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <div>
-              <br />
-              <div className='dark:text-white flex-center'>
-                <BadgeCard
-                  badgeId={badgeId}
-                  collectionId={collectionId}
-                  size={75}
-                />
-              </div>
             </div>
-            }
+
             {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
             {PopulateComponent()}
 
@@ -516,7 +519,7 @@ export function MetadataForm({
               <div className='flex-between' style={{}}>
                 <Select
                   className="selector dark:text-white inherit-bg"
-                  value={images.find((item: any) => item.value === currMetadata.image)?.label}
+                  value={images.find((item: any) => item.value === currMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/'))?.label}
                   onChange={(e) => {
                     const newImage = images.find((item: any) => e === item.label)?.value;
                     if (newImage) {

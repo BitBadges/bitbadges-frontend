@@ -46,14 +46,7 @@ export function DistributionMethodStepItem() {
               //Overwrite duplicate approval IDs
               txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
             }}
-            // onEdit={(approval: CollectionApprovalWithDetails<bigint>) => {
-            //   const approvalsToAdd = txTimelineContext.approvalsToAdd;
-            //   const approval = approvalsToAdd.find(x => x.approvalId === approvalId);
-            //   if (approval) {
-            //     txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
-            //     setVisible(true);
-            //   }
-            // }}
+            editable
             showDeletedGrayedOut
             collectionId={NEW_COLLECTION_ID}
             onlyShowFromMint

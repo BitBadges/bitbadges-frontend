@@ -16,7 +16,6 @@ export function BadgeAvatar({
   showSupplys,
   noHover,
   metadataOverride,
-  noBorder,
   onClick
 }: {
   collectionId: bigint,
@@ -27,7 +26,6 @@ export function BadgeAvatar({
   showSupplys?: boolean,
   noHover?: boolean,
   metadataOverride?: Metadata<bigint>
-  noBorder?: boolean
   onClick?: () => void
 }) {
   const router = useRouter();
@@ -47,7 +45,7 @@ export function BadgeAvatar({
   const avatar = <Avatar
     style={{
       verticalAlign: 'middle',
-      border: noBorder ? undefined : `1px solid ${metadata?.color || 'black'}`,
+      // border: noBorder ? undefined : `1px solid ${metadata?.color || 'black'}`,
       margin: 4,
       cursor: collection && badgeId ? 'pointer' : undefined,
     }}

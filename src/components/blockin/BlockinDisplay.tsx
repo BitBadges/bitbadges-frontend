@@ -185,7 +185,6 @@ export const BlockinDisplay = ({
                   collectionId={1n}
                   badgeIds={[{ start: 8n, end: 8n }]}
                   size={100}
-                  noBorder
                 /></div>
             },
             {
@@ -204,7 +203,6 @@ export const BlockinDisplay = ({
                   size={100}
                   badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
                   lightTheme
-                  noBorder
                 // showIds
 
                 /></div>

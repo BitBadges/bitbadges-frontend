@@ -7,6 +7,7 @@ import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import IconButton from "../display/IconButton";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { getBadgeIdsString } from "../../utils/badgeIds";
+import { GO_MAX_UINT_64 } from "../../utils/dates";
 
 export function BadgeIdRangesInput({
   uintRanges,
@@ -15,7 +16,7 @@ export function BadgeIdRangesInput({
   minimum,
   collectionId,
   hideSelect,
-  uintRangeBounds,
+  uintRangeBounds = [{ start: 1n, end: GO_MAX_UINT_64 }],
   hideDisplay,
   fullWidthCards,
   hideNumberSelects
@@ -31,7 +32,7 @@ export function BadgeIdRangesInput({
   fullWidthCards?: boolean
   hideNumberSelects?: boolean
 }) {
-  uintRangeBounds = uintRangeBounds ? sortUintRangesAndMergeIfNecessary(uintRangeBounds, true) : undefined;
+  uintRangeBounds = sortUintRangesAndMergeIfNecessary(uintRangeBounds, true);
 
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(

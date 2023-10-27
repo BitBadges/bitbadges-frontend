@@ -67,11 +67,12 @@ export const getTableHeader = (expandedSingleView: boolean) => {
   </tr>
 }
 
-export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncomingDisplay, collectionId, address, setAddress }: {
+export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncomingDisplay, collectionId, address, setAddress, isEdit }: {
   allTransfers: CollectionApprovalWithDetails<bigint>[],
   transfer: CollectionApprovalWithDetails<bigint>, isOutgoingDisplay?: boolean, isIncomingDisplay?: boolean
   collectionId: bigint, address?: string,
   setAddress: (address: string) => void
+  isEdit?: boolean
 
 }) => {
 
@@ -83,13 +84,18 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
   const hasMaxNumTransfers = approvalHasMaxNumTransfers(transfer.approvalCriteria?.maxNumTransfers);
 
   const hasSameTrackerId = allTransfers.find(x => x.amountTrackerId === transfer.amountTrackerId && x.approvalId !== transfer.approvalId
-    && (hasApprovalAmounts || hasMaxNumTransfers) && (approvalHasApprovalAmounts(x.approvalCriteria?.approvalAmounts) || approvalHasMaxNumTransfers(x.approvalCriteria?.maxNumTransfers))
+    &&
+    ((isEdit) || ((hasApprovalAmounts || hasMaxNumTransfers) && (approvalHasApprovalAmounts(x.approvalCriteria?.approvalAmounts) || approvalHasMaxNumTransfers(x.approvalCriteria?.maxNumTransfers))))
   );
 
   const hasSameChallengeTrackerId = allTransfers.find(x => x.challengeTrackerId === transfer.challengeTrackerId && x.approvalId !== transfer.approvalId
-    && x.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.root
-    && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
+    &&
+    ((isEdit) || (
+      x.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.root
+      && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
+    ))
   );
+
   return <InformationDisplayCard title='Restrictions' md={11} xs={24} sm={24}>
     <ul className='list-disc px-8' style={{ textAlign: 'left' }}>
       {transfer.approvalCriteria?.requireFromDoesNotEqualInitiatedBy && !isOutgoingDisplay && (
@@ -220,6 +226,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
         <>
           <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> There are multiple approvals using the same amount tracker ID.
           The tally of badges transferred and the number of transfers are linked and will increment whenever either approval is used.
+          <br />
         </>
       )}
       {hasSameChallengeTrackerId && (
@@ -647,7 +654,7 @@ export function TransferabilityRow({
   grayedOut,
   onDelete,
   expandedSingleView,
-  onEdit,
+  editable,
   transfer,
   badgeId,
   collectionId,
@@ -669,7 +676,7 @@ export function TransferabilityRow({
     address?: string,
     setAddress: (address: string) => void,
     onDelete?: (approvalId: string) => void,
-    onEdit?: (transfer: CollectionApprovalWithDetails<bigint>) => void,
+    editable?: boolean,
     onRestore?: () => void,
     grayedOut?: boolean,
     expandedSingleView?: boolean,
@@ -696,7 +703,6 @@ export function TransferabilityRow({
   const initiatedByAddresses = transfer.initiatedByMapping.addresses.filter(x => x !== 'Mint');
   const fromAddresses = filterFromMint ? transfer.fromMapping.addresses.filter(x => x !== 'Mint') : transfer.fromMapping.addresses;
 
-  const editable = !!onDelete;
 
   const approval = transfer;
   const approvalCriteria = approval.approvalCriteria;
@@ -816,17 +822,22 @@ export function TransferabilityRow({
 
   }
 
+  //Only show the duplicate warning on edit for edge cases
   const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
 
   const hasMaxNumTransfers = approvalHasMaxNumTransfers(transfer.approvalCriteria?.maxNumTransfers);
 
   const hasSameTrackerId = allTransfers.find(x => x.amountTrackerId === transfer.amountTrackerId && x.approvalId !== transfer.approvalId
-    && (hasApprovalAmounts || hasMaxNumTransfers) && (approvalHasApprovalAmounts(x.approvalCriteria?.approvalAmounts) || approvalHasMaxNumTransfers(x.approvalCriteria?.maxNumTransfers))
+    &&
+    ((onDelete || editable) || ((hasApprovalAmounts || hasMaxNumTransfers) && (approvalHasApprovalAmounts(x.approvalCriteria?.approvalAmounts) || approvalHasMaxNumTransfers(x.approvalCriteria?.maxNumTransfers))))
   );
 
   const hasSameChallengeTrackerId = allTransfers.find(x => x.challengeTrackerId === transfer.challengeTrackerId && x.approvalId !== transfer.approvalId
-    && x.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.root
-    && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
+    &&
+    ((onDelete || editable) || (
+      x.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.root
+      && x.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf && transfer.approvalCriteria?.merkleChallenge?.maxUsesPerLeaf
+    ))
   );
 
   const TableRow = <tr style={{ opacity: grayedOut ? 0.5 : undefined }}
@@ -952,20 +963,20 @@ export function TransferabilityRow({
           />
         </div>}
     </td>}
-    {onEdit && <td>
+    {editable && <td>
 
 
       {!disapproved &&
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
           <IconButton
-            style={{ backgroundColor: editIsVisible ? 'black' : undefined }}
-            src={<EditOutlined />}
+            src={editIsVisible ? <MinusOutlined /> : <EditOutlined />}
             onClick={() => {
               setEditIsVisible(!editIsVisible);
               setShowMoreIsVisible(false);
+
             }
             }
-            text='Edit'
+            text={editIsVisible ? 'Cancel Edit' : 'Edit'}
           />
         </div>}
 
@@ -998,6 +1009,8 @@ export function TransferabilityRow({
   if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
     isRefreshing = true;
   }
+  console.log(editable);
+
   const InnerContent = <>
     <br />
     {isRefreshing && <>
@@ -1085,7 +1098,10 @@ export function TransferabilityRow({
       </InformationDisplayCard >
     </div>
     <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
-      <DetailsCard transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
+      <DetailsCard
+        isEdit={!!onDelete || editable}
+
+        transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
 
       <InformationDisplayCard title='Balances' md={11} xs={24} sm={24}>
         <Radio.Group
@@ -1138,7 +1154,7 @@ export function TransferabilityRow({
         </>}
 
       </InformationDisplayCard>
-      {<ClaimDisplay
+      {!editable && !onDelete && <ClaimDisplay
         approval={transfer}
         approvals={allTransfers}
         collectionId={collectionId}
@@ -1151,10 +1167,17 @@ export function TransferabilityRow({
 
 
     {expandedSingleView ? <></> : TableRow}
+
     {editIsVisible && collection && transfer &&
       <tr style={{ paddingBottom: expandedSingleView ? undefined : 10, borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
         {!ignoreRow &&
           <td colSpan={1000} style={{ alignItems: 'center' }}>
+            <div className='flex-center'>
+              <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
+                Editing Approval
+              </Typography.Text>
+
+            </div>
             <CreateClaims setVisible={setEditIsVisible} defaultApproval={transfer} nonMintApproval={filterFromMint} />
           </td>
         }
@@ -1163,19 +1186,15 @@ export function TransferabilityRow({
     {expandedSingleView && <> {InnerContent}</>}
 
     {showMoreIsVisible && collection && !expandedSingleView && <>
-      <tr style={{ paddingBottom: expandedSingleView ? undefined : 10, borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
+      <tr style={{ paddingBottom: expandedSingleView ? undefined : 10, borderBottom: noBorder ? undefined : '1px solid gray', }} className="transferability-row-more">
         {!ignoreRow &&
           <td colSpan={1000} style={{ alignItems: 'center', paddingBottom: expandedSingleView ? undefined : 24 }} className=''>
+
             {InnerContent}
           </td >}
 
       </tr >
-
-
     </>
     }
-
-
-
   </>
 }

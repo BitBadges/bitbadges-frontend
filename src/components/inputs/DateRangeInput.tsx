@@ -2,7 +2,7 @@ import { Avatar, Button, DatePicker, Divider } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import moment from 'moment';
 import { getTimeRangesElement } from '../../utils/dates';
-import { DeleteOutlined, EditOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, MinusOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { checkIfUintRangesOverlap, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import IconButton from '../display/IconButton';
@@ -45,11 +45,11 @@ export function DateRangeInput({
               <div className='flex-center flex-wrap'>
                 <IconButton
                   style={{
-                    color: showTimeRange === i ? '#1890ff' : undefined,
-                    backgroundColor: showTimeRange === i ? 'inherit' : undefined,
-                    border: showTimeRange === i ? '1px solid #1890ff' : undefined,
+                    // color: showTimeRange === i ? '#1890ff' : undefined,
+                    // backgroundColor: showTimeRange === i ? 'inherit' : undefined,
+                    // border: showTimeRange === i ? '1px solid #1890ff' : undefined,
                   }}
-                  src={<EditOutlined />}
+                  src={showTimeRange === i ? <MinusOutlined /> : <EditOutlined />}
                   onClick={() => {
                     if (showTimeRange === i) {
                       setShowTimeRange(-1);
@@ -57,7 +57,8 @@ export function DateRangeInput({
                     }
                     setShowTimeRange(i);
                   }}
-                  text='Edit'
+                  text={showTimeRange === i ? 'Hide' : 'Edit'}
+
                 />
                 <IconButton
                   onClick={() => {
@@ -76,7 +77,7 @@ export function DateRangeInput({
         </div >
 
         <div>
-          {timeRangesOverlap && <div className='dark:text-white' style={{ color: 'red' }}>
+          {timeRangesOverlap && <div className='' style={{ color: 'red' }}>
             <WarningOutlined />
             Time ranges overlap which is not allowed.
             <br />
@@ -184,6 +185,7 @@ export function DateRangeInput({
         <DatePicker
           showMinute
           showTime
+          allowClear={false}
           placeholder='Start Date'
           value={timeRanges[showTimeRange].start ? moment(new Date(Number(timeRanges[showTimeRange].start))) : null}
           className='dark:text-white inherit-bg full-width'
@@ -204,6 +206,7 @@ export function DateRangeInput({
         <DatePicker
           showMinute
           showTime
+          allowClear={false}
           placeholder='End Date'
           value={timeRanges[showTimeRange].end ? moment(new Date(Number(timeRanges[showTimeRange].end))) : null}
           className='dark:text-white inherit-bg full-width'

@@ -11,7 +11,7 @@ export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNA
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
 export const DEV_MODE = process.env.PRODUCTION ? false : false;
-export const INFINITE_LOOP_MODE = process.env.PRODUCTION ? false : false;
+export const INFINITE_LOOP_MODE = process.env.PRODUCTION ? false : true;
 
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';

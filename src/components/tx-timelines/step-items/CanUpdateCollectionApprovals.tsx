@@ -47,16 +47,20 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 }
 
 export function FreezeSelectStepItem() {
+
   const collections = useCollectionsContext();
   const collection = collections.getCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
   const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
+  const [selectedIdx, setSelectedIdx] = useState<number>(3);
   const [err, setErr] = useState<Error | null>(null);
   const allMintAmountTrackerIds = collection ? getMintApprovals(collection).map(x => x.amountTrackerId) : [];
   const allMintChallengeTrackerIds = collection ? getMintApprovals(collection).map(x => x.challengeTrackerId) : [];
   const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.amountTrackerId) : [];
   const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.challengeTrackerId) : [];
+
+
 
   const allIdsString = JSON.stringify(allMintAmountTrackerIds) + JSON.stringify(allMintChallengeTrackerIds) + JSON.stringify(allNonMintAmountTrackerIds) + JSON.stringify(allNonMintChallengeTrackerIds);
 
@@ -64,6 +68,7 @@ export function FreezeSelectStepItem() {
     if (INFINITE_LOOP_MODE) console.log("FreezeSelectStepItem", { allMintAmountTrackerIds, allMintChallengeTrackerIds, allNonMintAmountTrackerIds, allNonMintChallengeTrackerIds })
     handleSwitchChange(lastClickedIdx, lastClickedFrozen);
   }, [allIdsString])
+
 
   if (!collection) return EmptyStepItem;
 
@@ -146,7 +151,10 @@ export function FreezeSelectStepItem() {
         canUpdateCollectionApprovals: getPermissionsToSet(idx, locked)
       }
     });
+
+    setSelectedIdx(idx);
   }
+
 
 
   const AdditionalNode = () => {
@@ -213,25 +221,25 @@ export function FreezeSelectStepItem() {
               {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: JSON.stringify(getPermissionsToSet(0, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: selectedIdx === 0,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: JSON.stringify(getPermissionsToSet(1, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: selectedIdx === 1,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: JSON.stringify(getPermissionsToSet(2, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: selectedIdx === 2,
                 additionalNode: <AdditionalNode />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: JSON.stringify(getPermissionsToSet(3, lastClickedFrozen)) == JSON.stringify(collection.collectionPermissions.canUpdateCollectionApprovals),
+                isSelected: selectedIdx === 3,
                 additionalNode: <AdditionalNode />
               },
             ]}

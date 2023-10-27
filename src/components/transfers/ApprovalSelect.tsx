@@ -1,7 +1,7 @@
 import { InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Radio, Row, Switch, Tag, Tooltip, Typography } from 'antd';
 import { AddressMapping, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
@@ -40,9 +40,10 @@ export enum AmountType {
 export enum PredeterminedType {
   Dynamic,
   Same,
+  NoLimit
 }
 
-export type RequiredApprovalProps = CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> };
+export type RequiredApprovalProps = CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>, details: ApprovalInfoDetails<bigint> };
 
 //Get minimum value but ignore 0 values 
 const minNonZeroValue = (values: bigint[]) => {
@@ -144,6 +145,7 @@ export function ApprovalSelect({
   startingApprovals: CollectionApprovalWithDetails<bigint>[];
   approvalPermissions: CollectionApprovalPermissionWithDetails<bigint>[]
 }) {
+  const isEdit = !!defaultApproval
   const nonMintOnlyApproval = defaultFromMapping?.mappingId === 'AllWithoutMint';
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(false);
   const [codeType, setCodeType] = useState(CodeType.None);
@@ -151,13 +153,16 @@ export function ApprovalSelect({
   const [autoGenerateIds, setAutoGenerateIds] = useState(defaultApproval ? false : true);
   const [editApprovalIds, setEditApprovalIds] = useState(false);
   const [claimPassword, setClaimPassword] = useState('');
-  const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.Same);
+  const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.NoLimit);
 
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
-  const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> } = {
+  const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & {
+    approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>
+    details: ApprovalInfoDetails<bigint>
+  } = {
     fromMappingId: defaultFromMapping ? defaultFromMapping.mappingId : 'Mint',
     fromMapping: defaultFromMapping ? defaultFromMapping : getReservedAddressMapping("Mint"),
     toMappingId: defaultToMapping ? defaultToMapping.mappingId : 'AllWithMint',
@@ -170,6 +175,9 @@ export function ApprovalSelect({
     approvalId: '',
     amountTrackerId: '',
     challengeTrackerId: '',
+
+    ...defaultApproval,
+
     details: {
       name: '',
       description: '',
@@ -179,9 +187,11 @@ export function ApprovalSelect({
           leaves: [],
           isHashed: false,
         },
-      }
+      },
+      ...defaultApproval?.details,
     },
     approvalCriteria: {
+
       mustOwnBadges: [],
       approvalAmounts: {
         overallApprovalAmount: 0n,
@@ -225,15 +235,23 @@ export function ApprovalSelect({
       requireFromDoesNotEqualInitiatedBy: false,
 
       overridesToIncomingApprovals: false,
-      overridesFromOutgoingApprovals: true,
+      overridesFromOutgoingApprovals: defaultFromMapping?.mappingId === 'Mint' ? true : false,
 
-      ...defaultApproval
-    }
+      ...defaultApproval?.approvalCriteria,
+    },
+
   }
 
 
+  const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & {
+    approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>,
+    details: ApprovalInfoDetails<bigint>
 
-  const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>> }>(deepCopy(defaultApprovalToAdd));
+  }>(deepCopy(defaultApprovalToAdd));
+
+  useEffect(() => {
+    setApprovalToAdd(deepCopy(defaultApprovalToAdd))
+  }, [defaultApproval])
 
   const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
 
@@ -252,6 +270,9 @@ export function ApprovalSelect({
 
   const ownedTimesOverlap = checkIfUintRangesOverlap(approvalToAdd?.ownershipTimes || []);
   const ownedTimesLengthEqualsZero = approvalToAdd?.ownershipTimes.length === 0;
+
+  const transferTimesOverlap = checkIfUintRangesOverlap(approvalToAdd?.transferTimes || []);
+  const transferTimesLengthEqualsZero = approvalToAdd?.transferTimes.length === 0;
 
   const [amountType, setAmountType] = useState<AmountType>(AmountType.Tally);
 
@@ -703,28 +724,46 @@ export function ApprovalSelect({
                 }}>
                   <Radio.Button value={AmountType.Tally}>Standard {distributionMethod === DistributionMethod.Codes ? " - All or Nothing" : ""}</Radio.Button>
                   <Radio.Button value={AmountType.Predetermined}>Partitions</Radio.Button>
-                </Radio.Group></>
+                </Radio.Group><br /><br />
+              </>
               }
 
 
               {amountType === AmountType.Tally && <>
 
-                {distributionMethod !== DistributionMethod.Codes && <><br /><br />
-                  <Radio.Group buttonStyle='solid' value={predeterminedType !== PredeterminedType.Same ? "tally" : "all"} onChange={(e) => {
-                    if (e.target.value === "tally") {
-                      setAmountType(AmountType.Tally);
-                      setPredeterminedType(PredeterminedType.Dynamic);
-                    }
-                    if (e.target.value === "all") {
-                      setAmountType(AmountType.Tally);
-                      setPredeterminedType(PredeterminedType.Same);
-                    }
-                  }}>
+                {distributionMethod !== DistributionMethod.Codes && <>
+                  <Radio.Group buttonStyle='solid' value={predeterminedType !== PredeterminedType.Same ?
+                    predeterminedType === PredeterminedType.NoLimit ? "none" :
+
+                      "tally" : "all"} onChange={(e) => {
+                        if (e.target.value === "tally") {
+                          setAmountType(AmountType.Tally);
+                          setPredeterminedType(PredeterminedType.Dynamic);
+                        }
+                        if (e.target.value === "all") {
+                          setAmountType(AmountType.Tally);
+                          setPredeterminedType(PredeterminedType.Same);
+                        }
+
+                        if (e.target.value === "none") {
+                          setAmountType(AmountType.Tally);
+                          setPredeterminedType(PredeterminedType.NoLimit);
+                        }
+
+                      }}>
                     <Radio.Button value={"all"}  >All or Nothing</Radio.Button>
                     <Radio.Button value={"tally"}>Tally</Radio.Button>
+                    <Radio.Button value={"none"}>No Limit</Radio.Button>
                   </Radio.Group></>
                 }
-                {predeterminedType !== PredeterminedType.Same && <>
+                {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.NoLimit && <>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                    <div className=''>
+                      <InfoCircleOutlined /> No Limit - No amount restrictions. Amounts will not be tracked.
+                    </div>
+                  </div>
+                </>}
+                {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.Dynamic && <>
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
                     <div className=''>
                       <InfoCircleOutlined /> Tally - Approvals will correspond to the selected badge IDs ({getBadgeIdsString(approvalToAdd.badgeIds)}) and times ({getTimeRangesElement(approvalToAdd.ownershipTimes)}).
@@ -735,12 +774,12 @@ export function ApprovalSelect({
                 {predeterminedType === PredeterminedType.Same && <>
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
                     <div className=''>
-                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred together.
+                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid though if they are all transferred together.
                     </div>
                   </div>
                 </>}
                 <br />
-                {amountType === AmountType.Tally && predeterminedType !== PredeterminedType.Same && <>
+                {amountType === AmountType.Tally && predeterminedType === PredeterminedType.Dynamic && <>
                   <ApprovalAmounts
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     type='overall' label='Overall (all users)' />
@@ -816,7 +855,10 @@ export function ApprovalSelect({
                       <div style={{ textAlign: 'center' }}>
                         <WarningOutlined style={{ color: 'orange' }} />
                         <span style={{ marginLeft: 8, color: 'orange' }}>
-                          Without any max uses restrictions, this approval can be used an unlimited number of times. Thus, the selected badges are approved in unlimited quantity.
+                          This approval approves x{startBalances.length > 0 ? Number(startBalances[0].amount) : 0}{' '}of the selected badges
+                          {' '}<b>per use</b> in an all or nothing manner.
+                          However, you have not set a limit on max uses,
+                          meaning an unlimited quantity is approved.
                         </span>
                       </div>
                     </div>}
@@ -891,7 +933,7 @@ export function ApprovalSelect({
             </Col>
           </div>}
         </InformationDisplayCard>
-      </div>
+      </div >
 
 
       <div className='flex flex-wrap full-width'>
@@ -952,91 +994,103 @@ export function ApprovalSelect({
           }} />
 
         </InformationDisplayCard>
-        <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from  scratch or from a prior approval.'>
+        <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from scratch or from a prior approval.'>
           <br />
-          <TableRow labelSpan={16} valueSpan={8} label={'Start from scratch?'} value={<Switch
-            checked={autoGenerateIds}
-            onChange={(checked) => {
-              setAutoGenerateIds(checked);
-            }}
-          />} />
-          {!autoGenerateIds && !mustEditApprovalIds && <div style={{ textAlign: 'center' }}>
-            <TableRow labelSpan={16} valueSpan={8} label={'Edit approval IDs (advanced)?'} value={<Switch
-              checked={editApprovalIds}
+          {isEdit && <Typography.Text className='text-gray-400'>
+            You are editing an existing approval. Anything tracked (amounts, number of transfers, etc.) will continue to be tracked as defined in the existing approval.
+
+            To start from scratch, please create a new approval.
+          </Typography.Text>
+
+          }
+          {!isEdit && <>
+            <TableRow labelSpan={16} valueSpan={8} label={'Start from scratch?'} value={<Switch
+              checked={autoGenerateIds}
               onChange={(checked) => {
-                setEditApprovalIds(checked);
+                setAutoGenerateIds(checked);
               }}
             />} />
-          </div>}
-          {autoGenerateIds && <div style={{ textAlign: 'center' }}>
-            <div style={{ textAlign: 'center' }}>
-              <br />
-              <span style={{ marginLeft: 8 }}>
-                This approval will be  <Tag
-                  style={{ margin: 4, backgroundColor: '#52c41a' }}
-                  color='#52c41a'
-                  className='dark:text-white'
-                >New</Tag> meaning it will have no prior history and not be based on any prior approvals.
-
-
-              </span>
-            </div>
-          </div>}
-
-
-          {
-            !autoGenerateIds && <>
-
-              <br />
-              <b style={{ fontSize: 16 }}> Approval ID</b >
-              <Input
-                disabled={!editApprovalIds && !mustEditApprovalIds}
-                className='dark:text-white inherit-bg'
-                value={approvalToAdd.approvalId}
-                onChange={(e) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    approvalId: e.target.value,
-                  });
+            {!autoGenerateIds && !mustEditApprovalIds && <div style={{ textAlign: 'center' }}>
+              <TableRow labelSpan={16} valueSpan={8} label={'Edit approval IDs (advanced)?'} value={<Switch
+                checked={editApprovalIds}
+                onChange={(checked) => {
+                  setEditApprovalIds(checked);
                 }}
-                placeholder='Approval ID'
-              />
-              <b style={{ fontSize: 16 }}>Amount Tracker ID</b>
-              <Input
-                disabled={!editApprovalIds && !mustEditApprovalIds}
-                className='dark:text-white inherit-bg'
-                value={approvalToAdd.amountTrackerId}
-                onChange={(e) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    amountTrackerId: e.target.value,
-                  });
-                }}
-                placeholder='Amount Tracker ID'
-              />
-              <br />
-              <b style={{ fontSize: 16 }}>Challenge Tracker ID</b>
-              <Input
-                disabled={!editApprovalIds && !mustEditApprovalIds}
-                className='dark:text-white inherit-bg'
-                value={approvalToAdd.challengeTrackerId}
-                onChange={(e) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    challengeTrackerId: e.target.value,
-                  });
-                }}
-                placeholder='Challenge Tracker ID'
-              />
-            </>}
-          {!autoGenerateIds && <div style={{ textAlign: 'center' }}>
-            <div style={{ textAlign: 'center', color: 'orange' }}>
-              <br />
-              <span style={{ marginLeft: 8 }}>
-                <InfoCircleOutlined /> Editing IDs is advanced and not recommended. Learn more <a href='https://docs.bitbadges.io/for-developers/concepts/approval-criteria' target='_blank'>here</a>.
-              </span>
-            </div>
-          </div>}
+              />} />
+            </div>}
+            {autoGenerateIds && <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <br />
+                <span style={{ marginLeft: 8 }}>
+                  This approval will be  <Tag
+                    style={{ margin: 4, backgroundColor: '#52c41a' }}
+                    color='#52c41a'
+                    className='dark:text-white'
+                  >New</Tag> meaning it will have no prior history and not be based on any prior approvals.
+
+
+                </span>
+              </div>
+            </div>}
+
+
+            {
+              !autoGenerateIds && <>
+
+                <br />
+                <b style={{ fontSize: 16 }}> Approval ID</b >
+                <Input
+                  disabled={!editApprovalIds && !mustEditApprovalIds}
+                  className='dark:text-white inherit-bg'
+                  value={approvalToAdd.approvalId}
+                  onChange={(e) => {
+                    setApprovalToAdd({
+                      ...approvalToAdd,
+                      approvalId: e.target.value,
+                    });
+                  }}
+                  placeholder='Approval ID'
+                />
+                <b style={{ fontSize: 16 }}>Amount Tracker ID</b>
+                <Input
+                  disabled={!editApprovalIds && !mustEditApprovalIds}
+                  className='dark:text-white inherit-bg'
+                  value={approvalToAdd.amountTrackerId}
+                  onChange={(e) => {
+                    setApprovalToAdd({
+                      ...approvalToAdd,
+                      amountTrackerId: e.target.value,
+                    });
+                  }}
+                  placeholder='Amount Tracker ID'
+                />
+                <br />
+                <b style={{ fontSize: 16 }}>Challenge Tracker ID</b>
+                <Input
+                  disabled={!editApprovalIds && !mustEditApprovalIds}
+                  className='dark:text-white inherit-bg'
+                  value={approvalToAdd.challengeTrackerId}
+                  onChange={(e) => {
+                    setApprovalToAdd({
+                      ...approvalToAdd,
+                      challengeTrackerId: e.target.value,
+                    });
+                  }}
+                  placeholder='Challenge Tracker ID'
+                />
+              </>}
+            {!autoGenerateIds && <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', color: 'orange' }}>
+                <br />
+                <span style={{ marginLeft: 8 }}>
+                  <InfoCircleOutlined /> Editing IDs is advanced and not recommended.
+
+
+                  Learn more <a href='https://docs.bitbadges.io/for-developers/concepts/approval-criteria' target='_blank'>here</a>.
+                </span>
+              </div>
+            </div>}
+          </>}
         </InformationDisplayCard >
       </div>
 
@@ -1066,7 +1120,9 @@ export function ApprovalSelect({
           (!approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex))
         || (nonMintOnlyApproval && isInAddressMapping(approvalToAdd.fromMapping, "Mint"))
         || (!!approvalsToAdd.find(x => x.approvalId === approvalToAdd.approvalId) && !defaultApproval)
-      || (nonMintOnlyApproval && isInAddressMapping(approvalToAdd.fromMapping, "Mint"))
+        || (nonMintOnlyApproval && isInAddressMapping(approvalToAdd.fromMapping, "Mint"))
+        || transferTimesOverlap || transferTimesLengthEqualsZero
+      || (amountType === AmountType.Tally && predeterminedType === PredeterminedType.Same && ((startBalances.length > 0 ? Number(startBalances[0].amount) : 0) <= 0))
       }
       onClick={() => {
         //Set them here
@@ -1231,8 +1287,12 @@ export function ApprovalSelect({
         if (setVisible) setVisible(false);
       }
       }>
-      {plusButton ? <PlusOutlined /> : 'Set Approval'}
+      {plusButton ? <PlusOutlined /> : isEdit ? 'Edit Approval' : 'Set Approval'}
     </button >
+    {isEdit && <div className='flex-center text-gray-400'>
+      <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
+    </div>}
+    <br />
 
   </>
 }

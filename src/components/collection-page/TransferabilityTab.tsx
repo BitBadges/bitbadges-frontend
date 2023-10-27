@@ -4,14 +4,14 @@ import { ApprovalsDisplay } from './ApprovalsTab';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
-export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, onEdit, onDelete, addMoreNode, showDeletedGrayedOut }: {
+export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, editable, onDelete, addMoreNode, showDeletedGrayedOut }: {
   collectionId: bigint,
   badgeId?: bigint,
   onlyShowFromMint?: boolean,
   onlyShowNotFromMint?: boolean,
   hideHelperMessage?: boolean,
   onDelete?: (approvalId: string) => void,
-  onEdit?: (approval: any) => void,
+  editable?: boolean,
   addMoreNode?: ReactNode
   showDeletedGrayedOut?: boolean
 }) {
@@ -33,12 +33,14 @@ export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, on
         hideHelperMessage={hideHelperMessage}
         approvalLevel={"collection"}
         approverAddress=''
+        
         showDeletedGrayedOut={showDeletedGrayedOut}
         onDelete={onDelete}
-        onEdit={onEdit}
+        editable={editable}
         startingApprovals={addMoreNode ? txTimelineContext.startingCollection?.collectionApprovals : undefined}
         addMoreNode={addMoreNode}
         title={addMoreNode ? onlyShowFromMint ? 'Transferability - Minting' : 'Transferability - Post-Minting' : ""}
+        
         subtitle={addMoreNode ? onlyShowFromMint ? <><InfoCircleOutlined /> Set approvals for how badges are transferred out of the Mint address.</> : <><InfoCircleOutlined /> Post-minting, which transfer combinations for the collection should be allowed vs disallowed? </> : ""}
       />
     </>
