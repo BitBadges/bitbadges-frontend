@@ -1,6 +1,5 @@
 import { Empty, Spin } from 'antd';
 import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { ClaimDisplay } from '../claims/ClaimDisplay';

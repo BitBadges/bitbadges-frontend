@@ -1,5 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Col, Collapse, Divider, Row, Spin, Typography } from 'antd';
+import { Col, Collapse, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { TransferActivityInfo } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
