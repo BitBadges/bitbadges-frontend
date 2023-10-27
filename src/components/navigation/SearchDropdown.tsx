@@ -1,6 +1,6 @@
 
 import { Avatar, Menu, Spin, Typography } from 'antd';
-import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -94,9 +94,11 @@ export function SearchDropdown({
         <div className='dark:text-white inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {/* Current Search Value Address Helper - Matches Text Exactly */}
           {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
-            <Menu.Item className='dropdown-item' disabled={true} style={{ cursor: 'disabled' }} onClick={async () => {
-              await onSearch(searchValue, true);
-            }}>
+            <Menu.Item className='dropdown-item'
+              disabled={isAddressValid(searchValue) && searchValue !== 'Mint'}
+              onClick={async () => {
+                await onSearch(searchValue, true, false);
+              }}>
               <div className='flex-between'>
                 <div className='flex-center' style={{ alignItems: 'center' }}>
                   <AddressDisplay

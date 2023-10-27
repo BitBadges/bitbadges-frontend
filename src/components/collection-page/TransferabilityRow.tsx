@@ -22,6 +22,8 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { CreateClaims } from '../tx-timelines/form-items/CreateClaims';
 import { BalanceOverview } from './BalancesInfo';
+import { ClaimDisplay } from '../claims/ClaimDisplay';
+import { useRouter } from 'next/router';
 
 export const getTableHeader = (expandedSingleView: boolean) => {
   return <tr >
@@ -783,6 +785,24 @@ export function TransferabilityRow({
     }
   }, [collectionId, challengeTrackerId, showMoreIsVisible]);
 
+  const router = useRouter();
+  const query = router.query;
+
+  //Auto scroll to page upon claim ID query in URL
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
+    if (query.approvalId && typeof query.approvalId === 'string') {
+      if (query.approvalId === approval.approvalId) {
+        setShowMoreIsVisible(true)
+        notification.info({
+          message: 'Code / Password',
+          description: `Code / password was found in the URL. We have automatically inserted it into the input field for you.`,
+        });
+      }
+
+
+    }
+  }, [query.approvalId]);
 
   //Only show rows that have at least one address (after filtration)
   if ((toAddresses.length == 0 && transfer.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && transfer.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && transfer.fromMapping.includeAddresses)) {
@@ -974,9 +994,19 @@ export function TransferabilityRow({
 
   </tr >
 
+  let isRefreshing = false;
+  if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
+    isRefreshing = true;
+  }
   const InnerContent = <>
     <br />
-
+    {isRefreshing && <>
+      <div className='flex-center' style={{ textAlign: 'center' }}>
+        <WarningOutlined style={{ marginRight: '8px', color: 'orange' }} />
+        The metadata for this claim is currently being refreshed. Certain information may be incomplete or not up to date.
+      </div>
+      <br />
+    </>}
     <div className='flex-center flex-wrap'>
 
       <InformationDisplayCard title={transfer.details?.name ?? 'Overview'} md={22} xs={24} sm={24}>
@@ -1108,7 +1138,13 @@ export function TransferabilityRow({
         </>}
 
       </InformationDisplayCard>
+      {<ClaimDisplay
+        approval={transfer}
+        approvals={allTransfers}
+        collectionId={collectionId}
 
+        onlyActions
+      />}
     </div></>
 
   return <>
@@ -1126,7 +1162,7 @@ export function TransferabilityRow({
 
     {expandedSingleView && <> {InnerContent}</>}
 
-    {showMoreIsVisible && collection && !expandedSingleView &&
+    {showMoreIsVisible && collection && !expandedSingleView && <>
       <tr style={{ paddingBottom: expandedSingleView ? undefined : 10, borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
         {!ignoreRow &&
           <td colSpan={1000} style={{ alignItems: 'center', paddingBottom: expandedSingleView ? undefined : 24 }} className=''>
@@ -1134,6 +1170,12 @@ export function TransferabilityRow({
           </td >}
 
       </tr >
+
+
+    </>
     }
+
+
+
   </>
 }

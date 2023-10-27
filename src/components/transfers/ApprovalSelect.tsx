@@ -735,7 +735,7 @@ export function ApprovalSelect({
                 {predeterminedType === PredeterminedType.Same && <>
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
                     <div className=''>
-                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred at once via one transfer.
+                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred together.
                     </div>
                   </div>
                 </>}
@@ -838,7 +838,7 @@ export function ApprovalSelect({
                 {predeterminedType === PredeterminedType.Same &&
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
                     <div className=''>
-                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred at once via one transfer.
+                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred together.
                     </div>
                   </div>}
                 <br />

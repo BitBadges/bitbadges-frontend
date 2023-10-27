@@ -26,7 +26,7 @@ export function Notifications() {
   const announcements = accounts.getAnnouncementsView(chain.address, 'latestAnnouncements') ?? [];
   const claimAlerts = accounts.getClaimAlertsView(chain.address, 'latestClaimAlerts') ?? [];
 
-  const [prevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
+  const [prevSeenActivity, setPrevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
 
   const [seenAnnouncements, setSeenAnnouncements] = useState<boolean>(false);
   const [seenClaimAlerts, setSeenClaimAlerts] = useState<boolean>(false);
@@ -46,10 +46,13 @@ export function Notifications() {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
     const signedInAccount = accounts.getAccount(chain.address);
 
+
     if (signedInAccount && chain.connected && chain.loggedIn && chain.address) {
+      setPrevSeenActivity(Number(signedInAccount?.seenActivity ?? 0n));
+      console.log("UPDATING Seen activity", chain.lastSeenActivity);
       accounts.updateProfileInfo(chain.address, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
-  }, [chain.connected, chain.loggedIn, chain.address, chain.address, chain.lastSeenActivity]);
+  }, [signedInAccount?.cosmosAddress]);
 
 
   const listsTab = 'latestAddressMappings';

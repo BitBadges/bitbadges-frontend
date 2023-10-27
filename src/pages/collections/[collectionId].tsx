@@ -10,7 +10,7 @@ import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
-import { ClaimsTab } from '../../components/collection-page/ClaimsTab';
+import { OffChainTransferabilityTab } from '../../components/collection-page/OffChainTransferabilityTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
@@ -47,7 +47,6 @@ function CollectionPage({
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
-      { key: 'claims', content: 'Claims', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
@@ -59,6 +58,7 @@ function CollectionPage({
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
+      { key: 'transferability', content: 'Transferability', disabled: false },
       { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
@@ -94,7 +94,7 @@ function CollectionPage({
   //Set tab to badges if badgeId is in query
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to claims');
-    if (code || password || claimsTab) setTab('claims');
+    if (code || password || claimsTab) setTab('transferability');
   }, [code, password, claimsTab])
 
   return (
@@ -130,8 +130,11 @@ function CollectionPage({
           {tab === 'badges' && (
             <BadgesTab collectionId={collectionIdNumber} />
           )}
-          {tab === 'transferability' && (
+          {tab === 'transferability' && !isOffChainBalances && (
             <TransferabilityTab collectionId={collectionIdNumber} />
+          )}
+          {tab === 'transferability' && isOffChainBalances && (
+            <OffChainTransferabilityTab collectionId={collectionIdNumber} />
           )}
 
 
@@ -155,13 +158,6 @@ function CollectionPage({
                 await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
               }}
               hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
-            />
-          )}
-
-          {tab === 'claims' && !isPreview && (
-            <ClaimsTab
-              collectionId={collectionIdNumber}
-
             />
           )}
 

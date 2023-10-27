@@ -24,6 +24,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
 ) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
+  const currAccount = addressOrUsername ? accounts.getAccount(addressOrUsername) : undefined;
 
   const collections = useCollectionsContext();
   const [newReview, setNewReview] = useState<string>('');
@@ -45,8 +46,8 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
 
   return (
     <>
-      {(collectionId || addressOrUsername) && (<>
-        <br />
+      {(collectionId || addressOrUsername) && (collectionId ? true : currAccount?.cosmosAddress && currAccount.cosmosAddress !== chain.cosmosAddress) && (<>
+
         <ReactStars
           count={5}
           value={stars}
@@ -65,9 +66,10 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         />
         <Tooltip color="black" title={!chain.loggedIn ? 'Must be connected and signed in.' : ''}>
           <Button
-            disabled={newReview.length > 2048 || !chain.loggedIn || loading}
+            disabled={newReview.length > 2048 || !chain.loggedIn || loading || newReview.length === 0}
             type="primary"
             loading={loading}
+
             className='full-width'
             onClick={async () => {
               if (newReview.length === 0) return;

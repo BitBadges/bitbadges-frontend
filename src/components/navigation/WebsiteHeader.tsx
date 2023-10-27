@@ -73,8 +73,9 @@ export function WalletHeader() {
   let overflowCount = 10;
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
+  const seenActivity = account?.seenActivity || 1n;
   for (const activity of allActivity) {
-    if (account?.seenActivity && account.seenActivity < activity.timestamp) {
+    if (seenActivity && seenActivity < activity.timestamp) {
       unseenNotificationCount++;
     }
 
@@ -84,17 +85,21 @@ export function WalletHeader() {
   }
 
   for (const addressMapping of account?.addressMappings ?? []) {
-    if (account?.seenActivity && account.seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
-      unseenNotificationCount++;
+    if (addressMapping.addresses.includes(chain.cosmosAddress) || addressMapping.addresses.includes(chain.address)) {
+
+      if (seenActivity && seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
+        unseenNotificationCount++;
+      }
+
+      if (unseenNotificationCount > overflowCount) {
+        break;
+      }
     }
 
-    if (unseenNotificationCount > overflowCount) {
-      break;
-    }
   }
 
   for (const claimAlert of claimAlerts) {
-    if (account?.seenActivity && account.seenActivity < claimAlert.createdTimestamp) {
+    if (seenActivity && seenActivity < claimAlert.createdTimestamp) {
       unseenNotificationCount++;
     }
 
@@ -102,6 +107,8 @@ export function WalletHeader() {
       break;
     }
   }
+
+  console.log("Calculated", unseenNotificationCount, account)
 
 
   let signedIn = chain.loggedIn;

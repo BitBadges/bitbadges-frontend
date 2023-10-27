@@ -1,4 +1,4 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, Typography } from 'antd';
 import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
@@ -16,7 +16,7 @@ import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
 
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree }: {
+export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree, fromTransferabilityRow }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
@@ -24,6 +24,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   defaultAddress?: string
   approval?: CollectionApprovalWithDetails<bigint>,
   tree?: MerkleTree | null,
+  fromTransferabilityRow?: boolean
 }) {
   const chain = useChainContext();
   const accounts = useAccountsContext();
@@ -119,7 +120,14 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           <AddressSelect
             defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
             onUserSelect={setSender}
+            allowMintSearch
           />
+          {!fromTransferabilityRow && sender === 'Mint' && <>
+            <Divider />
+            <Typography.Text style={{ color: 'orange' }} >
+              <WarningOutlined /> {"For minting with predetermined or dynamic balances (increments, all or nothing, etc), please use the Transferability tab. This modal only allows you to manually input balances."}
+            </Typography.Text>
+          </>}
 
           <Divider />
           <Typography.Text className='text-gray-400'>

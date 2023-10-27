@@ -185,13 +185,12 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
                             ]}
                           />
                         }
-                        <Divider />
+                        <br />
                         {activity.txHash &&
                           <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
                             See Blockchain Transaction
                           </a></p>
                         }
-                        <Divider />
                       </Col>
                     </Row>
                   </div>

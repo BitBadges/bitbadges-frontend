@@ -84,7 +84,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
 
 
 
-          {<TableRow label={"Balances Type"} value={
+          {<TableRow label={"Balances Storage"} value={
             <>
               <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                 {collection?.balancesType === "Off-Chain" ?
