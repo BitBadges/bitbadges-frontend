@@ -8,9 +8,9 @@ import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/cosmos-sdk/transactions';
+import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
@@ -298,6 +298,7 @@ export function TxModal(
         if (collectionIdStr) {
           const collectionId = Numberify(collectionIdStr)
           Modal.destroyAll()
+
           router.push(`/collections/${collectionId}`);
         }
       }

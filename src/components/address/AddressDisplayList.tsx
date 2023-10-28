@@ -85,7 +85,7 @@ export function AddressDisplayList({
       const allowedMessage = invalidUsers ? invalidUsers[user] : undefined;
 
       return (
-        <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginTop: 4 }}>
+        <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginLeft: 8 }}>
           {trackerIdList ? <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
 
             {getAbbreviatedAddress(user)} </div> : <AddressDisplay

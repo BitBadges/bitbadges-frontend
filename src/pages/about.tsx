@@ -1,7 +1,6 @@
-import { ClusterOutlined, LinkedinOutlined } from "@ant-design/icons";
-import { Row, Col, Typography, Avatar, Tooltip } from "antd";
+import { LinkedinOutlined } from "@ant-design/icons";
+import { Avatar, Col, Row, Tooltip, Typography } from "antd";
 import { LandingCard } from ".";
-import { ETH_LOGO, COSMOS_LOGO } from "../constants";
 
 function About({ }: {}) {
 

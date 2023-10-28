@@ -45,7 +45,8 @@ export function InformationDisplayCard({
       <div className="dark:text-white gradient-bg " style={{
         border: noBorder ? undefined : '1px solid darkgrey',
         background: inheritBg ? 'inherit' : undefined,
-        borderRadius: 10, padding: 17, height: '100%'
+        borderRadius: 10, height: '100%',
+        padding: 8
       }}>
         {title &&
           <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>

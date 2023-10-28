@@ -1,5 +1,5 @@
 import { ClockCircleOutlined, CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Divider, Empty, Switch, Typography } from 'antd';
+import { Col, Divider, Empty, Switch, Typography } from 'antd';
 import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -80,6 +80,59 @@ export const ApprovalsDisplay: FC<Props> = ({
     })
   }
 
+  const getRows = (mobile: boolean) => {
+    return <>
+      {
+        <>
+          {approvals.map((x, idx) => {
+            const result = <TransferabilityRow
+              startingApprovals={startingApprovals}
+              editable={editable}
+              approverAddress={approverAddress}
+              onDelete={onDelete}
+              allTransfers={approvals}
+              address={address}
+              setAddress={setAddress}
+              isIncomingDisplay={approvalLevel === "incoming"}
+              isOutgoingDisplay={approvalLevel === "outgoing"}
+              transfer={x} key={idx}
+              badgeId={filterByBadgeId ? badgeId : undefined}
+              collectionId={collection.collectionId}
+              filterFromMint={filterFromMint} mobileFriendly={mobile}
+
+            />
+            return result
+          })}
+
+          {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
+            const result = <TransferabilityRow grayedOut
+
+              onRestore={() => {
+                if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
+                  alert('This approval ID is already used.');
+                  return;
+                }
+
+                const approvalsToAdd = txTimelineContext.approvalsToAdd;
+                txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
+              }}
+              allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} mobileFriendly={mobile} />
+            return result
+          })}
+
+          {disapproved.map((x, idx) => {
+            const result = <TransferabilityRow
+              onDelete={onDelete} allTransfers={approvals}
+              address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"}
+              isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx}
+              badgeId={filterByBadgeId ? badgeId : undefined} collectionId={collection.collectionId} filterFromMint={filterFromMint} mobileFriendly={mobile} />
+            return result
+          })}
+        </>
+      }
+    </>
+  }
+
   return <>
     <br />
 
@@ -122,72 +175,33 @@ export const ApprovalsDisplay: FC<Props> = ({
       <div>
         <br />
         <br />
-        <div className='overflow-x-auto'>
-          <table className="table-auto overflow-x-scroll w-full table-wrp">
-            <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
-              {getTableHeader(false)}
-            </thead>
-            <tbody>
-              {
-                <>
-                  {approvals.map((x, idx) => {
-                    const result = <TransferabilityRow
-                      startingApprovals={startingApprovals}
-                      editable={editable}
-                      approverAddress={approverAddress}
-                      onDelete={onDelete}
-                      allTransfers={approvals}
-                      address={address}
-                      setAddress={setAddress}
-                      isIncomingDisplay={approvalLevel === "incoming"}
-                      isOutgoingDisplay={approvalLevel === "outgoing"}
-                      transfer={x} key={idx}
-                      badgeId={filterByBadgeId ? badgeId : undefined}
-                      collectionId={collection.collectionId}
-                      filterFromMint={filterFromMint}
-                      
-                    />
-                    return result
-                  })}
+        <Col md={0} xs={24} sm={24}>
+          {getRows(true)}
+        </Col>
+        <Col md={24} xs={0} sm={0}>
+          <div className='overflow-x-auto'>
+            <table className="table-auto overflow-x-scroll w-full table-wrp">
 
-                  {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
-                    const result = <TransferabilityRow grayedOut
-                    
-                      onRestore={() => {
-                        if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
-                          alert('This approval ID is already used.');
-                          return;
-                        }
 
-                        const approvalsToAdd = txTimelineContext.approvalsToAdd;
-                        txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
-                      }}
-                      allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
-                    return result
-                  })}
-
-                  {disapproved.map((x, idx) => {
-                    const result = <TransferabilityRow
-                      onDelete={onDelete} allTransfers={approvals}
-                      address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"}
-                      isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx}
-                      badgeId={filterByBadgeId ? badgeId : undefined} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
-                    return result
-                  })}
-                </>
-              }
-            </tbody>
-          </table>
-        </div>
+              <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
+                {getTableHeader(false)}
+              </thead>
+              <tbody>
+                {getRows(false)}
+              </tbody>
+            </table>
+          </div>
+        </Col>
       </div>
       <br />
       {addMoreNode}
       {!hideHelperMessage && <>
         <Divider />
-        <p>
-          <InfoCircleOutlined />{' '}The table is broken down into multiple criteria: who can send? who can receive? etc.
-          Each row represents a different set of criteria.
-          For a transfer to be approved, ALL of the criteria in the row must be satisfied. If transfers span multiple rows, they must satisfy ALL criteria in ALL the spanned rows.
+        <p className='dark:text-gray-400'>
+          <InfoCircleOutlined />{' '}Each approval represents a different set of criteria.
+          For a transfer to be approved, ALL of the criteria must be satisfied.
+          If transfers span multiple approvals, they must satisfy ALL criteria in ALL the spanned approvals.
+          Successful transfers also require sufficient balances from the sender.
         </p></>}
       <Divider />
     </InformationDisplayCard >

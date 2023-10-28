@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { Button, Input, Row, Typography } from "antd";
+import { Button, Divider, Input, Row, Typography } from "antd";
 import { CollectionApprovalWithDetails, isInAddressMapping, searchUintRangesForId } from "bitbadgesjs-utils";
 import { SHA256 } from "crypto-js";
 import MerkleTree from "merkletreejs";
@@ -277,9 +277,11 @@ export function ClaimDisplay({
               <InfoCircleOutlined style={{ color: 'orange', marginRight: 4 }} />
               {errorMessage}
             </>}
+
           </div>
         </InformationDisplayCard>
-      </div>
+
+      </div>  <Divider />
     </>
     }
 

@@ -283,9 +283,9 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 80;
 }
 
-.ant-popover-placement-bottom, .ant-popover-placement-bottomLeft, .ant-popover-placement-bottomRight {
+/* .ant-popover-placement-bottom, .ant-popover-placement-bottomLeft, .ant-popover-placement-bottomRight {
     width: 100%;
-}
+} */
 
 .blockin-popup-container {
     max-width: 80vw !important;
@@ -338,10 +338,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #001529;
   border: 1px solid gray;
 }
-
+/* 
 .ant-popover-inner-content {
   width: 100%;
-}
+} */
 
 .blockin-listitem-logo {
   display: flex;

@@ -1093,21 +1093,7 @@ export function ApprovalSelect({
           </>}
         </InformationDisplayCard >
       </div>
-
-    </Row >
-    {/* <br />
-    <div className='full-width'>
-      <Divider />
-      <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
-        Summary
-      </Typography.Text>
-      <table style={{ width: '100%', fontSize: 16, marginTop: 10 }}>
-        {getTableHeader()}
-        <br />
-        <TransferabilityRow transfer={approvalToAdd} allTransfers={approvalsToAdd} collectionId={collectionId} />
-      </table>
-      <Divider />
-    </div > */}
+    </Row>
     < button className='landing-button' style={{ width: '100%', marginTop: 16 }
     }
       disabled={isAddressMappingEmpty(approvalToAdd.fromMapping) || isAddressMappingEmpty(approvalToAdd.toMapping) || isAddressMappingEmpty(approvalToAdd.initiatedByMapping)

@@ -144,8 +144,8 @@ export function BadgeIdRangesInput({
         new Array(numRanges).fill(0).map((_, i) => {
           if (hideNumberSelects) return null;
 
-          return <div key={i} style={{ display: "flex", alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-            <div className='flex-between' style={{ flexDirection: 'column', marginRight: 8, }} >
+          return <div key={i} className="flex flex-wrap" style={{ display: "flex", alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+            <div className='flex-between ' style={{ flexDirection: 'column', margin: 8, }} >
               <b>Start ID</b>
               <InputNumber
                 min={minimumNum}
@@ -167,7 +167,7 @@ export function BadgeIdRangesInput({
                 className="dark:text-white inherit-bg"
               />
             </div>
-            <div className='flex-between' style={{ flexDirection: 'column' }} >
+            <div className='flex-between' style={{ flexDirection: 'column', margin: 8, }} >
               <b>End ID</b>
               <InputNumber
                 min={minimumNum}
