@@ -246,7 +246,7 @@ export function MultiCollectionBadgeDisplay({
                 hideCollectionLink={hideCollectionLink}
                 showIds
                 showOnSinglePage
-              // doNotFetchMetadata
+                doNotFetchMetadata={!loaded}
               />
               <CustomizeButtons
                 badgeIdObj={{ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }}

@@ -88,16 +88,8 @@ export function MetadataForm({
 
   const sampleImages = [
     {
-      value: 'https://bitbadges.web.app/img/icons/logo.png',
+      value: 'ipfs://QmbG3PyyQyZTzdTBANxb3sA8zC37VgXndJhndXSBf7Sr4o',
       label: 'BitBadges Logo',
-    },
-    {
-      value: 'https://png.pngtree.com/element_pic/16/11/26/4f816dc086585b8c9d4516821a15dc6e.jpg',
-      label: 'Trophy',
-    },
-    {
-      value: 'https://library.kissclipart.com/20191129/oq/kissclipart-gold-medal-058a93f291de9771.png',
-      label: 'Medal',
     },
   ]
 

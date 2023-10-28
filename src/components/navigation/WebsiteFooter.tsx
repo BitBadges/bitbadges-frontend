@@ -22,8 +22,8 @@ export function WalletFooter() {
             </Row>
 
             <Row className='flex text-center justify-center'>
-              <a target="_blank " href="https://bitbadges.org" className='text-gray-500 m-3 hover:text-vivid-blue'>
-                Company Site
+              <a target="_blank " href="https://bitbadges.io/about" className='text-gray-500 m-3 hover:text-vivid-blue'>
+                About
               </a>
               <a target="_blank " href="https://docs.bitbadges.io/overview" className='text-gray-500 hover:text-vivid-blue m-3'>
                 Documentation

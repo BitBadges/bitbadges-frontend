@@ -38,7 +38,7 @@ export function CreateTxMsgCreateAddressMappingModal(
     let uri = '';
     //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
     if (simulate) {
-      uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
+      uri = 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs';
     } else {
       let res = await addMetadataToIpfs({
         collectionMetadata: inheritedTxState.updateCollectionMetadataTimeline ? collection.cachedCollectionMetadata : undefined,
@@ -52,6 +52,7 @@ export function CreateTxMsgCreateAddressMappingModal(
       creator: chain.cosmosAddress,
       addressMappings: [{
         ...msg.addressMappings[0],
+        createdBy: undefined,
         uri
       }]
     }
@@ -79,7 +80,7 @@ export function CreateTxMsgCreateAddressMappingModal(
       onSuccessfulTx={async () => {
         notification.success({ message: 'Created successfully!' });
         router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
-        
+
         txTimelineContext.resetState();
       }}
       requireRegistration

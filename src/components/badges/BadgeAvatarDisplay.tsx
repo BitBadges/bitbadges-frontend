@@ -157,8 +157,9 @@ export function BadgeAvatarDisplay({
         })
       }
     </div>
-    <br />
+
     {removed.length > 0 && <div className="text-gray-400">
+      <br />
       Badge IDs {getBadgeIdsString(removed)} have placeholder metadata.
     </div>}
   </div>

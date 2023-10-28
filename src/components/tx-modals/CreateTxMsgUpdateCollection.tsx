@@ -99,7 +99,7 @@ export function CreateTxMsgUpdateCollectionModal(
               ...x,
               collectionMetadata: {
                 ...x.collectionMetadata,
-                uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub'
+                uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs'
               }
             }
           });
@@ -111,7 +111,7 @@ export function CreateTxMsgUpdateCollectionModal(
               badgeMetadata: x.badgeMetadata.map(y => {
                 return {
                   ...y,
-                  uri: y.uri ?? 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub'
+                  uri: y.uri ?? 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs'
                 }
               })
             }
@@ -164,7 +164,7 @@ export function CreateTxMsgUpdateCollectionModal(
           //Add default placeholder metadata for any badges that don't have metadata (IDs > max)
           //Permissions should be set to allow updating this metadata
           newBadgeMetadataTimeline[0].badgeMetadata.push({
-            uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub',
+            uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs',
             badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
             customData: ''
           });
@@ -185,7 +185,7 @@ export function CreateTxMsgUpdateCollectionModal(
         for (let i = 0; i < collection.collectionApprovals.length; i++) {
           const approval = collection.collectionApprovals[i];
           if (approval.details && !approval.uri) {
-            approval.uri = 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub';
+            approval.uri = 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs';
           }
         }
       } else {
@@ -193,7 +193,7 @@ export function CreateTxMsgUpdateCollectionModal(
           //If we actually have details to add, we should add them to storage
           const approval = collection.collectionApprovals[i];
           if (approval.details && (approval.details?.name || approval.details?.description || approval.details?.challengeDetails || approval.details?.password)
-            && (!approval.uri || approval.uri == 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub')) {
+            && (!approval.uri || approval.uri == 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs')) {
             let res = await addApprovalDetailsToOffChainStorage({
               name: approval.details?.name || '',
               description: approval.details?.description || '',
@@ -260,7 +260,7 @@ export function CreateTxMsgUpdateCollectionModal(
           offChainBalancesMetadataTimeline = [{
             timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
             offChainBalancesMetadata: {
-              uri: 'ipfs://Qmf8xxN2fwXGgouue3qsJtN8ZRSsnoHxM9mGcynTPhh6Ub', //dummy for simulation
+              uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs', //dummy for simulation
               customData: '',
             },
           }];

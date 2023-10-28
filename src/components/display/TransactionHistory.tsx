@@ -25,10 +25,11 @@ export function TxHistory({
       {' '}(Block #{tx.block.toString()})
 
     </Typography.Text>
-    <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer' className="text-blue-600 dark:text-blue-500 hover:underline">
-      See Blockchain Transaction
-    </a>
-    </p>
+    {tx.txHash &&
+      <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + tx.txHash} target='_blank' rel='noopener noreferrer' className="text-blue-600 dark:text-blue-500 hover:underline">
+        See Blockchain Transaction
+      </a>
+      </p>}
     <Divider />
   </div>
 }
