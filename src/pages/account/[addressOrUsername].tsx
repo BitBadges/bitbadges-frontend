@@ -313,8 +313,8 @@ function PortfolioPage() {
     >
       <div
         style={{
-          marginLeft: '7vw',
-          marginRight: '7vw',
+          marginLeft: '3vw',
+          marginRight: '3vw',
           paddingLeft: '1vw',
           paddingRight: '1vw',
           paddingTop: '20px',

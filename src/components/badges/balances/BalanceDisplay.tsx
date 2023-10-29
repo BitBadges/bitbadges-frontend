@@ -132,39 +132,43 @@ export function BalanceDisplay({
 
         <Col md={24} xs={24} sm={24}>
           <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
-            {!hideTable && <table style={{ alignItems: 'normal' }}>
-              {<tr>
-                {isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingRight: 4 }}>Collection ID</td>}
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingRight: 4 }}>{'Amount'}</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingLeft: 4 }}>IDs</td>
-                <td style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', fontSize: 16, paddingLeft: 4, minWidth: 70 }}>Times
-                  <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
-                    <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                  </Tooltip>
-                </td>
-              </tr>
-              }
-              {castedMustOwnBadges.map((balance, idx) => {
-                const amount = balance.amountRange.start;
-                const amountRange = balance.amountRange;
-                const collectionId = balance.collectionId;
-                const badgeIds = balance.badgeIds;
-                const ownershipTimes = balance.ownershipTimes;
-
-                const NormalRowComponent = <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
-                  {isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>{collectionId.toString()}</td>}
-                  {!isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>}
-                  {isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>
-                    {amountRange.start.toString()} (Min) - {amountRange.end.toString()} (Max)
-                  </td>}
-                  <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                  <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
+            {!hideTable && <table className="table-auto" style={{ alignItems: 'normal' }}>
+              {<thead>
+                <tr>
+                  {isMustOwnBadgesInput && <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4 }}>Collection ID</th>}
+                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4, minWidth: 70 }}>{'Amount'}</th>
+                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>IDs</th>
+                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>Times
+                    <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
+                      <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                    </Tooltip>
+                  </th>
                 </tr>
+              </thead>
+              }
+              <tbody>
+                {castedMustOwnBadges.map((balance, idx) => {
+                  const amount = balance.amountRange.start;
+                  const amountRange = balance.amountRange;
+                  const collectionId = balance.collectionId;
+                  const badgeIds = balance.badgeIds;
+                  const ownershipTimes = balance.ownershipTimes;
 
-                return <>
-                  {NormalRowComponent}
-                </>
-              })}
+                  const NormalRowComponent = <tr key={idx} style={{ color: amount < 0 ? 'red' : undefined }}>
+                    {isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>{collectionId.toString()}</td>}
+                    {!isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>x{amount.toString()}</td>}
+                    {isMustOwnBadgesInput && <td style={{ textAlign: 'center', verticalAlign: "top", paddingRight: 4 }}>
+                      {amountRange.start.toString()} (Min) - {amountRange.end.toString()} (Max)
+                    </td>}
+                    <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
+                    <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
+                  </tr>
+
+                  return <>
+                    {NormalRowComponent}
+                  </>
+                })}
+              </tbody>
               {(castedMustOwnBadges?.length === 0) && <>
                 <td colSpan={1000}>
                   None

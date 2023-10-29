@@ -98,8 +98,8 @@ export function BadgePage({ collectionPreview }
     >
       <div
         style={{
-          marginLeft: !isPreview ? '7vw' : undefined,
-          marginRight: !isPreview ? '7vw' : undefined,
+          marginLeft: !isPreview ? '3vw' : undefined,
+          marginRight: !isPreview ? '3vw' : undefined,
           paddingLeft: !isPreview ? '1vw' : undefined,
           paddingRight: !isPreview ? '1vw' : undefined,
           paddingTop: '20px',

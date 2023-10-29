@@ -232,7 +232,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
           //check this first w/ synchronization issues.
           let resMetadata = deepCopy(res[0].cachedBadgeMetadata);
 
-          
+
           if (resMetadata && !compareObjects(resMetadata, prevMetadata)) {
             for (const metadata of resMetadata) {
               const [, removed] = removeUintRangeFromUintRange(next250Badges, metadata.badgeIds);
@@ -411,7 +411,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         });
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
-
+        
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;

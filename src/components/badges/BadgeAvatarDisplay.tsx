@@ -106,6 +106,7 @@ export function BadgeAvatarDisplay({
 
     async function updateMetadata() {
       if (doNotFetchMetadata) return;
+      console.log("FETCHING METADTAA", collectionId, badgeIdsToDisplay);
 
       if (collectionId > 0n || (collectionId === 0n && fetchDirectly)) {
         await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);

@@ -112,6 +112,10 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
 export const collectionReducer = (state = initialState, action: { type: string; payload: any }): CollectionReducerState => {
   switch (action.type) {
+    case 'FETCH_COLLECTIONS':
+
+
+      retur
     case 'UPDATE_COLLECTIONS':
       const onlyUpdateProvidedFields = action.payload.onlyUpdateProvidedFields as boolean;
       const currCollection = state.collections[`${action.payload.newCollection.collectionId}`];

@@ -78,7 +78,9 @@ export function MultiCollectionBadgeDisplay({
   const badgesToShow = accountsContext.getBalancesView(accountInfo?.cosmosAddress ?? '', showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
 
   useEffect(() => {
+
     async function fetchAndUpdate() {
+      setLoaded(false);
       let newPageSize = defaultPageSize;
       const allBadgeIds: {
         collectionId: bigint,
@@ -209,6 +211,7 @@ export function MultiCollectionBadgeDisplay({
             ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
             if (!loaded) return <Spin />
 
+
             return <InformationDisplayCard noBorder inheritBg title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
               <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
                 <div className='link-button-nav flex-center' onClick={() => {
@@ -246,7 +249,6 @@ export function MultiCollectionBadgeDisplay({
                 hideCollectionLink={hideCollectionLink}
                 showIds
                 showOnSinglePage
-                doNotFetchMetadata={!loaded}
               />
               <CustomizeButtons
                 badgeIdObj={{ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }}
