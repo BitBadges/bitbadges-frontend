@@ -28,7 +28,7 @@ import { WagmiConfig } from 'wagmi';
 import { combineReducers } from 'redux';
 import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
-
+import thunk from 'redux-thunk';
 
 
 // 2. Create wagmiConfig
@@ -60,7 +60,8 @@ const serializableMiddleware = createSerializableStateInvariantMiddleware({
 
 const store = configureStore({
   reducer: combinedReducers,
-  middleware: [serializableMiddleware],
+  middleware: [serializableMiddleware, thunk],
+  // middleware: [serializableMiddleware],
 })
 
 export interface GlobalReduxState {

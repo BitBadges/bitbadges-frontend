@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Stringify } from 'bitbadgesjs-proto';
-import { AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BigIntify, BitBadgesUserInfo, ClaimAlertInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountViewKey, AddressMappingWithMetadata, AnnouncementInfo, BLANK_USER_INFO, BalanceInfo, BigIntify, BitBadgesUserInfo, ClaimAlertInfo, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { createContext, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { GlobalReduxState } from '../../../pages/_app';
-import { DesiredNumberType, getAccounts, getBadgeBalanceByAddress, updateAccountInfo } from '../../api';
+import { DesiredNumberType, getBadgeBalanceByAddress, updateAccountInfo } from '../../api';
 import { updateAccountsRedux } from './actions';
+import { AccountRequestParams, fetchAccountsRedux, fetchAccountsRequest } from './reducer';
 
 
 export type AccountsContextType = {
@@ -13,7 +14,7 @@ export type AccountsContextType = {
   updateAccount: (userInfo: BitBadgesUserInfo<DesiredNumberType>) => void,
   updateAccounts: (userInfos: BitBadgesUserInfo<DesiredNumberType>[]) => void,
 
-  fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>[]>>,
+  fetchAccounts: (addressesOrUsernames: string[], forcefulRefresh?: boolean) => Promise<void>,
   fetchAccountsWithOptions: (accountsToFetch: {
     address?: string,
     username?: string,
@@ -23,7 +24,7 @@ export type AccountsContextType = {
       viewKey: AccountViewKey,
       bookmark: string
     }[],
-  }[], forcefulRefresh?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>[]>>,
+  }[], forcefulRefresh?: boolean) => Promise<void>,
 
 
   //Custom fetch functions (not paginated views)
@@ -32,7 +33,7 @@ export type AccountsContextType = {
 
 
   //Custom fetch functions (paginated views). This handles all pagination logic for you. Just pass in the viewKeys you want to fetch and it will fetch the next page for each of them.
-  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) => Promise<Readonly<BitBadgesUserInfo<DesiredNumberType>>>
+  fetchNextForViews: (addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) => Promise<void>,
 
   //Helper functions for views
   viewHasMore: (addressOrUsername: string, viewKey: AccountViewKey) => boolean,
@@ -50,9 +51,9 @@ export type AccountsContextType = {
 }
 
 const AccountsContext = createContext<AccountsContextType>({
-  fetchAccountsWithOptions: async () => { return [] },
-  fetchAccounts: async () => { return [] },
-  fetchNextForViews: async () => { return BLANK_USER_INFO },
+  fetchAccountsWithOptions: async () => { return },
+  fetchAccounts: async () => { return },
+  fetchNextForViews: async () => { return },
   fetchBalanceForUser: async () => {
     return {
       balances: [],
@@ -92,17 +93,25 @@ type Props = {
 export interface AccountReducerState {
   accounts: Record<string, BitBadgesUserInfo<string> | undefined>;
   cosmosAddressesByUsernames: { [username: string]: string };
+  loading: boolean;
+  error: string | undefined;
+  queue: AccountRequestParams[];
+
 }
 const defaultAccount = convertBitBadgesUserInfo(MINT_ACCOUNT, Stringify)
 
 export const initialState: AccountReducerState = {
   accounts: { 'Mint': defaultAccount, 'Total': defaultAccount, 'All': defaultAccount, 'All Other': defaultAccount },
-  cosmosAddressesByUsernames: {}
+  cosmosAddressesByUsernames: {},
+  loading: false,
+  error: undefined,
+  queue: [],
 };
 
 export const reservedNames = ['Mint', 'Total', 'All', 'All Other', '', ' '];
 
 export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
+  const loading = useSelector((state: GlobalReduxState) => state.accounts.loading);
   const accounts = useSelector((state: GlobalReduxState) => state.accounts.accounts);
   const cosmosAddressesByUsernames = useSelector((state: GlobalReduxState) => state.accounts.cosmosAddressesByUsernames);
   const dispatch = useDispatch();
@@ -153,20 +162,20 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<bigint>) => {
     const account = getAccount(addressOrUsername);
     if (!account) throw new Error(`Account ${addressOrUsername} not found`);
-    
+
     await updateAccountInfo(newProfileInfo);
     const newAccount: BitBadgesUserInfo<bigint> = {
       ...account,
       ...newProfileInfo,
       seenActivity: newProfileInfo.seenActivity ? BigInt(newProfileInfo.seenActivity) : account.seenActivity,
     };
-    
+
     updateAccount(newAccount);
     return newAccount;
   }
 
 
-  const fetchAccounts = async (addressesOrUsernames: string[], forcefulRefresh?: boolean) => {
+  const fetchAccounts = async (addressesOrUsernames: string[]) => {
     return await fetchAccountsWithOptions(addressesOrUsernames.map(addressOrUsername => {
       return {
         address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
@@ -175,7 +184,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         fetchBalance: false,
         viewsToFetch: []
       }
-    }), forcefulRefresh)
+    }))
   }
 
   const fetchAccountsWithOptions = async (accountsToFetch: {
@@ -189,106 +198,9 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       bookmark: string
     }[],
     noExternalCalls?: boolean,
-  }[], forcefulRefresh?: boolean) => {
-
-
-    const batchRequestBody: GetAccountsRouteRequestBody = {
-      accountsToFetch: []
-    };
-
-    //Iterate through and see which accounts + info we actually need to fetch versus which we already have enough for
-    for (const accountToFetch of accountsToFetch) {
-
-      // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
-      accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
-
-      const cachedAccount = getAccount(accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
-
-      if (cachedAccount === undefined) {
-        batchRequestBody.accountsToFetch.push({
-          address: accountToFetch.address,
-          username: accountToFetch.username,
-          fetchSequence: accountToFetch.fetchSequence,
-          fetchBalance: accountToFetch.fetchBalance,
-
-          viewsToFetch: accountToFetch.viewsToFetch,
-          noExternalCalls: accountToFetch.noExternalCalls,
-        });
-      } else {
-
-        if (accountToFetch.address) accountToFetch.address = cachedAccount.address;
-        if (accountToFetch.username) accountToFetch.username = cachedAccount.username;
-
-        if (reservedNames.includes(accountToFetch.address || accountToFetch.username || '')) continue;
-
-        //Do not fetch views where hasMore is false
-        accountToFetch.viewsToFetch = accountToFetch.viewsToFetch?.filter(x => {
-          const currPagination = cachedAccount.views[x.viewKey]?.pagination;
-          if (!currPagination) return true;
-          else return currPagination.hasMore
-        });
-
-        //Check if we need to fetch anything
-        const needToFetch =
-          (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
-          (accountToFetch.fetchBalance && cachedAccount.balance === undefined) ||
-          (accountToFetch.viewsToFetch?.length) ||
-          !cachedAccount.fetchedProfile
-
-        if (needToFetch) {
-
-          batchRequestBody.accountsToFetch.push({
-            address: accountToFetch.address,
-            username: accountToFetch.username,
-            viewsToFetch: accountToFetch.viewsToFetch,
-            fetchSequence: accountToFetch.fetchSequence,
-            fetchBalance: accountToFetch.fetchBalance,
-            noExternalCalls: accountToFetch.noExternalCalls,
-          });
-        }
-      }
-    }
-
-    if (batchRequestBody.accountsToFetch.length === 0) {
-      //If we get here, we have already fetched and cached all the accounts we need. 
-      //Now we just need to return them in the same order as the input.
-      //Note that we implement this by using our accounts map and not getAccount because there is no guarantee that the state is updated yet
-      const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
-      for (const account of accountsToFetch) {
-        if (reservedNames.includes(account.address || account.username || '')) {
-          accountsToReturn.push({ ...MINT_ACCOUNT, address: account.address || account.username || '', cosmosAddress: account.address || account.username || '' });
-          continue;
-        }
-
-        if (account.address) {
-          const cachedAccount = getAccount(convertToCosmosAddress(account.address))
-          accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-        } else {
-          const cachedAccount = getAccount(cosmosAddressesByUsernames[account.username || ''])
-          accountsToReturn.push(cachedAccount ? cachedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-        }
-      }
-
-      return accountsToReturn;
-    }
-
-    const res = await getAccounts(batchRequestBody);
-
-    const accountsToReturn: BitBadgesUserInfo<DesiredNumberType>[] = [];
-    for (const account of res.accounts) {
-      updateAccount(account, forcefulRefresh);
-      accountsToReturn.push(account);
-    }
-
-    for (const account of accountsToFetch) {
-      const fetchedAccount = getAccount(account.address || account.username || '', forcefulRefresh);
-      if (accountsToReturn.find(x => x.cosmosAddress === fetchedAccount?.cosmosAddress)) continue;
-      else {
-        accountsToReturn.push(fetchedAccount ? fetchedAccount : BLANK_USER_INFO); //Should never return BLANK_USER_INFO here
-      }
-    }
-
-    return accountsToReturn;
+  }[]) => {
+    dispatch(fetchAccountsRequest(accountsToFetch));
+    dispatch(fetchAccountsRedux());
   }
 
   function viewHasMore(addressOrUsername: string, viewKey: AccountViewKey) {
@@ -299,7 +211,7 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   async function fetchNextForViews(addressOrUsername: string, viewKeys: AccountViewKey[], fetchHidden?: boolean) {
-    const accounts = await fetchAccountsWithOptions([{
+    await fetchAccountsWithOptions([{
       address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
       username: isAddressValid(addressOrUsername) ? undefined : addressOrUsername,
       fetchHidden,
@@ -315,8 +227,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
         }
       })
     }]);
-
-    return accounts[0];
   }
 
   function getActivityView(addressOrUsername: string, viewKey: AccountViewKey) {
