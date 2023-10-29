@@ -494,8 +494,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
         }
 
-        console.log(existingCollectionId, existingCollection);
-
         startingCollectionDefault = {
           ...startingCollectionDefault,
 

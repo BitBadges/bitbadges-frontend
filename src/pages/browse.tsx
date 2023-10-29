@@ -45,17 +45,11 @@ function BrowsePage() {
     };
   }, []);
 
-
   useEffect(() => {
     const accountsToFetch = browseInfo?.addressMappings[listsTab]?.map(addressMapping => addressMapping.createdBy) || [];
-    if (accountsToFetch.length > 0) {
-      accounts.fetchAccounts(accountsToFetch);
-    }
-  }, []);
 
-  useEffect(() => {
-    const accountsToFetch = browseInfo?.addressMappings[listsTab]?.map(addressMapping => addressMapping.createdBy) || [];
     if (accountsToFetch.length > 0) {
+      console.log(accountsToFetch);
       accounts.fetchAccounts(accountsToFetch);
     }
   }, [listsTab, browseInfo])
@@ -84,7 +78,7 @@ function BrowsePage() {
         {!browseInfo && <Spin size='large' />}
         <div className='full-width'>
           <br />
-
+          
           <Typography.Text strong className='dark:text-white text-4xl text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Profiles
           </Typography.Text>
@@ -230,7 +224,6 @@ function BrowsePage() {
           <CustomCarousel
             title={
               <Tabs
-
                 theme='dark'
                 tabInfo={browseInfo ? Object.keys(browseInfo.addressMappings).map(category => {
 
@@ -255,6 +248,8 @@ function BrowsePage() {
                 idxArr[i] = idx + i;
               }
               if (idx % numItems !== 0) return null
+
+              
               return <div key={idx} className='flex flex-center-if-mobile'
 
               >{idxArr.map(idx => {

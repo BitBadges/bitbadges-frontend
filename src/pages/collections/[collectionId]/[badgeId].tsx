@@ -74,7 +74,6 @@ export function BadgePage({ collectionPreview }
     tabInfo.push(
       { key: 'overview', content: 'Overview' },
       { key: 'transferability', content: 'Transferability' },
-      { key: 'claims', content: 'Claims' },
       { key: 'activity', content: 'Activity' },
       { key: 'actions', content: 'Actions' },
     );

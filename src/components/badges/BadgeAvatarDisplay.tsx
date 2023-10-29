@@ -28,7 +28,7 @@ export function BadgeAvatarDisplay({
   fetchDirectly,
   showOnSinglePage,
   lightTheme,
-  doNotFetchMetadata,
+  fromMultiCollectionDisplay,
   // doNotAdaptToWidth,
   showPageJumper,
   onClick,
@@ -49,7 +49,7 @@ export function BadgeAvatarDisplay({
   fetchDirectly?: boolean;
   showOnSinglePage?: boolean;
   lightTheme?: boolean;
-  doNotFetchMetadata?: boolean;
+  fromMultiCollectionDisplay?: boolean;
   // doNotAdaptToWidth?: boolean;
   showPageJumper?: boolean
   onClick?: (id: bigint) => void,
@@ -105,7 +105,7 @@ export function BadgeAvatarDisplay({
     setBadgeIdsToDisplay(badgeIdsToDisplay);
 
     async function updateMetadata() {
-      if (doNotFetchMetadata) return;
+      if (fromMultiCollectionDisplay && currPage === 1) return;
       console.log("FETCHING METADTAA", collectionId, badgeIdsToDisplay);
 
       if (collectionId > 0n || (collectionId === 0n && fetchDirectly)) {

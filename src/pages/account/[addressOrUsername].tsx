@@ -143,6 +143,7 @@ function PortfolioPage() {
     if (!accountInfo) return;
 
     for (const id of filteredCollections) {
+      console.log('ids');
       accounts.fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
   }, [filteredCollections]);
@@ -203,30 +204,42 @@ function PortfolioPage() {
   const fetchMoreCreatedBy = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['createdBy']);
-    await collections.fetchCollections([...new Set(res?.views['createdBy']?.ids.map(x => BigInt(x)) ?? [])]);
+    await accounts.fetchNextForViews(accountInfo?.address ?? '', ['createdBy']);
   }
 
   const fetchMoreManaging = async () => {
     if (!accountInfo) return;
 
-    const res = await accounts.fetchNextForViews(accountInfo?.address ?? '', ['managing', 'createdBy']);
-    await collections.fetchCollections([...new Set(res?.views['managing']?.ids.map(x => BigInt(x)) ?? [])]);
+    await accounts.fetchNextForViews(accountInfo?.address ?? '', ['managing', 'createdBy']);
   }
+  const listsView = accounts.getAddressMappingsView(accountInfo?.address ?? '', listsTab) ?? [];
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
+    //Fetch on tab change but only if empty and has mroe
+    const collectedIsEmpty = accountInfo?.views['badgesCollected']?.ids.length === 0;
+    const listsIsEmpty = accountInfo?.views['addressMappings']?.ids.length === 0;
+    const createdByIsEmpty = accountInfo?.views['createdBy']?.ids.length === 0;
+    const managingIsEmpty = accountInfo?.views['managing']?.ids.length === 0;
 
-    if (tab === 'collected' && (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges))) {
+    if (tab === 'collected' && collectedIsEmpty && (accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true)) {
       fetchMoreCollected();
-    } else if (tab === 'lists' && hasMoreAddressMappings) {
+    } else if (tab === 'lists' && hasMoreAddressMappings && listsIsEmpty) {
       fetchMoreLists();
-    } else if (tab === 'createdBy' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true)) {
+    } else if (tab === 'createdBy' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) && createdByIsEmpty) {
       fetchMoreCreatedBy();
-    } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true)) {
+    } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
       fetchMoreManaging();
     }
   }, [tab]);
+
+  useEffect(() => {
+    if (tab === 'lists') {
+      const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
+      accounts.fetchAccounts([...new Set(createdBys)]);
+    }
+  }, [tab, listsView]);
 
 
   useEffect(() => {
@@ -235,10 +248,10 @@ function PortfolioPage() {
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
-      const fetchedAccount = await accounts.fetchNextForViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings', 'explicitlyIncludedAddressMappings', 'explicitlyExcludedAddressMappings']);
-      if (fetchedAccount.readme) {
-        setTab('overview');
-      }
+      await accounts.fetchNextForViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings', 'explicitlyIncludedAddressMappings', 'explicitlyExcludedAddressMappings']);
+      // if (fetchedAccount.readme) {
+      //   setTab('overview');
+      // }
     }
     getPortfolioInfo();
   }, [addressOrUsername, showHidden]);
@@ -287,13 +300,6 @@ function PortfolioPage() {
   }, [accountInfo?.readme]);
 
 
-  const listsView = accounts.getAddressMappingsView(accountInfo?.address ?? '', listsTab) ?? [];
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: list view created by');
-
-    const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
-    accounts.fetchAccounts([...new Set(createdBys)]);
-  }, [listsView]);
 
   if (!accountInfo) {
     return <></>
@@ -575,7 +581,6 @@ function PortfolioPage() {
                 groupByCollection={groupByCollection}
                 defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
                 hidePagination={true}
-
                 showCustomizeButtons={editMode}
               />
             </InfiniteScroll>

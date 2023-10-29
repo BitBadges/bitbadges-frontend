@@ -108,8 +108,6 @@ export function WalletHeader() {
     }
   }
 
-  console.log("Calculated", unseenNotificationCount, account)
-
 
   let signedIn = chain.loggedIn;
   let connected = chain.connected;

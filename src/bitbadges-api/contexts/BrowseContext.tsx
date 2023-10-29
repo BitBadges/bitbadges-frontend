@@ -58,8 +58,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
   async function getCollectionsAndUpdateBrowse() {
 
-    await new Promise(r => setTimeout(r, 3000));
-
     const browseInfo = await getBrowseCollections();
 
     await updateCollectionsAndAccounts(browseInfo);

@@ -41,7 +41,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
           </a>.
           <br />
           <br />
-          {isBitBadgesHosted && "This collection's balances are stored on the BitBadges servers. We allow the current manager of the collection to update the balances at any given time."}
+          {isBitBadgesHosted && "This collection's balances are stored on the BitBadges servers. We allow the manager to update the balances at any time."}
           {!isBitBadgesHosted && immutable && "This collection's balances are permanently frozen because they use permanent storage and the server URL can not be updated."}
           {!isBitBadgesHosted && !immutable && "This collection's balances are hosted via the server at the URL specified below. The balances are assigned and controlled by whoever has control of the server."}
 

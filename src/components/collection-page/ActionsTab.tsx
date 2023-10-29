@@ -133,7 +133,7 @@ export function ActionsTab({
   }
 
   actions.push({
-    title: isOffChainBalances ? "Refresh Metadata / Balances" : "Refresh Metadata",
+    title: "Refresh",
     description: "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection.",
     showModal: async () => {
       try {

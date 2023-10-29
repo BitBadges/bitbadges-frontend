@@ -65,100 +65,116 @@ export function MultiCollectionBadgeDisplay({
   const router = useRouter();
   const accountInfo = addressOrUsernameToShowBalance ? accountsContext.getAccount(addressOrUsernameToShowBalance) : undefined;
 
-  const [currPage, setCurrPage] = useState<number>(1);
-  const [total, setTotal] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
+  const currPage = 1;
   const [loaded, setLoaded] = useState<boolean>(false); //Total number of badges in badgeIds[]
   const pageSize = defaultPageSize
 
-  //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
-  const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<{
-    collectionId: bigint,
-    badgeIds: UintRange<bigint>[]
-  }[]>([]); // Badge IDs to display of length pageSize
   const badgesToShow = accountsContext.getBalancesView(accountInfo?.cosmosAddress ?? '', showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
 
-  useEffect(() => {
 
-    async function fetchAndUpdate() {
-      setLoaded(false);
-      let newPageSize = defaultPageSize;
-      const allBadgeIds: {
-        collectionId: bigint,
-        badgeIds: UintRange<bigint>[]
-      }[] = [];
+  const allBadgeIds: {
+    collectionId: bigint,
+    badgeIds: UintRange<bigint>[]
+  }[] = [];
 
-      //If we have an account to show balances for, show that accounts balances
-      //Or if we have custom pages to show, show those.
-      //Else, show entire collection
-      if (customPageBadges) {
-        for (const obj of customPageBadges) {
-          allBadgeIds.push({
-            badgeIds: sortUintRangesAndMergeIfNecessary(deepCopy(obj.badgeIds), true),
-            collectionId: obj.collectionId
-          });
-        }
-      } else if (accountInfo) {
-        for (const collectionId of collectionIds) {
-          let balances = deepCopy(badgesToShow.flat() ?? []);
-          if (!showCustomizeButtons) {
-            const onlyShowApproved = accountInfo.onlyShowApproved;
-            const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
-            const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
-            if (onlyShowApproved) {
-              balances = filterBadgeIdsFromBalanceInfos(balances, hiddenBadges.map(x => x.badgeIds).flat(), false);
-            } else {
-              balances = filterBadgeIdsFromBalanceInfos(balances, shownBadges.map(x => x.badgeIds).flat(), true);
-            }
-          }
 
-          if (balances) {
-            const balanceInfo = balances.find(balance => balance.collectionId == collectionId);
-            for (const balance of balanceInfo?.balances || []) {
-              allBadgeIds.push({
-                badgeIds: balance.badgeIds.filter((badgeId, idx) => {
-                  return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
-                }),
-                collectionId
-              });
-            }
-          }
-        }
-      } else {
-        for (const collectionId of collectionIds) {
-          const balances = collections.getCollection(collectionId)?.owners?.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
-          if (balances) {
-            for (const balance of balances || []) {
-              allBadgeIds.push({
-                badgeIds: balance.badgeIds.filter((badgeId, idx) => {
-                  return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
-                }),
-                collectionId
-              });
-            }
-          }
+  //If we are using this as a collection display (i.e. we want to display all badges in the collection)
+  //We need to fetch the collection first
+  const unfetchedCollections = [];
+
+  //If we have an account to show balances for, show that accounts balances
+  //Or if we have custom pages to show, show those.
+  //Else, show entire collection
+  if (customPageBadges) {
+    for (const obj of customPageBadges) {
+      allBadgeIds.push({
+        badgeIds: sortUintRangesAndMergeIfNecessary(deepCopy(obj.badgeIds), true),
+        collectionId: obj.collectionId
+      });
+    }
+  } else if (accountInfo) {
+    for (const collectionId of collectionIds) {
+      let balances = deepCopy(badgesToShow.flat() ?? []);
+      if (!showCustomizeButtons) {
+        const onlyShowApproved = accountInfo.onlyShowApproved;
+        const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
+        const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
+        if (onlyShowApproved) {
+          balances = filterBadgeIdsFromBalanceInfos(balances, hiddenBadges.map(x => x.badgeIds).flat(), false);
+        } else {
+          balances = filterBadgeIdsFromBalanceInfos(balances, shownBadges.map(x => x.badgeIds).flat(), true);
         }
       }
 
-      //Calculate total number of badge IDs  to display
-      let total = 0;
-      if (!groupByCollection) {
-        //If we do not group by collection, we calculate according to pageSize
-
-        for (const obj of allBadgeIds) {
-          for (const range of obj.badgeIds) {
-            const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
-            total += numBadgesInRange;
-          }
+      if (balances) {
+        const balanceInfo = balances.find(balance => balance.collectionId == collectionId);
+        for (const balance of balanceInfo?.balances || []) {
+          allBadgeIds.push({
+            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
+            }),
+            collectionId
+          });
         }
-        setTotal(total);
+      }
+    }
+  } else {
+
+    for (const collectionId of collectionIds) {
+      const collection = collections.getCollection(collectionId);
+      if (groupByCollection && !collection) {
+        unfetchedCollections.push(collectionId);
+
+        //We don't have the whole supply yet. We jsut push this so it triggers the metadata update
+        allBadgeIds.push({
+          badgeIds: [{ start: 1n, end: BigInt(defaultPageSize) }],
+          collectionId
+        });
+        continue;
+      }
+
+      const balances = collection?.owners?.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
+      if (balances) {
+        for (const balance of balances || []) {
+          allBadgeIds.push({
+            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
+            }),
+            collectionId
+          });
+        }
+      }
+    }
+  }
+
+  let total = 0;
+  let badgeIdsToDisplay: {
+    collectionId: bigint,
+    badgeIds: UintRange<bigint>[]
+  }[] = [];
+
+  if (!groupByCollection) {
+    for (const obj of allBadgeIds) {
+      for (const range of obj.badgeIds) {
+        const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
+        total += numBadgesInRange;
+      }
+    }
+
+    badgeIdsToDisplay = getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize);
+  } else {
+    total = defaultPageSize
+  }
+
+  useEffect(() => {
+    async function fetchAndUpdate() {
+      //Calculate total number of badge IDs  to display
+
+      if (!groupByCollection) {
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
-        const badgeIdsToDisplay: {
-          collectionId: bigint,
-          badgeIds: UintRange<bigint>[]
-        }[] = getBadgesToDisplay(allBadgeIds, currPage, newPageSize);
-        setBadgeIdsToDisplay(badgeIdsToDisplay);
 
+        console.log('multi use effect');
         if (badgeIdsToDisplay.length > 0) {
 
           await collections.batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
@@ -182,10 +198,14 @@ export function MultiCollectionBadgeDisplay({
           return {
             collectionId: x.collectionId,
             metadataToFetch: {
-              badgeIds: [{ start: 1n, end: newPageSize }]
+              badgeIds: [{ start: 1n, end: defaultPageSize }]
             },
           }
         }));
+
+
+        //Note fetched collections may be incomplete. We are just using it for createBy fetches
+        // await accountsContext.fetchAccounts(fetchedCollections.map(x => x.createdBy));
 
         setLoaded(true);
       }
@@ -194,16 +214,15 @@ export function MultiCollectionBadgeDisplay({
     if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay);
     fetchAndUpdate();
     //Note still depends on a context (accountInfo / accountsContext).
-  }, [collectionIds, currPage, pageSize, groupByCollection, showCustomizeButtons, defaultPageSize, customPageBadges, addressOrUsernameToShowBalance]);
+  }, [collectionIds, badgeIdsToDisplay, groupByCollection, allBadgeIds, defaultPageSize]);
 
   if (groupByCollection) {
     return <>
-      {!hidePagination && <><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} />
-      </>}
       <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
         {
           collectionIds.map((collectionId, idx) => {
             const collection = collections.getCollection(collectionId);
+
             const balances = accountInfo ? badgesToShow.find(collected => collected.collectionId == collectionId)?.balances ?? []
               : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
             if (balances.length == 0) return <></>;
@@ -249,6 +268,7 @@ export function MultiCollectionBadgeDisplay({
                 hideCollectionLink={hideCollectionLink}
                 showIds
                 showOnSinglePage
+                fromMultiCollectionDisplay
               />
               <CustomizeButtons
                 badgeIdObj={{ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }}
@@ -267,9 +287,6 @@ export function MultiCollectionBadgeDisplay({
   } else {
 
     return <>
-      {!hidePagination && <div className="flex-center"><Pagination currPage={currPage} total={total} pageSize={pageSize} onChange={setCurrPage} /></div>}
-
-
       <div className="flex-center flex-wrap full-width">
 
         {
