@@ -532,7 +532,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
 
       const postSimulatedCollection = { owners: newOwnersArr, merkleChallenges: combinedClaims, collectionId: NEW_COLLECTION_ID };
-      console.log("POST SIMULATED COLLECTION");
       collections.updateCollection(postSimulatedCollection);
     }
 

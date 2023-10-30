@@ -395,8 +395,6 @@ export const AccountsContextProvider: React.FC<Props> = ({ children }) => {
       ...account,
       publicKey: publicKey
     }], false))
-
-    console.log(getAccount(addressOrUsername))
   }
 
   const accountsContext: AccountsContextType = {

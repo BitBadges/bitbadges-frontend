@@ -18,9 +18,7 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
   const cachedCollectionCopy = deepCopy(cachedCollection);
 
-  if (newCollection.collectionId === 2n) {
-    console.log("newCollection", newCollection);
-  }
+  // console.log("newCollection", newCollection);
 
 
   if (cachedCollection) {

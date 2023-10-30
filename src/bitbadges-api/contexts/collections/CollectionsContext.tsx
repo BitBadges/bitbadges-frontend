@@ -126,13 +126,12 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const fetchBalanceForUser = async (collectionId: DesiredNumberType, addressOrUsername: string, forceful?: boolean) => {
-    const collectionsRes = await fetchCollections([collectionId]);
-    const collection = collectionsRes[0];
+
+    const collection = await getCollection(collectionId);
     if (!collection) throw new Error('Collection does not exist');
 
-    const accountsRes = await accounts.fetchAccounts([addressOrUsername]);
-    const account = accountsRes[0];
-    if (!account) throw new Error('Account is not in the cache');
+    const account = await accounts.getAccount(addressOrUsername);
+    if (!account) throw new Error('Account does not exist');
 
     let res;
     if (forceful) {
@@ -411,7 +410,9 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
         });
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
-        
+
+        console.log('prunedMetadataToFetch', prunedMetadataToFetch, collectionsToFetch);
+
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
@@ -453,7 +454,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     const res = await getCollections(batchRequestBody);
-    console.log("RES", res);
+    console.log("RES", batchRequestBody, res);
 
     //Update collections map
     for (let i = 0; i < res.collections.length; i++) {

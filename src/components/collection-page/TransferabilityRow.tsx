@@ -511,8 +511,6 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   const accounts = useAccountsContext();
   const collection = collections.getCollection(collectionId);
 
-  console.log(transfer);
-
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.maxNumTransfers) return null;
 
   const maxNumTransfersKey = type === "overall" ? "overallMaxNumTransfers" : type === "to" ? "perToAddressMaxNumTransfers" : type === "from" ? "perFromAddressMaxNumTransfers" : "perInitiatedByAddressMaxNumTransfers";
@@ -1063,7 +1061,6 @@ export function TransferabilityRow({
   if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
     isRefreshing = true;
   }
-  console.log(editable);
 
   const InnerContent = ({ expandedView }: { expandedView: boolean }) => {
     const TableRowContent = ({ expandedView, rowView }: { expandedView: boolean, rowView: boolean }) => {
@@ -1231,8 +1228,7 @@ export function TransferabilityRow({
         />}
       </div></>
   }
-
-  console.log(showMoreIsVisible, transfer)
+  
   return <>
     <Drawer
       title={<>

@@ -1,6 +1,6 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useAccountsContext } from '../bitbadges-api/contexts/accounts/AccountsContext';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
@@ -30,7 +30,7 @@ function BrowsePage() {
   const [containerWidth, setContainerWidth] = useState<number>(0);
 
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleResize = () => {
       const container = document.querySelector('.profile-carousel') as HTMLElement;
       setContainerWidth(container.clientWidth);
@@ -49,7 +49,6 @@ function BrowsePage() {
     const accountsToFetch = browseInfo?.addressMappings[listsTab]?.map(addressMapping => addressMapping.createdBy) || [];
 
     if (accountsToFetch.length > 0) {
-      console.log(accountsToFetch);
       accounts.fetchAccounts(accountsToFetch);
     }
   }, [listsTab, browseInfo])
@@ -78,7 +77,7 @@ function BrowsePage() {
         {!browseInfo && <Spin size='large' />}
         <div className='full-width'>
           <br />
-          
+
           <Typography.Text strong className='dark:text-white text-4xl text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Profiles
           </Typography.Text>
@@ -117,6 +116,7 @@ function BrowsePage() {
 
                 >{idxArr.map(idx => {
                   if (idx >= browseInfo?.profiles[tab]?.length) return null
+                  if (idx >= 4) return null;
                   profile = browseInfo?.profiles[tab][idx];
                   return <InformationDisplayCard title='' key={idx} style={{ margin: 16 }}>
                     <>
@@ -249,7 +249,7 @@ function BrowsePage() {
               }
               if (idx % numItems !== 0) return null
 
-              
+
               return <div key={idx} className='flex flex-center-if-mobile'
 
               >{idxArr.map(idx => {

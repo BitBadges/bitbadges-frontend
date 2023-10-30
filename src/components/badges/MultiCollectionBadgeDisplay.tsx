@@ -174,9 +174,8 @@ export function MultiCollectionBadgeDisplay({
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
 
-        console.log('multi use effect');
+        console.log('multi use effect', badgeIdsToDisplay);
         if (badgeIdsToDisplay.length > 0) {
-
           await collections.batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
             return {
               collectionId: x.collectionId,
@@ -194,6 +193,7 @@ export function MultiCollectionBadgeDisplay({
         //We fetch the initial badges for each collection in a single batch request and use loaded to not trigger the inital fetch in BadgeAvatarDisplay
         //Any subsequent fetches will be done in BadgeAvatarDisplay
 
+        console.log('multi use effect 3');
         await collections.batchFetchAndUpdateMetadata(allBadgeIds.map(x => {
           return {
             collectionId: x.collectionId,
