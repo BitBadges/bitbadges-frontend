@@ -26,6 +26,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
   const [browse, setBrowse] = useState<GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>>();
   const collections = useCollectionsContext();
   const accounts = useAccountsContext();
+  const [loaded, setLoaded] = useState(false);
 
   async function updateCollectionsAndAccounts(browseInfo: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>) {
     const updatedIds = new Set();
@@ -54,6 +55,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
         }
       }
     }
+
   }
 
   async function getCollectionsAndUpdateBrowse() {

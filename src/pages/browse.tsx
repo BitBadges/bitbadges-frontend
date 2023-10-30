@@ -161,7 +161,7 @@ function BrowsePage() {
               }).filter(x => x) ?? []}
             />
           </div>
-          < Divider />
+          {/* < Divider />
           <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
           </Typography.Text>
@@ -266,7 +266,7 @@ function BrowsePage() {
             }).filter(x => x) ?? []}
           />
 
-          <Divider />
+          <Divider /> */}
           <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>

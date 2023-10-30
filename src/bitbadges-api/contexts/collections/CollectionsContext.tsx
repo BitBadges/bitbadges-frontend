@@ -163,6 +163,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       throw new Error('Cannot fetch preview collection ID === 0');
     }
 
+    console.log('standard fetch');
     return await fetchCollectionsWithOptions(collectionsToFetch.map(x => {
       return {
         collectionId: x,
@@ -411,8 +412,6 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
       } else {
         const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
 
-        console.log('prunedMetadataToFetch', prunedMetadataToFetch, collectionsToFetch);
-
         const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
         const viewsToFetch: { viewKey: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
         const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
@@ -458,11 +457,7 @@ export const CollectionsContextProvider: React.FC<Props> = ({ children }) => {
 
     //Update collections map
     for (let i = 0; i < res.collections.length; i++) {
-      if (getCollection(res.collections[i].collectionId)) {
-        updateCollection(res.collections[i]);
-      } else {
-        setCollection(res.collections[i]);
-      }
+      updateCollection(res.collections[i]);
     }
 
     //Note we do not use getCollection here because there is no guarantee that the collections have been updated yet in React state
