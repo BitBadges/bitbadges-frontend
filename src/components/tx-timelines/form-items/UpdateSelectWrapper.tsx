@@ -1,18 +1,18 @@
-import { AuditOutlined, CodeOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
+import { AuditOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateContractAddressUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
+import { INFINITE_LOOP_MODE } from '../../../constants';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { JSONSetter } from './CustomJSONSetter';
 import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
-import { INFINITE_LOOP_MODE } from '../../../constants';
-import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function UpdateSelectWrapper({
   updateFlag,
