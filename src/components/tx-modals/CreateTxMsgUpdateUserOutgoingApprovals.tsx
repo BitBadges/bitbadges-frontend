@@ -2,9 +2,10 @@ import { MsgUpdateUserApprovals, createTxMsgUpdateUserApprovals } from 'bitbadge
 import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';
+import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -13,16 +14,17 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
   children?: React.ReactNode
 }) {
   const chain = useChainContext();
-  const collections = useCollectionsContext();
-  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<UserOutgoingApprovalWithDetails<bigint>[]>(collections.getCollection(collectionId)?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []);
+  const collection = useCollection(collectionId);
+
+  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<UserOutgoingApprovalWithDetails<bigint>[]>(collection?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []);
 
   useEffect(() => {
     async function getApproveeBalance() {
-      const balanceInfo = await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress);
+      const balanceInfo = await fetchBalanceForUser(collectionId, chain.cosmosAddress);
       setNewOutgoingApprovals((balanceInfo?.outgoingApprovals ?? []));
     }
     getApproveeBalance();
-  }, []);
+  }, [chain.cosmosAddress, collectionId]);
 
   const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,
@@ -68,7 +70,7 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
       style={{ minWidth: '95%' }}
       createTxFunction={createTxMsgUpdateUserApprovals}
       onSuccessfulTx={async () => {
-        await collections.fetchCollections([collectionId], true);
+        await fetchCollections([collectionId], true);
       }}
       requireRegistration
     >

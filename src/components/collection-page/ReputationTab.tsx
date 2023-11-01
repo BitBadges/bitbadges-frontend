@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";
 import { addReviewForCollection, addReviewForUser, deleteReview } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+
+
+import { DeleteOutlined } from '@ant-design/icons';
+import { fetchAccounts, fetchNextForAccountViews, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { DeleteOutlined } from '@ant-design/icons';
 
 
 export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchMore, hasMore }:
@@ -23,10 +25,9 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
   }
 ) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const currAccount = addressOrUsername ? accounts.getAccount(addressOrUsername) : undefined;
+  const currAccount = useAccount(addressOrUsername);
 
-  const collections = useCollectionsContext();
+
   const [newReview, setNewReview] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [stars, setStars] = useState<number>(5);
@@ -35,13 +36,13 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: reputation fetch accounts');
     const accountsToFetch: string[] = reviews.map(r => r.from);
-    accounts.fetchAccounts(accountsToFetch);
+    fetchAccounts(accountsToFetch);
   }, [reviews]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: reputation fetch more');
     if (hasMore) fetchMore();
-  }, [])
+  }, [fetchMore, hasMore])
 
 
   return (
@@ -76,11 +77,11 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
               setLoading(true);
               if (collectionId) {
                 await addReviewForCollection(collectionId, { review: newReview, stars });
-                await collections.fetchCollections([collectionId], true);
+                await fetchCollections([collectionId], true);
               } else if (addressOrUsername) {
                 await addReviewForUser(addressOrUsername, { review: newReview, stars });
-                await accounts.fetchAccounts([addressOrUsername], true);
-                await accounts.fetchNextForViews(addressOrUsername, ['latestReviews']);
+                await fetchAccounts([addressOrUsername], true);
+                await fetchNextForAccountViews(addressOrUsername, ['latestReviews']);
               }
               setNewReview('');
               setLoading(false);
@@ -145,10 +146,10 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                         setLoading(true);
                         await deleteReview(review._id);
                         if (collectionId) {
-                          await collections.fetchCollections([collectionId], true);
+                          await fetchCollections([collectionId], true);
                         } else if (addressOrUsername) {
-                          await accounts.fetchAccounts([addressOrUsername], true);
-                          await accounts.fetchNextForViews(addressOrUsername, ['latestReviews']);
+                          await fetchAccounts([addressOrUsername], true);
+                          await fetchNextForAccountViews(addressOrUsername, ['latestReviews']);
                         }
                         setLoading(false);
                       }}

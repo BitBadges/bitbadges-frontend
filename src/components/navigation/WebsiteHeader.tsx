@@ -17,12 +17,13 @@ import { signOut } from '../../bitbadges-api/api';
 import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -30,8 +31,8 @@ const { Text } = Typography;
 export function WalletHeader() {
   const router = useRouter()
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const account = accounts.getAccount(chain.address);
+
+  const account = useAccount(chain.address);
   const status = useStatusContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
@@ -74,20 +75,11 @@ export function WalletHeader() {
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
   const seenActivity = account?.seenActivity || 1n;
-  for (const activity of allActivity) {
-    if (seenActivity && seenActivity < activity.timestamp) {
-      unseenNotificationCount++;
-    }
+  const firstLoadCutoff = chain.lastSeenActivity;
 
-    if (unseenNotificationCount > overflowCount) {
-      break;
-    }
-  }
-
-  for (const addressMapping of account?.addressMappings ?? []) {
-    if (addressMapping.addresses.includes(chain.cosmosAddress) || addressMapping.addresses.includes(chain.address)) {
-
-      if (seenActivity && seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp) {
+  if (chain.loggedIn) {
+    for (const activity of allActivity) {
+      if (seenActivity && seenActivity < activity.timestamp && activity.timestamp < firstLoadCutoff) {
         unseenNotificationCount++;
       }
 
@@ -96,18 +88,32 @@ export function WalletHeader() {
       }
     }
 
-  }
+    for (const addressMapping of account?.addressMappings ?? []) {
+      if (addressMapping.addresses.includes(chain.cosmosAddress) || addressMapping.addresses.includes(chain.address)) {
 
-  for (const claimAlert of claimAlerts) {
-    if (seenActivity && seenActivity < claimAlert.createdTimestamp) {
-      unseenNotificationCount++;
+        if (seenActivity &&
+          seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp
+          && addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp < firstLoadCutoff) {
+          unseenNotificationCount++;
+        }
+
+        if (unseenNotificationCount > overflowCount) {
+          break;
+        }
+      }
+
     }
 
-    if (unseenNotificationCount > overflowCount) {
-      break;
+    for (const claimAlert of claimAlerts) {
+      if (seenActivity && seenActivity < claimAlert.createdTimestamp && claimAlert.createdTimestamp < firstLoadCutoff) {
+        unseenNotificationCount++;
+      }
+
+      if (unseenNotificationCount > overflowCount) {
+        break;
+      }
     }
   }
-
 
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
@@ -190,7 +196,7 @@ export function WalletHeader() {
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
     {connected && <>
-      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Profile Settings</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
 
     {!connected && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
@@ -259,7 +265,7 @@ export function WalletHeader() {
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
       }
       overlayClassName='dark:text-white inherit-bg'
-      className='primary-blue-bg rounded bg-blue-black-50 border border-blue-black-50 focus:border-blue-black-50 hover:border-blue-black-50'
+      className='primary-blue-bg rounded border border-blue-black-50 focus:border-blue-black-50 hover:border-blue-black-50'
       trigger={['hover', 'click']}
     >
       {SearchBar}

@@ -4,7 +4,8 @@ import { BigIntify, MetadataAddMethod, convertOffChainBalancesMap } from "bitbad
 import { useEffect, useState } from "react";
 import { fetchMetadataDirectly } from "../../../bitbadges-api/api";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferSelect } from "../../transfers/TransferOrClaimSelect";
@@ -14,8 +15,8 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 const { Text } = Typography
 
 export const DistributionComponent = () => {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
 
@@ -65,12 +66,12 @@ export const DistributionComponent = () => {
 // This is the first custom step in the off-chain balances creation flow. It allows the user to select between
 // uploading metadata themselves or having it outsourced. It uses the SwitchForm component to render the options.
 export function OffChainBalancesStorageSelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
-  const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
+  const existingCollection = useCollection(existingCollectionId);
   const canUpdateOffChainBalancesMetadata = txTimelineContext.updateOffChainBalancesMetadataTimeline;
   const setCanUpdateOffChainBalancesMetadata = txTimelineContext.setUpdateOffChainBalancesMetadataTimeline;
 
@@ -84,12 +85,12 @@ export function OffChainBalancesStorageSelectStepItem() {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: uri select, badge uri changed ');
     const delayDebounceFn = setTimeout(async () => {
-      if (!uri || !collection) {
+      if (!uri) {
         console.log("no badge uri or collection")
         return
       }
 
-      collections.updateCollection({
+      updateCollection({
         collectionId: NEW_COLLECTION_ID,
         offChainBalancesMetadataTimeline: [{
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -151,7 +152,7 @@ export function OffChainBalancesStorageSelectStepItem() {
 
         if (idx === 1) {
           setAddMethod(MetadataAddMethod.Manual);
-          collections.updateCollection({
+          updateCollection({
             collectionId: NEW_COLLECTION_ID,
             offChainBalancesMetadataTimeline: existingCollection ?
               isBitBadgesHosted ? existingCollection.offChainBalancesMetadataTimeline : [{
@@ -165,7 +166,7 @@ export function OffChainBalancesStorageSelectStepItem() {
         } else if (idx === 0) {
           setAddMethod(MetadataAddMethod.UploadUrl);
           txTimelineContext.setTransfers([]);
-          collections.updateCollection({
+          updateCollection({
             collectionId: NEW_COLLECTION_ID,
             offChainBalancesMetadataTimeline: [{
               timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],

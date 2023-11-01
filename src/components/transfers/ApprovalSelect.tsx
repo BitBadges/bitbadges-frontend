@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Radio, Row, Switch, Tag, Tooltip, Typography } from 'antd';
-import { AddressMapping, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
+import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
 import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
@@ -20,7 +20,7 @@ import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
 import { AddressMappingSelectComponent } from './ApprovalSelectHelpers/AddressMappingSelectComponent';
-import { ApprovalAmounts } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
+import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
 import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
 import { OrderCalculationMethod } from './ApprovalSelectHelpers/OrderCalculationComponent';
 
@@ -249,10 +249,6 @@ export function ApprovalSelect({
 
   }>(deepCopy(defaultApprovalToAdd));
 
-  useEffect(() => {
-    setApprovalToAdd(deepCopy(defaultApprovalToAdd))
-  }, [defaultApproval])
-
   const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
 
   const mustOwnBadges = approvalToAdd?.approvalCriteria?.mustOwnBadges || [];
@@ -278,8 +274,8 @@ export function ApprovalSelect({
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('amountType', amountType);
-    const newPredeterminedBalances = [];
-    const newApprovalAmounts = approvalToAdd.approvalCriteria.approvalAmounts;
+    const newPredeterminedBalances: Balance<bigint>[] = [];
+    let newApprovalAmounts: ApprovalAmounts<bigint> | undefined = undefined
 
     if (amountType === AmountType.Predetermined) {
       newPredeterminedBalances.push({
@@ -287,43 +283,47 @@ export function ApprovalSelect({
         badgeIds: deepCopy(approvalToAdd.badgeIds),
         ownershipTimes: deepCopy(approvalToAdd.ownershipTimes),
       });
-
-      newApprovalAmounts.overallApprovalAmount = 0n;
-      newApprovalAmounts.perFromAddressApprovalAmount = 0n;
-      newApprovalAmounts.perInitiatedByAddressApprovalAmount = 0n;
-      newApprovalAmounts.perToAddressApprovalAmount = 0n;
+      newApprovalAmounts = {
+        overallApprovalAmount: 0n,
+        perFromAddressApprovalAmount: 0n,
+        perInitiatedByAddressApprovalAmount: 0n,
+        perToAddressApprovalAmount: 0n,
+      }
     }
 
-    setApprovalToAdd({
-      ...approvalToAdd,
+    setApprovalToAdd((approvalToAdd) => {
+      return {
+        ...approvalToAdd,
 
-      approvalCriteria: {
-        ...approvalToAdd.approvalCriteria,
-        approvalAmounts: {
-          ...newApprovalAmounts,
-        },
-        predeterminedBalances: {
-          ...approvalToAdd.approvalCriteria.predeterminedBalances,
-          manualBalances: [],
-          incrementedBalances: {
-            ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-            startBalances: newPredeterminedBalances,
-            incrementBadgeIdsBy: amountType === AmountType.Predetermined ? 1n : 0n,
-            incrementOwnershipTimesBy: 0n,
+        approvalCriteria: {
+          ...approvalToAdd.approvalCriteria,
+          approvalAmounts: {
+            ...approvalToAdd.approvalCriteria.approvalAmounts,
+            ...newApprovalAmounts,
+          },
+          predeterminedBalances: {
+            ...approvalToAdd.approvalCriteria.predeterminedBalances,
+            manualBalances: [],
+            incrementedBalances: {
+              ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
+              startBalances: newPredeterminedBalances,
+              incrementBadgeIdsBy: amountType === AmountType.Predetermined ? 1n : 0n,
+              incrementOwnershipTimesBy: 0n,
 
-          },
-          orderCalculationMethod: {
-            ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-            useOverallNumTransfers: false,
-            usePerFromAddressNumTransfers: false,
-            usePerInitiatedByAddressNumTransfers: false,
-            usePerToAddressNumTransfers: false,
-            useMerkleChallengeLeafIndex: false,
-          },
+            },
+            orderCalculationMethod: {
+              ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
+              useOverallNumTransfers: false,
+              usePerFromAddressNumTransfers: false,
+              usePerInitiatedByAddressNumTransfers: false,
+              usePerToAddressNumTransfers: false,
+              useMerkleChallengeLeafIndex: false,
+            },
+          }
         }
       }
     });
-  }, [amountType, approvalToAdd.badgeIds]);
+  }, [amountType, approvalToAdd.badgeIds, approvalToAdd.ownershipTimes]);
 
   const PasswordSelect = <div style={{ textAlign: 'center' }}>
 
@@ -780,12 +780,12 @@ export function ApprovalSelect({
                 </>}
                 <br />
                 {amountType === AmountType.Tally && predeterminedType === PredeterminedType.Dynamic && <>
-                  <ApprovalAmounts
+                  <ApprovalAmountsComponent
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     type='overall' label='Overall (all users)' />
-                  <ApprovalAmounts approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='from' label='Per sender' />
-                  <ApprovalAmounts approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='to' label='Per recipient' />
-                  <ApprovalAmounts approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='initiatedBy' label='Per approver' />
+                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='from' label='Per sender' />
+                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='to' label='Per recipient' />
+                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='initiatedBy' label='Per approver' />
 
                   {!approvalHasApprovalAmounts(approvalToAdd.approvalCriteria.approvalAmounts) && <div style={{ textAlign: 'center' }}>
                     <div style={{ textAlign: 'center' }}>

@@ -2,7 +2,7 @@ import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
 import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
@@ -10,6 +10,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function DistributionOverview({
   collectionId,
@@ -36,8 +37,8 @@ export function DistributionOverview({
   xxl?: number
   style?: React.CSSProperties
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
 
   if (!collection) return <></>;
   if (!collection?.collectionPermissions) return <></>

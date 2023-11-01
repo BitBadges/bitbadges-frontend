@@ -10,8 +10,9 @@ import {
 import { Avatar, Col, Layout, Tooltip, message } from 'antd';
 import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 
@@ -47,9 +48,9 @@ export function AccountButtonDisplay({
   onlySocials?: boolean
 }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
+
   const router = useRouter();
-  const accountInfo = accounts.getAccount(addressOrUsername);
+  const accountInfo = useAccount(addressOrUsername);
 
   const address = accountInfo?.address
   const avatar = accountInfo?.profilePicUrl ?? accountInfo?.avatar;

@@ -6,14 +6,16 @@ import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
+
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
+import { useAccount, fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree, fromTransferabilityRow }: {
@@ -27,9 +29,9 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   fromTransferabilityRow?: boolean
 }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+
+  const collection = useCollection(collectionId);
 
   const requiresWhitelistProof = !!(approval && approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf) ?? false;
   const leaf = requiresWhitelistProof ? SHA256(chain.cosmosAddress).toString() : '';
@@ -38,18 +40,18 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
   const [sender, setSender] = useState<string>(defaultAddress ?? chain.address);
+  const senderAccount = useAccount(sender);
+  const senderBalance = collection?.owners.find(x => x.cosmosAddress === senderAccount?.cosmosAddress)?.balances ?? [];
 
-  const senderBalance = collection?.owners.find(x => x.cosmosAddress === accounts.getAccount(sender)?.cosmosAddress)?.balances ?? [];
-  const senderAccount = accounts.getAccount(sender);
 
   const DELAY_MS = 500;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
 
-      await accounts.fetchAccounts([sender]);
+      await fetchAccounts([sender]);
 
-      await collections.fetchBalanceForUser(collectionId, sender);
+      await fetchBalanceForUser(collectionId, sender);
     }
 
     const delayDebounceFn = setTimeout(async () => {
@@ -61,7 +63,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
-    accounts.fetchAccounts(transfers.map(x => x.toAddresses).flat());
+    fetchAccounts(transfers.map(x => x.toAddresses).flat());
   }, [transfers]);
 
   const convertedTransfers = transfers.map(x => {
@@ -168,8 +170,8 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       width={'90%'}
       createTxFunction={createTxMsgTransferBadges}
       onSuccessfulTx={async () => {
-        await collections.fetchCollections([collectionId], true);
-        // await collections.fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
+        await fetchCollections([collectionId], true);
+        // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
       displayMsg={<div className='dark:text-white'>

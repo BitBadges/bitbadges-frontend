@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { compareObjects } from "../../utils/compare";
@@ -14,6 +14,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
 import { useState } from "react";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 
 
@@ -612,8 +613,8 @@ export function PermissionsOverview({
   permissionName?: string
   onFreezePermitted?: (frozen: boolean) => void
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
 
   if (!collection?.collectionPermissions) return <></>
 

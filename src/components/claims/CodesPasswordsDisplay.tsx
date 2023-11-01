@@ -3,11 +3,12 @@ import { Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
 import { CollectionApprovalWithDetails, getAbbreviatedAddress } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { WEBSITE_HOSTNAME } from "../../constants";
 import { downloadJson, downloadTxt } from "../../utils/downloadJson";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CodesDisplay({
   approval,
@@ -20,8 +21,8 @@ export function CodesDisplay({
   codes?: string[]
   claimPassword?: string
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
   const approvalCriteria = approval.approvalCriteria;
   const merkleChallenge = approvalCriteria ? approvalCriteria.merkleChallenge : undefined;

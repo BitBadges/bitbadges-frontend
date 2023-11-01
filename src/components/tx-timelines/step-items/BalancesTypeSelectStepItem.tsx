@@ -1,10 +1,11 @@
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function BalanceTypeSelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -56,7 +57,7 @@ export function BalanceTypeSelectStepItem() {
         onSwitchChange={(idx) => {
           if (!collection) return;
 
-          collections.updateCollection({
+          updateCollection({
             collectionId: NEW_COLLECTION_ID,
             balancesType: idx == 1 ? "Standard" : "Off-Chain",
             collectionApprovals: idx == 1 ? collection.collectionApprovals : [],

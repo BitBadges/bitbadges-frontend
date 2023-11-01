@@ -1,8 +1,8 @@
 import { Balance, UintRange } from "bitbadgesjs-proto";
 import { Numberify, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE, } from "../../constants";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
@@ -10,10 +10,10 @@ import { Pagination } from "../common/Pagination";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeCard } from "./BadgeCard";
 import { getBadgeIdsString } from "../../utils/badgeIds";
+import { fetchAndUpdateMetadata, fetchMetadataForPreview, useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function BadgeAvatarDisplay({
   collectionId,
-  addressOrUsernameToShowBalance,
   balance,
   badgeIds,
   size,
@@ -35,7 +35,6 @@ export function BadgeAvatarDisplay({
   filterGreaterThanMax,
 }: {
   collectionId: bigint;
-  addressOrUsernameToShowBalance?: string;
   balance?: Balance<bigint>[],
   badgeIds: UintRange<bigint>[];
   showSupplys?: boolean;
@@ -55,37 +54,30 @@ export function BadgeAvatarDisplay({
   onClick?: (id: bigint) => void,
   filterGreaterThanMax?: boolean
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
   const maxId = collection ? getTotalNumberOfBadges(collection) : 0n;
-  const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds);
+  const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
+
   const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds;
-
   const txTimelineContext = useTxTimelineContext();
-
-  const userBalance = balance ? balance : undefined;
-
+  const userBalance = balance;
   const [currPage, setCurrPage] = useState<number>(1);
-  const [total, setTotal] = useState<number>(defaultPageSize); //Total number of badges in badgeIds[]
   const pageSize = defaultPageSize;
 
-  const [badgeIdsToDisplay, setBadgeIdsToDisplay] = useState<UintRange<bigint>[]>([]); // Badge IDs to display of length pageSize
 
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
-
-
+  const total = useMemo(() => {
     let total = 0;
     for (const range of inRangeBadgeIds) {
       const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
       total += numBadgesInRange;
     }
+    return total;
+  }, [inRangeBadgeIds]);
 
 
-    setTotal(total);
-
-    //Remove duplicates
-    //Calculate badge IDs to display and update metadata for badge IDs if absent
+  const badgeIdsToDisplay = useMemo(() => {
+    
     const badgeIdsToDisplayResponse = getBadgesToDisplay([
       {
         badgeIds:
@@ -102,23 +94,28 @@ export function BadgeAvatarDisplay({
       badgeIdsToDisplay.push(...badgeIdObj.badgeIds);
     }
 
-    setBadgeIdsToDisplay(badgeIdsToDisplay);
+    return badgeIdsToDisplay;
+  }, [inRangeBadgeIds, currPage, pageSize, collectionId]);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId);
 
     async function updateMetadata() {
+
       if (fromMultiCollectionDisplay && currPage === 1) return;
-      console.log("FETCHING METADTAA", collectionId, badgeIdsToDisplay);
+      if (badgeIdsToDisplay.length === 0) return;
 
       if (collectionId > 0n || (collectionId === 0n && fetchDirectly)) {
-        await collections.fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
+        await fetchAndUpdateMetadata(collectionId, { badgeIds: badgeIdsToDisplay }, fetchDirectly);
       } else if (collectionId === 0n) {
         const existingCollectionId = txTimelineContext.existingCollectionId;
         if (!existingCollectionId) return;
-        await collections.fetchMetadataForPreview(existingCollectionId, badgeIdsToDisplay, true);
+        await fetchMetadataForPreview(existingCollectionId, badgeIdsToDisplay, true);
       }
     }
 
     updateMetadata();
-  }, [badgeIds, currPage, fetchDirectly, addressOrUsernameToShowBalance, cardView, maxId]);
+  }, [collectionId, txTimelineContext.existingCollectionId, fromMultiCollectionDisplay, currPage, fetchDirectly, badgeIdsToDisplay]);
 
   //Calculate pageSize based on the width of this componetnt
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >

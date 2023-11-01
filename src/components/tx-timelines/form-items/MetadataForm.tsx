@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataForBadgeId, removeUintRangeFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, Metadata, MetadataAddMethod, Numberify, batchUpdateBadgeMetadata, getMetadataForBadgeId, invertUintRanges, removeUintRangeFromUintRange, searchUintRangesForId, setMetadataPropertyForSpecificBadgeIds, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { CollectionHeader } from '../../badges/CollectionHeader';
@@ -21,6 +21,8 @@ import { ToolIcon } from '../../display/ToolIcon';
 import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import { DateRangeInput } from '../../inputs/DateRangeInput';
 import { MetadataUriSelect } from './MetadataUriSelect';
+import { fetchAndUpdateMetadata, fetchMetadataForPreview, setCollection, updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -49,8 +51,8 @@ export function MetadataForm({
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
   const [badgeId, setBadgeId] = useState<bigint>(badgeIds.length > 0 ? badgeIds[0].start : 1n);
   const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(false);
@@ -61,14 +63,14 @@ export function MetadataForm({
   const setMetadata = (metadata: Metadata<bigint>) => {
     if (!collection) return;
     if (isCollectionSelect) {
-      collections.updateCollection({
+      updateCollection({
         collectionId: NEW_COLLECTION_ID,
         cachedCollectionMetadata: metadata
       });
     } else {
       //This is handled in the context. It applies the array below to the existing metadata
       //We use setCollection for complete overwrites
-      collections.updateCollection({
+      updateCollection({
         collectionId: NEW_COLLECTION_ID,
         cachedBadgeMetadata: [{ uri: undefined, toUpdate: true, metadata, badgeIds: [{ start: badgeId, end: badgeId }] }]
       })
@@ -191,7 +193,7 @@ export function MetadataForm({
   }
 
   let numBadgesFetched = 0n;
-  const existingCollection = collections.getCollection(existingCollectionId || 0n);
+  const existingCollection = useCollection(existingCollectionId || 0n);
   for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
     const uintRangesToSearch = uintRanges;
     const [, removed] = removeUintRangeFromUintRange(uintRangesToSearch, metadata.badgeIds);
@@ -206,6 +208,11 @@ export function MetadataForm({
   }
 
   let percent = Number(numBadgesFetched) / Number(totalNeedToFetch);
+
+  const outOfBoundsIds = invertUintRanges(badgeIds, 1n, GO_MAX_UINT_64);
+
+  const [, removed] = removeUintRangeFromUintRange(outOfBoundsIds, uintRanges);
+  const hasOutOfBoundsids = removed.length > 0;
 
   const PopulateComponent = () => {
     let message = 'metadata';
@@ -266,7 +273,7 @@ export function MetadataForm({
 
           <div className='full-width flex-center'>
             <button
-              disabled={fieldNames.length === 0 || uintRanges.length === 0 || applyingBatchUpdate}
+              disabled={fieldNames.length === 0 || uintRanges.length === 0 || applyingBatchUpdate || hasOutOfBoundsids}
               className='landing-button full-width'
               style={{ width: '100%' }}
               onClick={async () => {
@@ -274,7 +281,7 @@ export function MetadataForm({
                 let cachedCollection = collection;
                 if (!cachedCollection) return;
 
-                const fetchedMetadata = await collections.fetchMetadataForPreview(existingCollectionId || 0n, uintRanges, false);
+                const fetchedMetadata = await fetchMetadataForPreview(existingCollectionId || 0n, uintRanges, false);
 
                 let batchUpdatedMetadata = batchUpdateBadgeMetadata(deepCopy(cachedCollection?.cachedBadgeMetadata), fetchedMetadata.map(x => {
                   return {
@@ -289,7 +296,7 @@ export function MetadataForm({
                   batchUpdatedMetadata = populateOtherBadges(batchUpdatedMetadata, uintRanges, fieldName, currMetadata[fieldName as keyof Metadata<bigint>]);
                 }
 
-                collections.updateCollection({
+                updateCollection({
                   collectionId: NEW_COLLECTION_ID,
                   cachedBadgeMetadata: batchUpdatedMetadata
                 });
@@ -331,16 +338,16 @@ export function MetadataForm({
                 if (isCollectionSelect) {
                   let collectionMetadataToSet: Metadata<bigint> | undefined = DefaultPlaceholderMetadata;
                   if (hasExistingCollection && existingCollectionId) {
-                    const res = await collections.fetchAndUpdateMetadata(existingCollectionId, {});
-                    collectionMetadataToSet = res[0].cachedCollectionMetadata;
+                    const res = await fetchAndUpdateMetadata(existingCollectionId, {});
+                    collectionMetadataToSet = res.cachedCollectionMetadata;
                   }
 
-                  collections.setCollection({
+                  setCollection({
                     ...collection,
                     cachedCollectionMetadata: collectionMetadataToSet
                   });
                 } else {
-                  collections.setCollection({
+                  setCollection({
                     ...collection,
                     cachedBadgeMetadata: hasExistingCollection ? [] : [{ uri: undefined, toUpdate: true, metadata: DefaultPlaceholderMetadata, badgeIds: [{ start: 1n, end: getTotalNumberOfBadges(collection) }] }]
                   });
@@ -421,7 +428,7 @@ export function MetadataForm({
               />}
               {!isCollectionSelect && !isAddressMappingSelect && <IconButton
                 text='Show All'
-                tooltipMessage='Show all badges in this collection.'
+                tooltipMessage='Show a display of updatable badges in this collection.'
                 src={showAvatarDisplay ? <FontAwesomeIcon
                   icon={faMinus}
                 /> : <FontAwesomeIcon

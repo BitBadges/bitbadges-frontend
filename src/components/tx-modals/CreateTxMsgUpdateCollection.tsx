@@ -5,7 +5,8 @@ import React from 'react';
 import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
+import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../bitbadges-api/utils/manager';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
@@ -23,10 +24,10 @@ export function CreateTxMsgUpdateCollectionModal(
     }) {
   const chain = useChainContext();
   const router = useRouter();
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const msg: MsgUpdateCollection<bigint> = {
     creator: chain.cosmosAddress,
@@ -305,7 +306,7 @@ export function CreateTxMsgUpdateCollectionModal(
       onSuccessfulTx={async () => {
 
         if (collectionId && collectionId > 0n) {
-          await collections.fetchCollections([collectionId], true);
+          await fetchCollections([collectionId], true);
           router.push(`/collections/${collectionId}`);
         } else {
           //navigating to a new collection page is handled in TxModal bc we need nextCollectionId

@@ -2,9 +2,10 @@ import { Card } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { BadgeAvatar } from './BadgeAvatar';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function BadgeCard({
   size = 75,
@@ -20,8 +21,8 @@ export function BadgeCard({
   hideCollectionLink?: boolean;
 }) {
   const router = useRouter();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
 
   //Calculate total, undistributed, claimable, and distributed supplys

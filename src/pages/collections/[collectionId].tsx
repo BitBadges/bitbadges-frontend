@@ -2,8 +2,7 @@ import { Divider, Empty, Layout, notification } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchCollections, fetchNextForCollectionViews, useCollection, getCollectionActivityView, getCollectionAnnouncementsView, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
@@ -27,16 +26,13 @@ function CollectionPage({
   collectionPreview: boolean
 }) {
   const router = useRouter()
-  const collections = useCollectionsContext();
-  const accounts = useAccountsContext();
-
   const { collectionId, password, code, claimsTab } = router.query;
   const isPreview = collectionPreview ? true : false;
-
   const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? NEW_COLLECTION_ID : -1n;
-  const collection = collections.getCollection(collectionIdNumber)
+  const collection = useCollection(collectionIdNumber);
 
   const [tab, setTab] = useState((password || code || claimsTab) ? 'claims' : 'overview');
+  const [warned, setWarned] = useState(false);
 
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
@@ -70,26 +66,29 @@ function CollectionPage({
   //Get collection information
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch collection ,collection page');
-    async function fetchCollections() {
+    async function fetchCollectionsFunc() {
       if (collectionIdNumber > 0) {
-        const collectionsRes = await collections.fetchCollections([collectionIdNumber]);
+        await fetchCollections([collectionIdNumber]);
         //IMPORTANT: Note that collectionsRes is the fetched collection which may be paginated, incomplete, etc
-        const currCollection = collectionsRes[0];
-
-        const managers = currCollection.managerTimeline.map(x => x.manager).filter(x => x);
-        accounts.fetchAccounts([...new Set([currCollection.createdBy, ...managers])])
-
-        if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
-          notification.warn({
-            message: collection?.balancesType === "Off-Chain" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
-            description: 'Certain metadata may be empty or not up to date until the sync is complete.',
-          });
-        }
       }
     }
     if (isPreview) return;
-    fetchCollections();
+    fetchCollectionsFunc();
   }, [collectionIdNumber, isPreview])
+
+  useEffect(() => {
+    
+
+    // if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
+    if (!warned && !isPreview) {
+      notification.warn({
+        message: collection?.balancesType === "Off-Chain" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
+        description: 'Certain metadata may be empty or not up to date until the sync is complete.',
+      });
+
+      setWarned(true);
+    }
+  }, [collection, warned, isPreview])
 
   //Set tab to badges if badgeId is in query
   useEffect(() => {
@@ -155,9 +154,9 @@ function CollectionPage({
               reviews={collection.reviews}
               collectionId={collectionIdNumber}
               fetchMore={async () => {
-                await collections.fetchNextForViews(collectionIdNumber, ['latestReviews']);
+                await fetchNextForCollectionViews(collectionIdNumber, ['latestReviews']);
               }}
-              hasMore={collections.getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
+              hasMore={getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
             />
           )}
 
@@ -169,22 +168,22 @@ function CollectionPage({
 
           {tab === 'activity' && !isPreview && collection && (
             <ActivityTab
-              activity={collections.getActivityView(collectionIdNumber, 'latestActivity') ?? []}
+              activity={getCollectionActivityView(collection, 'latestActivity') ?? []}
               fetchMore={async () => {
-                await collections.fetchNextForViews(collectionIdNumber, ['latestActivity']);
+                await fetchNextForCollectionViews(collectionIdNumber, ['latestActivity']);
               }}
-              hasMore={collections.getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore ?? true}
+              hasMore={getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore ?? true}
             />
           )}
 
           {tab === 'announcements' && !isPreview && collection && (
             <>
-              <AnnouncementsTab announcements={collections.getAnnouncementsView(collectionIdNumber, 'latestAnnouncements') ?? []}
+              <AnnouncementsTab announcements={getCollectionAnnouncementsView(collection, 'latestAnnouncements') ?? []}
                 collectionId={collectionIdNumber}
                 fetchMore={async () => {
-                  await collections.fetchNextForViews(collectionIdNumber, ['latestAnnouncements']);
+                  await fetchNextForCollectionViews(collectionIdNumber, ['latestAnnouncements']);
                 }}
-                hasMore={collections.getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
+                hasMore={getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
               />
             </>
           )}

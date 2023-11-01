@@ -1,9 +1,7 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { CollectionApprovalPermissionWithDetails, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -11,6 +9,7 @@ import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 
@@ -47,33 +46,16 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 }
 
 export function FreezeSelectStepItem() {
-
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
   const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
   const [selectedIdx, setSelectedIdx] = useState<number>(3);
   const [err, setErr] = useState<Error | null>(null);
-  const allMintAmountTrackerIds = collection ? getMintApprovals(collection).map(x => x.amountTrackerId) : [];
-  const allMintChallengeTrackerIds = collection ? getMintApprovals(collection).map(x => x.challengeTrackerId) : [];
-  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.amountTrackerId) : [];
-  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(collection).map(x => x.challengeTrackerId) : [];
-
-
-
-  const allIdsString = JSON.stringify(allMintAmountTrackerIds) + JSON.stringify(allMintChallengeTrackerIds) + JSON.stringify(allNonMintAmountTrackerIds) + JSON.stringify(allNonMintChallengeTrackerIds);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("FreezeSelectStepItem", { allMintAmountTrackerIds, allMintChallengeTrackerIds, allNonMintAmountTrackerIds, allNonMintChallengeTrackerIds })
-    handleSwitchChange(lastClickedIdx, lastClickedFrozen);
-  }, [allIdsString])
-
-
-  if (!collection) return EmptyStepItem;
-
-  const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
-
+  const allMintAmountTrackerIds = collection ? getMintApprovals(collection.collectionApprovals).map(x => x.amountTrackerId) : [];
+  const allMintChallengeTrackerIds = collection ? getMintApprovals(collection.collectionApprovals).map(x => x.challengeTrackerId) : [];
+  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(collection.collectionApprovals).map(x => x.amountTrackerId) : [];
+  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(collection.collectionApprovals).map(x => x.challengeTrackerId) : [];
 
   const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
@@ -145,7 +127,7 @@ export function FreezeSelectStepItem() {
   const handleSwitchChange = (idx: number, locked?: boolean) => {
 
 
-    collections.updateCollection({
+    updateCollection({
       collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canUpdateCollectionApprovals: getPermissionsToSet(idx, locked)
@@ -155,7 +137,20 @@ export function FreezeSelectStepItem() {
     setSelectedIdx(idx);
   }
 
+  //This useEffect is used for updating the selected permissions when the approvals change behind the scenes (i.e. not on this step).
+  //Since they are not on this step, we use their latest selected values
+  //Approvals cannot change while on this step, so this useEffect is only used when the user is not on this step.
+  //Anything on this step is handled via other onClicks
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log("FreezeSelectStepItem")
+    if (lastClickedIdx !== -1) {
+      handleSwitchChange(lastClickedIdx, lastClickedFrozen);
+    }
+  }, [collection?.collectionApprovals])
 
+
+  if (!collection) return EmptyStepItem;
+  const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
 
   const AdditionalNode = () => {
     return <>

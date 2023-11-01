@@ -3,17 +3,18 @@ import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps
 import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/cosmos-sdk/transactions';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { useAccount, fetchAccountsWithOptions } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Step } = Steps;
 
@@ -45,7 +46,7 @@ export function TxModal(
   }
 ) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
+
   const router = useRouter();
   const statusContext = useStatusContext();
 
@@ -61,30 +62,33 @@ export function TxModal(
   const [simulated, setSimulated] = useState(false);
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
 
-  const gasPrice = Number(statusContext.status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(statusContext.status.lastXGasLimits.reduce((a, b) => a + b, 0n));
+  const signedInAccount = useAccount(chain.cosmosAddress);
 
 
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
-  const fee = {
-    amount: `${amount}`,
-    denom: 'badge',
-    gas: `${simulatedGas}`,
-  }
+  const fee = useMemo(() => {
+    return {
+      amount: `${amount}`,
+      denom: 'badge',
+      gas: `${simulatedGas}`,
+    }
+  }, [amount, simulatedGas]);
 
-  const txDetails = {
-    chain: {
-      ...CHAIN_DETAILS,
-      chain: chain.chain as any,
-    },
-    sender: {
-      accountAddress: signedInAccount?.cosmosAddress ?? "",
-      sequence: signedInAccount?.sequence ?? "0",
-      accountNumber: signedInAccount?.accountNumber ?? "0",
-      pubkey: signedInAccount?.publicKey ?? "",
-    },
-    fee,
-    memo: '',
-  }
+  const txDetails = useMemo(() => {
+    return {
+      chain: {
+        ...CHAIN_DETAILS,
+        chain: chain.chain as any,
+      },
+      sender: {
+        accountAddress: signedInAccount?.cosmosAddress ?? "",
+        sequence: signedInAccount?.sequence ?? "0",
+        accountNumber: signedInAccount?.accountNumber ?? "0",
+        pubkey: signedInAccount?.publicKey ?? "",
+      },
+      fee,
+      memo: '',
+    }
+  }, [chain.chain, signedInAccount, fee]);
 
 
   let exceedsBalance = false;
@@ -102,6 +106,12 @@ export function TxModal(
     exceedsBalance = false;
   }
 
+  const updateStatus = useCallback(async () => {
+    const status = await statusContext.updateStatus();
+    return status;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: amount');
     //Simulates the transaction and sets the expected gas to be used.
@@ -114,6 +124,9 @@ export function TxModal(
       try {
         if (!signedInAccount) return;
 
+        const status = await updateStatus();
+
+        const gasPrice = Number(status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(status.lastXGasLimits.reduce((a, b) => a + b, 0n));
 
         let cosmosMsg = txCosmosMsg;
         if (beforeTx) {
@@ -166,13 +179,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [currentStep, visible, signedInAccount?.cosmosAddress, gasPrice]);
-
-  useEffect(() => {
-    if (!visible) return
-    if (INFINITE_LOOP_MODE) console.log('useEffect: status');
-    statusContext.updateStatus();
-  }, [visible]);
+  }, [currentStep, visible, signedInAccount, beforeTx, txCosmosMsg, createTxFunction, chain, msgSteps, updateStatus]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);
@@ -289,7 +296,7 @@ export function TxModal(
         }
       }
 
-      await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+      await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
 
 
       //If it is a new collection, redirect to collection page

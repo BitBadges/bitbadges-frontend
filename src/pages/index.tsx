@@ -3,10 +3,10 @@ import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
-import { useCollectionsContext } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
 import { COSMOS_LOGO, ETH_LOGO } from '../constants';
+import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export const LandingCard = ({ content, customClass, }: {
@@ -69,7 +69,7 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const collections = useCollectionsContext();
+
 
   const featuredBadges = [
     {
@@ -115,7 +115,7 @@ const Home: NextPage = () => {
   ];
 
   useEffect(() => {
-    collections.batchFetchAndUpdateMetadata([{
+    batchFetchAndUpdateMetadata([{
       collectionId: 1n,
       metadataToFetch: {
         badgeIds: [{ start: 1n, end: 10n }],

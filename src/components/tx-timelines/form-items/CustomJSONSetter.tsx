@@ -4,7 +4,8 @@ import { Button, Col, Input, Row, Typography } from 'antd';
 import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 
 
 export const validateUintRangeArr = (val: any) => {
@@ -32,8 +33,8 @@ export function JSONSetter({
   customSetValueFunction?: (val: any) => void
 }) {
 
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const [inputJson, setInputJson] = useState<string>('');
 
@@ -53,7 +54,7 @@ export function JSONSetter({
       const isValid = preClean(val);
       if (!isValid) return;
 
-      collections.updateCollection({
+      updateCollection({
         collectionId: collection.collectionId,
         [`${jsonPropertyPath}`]: val
       });
@@ -61,7 +62,7 @@ export function JSONSetter({
       const isValid = preClean(val);
       if (!isValid) return;
 
-      collections.updateCollection({
+      updateCollection({
         collectionId: collection.collectionId,
         collectionPermissions: {
           ...collection.collectionPermissions,

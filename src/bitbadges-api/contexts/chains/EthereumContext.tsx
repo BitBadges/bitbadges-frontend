@@ -7,13 +7,14 @@ import { SupportedChain, createTxRawEIP712, signatureToWeb3Extension } from 'bit
 import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetUri } from 'blockin';
 import { ethers } from 'ethers';
-import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { useAccount } from "wagmi";
+import { useAccount as useWeb3Account } from "wagmi";
 import { CHAIN_DETAILS } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
-import { useAccountsContext } from '../accounts/AccountsContext';
+
 import { ChainSpecificContextType } from '../ChainContext';
+import { fetchAccountsWithOptions, setPublicKey, useAccount } from '../accounts/AccountsContext';
 
 
 export type EthereumContextType = ChainSpecificContextType & {
@@ -51,7 +52,7 @@ type Props = {
 };
 
 export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
-  const accountsContext = useAccountsContext();
+
 
   const [chainId, setChainId] = useState<string>('Mainnet');
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
@@ -59,35 +60,14 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
   const { open } = useWeb3Modal();
-  const web3AccountContext = useAccount();
+  const web3AccountContext = useWeb3Account();
   const address = web3AccountContext.address || '';
   const cosmosAddress = convertToCosmosAddress(address);
   const connected = web3AccountContext.address ? true : false;
   const setConnected = () => { }
+  const account = useAccount(cosmosAddress)
 
-  const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
-    viewKey: 'badgesCollected',
-    bookmark: '',
-  }, {
-    viewKey: 'latestActivity',
-    bookmark: '',
-  }, {
-    viewKey: 'latestAnnouncements',
-    bookmark: '',
-  }, {
-    viewKey: 'latestReviews',
-    bookmark: '',
-  }, {
-    viewKey: 'addressMappings',
-    bookmark: '',
-  }, {
-    viewKey: 'explicitlyIncludedAddressMappings',
-    bookmark: ''
-  },
-  {
-    viewKey: 'explicitlyExcludedAddressMappings',
-    bookmark: ''
-  }]
+
 
   const selectedChainInfo = {};
   const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
@@ -95,15 +75,36 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   //If you would like to support this, you can call this with a useEffect every time connected or address is updated
   const ownedAssetIds: string[] = [];
 
-  useEffect(() => {
-    if (web3AccountContext.address) {
-      connect();
-
-    }
-  }, [web3AccountContext.address]);
-
   const connect = async () => {
-    if (!web3AccountContext.address) {
+    await connectAndPopulate(web3AccountContext.address ?? '', cookies.blockincookie);
+  }
+
+  const connectAndPopulate = useCallback(async (address: string, cookie: string) => {
+    const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
+      viewKey: 'badgesCollected',
+      bookmark: '',
+    }, {
+      viewKey: 'latestActivity',
+      bookmark: '',
+    }, {
+      viewKey: 'latestAnnouncements',
+      bookmark: '',
+    }, {
+      viewKey: 'latestReviews',
+      bookmark: '',
+    }, {
+      viewKey: 'addressMappings',
+      bookmark: '',
+    }, {
+      viewKey: 'explicitlyIncludedAddressMappings',
+      bookmark: ''
+    },
+    {
+      viewKey: 'explicitlyExcludedAddressMappings',
+      bookmark: ''
+    }]
+
+    if (!address) {
       try {
         await open();
 
@@ -113,10 +114,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           description: 'Make sure you have a compatible Ethereum wallet installed (such as MetaMask) and that you are signed in to it.',
         })
       }
-    } else if (web3AccountContext.address) {
+    } else if (address) {
 
       let loggedIn = false;
-      if (cookies.blockincookie === convertToCosmosAddress(web3AccountContext.address)) {
+      if (cookie === convertToCosmosAddress(address)) {
         const signedInRes = await checkIfSignedIn({});
         setLoggedIn(signedInRes.signedIn);
         loggedIn = signedInRes.signedIn;
@@ -138,14 +139,21 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       }
 
 
-      await accountsContext.fetchAccountsWithOptions([{
-        address: web3AccountContext.address,
+      await fetchAccountsWithOptions([{
+        address: address,
         fetchSequence: true,
         fetchBalance: true,
         viewsToFetch
       }]);
     }
-  }
+  }, [open]);
+
+  useEffect(() => {
+    if (web3AccountContext.address) {
+      connectAndPopulate(web3AccountContext.address, cookies.blockincookie);
+    }
+  }, [web3AccountContext.address]);
+
 
   const disconnect = async () => {
     setLoggedIn(false);
@@ -165,14 +173,13 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     const pubKeyHex = pubKey.substring(2);
     const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
     const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
-    accountsContext.setPublicKey(cosmosAddress, base64PubKey);
+    setPublicKey(cosmosAddress, base64PubKey);
     setCookies('pub_key', `${cosmosAddress}-${base64PubKey}`, { path: '/' });
 
     return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
-    const account = accountsContext.getAccount(cosmosAddress);
     if (!account) throw new Error('Account not found.');
 
     const chain = { ...CHAIN_DETAILS, chain: SupportedChain.ETH };
@@ -206,7 +213,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
   const getPublicKey = async (_cosmosAddress: string) => {
     try {
-      const currAccount = accountsContext.getAccount(_cosmosAddress);
+      const currAccount = account;
 
       //If we have stored the public key in cookies, use that instead (for Ethereum)
       if (currAccount && cookies.pub_key && cookies.pub_key.split('-')[0] === currAccount.cosmosAddress) {
@@ -233,10 +240,9 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
       const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
       console.log("base64PubKey", base64PubKey);
-      accountsContext.setPublicKey(_cosmosAddress, base64PubKey);
+      setPublicKey(_cosmosAddress, base64PubKey);
       setCookies('pub_key', `${_cosmosAddress}-${base64PubKey}`, { path: '/' });
 
-      console.log(accountsContext.getAccount(_cosmosAddress));
       return base64PubKey;
     } catch (e) {
       console.log(e);

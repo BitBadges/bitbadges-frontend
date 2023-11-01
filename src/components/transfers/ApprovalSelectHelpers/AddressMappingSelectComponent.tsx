@@ -2,7 +2,7 @@ import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Typography, Divider } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
 import { castBalancesActionPermissionToUniversalPermission, BalancesActionPermissionUsedFlags, sortUintRangesAndMergeIfNecessary, invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -10,6 +10,7 @@ import { AddressMappingSelect } from "../../address/AddressMappingSelect";
 import { BalanceDisplay } from "../../badges/balances/BalanceDisplay";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { RequiredApprovalProps } from "../ApprovalSelect";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export const AddressMappingSelectComponent = ({
   approvalToAdd, setApprovalToAdd,
@@ -22,7 +23,7 @@ export const AddressMappingSelectComponent = ({
   collectionId: bigint
   nonMintOnlyApproval?: boolean
 }) => {
-  const collections = useCollectionsContext();
+
 
   const key = type === 'to' ? 'toMapping' : type === 'initiatedBy' ? 'initiatedByMapping' : 'fromMapping';
   const idKey = type === 'to' ? 'toMappingId' : type === 'initiatedBy' ? 'initiatedByMappingId' : 'fromMappingId';
@@ -37,7 +38,7 @@ export const AddressMappingSelectComponent = ({
     });
   }
 
-  const collection = collections.getCollection(collectionId);
+  const collection = useCollection(collectionId);
   if (!collection) return <></>;
 
   const lockedBadges = getPermissionDetails(

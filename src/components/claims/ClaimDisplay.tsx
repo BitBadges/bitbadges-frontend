@@ -6,8 +6,9 @@ import MerkleTree from "merkletreejs";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaUsesPredeterminedBalances } from "../../bitbadges-api/utils/claims";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressSelect } from "../address/AddressSelect";
@@ -39,9 +40,9 @@ export function ClaimDisplay({
 }) {
   const chain = useChainContext();
   const router = useRouter();
-  const accounts = useAccountsContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+
+  const collection = useCollection(collectionId)
 
   const approvalCriteria = approval.approvalCriteria;
   const details = approval.details;
@@ -62,7 +63,7 @@ export function ClaimDisplay({
   const [code, setCode] = useState<string>("");
   const [whitelistIndex, setWhitelistIndex] = useState<number>();
   const [recipient, setRecipient] = useState<string>(chain.address);
-  const recipientAccount = accounts.getAccount(recipient);
+  const recipientAccount = useAccount(recipient);
 
   const openModal = (leafIndex?: number) => {
     setWhitelistIndex(leafIndex);
@@ -80,7 +81,7 @@ export function ClaimDisplay({
       }) ?? [], SHA256, approval.details?.challengeDetails?.treeOptions);
       setTree(tree);
     }
-  }, [merkleChallenge]);
+  }, [approval, merkleChallenge]);
 
 
   //auto populate if navigated to page with a URL query (e.g. QR code)

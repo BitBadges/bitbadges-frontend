@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Divider, Typography } from "antd";
 import { useEffect } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { getAccount, useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressListSelect } from "../address/AddressListSelect";
 
@@ -19,8 +19,8 @@ export function RecipientsSelectStep({
     setNumRecipients: (numRecipients: bigint) => void
   }
 ) {
-  const accounts = useAccountsContext();
-  const senderAccount = accounts.getAccount(sender);
+
+  const senderAccount = useAccount(sender);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: recipients select step, fetch accounts ');
@@ -31,7 +31,7 @@ export function RecipientsSelectStep({
   //This is relic code. Can probably be removed.
   let forbiddenUsersMap: { [cosmosAddress: string]: string } = {}; //Map of cosmosAddress to an error message
   for (const address of toAddresses) {
-    const account = accounts.getAccount(address);
+    const account = getAccount(address);
     if (!account) {
       forbiddenUsersMap[address] = `Address not found.`;
       continue;

@@ -1,8 +1,9 @@
 import { Col, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { BadgeAvatar } from './BadgeAvatar';
 import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 const { Text } = Typography;
 
@@ -13,8 +14,8 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
   metadataOverride?: Metadata<bigint>
 }) {
   const router = useRouter();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
   const collectionMetadata = collection?.cachedCollectionMetadata;
 

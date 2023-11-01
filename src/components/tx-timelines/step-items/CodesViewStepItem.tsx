@@ -1,15 +1,16 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { CodesAndPasswords } from "bitbadgesjs-utils";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { ClaimsTab } from "../../collection-page/ClaimsTab";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CodesViewStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
-  const approvalDetails = collections.getCollection(NEW_COLLECTION_ID)?.collectionApprovals.map(x => x.details);
+  const collection = useCollection(NEW_COLLECTION_ID);
+
+  const approvalDetails = collection?.collectionApprovals.map(x => x.details);
   const codesAndPasswords: CodesAndPasswords[] = approvalDetails?.map(x => !x ? { codes: [], password: '', cid: '' } : { codes: x.challengeDetails.leavesDetails.preimages ?? [], password: x.challengeDetails.password ?? '', cid: '' }) ?? [];
 
   if (codesAndPasswords.every(x => x.codes.length === 0) || !collection) {

@@ -2,9 +2,10 @@ import { Spin, Tooltip, Typography } from 'antd';
 import { cosmosToEth } from 'bitbadgesjs-address-converter';
 import { BigIntify, MINT_ACCOUNT, SupportedChain, convertBitBadgesUserInfo, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { AddressDisplay } from './AddressDisplay';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Text } = Typography;
 
@@ -26,10 +27,10 @@ export function Address({
   doNotShowName?: boolean;
 }) {
   const router = useRouter();
-  const accounts = useAccountsContext();
+
 
   const chainContext = useChainContext();
-  const fetchedAccount = accounts.getAccount(addressOrUsername);
+  const fetchedAccount = useAccount(addressOrUsername);
 
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
     ...fetchedAccount,

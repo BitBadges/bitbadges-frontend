@@ -1,11 +1,12 @@
 import { Dropdown, Input } from 'antd';
 import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { SearchDropdown } from '../navigation/SearchDropdown';
 import { MinusOutlined, SwapOutlined } from '@ant-design/icons';
 import IconButton from '../display/IconButton';
 import { AddressDisplay } from './AddressDisplay';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -25,8 +26,8 @@ export function AddressSelect({
   allowMintSearch?: boolean
   switchable?: boolean
 }) {
-  const accounts = useAccountsContext();
-  const defaultAccount = defaultValue ? accounts.getAccount(defaultValue) : undefined;
+
+  const defaultAccount = useAccount(defaultValue);
 
   const [changed, setChanged] = useState<boolean>(false);
   const [input, setInput] = useState<string>(defaultAccount ? defaultAccount?.address : '');
@@ -73,7 +74,7 @@ export function AddressSelect({
     <div className='full-width'>
       {switchable &&
         <div className='flex-center flex-wrap dark:text-white'>
-          <AddressDisplay  addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
+          <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
         </div>
       }
       {showSelect && AddressInput}

@@ -10,7 +10,7 @@ import {
 import { Divider, Tag, Tooltip } from 'antd';
 import { BadgeMetadataTimeline, CollectionMetadataTimeline, ContractAddressTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
 import { Metadata, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
@@ -18,6 +18,9 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { useEffect } from 'react';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 
 //TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
@@ -31,8 +34,8 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   isAddressListDisplay?: boolean,
   metadataUrl?: string
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const isCollectionInfo = !badgeId;
@@ -46,6 +49,10 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   } else if (collection?.balancesType === "Inherited") {
     balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
   }
+
+  useEffect(() => {
+    fetchAccounts([collection?.createdBy ?? '', ...collection?.managerTimeline.map(x => x.manager) ?? []])
+  }, [collection])
 
   return (
     <>

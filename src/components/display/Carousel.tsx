@@ -14,9 +14,8 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
   const [currPage, setCurrPage] = React.useState(page ?? 0);
 
   return (
-    <div className="custom-carousel dark:text-white">
+    <div className="dark:text-white">
       <div className='flex-between flex-wrap'>
-
         {title}
         <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
           <Button
@@ -57,7 +56,9 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
           </div>
         </div>
       </div>
-      <Carousel dots={false}
+
+      <Carousel
+        dots={false}
         swipeToSlide={true}
         swipe={true}
         onSwipe={(direction) => {
@@ -80,13 +81,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
           }
         }}
       >
-        {items.map((_, i) => (
-          <div key={i}>
-            {
-              total ? items[0] :
-                items[currPage]}
-          </div>
-        ))}
+        {items[currPage]}
       </Carousel>
 
     </div>

@@ -3,8 +3,8 @@ import { convertToCosmosAddress, getCurrentValueForTimeline } from "bitbadgesjs-
 import { useEffect, useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useAccountsContext } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
+
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressSelect } from "../../address/AddressSelect";
 import { BlockiesAvatar } from "../../address/Blockies";
@@ -12,20 +12,22 @@ import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { DevMode } from "../../common/DevMode";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { useAccount } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
+import { useCollection, updateCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function ConfirmManagerStepItem() {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const canUpdateManager = txTimelineContext.updateManagerTimeline;
   const setCanUpdateManager = txTimelineContext.setUpdateManagerTimeline;
 
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
-  const signedInAccount = accounts.getAccount(chain.address);
-  const currentManagerAccount = accounts.getAccount(currentManager);
+  const signedInAccount = useAccount(chain.address);
+  const currentManagerAccount = useAccount(currentManager);
 
   const [address, setAddress] = useState<string>(currentManagerAccount?.address || signedInAccount?.address || '');
   const [err, setErr] = useState<Error | null>(null);
@@ -74,12 +76,12 @@ export function ConfirmManagerStepItem() {
                 showCustomOption
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       managerTimeline: [],
                     })
                   } else {
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       managerTimeline: [{
                         manager: convertToCosmosAddress(address),
@@ -110,8 +112,8 @@ export function ConfirmManagerStepItem() {
                         size={150}
                         src={
                           <BlockiesAvatar
-                            address={accounts.getAccount(currentManager)?.address ?? ''}
-                            avatar={accounts.getAccount(currentManager)?.profilePicUrl ?? accounts.getAccount(currentManager)?.avatar}
+                            address={currentManagerAccount?.address ?? ''}
+                            avatar={currentManagerAccount?.profilePicUrl ?? currentManagerAccount?.avatar}
                             fontSize={150}
                             shape='circle'
                           />
@@ -123,7 +125,7 @@ export function ConfirmManagerStepItem() {
                           onUserSelect={(address) => {
                             console.log("USER SELECT")
                             setAddress(address);
-                            collections.updateCollection({
+                            updateCollection({
                               collectionId: NEW_COLLECTION_ID,
                               managerTimeline: [{
                                 manager: convertToCosmosAddress(address),

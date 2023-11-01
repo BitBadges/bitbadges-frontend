@@ -1,20 +1,27 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getNonMintApprovals, getMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function DistributionMethodStepItem() {
 
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
+  const collection = useCollection(NEW_COLLECTION_ID);
+  const approvalsToAdd = collection?.collectionApprovals ?? [];
+  const setApprovalsToAdd = (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      collectionApprovals: approvalsToAdd
+    })
+  }
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
@@ -31,7 +38,6 @@ export function DistributionMethodStepItem() {
         <div className='flex-center full-width' style={{ textAlign: 'center' }}>
           <TransferabilityTab
             onDelete={(approvalId: string) => {
-              const approvalsToAdd = txTimelineContext.approvalsToAdd;
               const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
 
               let hasValidateUpdateError = null;
@@ -44,7 +50,7 @@ export function DistributionMethodStepItem() {
               }
 
               //Overwrite duplicate approval IDs
-              txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+              setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
             }}
             editable
             showDeletedGrayedOut
@@ -91,7 +97,7 @@ export function DistributionMethodStepItem() {
               const prevMint = startingCollection ? getMintApprovals(startingCollection) : [];
               const currentNonMint = getNonMintApprovals(collection);
 
-              collections.updateCollection({
+              updateCollection({
                 collectionId: NEW_COLLECTION_ID,
                 collectionApprovals: [
                   ...prevMint,

@@ -46,7 +46,7 @@ export function InformationDisplayCard({
         border: noBorder ? undefined : '1px solid darkgrey',
         background: inheritBg ? 'inherit' : undefined,
         borderRadius: 10, height: '100%',
-        padding: 8
+        padding: 14
       }}>
         {title &&
           <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>

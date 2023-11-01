@@ -2,25 +2,24 @@ import { Col, Row } from "antd";
 import { getUintRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { DistributionOverview } from "../badges/DistributionCard";
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 export function OverviewTab({
   collectionId,
-  addressOrUsername,
 }: {
   collectionId: bigint,
-  addressOrUsername?: string,
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
   if (!collection) return <></>;
 
@@ -38,7 +37,6 @@ export function OverviewTab({
             showIds
             size={75}
             collectionId={collectionId}
-            addressOrUsernameToShowBalance={addressOrUsername}
             badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={'100%'}
           // doNotAdaptToWidth

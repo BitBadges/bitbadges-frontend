@@ -3,15 +3,16 @@ import { useState } from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
 import { getUintRangesForAllBadgeIdsInCollection } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function BadgesTab({ collectionId }: {
   collectionId: bigint
 }) {
   const [cardView, setCardView] = useState(true);
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
   return (
     <div className='dark:text-white full-width'>

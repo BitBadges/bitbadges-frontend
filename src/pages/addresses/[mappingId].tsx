@@ -7,7 +7,9 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
 import { AddressSelect } from '../../components/address/AddressSelect';
@@ -26,15 +28,14 @@ const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 function AddressMappingPage() {
   const router = useRouter()
-  const accounts = useAccountsContext();
+
   const { mappingId } = router.query;
 
   const [tab, setTab] = useState('overview');
   const [mapping, setMapping] = useState<AddressMappingInfo<bigint>>();
   const [metadata, setMetadata] = useState<Metadata<bigint>>();
 
-  const HtmlToReactParser = HtmlToReact.Parser();
-  const [reactElement, setReactElement] = useState(HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : '')));
+  const [reactElement, setReactElement] = useState(HtmlToReact.Parser().parse(mdParser.render(metadata?.description ? metadata?.description : '')));
 
   const [addressToCheck, setAddressToCheck] = useState<string>('');
 
@@ -74,11 +75,11 @@ function AddressMappingPage() {
 
       setMapping(mapping);
 
-      await accounts.fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
+      await fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
       if (mapping.metadata) {
         setMetadata(mapping.metadata);
         if (mapping.metadata?.description) {
-          setReactElement(HtmlToReactParser.parse(mdParser.render(mapping.metadata?.description)));
+          setReactElement(HtmlToReact.Parser().parse(mdParser.render(mapping.metadata?.description)));
         }
       }
     }
@@ -97,6 +98,8 @@ function AddressMappingPage() {
     { key: 'history', content: 'Update History' },
     { key: 'actions', content: 'Actions' },
   );
+
+  const isOnChain = mapping?.mappingId && mapping.mappingId.indexOf('_') < 0
 
   return (
     <Content
@@ -127,6 +130,15 @@ function AddressMappingPage() {
         {tab === 'history' && <>
           <div className='dark:text-white'>
             <br />
+            {!isOnChain &&
+              <div className='text-gray-400'>
+                <InfoCircleOutlined /> This address list is stored off-chain via the BitBadges servers. The creator can update or delete this list at any time.
+              </div>}
+            {isOnChain &&
+              <div className='text-gray-400'>
+                <InfoCircleOutlined /> This address list is stored on-chain. The list is permanently frozen and non-deletable.
+              </div>}
+            <br />
             {mapping?.updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
               return <TxHistory tx={update} key={i} creationTx={i == 0} />
             })}
@@ -155,7 +167,7 @@ function AddressMappingPage() {
                   <InformationDisplayCard
                     title="Info"
                   >
-                    {mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
+                    {isOnChain && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
                     {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
                     {mapping?.createdBy && <TableRow label={"Created By"} value={
                       <div className='flex-between' style={{ textAlign: 'right' }}>
@@ -168,7 +180,7 @@ function AddressMappingPage() {
                         </div>
                       </div>
                     } labelSpan={9} valueSpan={15} />}
-                    <TableRow label={"Storage"} value={mapping?.mappingId && mapping.mappingId.indexOf('_') < 0 ?
+                    <TableRow label={"Storage"} value={isOnChain ?
                       "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                   </InformationDisplayCard>
                   <br />

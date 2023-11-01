@@ -4,11 +4,14 @@ import { searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
+
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchBalanceForUser, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+
 
 
 export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress }: {
@@ -18,16 +21,17 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   defaultAddress?: string;
 }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+
+  const collection = useCollection(collectionId);
 
   const isPreview = collectionId === NEW_COLLECTION_ID;
 
-  const signedInAccount = accounts.getAccount(chain.address);
+  const signedInAccount = useAccount(chain.address);
 
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(defaultAddress || signedInAccount?.username || signedInAccount?.address || '');
+  const account = useAccount(addressOrUsername);
 
   const DELAY_MS = 500;
 
@@ -36,13 +40,14 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
     async function refreshBalance() {
       try {
-        if (!addressOrUsername) return;
+        if (!account || !account.address) return;
+        if (collectionId === NEW_COLLECTION_ID) return;
 
         //Check both collections and users for the balances
-        const account = accounts.getAccount(addressOrUsername);
         const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
         const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
+        console.log(accountHasBalance, collectionHasBalance);
         if (accountHasBalance) {
           setCurrBalances(accountHasBalance.balances);
           return;
@@ -51,7 +56,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
           return;
         }
 
-        const balance = await collections.fetchBalanceForUser(collectionId, addressOrUsername);
+        const balance = await fetchBalanceForUser(collectionId, account.address);
         setCurrBalances(balance.balances);
         return;
       } catch (e) { }
@@ -64,7 +69,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [addressOrUsername, collectionId]);
+  }, [collectionId, account, collection]);
 
   if (!collection) return <></>;
 

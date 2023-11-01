@@ -1,6 +1,6 @@
 import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
@@ -8,11 +8,12 @@ import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSel
 import { SwitchForm } from "../form-items/SwitchForm";
 import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CanArchiveCollectionStepItem() {
 
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
@@ -39,7 +40,7 @@ export function CanArchiveCollectionStepItem() {
 
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
 
-    collections.updateCollection({
+    updateCollection({
       collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canArchiveCollection: idx === 0 ? [{

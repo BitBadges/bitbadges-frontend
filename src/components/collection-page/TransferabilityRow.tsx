@@ -1,18 +1,19 @@
 import { CheckCircleFilled, CloseCircleFilled, CloseOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Drawer, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, removeUintRangeFromUintRange, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+
+
+import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
-import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
+import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressDisplayList } from '../address/AddressDisplayList';
 import { AddressSelect } from '../address/AddressSelect';
@@ -295,9 +296,9 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 
   const claim = transfer.approvalCriteria?.merkleChallenge
   const approval = transfer;
-  const collections = useCollectionsContext();
-  const accounts = useAccountsContext();
-  const collection = collections.getCollection(collectionId);
+
+
+  const collection = useCollection(collectionId);
 
   const approvalCriteria = transfer.approvalCriteria;
   const calculationMethod = transfer.approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
@@ -314,9 +315,9 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
   useEffect(() => {
     //fetch accounts as needed if we iterate through whitelist
     if (claim?.useCreatorAddressAsLeaf && approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber]) {
-      accounts.fetchAccounts([approvalCriteria?.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
+      fetchAccounts([approvalCriteria?.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
     }
-  }, [orderNumber, claim]);
+  }, [orderNumber, claim, approval, approvalCriteria]);
 
 
   const numIncrements = approvalTracker?.numTransfers ?? 0n;
@@ -324,7 +325,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set claim number');
     if (numIncrements > 0n) setOrderNumber(Number(numIncrements));
-  }, [numIncrements]);
+  }, [numIncrements, setOrderNumber]);
 
   const incrementedBalances = transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.map(x => {
     return {
@@ -507,9 +508,9 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   collectionId: bigint,
   showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType: 'list' | 'card', trackedBehindTheScenes?: boolean
 }) => {
-  const collections = useCollectionsContext();
-  const accounts = useAccountsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const account = useAccount(address ?? '');
+  const collection = useCollection(collectionId);
 
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.maxNumTransfers) return null;
 
@@ -535,7 +536,7 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   const limit = transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] ?? 0n;
 
   const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
-    && y.approvedAddress === (type === "overall" ? "" : accounts.getAccount(address ?? '')?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
+    && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
   const percent = (Number(numUsed) / Number(transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey])) * 100;
   return <>
     {componentType === 'list' && <>
@@ -581,9 +582,9 @@ const ApprovalAmountsComponent = ({
     collectionId: bigint,
     showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType?: 'list' | 'card'
   }) => {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
-  const accounts = useAccountsContext();
+
+  const collection = useCollection(collectionId);
+  const account = useAccount(address ?? '');
 
   if (!transfer.approvalCriteria || !transfer.approvalCriteria?.approvalAmounts) return null;
 
@@ -609,7 +610,7 @@ const ApprovalAmountsComponent = ({
   if (!(transfer.approvalCriteria?.approvalAmounts && transfer.approvalCriteria?.approvalAmounts[approvalAmountsKey] > 0)) return null;
 
   const approvedAmounts = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
-    && y.approvedAddress === (type === "overall" ? "" : accounts.getAccount(address ?? '')?.cosmosAddress ?? ''))?.amounts ?? [{
+    && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.amounts ?? [{
       amount: 0n,
       badgeIds: transfer.badgeIds,
       ownershipTimes: transfer.ownershipTimes,
@@ -684,8 +685,8 @@ export function TransferabilityRow({
     expandedSingleView?: boolean,
     mobileFriendly?: boolean,
   }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
   const [showMoreIsVisible, setShowMoreIsVisible] = useState(expandedSingleView ? true : false);
   const [editIsVisible, setEditIsVisible] = useState(false);
   const [orderNumber, setOrderNumber] = useState(0);
@@ -733,7 +734,7 @@ export function TransferabilityRow({
       });
     }
 
-    await collections.fetchCollectionsWithOptions([{
+    await fetchCollectionsWithOptions([{
       collectionId,
       viewsToFetch: [],
       merkleChallengeIdsToFetch: [{
@@ -753,6 +754,8 @@ export function TransferabilityRow({
       duration: 5,
     });
   }
+
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
     if (collectionId > 0 && showMoreIsVisible) {
@@ -776,7 +779,7 @@ export function TransferabilityRow({
           });
         }
 
-        collections.fetchCollectionsWithOptions([{
+        fetchCollectionsWithOptions([{
           collectionId,
           viewsToFetch: [],
           merkleChallengeIdsToFetch: [{
@@ -792,7 +795,7 @@ export function TransferabilityRow({
 
       fetchTrackers();
     }
-  }, [collectionId, challengeTrackerId, showMoreIsVisible]);
+  }, [collectionId, challengeTrackerId, showMoreIsVisible, approval, approvalLevel, approverAddress, approvalCriteria, chain.cosmosAddress]);
 
   const router = useRouter();
   const query = router.query;
@@ -811,7 +814,7 @@ export function TransferabilityRow({
 
 
     }
-  }, [query.approvalId]);
+  }, [query.approvalId, approval.approvalId]);
 
   //Only show rows that have at least one address (after filtration)
   if ((toAddresses.length == 0 && transfer.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && transfer.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && transfer.fromMapping.includeAddresses)) {
@@ -1062,6 +1065,8 @@ export function TransferabilityRow({
     isRefreshing = true;
   }
 
+
+
   const InnerContent = ({ expandedView }: { expandedView: boolean }) => {
     const TableRowContent = ({ expandedView, rowView }: { expandedView: boolean, rowView: boolean }) => {
       return <div className='overflow-x-auto'>
@@ -1075,6 +1080,7 @@ export function TransferabilityRow({
         </table>
       </div>
     }
+    console.log('rerender');
 
     return <>
       <br />
@@ -1185,7 +1191,8 @@ export function TransferabilityRow({
             <div className='flex-center'>
               <BadgeAvatarDisplay
                 collectionId={collectionId}
-                badgeIds={removeUintRangeFromUintRange([{ start: getTotalNumberOfBadges(collection) + 1n, end: GO_MAX_UINT_64 }], transfer.badgeIds)[0] || []}
+                badgeIds={transfer.badgeIds}
+                filterGreaterThanMax
                 showIds
               />
 
@@ -1228,7 +1235,7 @@ export function TransferabilityRow({
         />}
       </div></>
   }
-  
+
   return <>
     <Drawer
       title={<>

@@ -1,13 +1,13 @@
 import { Spin } from 'antd';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import RegisterScreen from '../../pages/register';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-
-  const signedInAccount = accounts.getAccount(chain.address);
+  const signedInAccount = useAccount(chain.address);
+  
   const airdropped = signedInAccount?.airdropped;
   const fetched = signedInAccount?.fetchedProfile;
 

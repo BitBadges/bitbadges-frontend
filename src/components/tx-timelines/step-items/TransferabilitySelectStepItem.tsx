@@ -1,10 +1,10 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { Divider } from "antd";
 import { deepCopy } from "bitbadgesjs-proto";
-import { getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails, getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -13,11 +13,19 @@ import IconButton from "../../display/IconButton";
 import { CreateClaims } from "../form-items/CreateClaims";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function TransferabilitySelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
   const txTimelineContext = useTxTimelineContext();
+  const collection = useCollection(NEW_COLLECTION_ID);
+  const approvalsToAdd = collection?.collectionApprovals ?? [];
+  const setApprovalsToAdd = (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      collectionApprovals: approvalsToAdd
+    })
+  }
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
@@ -56,7 +64,7 @@ export function TransferabilitySelectStepItem() {
         const prevNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
         const currentMint = getMintApprovals(collection);
 
-        collections.updateCollection({
+        updateCollection({
           collectionId: NEW_COLLECTION_ID,
           collectionApprovals: [
             ...currentMint,
@@ -86,9 +94,9 @@ export function TransferabilitySelectStepItem() {
             ]}
             onSwitchChange={(idx) => {
               if (idx === 0) {
-                txTimelineContext.setApprovalsToAdd(getMintApprovals(collection));
+                setApprovalsToAdd(getMintApprovals(collection));
               } else if (idx == 1) {
-                txTimelineContext.setApprovalsToAdd([...getMintApprovals(collection), deepCopy(transferableApproval)]);
+                setApprovalsToAdd([...getMintApprovals(collection), deepCopy(transferableApproval)]);
               }
             }}
           />
@@ -101,7 +109,6 @@ export function TransferabilitySelectStepItem() {
               showDeletedGrayedOut
               editable
               onDelete={(approvalId: string) => {
-                const approvalsToAdd = txTimelineContext.approvalsToAdd;
                 const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
 
                 let isValidUpdateError = null;
@@ -113,7 +120,7 @@ export function TransferabilitySelectStepItem() {
                   return;
                 }
 
-                txTimelineContext.setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
+                setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
               }}
               addMoreNode={<>
                 <div className='flex-center'>

@@ -3,8 +3,10 @@ import { Avatar, Menu, Spin, Typography } from 'antd';
 import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
+
+import { updateAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { updateCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 
@@ -21,8 +23,8 @@ export function SearchDropdown({
   onlyCollections?: boolean
   allowMintSearch?: boolean
 }) {
-  const accounts = useAccountsContext();
-  const collections = useCollectionsContext();
+
+
 
   const [searchResponse, setSearchResponse] = useState<GetSearchRouteSuccessResponse<bigint>>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,6 +33,7 @@ export function SearchDropdown({
   const collectionsResults = searchResponse?.collections || [];
   const addressMappingsResults = searchResponse?.addressMappings || [];
   const badgeResults = searchResponse?.badges || [];
+  const mintAccount = useAccount('Mint');
 
   const DELAY_MS = 500;
   useEffect(() => {
@@ -44,7 +47,7 @@ export function SearchDropdown({
 
       const result = await getSearchResults(searchValue);
 
-      const mintAccount = accounts.getAccount('Mint');
+
       if (searchValue === 'Mint' && allowMintSearch && mintAccount) {
         if (!result.accounts.find((a) => a.address === 'Mint')) {
           result.accounts.unshift(mintAccount);
@@ -58,14 +61,14 @@ export function SearchDropdown({
       }
 
       //Update context if we have new accounts or collections
-      accounts.updateAccounts(result.accounts);
+      updateAccounts(result.accounts);
 
       for (const collection of result.collections) {
-        collections.setCollection(collection);
+        updateCollection(collection);
       }
 
       for (const badge of result.badges) {
-        collections.setCollection(badge.collection);
+        updateCollection(badge.collection);
       }
 
       setSearchResponse(result);
@@ -73,7 +76,7 @@ export function SearchDropdown({
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [searchValue]);
+  }, [searchValue, allowMintSearch, mintAccount])
 
 
   //We have three sections of the dropdown:

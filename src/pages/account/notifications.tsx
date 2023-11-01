@@ -1,8 +1,10 @@
 import { Badge, Empty, Layout, Spin, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
+import { AccountViewKey } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountAnnouncementsView, getAccountClaimAlertsView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { ClaimAlertsTab } from '../../components/collection-page/ClaimAlertsTab';
@@ -16,15 +18,22 @@ const { Content } = Layout;
 
 export function Notifications() {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-
-  const signedInAccount = accounts.getAccount(chain.address);
+  const signedInAccount = useAccount(chain.address);
 
   const [tab, setTab] = useState('announcements');
 
-  const transferActivity = accounts.getActivityView(chain.address, 'latestActivity') ?? [];
-  const announcements = accounts.getAnnouncementsView(chain.address, 'latestAnnouncements') ?? [];
-  const claimAlerts = accounts.getClaimAlertsView(chain.address, 'latestClaimAlerts') ?? [];
+  //We only show the transfer activity at first load time (chain.lastSeenActivity)
+  //Anything after that, we don't show and will assume that they see the next time they refresh the page
+  //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
+  //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
+  const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
+  const announcements = (getAccountAnnouncementsView(signedInAccount, 'latestAnnouncements') ?? []).filter((announcement) => announcement.timestamp < (chain.lastSeenActivity));
+  const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
+
+  const listsTab = 'latestAddressMappings';
+  const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
+  const listsView = getAccountAddressMappingsView(signedInAccount, listsTab).filter((addressMapping) => addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp < (chain.lastSeenActivity));
+
 
   const [prevSeenActivity, setPrevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
 
@@ -33,41 +42,33 @@ export function Notifications() {
   const [seenTransferActivity, setSeenTransferActivity] = useState<boolean>(false);
   const [seenAddressMappings, setSeenAddressMappings] = useState<boolean>(false);
 
-  const fetchMore = async () => {
-    if (!signedInAccount) return;
-
-    await accounts.fetchNextForViews(signedInAccount.address, [`${listsTab}`]);
-  }
-
+  const fetchMore = useCallback(async (address: string, viewKey: AccountViewKey) => {
+    await fetchNextForAccountViews(address, [`${viewKey}`]);
+  }, []);
 
 
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, update seen activity');
-    const signedInAccount = accounts.getAccount(chain.address);
+    if (!signedInAccount) return;
 
-
-    if (signedInAccount && chain.connected && chain.loggedIn && chain.address) {
+    if (chain.connected && chain.loggedIn && chain.address) {
       setPrevSeenActivity(Number(signedInAccount?.seenActivity ?? 0n));
       console.log("UPDATING Seen activity", chain.lastSeenActivity);
-      accounts.updateProfileInfo(chain.address, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
+      updateProfileInfo(chain.address, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
-  }, [signedInAccount?.cosmosAddress]);
+  }, [chain.connected, chain.loggedIn, chain.address, chain.lastSeenActivity]);
 
-
-  const listsTab = 'latestAddressMappings';
-  const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
-  const listsView = signedInAccount ? accounts.getAddressMappingsView(signedInAccount.address, listsTab) ?? [] : [];
 
   useEffect(() => {
     const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
-    accounts.fetchAccounts([...new Set(createdBys)]);
+    fetchAccounts([...new Set(createdBys)]);
   }, [listsView]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, fetch accounts');
-    if (hasMoreAddressMappings) fetchMore();
-  }, []);
+    if (hasMoreAddressMappings) fetchMore(chain.address, listsTab);
+  }, [hasMoreAddressMappings, fetchMore, chain.address, listsTab]);
 
 
   const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
@@ -98,7 +99,7 @@ export function Notifications() {
         setSeenAddressMappings(true);
       }, 5000);
     }
-  }, [tab]);
+  }, [tab, seenAnnouncements, seenClaimAlerts, seenTransferActivity, seenAddressMappings]);
 
   const TabComponent = ({ title, count }: { title: string, count: number }) => {
     const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressMappings);
@@ -138,6 +139,19 @@ export function Notifications() {
                 <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
                   Notifications
                 </div>
+                <div className='dark:text-gray-400 flex-center'>
+                  Last Fetched: {new Date(Number(chain.lastSeenActivity)).toLocaleDateString()} {new Date(Number(chain.lastSeenActivity)).toLocaleTimeString()}
+                </div>
+                {/* <div className='flex-center'>
+                  <IconButton
+                    src={<CloudSyncOutlined />}
+                    text='Refresh'
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                  />
+
+                </div> */}
                 <br />
                 <Tabs
                   fullWidth
@@ -169,27 +183,21 @@ export function Notifications() {
                   {tab === 'transferActivity' && <>
                     <br /><ActivityTab
                       activity={transferActivity ?? []}
-                      fetchMore={async () => {
-                        await accounts.fetchNextForViews(chain.address, ['latestActivity']);
-                      }}
-                      hasMore={accounts.getAccount(chain.address)?.views.latestActivity?.pagination.hasMore ?? true}
+                      fetchMore={async () => fetchMore(chain.address, 'latestActivity')}
+                      hasMore={signedInAccount?.views.latestActivity?.pagination.hasMore ?? true}
                     />
                   </>}
 
                   {tab === 'announcements' && <><br /><AnnouncementsTab
                     announcements={announcements ?? []}
-                    fetchMore={async () => {
-                      await accounts.fetchNextForViews(chain.address, ['latestAnnouncements']);
-                    }}
-                    hasMore={accounts.getAccount(chain.address)?.views.latestAnnouncements?.pagination.hasMore ?? true}
+                    fetchMore={async () => fetchMore(chain.address, 'latestAnnouncements')}
+                    hasMore={signedInAccount?.views.latestAnnouncements?.pagination.hasMore ?? true}
                   /></>}
 
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
                     claimAlerts={claimAlerts ?? []}
-                    fetchMore={async () => {
-                      await accounts.fetchNextForViews(chain.address, ['latestClaimAlerts']);
-                    }}
-                    hasMore={accounts.getAccount(chain.address)?.views.latestClaimAlerts?.pagination.hasMore ?? true}
+                    fetchMore={async () => fetchMore(chain.address, 'latestClaimAlerts')}
+                    hasMore={signedInAccount?.views.latestClaimAlerts?.pagination.hasMore ?? true}
                   />
                   </>}
 
@@ -198,8 +206,7 @@ export function Notifications() {
                     <div className='flex-center flex-wrap'>
                       <InfiniteScroll
                         dataLength={listsView.length}
-                        next={fetchMore}
-
+                        next={async () => fetchMore(chain.address, listsTab)}
                         hasMore={hasMoreAddressMappings}
                         loader={<div>
                           <br />

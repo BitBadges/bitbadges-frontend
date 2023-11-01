@@ -8,11 +8,11 @@ import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 const { Text } = Typography;
 
@@ -37,8 +37,8 @@ export const BlockinDisplay = ({
     setChain,
     connected,
   } = useChainContext();
-  const accounts = useAccountsContext();
-  const account = accounts.getAccount(address);
+
+  const account = useAccount(address);
   const avatar = account?.profilePicUrl ?? account?.avatar;
 
 

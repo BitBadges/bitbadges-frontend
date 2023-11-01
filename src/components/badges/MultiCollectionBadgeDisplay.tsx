@@ -1,14 +1,14 @@
 import { Modal, Spin, Tooltip, Typography } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BalanceInfo, Numberify, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { BalanceInfo, BitBadgesUserInfo, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { useEffect, useMemo, useState } from "react";
 
+
+import { getAccountBalancesView, useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { batchFetchAndUpdateMetadata, useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
-import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
@@ -36,6 +36,92 @@ export const filterBadgeIdsFromBalances = (balances: Balance<bigint>[], badgeIds
   return newBalances.filter(x => x.badgeIds.length > 0);
 }
 
+export function CollectionDisplayWithBadges({
+  badgeObj,
+  accountInfo,
+  badgesToShow,
+  defaultPageSize = 10,
+  hideAddress = true,
+  cardView,
+  showCustomizeButtons,
+  addressOrUsernameToShowBalance,
+  hideCollectionLink
+
+}: {
+  badgeObj: { collectionId: bigint, badgeIds: UintRange<bigint>[] }
+  accountInfo?: BitBadgesUserInfo<bigint>
+  badgesToShow?: BalanceInfo<bigint>[]
+  defaultPageSize?: number
+  hideAddress?: boolean
+  cardView?: boolean
+  showCustomizeButtons?: boolean
+  addressOrUsernameToShowBalance?: string
+  hideCollectionLink?: boolean
+}) {
+
+  const router = useRouter();
+  const collectionId = badgeObj.collectionId;
+  const collection = useCollection(collectionId);
+
+  const balances = accountInfo ? badgesToShow?.find(collected => collected.collectionId == collectionId)?.balances ?? []
+    : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
+
+
+
+  if (balances.length == 0) return <></>;
+
+
+
+
+
+  return <InformationDisplayCard noBorder inheritBg title='' style={{ margin: 8, alignItems: 'normal' }} >
+    <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
+      <div className='link-button-nav flex-center' onClick={() => {
+        router.push('/collections/' + collectionId)
+        Modal.destroyAll()
+      }} style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <BadgeAvatar
+          size={50}
+          collectionId={collectionId}
+          noHover
+        />
+        <Typography.Text className="dark:text-white" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
+          {collection?.cachedCollectionMetadata?.name}
+        </Typography.Text>
+
+      </div>
+      {collection && !hideAddress &&
+        <div className="flex-center">
+          <Typography.Text className="dark:text-white" style={{ fontWeight: 'bold', marginRight: 10 }}>
+            By:
+          </Typography.Text>
+          <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />
+          <br />
+        </div>}
+
+    </Tooltip>
+
+    <BadgeAvatarDisplay
+      collectionId={collectionId}
+      defaultPageSize={defaultPageSize}
+      cardView={cardView}
+      balance={addressOrUsernameToShowBalance ? balances : undefined}
+      badgeIds={balances.map((x) => x.badgeIds).flat()}
+      hideCollectionLink={hideCollectionLink}
+      showIds
+      showOnSinglePage
+      fromMultiCollectionDisplay
+    />
+    <CustomizeButtons
+      badgeIdObj={{ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }}
+      badgeId={1n}
+      onlyShowCollectionOptions
+      showCustomizeButtons={showCustomizeButtons}
+      accountInfo={accountInfo}
+    />
+  </InformationDisplayCard>
+}
+
 export function MultiCollectionBadgeDisplay({
   collectionIds,
   addressOrUsernameToShowBalance,
@@ -44,7 +130,6 @@ export function MultiCollectionBadgeDisplay({
   customPageBadges,
   groupByCollection,
   hideCollectionLink,
-  hidePagination,
   showCustomizeButtons,
   hideAddress
 }: {
@@ -60,111 +145,82 @@ export function MultiCollectionBadgeDisplay({
   showCustomizeButtons?: boolean
   customPageBadges?: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]
 }) {
-  const accountsContext = useAccountsContext();
-  const collections = useCollectionsContext();
-  const router = useRouter();
-  const accountInfo = addressOrUsernameToShowBalance ? accountsContext.getAccount(addressOrUsernameToShowBalance) : undefined;
+
+  const accountInfo = useAccount(addressOrUsernameToShowBalance);
 
   const currPage = 1;
   const [loaded, setLoaded] = useState<boolean>(false); //Total number of badges in badgeIds[]
-  const pageSize = defaultPageSize
 
-  const badgesToShow = accountsContext.getBalancesView(accountInfo?.cosmosAddress ?? '', showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') ?? []
+  const badgesToShow = getAccountBalancesView(accountInfo, showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') as BalanceInfo<bigint>[];
 
+  const allBadgeIds = useMemo(() => {
+    //If we are using this as a collection display (i.e. we want to display all badges in the collection)
+    //We need to fetch the collection first
+    const allBadgeIds: {
+      collectionId: bigint,
+      badgeIds: UintRange<bigint>[]
+    }[] = [];
 
-  const allBadgeIds: {
-    collectionId: bigint,
-    badgeIds: UintRange<bigint>[]
-  }[] = [];
-
-
-  //If we are using this as a collection display (i.e. we want to display all badges in the collection)
-  //We need to fetch the collection first
-  const unfetchedCollections = [];
-
-  //If we have an account to show balances for, show that accounts balances
-  //Or if we have custom pages to show, show those.
-  //Else, show entire collection
-  if (customPageBadges) {
-    for (const obj of customPageBadges) {
-      allBadgeIds.push({
-        badgeIds: sortUintRangesAndMergeIfNecessary(deepCopy(obj.badgeIds), true),
-        collectionId: obj.collectionId
-      });
-    }
-  } else if (accountInfo) {
-    for (const collectionId of collectionIds) {
-      let balances = deepCopy(badgesToShow.flat() ?? []);
-      if (!showCustomizeButtons) {
-        const onlyShowApproved = accountInfo.onlyShowApproved;
-        const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
-        const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
-        if (onlyShowApproved) {
-          balances = filterBadgeIdsFromBalanceInfos(balances, hiddenBadges.map(x => x.badgeIds).flat(), false);
-        } else {
-          balances = filterBadgeIdsFromBalanceInfos(balances, shownBadges.map(x => x.badgeIds).flat(), true);
-        }
-      }
-
-      if (balances) {
-        const balanceInfo = balances.find(balance => balance.collectionId == collectionId);
-        for (const balance of balanceInfo?.balances || []) {
-          allBadgeIds.push({
-            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
-              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
-            }),
-            collectionId
-          });
-        }
-      }
-    }
-  } else {
-
-    for (const collectionId of collectionIds) {
-      const collection = collections.getCollection(collectionId);
-      if (groupByCollection && !collection) {
-        unfetchedCollections.push(collectionId);
-
-        //We don't have the whole supply yet. We jsut push this so it triggers the metadata update
+    //If we have an account to show balances for, show that accounts balances
+    //Or if we have custom pages to show, show those.
+    //Else, show entire collection
+    if (customPageBadges) {
+      for (const obj of customPageBadges) {
         allBadgeIds.push({
-          badgeIds: [{ start: 1n, end: BigInt(defaultPageSize) }],
-          collectionId
+          badgeIds: sortUintRangesAndMergeIfNecessary(deepCopy(obj.badgeIds), true),
+          collectionId: obj.collectionId
         });
-        continue;
       }
+    } else if (accountInfo) {
+      for (const collectionId of collectionIds) {
+        let balances = deepCopy(badgesToShow.flat() ?? []);
+        if (!showCustomizeButtons) {
+          const onlyShowApproved = accountInfo.onlyShowApproved;
+          const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
+          const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
+          if (onlyShowApproved) {
+            balances = filterBadgeIdsFromBalanceInfos(balances, hiddenBadges.map(x => x.badgeIds).flat(), false);
+          } else {
+            balances = filterBadgeIdsFromBalanceInfos(balances, shownBadges.map(x => x.badgeIds).flat(), true);
+          }
+        }
 
-      const balances = collection?.owners?.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
-      if (balances) {
-        for (const balance of balances || []) {
+        if (balances) {
+          const balanceInfo = balances.find(balance => balance.collectionId == collectionId);
+          for (const balance of balanceInfo?.balances || []) {
+            allBadgeIds.push({
+              badgeIds: balance.badgeIds.filter((badgeId, idx) => {
+                return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
+              }),
+              collectionId
+            });
+          }
+        }
+      }
+    } else {
+
+      for (const collectionId of collectionIds) {
+        if (groupByCollection) {
+
+          //We have not fetched supply yet. We jsut push this so it triggers the metadata update
           allBadgeIds.push({
-            badgeIds: balance.badgeIds.filter((badgeId, idx) => {
-              return balance.badgeIds.findIndex(badgeId2 => badgeId2.start == badgeId.start && badgeId2.end == badgeId.end) == idx;
-            }),
+            badgeIds: [{ start: 1n, end: BigInt(defaultPageSize) }],
             collectionId
           });
         }
       }
     }
-  }
 
-  let total = 0;
-  let badgeIdsToDisplay: {
-    collectionId: bigint,
-    badgeIds: UintRange<bigint>[]
-  }[] = [];
+    return allBadgeIds;
+  }, [accountInfo, badgesToShow, collectionIds, customPageBadges, showCustomizeButtons, groupByCollection, defaultPageSize]);
 
-  if (!groupByCollection) {
-    for (const obj of allBadgeIds) {
-      for (const range of obj.badgeIds) {
-        const numBadgesInRange = Numberify(range.end) - Numberify(range.start) + 1;
-        total += numBadgesInRange;
-      }
+  const badgeIdsToDisplay = useMemo(() => {
+    if (!groupByCollection) {
+      return getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize);
+    } else {
+      return allBadgeIds;
     }
-
-    badgeIdsToDisplay = getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize);
-  } else {
-    total = defaultPageSize
-  }
+  }, [allBadgeIds, groupByCollection, defaultPageSize, currPage]);
 
   useEffect(() => {
     async function fetchAndUpdate() {
@@ -173,10 +229,8 @@ export function MultiCollectionBadgeDisplay({
       if (!groupByCollection) {
 
         //Calculate badge IDs to display and update metadata for badge IDs if absent
-
-        console.log('multi use effect', badgeIdsToDisplay);
         if (badgeIdsToDisplay.length > 0) {
-          await collections.batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
+          await batchFetchAndUpdateMetadata(badgeIdsToDisplay.map(x => {
             return {
               collectionId: x.collectionId,
               metadataToFetch: {
@@ -188,96 +242,48 @@ export function MultiCollectionBadgeDisplay({
 
         setLoaded(true);
       } else {
-        //If we group by collection, we calculate according to the default view (10 badges per collection)
-        //Note this is a hacky way to do this, but it works for now
-        //We fetch the initial badges for each collection in a single batch request and use loaded to not trigger the inital fetch in BadgeAvatarDisplay
+        //We fetch the initial badges for each collection in a single batch request 
+        //and use loaded to not trigger the inital fetch in BadgeAvatarDisplay
         //Any subsequent fetches will be done in BadgeAvatarDisplay
 
-        console.log('multi use effect 3');
-        await collections.batchFetchAndUpdateMetadata(allBadgeIds.map(x => {
+        await batchFetchAndUpdateMetadata(allBadgeIds.map(x => {
           return {
             collectionId: x.collectionId,
             metadataToFetch: {
-              badgeIds: [{ start: 1n, end: defaultPageSize }]
+              badgeIds: [{ start: 1n, end: BigInt(defaultPageSize) }]
             },
           }
         }));
-
-
-        //Note fetched collections may be incomplete. We are just using it for createBy fetches
-        // await accountsContext.fetchAccounts(fetchedCollections.map(x => x.createdBy));
 
         setLoaded(true);
       }
     }
 
-    if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay);
+    if (INFINITE_LOOP_MODE) console.log("MultiCollectionBadgeDisplay: useEffect: badgeIdsToDisplay: ", badgeIdsToDisplay, allBadgeIds);
     fetchAndUpdate();
     //Note still depends on a context (accountInfo / accountsContext).
   }, [collectionIds, badgeIdsToDisplay, groupByCollection, allBadgeIds, defaultPageSize]);
 
   if (groupByCollection) {
+    ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
+    if (!loaded) return <Spin />
+
     return <>
       <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
         {
-          collectionIds.map((collectionId, idx) => {
-            const collection = collections.getCollection(collectionId);
-
-            const balances = accountInfo ? badgesToShow.find(collected => collected.collectionId == collectionId)?.balances ?? []
-              : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
-            if (balances.length == 0) return <></>;
-
-            ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
-            if (!loaded) return <Spin />
-
-
-            return <InformationDisplayCard noBorder inheritBg title='' key={idx} style={{ margin: 8, alignItems: 'normal' }} >
-              <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
-                <div className='link-button-nav flex-center' onClick={() => {
-                  router.push('/collections/' + collectionId)
-                  Modal.destroyAll()
-                }} style={{ alignItems: 'center', justifyContent: 'center' }}>
-                  <BadgeAvatar
-                    size={50}
-                    collectionId={collectionId}
-                    noHover
-                  />
-                  <Typography.Text className="dark:text-white" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
-                    {collection?.cachedCollectionMetadata?.name}
-                  </Typography.Text>
-
-                </div>
-                {collection && !hideAddress &&
-                  <div className="flex-center">
-                    <Typography.Text className="dark:text-white" style={{ fontWeight: 'bold', marginRight: 10 }}>
-                      By:
-                    </Typography.Text>
-                    <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />
-                    <br />
-                  </div>}
-
-              </Tooltip>
-
-              <BadgeAvatarDisplay
-                collectionId={collectionId}
-                defaultPageSize={defaultPageSize}
-                cardView={cardView}
-                addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
-                balance={addressOrUsernameToShowBalance ? balances : undefined}
-                badgeIds={balances.map((x) => x.badgeIds).flat()}
-                hideCollectionLink={hideCollectionLink}
-                showIds
-                showOnSinglePage
-                fromMultiCollectionDisplay
-              />
-              <CustomizeButtons
-                badgeIdObj={{ collectionId, badgeIds: balances.map((x) => x.badgeIds).flat() }}
-                badgeId={1n}
-                onlyShowCollectionOptions
-                showCustomizeButtons={showCustomizeButtons}
-                accountInfo={accountInfo}
-              />
-            </InformationDisplayCard>
+          allBadgeIds.map((badgeObj, idx) => {
+            return <CollectionDisplayWithBadges
+              badgeObj={badgeObj}
+              accountInfo={accountInfo}
+              badgesToShow={badgesToShow}
+              defaultPageSize={defaultPageSize}
+              hideAddress={hideAddress}
+              cardView={cardView}
+              showCustomizeButtons={showCustomizeButtons}
+              addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
+              hideCollectionLink={hideCollectionLink}
+              key={idx}
+            />
           })
         }
       </div>
@@ -301,7 +307,7 @@ export function MultiCollectionBadgeDisplay({
                   {badgeIds.map((badgeId) => {
                     return <>
                       {cardView ? <>
-                        <div>
+                        <div className="flex-center flex-column">
                           <BadgeCard
                             collectionId={badgeIdObj.collectionId}
                             badgeId={badgeId}

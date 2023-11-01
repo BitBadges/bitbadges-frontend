@@ -3,9 +3,10 @@ import { Avatar, Badge, Spin, Tooltip } from "antd";
 import { Balance } from "bitbadgesjs-proto";
 import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId, isFullUintRanges } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getTimeRangesString } from "../../utils/dates";
 import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function BadgeAvatar({
   collectionId,
@@ -29,9 +30,9 @@ export function BadgeAvatar({
   onClick?: () => void
 }) {
   const router = useRouter();
-  const collections = useCollectionsContext();
 
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
   let metadata = metadataOverride ? metadataOverride :
     badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 

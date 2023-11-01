@@ -68,6 +68,8 @@ export function BalanceDisplay({
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
 
   const [defaultBalancesToShow] = useState<Balance<bigint>[]>(balances);
+
+  
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
     const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
@@ -99,7 +101,7 @@ export function BalanceDisplay({
     setAllBalances(allBalances);
     setAllBadgeIdsArr(allBadgeIdsArr);
 
-  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy]);
+  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy, isMustOwnBadgesInput])
 
   const EditRowComponent = <BalanceDisplayEditRow
     collectionId={collectionId}

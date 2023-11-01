@@ -1,10 +1,10 @@
 import { Avatar, Tooltip } from "antd";
 import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-utils";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 export function AddressWithBlockies({
   addressOrUsername,
@@ -23,11 +23,9 @@ export function AddressWithBlockies({
   overrideChain?: SupportedChain,
   doNotShowName?: boolean
 }) {
-  const accounts = useAccountsContext();
+
   const chainContext = useChainContext();
-
-
-  const fetchedAccount = accounts.getAccount(addressOrUsername);
+  const fetchedAccount = useAccount(addressOrUsername);
 
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
     ...fetchedAccount,

@@ -5,7 +5,7 @@ import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { DistributionOverview } from '../../../components/badges/DistributionCard';
@@ -19,8 +19,10 @@ import { TransferabilityTab } from '../../../components/collection-page/Transfer
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../../constants';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { fetchAccounts } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAndUpdateMetadata, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -31,8 +33,8 @@ export function BadgePage({ collectionPreview }
     collectionPreview?: BitBadgesCollection<bigint>
   }) {
   const router = useRouter()
-  const collections = useCollectionsContext();
-  const accounts = useAccountsContext();
+
+
 
 
   const [tab, setTab] = useState('overview');
@@ -49,7 +51,7 @@ export function BadgePage({ collectionPreview }
   const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? NEW_COLLECTION_ID : -1n;
   const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
 
-  const collection = isPreview ? collectionPreview : collections.getCollection(collectionIdNumber);
+  const collection = useCollection(isPreview ? undefined : collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
 
   //Get collection information
@@ -57,14 +59,14 @@ export function BadgePage({ collectionPreview }
     if (INFINITE_LOOP_MODE) console.log('useEffect: get collection info, badge page');
     if (isPreview) return;
     if (collectionIdNumber > 0) {
-      collections.fetchAndUpdateMetadata(collectionIdNumber, { badgeIds: [{ start: badgeIdNumber, end: badgeIdNumber }] });
+      fetchAndUpdateMetadata(collectionIdNumber, { badgeIds: [{ start: badgeIdNumber, end: badgeIdNumber }] });
     }
-  }, [collectionIdNumber, isPreview]);
+  }, [collectionIdNumber, isPreview, badgeIdNumber]);
 
   useEffect(() => {
     if (isPreview || !collection) return;
     const managers = collection.managerTimeline.map(x => x.manager).filter(x => x);
-    accounts.fetchAccounts([collection.createdBy, ...managers]);
+    fetchAccounts([collection.createdBy, ...managers]);
   }, [collection, isPreview]);
 
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;

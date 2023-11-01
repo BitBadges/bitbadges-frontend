@@ -3,7 +3,7 @@ import { Switch } from 'antd';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateContractAddressUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
@@ -12,6 +12,7 @@ import { JSONSetter } from './CustomJSONSetter';
 import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -46,10 +47,10 @@ export function UpdateSelectWrapper({
   err: Error | null,
   setErr: (err: Error | null) => void,
 }) {
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
   const existingCollectionId = txTimelineContext.existingCollectionId
   const isMint = !existingCollectionId
 
@@ -119,7 +120,7 @@ export function UpdateSelectWrapper({
     }
   }
 
-  const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions] ?? [];
+  const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
   const noManager = collection ? neverHasManager(collection) : true;
   const permissionDataSource = jsonPropertyPath === "defaultUserIncomingApprovals" ? undefined : getPermissionDetails(
     castFunction(prevPermissions),
@@ -140,7 +141,7 @@ export function UpdateSelectWrapper({
       console.log('validateErr: ', validateErr);
     }
 
-  }, [JSON.stringify(currValue), JSON.stringify(startingValue), JSON.stringify(prevPermissions), permissionName, jsonPropertyPath])
+  }, [currValue, startingValue, prevPermissions, permissionName, jsonPropertyPath, setErr, validateFunction])
 
   useEffect(() => {
     setCustomJson(onlyShowJson);
@@ -235,13 +236,13 @@ export function UpdateSelectWrapper({
                   if (startingCollection && collection) {
                     const existingValue = startingCollection[jsonPropertyPath as keyof typeof startingCollection];
 
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       [`${jsonPropertyPath}`]: existingValue
                     });
 
                   } else if (collection && !startingCollection) {
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       [`${jsonPropertyPath}`]: []
                     });

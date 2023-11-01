@@ -1,21 +1,22 @@
 import { Empty, Spin } from 'antd';
 import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { ClaimDisplay } from '../claims/ClaimDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   collectionId: bigint;
   codesAndPasswords?: CodesAndPasswords[]
   badgeId?: bigint;
 }) {
-  const collections = useCollectionsContext();
+
 
   const [currPage, setCurrPage] = useState<number>(1);
 
-  const collection = collections.getCollection(collectionId)
+  const collection = useCollection(collectionId)
 
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
   const approvals = collection?.collectionApprovals ?? [];
@@ -34,7 +35,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
 
   //TODO: This is hardcoded for only one merkle challenge. Technically an assumption, although it is a rare case where they may have more than one.
   const claimItem = approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
-  
+
 
   if (!collection) return <Spin />
 
@@ -44,7 +45,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
         justifyContent: 'center',
         width: '100%',
       }}>
-      
+
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
       <br />
 

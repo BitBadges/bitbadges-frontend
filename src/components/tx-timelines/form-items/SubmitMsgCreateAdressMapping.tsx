@@ -3,11 +3,12 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
 import { SwitchForm } from './SwitchForm';
+import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function SubmitMsgCreateAddressMapping() {
   const chain = useChainContext();
@@ -24,8 +25,8 @@ export function SubmitMsgCreateAddressMapping() {
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
 
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
 
   return <div className='full-width'

@@ -5,11 +5,13 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { addAnnouncement, deleteAnnouncement } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useCollection, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function AnnouncementsTab({ announcements, collectionId, hideCollection, fetchMore, hasMore }: {
   announcements: AnnouncementInfo<bigint>[],
@@ -19,13 +21,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
   hasMore: boolean
 }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-
-  const collections = useCollectionsContext();
-
-  const collection = collectionId ? collections.getCollection(collectionId) : undefined;
-
-  const router = useRouter();
+  const collection = useCollection(collectionId);
 
   const [newAnnouncement, setNewAnnouncement] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -34,17 +30,16 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     const accountsToFetch = announcements.map(a => a.from);
     const collectionsToFetch = announcements.map(a => a.collectionId);
-    accounts.fetchAccounts(accountsToFetch);
-    collections.fetchCollections(collectionsToFetch);
+    fetchAccounts(accountsToFetch);
+    fetchCollections(collectionsToFetch);
 
     if (INFINITE_LOOP_MODE) console.log('AnnouncementsTab useEffect', { accountsToFetch, collectionsToFetch });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcements]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     if (hasMore) fetchMore();
-  }, [])
+  }, [hasMore, fetchMore])
 
   const manager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager;
   const isManager = manager && collection && collectionId && chain.cosmosAddress === manager && chain.loggedIn
@@ -70,7 +65,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
             if (newAnnouncement.length === 0) return;
             setLoading(true);
             await addAnnouncement(collectionId, { announcement: newAnnouncement });
-            await collections.fetchCollections([collectionId], true);
+            await fetchCollections([collectionId], true);
             setNewAnnouncement('');
             setLoading(false);
           }}
@@ -101,67 +96,86 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         {announcements.sort(
           (a, b) => Number(b.timestamp) - Number(a.timestamp)
         ).map((announcement, index) => {
-          // if (index < currPageStart || index > currPageEnd) return <></>;
+          return <AnnouncementDisplay key={index} announcement={announcement} hideCollection={hideCollection} loading={loading} setLoading={setLoading} isCollectionDisplay={!!collectionId} />
 
-          const collectionToDisplay = collections.getCollection(announcement.collectionId);
-          return (
-            <div key={index} className='dark:text-white full-width'>
-              <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-                <Col md={12} sm={24} xs={24} className='dark:text-white' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
-                    <AddressDisplay addressOrUsername={announcement.from} />
-                  </div>
-                  {!hideCollection && collectionToDisplay &&
-                    <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
-
-                      <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
-                        <div className='link-button-nav flex-center' onClick={() => {
-                          router.push('/collections/' + collectionToDisplay.collectionId)
-                          Modal.destroyAll()
-                        }} style={{ fontSize: 20 }}>
-                          <a>
-                            {collectionToDisplay.cachedCollectionMetadata?.name}
-                          </a>
-
-                        </div>
-                      </Tooltip>
-                    </div>}
-
-
-                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    {new Date(Number(announcement.timestamp)).toLocaleDateString() + ' '}
-                    {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
-                  </Typography.Text>
-                  {chain.connected && chain.loggedIn && (chain.address === announcement.from || chain.cosmosAddress === announcement.from) &&
-                    <DeleteOutlined className='styled-button' style={{ border: 'none', cursor: 'pointer' }}
-                      onClick={async () => {
-                        if (loading) return;
-
-                        setLoading(true);
-                        await deleteAnnouncement(announcement._id);
-                        if (collectionId) {
-                          await collections.fetchCollections([collectionId], true);
-                        }
-                        setLoading(false);
-                      }}
-                    />
-                  }
-                </Col>
-              </Row>
-
-              <div className='flex-between full-width dark:text-white'>
-
-                <div className='flex-between full-width dark:text-white'>
-                  <Typography.Text className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-                    {announcement.announcement}
-                  </Typography.Text>
-                </div>
-              </div>
-              <Divider />
-            </div>
-          )
         })}
       </InfiniteScroll >
     </>
+  )
+}
+
+export function AnnouncementDisplay({
+  announcement,
+  hideCollection,
+  loading,
+  setLoading,
+  isCollectionDisplay
+}: {
+  announcement: AnnouncementInfo<bigint>,
+  hideCollection?: boolean
+  loading: boolean,
+  setLoading: (loading: boolean) => void,
+  isCollectionDisplay?: boolean
+}) {
+  const chain = useChainContext();
+  const router = useRouter();
+  const collectionToDisplay = useCollection(announcement.collectionId);
+
+
+  return (
+    <div className='dark:text-white full-width'>
+      <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
+        <Col md={12} sm={24} xs={24} className='dark:text-white' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+          <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
+            <AddressDisplay addressOrUsername={announcement.from} />
+          </div>
+          {!hideCollection && collectionToDisplay &&
+            <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
+
+              <Tooltip color='black' title={"Collection ID: " + collectionToDisplay.collectionId} placement="bottom">
+                <div className='link-button-nav flex-center' onClick={() => {
+                  router.push('/collections/' + collectionToDisplay.collectionId)
+                  Modal.destroyAll()
+                }} style={{ fontSize: 20 }}>
+                  <a>
+                    {collectionToDisplay.cachedCollectionMetadata?.name}
+                  </a>
+
+                </div>
+              </Tooltip>
+            </div>}
+
+
+          <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+            {new Date(Number(announcement.timestamp)).toLocaleDateString() + ' '}
+            {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
+          </Typography.Text>
+          {chain.connected && chain.loggedIn && (chain.address === announcement.from || chain.cosmosAddress === announcement.from) &&
+            <DeleteOutlined className='styled-button' style={{ border: 'none', cursor: 'pointer' }}
+              onClick={async () => {
+                if (loading) return;
+
+                setLoading(true);
+                await deleteAnnouncement(announcement._id);
+                if (isCollectionDisplay) {
+                  await fetchCollections([announcement.collectionId], true);
+                }
+                setLoading(false);
+              }}
+            />
+          }
+        </Col>
+      </Row>
+
+      <div className='flex-between full-width dark:text-white'>
+
+        <div className='flex-between full-width dark:text-white'>
+          <Typography.Text className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+            {announcement.announcement}
+          </Typography.Text>
+        </div>
+      </div>
+      <Divider />
+    </div>
   )
 }

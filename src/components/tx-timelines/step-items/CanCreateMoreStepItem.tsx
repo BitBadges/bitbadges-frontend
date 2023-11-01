@@ -1,8 +1,8 @@
 import { Divider } from "antd";
 import { BalancesActionPermission } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { useCallback, useEffect, useState } from "react";
+
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../../constants";
@@ -13,6 +13,7 @@ import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSel
 import { SwitchForm } from "../form-items/SwitchForm";
 import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 const EverythingElsePermanentlyPermittedPermission: BalancesActionPermission<bigint> = {
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -29,8 +30,7 @@ const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
 }
 
 export function CanCreateMoreStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
@@ -38,13 +38,35 @@ export function CanCreateMoreStepItem() {
 
   const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
 
-  //If we add badges to the collection, we need to update the permission to reflect the new max badge id
+  const handleSwitchChange = useCallback((idx: number, locked: boolean) => {
+    const permissions = idx >= 0 && idx <= 2 ? [{
+      ...AlwaysLockedPermission,
+      badgeIds: idx == 0 ? AlwaysLockedPermission.badgeIds : idx == 1 ? [{ start: 1n, end: maxBadgeId }] : [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
+    }] : []
+
+    if (locked) {
+      permissions.push(EverythingElsePermanentlyPermittedPermission)
+    }
+
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      collectionPermissions: {
+        canCreateMoreBadges: permissions
+      }
+    });
+  }, [maxBadgeId]);
+
+
+  //If we add badges to the collection in another step, we need to update to reflect the new max badge id
+  //This useEffect should only be executed if the user is not currently on this step (bc they cannot change maxBadgeId while on this step)
+  //Thus, we use their latest values for lastClickedIdx and frozen selection
+  //If we are on this step, we handle it via the other onClicks, not this useEffect
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
     if (lastClickedIdx !== -1) {
       handleSwitchChange(lastClickedIdx, everythingLocked);
     }
-  }, [maxBadgeId]);
+  }, [handleSwitchChange]);
 
   if (!collection) return EmptyStepItem;
 
@@ -56,24 +78,6 @@ export function CanCreateMoreStepItem() {
   const allUnmintedPermissionDetails = getPermissionDetails(castBalancesActionPermissionToUniversalPermission(collection?.collectionPermissions.canCreateMoreBadges ?? []), BalancesActionPermissionUsedFlags, noManager, [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }]);
 
   const everythingLocked = !permissionDetails.hasNeutralTimes;
-  const handleSwitchChange = (idx: number, locked?: boolean) => {
-    const permissions = idx >= 0 && idx <= 2 ? [{
-      ...AlwaysLockedPermission,
-      badgeIds: idx == 0 ? AlwaysLockedPermission.badgeIds : idx == 1 ? [{ start: 1n, end: maxBadgeId }] : [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
-    }] : []
-
-    if (locked) {
-      permissions.push(EverythingElsePermanentlyPermittedPermission)
-    }
-
-    collections.updateCollection({
-      collectionId: NEW_COLLECTION_ID,
-      collectionPermissions: {
-        canCreateMoreBadges: permissions
-      }
-    });
-  }
-
 
   const AdditionalNode = () => {
     return <>

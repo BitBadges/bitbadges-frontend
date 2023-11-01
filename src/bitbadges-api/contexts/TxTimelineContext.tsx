@@ -3,13 +3,12 @@ import { BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderM
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
-import { getMintApprovals } from '../utils/mintVsNonMint';
+import { getMintApprovals, getNonMintApprovals } from '../utils/mintVsNonMint';
 import { useChainContext } from './ChainContext';
-import { useAccountsContext } from './accounts/AccountsContext';
-import { useCollectionsContext } from './collections/CollectionsContext';
+import { fetchAccounts } from './accounts/AccountsContext';
+import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollection } from './collections/CollectionsContext';
 
 
 export const EmptyStepItem = {
@@ -28,14 +27,13 @@ export const NEW_COLLECTION_ID = 0n;
 /*
   IMPORTANT FOR DEVELOPERS: Read below
   
-  Do not update any of the existingCollection or collectionsContext.getCollection(existingCollectionId) fields.
-  Instead, use the simulated collection with ID === 0n aka ID === NEW_COLLECTION_ID.
+  Use the simulated collection with ID === 0n aka ID === NEW_COLLECTION_ID from the collections global store. 
 
-  The simulated collection is a copy of the existing collection with the changes specified by the Msg applied to it.
+  The simulated collection is a copy of the existing collection with the changes specified by the new-to-be Msg applied to it.
   This is because we want to be able to simulate the changes to the collection and access them without actually updating the existing collection in the cache.
 
   Minor hacks applied:
-  -badgesToCreate is exported in TxTimelineProps, and we automatically update "Mint" and "Total" balances to reflect the new total and mint balances
+  -badgesToCreate is exported in TxTimelineProps, and we automatically update "Mint" and "Total" balances to reflect the new total and mint balances via the useEffect
   -merkleChallenges are handled via the collectionApprovals field of the collections from the collections context. Here, there is an extra field called details
     which specifies extra details about the merkle challenge (name, description, password, preimage codes, etc). These are to be uploaded to IPFS but removed before creating the Msg.
   -transfers should only be used for off-chain balances
@@ -120,9 +118,7 @@ export interface BaseTxTimelineProps {
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
 
-  approvalsToAdd: (CollectionApprovalWithDetails<bigint>)[]
-  setApprovalsToAdd: (approvalsToAdd: (CollectionApprovalWithDetails<bigint>)[]) => void
-  resetApprovalsToAdd: () => (CollectionApprovalWithDetails<bigint>)[]
+  resetCollectionApprovals: () => (CollectionApprovalWithDetails<bigint>)[]
 
   showAdvancedOptions: boolean
   setShowAdvancedOptions: (showAdvancedOptions: boolean) => void
@@ -134,9 +130,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   txType: 'UpdateCollection',
   existingCollectionId: undefined,
   setExistingCollectionId: () => { },
-
-  approvalsToAdd: [],
-  setApprovalsToAdd: () => { },
 
   startingCollection: undefined,
   setStartingCollection: () => { },
@@ -202,7 +195,7 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
 
   completeControl: false,
   setCompleteControl: () => { },
-  resetApprovalsToAdd: () => [],
+  resetCollectionApprovals: () => [],
 
   showAdvancedOptions: false,
   setShowAdvancedOptions: () => { },
@@ -212,9 +205,9 @@ type Props = {
   children?: React.ReactNode
 };
 export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
-  const collections = useCollectionsContext();
+
   const chain = useChainContext();
-  const accounts = useAccountsContext();
+
   const txType = 'UpdateCollection';
 
   const [existingCollectionId, setExistingCollectionIdState] = useState<bigint>();
@@ -227,8 +220,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
-  const existingCollection = existingCollectionId ? collections.getCollection(existingCollectionId) : undefined;
-  const simulatedCollection = collections.getCollection(NEW_COLLECTION_ID);
+  // const existingCollection = useCollection(existingCollectionId)
+  const simulatedCollection = useCollection(NEW_COLLECTION_ID);
 
   const [size, setSize] = useState(0);
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
@@ -262,63 +255,31 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateStandardsTimeline, setUpdateStandardsTimeline] = useState(true);
   const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
-
-  const [approvalsToAdd, setApprovalsToAdd] = useState<(CollectionApprovalWithDetails<bigint>)[]>(
-    startingCollection ? getMintApprovals(startingCollection).map(x => {
-      return {
-        ...x,
-        balances: [{
-          //TODO: We should get rid of balances here
-          badgeIds: x.badgeIds,
-          ownershipTimes: x.ownershipTimes,
-          amount: 1n //will not matter
-        }]
-      }
-    }) : []
-  );
-
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
-    resetApprovalsToAdd();
-
+    resetCollectionApprovals();
   }, [existingCollectionId]);
 
-  const resetApprovalsToAdd = () => {
+  const resetCollectionApprovals = () => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
     if (!startingCollection) return [];
 
     //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
     const existingFromMint = getMintApprovals(startingCollection);
-    const defaultApprovalsToAdd = existingFromMint.map(x => {
-      return {
-        ...x,
-        balances: [{
-          //TODO: We should get rid of balances here
-          badgeIds: x.badgeIds,
-          ownershipTimes: x.ownershipTimes,
-          amount: 1n //will not matter
-        }]
-      }
-    })
+    const existingNonMint = getNonMintApprovals(startingCollection);
+    const defaultApprovalsToAdd = [...existingFromMint, ...existingNonMint];
 
-    setApprovalsToAdd(defaultApprovalsToAdd);
-
-    return deepCopy(defaultApprovalsToAdd);
-  }
-  //This is the main useEffect where we update the collection with the new approved transfers
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: create claims, approved transfers to add changed');
-    if (!simulatedCollection || simulatedCollection.balancesType === "Off-Chain") return;
-
-    // const existingNonMint = getNonMintApprovals(simulatedCollection, true);
-
-    collections.updateCollection({
+    updateCollection({
       collectionId: NEW_COLLECTION_ID,
-      collectionApprovals: approvalsToAdd,
+      collectionApprovals: [
+        ...defaultApprovalsToAdd,
+      ],
     });
-  }, [approvalsToAdd]);
+
+    return defaultApprovalsToAdd;
+  }
+
 
   function resetState(existingCollectionId?: bigint, addressMappingId?: string) {
     setExistingCollectionIdState(existingCollectionId);
@@ -351,7 +312,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateIsArchivedTimeline(true);
 
     setCompleteControl(false);
-    resetApprovalsToAdd();
+    resetCollectionApprovals();
   }
 
   //Initial fetch of the address mapping we are updating if it exists
@@ -475,24 +436,23 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         collectionId: 0n
       }
 
-      let noStartingCollection = false;
       if (!startingCollection) {
         //wait three seconds 
-       
-
-        noStartingCollection = true;
-        const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await collections.fetchCollectionsWithOptions(
+        const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
           [{
             collectionId: existingCollectionId, viewsToFetch: [],
             fetchTotalAndMintBalances: true,
             handleAllAndAppendDefaults: false,
           }], true) : [];
+
         let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
           console.log(existingCollection);
-          await accounts.fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
+          await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
         }
+
+        console.log(existingCollectionsRes);
 
         startingCollectionDefault = {
           ...startingCollectionDefault,
@@ -506,68 +466,46 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         }
 
         setStartingCollection(deepCopy(startingCollectionDefault));
-        collections.setCollection(startingCollectionDefault);
+        setCollection(startingCollectionDefault);
       }
-
-      if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
-      //We have three things that can affect the new simulated collection:
-      //1. If claims change, we need to update the unminted supplys and respective claims field
-      //2. If transfers change, we need to update the unminted supplys and respective transfers field
-      //3. If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
-      //All other updates are handled within CollectionContext
-      //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
-
-      const currCollection = noStartingCollection ? startingCollectionDefault : simulatedCollection;
-      if (!currCollection) return;
-
-      //TODO: Is this right? Is remove duplicate logic right?
-      //Combine the claims arrays. This is because the fetches may be out of sync between the two
-      //Filter out any new claims to be added because those get added in simulateCollectionAfterMsg
-      const combinedClaims = [...(startingCollection?.merkleChallenges || []), ...currCollection.merkleChallenges]
-        //Remove duplicates  
-        .filter(claim => {
-          return !currCollection.merkleChallenges.some(claim2 => compareObjects(claim, claim2));
-        });
-      const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
-
-
-      const postSimulatedCollection = { owners: newOwnersArr, merkleChallenges: combinedClaims, collectionId: NEW_COLLECTION_ID };
-      collections.updateCollection(postSimulatedCollection);
     }
 
     initialize();
-  }, [existingCollectionId, startingCollection, badgesToCreate]);
-
+    //I don't think we want to depend on chain.cosmosAddress here but it does give us warning
+  }, [existingCollectionId, startingCollection]);
 
   useEffect(() => {
-    function initialize() {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
 
-    }
-    initialize()
+    //If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
+    //All other updates are handled within CollectionContext
+    //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
+
+    const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
+    const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
+    updateCollection(postSimulatedCollection);
   }, [badgesToCreate, startingCollection]);
+
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
-    if (!simulatedCollection) return;
 
-    if (simulatedCollection.balancesType === "Off-Chain") {
+    if (simulatedCollection?.balancesType === "Off-Chain") {
       setUpdateCollectionApprovals(false);
-    } else {
+      updateCollection({
+        collectionId: NEW_COLLECTION_ID,
+        collectionApprovals: [],
+        defaultUserIncomingApprovals: [],
+        defaultUserOutgoingApprovals: [],
+      });
+    } else if (simulatedCollection?.balancesType === "Standard") {
       setUpdateCollectionApprovals(true);
+      updateCollection({
+        collectionId: NEW_COLLECTION_ID,
+        offChainBalancesMetadataTimeline: [],
+      });
     }
   }, [simulatedCollection?.balancesType]);
-
-  //Upon any new metadata that will need to be added, we need to update the size of the metadata
-  //TODO: Make consistent with actual uploads
-  useEffect(() => {
-    // if (INFINITE_LOOP_MODE) console.log('useEffect: metadata size');
-    // console.time('metadata size');
-    // const newBadgeMetadata = simulatedCollection?.cachedBadgeMetadata.filter(x => existingCollection?.cachedBadgeMetadata.some(y => compareObjects(x, y)) === false);
-    // const newCollectionMetadata = !compareObjects(simulatedCollection?.cachedCollectionMetadata, existingCollection?.cachedCollectionMetadata) ? simulatedCollection?.cachedCollectionMetadata : undefined;
-    // console.timeEnd('metadata size');
-
-    // setSize(Buffer.from(JSON.stringify({ newBadgeMetadata, newCollectionMetadata })).length);
-  }, [simulatedCollection, existingCollection]);
 
   const context: TxTimelineContextType = {
     resetState,
@@ -582,7 +520,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     startingCollection,
     setStartingCollection,
 
-    resetApprovalsToAdd,
+    resetCollectionApprovals,
 
     transfers,
     setTransfers,
@@ -632,10 +570,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
     completeControl,
     setCompleteControl,
-
-    approvalsToAdd,
-    setApprovalsToAdd,
-
     showAdvancedOptions,
     setShowAdvancedOptions
   }

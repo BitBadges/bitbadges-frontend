@@ -1,23 +1,23 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { useAccountsContext } from '../bitbadges-api/contexts/accounts/AccountsContext';
+import { useLayoutEffect, useState } from 'react';
+
+import { faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
 import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
 import { AccountButtonDisplay } from '../components/button-displays/AccountButtonDisplay';
 import { ActivityTab } from '../components/collection-page/TransferActivityDisplay';
 import CustomCarousel from '../components/display/Carousel';
-import { Tabs } from '../components/navigation/Tabs';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { Tabs } from '../components/navigation/Tabs';
 
 const { Content } = Layout;
 
 function BrowsePage() {
   const browseContext = useBrowseContext();
-  const accounts = useAccountsContext();
+
   const browseInfo = browseContext.browse;
   const router = useRouter();
   const [tab, setTab] = useState('featured');
@@ -44,15 +44,6 @@ function BrowsePage() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
-  useEffect(() => {
-    const accountsToFetch = browseInfo?.addressMappings[listsTab]?.map(addressMapping => addressMapping.createdBy) || [];
-
-    if (accountsToFetch.length > 0) {
-      accounts.fetchAccounts(accountsToFetch);
-    }
-  }, [listsTab, browseInfo])
-
 
   return (
     <Content
@@ -103,8 +94,9 @@ function BrowsePage() {
                 />
               }
               items={browseInfo?.profiles[tab]?.map((profile, idx) => {
-                const itemWidth = 251 + 16 * 2; // Set the width of each carousel item (adjust as needed)
-                const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
+                const itemWidth = 330; // Set the width of each carousel item (adjust as needed)
+                const numItems = Math.round(containerWidth / itemWidth) ? Math.round(containerWidth / itemWidth) : 1;
+
 
                 const idxArr = new Array(numItems);
                 for (let i = 0; i < idxArr.length; i++) {
@@ -112,13 +104,12 @@ function BrowsePage() {
                 }
                 if (idx % numItems !== 0) return null
 
-                return <div key={idx} className='flex flex-center-if-mobile'
+                return <div key={idx} className='flex flex-center-if-mobile full-width'
 
                 >{idxArr.map(idx => {
                   if (idx >= browseInfo?.profiles[tab]?.length) return null
-                  if (idx >= 4) return null;
                   profile = browseInfo?.profiles[tab][idx];
-                  return <InformationDisplayCard title='' key={idx} style={{ margin: 16 }}>
+                  return <InformationDisplayCard title='' key={idx} style={{}}>
                     <>
                       <div style={{ alignItems: 'normal' }}>
                         <AccountButtonDisplay
@@ -161,7 +152,7 @@ function BrowsePage() {
               }).filter(x => x) ?? []}
             />
           </div>
-          {/* < Divider />
+          < Divider />
           <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
           </Typography.Text>
@@ -185,7 +176,7 @@ function BrowsePage() {
               />
             }
             items={(browseInfo && browseInfo.collections[badgesTab]?.map((collection, idx) => {
-              const itemWidth = 350 + 16 * 2; // Set the width of each carousel item (adjust as needed)
+              const itemWidth = 350; // Set the width of each carousel item (adjust as needed)
               const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
 
               const idxArr = new Array(numItems);
@@ -193,18 +184,19 @@ function BrowsePage() {
                 idxArr[i] = idx + i;
               }
               if (idx % numItems !== 0) return null
+
               return <div key={idx} className='flex flex-center-if-mobile full-width'
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.collections[badgesTab]?.length) return null
                 collection = browseInfo?.collections[badgesTab][idx];
-                return <div title='' key={idx} style={{ margin: 16, width: 350 }}>
+                return <InformationDisplayCard title='' key={idx} style={{}}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={[collection.collectionId]}
                     groupByCollection
                     cardView={cardView}
                     key={idx}
                   />
-                </div>
+                </InformationDisplayCard>
               }).filter(x => x)}</div>
 
 
@@ -240,7 +232,7 @@ function BrowsePage() {
               />
             }
             items={browseInfo?.addressMappings[listsTab]?.map((addressMapping, idx) => {
-              const itemWidth = 225 + 16 * 2; // Set the width of each carousel item (adjust as needed)
+              const itemWidth = 225; // Set the width of each carousel item (adjust as needed)
               const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
 
               const idxArr = new Array(numItems);
@@ -250,23 +242,21 @@ function BrowsePage() {
               if (idx % numItems !== 0) return null
 
 
-              return <div key={idx} className='flex flex-center-if-mobile'
+              return <div key={idx} className='flex flex-center-if-mobile full-width'
 
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.addressMappings[listsTab]?.length) return null
                 addressMapping = browseInfo?.addressMappings[listsTab][idx];
-                return <div className='dark:text-white' key={idx} style={{ margin: 16 }}>
-                  <> <AddressListCard
-                    addressMapping={addressMapping}
-                    key={idx}
-                  />
-                  </>
-                </div>
+                return <> <AddressListCard
+                  addressMapping={addressMapping}
+                  key={idx}
+                />
+                </>
               }).filter(x => x)}</div>
             }).filter(x => x) ?? []}
           />
 
-          <Divider /> */}
+          <Divider />
           <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>

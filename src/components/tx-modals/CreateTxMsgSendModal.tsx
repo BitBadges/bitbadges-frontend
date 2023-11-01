@@ -1,10 +1,11 @@
 import { InputNumber } from 'antd';
 import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
 import React, { useState } from 'react';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
+import { useAccount, fetchAccountsWithOptions } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,
 }: {
@@ -13,13 +14,13 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
   children?: React.ReactNode,
 }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const signedInAccount = accounts.getAccount(chain.address);
+
+  const signedInAccount = useAccount(chain.address);
 
   const [currUserInfo, setCurrUserInfo] = useState<string>('');
   const [sendAmount, setSendAmount] = useState<number>(0);
 
-  const currSelectedAccount = accounts.getAccount(currUserInfo);
+  const currSelectedAccount = useAccount(currUserInfo);
 
   const msgSend: MsgSend<bigint> = {
     destinationAddress: currSelectedAccount?.cosmosAddress ?? '',
@@ -64,7 +65,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       txCosmosMsg={msgSend}
       createTxFunction={createTxMsgSend}
       onSuccessfulTx={async () => {
-        await accounts.fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
+        await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
       }}
       requireRegistration
       coinsToTransfer={[

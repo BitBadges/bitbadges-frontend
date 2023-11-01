@@ -5,9 +5,10 @@ import { useRouter } from 'next/router';
 import React from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { NEW_COLLECTION_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { TxModal } from './TxModal';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function CreateTxMsgCreateAddressMappingModal(
   { visible, setVisible, children, inheritedTxState }
@@ -19,8 +20,8 @@ export function CreateTxMsgCreateAddressMappingModal(
     }) {
   const chain = useChainContext();
   const router = useRouter();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
 

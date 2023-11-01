@@ -2,11 +2,12 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Empty, Tooltip, Typography } from "antd";
 import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { AddressDisplayList } from "../address/AddressDisplayList";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 const { Text } = Typography
 
@@ -18,8 +19,7 @@ export function TransferDisplay({
   hideBalances,
   setTransfers,
   initiatedBy,
-  deletable,
-  isBalanceUpdate
+  deletable
 }: {
   collectionId: bigint;
   transfers: TransferWithIncrements<bigint>[],
@@ -28,10 +28,10 @@ export function TransferDisplay({
   setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
   deletable?: boolean;
   initiatedBy?: string
-  isBalanceUpdate?: boolean
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
+  const isBalanceUpdate = collection?.balancesType === 'Off-Chain'
 
   const [page, setPage] = useState(1);
 

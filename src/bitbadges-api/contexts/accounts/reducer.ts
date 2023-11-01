@@ -1,7 +1,210 @@
 import { deepCopy } from "bitbadgesjs-proto";
-import { AccountMap, BigIntify, BitBadgesUserInfo, DesiredNumberType, MINT_ACCOUNT, Stringify, convertBitBadgesUserInfo } from "bitbadgesjs-utils";
+import { AccountMap, AccountViewKey, BigIntify, BitBadgesUserInfo, DesiredNumberType, GetAccountsRouteRequestBody, MINT_ACCOUNT, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from "bitbadgesjs-utils";
+import { ThunkAction } from 'redux-thunk';
+import { AccountReducerState, AppDispatch, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
-import { AccountReducerState, initialState, reservedNames } from "./AccountsContext";
+import { getAccounts } from "../../api";
+import { initialState, reservedNames } from "./AccountsContext";
+
+interface UpdateAccountsReduxAction {
+  type: typeof UPDATE_ACCOUNTS;
+  payload: {
+    userInfos: BitBadgesUserInfo<DesiredNumberType>[];
+    forcefulRefresh: boolean;
+  }
+}
+
+export interface AccountRequestParams {
+  address?: string;
+  username?: string;
+  fetchSequence?: boolean;
+  fetchBalance?: boolean;
+  fetchHidden?: boolean;
+  viewsToFetch?: {
+    viewKey: AccountViewKey;
+    bookmark: string;
+  }[];
+  noExternalCalls?: boolean;
+}
+
+
+export const updateAccountsRedux = (userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false): UpdateAccountsReduxAction => ({
+  type: UPDATE_ACCOUNTS,
+  payload: {
+    userInfos,
+    forcefulRefresh
+  }
+});
+
+const UPDATE_ACCOUNTS = 'UPDATE_ACCOUNTS';
+const FETCH_ACCOUNTS_REQUEST = 'FETCH_ACCOUNTS_REQUEST';
+const FETCH_ACCOUNTS_START = 'FETCH_ACCOUNTS_START';
+const FETCH_ACCOUNTS_FAILURE = 'FETCH_ACCOUNTS_FAILURE';
+const FETCH_ACCOUNTS_SUCCESS = 'FETCH_ACCOUNTS_SUCCESS';
+
+interface FetchAccountsSuccessAction {
+  type: typeof FETCH_ACCOUNTS_SUCCESS;
+  payload: AccountRequestParams[]
+}
+
+
+interface FetchAccountsRequestAction {
+  type: typeof FETCH_ACCOUNTS_REQUEST;
+  payload: AccountRequestParams[]
+}
+
+interface FetchAccountsStartAction {
+  type: typeof FETCH_ACCOUNTS_START;
+  payload: AccountRequestParams[]
+}
+
+interface FetchAccountsFailureAction {
+  type: typeof FETCH_ACCOUNTS_FAILURE;
+  payload: string; // Error message
+}
+
+export type AccountsActionTypes =
+  | FetchAccountsRequestAction
+  | FetchAccountsStartAction
+  | FetchAccountsFailureAction
+  | UpdateAccountsReduxAction
+  | FetchAccountsSuccessAction;
+
+// const fetchAccountsSuccess = (accountsToFetch: AccountRequestParams[]): FetchAccountsSuccessAction => ({
+//   type: FETCH_ACCOUNTS_SUCCESS,
+//   payload: accountsToFetch,
+// });
+
+// Define your action creators
+export const fetchAccountsRequest = (accountsToFetch: AccountRequestParams[]): FetchAccountsRequestAction => ({
+  type: FETCH_ACCOUNTS_REQUEST,
+  payload: accountsToFetch,
+});
+
+// const fetchAccountsStart = (fetching: AccountRequestParams[]): FetchAccountsStartAction => ({
+//   type: FETCH_ACCOUNTS_START,
+//   payload: fetching,
+// });
+
+const fetchAccountsFailure = (error: string): FetchAccountsFailureAction => ({
+  type: FETCH_ACCOUNTS_FAILURE,
+  payload: error,
+});
+
+const getAccount = (state: AccountReducerState, addressOrUsername: string, forcefulRefresh?: boolean) => {
+  if (reservedNames.includes(addressOrUsername)) return { ...MINT_ACCOUNT, address: addressOrUsername, cosmosAddress: addressOrUsername };
+
+  let accountToReturn;
+  let accounts = state.accounts;
+  let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
+
+  if (isAddressValid(addressOrUsername)) {
+    const cosmosAddress = convertToCosmosAddress(addressOrUsername);
+    if (forcefulRefresh) accountToReturn = undefined;
+    else accountToReturn = accounts[cosmosAddress];
+  } else {
+    accountToReturn = accounts[cosmosAddressesByUsernames[addressOrUsername]];
+  }
+  return accountToReturn ? convertBitBadgesUserInfo(accountToReturn, BigIntify) : undefined;
+}
+
+export const fetchAccountsRedux = (
+  accountsToFetch: AccountRequestParams[],
+): ThunkAction<
+  void,
+  GlobalReduxState,
+  unknown,
+  AccountsActionTypes
+> => async (
+  dispatch: AppDispatch,
+  getState: () => GlobalReduxState
+) => {
+    const forcefulRefresh = false;
+    const state = getState().accounts;
+
+    try {
+      const batchRequestBody: GetAccountsRouteRequestBody = {
+        accountsToFetch: []
+      };
+
+      //Iterate through and see which accounts + info we actually need to fetch versus which we already have enough for
+      for (const accountToFetch of accountsToFetch) {
+
+        // if (accountToFetch.address) accountToFetch.address = convertToCosmosAddress(accountToFetch.address);
+        let viewsToFetch = accountToFetch.viewsToFetch?.filter(x => x.bookmark != 'nil') || [];
+
+        const cachedAccount = getAccount(state, accountToFetch.address || accountToFetch.username || '', forcefulRefresh);
+
+        if (cachedAccount === undefined) {
+          batchRequestBody.accountsToFetch.push({
+            address: accountToFetch.address,
+            username: accountToFetch.username,
+            fetchSequence: accountToFetch.fetchSequence,
+            fetchBalance: accountToFetch.fetchBalance,
+
+            viewsToFetch: accountToFetch.viewsToFetch,
+            noExternalCalls: accountToFetch.noExternalCalls,
+          });
+        } else {
+
+          if (accountToFetch.address) accountToFetch.address = cachedAccount.address;
+          if (accountToFetch.username) accountToFetch.username = cachedAccount.username;
+
+          if (reservedNames.includes(accountToFetch.address || accountToFetch.username || '')) continue;
+
+          //Do not fetch views where hasMore is false
+          viewsToFetch = viewsToFetch?.filter(x => {
+            const currPagination = cachedAccount.views[x.viewKey]?.pagination;
+            if (!currPagination) return true;
+            else return currPagination.hasMore
+          });
+
+          //Check if we need to fetch anything
+          const needToFetch =
+            (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
+            (accountToFetch.fetchBalance && cachedAccount.balance === undefined) ||
+            (viewsToFetch?.length) ||
+            !cachedAccount.fetchedProfile
+
+          if (needToFetch) {
+
+            batchRequestBody.accountsToFetch.push({
+              address: accountToFetch.address,
+              username: accountToFetch.username,
+              viewsToFetch: viewsToFetch,
+              fetchSequence: accountToFetch.fetchSequence,
+              fetchBalance: accountToFetch.fetchBalance,
+              noExternalCalls: accountToFetch.noExternalCalls,
+            });
+          }
+        }
+      }
+
+      // Dispatch success action with fetched data
+      console.log('batchRequestBody', batchRequestBody);
+      if (batchRequestBody.accountsToFetch.length > 0) {
+
+
+        const res = await getAccounts(batchRequestBody);
+        // console.log('ACCOUNTS RES', batchRequestBody, res);
+
+        dispatch(updateAccountsRedux(
+          res.accounts,
+          false
+        ));
+
+      }
+
+    } catch (error: any) {
+      console.log('failure', error);
+      // Dispatch failure action if there's an error
+      dispatch(fetchAccountsFailure(error.message));
+    }
+
+
+    return true;
+  };
+
 
 const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [], forcefulRefresh: boolean = false) => {
 
@@ -85,18 +288,19 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
   }
 
   //Update the accounts map
-  const newUpdates: AccountMap<string> = {};
+  const newUpdates: AccountMap<bigint> = {};
   const newUsernameUpdates: { [username: string]: string } = {};
   for (const accountToReturn of accountsToReturn) {
     if (accountToReturn.ignore) continue;
     //Only trigger a rerender if the account has changed or we haev to
     if ((accountToReturn.needToCompare && !compareObjects(accountToReturn.account, accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
-      newUpdates[accountToReturn.account.cosmosAddress] = convertBitBadgesUserInfo(accountToReturn.account, Stringify);
+      newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
       if (accountToReturn.account.username) {
         newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
       }
     }
   }
+
 
   return {
     ...state,
@@ -112,6 +316,15 @@ export const accountReducer = (state = initialState, action: { type: string; pay
       const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
       const forcefulRefresh = action.payload.forcefulRefresh as boolean;
       return updateAccounts(state, userInfos, forcefulRefresh);
+    case 'FETCH_ACCOUNTS_REQUEST':
+      return { ...state, loading: true, error: '' };
+    // return { ...state, loading: true, error: '', queue: [...state.queue, ...action.payload] };
+    // case 'FETCH_ACCOUNTS_START':
+    //   return { ...state, loading: false, error: '', queue: [], fetching: [...state.fetching, ...action.payload] }
+    // case 'FETCH_ACCOUNTS_FAILURE':
+    //   return { ...state, loading: false, error: action.payload };
+    // case 'FETCH_ACCOUNTS_SUCCESS':
+    // return { ...state, fetching: state.fetching.filter(x => !action.payload.some((y: any) => JSON.stringify(x) === JSON.stringify(y))) }
     default:
       return state;
   }

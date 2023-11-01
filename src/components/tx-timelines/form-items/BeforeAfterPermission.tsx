@@ -1,10 +1,11 @@
 import { Col, Row, Typography } from 'antd';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission } from 'bitbadgesjs-utils';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
+import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export function BeforeAfterPermission({
@@ -12,10 +13,10 @@ export function BeforeAfterPermission({
 }: {
   permissionName: string,
 }) {
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   let castFunction: any = () => { }
   let flags;
@@ -94,8 +95,8 @@ export function AfterPermission({
   permissionName: string,
   onFreezePermitted?: (frozen: boolean) => void
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   let castFunction: any = () => { }
   let flags;

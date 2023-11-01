@@ -6,8 +6,10 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { DesiredNumberType } from '../../bitbadges-api/api';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
+
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE, NODE_URL } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
@@ -16,6 +18,159 @@ import { Pagination } from '../common/Pagination';
 import IconButton from '../display/IconButton';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 
+function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
+  return <div className='flex-center flex-column'>
+    {addresses.length > 1 ?
+      <div className='flex-center flex-column'>
+        <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
+      </div>
+      : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
+  </div>
+}
+
+
+function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, collectionId: bigint, activity: TransferActivityInfo<DesiredNumberType>, onDelete?: (idx: number) => void }) {
+  const router = useRouter();
+  const collection = useCollection(collectionId);
+
+  let numBadgesTransferred = 0n;
+  activity.balances.forEach(balance => {
+    for (const badgeIdRange of balance.badgeIds) {
+      numBadgesTransferred += badgeIdRange.end - badgeIdRange.start + 1n;
+    }
+  });
+
+  return <>
+
+    <div className='dark dark:text-white'>
+      <Row className='flex-between  dark:text-white' style={{ textAlign: 'left' }} >
+        <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} >
+          {collection?.balancesType === 'Standard' ? <>
+            <PanelHeaderAddresses addresses={[activity.from]} />
+            <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
+          </> :
+            <></>}
+
+          <PanelHeaderAddresses addresses={activity.to} />
+          <b style={{ marginRight: 8, marginLeft: 8 }}>
+            {/* Calculate number of badges transferred */}
+            ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
+          </b>
+        </Col>
+        <div className='flex-center' onClick={(e) => { e.stopPropagation(); }} style={{ display: 'flex', alignItems: 'center' }}>
+          {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
+          {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='Delete' />}
+        </div>
+      </Row>
+      <Row>
+        <div
+          className='dark:text-white'
+          style={{
+            marginTop: 4,
+            fontSize: 14,
+            fontWeight: 'bolder',
+            whiteSpace: 'normal'
+          }}
+          onClick={(e) => {
+            router.push(`/collections/${activity.collectionId}`);
+            e.stopPropagation();
+          }}
+        >
+          <a>
+            {collection?.cachedCollectionMetadata?.name}
+          </a>
+        </div>
+
+      </Row>
+    </div>
+  </>
+}
+
+
+function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, hasMore }: {
+  activity: TransferActivityInfo<DesiredNumberType>[],
+  onDelete?: (idx: number) => void
+  paginated?: boolean
+  hasMore: boolean
+  currPage: number,
+  numShown: number
+}) {
+
+  return <>{/** No activity */}
+    {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
+
+    {/** Activity Collapse Panel */}
+    {
+      activity.length > 0 &&
+      <Collapse
+        className='full-width dark:text-white inherit-bg'
+        style={{ alignItems: 'center' }}
+        expandIconPosition='start'
+      >
+        {activity.map((activity, idx) => {
+          if (paginated) {
+            if (idx < (currPage - 1) * 10) return <></>;
+            if (idx >= currPage * 10) return <></>;
+          } else {
+            if (idx >= numShown) return <></>;
+          }
+
+          const collectionId = activity.collectionId;
+
+
+          return <CollapsePanel
+            key={idx}
+            className='full-width gradient-bg dark'
+            header={<>
+              <PanelHeader collectionId={collectionId} activity={activity} onDelete={onDelete} idx={idx} />
+            </>
+            }
+          >
+            {
+              <div className='full-width gradient-bg'>
+                <br />
+                <div className='flex-center dark:text-white'>
+                  <div key={idx} className='dark:text-white'>
+                    <Row>
+                      <Col span={24}>
+                        <TransferDisplay
+                          key={idx}
+
+                          collectionId={collectionId}
+                          initiatedBy={activity.initiatedBy}
+                          transfers={[
+                            {
+                              from: activity.from,
+                              toAddresses: activity.to,
+                              balances: activity.balances,
+                              memo: activity.memo,
+                              precalculateBalancesFromApproval: activity.precalculateBalancesFromApproval,
+                              merkleProofs: [],
+                              prioritizedApprovals: [],
+                              onlyCheckPrioritizedApprovals: false,
+                            }
+                          ]}
+                        />
+
+                        <br />
+                        {activity.txHash &&
+                          <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
+                            See Blockchain Transaction
+                          </a></p>
+                        }
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              </div>
+            }
+          </CollapsePanel>
+        })}
+      </Collapse>
+    }</>
+}
+
+
 export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated }: {
   activity: TransferActivityInfo<DesiredNumberType>[],
   fetchMore: () => Promise<void>,
@@ -23,10 +178,6 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
   onDelete?: (idx: number) => void
   paginated?: boolean
 }) {
-  const accounts = useAccountsContext();
-
-  const router = useRouter();
-  const collections = useCollectionsContext();
   const [numShown, setNumShown] = useState(10);
   const [currPage, setCurrPage] = useState(1);
 
@@ -61,147 +212,13 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
       const accountsToFetch = [...new Set(currActivityToDisplay.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat())];
       const collectionsToFetch = currActivityToDisplay.map(a => a.collectionId).filter(x => x > 0n);
 
-      // console.log('fetching collections', collectionsToFetch);
-      await collections.fetchCollections(collectionsToFetch);
-      await accounts.fetchAccounts(accountsToFetch);
+      console.log('fetching collections', collectionsToFetch);
+      await fetchCollections(collectionsToFetch);
+      await fetchAccounts(accountsToFetch);
     }
     getActivity();
-  }, [activity, numShown]);
+  }, [activity, numShown, currPage, paginated]);
 
-
-  // Gets the address to display on the panel header (either address or "X addresses" if there are multiple)
-  const getPanelHeaderAddress = (addresses: (string)[]) => {
-    return <div className='flex-center flex-column'>
-      {addresses.length > 1 ?
-        <div className='flex-center flex-column'>
-          <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
-        </div>
-        : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
-    </div>
-  }
-
-  const CollapseComponent = <>{/** No activity */}
-    {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
-
-    {/** Activity Collapse Panel */}
-    {
-      activity.length > 0 &&
-      <Collapse
-        className='full-width dark:text-white inherit-bg'
-        style={{ alignItems: 'center' }}
-        expandIconPosition='start'
-      >
-        {activity.map((activity, idx) => {
-          if (paginated) {
-            if (idx < (currPage - 1) * 10) return <></>;
-            if (idx >= currPage * 10) return <></>;
-          } else {
-            if (idx >= numShown) return <></>;
-          }
-
-          const collectionId = activity.collectionId;
-          const collection = collections.getCollection(collectionId)
-          let numBadgesTransferred = 0n;
-          activity.balances.forEach(balance => {
-            for (const badgeIdRange of balance.badgeIds) {
-              numBadgesTransferred += badgeIdRange.end - badgeIdRange.start + 1n;
-            }
-          });
-
-
-
-          return <CollapsePanel
-            key={idx}
-            className='full-width gradient-bg'
-            header={<>
-              <Row className='flex-between  dark:text-white' style={{ textAlign: 'left' }} >
-                <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                  {collection?.balancesType === 'Standard' ? <>
-                    {getPanelHeaderAddress([activity.from])}
-                    <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
-                  </> :
-                    <></>}
-
-                  {getPanelHeaderAddress(activity.to)}
-                  <b style={{ marginRight: 8, marginLeft: 8 }}>
-                    {/* Calculate number of badges transferred */}
-                    ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
-                  </b>
-                </Col>
-                <div className='flex-center' onClick={(e) => { e.stopPropagation(); }} style={{ display: 'flex', alignItems: 'center' }}>
-                  {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
-                  {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='Delete' />}
-                </div>
-              </Row>
-
-              <Row>
-                <div
-                  className='dark:text-white'
-                  style={{
-                    marginTop: 4,
-                    fontSize: 14,
-                    fontWeight: 'bolder',
-                    whiteSpace: 'normal'
-                  }}
-                  onClick={(e) => {
-                    router.push(`/collections/${activity.collectionId}`);
-                    e.stopPropagation();
-                  }}
-                >
-                  <a>
-                    {collection?.cachedCollectionMetadata?.name}
-                  </a>
-                </div>
-
-              </Row>
-            </>
-            }
-          >
-            {
-              <div className='full-width gradient-bg'>
-                <br />
-                <div className='flex-center dark:text-white'>
-                  <div key={idx} className='dark:text-white'>
-                    <Row>
-                      <Col span={24}>
-
-
-                        {collection &&
-                          <TransferDisplay
-                            key={idx}
-                            isBalanceUpdate={collection.balancesType === 'Off-Chain'}
-                            collectionId={collectionId}
-                            initiatedBy={activity.initiatedBy}
-                            transfers={[
-                              {
-                                from: activity.from,
-                                toAddresses: activity.to,
-                                balances: activity.balances,
-                                memo: activity.memo,
-                                precalculateBalancesFromApproval: activity.precalculateBalancesFromApproval,
-                                merkleProofs: [],
-                                prioritizedApprovals: [],
-                                onlyCheckPrioritizedApprovals: false,
-                              }
-                            ]}
-                          />
-                        }
-                        <br />
-                        {activity.txHash &&
-                          <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + activity.txHash} target='_blank' rel='noopener noreferrer'>
-                            See Blockchain Transaction
-                          </a></p>
-                        }
-                      </Col>
-                    </Row>
-                  </div>
-                </div>
-              </div>
-            }
-          </CollapsePanel>
-        })}
-      </Collapse>
-    }</>
 
   return (
     <div className='full-width'>
@@ -222,13 +239,13 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
             className='full-width'
             style={{ overflow: 'hidden' }}
           >
-            {CollapseComponent}
+            <CollapseComponent activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
           </InfiniteScroll>
           : <>
             <div className='full-width'>
               <Pagination currPage={currPage} onChange={setCurrPage} total={activity.length} pageSize={10} showPageJumper />
               <br />
-              {CollapseComponent}
+              <CollapseComponent activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
             </div>
           </>}
       </div>

@@ -3,9 +3,11 @@ import { Col, Divider, Empty, Switch, Typography } from 'antd';
 import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useAccountsContext } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+
+
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchBalanceForUser, updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { NODE_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
@@ -45,6 +47,7 @@ export const ApprovalsDisplay: FC<Props> = ({
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
+  const simulatedCollection = useCollection(NEW_COLLECTION_ID);
 
   let disapproved = showHidden ?
     approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
@@ -58,7 +61,6 @@ export const ApprovalsDisplay: FC<Props> = ({
   const [filterByBadgeId, setFilterByBadgeId] = useState<boolean>(!!badgeId);
 
   const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
-  const txTimelineContext = useTxTimelineContext();
 
   if (onlyShowFromMint) {
     approvals = approvals.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
@@ -108,13 +110,18 @@ export const ApprovalsDisplay: FC<Props> = ({
             const result = <TransferabilityRow grayedOut
 
               onRestore={() => {
-                if (txTimelineContext.approvalsToAdd.find(y => y.approvalId === x.approvalId)) {
+                //TODO: This assumes mint timeline is used
+
+                const approvalsToAdd = simulatedCollection?.collectionApprovals;
+                if (approvalsToAdd?.find(y => y.approvalId === x.approvalId)) {
                   alert('This approval ID is already used.');
                   return;
                 }
 
-                const approvalsToAdd = txTimelineContext.approvalsToAdd;
-                txTimelineContext.setApprovalsToAdd([...approvalsToAdd, x]);
+                updateCollection({
+                  collectionId: NEW_COLLECTION_ID,
+                  collectionApprovals: [...(simulatedCollection?.collectionApprovals ?? []), x]
+                });
               }}
               allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} mobileFriendly={mobile} />
             return result
@@ -239,17 +246,17 @@ export function UserApprovalsTab({
 }) {
 
   const chain = useChainContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
 
-  const accounts = useAccountsContext();
+  const collection = useCollection(collectionId);
+
+
   const [address, setAddress] = useState<string>(defaultApprover ?? chain.address);
   const [visible, setVisible] = useState<boolean>(false);
 
   const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
-  const approverAccount = address ? accounts.getAccount(address) : undefined;
+  const approverAccount = useAccount(address);
 
   //Initial or currently set ones
   const startingOutgoingApprovals = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.outgoingApprovals ?? [];
@@ -261,8 +268,8 @@ export function UserApprovalsTab({
 
 
   useEffect(() => {
-    if (address) collections.fetchBalanceForUser(collectionId, address);
-  }, [address]);
+    if (address) fetchBalanceForUser(collectionId, address);
+  }, [address, collectionId])
 
 
   if (!collection) return <></>;

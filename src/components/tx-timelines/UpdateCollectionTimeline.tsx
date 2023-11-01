@@ -1,6 +1,6 @@
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, isInAddressMapping } from 'bitbadgesjs-utils';
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
@@ -30,20 +30,20 @@ import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { neverHasManager } from '../../bitbadges-api/utils/manager';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
   const mintType = txTimelineContext.mintType;
   const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping;
   const formStepNum = txTimelineContext.formStepNum;
   const setFormStepNum = txTimelineContext.setFormStepNum;
   const completeControl = txTimelineContext.completeControl;
   const startingCollection = txTimelineContext.startingCollection;
-
 
   //All mint timeline step items
   const ChooseBadgeType = ChooseBadgeTypeStepItem();
@@ -77,6 +77,7 @@ export function UpdateCollectionTimeline() {
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem : ChooseBadgeType
   ];
 
+  console.log(collection, startingCollection)
   if (!collection || !startingCollection) return <></>;
 
   if (mintType === MintType.BitBadge) {

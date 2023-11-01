@@ -4,7 +4,7 @@ import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
@@ -14,6 +14,7 @@ import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
 import { UpdateBalancesModal } from '../tx-modals/UpdateBalancesModal';
+import { useCollection, triggerMetadataRefresh } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export interface Action {
   title: string,
@@ -88,8 +89,8 @@ export function ActionsTab({
 }) {
   const chain = useChainContext();
   const router = useRouter();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId)
+
+  const collection = useCollection(collectionId)
 
   //Modal visibilities
   const [transferIsVisible, setTransferIsVisible] = useState(false);
@@ -137,7 +138,7 @@ export function ActionsTab({
     description: "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection.",
     showModal: async () => {
       try {
-        await collections.triggerMetadataRefresh(collectionId);
+        await triggerMetadataRefresh(collectionId);
         notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
       } catch (e) {
         console.error(e);

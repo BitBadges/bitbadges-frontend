@@ -1,17 +1,18 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { DistributionOverview } from '../badges/DistributionCard';
 import { getPermissionDetails } from './PermissionsInfo';
 import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from 'bitbadgesjs-utils';
 import { neverHasManager } from '../../bitbadges-api/utils/manager';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function OffChainTransferabilityTab({ collectionId }: {
   collectionId: bigint,
 
 }) {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
 
 
   if (!collection) return <></>;

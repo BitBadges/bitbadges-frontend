@@ -9,11 +9,12 @@ import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
-import { useAccountsContext } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { useAccount, updateAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -22,8 +23,8 @@ const { Content } = Layout;
 export function AccountSettings() {
   const router = useRouter();
   const chain = useChainContext();
-  const accounts = useAccountsContext();
-  const signedInAccount = accounts.getAccount(chain.cosmosAddress);
+
+  const signedInAccount = useAccount(chain.cosmosAddress);
 
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -94,7 +95,7 @@ export function AccountSettings() {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
     if (!signedInAccount) return;
     setNewAccount(signedInAccount);
-  }, [signedInAccount?.cosmosAddress]);
+  }, [signedInAccount]);
 
   const uploadButton = (
     <div className='dark:text-white'>
@@ -399,7 +400,7 @@ export function AccountSettings() {
 
                             await updateAccountInfo(data);
 
-                            accounts.updateAccount({
+                            updateAccount({
                               ...newAccount,
                               ...data
                             });
@@ -418,7 +419,7 @@ export function AccountSettings() {
                           profilePicUrl: fileList.length == 0 ? '' : newAccount.profilePicUrl
                         });
 
-                        accounts.updateAccount({
+                        updateAccount({
                           ...newAccount,
                           ...data,
                           profilePicUrl: fileList.length == 0 ? '' : newAccount.profilePicUrl

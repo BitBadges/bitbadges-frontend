@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { getTokensFromFaucet } from '../bitbadges-api/api';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../bitbadges-api/contexts/StatusContext';
-import { useAccountsContext } from '../bitbadges-api/contexts/accounts/AccountsContext';
+
 import { DisconnectedWrapper } from '../components/wrappers/DisconnectedWrapper';
+import { fetchAccountsWithOptions } from '../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
   const chain = useChainContext();
-  const accounts = useAccountsContext();
+
   const status = useStatusContext();
   const [loading, setLoading] = useState(false);
 
@@ -77,7 +78,7 @@ function RegisterScreen({ message }: { message?: string }) {
                         await new Promise(resolve => setTimeout(resolve, 1000));
                       }
 
-                      await accounts.fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
+                      await fetchAccountsWithOptions([{ address: chain.address, fetchSequence: true }], true);
 
                       notification.success({
                         message: "Success! Airdrop claimed successfully.",

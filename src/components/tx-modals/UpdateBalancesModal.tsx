@@ -42,7 +42,7 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
 
   useEffect(() => {
     txTimelineContext.resetState(collectionId);
-  }, []);
+  }, [collectionId]);
 
   return (
     <Modal

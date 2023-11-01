@@ -1,13 +1,14 @@
 import { BitBadgesCollection, MetadataAddMethod, TimedUpdateWithBadgeIdsPermissionUsedFlags, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export const getBadgesWithUpdatableMetadata = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
   const collectionToCheck = currentCollection ? collection : startingCollection;
@@ -25,8 +26,8 @@ export const getBadgesWithUpdatableMetadata = (collection: BitBadgesCollection<b
 }
 
 export function SetBadgeMetadataStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const canUpdateBadgeMetadata = txTimelineContext.updateBadgeMetadataTimeline;
@@ -44,7 +45,7 @@ export function SetBadgeMetadataStepItem() {
     title: 'Set Badge Metadata',
     description: <>Customize each individual badge in the collection.</>,
     node: <UpdateSelectWrapper
-    err={err}
+      err={err}
       setErr={(err) => { setErr(err) }}
       updateFlag={canUpdateBadgeMetadata}
       setUpdateFlag={setUpdateBadgeMetadata}
@@ -54,7 +55,9 @@ export function SetBadgeMetadataStepItem() {
       node={<InformationDisplayCard title='Badge Metadata'>
         {
           collection && <>
-            <MetadataForm badgeIds={toUpdateBadges} addMethod={addMethod} setAddMethod={setAddMethod} />
+            <MetadataForm
+              badgeIds={toUpdateBadges}
+              addMethod={addMethod} setAddMethod={setAddMethod} />
           </>
         }
       </InformationDisplayCard>}

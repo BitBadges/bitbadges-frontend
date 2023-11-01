@@ -4,11 +4,11 @@ import { Typography, notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { CheckCircleFilled, CloseCircleFilled, SwapOutlined } from "@ant-design/icons";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
 import IconButton from "../display/IconButton";
 import { updateAccountInfo } from "../../bitbadges-api/api";
+import { updateAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 export const CustomizeButtons =
   ({ accountInfo, badgeIdObj, badgeId, onlyShowCollectionOptions, showCustomizeButtons }: {
@@ -20,7 +20,7 @@ export const CustomizeButtons =
   }) => {
 
     const chain = useChainContext();
-    const accountsContext = useAccountsContext();
+
 
     const isHidden = accountInfo?.hiddenBadges?.find(x => {
       if (x.badgeIds.length == 0) return false;
@@ -126,7 +126,7 @@ export const CustomizeButtons =
                         shownBadges: shownBadge
                       });
 
-                      accountsContext.updateAccount(deepCopy({
+                      updateAccount(deepCopy({
                         ...accountInfo,
                         shownBadges: shownBadge,
                         views: getNewViews(accountInfo)
@@ -144,7 +144,7 @@ export const CustomizeButtons =
                         hiddenBadges: hiddenBadge
                       }));
 
-                      accountsContext.updateAccount(deepCopy({
+                      updateAccount(deepCopy({
                         ...accountInfo,
                         hiddenBadges: hiddenBadge,
                         views: getNewViews(accountInfo)
@@ -172,7 +172,7 @@ export const CustomizeButtons =
                       shownBadges: shownBadge
                     });
 
-                    accountsContext.updateAccount(deepCopy({
+                    updateAccount(deepCopy({
                       ...accountInfo,
                       shownBadges: shownBadge,
                       views: getNewViews(accountInfo)
@@ -189,7 +189,7 @@ export const CustomizeButtons =
                       hiddenBadges: hiddenBadge
                     }));
 
-                    accountsContext.updateAccount(deepCopy({
+                    updateAccount(deepCopy({
                       ...accountInfo,
                       hiddenBadges: hiddenBadge,
                       views: getNewViews(accountInfo)
@@ -239,7 +239,7 @@ export const CustomizeButtons =
                         [...(accountInfo.customPages ?? []), pinnedPage]
                   });
 
-                  accountsContext.updateAccount(deepCopy({
+                  updateAccount(deepCopy({
                     ...accountInfo,
                     customPages:
                       accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?

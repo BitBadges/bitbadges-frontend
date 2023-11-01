@@ -6,8 +6,9 @@ import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { deepCopy } from "bitbadgesjs-proto"
-import { useAccountsContext } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+
 import { getAbbreviatedAddress } from "bitbadgesjs-utils"
+import { fetchAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
 export function AddressDisplayList({
   users,
@@ -45,7 +46,7 @@ export function AddressDisplayList({
   //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
   const [currPageStart, setCurrPageStart] = useState<number>(0); // Index of first badge to display
   const [currPageEnd, setCurrPageEnd] = useState<number>(0); // Index of last badge to display
-  const accounts = useAccountsContext();
+
   let usersToDisplay = deepCopy(users);
   usersToDisplay = usersToDisplay.filter(x => x !== 'Total');
 
@@ -68,8 +69,8 @@ export function AddressDisplayList({
     setCurrPageEnd(currPageEnd);
 
     const reservedNames = ['All', 'Mint'];
-    if (!trackerIdList) accounts.fetchAccounts(usersToDisplay.slice(currPageStart, currPageEnd + 1).filter(x => !reservedNames.includes(x)));
-  }, [currPage, pageSize, usersToDisplay]);
+    if (!trackerIdList) fetchAccounts(usersToDisplay.slice(currPageStart, currPageEnd + 1).filter(x => !reservedNames.includes(x)));
+  }, [currPage, pageSize, usersToDisplay, trackerIdList]);
 
 
 

@@ -2,16 +2,17 @@ import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, g
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { ApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function DefaultToApprovedSelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const chain = useChainContext();
@@ -37,7 +38,7 @@ export function DefaultToApprovedSelectStepItem() {
     title: `Default Incoming Approvals`,
     description: `If not forcefully overriden, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
     node: <UpdateSelectWrapper
-    err={null}
+      err={null}
       setErr={() => { }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
@@ -63,7 +64,7 @@ export function DefaultToApprovedSelectStepItem() {
             },
           ]}
           onSwitchChange={(idx) => {
-            collections.updateCollection({
+            updateCollection({
               collectionId: NEW_COLLECTION_ID,
               defaultUserIncomingApprovals: idx === 0 ? forcefulOption : [],
             });

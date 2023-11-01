@@ -1,12 +1,13 @@
 import { MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export const isCompletelyForbidden = (permissionDetails: ReturnType<typeof getPermissionDetails>) => {
   return !permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes;
@@ -19,10 +20,10 @@ export const isCompletelyNeutralOrCompletelyPermitted = (permissionDetails: Retu
 }
 
 export function CanUpdateBalancesStepItem() {
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const addMethod = txTimelineContext.offChainAddMethod;
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
   const [err, setErr] = useState<Error | null>(null);
 
@@ -36,7 +37,7 @@ export function CanUpdateBalancesStepItem() {
     //TODO:  Handle weird edge cases where it is updated behind the scenes by the user (not via form) and we can't actually update BB hosted -> IPFS if selected (or other weird edge cases)
     //Currently it is caught by simulation
 
-    collections.updateCollection({
+    updateCollection({
       collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
 

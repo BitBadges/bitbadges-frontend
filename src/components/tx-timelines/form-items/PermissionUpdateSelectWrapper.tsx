@@ -4,7 +4,7 @@ import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, Time
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollectionsContext } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
 import { PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
@@ -12,6 +12,7 @@ import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
 import { ErrDisplay } from './ErrDisplay';
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -29,12 +30,12 @@ export function PermissionUpdateSelectWrapper({
   permissionName: string,
   node: JSX.Element,
 }) {
-  const collections = useCollectionsContext();
+
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
 
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+  const collection = useCollection(NEW_COLLECTION_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<Error | null>(null)
@@ -159,7 +160,7 @@ export function PermissionUpdateSelectWrapper({
                 if (startingCollection && collection) {
                   const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-                  collections.updateCollection({
+                  updateCollection({
                     collectionId: NEW_COLLECTION_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
@@ -167,7 +168,7 @@ export function PermissionUpdateSelectWrapper({
                     }
                   });
                 } else if (collection && !startingCollection) {
-                  collections.updateCollection({
+                  updateCollection({
                     collectionId: NEW_COLLECTION_ID,
                     collectionPermissions: {
                       ...collection.collectionPermissions,
@@ -190,7 +191,7 @@ export function PermissionUpdateSelectWrapper({
               if (startingCollection && collection) {
                 const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
-                collections.updateCollection({
+                updateCollection({
                   collectionId: NEW_COLLECTION_ID,
                   collectionPermissions: {
                     ...collection.collectionPermissions,
@@ -245,7 +246,7 @@ export function PermissionUpdateSelectWrapper({
         {err &&
           <><br />
             <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b> The newly selected value for this permissions is updating a previously frozen value.
+              <b>Error: </b> The newly selected value for this permissions is updating a previously frozen value. See before / after.
               <br />
 
               {DEV_MODE && <>

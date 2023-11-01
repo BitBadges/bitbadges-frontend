@@ -1,14 +1,15 @@
 import { getFullIsArchivedTimeline } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function IsArchivedSelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const canArchiveCollection = txTimelineContext.updateIsArchivedTimeline;
@@ -47,12 +48,12 @@ export function IsArchivedSelectStepItem() {
                 showCustomOption
                 onSwitchChange={(idx) => {
                   if (idx == 0) {
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       isArchivedTimeline: [],
                     })
                   } else {
-                    collections.updateCollection({
+                    updateCollection({
                       collectionId: NEW_COLLECTION_ID,
                       isArchivedTimeline: [{
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],

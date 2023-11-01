@@ -1,12 +1,13 @@
 import { Form, Input, Typography } from "antd";
 import { useEffect, useState } from "react";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { DevMode } from "../../common/DevMode";
 import { NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useCollection, updateCollectionAndFetchMetadataDirectly, setCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 const { Text } = Typography;
 
@@ -21,10 +22,10 @@ export function MetadataUriSelect({
   hideCollectionSelect?: boolean;
   hideBadgeSelect?: boolean;
 }) {
-  const collections = useCollectionsContext();
+
   const collectionId = NEW_COLLECTION_ID;
 
-  const collection = collections.getCollection(collectionId);
+  const collection = useCollection(collectionId);
 
   const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
   const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
@@ -35,7 +36,7 @@ export function MetadataUriSelect({
     const delayDebounceFn = setTimeout(async () => {
       if (!collectionUri || !collection) return
 
-      collections.updateCollectionAndFetchMetadataDirectly({
+      updateCollectionAndFetchMetadataDirectly({
         collectionId: NEW_COLLECTION_ID,
         cachedCollectionMetadata: undefined,
         collectionMetadataTimeline: collectionUri ? [{
@@ -45,7 +46,7 @@ export function MetadataUriSelect({
             customData: '',
           }
         }] : []
-      }, {}, true)
+      }, {})
 
     }, DELAY_MS)
 
@@ -62,7 +63,7 @@ export function MetadataUriSelect({
       }
 
       //Slightly hacky but this will overwrite all cached metadata to [] -> means next badgeavatardisplay render, we fetch since it is empty
-      collections.setCollection({
+      setCollection({
         ...collection,
         cachedBadgeMetadata: [],
         badgeMetadataTimeline: badgeUri ? [{

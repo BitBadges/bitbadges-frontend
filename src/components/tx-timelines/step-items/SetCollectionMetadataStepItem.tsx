@@ -1,15 +1,16 @@
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { getBadgesWithUpdatableMetadata } from "./SetBadgeMetadata";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function SetCollectionMetadataStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
@@ -30,7 +31,7 @@ export function SetCollectionMetadataStepItem() {
     </>,
 
     node: <UpdateSelectWrapper
-    err={err}
+      err={err}
       updateFlag={canUpdateCollectionMetadata}
       setUpdateFlag={setCanUpdateCollectionMetadata}
       setErr={(err) => { setErr(err) }}

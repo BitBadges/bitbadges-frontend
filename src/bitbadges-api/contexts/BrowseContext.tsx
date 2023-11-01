@@ -3,8 +3,10 @@ import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { DesiredNumberType, getBrowseCollections } from '../api';
-import { useCollectionsContext } from './collections/CollectionsContext';
-import { useAccountsContext } from './accounts/AccountsContext';
+import { updateAccount } from './accounts/AccountsContext';
+import { setCollection } from './collections/CollectionsContext';
+
+
 
 export type BrowseContextType = {
   browse: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined,
@@ -24,20 +26,17 @@ type Props = {
 
 export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
   const [browse, setBrowse] = useState<GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>>();
-  const collections = useCollectionsContext();
-  const accounts = useAccountsContext();
-  const [loaded, setLoaded] = useState(false);
 
   async function updateCollectionsAndAccounts(browseInfo: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>) {
-    const updatedIds = new Set();
-    const updatedAccounts = new Set();
+    const updatedIds = new Set<bigint>();
+    const updatedAccounts = new Set<string>();
 
     for (const category of Object.keys(browseInfo.collections)) {
       if (!browseInfo.collections[category]) continue;
 
       for (const collection of browseInfo.collections[category]) {
         if (!updatedIds.has(collection.collectionId)) {
-          collections.setCollection(collection);
+          setCollection(collection);
           updatedIds.add(collection.collectionId);
         }
       }
@@ -48,14 +47,13 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const profile of browseInfo.profiles[category]) {
         if (!updatedAccounts.has(profile.cosmosAddress)) {
-          accounts.updateAccount({
+          updateAccount({
             ...profile,
           });
           updatedAccounts.add(profile.cosmosAddress);
         }
       }
     }
-
   }
 
   async function getCollectionsAndUpdateBrowse() {

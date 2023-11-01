@@ -6,10 +6,11 @@ import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollectionsContext } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { TxModal } from './TxModal';
+import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 //Claim badge is exclusively used for predetermined balances
@@ -30,8 +31,8 @@ export function CreateTxMsgClaimBadgeModal(
   }
 ) {
   const chain = useChainContext();
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(collectionId);
+
+  const collection = useCollection(collectionId);
 
   const approvalId = approval.approvalId;
   const approvalCriteria = approval?.approvalCriteria;
@@ -55,7 +56,7 @@ export function CreateTxMsgClaimBadgeModal(
     else {
       setPasswordCodeToSubmit(code);
     }
-  }, [code, claimItem]);
+  }, [code, claimItem, approval]);
 
   useEffect(() => {
     if (!visible) return;
@@ -100,7 +101,8 @@ export function CreateTxMsgClaimBadgeModal(
       }
     }
     fetchCode();
-  }, [claimItem, code, collectionId, visible]);
+  }, [claimItem, approval, code, collectionId, visible, setVisible, tree, chain.cosmosAddress, whitelistIndex, isWhitelist, challengeTracker]);
+
 
   if (!collection || !visible) return <></>;
 
@@ -152,7 +154,7 @@ export function CreateTxMsgClaimBadgeModal(
       disabled={requiresProof && !isValidProof}
       requireRegistration
       onSuccessfulTx={async () => {
-        await collections.fetchCollections([collectionId], true);
+        await fetchCollections([collectionId], true);
       }}
       msgSteps={[]}
     >

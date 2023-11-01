@@ -2,17 +2,18 @@ import { Divider } from "antd";
 import { DefaultPlaceholderMetadata, deepCopyBalances, removeBadgeMetadata, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 import { DistributionOverview } from "../../badges/DistributionCard";
 import { DevMode } from "../../common/DevMode";
 import { BalanceInput } from "../../inputs/BalanceInput";
 import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function BadgeSupplySelectStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -33,7 +34,7 @@ export function BadgeSupplySelectStepItem() {
       end: getTotalNumberOfBadges(collection)
     }]);
 
-    collections.updateCollection({
+    updateCollection({
       collectionId: NEW_COLLECTION_ID,
       cachedBadgeMetadata: newBadgeMetadata
     });
@@ -93,7 +94,7 @@ export function BadgeSupplySelectStepItem() {
                 badgeIds: [{ start: prevNumberOfBadges + 1n, end: maxBadgeIdAdded }]
               });
 
-              collections.updateCollection({
+              updateCollection({
                 collectionId: NEW_COLLECTION_ID,
                 cachedBadgeMetadata: newBadgeMetadata
               });

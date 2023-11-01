@@ -1,11 +1,12 @@
 import { NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { SwitchForm } from "../form-items/SwitchForm";
 
 export function ChooseControlTypeStepItem() {
-  const collections = useCollectionsContext();
-  const collection = collections.getCollection(NEW_COLLECTION_ID);
+
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const txTimelineContext = useTxTimelineContext();
   const completeControl = txTimelineContext.completeControl;
@@ -59,7 +60,7 @@ export function ChooseControlTypeStepItem() {
 
           setCompleteControl(idx === 1);
           if (idx == 1) {
-            collections.updateCollection({
+            updateCollection({
               collectionId: NEW_COLLECTION_ID,
               collectionPermissions: {
                 canArchiveCollection: [],

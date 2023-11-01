@@ -4,7 +4,7 @@ import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
 import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollectionsContext } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates";
 import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
@@ -14,6 +14,7 @@ import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { BadgeIdRangesInput } from "./BadgeIdRangesInput";
 import { DateRangeInput } from "./DateRangeInput";
 import { NumberInput } from "./NumberInput";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 
 
@@ -60,7 +61,7 @@ export function BalanceDisplayEditRow({
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (value: bigint) => void
 }) {
-  const collections = useCollectionsContext();
+
   const [selectIsVisible, setSelectIsVisible] = useState(false);
   const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 1n,
@@ -69,6 +70,7 @@ export function BalanceDisplayEditRow({
   });
   const [selectedCollectionId, setSelectedCollectionId] = useState<bigint>(1n);
   const [selectedAmountRange, setSelectedAmountRange] = useState<UintRange<bigint>>({ start: 1n, end: 1n });
+  const collection = useCollection(NEW_COLLECTION_ID);
 
   const currTimeNextHour = new Date();
   currTimeNextHour.setHours(currTimeNextHour.getHours());
@@ -77,7 +79,8 @@ export function BalanceDisplayEditRow({
   currTimeNextHour.setMilliseconds(0);
 
   //Does current supply cause a gap
-  let currBadgeIds = collections.getCollection(NEW_COLLECTION_ID)?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
+
+  let currBadgeIds = collection?.owners.find(x => x.cosmosAddress === "Total")?.balances?.map(x => x.badgeIds).flat() ?? [];
   currBadgeIds.push(...currentSupply.badgeIds);
   currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
   let maxBadgeId = currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n;

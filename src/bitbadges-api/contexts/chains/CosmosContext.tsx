@@ -11,8 +11,9 @@ import { Dispatch, SetStateAction, createContext, useContext, useEffect, useStat
 import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
-import { useAccountsContext } from '../accounts/AccountsContext';
+
 import { ChainSpecificContextType } from '../ChainContext';
+import { fetchAccountsWithOptions, useAccount } from "../accounts/AccountsContext";
 declare global {
   interface Window extends KeplrWindow { }
 }
@@ -99,7 +100,7 @@ type Props = {
 };
 
 export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
-  const accountsContext = useAccountsContext();
+
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
@@ -109,6 +110,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
+  const account = useAccount(address)
 
   const selectedChainInfo: SupportedChainMetadata = {
     name: 'Cosmos',
@@ -171,7 +173,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           setLastSeenActivity(Date.now());
         }
 
-        accountsContext.fetchAccountsWithOptions([{
+        fetchAccountsWithOptions([{
           address: address,
           fetchSequence: true,
           fetchBalance: true,
@@ -230,7 +232,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
-    const account = accountsContext.getAccount(address);
     if (!account) {
       throw new Error('Account does not exist');
     }

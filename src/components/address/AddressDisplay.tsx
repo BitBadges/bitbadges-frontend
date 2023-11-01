@@ -33,7 +33,7 @@ export function AddressDisplay({
   doNotShowName?: boolean
 }) {
   return <>
-    {title && AddressDisplayTitle({ title, icon })}
+    {title && <AddressDisplayTitle title={title} icon={icon} />}
     <div className='flex-center' style={{ paddingRight: 0, }}>
       <AddressWithBlockies
         addressOrUsername={addressOrUsername}
