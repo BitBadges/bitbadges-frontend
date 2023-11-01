@@ -3,10 +3,10 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { SwitchForm } from "../form-items/SwitchForm";
-
 export function ChooseControlTypeStepItem() {
 
   const collection = useCollection(NEW_COLLECTION_ID);
+
 
   const txTimelineContext = useTxTimelineContext();
   const completeControl = txTimelineContext.completeControl;
@@ -40,10 +40,9 @@ export function ChooseControlTypeStepItem() {
           },
           {
             title: 'Complete Control',
-            message: 'To streamline the process, we will enable admin privileges. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
+            message: 'To streamline the process, we will enable all admin privileges. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
             isSelected: completeControl,
             additionalNode: <>
-
 
               <br />
               <div className="flex-center">

@@ -77,7 +77,8 @@ export function UpdateCollectionTimeline() {
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem : ChooseBadgeType
   ];
 
-  console.log(collection, startingCollection)
+
+
   if (!collection || !startingCollection) return <></>;
 
   if (mintType === MintType.BitBadge) {
@@ -169,9 +170,13 @@ export function UpdateCollectionTimeline() {
 
     const toShowUpdateNonMintTransfersAction = (canUpdateNonMintCollectionApprovalsDetails.hasNeutralTimes || canUpdateNonMintCollectionApprovalsDetails.hasPermittedTimes)
 
+    const toShowCompleteControl = (!existingCollectionId || existingCollectionId == 0n)
+      //or permissions are completely neutral
+      || (Object.values(startingCollection.collectionPermissions).every(x => x.length == 0))
+
     items.push(
       toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
-      hasManager && (!existingCollectionId || existingCollectionId == 0n) ? ChooseControlStepItem : EmptyStepItem,
+      hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
       !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
 
       toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
