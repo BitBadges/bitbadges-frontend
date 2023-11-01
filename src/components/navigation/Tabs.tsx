@@ -1,12 +1,13 @@
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 
-export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }: {
+export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
   tab: string;
   setTab: (tab: string) => void;
   tabInfo: { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
   fullWidth?: boolean;
   theme?: MenuTheme;
   noSelectedKeys?: boolean;
+  customClass?: string;
 }) {
   const widthPerTab = fullWidth
     ? `calc(100% / ${tabInfo.length})`
@@ -32,7 +33,7 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys }:
             }
         }
         id={tab.key}
-        className='inherit-bg hover:bg-vivid-blue'
+        className={'inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
       >
         {tab.content}
       </Menu.Item>

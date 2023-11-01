@@ -24,6 +24,7 @@ import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import DarkModeSwitcher from '../DarkModeSwitcher';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -68,7 +69,12 @@ export function WalletHeader() {
   const MintTabMenu = <></>
   const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: MintTabMenu };
   const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
-
+  const DarkMode = {
+    key: 'darkmode',
+    content: (
+      <DarkModeSwitcher />
+    )
+  };
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
   let overflowCount = 10;
@@ -285,7 +291,7 @@ export function WalletHeader() {
     ),
   }
 
-  //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
+  //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" ais hidden and vice versa
   return (
     <>
       <Header className="App-header bg-slate-950" style={{ zIndex: 49 }} >
@@ -340,6 +346,15 @@ export function WalletHeader() {
               UserTab
             ]}
           />
+          <Tabs
+            customClass='hover:bg-transparent'
+            tab=''
+            setTab={(e) => {
+            }}
+            tabInfo={[
+              DarkMode
+            ]}
+          />
         </div>
 
         <div className="navbar-collapsed">
@@ -361,6 +376,7 @@ export function WalletHeader() {
               UserTab,
             ]}
           />
+
         </div>
       </Header>
       <CreateTxMsgSendModal

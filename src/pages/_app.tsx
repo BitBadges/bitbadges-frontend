@@ -167,8 +167,8 @@ const App = ({ Component, pageProps }: AppProps) => {
               <BrowseContextProvider>
                 <StatusContextProvider>
                   <TxTimelineContextProvider>
-                    <div className="dark">
-                      <div className="layout   gradient-bg">
+                    <div className="">
+                      <div className="layout  dark  gradient-bg">
                         <WalletHeader />
                         {/* {topPopupIsVisible &&
                           <PopupContent>

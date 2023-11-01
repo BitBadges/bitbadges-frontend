@@ -26,7 +26,6 @@ export const LandingCard = ({ content, customClass, }: {
       </div>
     </Card >
   </div>
-
 }
 
 

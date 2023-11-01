@@ -17,7 +17,7 @@ function About({ }: {}) {
         <br />
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
-            <Typography.Text strong className='dark:text-white text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
+            <Typography.Text strong className=' dark:text-white text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
               Meet the Team
             </Typography.Text>
           </Col>
