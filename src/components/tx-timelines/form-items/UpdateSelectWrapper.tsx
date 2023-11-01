@@ -201,7 +201,7 @@ export function UpdateSelectWrapper({
               }}
             />
           }
-          {updateFlag && !customJson && !disableJson && !onlyShowJson &&
+          {/* {updateFlag && !customJson && !disableJson && !onlyShowJson &&
             <IconButton
               src={<CodeOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
@@ -210,7 +210,7 @@ export function UpdateSelectWrapper({
               onClick={() => {
                 setCustomJson(true);
               }}
-            />}
+            />} */}
           {updateFlag && customJson && !disableJson && !onlyShowJson &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}

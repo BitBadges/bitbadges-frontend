@@ -78,6 +78,7 @@ export function DefaultToApprovedSelectStepItem() {
                   collection.defaultUserIncomingApprovals : appendDefaultForIncoming([], chain.address), chain.address)}
             collection={collection}
             approvalLevel='incoming'
+            
             approverAddress={chain.address}
             title="Incoming Approvals"
           />

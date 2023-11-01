@@ -77,7 +77,7 @@ export function BadgeAvatarDisplay({
 
 
   const badgeIdsToDisplay = useMemo(() => {
-    
+
     const badgeIdsToDisplayResponse = getBadgesToDisplay([
       {
         badgeIds:

@@ -101,7 +101,7 @@ export const ApprovalsDisplay: FC<Props> = ({
               badgeId={filterByBadgeId ? badgeId : undefined}
               collectionId={collection.collectionId}
               filterFromMint={filterFromMint} mobileFriendly={mobile}
-
+              
             />
             return result
           })}
@@ -440,6 +440,7 @@ export function UserApprovalsTab({
             onDelete={setUserOutgoingApprovals ? (approvalId: string) => {
               setUserOutgoingApprovals?.((userOutgoingApprovals ?? []).filter(x => x.approvalId !== approvalId));
             } : undefined}
+            // editable={!!setUserOutgoingApprovals}
             addMoreNode={setUserOutgoingApprovals ? <>
               <>
                 <div className='flex-center'>
@@ -508,6 +509,7 @@ export function UserApprovalsTab({
             onDelete={setUserIncomingApprovals ? (approvalId: string) => {
               setUserIncomingApprovals?.((userIncomingApprovals ?? []).filter(x => x.approvalId !== approvalId));
             } : undefined}
+            // editable={!!setUserIncomingApprovals}
             addMoreNode={setUserIncomingApprovals ? <>
               <>
                 <div className='flex-center'>

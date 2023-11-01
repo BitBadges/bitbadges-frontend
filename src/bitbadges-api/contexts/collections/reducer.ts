@@ -653,7 +653,7 @@ export const collectionReducer = (state = initialState, action: { type: string; 
 
       if (currCollection && onlyUpdateProvidedFields) {
         const newCollection = {
-          ...convertBitBadgesCollection(currCollection, BigIntify),
+          ...currCollection,
           ...action.payload.newCollection,
           collectionPermissions: {
             ...currCollection.collectionPermissions,

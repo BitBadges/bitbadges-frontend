@@ -34,7 +34,7 @@ export function PermissionUpdateSelectWrapper({
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
-
+  
   const collection = useCollection(NEW_COLLECTION_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
@@ -133,7 +133,7 @@ export function PermissionUpdateSelectWrapper({
                 setShowBeforeAndAfter(!showBeforeAndAfter);
               }}
             />}
-          {checked && !customJson &&
+          {/* {checked && !customJson &&
             <IconButton
               src={<CodeOutlined style={{ fontSize: 16 }} />}
               text={'JSON'}
@@ -141,7 +141,7 @@ export function PermissionUpdateSelectWrapper({
               onClick={() => {
                 setCustomJson(true);
               }}
-            />}
+            />} */}
           {checked && customJson &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}

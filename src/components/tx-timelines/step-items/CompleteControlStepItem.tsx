@@ -40,7 +40,7 @@ export function ChooseControlTypeStepItem() {
           },
           {
             title: 'Complete Control',
-            message: 'All admin privileges will be enabled. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
+            message: 'To streamline the process, we will enable admin privileges. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
             isSelected: completeControl,
             additionalNode: <>
 

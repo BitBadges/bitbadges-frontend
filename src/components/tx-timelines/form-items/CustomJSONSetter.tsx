@@ -1,12 +1,15 @@
 
 import { WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Input, Row, Typography } from 'antd';
+import { Col, Input, Row, Typography } from 'antd';
 import { getReservedAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+// import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 
-
+const style = require('react-syntax-highlighter/dist/cjs/styles/prism').oneDark;
 
 export const validateUintRangeArr = (val: any) => {
   if (!val) throw new Error('UintRanges must be defined');
@@ -61,6 +64,7 @@ export function JSONSetter({
     } : (val: any) => {
       const isValid = preClean(val);
       if (!isValid) return;
+      console.log(isValid, val);
 
       updateCollection({
         collectionId: collection.collectionId,
@@ -83,18 +87,6 @@ export function JSONSetter({
         //Must be an array and each element must have defaultValues and combinations
 
         for (const el of val) {
-          if (!el.defaultValues || !el.combinations) throw new Error('Each element must define defaultValues and combinations');
-          if (!Array.isArray(el.combinations)) throw new Error('combinations must be an array');
-          for (const combo of el.combinations) {
-            const options = ['fromMappingOptions', 'toMappingOptions', 'initiatedByMappingOptions', 'transferTimesOptions', 'badgeIdsOptions', 'ownershipTimesOptions', 'permittedTimesOptions', 'forbiddenTimesOptions'];
-            for (const option of options) {
-              if (combo[`option`] && typeof combo[`option`] !== 'object') throw new Error(`${option} must be an object`);
-              if (combo[`option`] && combo[`${option}`].invertDefault && typeof combo[`${option}`].invertDefault !== 'boolean') throw new Error('invertDefault must be a boolean');
-              if (combo[`option`] && combo[`${option}`].allValues && typeof combo[`${option}`].allValues !== 'boolean') throw new Error('allValues must be a boolean');
-              if (combo[`option`] && combo[`${option}`].noValues && typeof combo[`${option}`].noValues !== 'boolean') throw new Error('noValues must be a boolean');
-            }
-          }
-
           //TODO: Make this dynamic and ensure that the options are valid based on permission type
           if (el.fromMappingId && typeof el.fromMappingId !== 'string') throw new Error('fromMappingId must be a string');
           if (el.initiatedByMappingId && typeof el.initiatedByMappingId !== 'string') throw new Error('initiatedByMappingId must be a string');
@@ -104,6 +96,7 @@ export function JSONSetter({
           if (el.transferTimes && !validateUintRangeArr(el.transferTimes)) throw new Error('transferTimes must be an array of UintRange');
           if (el.permittedTimes && !validateUintRangeArr(el.permittedTimes)) throw new Error('permittedTimes must be an array of UintRange');
           if (el.forbiddenTimes && !validateUintRangeArr(el.forbiddenTimes)) throw new Error('forbiddenTimes must be an array of UintRange');
+          if (el.timelineTimes && !validateUintRangeArr(el.timelineTimes)) throw new Error('timelineTimes must be an array of UintRange');
         }
       } else {
         //is a timeline update
@@ -151,45 +144,46 @@ export function JSONSetter({
           if (el.contractAddress && typeof el.contractAddress !== 'string') throw new Error('contractAddress must be a string');
 
           if (el.collectionApprovals && !Array.isArray(el.collectionApprovals)) throw new Error('collectionApprovals must be an array');
+          if (el.collectionApprovals && el.collectionApprovals.length > 0) {
+            for (const approval of el.collectionApprovals) {
+              if (!approval.badgeIds || !validateUintRangeArr(approval.badgeIds)) throw new Error('approval.badgeIds must be an array of UintRange');
+              if (!approval.ownershipTimes || !validateUintRangeArr(approval.ownershipTimes)) throw new Error('approval.ownershipTimes must be an array of UintRange');
+              if (!approval.transferTimes || !validateUintRangeArr(approval.transferTimes)) throw new Error('approval.transferTimes must be an array of UintRange');
+              if (!approval.fromMappingId || typeof approval.fromMappingId !== 'string') throw new Error('approval.fromMappingId must be a string');
+              if (!approval.initiatedByMappingId || typeof approval.initiatedByMappingId !== 'string') throw new Error('approval.initiatedByMappingId must be a string');
 
-          for (const approval of el.collectionApprovals) {
-            if (!approval.badgeIds || !validateUintRangeArr(approval.badgeIds)) throw new Error('approval.badgeIds must be an array of UintRange');
-            if (!approval.ownershipTimes || !validateUintRangeArr(approval.ownershipTimes)) throw new Error('approval.ownershipTimes must be an array of UintRange');
-            if (!approval.transferTimes || !validateUintRangeArr(approval.transferTimes)) throw new Error('approval.transferTimes must be an array of UintRange');
-            if (!approval.fromMappingId || typeof approval.fromMappingId !== 'string') throw new Error('approval.fromMappingId must be a string');
-            if (!approval.initiatedByMappingId || typeof approval.initiatedByMappingId !== 'string') throw new Error('approval.initiatedByMappingId must be a string');
+              if (!approval.toMappingId || typeof approval.toMappingId !== 'string') throw new Error('approval.toMappingId must be a string');
 
-            if (!approval.toMappingId || typeof approval.toMappingId !== 'string') throw new Error('approval.toMappingId must be a string');
-
-            if (!approval.allowedCombinations || !Array.isArray(approval.allowedCombinations)) throw new Error('approval.allowedCombinations must be an array');
-            for (const combo of approval.allowedCombinations) {
-              //TODO: Add the rest of  the options 
-              if (combo.isApproved === undefined || typeof combo.isApproved !== 'boolean') throw new Error('combo.isApproved must be a boolean');
+              if (!approval.allowedCombinations || !Array.isArray(approval.allowedCombinations)) throw new Error('approval.allowedCombinations must be an array');
+              for (const combo of approval.allowedCombinations) {
+                //TODO: Add the rest of  the options 
+                if (combo.isApproved === undefined || typeof combo.isApproved !== 'boolean') throw new Error('combo.isApproved must be a boolean');
 
 
+              }
+
+              if (!approval.approvalCriteria || !Array.isArray(approval.approvalCriteria)) throw new Error('approval.approvalCriteria must be an array');
+              //TODO: Add approval details validation
+              const fromMapping = getReservedAddressMapping(approval.fromMappingId);
+              const initiatedByMapping = getReservedAddressMapping(approval.initiatedByMappingId);
+              const toMapping = getReservedAddressMapping(approval.toMappingId);
+
+              if (!approval.fromMapping && !fromMapping) {
+                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via fromMapping.');
+              }
+
+              if (!approval.initiatedByMapping && !initiatedByMapping) {
+                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via initiatedByMapping.');
+              }
+
+              if (!approval.toMapping && !toMapping) {
+                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via toMapping.');
+              }
+
+              approval.fromMapping = approval.fromMapping || fromMapping;
+              approval.initiatedByMapping = approval.initiatedByMapping || initiatedByMapping;
+              approval.toMapping = approval.toMapping || toMapping;
             }
-
-            if (!approval.approvalCriteria || !Array.isArray(approval.approvalCriteria)) throw new Error('approval.approvalCriteria must be an array');
-            //TODO: Add approval details validation
-            const fromMapping = getReservedAddressMapping(approval.fromMappingId);
-            const initiatedByMapping = getReservedAddressMapping(approval.initiatedByMappingId);
-            const toMapping = getReservedAddressMapping(approval.toMappingId);
-
-            if (!approval.fromMapping && !fromMapping) {
-              throw new Error('We currently do not support custom mapping IDs. Please enter it manually via fromMapping.');
-            }
-
-            if (!approval.initiatedByMapping && !initiatedByMapping) {
-              throw new Error('We currently do not support custom mapping IDs. Please enter it manually via initiatedByMapping.');
-            }
-
-            if (!approval.toMapping && !toMapping) {
-              throw new Error('We currently do not support custom mapping IDs. Please enter it manually via toMapping.');
-            }
-
-            approval.fromMapping = approval.fromMapping || fromMapping;
-            approval.initiatedByMapping = approval.initiatedByMapping || initiatedByMapping;
-            approval.toMapping = approval.toMapping || toMapping;
           }
         }
       }
@@ -215,35 +209,40 @@ export function JSONSetter({
 
         <div className='dark:text-white full-width' style={{ textAlign: 'center' }}>
           <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: 'orange' }} />
-          This is an advanced and experimental feature. Use at your own risk. Custom values may break the normal form UI now or in the future.
+          This is an advanced and experimental feature. Use at your own risk. Custom values may break the normal form now or in the future.
         </div>
         <div>
           If there are bugs or issues, please report them via our Discord or GitHub.
-        </div> <br />
-        See <a href="https://docs.bitbadges.io" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more information.
+
+          See <a href="https://docs.bitbadges.io" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more information.
+        </div>
         <br />
         <br />
       </Col>
 
-      <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='dark:text-white'>Enter JSON</b>
+      <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+        <b className='dark:text-white'>Enter Value</b>
+        <SyntaxHighlighter language="json" style={style}>
+          {inputJson}
+        </SyntaxHighlighter>
         <Input.TextArea
-          rows={20}
           value={inputJson}
-
+          rows={15}
           className='dark:text-white inherit-bg'
-          placeholder={'Enter JSON here'}
+          placeholder={'Enter your value here here'}
           onChange={(e) => {
             setInputJson(e.target.value);
             setErr(null);
 
           }}
         />
+
+
         <br />
         <br />
-        <Button
-          type='primary'
-          className='full-width styled-button dark:text-white'
+        <button
+          className='full-width landing-button dark:text-white'
+          style={{ width: '100%' }}
           onClick={() => {
             setErr(null);
             try {
@@ -260,22 +259,19 @@ export function JSONSetter({
           }}
         >
           {'Set'}
-        </Button>
+        </button>
         <br />
         <br />
 
-      </Col>
-      <Col md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='dark:text-white'>Selected Value</b>
-        <Input.TextArea
-          rows={20}
-          value={JSON.stringify(currValue, null, 2)}
-          style={{ cursor: 'not-allowed', backgroundColor: 'black', color: 'white' }}
-          className='dark:text-white inherit-bg'
-          placeholder={'Enter JSON here'}
-          disabled
-        />
-      </Col>
+      </InformationDisplayCard>
+      <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+        <b className='dark:text-white'>Set Value</b>
+
+        <SyntaxHighlighter language="json" style={style}>
+          {JSON.stringify(currValue, null, 2)}
+        </SyntaxHighlighter>
+
+      </InformationDisplayCard>
 
     </Row>
   </>

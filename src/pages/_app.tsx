@@ -86,11 +86,62 @@ export interface GlobalReduxState {
   collections: CollectionReducerState
 }
 
+export const PopupContent = ({ children, style }: { style?: any, children: React.ReactNode }) => {
+  return <div className='dark:text-white bg-slate-950 border-0  dark:text-slate-200 text-blue-black-100'
+    style={{
+      textAlign: 'center',
+      borderTop: '1px solid white',
+      paddingBottom: 16,
+      paddingTop: 16,
+      position: 'fixed',
+      width: '100%',
+      zIndex: 200,
+      ...style
+    }}>
+    {children}
+  </div>
+}
+
+export const CookiePopup = ({ visible, onClose, placement }: {
+  visible: boolean,
+  onClose: () => void,
+  placement?: 'top' | 'bottom'
+}) => {
+  const router = useRouter();
+
+  return <>
+    {visible &&
+      <PopupContent
+        style={{
+          bottom: placement === 'top' ? 'unset' : 0,
+          top: placement === 'top' ? 0 : 'unset',
+        }}
+      >
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          This website uses cookies to ensure you get the best experience.
+          By continuing to use this website, you agree to our use of cookies, {" "}
+          <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a className='text-vivid-blue'>privacy policy</a></p>, and
+          <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a className='text-vivid-blue'>terms of service</a></p>.
+        </div>
+        <Button key="accept" className='bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3' onClick={() => onClose()}>
+          Close
+        </Button>
+        <br />
+      </PopupContent>}
+  </>
+}
+
 const App = ({ Component, pageProps }: AppProps) => {
   //React cookies
   const [cookies, setCookie] = useCookies(['policies']);
-  const router = useRouter();
+
   const [myCookieValue, setMyCookieValue] = useState(null);
+  // const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: cookie check');
@@ -119,34 +170,15 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <div className="dark">
                       <div className="layout   gradient-bg">
                         <WalletHeader />
-                        <Component {...pageProps} />
-                        {myCookieValue !== 'accepted' &&
-                          <div className='dark:text-white primary-blue-bg border-0  dark:text-slate-200 text-blue-black-100'
-                            style={{
-                              textAlign: 'center',
-                              borderTop: '1px solid white',
-                              paddingBottom: 16,
-                              paddingTop: 16,
-                              position: 'fixed',
-                              bottom: 0,
-                              width: '100%',
-                              zIndex: 200
-                            }}>
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              flexWrap: 'wrap'
-                            }}>
-                              This website uses cookies to ensure you get the best experience.
-                              By continuing to use this website, you agree to our use of cookies, {" "}
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf')}><a className='text-vivid-blue'>privacy policy</a></p>, and
-                              <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf')}><a className='text-vivid-blue'>terms of service</a></p>.
-                            </div>
-                            <Button key="accept" className='bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3' onClick={() => handleCookieResponse(true)}>
+                        {/* {topPopupIsVisible &&
+                          <PopupContent>
+                            <div style={{ textAlign: 'center' }}>Important announcement</div>
+                            <Button key="accept" className='bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3' onClick={() => setTopPopupIsVisible(false)}>
                               Close
                             </Button>
-                            <br />
-                          </div>}
+                          </PopupContent>} */}
+                        <Component {...pageProps} />
+                        <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
                         <WalletFooter />
                       </div>
                     </div>

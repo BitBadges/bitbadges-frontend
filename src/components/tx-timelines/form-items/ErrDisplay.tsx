@@ -8,7 +8,7 @@ export function ErrDisplay({
   return <>
     {err &&
       <div style={{ color: 'red', textAlign: 'center' }}>
-        <b>Error: </b>You have updated a value that is not allowed to be updated according to the permissions set.
+        <b>Error: </b>{err.toString()}
         <Divider />
       </div>}
   </>

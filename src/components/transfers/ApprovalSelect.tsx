@@ -643,6 +643,7 @@ export function ApprovalSelect({
         <InformationDisplayCard title='Badge IDs' md={8} xs={24} sm={24} subtitle='Which badges are approved to be transferred?'>
           <br />
           <BadgeIdRangesInput
+
             fullWidthCards
             collectionId={collectionId}
             uintRanges={approvalToAdd?.badgeIds || []}

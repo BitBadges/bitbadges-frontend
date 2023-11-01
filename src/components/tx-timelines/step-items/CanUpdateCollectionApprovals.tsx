@@ -10,6 +10,7 @@ import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSel
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { deepCopy } from "bitbadgesjs-proto";
 
 //TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
 
@@ -52,10 +53,10 @@ export function FreezeSelectStepItem() {
   const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
   const [selectedIdx, setSelectedIdx] = useState<number>(3);
   const [err, setErr] = useState<Error | null>(null);
-  const allMintAmountTrackerIds = collection ? getMintApprovals(collection.collectionApprovals).map(x => x.amountTrackerId) : [];
-  const allMintChallengeTrackerIds = collection ? getMintApprovals(collection.collectionApprovals).map(x => x.challengeTrackerId) : [];
-  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(collection.collectionApprovals).map(x => x.amountTrackerId) : [];
-  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(collection.collectionApprovals).map(x => x.challengeTrackerId) : [];
+  const allMintAmountTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
+  const allMintChallengeTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];
+  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
+  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];
 
   const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
