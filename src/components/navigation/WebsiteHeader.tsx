@@ -81,7 +81,7 @@ export function WalletHeader() {
   const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
-  let unseenNotificationCount = 1;
+  let unseenNotificationCount = 0;
   let overflowCount = 10;
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
