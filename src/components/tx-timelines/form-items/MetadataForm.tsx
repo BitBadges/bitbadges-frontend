@@ -380,7 +380,7 @@ export function MetadataForm({
         </>}
 
         {addMethod === MetadataAddMethod.Manual &&
-          <Form layout="vertical">
+          <Form colon={false} layout="vertical">
 
 
             {isCollectionSelect && addMethod === MetadataAddMethod.Manual &&

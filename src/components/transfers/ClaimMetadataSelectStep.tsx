@@ -39,6 +39,7 @@ export function ClaimMetadataSelectSelectStep(
       <>
         <br />
         <Form
+          colon={false}
           labelCol={{ span: 6 }}
           wrapperCol={{ span: 14 }}
           layout="horizontal"

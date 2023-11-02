@@ -84,7 +84,7 @@ function BrowsePage() {
                     return {
                       key: category,
                       label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
                       </Typography.Text>
                     }
@@ -166,7 +166,7 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </Typography.Text>
                   }
@@ -222,7 +222,7 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </Typography.Text>
                   }

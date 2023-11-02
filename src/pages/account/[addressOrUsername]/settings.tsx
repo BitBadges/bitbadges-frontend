@@ -124,6 +124,7 @@ export function AccountSettings() {
               />
               <Divider></Divider>
               <Form
+                colon={false}
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 14 }}
                 layout="horizontal"

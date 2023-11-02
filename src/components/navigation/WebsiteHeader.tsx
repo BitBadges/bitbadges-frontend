@@ -81,7 +81,7 @@ export function WalletHeader() {
   const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
-  let unseenNotificationCount = 0;
+  let unseenNotificationCount = 1;
   let overflowCount = 10;
   const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
@@ -242,11 +242,11 @@ export function WalletHeader() {
             style={{ height: 72 }}
             src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
         ) : (
-          <Avatar
-            size={40}
+          <div
+
             className='flex-center'
             style={{ height: 72 }}
-            src={<>
+          ><>
               <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
 
                 <BlockiesAvatar
@@ -259,7 +259,8 @@ export function WalletHeader() {
 
 
               </Badge>
-            </>} />
+            </>
+          </div>
         )}
       </>
     ),
