@@ -25,24 +25,22 @@ body {
     border: 1px solid var(--primary-color) !important;
 } */
 
-.dark:text-white-custom {
+.primary-text-custom {
     color: var(--primary-color) !important;
 }
 
 .anticon-custom svg {
     font-size: 30px;
 }
-/* 
+
 .anticon-down svg{
     color: var(--primary-color) !important;
-} */
-
-.ant-layout-header{
-    height: 70px;
 }
+
+
 /* 
 .ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub{
-    background-color: rgb(2 6 23) !important;
+    background-color: rgb(15 23 42) !important;
 } */
 
 .accounting{
@@ -50,5 +48,9 @@ body {
 }
 
 .accounting svg{
-  font-size: 30px;
+    font-size: 30px;
+}
+
+.blockin-global .main-display{
+    border: none;
 }

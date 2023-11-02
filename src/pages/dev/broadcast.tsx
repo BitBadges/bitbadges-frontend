@@ -46,7 +46,7 @@ function Broadcast() {
               }}
             >
               <Select
-                className="selector dark:text-white inherit-bg"
+                className="selector primary-text inherit-bg"
                 style={{ marginLeft: 4 }}
                 defaultValue={txType}
                 onChange={(value) => {
@@ -54,7 +54,7 @@ function Broadcast() {
                 }}
                 suffixIcon={
                   <DownOutlined
-                    className='dark:text-white'
+                    className='primary-text'
                   />
                 }
               >
@@ -78,7 +78,7 @@ function Broadcast() {
               <Input.TextArea
                 rows={30}
 
-                className='dark:text-white inherit-bg'
+                className='primary-text inherit-bg'
                 placeholder={'Enter JSON here'}
                 onChange={(e) => {
                   setErr('');
@@ -106,7 +106,7 @@ function Broadcast() {
                     text: JSON.stringify(sample, null, 2),
                     tooltips: ['Copy', 'Copied!'],
                   }
-                } className='dark:text-white'>
+                } className='primary-text'>
                   Copy Sample
                 </Typography.Text>
                 <Typography.Text copyable={
@@ -114,7 +114,7 @@ function Broadcast() {
                     text: JSON.stringify(sample2, null, 2),
                     tooltips: ['Copy', 'Copied!'],
                   }
-                } className='dark:text-white'>
+                } className='primary-text'>
                   Copy Sample 2
                 </Typography.Text>
               </>}

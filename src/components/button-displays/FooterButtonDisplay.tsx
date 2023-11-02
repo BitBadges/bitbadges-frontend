@@ -110,7 +110,6 @@ export function FooterButtonDisplay({
               </svg>}
             />
           </Tooltip>
-          {/* <FontAwesomeIcon icon={'telegram'} style={{ color: 'white' }} /> */}
         </a>
 
         <a href={discordLink} target="_blank" rel="noreferrer">

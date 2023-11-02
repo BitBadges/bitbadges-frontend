@@ -80,14 +80,14 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
       </>}
     </div>
     <div
-      className='dark:text-white flex-center full-width'
+      className='primary-text flex-center full-width'
       style={{ marginTop: 16 }}
     >
       {isPreview && <>
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          className='dark:text-white'
-          description={<span className='dark:text-white'>Not supported for previews.</span>}
+          className='primary-text'
+          description={<span className='primary-text'>Not supported for previews.</span>}
         ></Empty>
       </>}
       {

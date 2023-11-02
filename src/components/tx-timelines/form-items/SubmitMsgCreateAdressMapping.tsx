@@ -60,7 +60,7 @@ export function SubmitMsgCreateAddressMapping() {
       {<>
         <br />
         <div style={{}} >
-          <Typography.Text strong style={{ fontSize: 18 }} className='dark:text-white'>List ID</Typography.Text>
+          <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
         </div>
         <Input
           defaultValue={addressMapping.mappingId}

@@ -14,7 +14,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
   const [currPage, setCurrPage] = React.useState(page ?? 0);
 
   return (
-    <div className="dark:text-white">
+    <div className="primary-text">
       <div className='flex-between flex-wrap'>
         {title}
         <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
@@ -50,7 +50,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
               }
             }}
           />
-          <div className='text-blue-black dark:text-gray-400' style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
+          <div className='secondary-text' style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
 
             {page ?? currPage + 1}/{total ?? items.length}
           </div>

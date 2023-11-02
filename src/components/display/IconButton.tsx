@@ -33,7 +33,7 @@ const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tool
           size={size}
         />
         {!hideText &&
-          <div className='dark:text-white' style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 12, marginTop: 4, whiteSpace: 'nowrap' }}>
+          <div className='primary-text' style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 12, marginTop: 4, whiteSpace: 'nowrap' }}>
             {text}
           </div>}
       </div>

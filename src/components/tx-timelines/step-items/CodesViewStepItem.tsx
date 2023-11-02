@@ -23,9 +23,9 @@ export function CodesViewStepItem() {
 
   return {
     title: 'View Codes / Passwords',
-    description: <div className="text-gray-400" style={{}}>
+    description: <div className="secondary-text" style={{}}>
       <InfoCircleOutlined /> For the code or password-based claims that you have created, you have the option to view, save, and download the codes now.
-      Moving forward, they will only be viewable to whoever the current collection manager is. <span style={{ color: 'orange' }}>{noManager
+      Moving forward, they will only be viewable to whoever the current collection manager is. <span style={{ color: '#FF5733' }}>{noManager
         ? "Since no manager was selected, this is the only time you will be able to see these codes." : ""}</span>
     </div>,
     node: <div className='flex-center flex-column'>

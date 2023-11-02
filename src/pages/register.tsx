@@ -31,11 +31,11 @@ function RegisterScreen({ message }: { message?: string }) {
           requireLogin
           node={
             <div className='flex-center'>
-              <Content style={{ paddingTop: '15px', maxWidth: 600, }} className='dark:text-white'>
+              <Content style={{ paddingTop: '15px', maxWidth: 600, }} className='primary-text'>
                 <Content>
                   <Text
                     strong
-                    style={{ fontSize: 20 }} className='dark:text-white'
+                    style={{ fontSize: 20 }} className='primary-text'
                   >
                     {message ? message
                       : 'It looks like you have not claimed your airdrop yet!'}

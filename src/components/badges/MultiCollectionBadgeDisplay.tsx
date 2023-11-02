@@ -85,14 +85,14 @@ export function CollectionDisplayWithBadges({
           collectionId={collectionId}
           noHover
         />
-        <Typography.Text className="dark:text-white" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
+        <Typography.Text className="primary-text" style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 10 }}>
           {collection?.cachedCollectionMetadata?.name}
         </Typography.Text>
 
       </div>
       {collection && !hideAddress &&
         <div className="flex-center">
-          <Typography.Text className="dark:text-white" style={{ fontWeight: 'bold', marginRight: 10 }}>
+          <Typography.Text className="primary-text" style={{ fontWeight: 'bold', marginRight: 10 }}>
             By:
           </Typography.Text>
           <AddressDisplay addressOrUsername={collection.createdBy} fontSize={14} />

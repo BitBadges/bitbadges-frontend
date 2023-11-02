@@ -24,6 +24,7 @@ import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import DarkModeSwitcher from '../DarkModeSwitcher';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -38,6 +39,7 @@ export function WalletHeader() {
   const [searchValue, setSearchValue] = useState<string>('');
   const [_cookies, _setCookie] = useCookies(['blockincookie']);
   const [visible, setVisible] = useState<boolean>(false);
+  const [searchIsVisible, setSearchIsVisible] = useState<boolean>(false);
 
   const address = chain.address;
   const avatar = account?.profilePicUrl ?? account?.avatar;
@@ -58,16 +60,16 @@ export function WalletHeader() {
 
 
   const HomeTabMenu = <></>
-  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: HomeTabMenu };
-  const HomeTabWithText = { key: '', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
-  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='dark:text-white text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -118,10 +120,10 @@ export function WalletHeader() {
   let signedIn = chain.loggedIn;
   let connected = chain.connected;
   let disabled = false;
-  const UserTabMenu = <Menu theme='dark' className='dropdown bg-slate-950 border-0 rounded-xl' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
+  const UserTabMenu = <Menu theme='dark' className='dropdown primary-text bg-slate-950 border-0 rounded-xl' style={{ minWidth: 350, alignItems: 'center', border: '1px solid gray', borderRadius: 8, marginTop: 8, marginRight: 10, overflow: 'hidden' }}>
     <div className='dark flex-center primary-text inherit-bg' style={{ marginTop: 10 }}>
 
-      {address ? <div className='primary-text '>
+      {address ? <div className='primary-text'>
         <AddressDisplay
           addressOrUsername={address}
           hidePortfolioLink
@@ -170,11 +172,13 @@ export function WalletHeader() {
 
 
     </div>
-    <div className='flex-center full-width primary-text my-3' style={{ padding: '10' }}>
-      <BlockOutlined style={{ marginRight: 4 }} /> Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})
-      {/* <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
+    <div className='dark'>
+      <div className='flex-center full-width primary-text my-3' style={{ padding: '10' }}>
+        <BlockOutlined style={{ marginRight: 4 }} /> Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})
+        {/* <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
         <InfoCircleOutlined style={{ marginLeft: 4 }} />
       </Tooltip> */}
+      </div>
     </div>
 
     {/* <hr /> */}
@@ -198,6 +202,12 @@ export function WalletHeader() {
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
+    <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => { }}>
+      <div className='flex-center'>
+        <div className='mx-2'>{'Dark Mode'}</div>
+        <DarkModeSwitcher />
+      </div>
+    </Menu.Item>
 
     {!connected && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/connect')}>Connect and Sign-In</Menu.Item>}
     {connected && !signedIn && <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/connect')}>Sign In</Menu.Item>}
@@ -218,7 +228,7 @@ export function WalletHeader() {
     content: (
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {!address ? (
-          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' size={40} />} />
+          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
         ) : (
           <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
             <Avatar src={
@@ -254,7 +264,7 @@ export function WalletHeader() {
     className='form-input inherit-bg'
     // enterButton
     size='large'
-    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />}
+    prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />}
   />;
 
   const ExpandedSearchBar = <>
@@ -264,9 +274,10 @@ export function WalletHeader() {
       overlay={
         <SearchDropdown searchValue={searchValue} onSearch={onSearch} />
       }
-      overlayClassName='dark:text-white inherit-bg'
+      overlayClassName='primary-text inherit-bg'
       className='primary-blue-bg rounded border border-blue-black-50 focus:border-blue-black-50 hover:border-blue-black-50'
       trigger={['hover', 'click']}
+
     >
       {SearchBar}
     </Dropdown >
@@ -274,94 +285,102 @@ export function WalletHeader() {
 
   const CollapsedSearchIconTab = {
     key: 'search',
-    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='dark:text-white' />} />,
+    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />,
     onClick: () => {
-      // console.log('Do Nothing');
+      setSearchIsVisible(!searchIsVisible);
     },
-    popoverContent: (
-      <>
-        {ExpandedSearchBar}
-      </>
-    ),
+    // subMenuOverlay: (
+    //   <>
+
+    //     <div className='dark flex-center' style={{ minWidth: 350 }}>
+    //       {ExpandedSearchBar}
+    //     </div>
+    //   </>
+    // ),
+    // subMenuTrigger: ['click', 'hover']
   }
 
-  //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" is hidden and vice versa
+  //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" ais hidden and vice versa
   return (
     <>
-      <Header className="App-header bg-slate-950" style={{ zIndex: 49 }} >
-        <div onClick={() => router.push('/')}>
-          <div className="navbar-super-collapsed ml-3">
-            <Image
-              src={'/images/bitbadgeslogo.png'}
-              className="App-logo"
-              alt="logo"
-              height={"60px"}
-              width={"60px"}
-              quality={100}
+      <Header className="dark App-header bg-slate-950" style={{ zIndex: 49 }} >
+        <div className='flex-between'>
+          <div onClick={() => router.push('/')}>
+            <div className="navbar-super-collapsed ml-3">
+              <Image
+                src={'/images/bitbadgeslogo.png'}
+                className="App-logo"
+                alt="logo"
+                height={"60px"}
+                width={"60px"}
+                quality={100}
+              />
+              <Typography className='App-title'>
+                BitBadges
+              </Typography>
+            </div>
+          </div>
+
+          <div className="navbar-expanded"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '50%',
+            }}
+          >
+            {ExpandedSearchBar}
+          </div>
+          <div
+            className="navbar-expanded"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'end',
+            }}
+          >
+            <Tabs
+              tab=''
+              setTab={(e) => {
+                if (e.startsWith('popup-')) {
+                  return;
+                }
+                router.push(`/${e}`)
+              }}
+              noSelectedKeys
+              tabInfo={[
+                HomeTabWithText,
+                BrowseTabWithText,
+                MintTabWithText,
+                // NotificationsTabWithIcon,
+                UserTab
+              ]}
             />
-            <Typography className='App-title'>
-              BitBadges
-            </Typography>
+          </div>
+
+          <div className={searchIsVisible ? 'navbar-collapsed with-search' : 'navbar-collapsed'}>
+            <Tabs
+              tab=''
+              setTab={(e) => {
+                if (e.startsWith('popup-')) {
+                  return;
+                }
+                router.push(`/${e}`)
+              }}
+              noSelectedKeys
+              tabInfo={[
+                HomeTabWithIcon,
+                CollapsedSearchIconTab,
+                BrowseTabWithIcon,
+                MintTabWithIcon,
+                // NotificationsTabWithIcon,
+                UserTab,
+              ]}
+            />
+
           </div>
         </div>
-
-        <div className="navbar-expanded"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '50%',
-          }}
-        >
-          {ExpandedSearchBar}
-        </div>
-        <div
-          className="navbar-expanded"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'end',
-          }}
-        >
-          <Tabs
-            tab=''
-            setTab={(e) => {
-              if (e.startsWith('popup-')) {
-                return;
-              }
-              router.push(`/${e}`)
-            }}
-            noSelectedKeys
-            tabInfo={[
-              HomeTabWithText,
-              BrowseTabWithText,
-              MintTabWithText,
-              // NotificationsTabWithIcon,
-              UserTab
-            ]}
-          />
-        </div>
-
-        <div className="navbar-collapsed">
-          <Tabs
-            tab=''
-            setTab={(e) => {
-              if (e.startsWith('popup-')) {
-                return;
-              }
-              router.push(`/${e}`)
-            }}
-            noSelectedKeys
-            tabInfo={[
-              HomeTabWithIcon,
-              CollapsedSearchIconTab,
-              BrowseTabWithIcon,
-              MintTabWithIcon,
-              // NotificationsTabWithIcon,
-              UserTab,
-            ]}
-          />
-        </div>
+        {searchIsVisible && <div className='p-2'>{ExpandedSearchBar}</div>}
       </Header>
       <CreateTxMsgSendModal
         visible={visible}

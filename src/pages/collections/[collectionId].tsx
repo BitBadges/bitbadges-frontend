@@ -77,7 +77,7 @@ function CollectionPage({
   }, [collectionIdNumber, isPreview])
 
   useEffect(() => {
-    
+
 
     // if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
     if (!warned && !isPreview) {
@@ -138,7 +138,7 @@ function CollectionPage({
 
 
           {isPreview && (tab === 'claims' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
-            className='dark:text-white'
+            className='primary-text'
             description={
               "This tab is not supported for previews."
             }
@@ -188,7 +188,7 @@ function CollectionPage({
             </>
           )}
 
-          {tab === 'history' && !isPreview && <div className='dark:text-white'>
+          {tab === 'history' && !isPreview && <div className='primary-text'>
             <br />
             {collection.updateHistory.map((update, i) => {
               return <TxHistory key={i} tx={update} creationTx={i == 0} />

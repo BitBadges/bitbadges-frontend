@@ -15,9 +15,9 @@ export function TxHistory({
   creationTx: boolean
 }) {
 
-  return <div style={{ textAlign: 'left' }} className='dark:text-white'>
+  return <div style={{ textAlign: 'left' }} className='primary-text'>
 
-    <Typography.Text strong className='dark:text-white' style={{ fontSize: '1.2em' }}>
+    <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
       <ClockCircleOutlined style={{ marginRight: '5px' }} />
       {creationTx ? 'Created' : 'Updated'
       } at{' '}

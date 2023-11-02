@@ -235,7 +235,7 @@ export function TransferSelect({
 
   return <>
 
-    <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='dark:text-white'>
+    <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
 
       {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }}>
@@ -245,7 +245,7 @@ export function TransferSelect({
             />
           </div>
           {isOffChainBalancesUpdate &&
-            <div className="text-gray-400">
+            <div className="text-gray-500 dark:text-gray-400">
               <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
             </div>}
           <div className='flex flex-wrap flex-center' style={{ alignItems: 'normal' }}>
@@ -288,7 +288,7 @@ export function TransferSelect({
                 />
               </InformationDisplayCard>}
           </div>
-          <div style={{ alignItems: 'center' }} className='dark:text-white full-width'>
+          <div style={{ alignItems: 'center' }} className='primary-text full-width'>
             {
               !addTransferIsVisible && !hideTransferDisplay && <div>
                 <br />
@@ -308,7 +308,7 @@ export function TransferSelect({
                             setAddTransferIsVisible(false);
                             if (setVisible) setVisible(false);
                           }}
-                          style={{ fontSize: 20, cursor: 'pointer' }} className='dark:text-white'
+                          style={{ fontSize: 20, cursor: 'pointer' }} className='primary-text'
                         />
                       </Tooltip>
                     </div>
@@ -322,13 +322,13 @@ export function TransferSelect({
                     {steps.map((item, index) => (
                       <Step
                         key={index}
-                        title={<b>{item.title}</b>}
+                        title={<b className='primary-text hover:text-vivid-blue'>{item.title}</b>}
                         disabled={(steps && steps.find((step, idx) => step.disabled && idx < index) ? true : false)}
                       />
                     ))}
                   </Steps>
                   {steps.map((item, index) => (
-                    <div key={index} className='dark:text-white full-width'>
+                    <div key={index} className='primary-text full-width'>
                       {currentStep === index && <div className='full-width'>
                         {item.description}
                       </div>}
@@ -401,7 +401,7 @@ export function TransferSelect({
               >
                 <>
                   {[...(transfers ?? [])].length === 0 && <Empty
-                    className='dark:text-white'
+                    className='primary-text'
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={'None added.'} />}
 

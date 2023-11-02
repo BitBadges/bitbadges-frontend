@@ -56,7 +56,7 @@ export function RecipientsSelectStep({
       />
       {showApprovalsMessage && <>
         <Divider />
-        <Typography.Text className='text-gray-400' style={{ fontSize: 16 }}>
+        <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
           <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the recipient's incoming approvals as well."}
         </Typography.Text></>}
     </Col>

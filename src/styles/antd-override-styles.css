@@ -26,6 +26,7 @@
 .ant-upload {
     width: 100%;
 }
+
 .ant-upload.ant-upload-select-picture-card {
   background: inherit;
 }
@@ -37,8 +38,14 @@
 }
 .ant-input {
   background: inherit;
-  color: white;
+  color: black;
 } 
+
+.dark .ant-input {
+  background: inherit;
+  color: white;
+}
+
 .blockin-header {
   min-width: 200px !important;
 }
@@ -73,6 +80,7 @@
   height: 20px;
 }
 
+
 .ant-switch {
   background-color: grey;
 }
@@ -81,17 +89,9 @@
     background-color: #1890ff;
 }
 
-.ant-checkbox-wrapper {
-    align-items: center;
-}
-
-.ant-checkbox {
-  top: 0
-}
 
 .ant-modal {
   padding-bottom: 100px;
-  
 }
 
 .ant-modal-mask {
@@ -99,65 +99,92 @@
 }
 
 .ant-modal-header {
-  
-    background-color: #001529;
-    color: white;
-    border: none;
+  border: none;
 }
+
 .ant-modal-content {
   margin-bottom: 100px;
+}
+
+.ant-modal-footer {
+  border: none;
 }
 
 .ant-steps-navigation {
     min-height: 60px;
 }
-
-.ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
-    color: white;
+.dark .ant-modal-header {
+  background: #001529;
 }
 
-.ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
-    color: white;
+.dark .ant-modal-body {
+  background: #001529;
 }
 
-.ant-steps-navigation .ant-steps-item-container {
+.dark .ant-modal-footer {
+  background: #001529;
+}
+
+
+.dark .ant-steps-navigation .ant-steps-item-container {
     padding-bottom: 0;
 }
 
-.ant-steps-navigation .ant-steps-item::after {
+.dark .ant-steps-navigation .ant-steps-item::after {
     border-color: white;
 }
 
-.ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
+.dark  .ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
     color: white;
 }
 
-.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+.dark  .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
     color: white;
-}
-
-
-.ant-steps-item-finish .ant-steps-item-icon, .ant-steps-item-wait .ant-steps-item-icon {
-    background-color:  #001529;
-    color: white;
-    border-color: white;
-}
-
-.ant-modal-footer {
-    background-color: #001529;
     border: none;
+} 
+
+.dark  .ant-steps-item-wait .ant-steps-item-icon {
+  border-color: white;
+  color: white;
+  background-color: #001529;
+}  
+
+.dark  .ant-steps-item-finish .ant-steps-item-icon {
+  border-color: white;
+  color: white;
+  background-color: #001529;
+}  
+
+
+.dark .ant-drawer-header {
+    background-color: #001529;
+    color: white;
+    border-bottom: 1px solid gray;
+}
+
+.dark .ant-drawer-body {
+    background-color: #001529;
 }
 
 .ant-collapse-content {
-    background-color: inherit !important;
+  background-color: inherit !important;
+}
+.ant-collapse-expand-icon {
+  color: black;
 }
 
-.ant-collapse-expand-icon {
-    color: white;
+.dark .ant-collapse-expand-icon {
+  color: white;
 }
 
 .ant-collapse-header:hover {
+    background-color: whitesmoke;
+    color: white;
+}
+
+.dark .ant-collapse-header:hover {
     background-color: #192c3e;
+    color: white;
 }
 
 .dark .ant-pagination-item {
@@ -184,33 +211,33 @@
     color: white;
 }
 
-.rc-md-editor .rc-md-navigation {
+.dark .rc-md-editor .rc-md-navigation {
     background: inherit !important;
 }
 
-.rc-md-editor {
+.dark .rc-md-editor {
   background: inherit !important;
 }
 
-.rc-md-editor.full {
+.dark .rc-md-editor.full {
   background: #001529 !important;
 }
 
-.rc-md-editor .rc-md-navigation .button-wrap .button {
+.dark .rc-md-editor .rc-md-navigation .button-wrap .button {
     background: inherit !important;
     color: white !important;
 }
 
-.rc-md-editor .drop-wrap {
+.dark .rc-md-editor .drop-wrap {
     background: inherit !important;
 }
 
-.rc-md-editor .editor-container .sec-md .input {
+.dark .rc-md-editor .editor-container .sec-md .input {
     background: inherit !important;
     color: white !important;
 }
 
-.rc-md-editor .editor-container .sec-html {
+.dark .rc-md-editor .editor-container .sec-html {
   background: inherit !important;
   color: white !important;
 }
@@ -219,26 +246,26 @@ h1, h2, h3, h4, h5, h6 {
     color: inherit;
 }
 
-
-.custom-html-style h1, 
-.custom-html-style h2,
-.custom-html-style h3,
-.custom-html-style h4,
-.custom-html-style h5,
-.custom-html-style h6,
-.custom-html-style p,
-.custom-html-style blockquote
-.custom-html-style code {
+.dark .custom-html-style h1, 
+.dark .custom-html-style h2,
+.dark .custom-html-style h3,
+.dark .custom-html-style h4,
+.dark .custom-html-style h5,
+.dark .custom-html-style h6,
+.dark .custom-html-style p,
+.dark .custom-html-style blockquote
+.dark .custom-html-style code {
     color: white !important;
 }
-.custom-html-style code, 
-.custom-html-style pre,
-.custom-html-style table th,
-.custom-html-style blockquote {
+
+.dark .custom-html-style code, 
+.dark .custom-html-style pre,
+.dark .custom-html-style table th,
+.dark .custom-html-style blockquote {
   background: #192c3e  !important;
 }
 
-.custom-html-style {  
+.dark .custom-html-style {  
   margin: 15px;
   text-align: left !important;
   color: white !important;
@@ -334,10 +361,6 @@ h1, h2, h3, h4, h5, h6 {
   background-color: inherit;
 }
 
-.ant-popover-inner {
-  background-color: #001529;
-  border: 1px solid gray;
-}
 
 .ant-popover-inner-content {
   width: 100%;
@@ -345,4 +368,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .blockin-listitem-logo {
   display: flex;
+}
+
+.ant-divider {
+  color: transparent !important;
+  border-color: transparent;
 }

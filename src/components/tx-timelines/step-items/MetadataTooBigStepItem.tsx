@@ -23,21 +23,21 @@ export const MetadataTooBigStepItem = () => {
     description: ``,
     node: <div>
       <div style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-        <Typography.Text className='dark:text-white' style={{ fontSize: 16 }}>{`Oops! Your metadata is too large (${formatBytes(size)}). Please reduce the size of the metadata to under 1MB and try again.`}</Typography.Text>
+        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`Oops! Your metadata is too large (${formatBytes(size)}). Please reduce the size of the metadata to under 1MB and try again.`}</Typography.Text>
         <Divider />
-        <Typography.Text className='dark:text-white' style={{ fontSize: 16 }}>{`
+        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`
                     Some recommended ways to reduce the size of your metadata are:
                 `}</Typography.Text>
         <br />
-        <Typography.Text className='dark:text-white' style={{ fontSize: 16 }}>{`
+        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`
                     - Reduce the size of your images.
                 `}</Typography.Text>
         <br />
-        <Typography.Text className='dark:text-white' style={{ fontSize: 16 }}>{`
+        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`
                     - Reduce the number of badges with unique metadata. If two badges have the same exact metadata, that metadata is only stored once.
                 `}</Typography.Text>
         <br />
-        <Typography.Text className='dark:text-white' style={{ fontSize: 16 }}>{`
+        <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`
                     - Reduce the number of badges in your collection.
                 `}</Typography.Text>
       </div>

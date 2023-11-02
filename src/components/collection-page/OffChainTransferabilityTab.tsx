@@ -32,7 +32,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
         noBorder
         inheritBg
       >
-        <div className='text-gray-400'>
+        <div className='secondary-text'>
           <InfoCircleOutlined /> This collection stores its balances off-chain via a typical server,
           meaning no approvals or transfers happen on the blockchain.  {' '}Learn more about off-chain balances <a
             target='_blank'

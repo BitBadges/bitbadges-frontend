@@ -40,14 +40,14 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   if (!collection) return <Spin />
 
   return (
-    <div className='dark:text-white'
+    <div className='primary-text'
       style={{
         justifyContent: 'center',
         width: '100%',
       }}>
 
       <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
-      <br />
+
 
       <div className=''>
         {currApproval &&
@@ -66,7 +66,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
       </div>
       {
         numActiveClaims == 0 && <Empty
-          className='dark:text-white'
+          className='primary-text'
           description={`No active claims found${badgeId ? ' for this badge' : ''}.`}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />

@@ -87,7 +87,7 @@ export interface GlobalReduxState {
 }
 
 export const PopupContent = ({ children, style }: { style?: any, children: React.ReactNode }) => {
-  return <div className='dark:text-white bg-slate-950 border-0  dark:text-slate-200 text-blue-black-100'
+  return <div className='primary-text bg-slate-200 dark:bg-slate-950 border-0  dark:text-slate-200 text-blue-black-100'
     style={{
       textAlign: 'center',
       borderTop: '1px solid white',
@@ -140,6 +140,18 @@ const App = ({ Component, pageProps }: AppProps) => {
   //React cookies
   const [cookies, setCookie] = useCookies(['policies']);
 
+  useEffect(() => {
+    // Check if dark mode is enabled in local storage
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+    // Apply dark mode styles if it's enabled
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   const [myCookieValue, setMyCookieValue] = useState(null);
   // const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
 
@@ -167,8 +179,8 @@ const App = ({ Component, pageProps }: AppProps) => {
               <BrowseContextProvider>
                 <StatusContextProvider>
                   <TxTimelineContextProvider>
-                    <div className="dark">
-                      <div className="layout   gradient-bg">
+                    <div className="">
+                      <div className="layout gradient-bg">
                         <WalletHeader />
                         {/* {topPopupIsVisible &&
                           <PopupContent>

@@ -78,7 +78,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
   } />
     {
       <div style={{ textAlign: 'start', marginLeft: 10, marginBottom: 10 }}>
-        <Typography.Text className='text-gray-400' style={{ fontSize: 12, textAlign: 'start' }}>
+        <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
           <InfoCircleOutlined />
           {keyId == 'useOverallNumTransfers' ? ' First use of this approval will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates.' : ''}
           {keyId == 'usePerFromAddressNumTransfers' ? ' Each unique sender will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
@@ -97,7 +97,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
       <hr />
       <b style={{ fontSize: 16 }}> Number of Partitions</b>
       <br />
-      <Typography.Text className='text-gray-400' style={{ fontSize: 12, textAlign: 'start' }}>
+      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
         <InfoCircleOutlined /> The number of partitions is calculated according to how many times users can send, receive, and / or initiate.
         Note the Max Uses selections are the same as above in the address boxes.
       </Typography.Text>
@@ -106,7 +106,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
       <br />
       {<div style={{}}>
         {maxUsesErrorMessage && <div style={{ color: 'red' }}>{maxUsesErrorMessage}</div>}
-        {!maxUsesErrorMessage && <Typography.Text className='dark:text-white' strong style={{ fontSize: 16 }}>Total Partitions: {maxIncrementsApplied.toString()}</Typography.Text>}
+        {!maxUsesErrorMessage && <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>Total Partitions: {maxIncrementsApplied.toString()}</Typography.Text>}
         <br />
         <br />
       </div>}

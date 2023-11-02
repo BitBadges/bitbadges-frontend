@@ -62,8 +62,8 @@ export function ConfirmManagerStepItem() {
         permissionName="canUpdateManager"
         node={
 
-          <div className='dark:text-white' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-            <div className='dark:text-white'
+          <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+            <div className='primary-text'
               style={{
                 padding: '0',
                 textAlign: 'center',

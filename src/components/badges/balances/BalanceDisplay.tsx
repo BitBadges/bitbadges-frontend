@@ -69,7 +69,7 @@ export function BalanceDisplay({
 
   const [defaultBalancesToShow] = useState<Balance<bigint>[]>(balances);
 
-  
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
     const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
@@ -181,7 +181,7 @@ export function BalanceDisplay({
               <div className='full-width flex-center'>
                 {(!balances || balances?.length === 0) ? <div className='full-width flex-center' style={{ textAlign: 'center', display: 'flex' }}>
                   <Empty
-                    className='dark:text-white inherit-bg'
+                    className='primary-text inherit-bg'
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={'No balances found.'}
                   />

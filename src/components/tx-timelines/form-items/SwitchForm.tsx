@@ -35,7 +35,7 @@ export function SwitchForm({
   return (
     <>
       <div>
-        <Row className='flex-center flex-wrap dark:text-white'
+        <Row className='flex-center flex-wrap primary-text'
           style={{
             padding: '0',
             textAlign: 'center',
@@ -48,14 +48,14 @@ export function SwitchForm({
               <Card
                 key={index}
                 hoverable
-                className={option.disabled ? 'dark:text-white tertiary-blue-bg full-width flex-center' : 'dark:text-white inherit-bg full-width flex-center'}
+                className={option.disabled ? 'primary-text tertiary-blue-bg full-width flex-center card-bg' : 'primary-text card-bg full-width flex-center'}
                 style={{
                   textAlign: 'center',
                   border: option.isSelected ? '3px solid #1890ff' : undefined,
                   cursor: option.disabled ? 'not-allowed' : undefined,
                   overflowWrap: 'break-word',
                   alignItems: 'normal',
-                  background: option.disabled ? '#192c3e' : `linear-gradient(0deg, black 10%, #001529 100%)`,
+                  background: option.disabled ? '#192c3e' : undefined
                 }}
                 bodyStyle={{ width: '100%', textAlign: 'center' }}
                 onClick={() => {
@@ -66,7 +66,8 @@ export function SwitchForm({
                   onSwitchChange(index, option.title);
                 }}
               >
-                <div className='dark:text-white'
+
+                <div className='primary-text'
                   style={{
                     fontSize: 24,
                     fontWeight: 'bolder',
@@ -76,7 +77,7 @@ export function SwitchForm({
                 >
                   {option.title}
                 </div>
-                <div className='text-gray-400 full-width'
+                <div className='secondary-text full-width'
                   style={{
                     // display: 'flex',
                     alignItems: 'center',
@@ -101,7 +102,7 @@ export function SwitchForm({
             </Col>
           })}
         </Row>
-        <Typography style={{ color: 'lightgrey', textAlign: 'center' }}>
+        <Typography className='secondary-text' style={{ textAlign: 'center' }}>
           {helperMessage}
         </Typography>
       </div >

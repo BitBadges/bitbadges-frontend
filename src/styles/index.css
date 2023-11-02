@@ -8,7 +8,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: black;
+  background-color: #001529;
 }
 
 code {
@@ -65,28 +65,60 @@ code {
     color: #Ea1795;
 }
 
-.primary-text  {
+.primary-text {
+    color: black;
+}
+
+.dark .primary-text {
     color: white;
+}
+
+.secondary-text {
+  @apply text-gray-500;
+}
+
+.dark .secondary-text {
+  @apply text-gray-400;
 }
 
 .link-color {
     color: #0000EE;
 }
 
+.primary-border {
+  border: 1px solid grey;
+}
+
+.dark .primary-border {
+  border: 1px solid white;
+}
+
+
 .gradient-bg {
+    background: whitesmoke;
+}
+
+.dark .gradient-bg {
     background: linear-gradient(0deg, black 10%, #001529 100%);
 }
+
+
+.card-bg {
+  @apply bg-white
+}
+
+.dark .card-bg {
+  background: linear-gradient(0deg, black 10%, #001529 100%);
+}
+
 
 .reverse-gradient-bg {
     background: linear-gradient(0deg, #001529 10%, black 100%);
 }
-.black-bg {
-    background-color: black;
-}
 
 .landing-padding {
-  padding-left: 3vw;
-  padding-right: 3vw;
+  padding-left: 7vw;
+  padding-right: 7vw;
 }
 
 
@@ -114,6 +146,10 @@ code {
     background-color: #Ea1795;
 }
 
+.ant-layout-header {
+  height: unset !important;
+}
+
 .App {
     position: absolute;
     top: 0px;
@@ -133,10 +169,7 @@ code {
   
   .App-header {
     width: 100%;
-    display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     font-size: calc(10px + 2vmin);
     color: white;
     padding: 0;
@@ -183,9 +216,6 @@ code {
             top: 0;
             z-index: 1000;
             width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
     }
   
@@ -214,13 +244,18 @@ code {
     background: rgba(255, 255, 255, 0.3);
   }
 
-  .styled-button {
-      background: inherit !important;
+ .dark .styled-button {
+      background: #001529 !important;
       /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
       border: 2px solid white;
-      cursor: pointer;
       color: white;
   }
+  .styled-button {
+    background: #001529;
+    /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
+    border: 2px solid black;
+    color: white;
+}
 
   .styled-button:hover {
     color: #1890ff;
@@ -233,6 +268,13 @@ code {
     /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
     border: 1px solid black;
     color: black;
+}
+
+.dark .styled-button-normal {
+  background: inherit;
+  /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
+  border: 1px solid white;
+  color: white;
 }
 
 .styled-button-normal:hover {
@@ -460,32 +502,20 @@ transform: scale(1.01);
     height: 100%;
   }
 
-@media (max-width: 920px) { 
-  .collect-title {
-    font-size: 48px;
-    line-height: 59px; /* 105.952% */
-    letter-spacing: -2.5px;
-  }
-
-  .inline-logo {
+.inline-logo {
+  @media (max-width: 920px) { 
     height: 54px;
   }
-}
 
-@media (min-width: 920px) { 
- .collect-title {
-    font-size: 72px;
-    line-height: 89px; /* 105.952% */
-    letter-spacing: -3.5px;
-  }
-
-  .inline-logo {
+  @media (min-width: 920px) { 
     height: 80px;
   }
 }
 
+
+
+
 .collect-title {
-  color: #FFF;
   font-feature-settings: 'clig' off, 'liga' off;
   
   /* Heading/01 */
@@ -493,6 +523,18 @@ transform: scale(1.01);
   
   font-style: normal;
   font-weight: 600;
+
+  @media (max-width: 920px) { 
+    font-size: 48px;
+    line-height: 59px; /* 105.952% */
+    letter-spacing: -2.5px;
+  }
+
+  @media (min-width: 920px) { 
+    font-size: 72px;
+    line-height: 89px; /* 105.952% */
+    letter-spacing: -3.5px;
+  }
 }
 
 .flex-center-if-mobile {
@@ -511,17 +553,16 @@ transform: scale(1.01);
   padding: 4px 8px;
   justify-content: center;
   border: 1px solid black;
-  background: #1890ff;
   align-items: center;
   gap: 8px;
   border-radius: 39px;
+  background: #1890ff;
   cursor: pointer;
   color: white;
   font-weight: bold;
   opacity: 1;
   display: flex;
   align-items: center;
- 
 }
 
 .landing-button:disabled {
@@ -531,7 +572,6 @@ transform: scale(1.01);
   cursor: not-allowed;
 }
 
-
 .landing-button:hover {
   border: 1px solid black;
   opacity: 1;
@@ -539,7 +579,6 @@ transform: scale(1.01);
   border: 1px solid #1890ff;
   color: #1890ff;
 }
-
 /* 
 .blockin-button {
   display: flex !important;
@@ -633,6 +672,11 @@ transform: scale(1.01);
 }
 
 .transferability-row:hover {
+  background-color: whitesmoke;
+  cursor: pointer;
+}
+
+.dark .transferability-row:hover {
   background-color: #4a4a5b;
   cursor: pointer;
 }

@@ -74,7 +74,7 @@ export function TransferabilitySelectStepItem() {
       }}
       nonMintOnly
       node={
-        <div className="dark:text-white">
+        <div className="primary-text">
           <SwitchForm
             showCustomOption
             options={[

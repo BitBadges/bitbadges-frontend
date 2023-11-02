@@ -14,19 +14,18 @@ export const LandingCard = ({ content, customClass, }: {
   customClass: string
 }) => {
 
-  return <div className='dark flex'>
+  return <div className='flex'>
 
-    <Card className={customClass + " gradient-bg"}
+    <Card className={customClass + " card-bg"}
       style={{
         border: '1px solid gray',
         borderRadius: 15,
       }}>
-      <div className='landing-card text-gray-400' >
+      <div className='landing-card secondary-text' >
         {content}
       </div>
     </Card >
   </div>
-
 }
 
 
@@ -43,7 +42,7 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
   }}>
     <div style={{ display: 'flex' }}>
 
-      <Card hoverable={!!additionalContent} className='primary-blue-bg dark:text-white'
+      <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
         style={{
           height: showMore ? undefined : additionalContent ? 360 : 260, borderRadius: 15,
           background: `linear-gradient(0deg, black 10%, #001529 100%)`,
@@ -129,12 +128,12 @@ const Home: NextPage = () => {
       <div className='landing-padding'>
         <Row className='flex-around ' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal', minHeight: '60vh' }}>
           <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh' }}>
-            <div className='dark:text-white capitalize collect-title flex flex-wrap' style={{
+            <div className='collect-title capitalize primary-text flex flex-wrap' style={{
               alignItems: 'center'
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
               {' '} to build your digital identity!</div>
             <br />
-            <p className='text-gray-400' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. We will redistribute $BADGE via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'
@@ -181,7 +180,7 @@ const Home: NextPage = () => {
               </Button>
             </div>
 
-            {/* <Typography.Text strong className='dark:text-white' style={{ fontSize: 24 }}>
+            {/* <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
               {status.status.nextCollectionId.toString()} Badges Created!
             </Typography.Text> */}
 
@@ -193,7 +192,7 @@ const Home: NextPage = () => {
                 </div> */}
             <div style={{ paddingRight: 4, paddingLeft: 4, alignItems: 'normal' }} className='flex-center full-width' >
 
-              <div className='flex-center flex-wrap full-width dark:text-white '>
+              <div className='flex-center flex-wrap full-width primary-text '>
                 {
                   [...featuredBadges, ...featuredBadges].map((badge, idx) => {
                     const { collectionId, badgeId } = badge;
@@ -223,23 +222,23 @@ const Home: NextPage = () => {
                   <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
 
                   <br />
-                  <Typography.Text strong className='text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
                     What is BitBadges?
                   </Typography.Text>
                   <br />
-                  <Typography.Text className='text-gray-400' style={{ fontSize: 14 }}>
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying digital badges.
                   </Typography.Text>
 
                   <br />
                   <br />
-                  <Typography.Text className='text-gray-400' style={{ fontSize: 14 }}>
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     Think of badges as digital tokens that you can collect and own.
                     Chances are, you already own several digital badges, like a social media verification checkmark or concert tickets.
                   </Typography.Text>
                   <br />
                   <br />
-                  <Typography.Text className='text-gray-400' style={{ fontSize: 14 }}>
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     Badges can be used for all sorts of things, giving you various benefits and value. Some might be handy in the real world, like a ticket badge getting you into a concert, while others can be purely digital. Some may signify something about your reputation, like a community service badge. Or, some may be just for fun, like a souvenir badge. It all depends on the badge!
 
                   </Typography.Text>
@@ -261,7 +260,7 @@ const Home: NextPage = () => {
               </div>
             </>
             }
-            customClass="bg-white dark:bg-blue-black text-gray-400"
+            customClass="secondary-text"
           />
 
         </Row>
@@ -284,18 +283,18 @@ const Home: NextPage = () => {
 
               <br />
               <br />
-              <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
                 How to collect badges?
               </Typography.Text>
               <br />
-              <Typography.Text className='text-gray-400' style={{ fontSize: 14 }}>
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                 Badges can be collected in a variety of ways, such as scanning a QR code, entering a password, or being airdropped one.
                 The collection creator decides how badges are distributed.
                 To see how a specific collection distributes badges, check out the page for that collection.
               </Typography.Text>
             </>
             }
-            customClass='bg-white dark:bg-blue-black text-gray-400 flex'
+            customClass='secondary-text flex'
           />
 
 
@@ -315,19 +314,19 @@ const Home: NextPage = () => {
 
               <br />
               <br />
-              <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 24 }}>
+              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
                 How is ownership verified?
               </Typography.Text>
               <br />
 
-              <Typography.Text className='text-gray-400' style={{ fontSize: 14 }}>
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                 {"All badges are public, meaning you can view anyone's portfolio and verify the authenticity and ownership of their badges at any time. "}
 
                 This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
               </Typography.Text>
             </>
             }
-            customClass='bg-white dark:bg-blue-black text-gray-400 flex'
+            customClass='secondary-text flex'
           />
         </Row>
 
@@ -338,7 +337,7 @@ const Home: NextPage = () => {
         <br />
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
-            <Typography.Text strong className='dark:text-white text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
+            <Typography.Text strong className='primary-text text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
               Features
             </Typography.Text>
           </Col>
@@ -347,7 +346,7 @@ const Home: NextPage = () => {
 
         <Row className='flex-between mt-4' style={{ alignItems: 'normal' }}>
           <Col md={24} sm={24} xs={24}>
-            <Typography.Text strong className='text-gray-400 text-base text-gray-400 font-normal dark:text-slate-100' style={{ fontSize: 16 }}>
+            <Typography.Text strong className='secondary-text text-base secondary-text font-normal dark:text-slate-100' style={{ fontSize: 16 }}>
               {/* Through years of research, BitBadges is proud to introduce new features that have never been seen before in the blockchain space.<br /><br /> */}
               Learn more about all offered features <a href='https://docs.bitbadges.io/overview' target='_blank' className='text-vivid-blue' rel="noreferrer">here</a>.
             </Typography.Text>
@@ -366,7 +365,7 @@ const Home: NextPage = () => {
           <>
             <>
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <>
                     <div className='flex' style={{ alignItems: 'center' }}>
@@ -385,14 +384,14 @@ const Home: NextPage = () => {
                     </div>
                     <br />
 
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Multi-Chain
                     </Typography.Text>
 
 
                     <br />
                     <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       The same badge can be owned by users from different blockchain ecosystems. We currently support Ethereum  <Avatar
                         src={ETH_LOGO}
                         size={25}
@@ -404,7 +403,7 @@ const Home: NextPage = () => {
                 }
               />
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><ClusterOutlined
                     className='figma-blue'
@@ -412,11 +411,11 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Scalable
                     </Typography.Text>
                     <br /> <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       BitBadges utilizes a scalable architecture that can eventually support millions of users and badges.
                     </Typography.Text>
                   </>
@@ -424,7 +423,7 @@ const Home: NextPage = () => {
               />
 
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <>
                     <DatabaseOutlined
@@ -433,12 +432,12 @@ const Home: NextPage = () => {
                     />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Balances Storage Options
                     </Typography.Text>
                     <br />
                     <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       BitBadges supports multiple storage methods for balances, including storing balances off-chain for enhanced user experience and scalability.
                       Learn more about this <a href='https://docs.bitbadges.io/overview/concepts/balances-types' target='_blank'>here</a>.
 
@@ -447,7 +446,7 @@ const Home: NextPage = () => {
                 }
               />
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <>
                     <FieldTimeOutlined
@@ -456,12 +455,12 @@ const Home: NextPage = () => {
                     />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Time-Dependent Ownership
                     </Typography.Text>
                     <br />
                     <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Natively, BitBadges does its accounting in a way that supports time-dependent ownership for balances (e.g. Bob owns x1 from January to March).
                     </Typography.Text>
                   </>
@@ -469,7 +468,7 @@ const Home: NextPage = () => {
               />
 
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><ControlOutlined
                     className='figma-blue'
@@ -477,18 +476,18 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Customizable Transferability
                     </Typography.Text>
                     <br /><br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Instead of badges being simply transferable or non-transferable, BitBadges supports a wide range of transferability options that can be clearly displayed to users.
                     </Typography.Text>
                   </>
                 }
               />
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><FileProtectOutlined
                     className='figma-blue'
@@ -496,19 +495,19 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Smart Contracts Not Needed
                     </Typography.Text>
                     <br />
                     <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       BitBadges reuses the same interface for badges as opposed to individual smart contracts. This results in increased transparency, scalability, maintainability, consistency, and security.
                     </Typography.Text>
                   </>
                 }
               />
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={<>
                   <TeamOutlined
                     className='figma-blue'
@@ -516,12 +515,12 @@ const Home: NextPage = () => {
                   />
                   <br />
                   <br />
-                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                     Address Lists
                   </Typography.Text>
                   <br />
                   <br />
-                  <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                     Create address lists to easily manage and organize users. These lists can be used for a variety of purposes, such as whitelists, blacklists, and more.
                   </Typography.Text>
                 </>
@@ -533,7 +532,7 @@ const Home: NextPage = () => {
 
 
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <>
                     <ContactsOutlined
@@ -542,12 +541,12 @@ const Home: NextPage = () => {
                     />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Incoming / Outgoing Approvals
                     </Typography.Text>
                     <br />
                     <br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Approve users to transfer on your behalf (outgoing) or restrict who can transfer to you (incoming).
                     </Typography.Text>
                   </>
@@ -556,7 +555,7 @@ const Home: NextPage = () => {
             </>
             <>
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><LikeOutlined
                     className='figma-blue'
@@ -564,11 +563,11 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Reviews
                     </Typography.Text>
                     <br /><br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Leave reviews on users and collections to help others identify trustworthy users and collections.
                     </Typography.Text>
                   </>
@@ -576,7 +575,7 @@ const Home: NextPage = () => {
               />
 
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text'
                 content={
                   <><SendOutlined
                     className='figma-blue'
@@ -584,11 +583,11 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Batch Transfers
                     </Typography.Text>
                     <br /><br />
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Batch transfers can be done in a single, efficient transaction (e.g. transfer x1 of badge IDs 1-60000).
                     </Typography.Text>
                   </>
@@ -596,7 +595,7 @@ const Home: NextPage = () => {
               />
 
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><ClockCircleOutlined
                     className='figma-blue'
@@ -604,19 +603,19 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Time-Based Details
                     </Typography.Text>
                     <br /><br />
 
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Certain collection details (such as metadata) are timeline-based, meaning they can be scheduled to have different values at different times.
                     </Typography.Text>
                   </>
                 }
               />
               <LandingCard
-                customClass='bg-white dark:bg-blue-black text-gray-400 '
+                customClass='secondary-text '
                 content={
                   <><GlobalOutlined
                     className='figma-blue'
@@ -624,12 +623,12 @@ const Home: NextPage = () => {
                   />
                     <br />
                     <br />
-                    <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
                       Announcements
                     </Typography.Text>
                     <br /><br />
 
-                    <Typography.Text className='text-gray-400' style={{ fontSize: 14, marginTop: 8 }}>
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Send announcements to all owners in a collection, enabling you to easily communicate with your badge holders.
                     </Typography.Text>
                   </>
@@ -647,7 +646,7 @@ const Home: NextPage = () => {
             <br />
             <br />
             <Col md={24} sm={24} xs={24} >
-              <Typography.Text className='text-gray-400' style={{ fontSize: 16 }}>
+              <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
                 And many more!
 
               </Typography.Text>
@@ -659,13 +658,13 @@ const Home: NextPage = () => {
 
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24} style={{ textAlign: 'center' }}>
-            <Typography.Text strong className='dark:text-white text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
+            <Typography.Text strong className='primary-text text-5xl text-[#131233] dark:text-slate-100' style={{ fontSize: 32 }}>
               Ecosystem
             </Typography.Text>
           </Col>
         </Row>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }} className='dark'>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }} className=''>
           {tools.map((tool, idx) => {
             if (tool.toolType !== "Verification") return <></>
 
@@ -681,7 +680,7 @@ const Home: NextPage = () => {
         {/* <Divider />
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
-            <Typography.Text strong className='dark:text-white' style={{ fontSize: 32 }}>
+            <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
               Distribution Methods
             </Typography.Text>
           </Col>
@@ -689,7 +688,7 @@ const Home: NextPage = () => {
 
         <Row className='flex-center' style={{ alignItems: 'normal' }}>
           <Col md={22} sm={22} xs={22}>
-            <Typography.Text strong className='text-gray-400' style={{ fontSize: 16 }}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
               Badges can be transferred directly or claimed by users via whitelists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
             </Typography.Text>
           </Col>
@@ -709,7 +708,7 @@ const Home: NextPage = () => {
 
         <Row className='flex-between' style={{ alignItems: 'normal' }}>
           <Col md={24} sm={24} xs={24}>
-            <Typography.Text strong className='text-gray-400' style={{ fontSize: 16 }}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
               And many more!
             </Typography.Text>
           </Col>
@@ -718,7 +717,7 @@ const Home: NextPage = () => {
         <Divider />
         <Row className='flex-center'>
           <Col md={12} sm={24} xs={24}>
-            <Typography.Text strong className='dark:text-white' style={{ fontSize: 32 }}>
+            <Typography.Text strong className='primary-text' style={{ fontSize: 32 }}>
               Verification Tools
             </Typography.Text>
           </Col>
@@ -726,7 +725,7 @@ const Home: NextPage = () => {
 
         <Row className='flex-center' style={{ alignItems: 'normal' }}>
           <Col md={22} sm={22} xs={22}>
-            <Typography.Text strong className='text-gray-400' style={{ fontSize: 16 }}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
               Use the tools below to help you authenticate your users and verify their ownership (or non-ownership) of badges!
             </Typography.Text>
           </Col>

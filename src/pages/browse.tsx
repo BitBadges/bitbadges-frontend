@@ -69,7 +69,7 @@ function BrowsePage() {
         <div className='full-width'>
           <br />
 
-          <Typography.Text strong className='dark:text-white text-4xl text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text text-4xl' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Profiles
           </Typography.Text>
           <div className="profile-carousel">
@@ -84,7 +84,7 @@ function BrowsePage() {
                     return {
                       key: category,
                       label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
                       </Typography.Text>
                     }
@@ -153,7 +153,7 @@ function BrowsePage() {
             />
           </div>
           < Divider />
-          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
           </Typography.Text>
           <CustomCarousel
@@ -166,7 +166,7 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </Typography.Text>
                   }
@@ -210,7 +210,7 @@ function BrowsePage() {
             }).filter(x => x)) ?? []}
           />
           <Divider />
-          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Address Lists
           </Typography.Text>
           <CustomCarousel
@@ -222,7 +222,7 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <Typography.Text strong style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </Typography.Text>
                   }
@@ -257,7 +257,7 @@ function BrowsePage() {
           />
 
           <Divider />
-          <Typography.Text strong className='dark:text-white text-slate-700 dark:text-white' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>
           <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>

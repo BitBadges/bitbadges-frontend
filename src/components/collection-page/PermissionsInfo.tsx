@@ -318,7 +318,7 @@ export const PermissionDisplay = (
 
 
   return <>
-    <div className='full-width' style={{ textAlign: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', color: 'white', }}>
+    <div className='full-width primary-text' style={{ textAlign: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', }}>
       <div className="" style={{ alignItems: 'normal', width: '100%' }}>
         {
           neverHasManager ? <p>
@@ -326,12 +326,12 @@ export const PermissionDisplay = (
             {` There is and will never be a manager for this collection, so this permission can never be executed.`}
           </p> :
 
-            <div style={{ textAlign: 'center' }} className='dark:text-white flex-center '>
-              {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='dark:text-white'>{question} </Typography.Text> */}
+            <div style={{ textAlign: 'center' }} className='primary-text flex-center '>
+              {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='primary-text'>{question} </Typography.Text> */}
               {/* <br /> */}
               <br />
 
-              <div className="dark:text-white" style={{ textAlign: 'center', overflow: 'auto' }}>
+              <div className="primary-text" style={{ textAlign: 'center', overflow: 'auto' }}>
                 <div>
 
                   <table className="table-auto overflow-x-scroll">
@@ -355,18 +355,18 @@ export const PermissionDisplay = (
                       <br />
                     </>}
 
-                    < tr style={{ border: '1px solid white' }}>
+                    < tr className="primary-border">
                       {columns.map((x, idx) => {
                         return <td key={x.key} style={{
                           padding: 8, fontWeight: 'bold', fontSize: 16,
-                          borderRight: idx === 2 ? '1px solid white' : undefined,
+                          borderRight: idx === 2 && columns.length > 3 ? '1px solid' : undefined,
                           verticalAlign: 'top', minWidth: 70
 
                         }}>{x.title}</td>
                       })}
                     </tr>
-                    {/* <tr style={{  border: '1px solid white', borderTop: 'none' }}>
-                <td colSpan={3} style={{ padding: 8, fontWeight: 'bold', fontSize: 12, borderRight: '1px solid white' }}>Can the manager execute this permission? When?</td>
+                    {/* <tr style={{  border: '1px solid', borderTop: 'none' }}>
+                <td colSpan={3} style={{ padding: 8, fontWeight: 'bold', fontSize: 12, borderRight: '1px solid' }}>Can the manager execute this permission? When?</td>
 
 
                 <td colSpan={columns.length - 3} style={{ padding: 8, fontWeight: 'bold', fontSize: 12 }}>For what values?</td>
@@ -410,7 +410,7 @@ export const PermissionDisplay = (
 
 
 
-                      return <tr key={idx} style={{ border: '1px solid white' }}>
+                      return <tr key={idx} className="primary-border">
 
                         {y.forbidden && !y.permitted && <>
                           <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}><CloseCircleFilled style={{ color: 'red' }} /> </td> <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
@@ -457,7 +457,7 @@ export const PermissionDisplay = (
                           </div></td></>}
                         {y.permissionTimes && <td style={{
                           padding: 8, fontWeight: 'bold', fontSize: 16,
-                          borderRight: columns.length > 3 ? '1px solid white' : undefined
+                          borderRight: columns.length > 3 ? '1px solid' : undefined
                         }}>{getTimeRangesElement(y.permissionTimes, '', true, false, false)}
                         </td>
                         }
@@ -569,9 +569,12 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
   const { hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIds);
 
   return <>
-    <Popover color='black' className="dark:text-white" content={<>
-      <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={neverHasManager} badgeIds={badgeIds} />
+    <Popover color='black' className="primary-text card-bg" content={<>
+      <div className="dark primary-text">
+        <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={neverHasManager} badgeIds={badgeIds} />
+      </div>
     </>}>
+
       {!(hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)
         && !(hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes) &&
         !neverHasManager &&

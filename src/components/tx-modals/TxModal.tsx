@@ -346,7 +346,7 @@ export function TxModal(
       {currentStep === (msgSteps ?? []).length && <div>
 
         {displayMsg &&
-          <div style={{ textAlign: 'center' }} className='dark:text-white'>
+          <div style={{ textAlign: 'center' }} className='primary-text'>
             <br />
             {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
             {displayMsg}
@@ -357,7 +357,7 @@ export function TxModal(
         <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
           <div style={{ marginRight: 40 }}>
 
-            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='dark:text-white flex-center'>
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Signer
             </Typography.Text>
             <br />
@@ -365,8 +365,8 @@ export function TxModal(
               <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} fontSize={16} />
             </div>
             <br />
-            <div style={{ textAlign: 'center' }} className='dark:text-white'>
-              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='dark:text-white'>
+            <div style={{ textAlign: 'center' }} className='primary-text'>
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className='primary-text'>
                 Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
               </Typography.Text>
             </div>
@@ -374,8 +374,8 @@ export function TxModal(
           </div>
           {<>
 
-            <div style={{ textAlign: 'center' }} className='dark:text-white'>
-              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='dark:text-white flex-center'>
+            <div style={{ textAlign: 'center' }} className='primary-text'>
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
                 Transaction Fee
                 <Tooltip
                   color='black'
@@ -397,7 +397,7 @@ export function TxModal(
                 />
                 <br />
                 <br />
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 16 }} className='dark:text-white flex-center'>
+                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 16 }} className='primary-text flex-center'>
 
 
                   {useRecommendedFee ? <>{recommendedAmount.toString()}</> : <InputNumber
@@ -412,19 +412,19 @@ export function TxModal(
                     max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
                     step={1}
                     style={{ marginLeft: 5, marginRight: 5 }}
-                    className='dark:text-white inherit-bg'
+                    className='primary-text inherit-bg'
                   />}
                   {' '}${txDetails.fee.denom.toUpperCase()}
                 </Typography.Text>
               </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
                 <Spin size='large' />
-                <Typography.Text className='text-gray-400' style={{ textAlign: 'center' }} strong>Simulating Transaction</Typography.Text>
+                <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Simulating Transaction</Typography.Text>
                 <Divider />
               </div>}
             </div>
 
             {exceedsBalance &&
-              <div style={{ textAlign: 'center' }} className='dark:text-white'>
+              <div style={{ textAlign: 'center' }} className='primary-text'>
                 <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
                   This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
                 </Typography.Text>
@@ -435,7 +435,7 @@ export function TxModal(
 
         </div>
         <div className='flex-center'>
-          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='dark:text-white'>
+          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
             I understand that this is a beta version of BitBadges, and there may be bugs.
           </Typography.Text>
         </div >
@@ -447,7 +447,7 @@ export function TxModal(
         </div >
         <br />
         <div className='flex-center'>
-          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='dark:text-white'>
+          <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
             I understand that blockchain transactions are permanent and irreversible.
           </Typography.Text>
         </div >
@@ -473,18 +473,20 @@ export function TxModal(
         current={currentStep}
         onChange={onStepChange}
         type='navigation'
+        className='primary-texxt'
       >
         {msgSteps && [...msgSteps, finalSubmitStep].map((item, index) => (
           <Step
+
             key={index}
-            title={<b>{item.title}</b>}
+            title={<b className='primary-text hover:text-vivid-blue'>{item.title}</b>}
             disabled={msgSteps && [...msgSteps, finalSubmitStep].find((step, idx) => step.disabled && idx < index) ? true : false}
           />
         ))}
 
       </Steps>
     </>}
-    <div className='dark:text-white'>
+    <div className='primary-text'>
       <br />
       {<div>
         {[...(msgSteps ?? []), finalSubmitStep][currentStep].description}
@@ -506,9 +508,8 @@ export function TxModal(
 
   return (
     <Modal
-      title={<div className='dark:text-white inherit-bg'><b>{txName}</b></div>}
+      title={<div className='primary-text inherit-bg'><b>{txName}</b></div>}
       open={visible}
-      className='dark'
       style={{
         paddingLeft: '0px',
         paddingRight: '0px',
@@ -519,12 +520,10 @@ export function TxModal(
         ...style
       }}
       width={width ? width : undefined}
-      closeIcon={<div className='dark:text-white inherit-bg'>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
+      closeIcon={<div className='primary-text inherit-bg'>{closeIcon ? closeIcon : <CloseOutlined />}</div>}
       bodyStyle={{
         paddingTop: 8,
         ...bodyStyle,
-        backgroundColor: '#001529',
-        color: 'white'
       }}
       onOk={handleSubmitTx}
       okButtonProps={{

@@ -12,7 +12,7 @@ export function TimelineTimesIcon<T extends TimelineItem<bigint>>({ timeline, cr
     return <></>
   }
 
-  return <Popover color='black' className="dark:text-white" content={
+  return <Popover color='black' className="primary-text" content={
     <div style={{ textAlign: 'center', alignItems: 'center', backgroundColor: 'black', color: 'white' }}>
       <p>This is a timeline-based property and is currently set to have different values at different times.</p>
       {timelineTimes.map((x, idx) => {

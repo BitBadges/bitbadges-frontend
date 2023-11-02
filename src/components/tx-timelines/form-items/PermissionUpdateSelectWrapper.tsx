@@ -34,7 +34,7 @@ export function PermissionUpdateSelectWrapper({
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
-  
+
   const collection = useCollection(NEW_COLLECTION_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
@@ -120,7 +120,7 @@ export function PermissionUpdateSelectWrapper({
 
   return (
     <>
-      <div className='dark:text-white flex-center flex-column' >
+      <div className='primary-text flex-center flex-column' >
         <div style={{ alignItems: 'center', }} className='flex-center'>
           {checked && !!existingCollectionId &&
             <IconButton
@@ -198,7 +198,7 @@ export function PermissionUpdateSelectWrapper({
                 });
               }
             }}
-            className='dark:text-white'
+            className='primary-text'
           />}
       </div>
       {!checked && castFunction && flags &&
