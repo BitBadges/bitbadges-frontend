@@ -22,7 +22,7 @@ function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
   return <div className='flex-center flex-column'>
     {addresses.length > 1 ?
       <div className='flex-center flex-column'>
-        <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
       </div>
       : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
   </div>
@@ -42,8 +42,8 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
 
   return <>
 
-    <div className='dark dark:text-white'>
-      <Row className='flex-between  dark:text-white' style={{ textAlign: 'left' }} >
+    <div className='primary-text'>
+      <Row className='flex-between  primary-text' style={{ textAlign: 'left' }} >
         <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} >
           {collection?.balancesType === 'Standard' ? <>
             <PanelHeaderAddresses addresses={[activity.from]} />
@@ -64,7 +64,7 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
       </Row>
       <Row>
         <div
-          className='dark:text-white'
+          className='primary-text'
           style={{
             marginTop: 4,
             fontSize: 14,
@@ -103,7 +103,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
     {
       activity.length > 0 &&
       <Collapse
-        className='full-width dark:text-white inherit-bg'
+        className='full-width primary-text'
         style={{ alignItems: 'center' }}
         expandIconPosition='start'
       >
@@ -120,17 +120,17 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
 
           return <CollapsePanel
             key={idx}
-            className='full-width gradient-bg dark'
+            className='full-width card-bg'
             header={<>
               <PanelHeader collectionId={collectionId} activity={activity} onDelete={onDelete} idx={idx} />
             </>
             }
           >
             {
-              <div className='full-width gradient-bg'>
+              <div className='full-width card-bg'>
                 <br />
-                <div className='flex-center dark:text-white'>
-                  <div key={idx} className='dark:text-white'>
+                <div className='flex-center primary-text'>
+                  <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
                         <TransferDisplay
@@ -222,7 +222,7 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
 
   return (
     <div className='full-width'>
-      <div className='flex-center dark:text-white'>
+      <div className='flex-center primary-text'>
         {!paginated ?
           <InfiniteScroll
             dataLength={numShown}

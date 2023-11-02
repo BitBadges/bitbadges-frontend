@@ -38,14 +38,14 @@ export function AddressDisplay({
       <AddressWithBlockies
         addressOrUsername={addressOrUsername}
         fontSize={fontSize}
-        fontColor={fontColor ?? 'white'}
+        fontColor={fontColor}
         hidePortfolioLink={hidePortfolioLink}
         hideTooltip={hideTooltip}
         overrideChain={overrideChain}
         doNotShowName={doNotShowName}
       />
       {icon &&
-        <div className='flex-center' style={{ color: fontColor ? 'white' : undefined }} >
+        <div className='flex-center primary-text' style={{ color: fontColor ?? undefined }} >
           <div style={{ marginLeft: 8 }}>
             {icon}
           </div>

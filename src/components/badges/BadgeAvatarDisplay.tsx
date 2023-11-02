@@ -124,7 +124,7 @@ export function BadgeAvatarDisplay({
     />
 
 
-    <div key={currPage} className='flex-center flex-wrap full-width dark:text-white'>
+    <div key={currPage} className='flex-center flex-wrap full-width primary-text'>
       {
         badgeIdsToDisplay.map((badgeUintRange) => {
           const badgeIds: bigint[] = [];
@@ -156,7 +156,7 @@ export function BadgeAvatarDisplay({
       }
     </div>
 
-    {removed.length > 0 && <div className="text-gray-400">
+    {removed.length > 0 && <div className="secondary-text">
       <br />
       Badge IDs {getBadgeIdsString(removed)} have placeholder metadata.
     </div>}

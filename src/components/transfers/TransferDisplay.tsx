@@ -43,7 +43,7 @@ export function TransferDisplay({
       toLength <= 0 ? <div style={{ textAlign: 'center' }}>
         <Empty description='No badges transferred.'
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          style={{ marginTop: 20 }} className='dark:text-white'
+          style={{ marginTop: 20 }} className='primary-text'
         />
       </div> : <Pagination currPage={page} onChange={setPage} total={transfers.length} pageSize={1} />
     }
@@ -68,7 +68,7 @@ export function TransferDisplay({
         <br />
         <div className="flex-center flex-wrap">
           {!isBalanceUpdate &&
-            <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='dark:text-white'>
+            <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
               <br /><AddressDisplayList
                 users={[transfer.from]}
                 // toLength={Numberify(toLength)}
@@ -78,7 +78,7 @@ export function TransferDisplay({
               />
             </div>}
 
-          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='dark:text-white'>
+          <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
             <br /> <AddressDisplayList
               users={transfer.toAddresses}
               // toLength={Numberify(toLength)}
@@ -88,14 +88,14 @@ export function TransferDisplay({
             />
             {!!transfer?.toAddressesLength && transfer?.toAddressesLength > 0 &&
               <>
-                <Text strong className='text-gray-400' style={{ fontSize: 14 }}>
+                <Text strong className='secondary-text' style={{ fontSize: 14 }}>
                   {`${toLength} Claimees`}
                 </Text>
               </>}
           </div>
 
 
-          {initiatedBy && transfer.from !== initiatedBy && <> <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='dark:text-white'>
+          {initiatedBy && transfer.from !== initiatedBy && <> <div style={{ minWidth: 250, textAlign: 'center', justifyContent: 'center', flexDirection: 'column', }} className='primary-text'>
             <br />
             <AddressDisplayList
               users={[initiatedBy]}

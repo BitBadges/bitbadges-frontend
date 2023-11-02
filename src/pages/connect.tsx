@@ -21,13 +21,14 @@ function ConnectScreen({ message }: { message?: string }) {
       style={{
         minHeight: '100vh',
         textAlign: 'center',
+        marginTop: 16,
       }}
     >
       <div>
         <Content>
           <Text
             strong
-            style={{ fontSize: 20 }} className='dark:text-white'
+            style={{ fontSize: 20 }} className='primary-text'
           >
             {message ? message : 'Welcome!'}
           </Text>

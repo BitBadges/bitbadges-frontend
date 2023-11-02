@@ -74,9 +74,9 @@ export function AddressDisplayList({
 
 
 
-  return <div style={{ maxHeight: 500, overflow: 'auto', color: fontColor ?? 'white', fontSize: fontSize, alignItems: 'center' }}>
+  return <div className="primary-text" style={{ maxHeight: 500, overflow: 'auto', color: fontColor, fontSize: fontSize, alignItems: 'center' }}>
     {!hideTitle &&
-      title ? <h3 style={{ color: fontColor ?? 'white' }}>{title}</h3> : <></>
+      title ? <h3 style={{ color: fontColor }}>{title}</h3> : <></>
     }
     <Pagination total={usersToDisplay.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
 

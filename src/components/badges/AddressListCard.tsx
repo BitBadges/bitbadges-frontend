@@ -20,7 +20,7 @@ export function AddressListCard({
 
   return (
     <Card
-      className='dark:text-white gradient-bg'
+      className='primary-text card-bg'
       style={{
         width: 225,
         marginTop: 8,
@@ -33,7 +33,7 @@ export function AddressListCard({
         router.push(`/addresses/${addressMapping.mappingId}`);
       }}
       cover={<>
-        <div className='flex-center full-width dark:text-white' style={{ marginTop: '1rem' }}>
+        <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
           <BadgeAvatar
             collectionId={0n}
             metadataOverride={addressMapping.metadata}
@@ -42,11 +42,11 @@ export function AddressListCard({
         </div>
       </>}
     >
-      <Typography.Text strong className='dark:text-white' style={{ fontSize: 20 }}>
+      <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
         {addressMapping.metadata?.name}
       </Typography.Text>
       <br />
-      <Typography.Text strong className='dark:text-gray-400'>
+      <Typography.Text strong className='secondary-text'>
         {addressMapping.includeAddresses ? 'Whitelist' : 'Blacklist'}
         <br />
         {addressMapping.addresses.length} address{addressMapping.addresses.length === 1 ? '' : 'es'}

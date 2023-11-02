@@ -34,7 +34,7 @@ export function IsArchivedSelectStepItem() {
         node={
 
           <div>
-            <div className='dark:text-white'
+            <div className='primary-text'
               style={{
                 padding: '0',
                 textAlign: 'center',

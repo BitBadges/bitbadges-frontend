@@ -68,7 +68,7 @@ export function FormTimeline({
 
       >
         <Typography.Text
-          className='flex-center dark:text-white capitalize'
+          className='flex-center primary-text capitalize'
           style={{
             fontSize: 20,
             marginBottom: 10,
@@ -91,11 +91,10 @@ export function FormTimeline({
         }}
       >
         <Typography.Text
-          className='flex-center text-gray-400'
+          className='flex-center secondary-text'
           style={{
             fontSize: 14,
             textAlign: 'center',
-            color: 'lightgrey'
           }}
           strong
         >

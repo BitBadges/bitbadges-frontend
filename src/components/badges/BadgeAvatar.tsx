@@ -77,7 +77,7 @@ export function BadgeAvatar({
         <div style={{ textAlign: 'center' }}>
           <Badge
             count={metadata?._isUpdating ? <Tooltip title={`This collection\'s metadata${collection && collection.balancesType === "Off-Chain" ? ' and balances are' : ' is'} currently being refreshed.`}>
-              <CloudSyncOutlined className='dark:text-white' size={30} style={{ fontSize: 20 }} />
+              <CloudSyncOutlined className='primary-text' size={30} style={{ fontSize: 20 }} />
             </Tooltip> : <></>
             }
             style={{ backgroundColor: 'blue' }}

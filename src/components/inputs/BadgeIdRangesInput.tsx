@@ -79,7 +79,7 @@ export function BadgeIdRangesInput({
     !hideDisplay &&
 
     <div className='flex-center full-width'>
-      <div style={{}} className='dark:text-white full-width'>
+      <div style={{}} className='primary-text full-width'>
         <BadgeAvatarDisplay
           collectionId={collectionId}
           badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
@@ -97,7 +97,8 @@ export function BadgeIdRangesInput({
 
         <Input
           style={{ textAlign: 'center' }}
-          className="dark:text-white inherit-bg"
+          
+          className="primary-text inherit-bg"
           value={inputStr}
           placeholder="Ex: 1-5, 7-10, 11, 20-30, 40-50, ...."
           onChange={(e) => {
@@ -139,7 +140,7 @@ export function BadgeIdRangesInput({
         />
       </div>
       <br />
-      {/* <h2 style={{ textAlign: 'center',  }} className='dark:text-white'>Badge ID Select</h2> */}
+      {/* <h2 style={{ textAlign: 'center',  }} className='primary-text'>Badge ID Select</h2> */}
       {
         new Array(numRanges).fill(0).map((_, i) => {
           if (hideNumberSelects) return null;
@@ -164,7 +165,7 @@ export function BadgeIdRangesInput({
                     }
                   }
                 }
-                className="dark:text-white inherit-bg"
+                className="primary-text inherit-bg"
               />
             </div>
             <div className='flex-between' style={{ flexDirection: 'column', margin: 8, }} >
@@ -185,7 +186,7 @@ export function BadgeIdRangesInput({
                     }
                   }
                 }
-                className="dark:text-white inherit-bg"
+                className="primary-text inherit-bg"
               />
             </div>
             <div className='flex-column flex-between' >

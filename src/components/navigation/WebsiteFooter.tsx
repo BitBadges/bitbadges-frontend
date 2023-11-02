@@ -15,7 +15,7 @@ export function WalletFooter() {
         }}
       >
 
-        <footer id="footer" className="dark full-width pt-12" >
+        <footer id="footer" className="full-width pt-12" >
           <div className="footer-wrap">
             <Row className='flex-center' style={{ width: '100%', alignItems: 'normal' }}>
               <FooterButtonDisplay />

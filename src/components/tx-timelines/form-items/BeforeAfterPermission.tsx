@@ -65,7 +65,7 @@ export function BeforeAfterPermission({
       <Row className="full-width flex-between" justify="center" style={{ alignItems: 'normal' }}>
 
         {startingCollection && <Col md={11} xs={24} style={{ textAlign: 'center' }}>
-          <Typography.Text className='dark:text-white' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
+          <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
             Previous
           </Typography.Text>
           <br />
@@ -73,7 +73,7 @@ export function BeforeAfterPermission({
           <PermissionDisplay permissions={castFunction(oldPermissions as any)} usedFlags={flags as any} neverHasManager={noManager} />
         </Col>}
         <Col md={11} xs={24} style={{ textAlign: 'center' }}>
-          <Typography.Text className='dark:text-white' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
+          <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
             Selected
           </Typography.Text>
           <br />

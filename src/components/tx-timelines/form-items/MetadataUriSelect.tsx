@@ -87,7 +87,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            className='dark:text-white'
+            className='primary-text'
             strong
           >
             Collection Metadata URI
@@ -100,7 +100,7 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setCollectionUri(e.target.value);
           }}
-          className='dark:text-white inherit-bg'
+          className='primary-text inherit-bg'
         />
       </Form.Item>
 
@@ -114,7 +114,7 @@ export function MetadataUriSelect({
       <Form.Item
         label={
           <Text
-            className='dark:text-white'
+            className='primary-text'
             strong
           >
             Badge Metadata URI
@@ -127,10 +127,10 @@ export function MetadataUriSelect({
           onChange={(e: any) => {
             setBadgeUri(e.target.value);
           }}
-          className='dark:text-white inherit-bg'
+          className='primary-text inherit-bg'
         />
         <div style={{ fontSize: 12 }}>
-          <Text style={{ color: 'lightgray' }}>
+          <Text className="secondary-text">
             {"\"{id}\""} can be used as a placeholder which will be replaced by the unique ID of each badge.
           </Text>
         </div>

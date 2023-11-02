@@ -410,7 +410,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateBadgeMetadata: [],
           canUpdateCollectionApprovals: [],
           canUpdateCollectionMetadata: [],
-          canUpdateContractAddress: [],
           canUpdateCustomData: [],
           canUpdateManager: [],
           canUpdateOffChainBalancesMetadata: [],

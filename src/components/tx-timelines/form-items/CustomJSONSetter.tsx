@@ -202,13 +202,13 @@ export function JSONSetter({
   return <>
     <br />
     <Row className='full-width'>
-      <Col md={24} xs={24} style={{ textAlign: 'center' }} className='dark:text-white'>
-        <Typography.Text strong style={{ fontSize: 20 }} className='dark:text-white'>
+      <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
+        <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
           Custom JSON Form
         </Typography.Text>
 
-        <div className='dark:text-white full-width' style={{ textAlign: 'center' }}>
-          <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: 'orange' }} />
+        <div className='primary-text full-width' style={{ textAlign: 'center' }}>
+          <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: '#FF5733' }} />
           This is an advanced and experimental feature. Use at your own risk. Custom values may break the normal form now or in the future.
         </div>
         <div>
@@ -221,14 +221,14 @@ export function JSONSetter({
       </Col>
 
       <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='dark:text-white'>Enter Value</b>
+        <b className='primary-text'>Enter Value</b>
         <SyntaxHighlighter language="json" style={style}>
           {inputJson}
         </SyntaxHighlighter>
         <Input.TextArea
           value={inputJson}
           rows={15}
-          className='dark:text-white inherit-bg'
+          className='primary-text inherit-bg'
           placeholder={'Enter your value here here'}
           onChange={(e) => {
             setInputJson(e.target.value);
@@ -241,7 +241,7 @@ export function JSONSetter({
         <br />
         <br />
         <button
-          className='full-width landing-button dark:text-white'
+          className='full-width landing-button primary-text'
           style={{ width: '100%' }}
           onClick={() => {
             setErr(null);
@@ -265,7 +265,7 @@ export function JSONSetter({
 
       </InformationDisplayCard>
       <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
-        <b className='dark:text-white'>Set Value</b>
+        <b className='primary-text'>Set Value</b>
 
         <SyntaxHighlighter language="json" style={style}>
           {JSON.stringify(currValue, null, 2)}

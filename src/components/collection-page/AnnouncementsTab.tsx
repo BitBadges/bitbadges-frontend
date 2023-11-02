@@ -53,7 +53,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
           onChange={(e) => setNewAnnouncement(e.target.value)}
           placeholder="New Announcement (Max 2048 Characters)"
           style={{ marginBottom: 16, }}
-          className='dark:text-white inherit-bg'
+          className='primary-text inherit-bg'
         />
 
         <Button
@@ -77,7 +77,7 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
       {announcements.length === 0 && !hasMore && <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="No Announcements"
-        className='dark:text-white'
+        className='primary-text'
       />}
 
       <InfiniteScroll
@@ -123,9 +123,9 @@ export function AnnouncementDisplay({
 
 
   return (
-    <div className='dark:text-white full-width'>
+    <div className='primary-text full-width'>
       <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-        <Col md={12} sm={24} xs={24} className='dark:text-white' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+        <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
           <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
             <AddressDisplay addressOrUsername={announcement.from} />
           </div>
@@ -146,12 +146,12 @@ export function AnnouncementDisplay({
             </div>}
 
 
-          <Typography.Text strong className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
             {new Date(Number(announcement.timestamp)).toLocaleDateString() + ' '}
             {new Date(Number(announcement.timestamp)).toLocaleTimeString()}
           </Typography.Text>
           {chain.connected && chain.loggedIn && (chain.address === announcement.from || chain.cosmosAddress === announcement.from) &&
-            <DeleteOutlined className='styled-button' style={{ border: 'none', cursor: 'pointer' }}
+            <DeleteOutlined className='styled-button-normal' style={{ border: 'none', cursor: 'pointer' }}
               onClick={async () => {
                 if (loading) return;
 
@@ -167,10 +167,10 @@ export function AnnouncementDisplay({
         </Col>
       </Row>
 
-      <div className='flex-between full-width dark:text-white'>
+      <div className='flex-between full-width primary-text'>
 
-        <div className='flex-between full-width dark:text-white'>
-          <Typography.Text className='dark:text-white' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+        <div className='flex-between full-width primary-text'>
+          <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
             {announcement.announcement}
           </Typography.Text>
         </div>

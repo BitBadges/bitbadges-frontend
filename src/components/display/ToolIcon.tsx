@@ -131,7 +131,8 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }} className='dark:text-white gradient-bg tool-icon '
+    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }}
+      className='primary-text card-bg tool-icon'
       onClick={() => {
         window.open(tool.url)
       }}
@@ -141,7 +142,7 @@ export function ToolIcon({
           <div>
             <Avatar size={40} src={tool.icon} shape='square' className='text-vivid-blue h-12' />
           </div>
-          <div className='text-gray-400 full-width text-slate-700 dark:text-white' style={{ textAlign: 'center', alignItems: 'center' }}>
+          <div className='full-width primary-text' style={{ textAlign: 'center', alignItems: 'center' }}>
             <b style={{ marginLeft: 10, fontSize: 24 }}>
               {tool.name}
             </b>
@@ -150,7 +151,7 @@ export function ToolIcon({
         </div>
 
         <div className='flex-center flex-column ' style={{ marginTop: 16 }}>
-          <div className='text-gray-400'>
+          <div className='secondary-text'>
             {tool.description}
           </div>
         </div>

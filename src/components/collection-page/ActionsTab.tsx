@@ -26,7 +26,7 @@ export interface Action {
 
 const getTitleElem = (title: string) => {
   return (
-    <div className='dark:text-white'>
+    <div className='primary-text'>
       {title}
     </div>
   );
@@ -34,7 +34,7 @@ const getTitleElem = (title: string) => {
 
 const getDescriptionElem = (description: string) => {
   return (
-    <div className='text-gray-400'>
+    <div className='secondary-text'>
       {description}
     </div>
   );
@@ -45,7 +45,7 @@ export function ActionCard({ action }: { action: Action }) {
   const description = getDescriptionElem(action.description);
 
   return <Card
-    className='dark:text-white gradient-bg flex-center'
+    className='primary-text card-bg flex-center'
     style={{
       width: '300px',
       minHeight: '150px',
@@ -62,7 +62,7 @@ export function ActionCard({ action }: { action: Action }) {
     <Meta
       title={
         <div
-          className='dark:text-white'
+          className='primary-text'
           style={{
             fontSize: 20,
             fontWeight: 'bolder',
@@ -72,7 +72,7 @@ export function ActionCard({ action }: { action: Action }) {
         </div>
       }
       description={
-        <div className='text-gray-400 flex-center full-width'>
+        <div className='secondary-text flex-center full-width'>
           {description}
         </div>
       }
@@ -198,7 +198,7 @@ export function ActionsTab({
     <RegisteredWrapper
       node={
         <div className='full-width' style={{ fontSize: 20 }}>
-          <div className='dark:text-white flex-center flex-wrap'
+          <div className='primary-text flex-center flex-wrap'
             style={{
               padding: '0',
               textAlign: 'center',
@@ -215,7 +215,7 @@ export function ActionsTab({
           {actions.length == 0 && (
             <>
               <Empty
-                className='dark:text-white'
+                className='primary-text'
                 description="No actions can be taken."
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />

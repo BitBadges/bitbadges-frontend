@@ -1,4 +1,4 @@
-import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
+import { Dropdown, Menu, MenuTheme, Popover, Typography } from 'antd';
 
 export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
   tab: string;
@@ -33,18 +33,20 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
             }
         }
         id={tab.key}
-        className={'inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
+        className={'primary-text inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
       >
-        {tab.content}
+        <Typography.Text className='primary-text' style={{  fontWeight: 'bold' }}>
+          {tab.content}
+        </Typography.Text>
       </Menu.Item>
     );
     if (tab.subMenuOverlay) {
       return (
         <Dropdown
-          className='dark:text-white dark'
+          className='primary-text dark'
           placement="bottom"
           overlay={tab.subMenuOverlay ?
-            <div className='dark:text-white'>
+            <div className='primary-text'>
               {tab.subMenuOverlay}
             </div> : <></>}
           trigger={tab.subMenuTrigger}
@@ -57,7 +59,9 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
       return <Popover key={`${tab.key}`}
         className='full-width'
         style={{ width: widthPerTab }}
-        content={tab.popoverContent} placement='bottom'>{menuItem}</Popover>;
+        content={tab.popoverContent} placement='bottom'>
+        {menuItem}
+      </Popover>;
     } else {
       return menuItem;
     }

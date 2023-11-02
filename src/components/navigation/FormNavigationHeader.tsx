@@ -46,7 +46,7 @@ export function FormNavigationHeader({
       >
         <Typography.Text
           strong
-          className='dark:text-white flex-center'
+          className='primary-text flex-center'
           style={{
             fontSize: 20,
           }}
@@ -83,7 +83,7 @@ export function FormNavigationHeader({
     >
       <Typography.Text
         strong
-        className='dark:text-white full-width flex-center'
+        className='primary-text full-width flex-center'
         style={{
           fontSize: 20,
           textAlign: 'center',

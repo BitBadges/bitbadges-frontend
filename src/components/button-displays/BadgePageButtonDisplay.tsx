@@ -15,8 +15,8 @@ export function BadgeButtonDisplay({
 
   return (
     <div>
-      <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
-      <div style={{ position: 'absolute', right: 10, top: 74, display: 'flex' }}>
+
+      <div style={{ position: 'absolute', right: 10, display: 'flex' }}>
         {website && (
           <a href={website} target="_blank" rel="noreferrer">
             <Tooltip title="Website" placement="bottom">
@@ -87,6 +87,7 @@ export function BadgeButtonDisplay({
           </Avatar>
         </Tooltip>
       </div>
+      <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
     </div>
   );
 }

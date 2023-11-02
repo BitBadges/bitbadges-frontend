@@ -118,7 +118,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
       {!isOutgoingDisplay && <>
         {transfer.fromMappingId !== "Mint" && transfer.approvalCriteria?.overridesFromOutgoingApprovals ? (
           <li>
-            <WarningOutlined style={{ color: 'orange', marginRight: 4 }} />
+            <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} />
             {"Does not check the sender's outgoing approvals"}</li>
         ) : (
           transfer.fromMappingId !== "Mint" && <li>{"Must satisfy the sender's outgoing approvals"}</li>
@@ -132,7 +132,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
       )}
       {!isIncomingDisplay && <>
         {transfer.approvalCriteria?.overridesToIncomingApprovals ? (
-          <li><WarningOutlined style={{ color: 'orange', marginRight: 4 }} />{"Does not check the recipient's incoming approvals"}</li>
+          <li><WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} />{"Does not check the recipient's incoming approvals"}</li>
         ) : (
           <li>{"Must satisfy recipient's incoming approvals"}</li>
         )}
@@ -202,23 +202,23 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     </ul >
     <br />
     <div className='flex-center'>
-      <button className='styled-button' style={{ width: 200, cursor: 'pointer', background: 'inherit !important' }} onClick={() => setShowAdvanced(!showAdvanced)}>{showAdvanced ? 'Hide' : 'Show'} Advanced</button>
+      <button className='styled-button-normal' style={{ width: 200, cursor: 'pointer', background: 'inherit !important' }} onClick={() => setShowAdvanced(!showAdvanced)}>{showAdvanced ? 'Hide' : 'Show'} Advanced</button>
     </div>
     {
       showAdvanced && <>
         <br />
         <ul className='list-disc px-8' style={{ textAlign: 'start' }}>
-          <li><Typography.Text className='dark:text-white'>
+          <li><Typography.Text className='primary-text'>
             Approval ID: {transfer.approvalId.toString()}
           </Typography.Text>
           </li>
           <li>
-            <Typography.Text className='dark:text-white'>
+            <Typography.Text className='primary-text'>
               Amount Tracker ID: {transfer.amountTrackerId.toString()}
             </Typography.Text>
           </li>
           <li>
-            <Typography.Text className='dark:text-white'>
+            <Typography.Text className='primary-text'>
               Challenge Tracker ID: {transfer.challengeTrackerId.toString()}
             </Typography.Text>
           </li>
@@ -229,14 +229,14 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     <div style={{ textAlign: 'start' }}>
       {hasSameTrackerId && (
         <>
-          <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> There are multiple approvals using the same amount tracker ID.
+          <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> There are multiple approvals using the same amount tracker ID.
           The tally of badges transferred and the number of transfers are linked and will increment whenever either approval is used.
           <br />
         </>
       )}
       {hasSameChallengeTrackerId && (
         <>
-          <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> There are multiple approvals using the same challenge tracker ID.
+          <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> There are multiple approvals using the same challenge tracker ID.
           {transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? ' The whitelists' : ' The codes / passwords'} of these approvals are linked and will be used up whenever either approval is used.
         </>
       )}
@@ -255,7 +255,7 @@ export const MustOwnBadgesCard = ({ transfer }: {
           const approvalCriteria = transfer.approvalCriteria;
           if (!approvalCriteria || !approvalCriteria.mustOwnBadges) return null;
 
-          return <div className='flex-center flex-column dark:text-white' key={idx}>
+          return <div className='flex-center flex-column primary-text' key={idx}>
             <BalanceDisplay
               message='Min Amounts'
               balances={[approvalCriteria?.mustOwnBadges[idx]].map(x => {
@@ -380,7 +380,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
             }
               {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
 
-                <WarningOutlined style={{ color: 'orange', margin: 4 }} /> The claim number is calculated at processing time. It is subject to change if others are processed before your claim.
+                <WarningOutlined style={{ color: '#FF5733', margin: 4 }} /> The claim number is calculated at processing time. It is subject to change if others are processed before your claim.
 
               </>}
             </li>
@@ -389,7 +389,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 
               {!calculationMethod?.useOverallNumTransfers &&
                 <>
-                  <div className='flex-center flex dark:text-white'>
+                  <div className='flex-center flex primary-text'>
                     <AddressDisplay addressOrUsername={address ?? ''} fontSize={14} />
 
                     {!calculationMethod?.usePerInitiatedByAddressNumTransfers && <IconButton src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />}
@@ -399,7 +399,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
                 </>
               }
 
-              <Typography.Text className="dark:text-white" style={{ fontSize: 18 }} strong>
+              <Typography.Text className="primary-text" style={{ fontSize: 18 }} strong>
                 {`Current - Claim #${BigInt(numIncrements) + 1n}`}
               </Typography.Text>
 
@@ -419,12 +419,12 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
             </li>)}
           </>}
         </ul>
-        <div className='flex-center inherit-bg dark:text-white'>
+        <div className='flex-center inherit-bg primary-text'>
           <div>
             {hasIncrements ? <>
 
               <br />
-              <Typography.Text strong style={{ fontSize: 16 }} className='dark:text-white'>
+              <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
                 Claim #
               </Typography.Text>
 
@@ -435,7 +435,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
                   if (!value) return;
                   setOrderNumber(value - 1 as number);
                 }}
-                className='dark:text-white inherit-bg'
+                className='primary-text inherit-bg'
               />
               {claim && claim.root && calculationMethod?.useMerkleChallengeLeafIndex && <><br />
 
@@ -461,9 +461,9 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
                 />
               </>
               )}
-            </> : !hasOverlap || exceedsMaxNumTransfers ? <div className='dark:text-white'>
+            </> : !hasOverlap || exceedsMaxNumTransfers ? <div className='primary-text'>
               <br />
-              <WarningOutlined style={{ color: 'orange', marginRight: 4 }} /> This claim number is not possible because
+              <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> This claim number is not possible because
               {exceedsMaxNumTransfers && <> it exceeds the max cumulative uses for this approval.</>}
               {!hasOverlap && !exceedsMaxNumTransfers && <> the badge IDs are no longer in range.</>}
             </div> : <>
@@ -548,7 +548,7 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
     </>}
 
 
-    <div className='flex-center flex-column dark:text-white full-width' style={{ textAlign: 'center' }}>
+    <div className='flex-center flex-column primary-text full-width' style={{ textAlign: 'center' }}>
       <br />
       {(<>{type === "overall" ? <b>All Approved Users - Number of Uses</b> : <>
         <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
@@ -558,9 +558,9 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
       </>)}
 
       {transfer.approvalCriteria?.maxNumTransfers &&
-        <Progress percent={percent} type='line' className='dark:text-white' format={() => {
+        <Progress percent={percent} type='line' className='primary-text' format={() => {
           if (!(transfer.approvalCriteria?.maxNumTransfers)) return null;
-          return <div className='flex-center flex-column dark:text-white'>
+          return <div className='flex-center flex-column primary-text'>
             {`${numUsed.toString()} / ${!limit ? '?' : transfer.approvalCriteria.maxNumTransfers[maxNumTransfersKey].toString()}`}
           </div>
         }} />
@@ -626,7 +626,7 @@ const ApprovalAmountsComponent = ({
         )}
       </>
     </>}
-    <div className='flex-center flex-column dark:text-white'>
+    <div className='flex-center flex-column primary-text'>
       <br />
       {(<>{type === "overall" ? <b>All Approved Users</b> : <>
         <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
@@ -656,10 +656,12 @@ export function TransferabilityRow({
   onRestore,
   grayedOut,
   onDelete,
+  hideActions,
   expandedSingleView,
   editable,
   transfer,
   badgeId,
+  onClose,
   collectionId,
   filterFromMint, mobileFriendly,
   noBorder, ignoreRow, disapproved, isIncomingDisplay, isOutgoingDisplay, approverAddress }: {
@@ -668,7 +670,8 @@ export function TransferabilityRow({
     startingApprovals?: CollectionApprovalWithDetails<bigint>[],
     approverAddress?: string,
     badgeId?: bigint,
-
+    hideActions?: boolean,
+    onClose?: () => void,
     collectionId: bigint,
     filterFromMint?: boolean,
     noBorder?: boolean,
@@ -878,61 +881,61 @@ export function TransferabilityRow({
           {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
             style={{ margin: 4, backgroundColor: '#1890ff' }}
             color='#1890ff'
-            className='dark:text-white'
+            className='primary-text'
           >Existing</Tag> :
             <Tag
               style={{ margin: 4, backgroundColor: '#52c41a' }}
               color='#52c41a'
-              className='dark:text-white'
+              className='primary-text'
             >New</Tag>}
         </>}
 
         {grayedOut && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#FF5733'
-          className='dark:text-white'
+          className='primary-text'
         >Deleted</Tag>}
 
         {approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && <Tag
           style={{ margin: 4, backgroundColor: '#1890ff' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         >No Amount Restrictions</Tag>}
         {transfer.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
           style={{ margin: 4, backgroundColor: '#1890ff' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         >Whitelist</Tag>}
         {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
           style={{ margin: 4, backgroundColor: '#1890ff' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         >Codes</Tag>}
         {transfer.approvalCriteria?.overridesFromOutgoingApprovals && transfer.fromMappingId !== 'Mint' && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         ><WarningOutlined /> Overrides Outgoing Approvals</Tag>}
         {transfer.approvalCriteria?.overridesToIncomingApprovals && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         ><WarningOutlined /> Overrides Incoming Approvals</Tag>}
         {hasSameChallengeTrackerId && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         ><WarningOutlined /> Duplicate Challenge Tracker</Tag>}
         {hasSameTrackerId && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         ><WarningOutlined /> Duplicate Amount Tracker</Tag>}
 
         {(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) > 0n || (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) > 0n && <Tag
           style={{ margin: 4, backgroundColor: '#1890ff' }}
           color='#1890ff'
-          className='dark:text-white'
+          className='primary-text'
         >Incrementing Badge IDs</Tag>}
       </div>
     }
@@ -942,7 +945,7 @@ export function TransferabilityRow({
           <td className='flex-center'><Tag
             style={{ margin: 4, backgroundColor: 'red' }}
             color='#1890ff'
-            className='dark:text-white'
+            className='primary-text'
           >Disapproved</Tag> </td>}
     </>
 
@@ -1085,8 +1088,8 @@ export function TransferabilityRow({
     return <>
       <br />
       {isRefreshing && <>
-        <div className='flex-center' style={{ textAlign: 'center' }}>
-          <WarningOutlined style={{ marginRight: '8px', color: 'orange' }} />
+        <div className='flex-center primary-text' style={{ textAlign: 'center' }}>
+          <WarningOutlined style={{ marginRight: '8px', color: '#FF5733' }} />
           The metadata for this claim is currently being refreshed. Certain information may be incomplete or not up to date.
         </div>
         <br />
@@ -1109,7 +1112,7 @@ export function TransferabilityRow({
             }
           </>
           }
-          {<><br /> <Typography.Text style={{ fontSize: 16 }} className='dark:text-white'>{transfer.details?.description || 'No description found.'}</Typography.Text><br /><br /></>}
+          {<><br /> <Typography.Text style={{ fontSize: 16 }} className='primary-text'>{transfer.details?.description || 'No description found.'}</Typography.Text><br /><br /></>}
 
           <div className="flex-center flex-wrap">
 
@@ -1151,12 +1154,12 @@ export function TransferabilityRow({
                     {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
                       style={{ backgroundColor: '#1890ff' }}
                       color='#1890ff'
-                      className='dark:text-white'
+                      className='primary-text'
                     >Existing</Tag> :
                       <Tag
                         style={{ backgroundColor: '#52c41a' }}
                         color='#52c41a'
-                        className='dark:text-white'
+                        className='primary-text'
                       >New</Tag>}
                     meaning, if applicable, any trackers (amounts, number of transfers, which codes are used, which addresses have claimed, etc.)
                     {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? ' will continue adding on to the existing tally.' : ' will start from scratch.'}
@@ -1182,9 +1185,17 @@ export function TransferabilityRow({
             }}
             value={balanceTab}
           >
-            {hasPredetermined && <Radio.Button value='current'>Approved</Radio.Button>}
-            <Radio.Button value='remaining'>Sender Balances</Radio.Button>
-            <Radio.Button value="all">All Badges</Radio.Button>
+            {hasPredetermined && <Radio.Button value='current'>
+              <div className='primary-text hover:text-gray-400'>
+                Approved
+              </div>
+            </Radio.Button>}
+            <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
+              Sender Balances
+            </div></Radio.Button>
+            <Radio.Button value="all"><div className='primary-text hover:text-gray-400'>
+              All Badges
+            </div></Radio.Button>
           </Radio.Group>
           <br /><br />
           {balanceTab === 'all' && collection && <>
@@ -1200,7 +1211,7 @@ export function TransferabilityRow({
           </>}
           {balanceTab === 'remaining' && <>
             {transfer.fromMapping.addresses.length > 1 || !transfer.fromMapping.includeAddresses ? <>
-              <div className='text-gray-400'>
+              <div className='secondary-text'>
                 <InfoCircleOutlined /> There are multiple addresses approved as senders.
               </div>
               <br />
@@ -1226,7 +1237,7 @@ export function TransferabilityRow({
           </>}
 
         </InformationDisplayCard>
-        {!editable && !onDelete && <ClaimDisplay
+        {!editable && !onDelete && !hideActions && <ClaimDisplay
           approval={transfer}
           approvals={allTransfers}
           collectionId={collectionId}
@@ -1239,22 +1250,21 @@ export function TransferabilityRow({
   return <>
     <Drawer
       title={<>
-        <div className='dark:text-gray-400'>
+        <div className='secondary-text'>
           Approval Details
         </div>
       </>}
-      closeIcon={<CloseOutlined className='dark:text-gray-400' onClick={() => { setShowMoreIsVisible(false) }} />}
+      closeIcon={<CloseOutlined className='secondary-text' onClick={() => { onClose?.(); setShowMoreIsVisible(false) }} />}
       open={showMoreIsVisible}
       placement='bottom'
-      className='dark'
       size='large'
       zIndex={11}
-      bodyStyle={{ backgroundColor: '#001529' }}
-      headerStyle={{ backgroundColor: '#001529', color: 'white', borderBottom: '1px solid gray' }}
-      onClose={() => setShowMoreIsVisible(false)}
+
+
+      onClose={() => { onClose?.(); setShowMoreIsVisible(false) }}
 
     >
-      <div className='dark' style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
         {collection && <>
 
           {<InnerContent expandedView={true} />}

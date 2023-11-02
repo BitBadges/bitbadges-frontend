@@ -42,7 +42,7 @@ export function InformationDisplayCard({
         padding: 6
 
       }}>
-      <div className="dark:text-white gradient-bg " style={{
+      <div className="primary-text card-bg " style={{
         border: noBorder ? undefined : '1px solid darkgrey',
         background: inheritBg ? 'inherit' : undefined,
         borderRadius: 10, height: '100%',
@@ -50,13 +50,13 @@ export function InformationDisplayCard({
       }}>
         {title &&
           <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>
-            <Text strong style={{ fontSize: 22 }} className="dark:text-white full-width">
+            <Text strong style={{ fontSize: 22 }} className="primary-text full-width">
               {title}
             </Text>
           </Row>}
         {subtitle &&
           <Row className='full-width flex-center' style={{ alignItems: 'normal', textAlign: 'center' }}>
-            <Text strong style={{ fontSize: 12 }} className="text-gray-400 full-width">
+            <Text strong style={{ fontSize: 12 }} className="secondary-text full-width">
               {subtitle}
             </Text>
           </Row>}

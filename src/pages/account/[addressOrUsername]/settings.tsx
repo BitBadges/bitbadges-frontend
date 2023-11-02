@@ -98,7 +98,7 @@ export function AccountSettings() {
   }, [signedInAccount]);
 
   const uploadButton = (
-    <div className='dark:text-white'>
+    <div className='primary-text'>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
       <div style={{ marginTop: 8 }}>Upload</div>
     </div>
@@ -132,7 +132,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Username
                       </Text>
                     }
@@ -150,7 +150,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Profile Pic
                       </Text>
                     }
@@ -171,7 +171,7 @@ export function AccountSettings() {
 
                     </div>
                     {chain.chain === SupportedChain.ETH &&
-                      <Typography.Text strong className='text-gray-400'>
+                      <Typography.Text strong className='secondary-text'>
                         If username or profile pic URL is not specified, we will display your ENS name / avatar.
                       </Typography.Text>}
                   </Form.Item>
@@ -179,7 +179,7 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text
-                        className='dark:text-white'
+                        className='primary-text'
                         strong
                       >
                         About
@@ -188,19 +188,19 @@ export function AccountSettings() {
                   >
                     <div className='flex-between'>
                       <MdEditor
-                        className='dark:text-white inherit-bg full-width'
+                        className='primary-text inherit-bg full-width'
                         style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                         value={readme}
                       />
                     </div>
-                    <Typography.Text strong className='text-gray-400'>
+                    <Typography.Text strong className='secondary-text'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
                     </Typography.Text>
                   </Form.Item>
                   <br />
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Twitter
                       </Text>
                     }
@@ -217,7 +217,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         GitHub
                       </Text>
                     }
@@ -234,7 +234,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Telegram
                       </Text>
                     }
@@ -251,7 +251,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Discord
                       </Text>
                     }
@@ -270,7 +270,7 @@ export function AccountSettings() {
 
                   <Form.Item
                     label={
-                      <div className='dark:text-white font-bold' style={{ textAlign: 'center' }}>
+                      <div className='primary-text font-bold' style={{ textAlign: 'center' }}>
                         Add a new custom link?
                       </div>
                     }
@@ -285,7 +285,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Link Title
                       </Text>
                     }
@@ -301,7 +301,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Link URL
                       </Text>
                     }
@@ -317,7 +317,7 @@ export function AccountSettings() {
                   </Form.Item>
                   <Form.Item
                     label={
-                      <Text className='dark:text-white' strong>
+                      <Text className='primary-text' strong>
                         Image URL
                       </Text>
                     }

@@ -70,7 +70,7 @@ export function BadgeSupplySelectStepItem() {
       }}
       customRevertFunction={revertFunction}
       node={
-        <div className='dark:text-white' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+        <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
           <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
             <DistributionOverview
               md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}

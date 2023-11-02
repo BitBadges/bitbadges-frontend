@@ -35,20 +35,19 @@ export function BadgeCard({
   return (
     <div>
       <Card
-        className='dark:text-white gradient-bg'
+        className='primary-text card-bg'
         style={{
           width: 200,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
-          // background: 'linear-gradient(0deg, black 10%, #001529 100%)'
         }}
         hoverable={hoverable ? hoverable : true}
         onClick={() => {
           router.push(`/collections/${collectionId}/${badgeId}`);
         }}
         cover={
-          <div className='flex-center full-width dark:text-white' style={{ marginTop: '1rem' }}>
+          <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
             <BadgeAvatar
               collectionId={collectionId}
               badgeId={badgeId}
@@ -58,10 +57,10 @@ export function BadgeCard({
           </div>
         }
       >
-        <div className='flex-center full-width dark:text-white'>
+        <div className='flex-center full-width primary-text'>
           <Meta
             title={<div>
-              <div className='dark:text-white'
+              <div className='primary-text'
                 style={{
                   fontSize: 20,
                   fontWeight: 'bolder',
@@ -74,7 +73,7 @@ export function BadgeCard({
               </div>
               {!hideCollectionLink &&
                 <div
-                  className='dark:text-white'
+                  className='primary-text'
                   style={{
                     fontSize: 14,
                     fontWeight: 'bolder',
@@ -93,7 +92,7 @@ export function BadgeCard({
             }
             description={
               <div
-                className='text-gray-400 full-width'
+                className='secondary-text full-width'
                 style={{
                   alignItems: 'center',
                   fontSize: 17,

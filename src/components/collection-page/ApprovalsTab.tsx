@@ -101,7 +101,7 @@ export const ApprovalsDisplay: FC<Props> = ({
               badgeId={filterByBadgeId ? badgeId : undefined}
               collectionId={collection.collectionId}
               filterFromMint={filterFromMint} mobileFriendly={mobile}
-              
+
             />
             return result
           })}
@@ -204,7 +204,7 @@ export const ApprovalsDisplay: FC<Props> = ({
       {addMoreNode}
       {!hideHelperMessage && <>
         <Divider />
-        <p className='dark:text-gray-400'>
+        <p className='secondary-text'>
           <InfoCircleOutlined />{' '}Each approval represents a different set of criteria.
           For a transfer to be approved, ALL of the criteria must be satisfied.
           If transfers span multiple approvals, they must satisfy ALL criteria in ALL the spanned approvals.
@@ -330,7 +330,7 @@ export function UserApprovalsTab({
   }
 
   return (<>
-    <div className='dark:text-white'>
+    <div className='primary-text'>
 
       {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
         showCustomOption
@@ -372,7 +372,7 @@ export function UserApprovalsTab({
 
     </div >
 
-    <div className='dark:text-white'>
+    <div className='primary-text'>
 
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && <>
         <AddressSelect
@@ -400,11 +400,11 @@ export function UserApprovalsTab({
 
       </div>}
 
-      {tab === 'history' && <div className='dark:text-white'>
+      {tab === 'history' && <div className='primary-text'>
         <br />
         {updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
-          return <div key={i} style={{ textAlign: 'left' }} className='dark:text-white'>
-            <Typography.Text strong className='dark:text-white' style={{ fontSize: '1.2em' }}>
+          return <div key={i} style={{ textAlign: 'left' }} className='primary-text'>
+            <Typography.Text strong className='primary-text' style={{ fontSize: '1.2em' }}>
               <ClockCircleOutlined style={{ marginRight: '5px' }} />
               {new Date(Number(update.blockTimestamp)).toLocaleString()}
               {' '}(Block #{update.block.toString()})
@@ -419,7 +419,7 @@ export function UserApprovalsTab({
         })}
         {updateHistory.length === 0 && <div>
           <Empty
-            className='dark:text-white'
+            className='primary-text'
             description={<>
               This user has never updated their approvals.
             </>}

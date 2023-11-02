@@ -180,7 +180,7 @@ export function MetadataForm({
 
   const FieldCheckbox = ({ fieldName, label }: { fieldName: string, label: string }) => {
     return <Checkbox
-      className='dark:text-white'
+      className='primary-text'
       checked={fieldNames.includes(fieldName)}
       onChange={(e) => {
         if (e.target.checked) {
@@ -218,15 +218,15 @@ export function MetadataForm({
     let message = 'metadata';
 
     return <div>
-      {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='dark:text-white'>
+      {populateIsOpen && <div style={{ marginTop: 8, textAlign: 'center' }} className='primary-text'>
         <InformationDisplayCard title={`Set other badges to have properties from this ${message}?`}>
           <div className='' style={{ textAlign: 'center' }}>
-            <WarningOutlined style={{ marginRight: 4, color: 'orange' }} /> This will overwrite the {message} of the selected badges for the selected properties.
+            <WarningOutlined style={{ marginRight: 4, color: '#FF5733' }} /> This will overwrite the {message} of the selected badges for the selected properties.
             <br />
             <br />
           </div>
           <br />
-          <div className='flex-center flex-wrap dark:text-white'>
+          <div className='flex-center flex-wrap primary-text'>
             <FieldCheckbox fieldName='name' label='Title' />
             <FieldCheckbox fieldName='image' label='Image' />
             <FieldCheckbox fieldName='description' label='Description' />
@@ -245,13 +245,13 @@ export function MetadataForm({
           />
 
           <Divider />
-          {isCollectionSelect && !isAddressMappingSelect && <div className='text-gray-400' style={{ textAlign: 'center' }}>
+          {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
             <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
             <br />
             <br />
           </div>}
           {!isAddressMappingSelect && !!existingCollectionId && numBadgesFetched < totalNeedToFetch && <>
-            <div className='text-gray-400' style={{ textAlign: 'center' }}>
+            <div className='secondary-text' style={{ textAlign: 'center' }}>
 
               <InfoCircleOutlined style={{ marginRight: 4 }} /> We will first need to fetch the metadata for the selected badges (if not already fetched). This may take some time.
               <br /><br />
@@ -260,7 +260,7 @@ export function MetadataForm({
                 type='line'
 
                 format={() => {
-                  return <Typography.Text className='dark:text-white'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
+                  return <Typography.Text className='primary-text'>{`${Math.ceil(percent * 100)}%`}</Typography.Text>
                 }}
 
               />
@@ -355,7 +355,7 @@ export function MetadataForm({
                 setAddMethod?.(e ? MetadataAddMethod.Manual : MetadataAddMethod.UploadUrl);
               }}
             />
-            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='text-gray-400' style={{ marginTop: 4 }}>
+            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='secondary-text' style={{ marginTop: 4 }}>
               {`Enter your metadata directly into this form, and we handle the metadata storage for you in a decentralized manner using IPFS.`}
               <Tooltip
                 placement='bottom'
@@ -393,7 +393,7 @@ export function MetadataForm({
             }
             <div className='flex-center flex-wrap'>
               {!isCollectionSelect && !isAddressMappingSelect && badgeId > 0 &&
-                <div className='dark:text-white flex-center' >
+                <div className='primary-text flex-center' >
 
 
                   <div><b style={{ fontSize: 18 }}>Setting Metadata for Badge ID:{' '}</b></div>
@@ -411,7 +411,7 @@ export function MetadataForm({
                     style={{
                       marginLeft: 8,
                     }}
-                    className='dark:text-white inherit-bg'
+                    className='primary-text inherit-bg'
                   />
 
                 </div>}
@@ -443,7 +443,7 @@ export function MetadataForm({
             <div className='flex-center flex-column full-width'>
               <div className='flex-center flex full-width'>
                 {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay &&
-                  <div className='dark:text-white mx-10'>
+                  <div className='primary-text mx-10'>
                     <BadgeAvatarDisplay
                       onClick={(id: bigint) => {
                         setBadgeId(id);
@@ -456,7 +456,7 @@ export function MetadataForm({
                   </div>}
                 {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <>
 
-                  <div className='dark:text-white flex-center mx-10'>
+                  <div className='primary-text flex-center mx-10'>
                     {/* Slight hack here. Instead of putting BadgeCard directly, we use BadgeAvatarDisplay which has support for fetching the metadata from source */}
                     <BadgeAvatarDisplay
                       collectionId={NEW_COLLECTION_ID}
@@ -479,7 +479,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Title
@@ -498,7 +498,7 @@ export function MetadataForm({
                 }}
                 style={{
                 }}
-                className='dark:text-white inherit-bg'
+                className='primary-text inherit-bg'
               />
 
 
@@ -507,7 +507,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Image
@@ -517,7 +517,7 @@ export function MetadataForm({
             >
               <div className='flex-between' style={{}}>
                 <Select
-                  className="selector dark:text-white inherit-bg"
+                  className="selector primary-text inherit-bg"
                   value={images.find((item: any) => item.value === currMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/'))?.label}
                   onChange={(e) => {
                     const newImage = images.find((item: any) => e === item.label)?.value;
@@ -532,7 +532,7 @@ export function MetadataForm({
                   }}
                   suffixIcon={
                     <DownOutlined
-                      className='dark:text-white'
+                      className='primary-text'
                     />
                   }
                   dropdownRender={(menu) => (
@@ -580,7 +580,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Category
@@ -590,7 +590,7 @@ export function MetadataForm({
             >
               <div className='flex-between' style={{}}>
                 <Select
-                  className="selector dark:text-white inherit-bg"
+                  className="selector primary-text inherit-bg"
                   value={currMetadata.category}
                   placeholder="Default: None"
                   onChange={(e: any) => {
@@ -604,7 +604,7 @@ export function MetadataForm({
                   }}
                   suffixIcon={
                     <DownOutlined
-                      className='dark:text-white'
+                      className='primary-text'
                     />
                   }
                   dropdownRender={(menu) => (
@@ -647,7 +647,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Description
@@ -656,7 +656,7 @@ export function MetadataForm({
             >
               <div className='flex-between' style={{}}>
                 <MdEditor
-                  className='dark:text-white'
+                  className='primary-text'
                   style={{
                     width: '100%',
                     minHeight: '250px',
@@ -673,7 +673,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Website <Tooltip color='black' title={'Provide a website link for users to learn more.'}>
@@ -693,12 +693,12 @@ export function MetadataForm({
                   }}
                   style={{
                   }}
-                  className='dark:text-white inherit-bg'
+                  className='primary-text inherit-bg'
                 />
 
               </div>
               <div style={{ fontSize: 12 }}>
-                <Text style={{ color: 'lightgray' }}>
+                <Text className='secondary-text'>
                   {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
                 </Text>
               </div>
@@ -706,7 +706,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Validity <Tooltip color='black' title={'How long will badge(s) be valid? Note this has no on-chain significance and is only informational. Could be used for subscriptions, memberships, etc.'}>
@@ -716,8 +716,8 @@ export function MetadataForm({
               }
             >
               <div className='flex-between' style={{}}>
-                <div className='dark:text-white inherit-bg full-width'>
-                  <div className='dark:text-white'>
+                <div className='primary-text inherit-bg full-width'>
+                  <div className='primary-text'>
                     Always Valid?
                     <Checkbox
                       checked={validForeverChecked}
@@ -775,7 +775,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Tags / Keywords <Tooltip color='black' title={'Use tags and keywords to further categorize your badge and make it more searchable!'}>
@@ -795,19 +795,19 @@ export function MetadataForm({
                   }}
                   style={{
                   }}
-                  className='dark:text-white inherit-bg'
+                  className='primary-text inherit-bg'
                 />
 
               </div>
               <div style={{ fontSize: 12, }}>
-                <Text style={{ color: 'lightgray' }}>
+                <Text className='secondary-text'>
                   *Separate with a comma.
                 </Text>
               </div>
               <div style={{ display: 'flex', marginTop: 4 }}>
                 {currMetadata.tags?.map((tag: any, idx: number) => {
                   if (tag === '') return;
-                  return <Tag key={tag + idx} style={{ backgroundColor: 'transparent', borderColor: 'white', color: 'white' }}>
+                  return <Tag key={tag + idx} className='card-bg secondary-text'>
                     {tag}
                   </Tag>
                 })}
@@ -819,7 +819,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text
-                  className='dark:text-white'
+                  className='primary-text'
                   strong
                 >
                   Useful Tools

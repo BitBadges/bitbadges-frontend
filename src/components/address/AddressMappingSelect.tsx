@@ -53,7 +53,7 @@ export function AddressMappingSelect({
     return updatedAddressMapping;
   };
 
-  return <div className="dark:text-white full-width flex-column" style={{ width: '100%', maxWidth: 500, }}>
+  return <div className="primary-text full-width flex-column" style={{ width: '100%', maxWidth: 500, }}>
     <div >
 
       <br />
@@ -69,7 +69,7 @@ export function AddressMappingSelect({
               includeAddresses: e,
             }));
           }}
-          className="dark:text-white inherit-bg"
+          className="primary-text inherit-bg"
         ></Switch> - Addresses ({addressMapping.addresses.length})</b></div>
       <div style={{ textAlign: 'center' }}>
         {/* Any inputted addresses have been {addressMapping.includeAddresses ? 'whitelisted' : 'blacklisted'}.
@@ -88,7 +88,6 @@ export function AddressMappingSelect({
             addresses: users,
           }));
         }}
-        fontColor="white"
         hideIcons={disabled}
       /></div>
     {!disabled && <><br />

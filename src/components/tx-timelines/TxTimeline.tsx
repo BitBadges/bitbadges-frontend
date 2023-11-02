@@ -22,7 +22,7 @@ export function TxTimeline({
     txTimelineContext.resetState(collectionId, addressMappingId);
   }, [collectionId, addressMappingId]);
 
-  if (!txTimelineContext.initialLoad) return <div className='dark:text-white inherit-bg' style={{ minHeight: '100vh' }} >
+  if (!txTimelineContext.initialLoad) return <div className='primary-text inherit-bg' style={{ minHeight: '100vh' }} >
     <Spin size='large' />
     <Divider />
     {<p>Fetching all details for this collection. This may take some time.</p>}

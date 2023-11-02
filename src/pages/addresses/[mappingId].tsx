@@ -128,14 +128,14 @@ function AddressMappingPage() {
           fullWidth
         />
         {tab === 'history' && <>
-          <div className='dark:text-white'>
+          <div className='primary-text'>
             <br />
             {!isOnChain &&
-              <div className='text-gray-400'>
+              <div className='secondary-text'>
                 <InfoCircleOutlined /> This address list is stored off-chain via the BitBadges servers. The creator can update or delete this list at any time.
               </div>}
             {isOnChain &&
-              <div className='text-gray-400'>
+              <div className='secondary-text'>
                 <InfoCircleOutlined /> This address list is stored on-chain. The list is permanently frozen and non-deletable.
               </div>}
             <br />
@@ -151,7 +151,7 @@ function AddressMappingPage() {
               title="About"
             >
               <div style={{ maxHeight: 200, overflow: 'auto' }} >
-                <div className='custom-html-style dark:text-white' id="description">
+                <div className='custom-html-style primary-text' id="description">
                   {reactElement}
                 </div>
               </div>
@@ -215,16 +215,16 @@ function AddressMappingPage() {
                       <br />
                       {addressToCheck ? isAddressInList ? <div className='flex-center'>
                         <div className='flex-center' style={{ alignItems: 'center' }}>
-                          <div className='dark:text-white' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                            <span className='dark:text-white inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
+                          <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
+                            <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>✅ Address is included in list</span>
 
                           </div>
                         </div>
                       </div> :
                         <div className='flex-center'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
-                            <div className='dark:text-white' style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                              <span className='dark:text-white inherit-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
+                            <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bolder' }}>
+                              <span className='primary-text inherit-bg' style={{ padding: 8, borderRadius: 4 }}>❌ Address is NOT included in list</span>
 
                             </div>
                           </div>
@@ -243,7 +243,7 @@ function AddressMappingPage() {
 
         {tab === 'actions' && <>
           <div className='full-width' style={{ fontSize: 20 }}>
-            <div className='dark:text-white flex-center flex-wrap'
+            <div className='primary-text flex-center flex-wrap'
               style={{
                 padding: '0',
                 textAlign: 'center',
@@ -260,7 +260,7 @@ function AddressMappingPage() {
             {actions.length == 0 && (
               <>
                 <Empty
-                  className='dark:text-white'
+                  className='primary-text'
                   description="No actions can be taken."
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />

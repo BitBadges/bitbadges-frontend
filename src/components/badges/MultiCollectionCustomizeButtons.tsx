@@ -95,13 +95,13 @@ export const CustomizeButtons =
           <>
             <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
               <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} /> {' '}
-              <Typography.Text strong className="dark:text-white" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
+              <Typography.Text strong className="primary-text" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
                 Shown
               </Typography.Text>
             </div>
           </> : <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
             <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} /> {' '}
-            <Typography.Text strong className="dark:text-white" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
+            <Typography.Text strong className="primary-text" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
               Hidden
             </Typography.Text>
           </div>

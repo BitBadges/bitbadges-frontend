@@ -188,7 +188,7 @@ export function UpdateSelectWrapper({
 
   return (
     <>
-      <div className='dark:text-white flex-center flex-column' >
+      <div className='primary-text flex-center flex-column' >
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
           {!!existingCollectionId && updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
             <IconButton
@@ -261,14 +261,14 @@ export function UpdateSelectWrapper({
               onChange={(e) => {
                 setUpdateFlag(e);
               }}
-              className='dark:text-white'
+              className='primary-text'
             />
           </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
           <div className='' style={{ textAlign: 'center' }}>
             <br />
             {<>
-              <WarningOutlined style={{ color: 'orange', fontSize: 16, marginRight: 4 }} />
+              <WarningOutlined style={{ color: '#FF5733', fontSize: 16, marginRight: 4 }} />
               <b>Updating certain values may be frozen and disallowed. See permission for more details.</b>
               <br />
             </>}
@@ -280,7 +280,7 @@ export function UpdateSelectWrapper({
       <span color='black' style={{ margin: 16 }} />
 
       {!updateFlag &&
-        <div style={{ textAlign: 'center' }} className='dark:text-white' >
+        <div style={{ textAlign: 'center' }} className='primary-text' >
           <SwitchForm
             options={[{
               title: 'Do Not Update',

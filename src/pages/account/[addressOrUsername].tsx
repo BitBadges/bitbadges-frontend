@@ -134,7 +134,7 @@ function PortfolioPage() {
         searchValue={searchValue}
       />
     }
-    overlayClassName='dark:text-white inherit-bg'
+    overlayClassName='primary-text inherit-bg'
     className='inherit-bg'
     trigger={['hover', 'click']}
   >
@@ -335,7 +335,7 @@ function PortfolioPage() {
             title="About"
           >
             <div style={{ overflow: 'auto' }} >
-              <div className='custom-html-style dark:text-white' id="description">
+              <div className='custom-html-style primary-text' id="description">
                 {/* <Markdown> */}
                 {reactElement}
                 {/* </Markdown> */}
@@ -348,7 +348,7 @@ function PortfolioPage() {
           <br />
           <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
             {chain.address === accountInfo.address && chain.loggedIn && (
-              <div className='dark:text-white inherit-bg' style={{
+              <div className='primary-text inherit-bg' style={{
                 float: 'right',
                 display: 'flex',
                 alignItems: 'center',
@@ -358,7 +358,7 @@ function PortfolioPage() {
                 Mode:
 
                 <Select
-                  className='selector dark:text-white inherit-bg'
+                  className='selector primary-text inherit-bg'
                   value={editMode ? 'edit' : 'none'}
                   placeholder="Default: None"
                   onChange={(e: any) => {
@@ -371,7 +371,7 @@ function PortfolioPage() {
                   }}
                   suffixIcon={
                     <DownOutlined
-                      className='dark:text-white'
+                      className='primary-text'
                     />
                   }
                 >
@@ -381,7 +381,7 @@ function PortfolioPage() {
               </div>
             )}
 
-            {<div className='dark:text-white inherit-bg' style={{
+            {<div className='primary-text inherit-bg' style={{
               float: 'right',
               display: 'flex',
               alignItems: 'center',
@@ -391,7 +391,7 @@ function PortfolioPage() {
               Group By:
 
               <Select
-                className='selector dark:text-white inherit-bg'
+                className='selector primary-text inherit-bg'
                 value={groupByCollection ? 'collection' : 'none'}
                 placeholder="Default: None"
                 onChange={(e: any) => {
@@ -404,7 +404,7 @@ function PortfolioPage() {
                 }}
                 suffixIcon={
                   <DownOutlined
-                    className='dark:text-white'
+                    className='primary-text'
                   />
                 }
               >
@@ -414,7 +414,7 @@ function PortfolioPage() {
             </div>
             }
 
-            {!editMode && <div className='dark:text-white inherit-bg'
+            {!editMode && <div className='primary-text inherit-bg'
               style={{
                 float: 'right',
                 display: 'flex',
@@ -426,7 +426,7 @@ function PortfolioPage() {
               View:
 
               <Select
-                className="selector dark:text-white inherit-bg"
+                className="selector primary-text inherit-bg"
                 value={cardView ? 'card' : 'image'}
                 placeholder="Default: None"
                 onChange={(e: any) => {
@@ -438,7 +438,7 @@ function PortfolioPage() {
                 }}
                 suffixIcon={
                   <DownOutlined
-                    className='dark:text-white'
+                    className='primary-text'
                   />
                 }
               >
@@ -447,7 +447,7 @@ function PortfolioPage() {
               </Select>
             </div>}
             {tab != 'hidden' && <>
-              <div className='dark:text-white inherit-bg'
+              <div className='primary-text inherit-bg'
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -470,12 +470,12 @@ function PortfolioPage() {
               const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
                 : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
               return <Tag
-                className='dark:text-white inherit-bg flex-between'
+                className='primary-text inherit-bg flex-between'
                 style={{ alignItems: 'center', marginBottom: 8 }}
                 key={idx}
                 closable
                 closeIcon={<CloseCircleOutlined
-                  className='dark:text-white styled-button flex-center'
+                  className='primary-text styled-button flex-center'
                   style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
                   size={50}
                 />}
@@ -483,7 +483,7 @@ function PortfolioPage() {
                   setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
                 }}
               >
-                <div className='dark:text-white inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+                <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
                   <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
                     <div>
                       <BadgeAvatar
@@ -493,7 +493,7 @@ function PortfolioPage() {
                         metadataOverride={metadata}
                       />
                     </div>
-                    <Typography.Text className="dark:text-white" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+                    <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
                       <div style={{ marginBottom: 4 }}>
                         {metadata?.name}
                       </div>
@@ -525,7 +525,7 @@ function PortfolioPage() {
             {filteredCollections.length == 0 && !editMode && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
               accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.some((collection) => collection.badgeIds.length > 0)
               && <>
-                <Typography.Text strong className='dark:text-white' style={{ fontSize: 20, marginRight: 4 }}>
+                <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>
                   <FontAwesomeIcon
                     icon={faThumbTack}
                     style={{ marginRight: 4 }}
@@ -545,7 +545,7 @@ function PortfolioPage() {
                 />
                 <Divider />
                 {badgesToShow.length > 0 &&
-                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
               </>
             }
 
@@ -585,7 +585,7 @@ function PortfolioPage() {
 
             {badgesToShow.every((collection) => collection.balances.length === 0) && !collectedHasMore && (
               <Empty
-                className='dark:text-white'
+                className='primary-text'
                 description={
                   <span>
                     No badges found.
@@ -599,7 +599,7 @@ function PortfolioPage() {
 
         {tab === 'lists' && (<>
           <br />
-          <div className='dark:text-white inherit-bg'
+          <div className='primary-text inherit-bg'
             style={{
               float: 'right',
               display: 'flex',
@@ -612,7 +612,7 @@ function PortfolioPage() {
             View:
 
             <Select
-              className="selector dark:text-white inherit-bg"
+              className="selector primary-text inherit-bg"
               value={listsTab}
               placeholder="Default: None"
               onChange={(e: any) => {
@@ -629,7 +629,7 @@ function PortfolioPage() {
               placement='bottomRight'
               suffixIcon={
                 <DownOutlined
-                  className='dark:text-white'
+                  className='primary-text'
                 />
               }
             >
@@ -669,7 +669,7 @@ function PortfolioPage() {
 
             {listsView.length === 0 && !hasMoreAddressMappings && (
               <Empty
-                className='dark:text-white'
+                className='primary-text'
                 description={
                   <span>
                     No lists found.
@@ -737,7 +737,7 @@ function PortfolioPage() {
 
             {accountInfo?.views['createdBy']?.ids.length == 0 && !accountInfo?.views['createdBy']?.pagination?.hasMore && (
               <Empty
-                className='dark:text-white'
+                className='primary-text'
                 description={
                   <span>
                     No badges found.
@@ -784,7 +784,7 @@ function PortfolioPage() {
 
             {accountInfo?.views['managing']?.ids.length == 0 && !accountInfo?.views['managing']?.pagination?.hasMore && (
               <Empty
-                className='dark:text-white'
+                className='primary-text'
                 description={
                   <span>
                     No badges found.
@@ -817,7 +817,7 @@ function PortfolioPage() {
                 style={{ width: '100%', overflow: 'hidden' }}
               >
                 {(getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0) > 0 &&
-                  <Typography.Text strong className='dark:text-white' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
                 <MultiCollectionBadgeDisplay
                   collectionIds={accountInfo.hiddenBadges?.map((collection) => collection.collectionId) ?? []}
                   addressOrUsernameToShowBalance={accountInfo.address}
@@ -834,7 +834,7 @@ function PortfolioPage() {
                 (accountInfo.hiddenBadges ?? []).every((collection) => collection.badgeIds.length === 0))
                 && (
                   <Empty
-                    className='dark:text-white'
+                    className='primary-text'
                     description={
                       <span>
                         No badges found.

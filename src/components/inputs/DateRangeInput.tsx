@@ -31,10 +31,10 @@ export function DateRangeInput({
 
   return <>
     <div>
-      <div style={{ textAlign: 'center', marginTop: 4 }} className='dark:text-white'>
+      <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
         <div className='flex flex-column'>
 
-          {timeRanges.length === 0 && <div className='dark:text-white' style={{ marginTop: 4 }}>
+          {timeRanges.length === 0 && <div className='primary-text' style={{ marginTop: 4 }}>
             None
           </div>}
           {timeRanges.map((x, i) => {
@@ -188,7 +188,7 @@ export function DateRangeInput({
           allowClear={false}
           placeholder='Start Date'
           value={timeRanges[showTimeRange].start ? moment(new Date(Number(timeRanges[showTimeRange].start))) : null}
-          className='dark:text-white inherit-bg full-width'
+          className='primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
             if (new Date(dateString).valueOf() > new Date(Number(timeRanges[showTimeRange].end)).valueOf()) {
               alert('Start time must be before end time.');
@@ -209,7 +209,7 @@ export function DateRangeInput({
           allowClear={false}
           placeholder='End Date'
           value={timeRanges[showTimeRange].end ? moment(new Date(Number(timeRanges[showTimeRange].end))) : null}
-          className='dark:text-white inherit-bg full-width'
+          className='primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
             if (new Date(dateString).valueOf() < new Date(Number(timeRanges[showTimeRange].start)).valueOf()) {
               alert('End time must be after start time.');

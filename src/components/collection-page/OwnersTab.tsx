@@ -66,7 +66,7 @@ export function OwnersTab({ collectionId, badgeId }: {
       title="Balances"
     >
       {loaded ?
-        <div className='dark:text-white flex-center flex-column'>
+        <div className='primary-text flex-center flex-column'>
           {chain.address && <div className='full-width'>
 
 
@@ -78,7 +78,7 @@ export function OwnersTab({ collectionId, badgeId }: {
             </div>
           </div>}
 
-          <Typography.Text className='dark:text-white mt-10' style={{ fontSize: 20, fontWeight: 600 }}>All Owners</Typography.Text>
+          <Typography.Text className='primary-text mt-10' style={{ fontSize: 20, fontWeight: 600 }}>All Owners</Typography.Text>
           {/* <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} /> */}
           <InfiniteScroll
             dataLength={owners.length}
@@ -123,7 +123,7 @@ export function OwnersTab({ collectionId, badgeId }: {
           {totalNumOwners <= 0 && <Empty //<= 2 because of Mint and Total always being there
             description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            className='dark:text-white'
+            className='primary-text'
           />}
         </div>
         : <div>

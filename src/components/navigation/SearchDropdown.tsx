@@ -84,7 +84,7 @@ export function SearchDropdown({
   //2. Search results for accounts
   //3. Search results for collections
 
-  return <Menu className='dark dropdown gradient-bg' onKeyDown={async (e) => {
+  return <Menu className='dropdown card-bg' onKeyDown={async (e) => {
     if (e.key === '') {
       await onSearch(searchValue);
     }
@@ -93,8 +93,8 @@ export function SearchDropdown({
       <Spin size={'large'} />
     </Menu.Item> : <>
       {!onlyCollections && <>
-        <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
-        <div className='dark:text-white inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
+        <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {/* Current Search Value Address Helper - Matches Text Exactly */}
           {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
             <Menu.Item className='dropdown-item'
@@ -140,16 +140,18 @@ export function SearchDropdown({
       {
         !onlyAddresses && <>
 
-          <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
-          <div className='dark:text-white inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
             {collectionsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
-              None
+              <div className='primary-text'>
+                None
+              </div>
             </Menu.Item>}
             {collectionsResults.map((result,) => {
-              return <Menu.Item key={'' + result.collectionId} className='dropdown-item' onClick={() => {
+              return <Menu.Item key={'' + result.collectionId} className='dropdown-item primary-text' onClick={() => {
                 onSearch(`${result.collectionId}`, false, true);
               }}>
-                <div className='flex-between'>
+                <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
                     <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                     {result.cachedCollectionMetadata?.name}
@@ -166,10 +168,12 @@ export function SearchDropdown({
 
       {
         !onlyAddresses && <>
-          <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
-          <div className='dark:text-white inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
             {badgeResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
-              None
+              <div className='primary-text'>
+                None
+              </div>
             </Menu.Item>}
             {badgeResults.map((result,) => {
               const collection = result.collection;
@@ -194,7 +198,7 @@ export function SearchDropdown({
                       return <Menu.Item key={'' + collection.collectionId + ' ' + id + idx} className='dropdown-item' onClick={() => {
                         onSearch(`${collection.collectionId}/${id}`, false, false, true);
                       }}>
-                        <div className='flex-between'>
+                        <div className='flex-between primary-text'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
                             <Avatar src={metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                             {metadata?.name}
@@ -226,8 +230,8 @@ export function SearchDropdown({
       {
         !onlyAddresses && !onlyCollections && addressMappingsResults.length > 0 && <>
 
-          <Typography.Text className='dark:text-white' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
-          <div className='dark:text-white inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+          <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
+          <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
             {addressMappingsResults.map((result,) => {
               const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
               const isOffChain = result.mappingId.indexOf("_") >= 0;
@@ -235,7 +239,7 @@ export function SearchDropdown({
               return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
                 onSearch(`${result.mappingId}`, false, false);
               }}>
-                <div className='flex-between'>
+                <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
                     <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                     {result.metadata?.name}

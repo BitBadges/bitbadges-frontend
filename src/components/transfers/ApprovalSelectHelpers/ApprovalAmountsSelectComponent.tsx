@@ -67,7 +67,7 @@ export const ApprovalAmounts = ({ label, disabled, type, approvalToAdd, setAppro
         balances={[{ amount: approvedAmount, badgeIds: approvalToAdd.badgeIds, ownershipTimes: approvalToAdd.ownershipTimes }]} />
     </div>}
 
-    {greaterThanOverall && <div style={{ color: 'orange' }}>
+    {greaterThanOverall && <div style={{ color: '#FF5733' }}>
       <WarningOutlined /> The selected max amount is greater than the cumulative max amount.
     </div>}
   </>

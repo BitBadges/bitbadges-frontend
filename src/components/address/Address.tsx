@@ -58,71 +58,76 @@ export function Address({
     <Tooltip
       placement="bottom"
       color='black'
+      className='primary-text'
       title={
-        address === MINT_ACCOUNT.address ?
-          <div
-            className='dark:text-white'
-            style={{
-              textAlign: 'center',
-            }}
-          >
-            This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
-          </div> : address == "All" ?
-            <div
-              className='dark:text-white'
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              This represents all possible user addresses.
-            </div> :
-            <div
-              className='dark:text-white'
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              {`${chain} Address`}
-              {resolvedName ? <><br />{`${resolvedName}`}</> : ''}
+        <>
+          <div className='dark'>{
+            address === MINT_ACCOUNT.address ?
+              <div
+                className='primary-text'
+                style={{
+                  textAlign: 'center',
+                }}
+              >
+                This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
+              </div> : address == "All" ?
+                <div
+                  className='primary-text'
+                  style={{
+                    textAlign: 'center',
+                  }}
+                >
+                  This represents all possible user addresses.
+                </div> :
+                <div
+                  className='primary-text'
+                  style={{
+                    textAlign: 'center',
+                  }}
+                >
+                  {`${chain} Address`}
+                  {resolvedName ? <><br />{`${resolvedName}`}</> : ''}
 
-              <br />
-              <br />
-              {`${address}`}
-              <br />
-              <br />
+                  <br />
+                  <br />
+                  {`${address}`}
+                  <br />
+                  <br />
 
-              {"Other equivalent addresses: "}
-              <br />
-              {!doNotShowName && (addressName || resolvedName) && <div className='flex-center'>
-                <AddressDisplay
-                  addressOrUsername={address}
-                  hidePortfolioLink
-                  hideTooltip
-                  doNotShowName
-                />
-                <br />
-              </div>}
-              {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
-                <AddressDisplay
-                  addressOrUsername={convertToCosmosAddress(address)}
-                  overrideChain={SupportedChain.COSMOS}
-                  hidePortfolioLink
-                  hideTooltip
-                  doNotShowName
-                />
-                <br />
-              </div>}
-              {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
-                <AddressDisplay
-                  addressOrUsername={cosmosToEth(address)}
-                  overrideChain={SupportedChain.ETH}
-                  hidePortfolioLink
-                  hideTooltip
-                  doNotShowName
-                />
-                <br />
-              </div>}
-            </div>
+                  {"Other equivalent addresses: "}
+                  <br />
+                  {!doNotShowName && (addressName || resolvedName) && <div className='flex-center'>
+                    <AddressDisplay
+                      addressOrUsername={address}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <br />
+                  </div>}
+                  {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
+                    <AddressDisplay
+                      addressOrUsername={convertToCosmosAddress(address)}
+                      overrideChain={SupportedChain.COSMOS}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <br />
+                  </div>}
+                  {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
+                    <AddressDisplay
+                      addressOrUsername={cosmosToEth(address)}
+                      overrideChain={SupportedChain.ETH}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <br />
+                  </div>}
+                </div>
+          }</div>
+        </>
       }
       overlayStyle={{
         minWidth: 320
@@ -147,7 +152,7 @@ export function Address({
         className='whitespace-nowrap'
       >
         <Text
-          className={!showLink ? undefined : 'link-button-nav'}
+          className={'primary-text' + (!showLink ? '' : ' link-button-nav')}
 
           onClick={!showLink ? undefined : () => {
             router.push(`/account/${address}`);

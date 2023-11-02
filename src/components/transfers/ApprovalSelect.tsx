@@ -334,12 +334,12 @@ export function ApprovalSelect({
       onChange={(e) => {
         setClaimPassword?.(e.target.value);
       }}
-      className='dark:text-white inherit-bg'
+      className='primary-text inherit-bg'
     />
     {!claimPassword && <div style={{ color: 'red' }}>Password cannot be empty.</div>}
   </div>
 
-  const LearnMore = <div style={{ textAlign: 'center' }} className='text-gray-400'>
+  const LearnMore = <div style={{ textAlign: 'center' }} className='secondary-text'>
     <br />
     <p>
       <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
@@ -349,14 +349,14 @@ export function ApprovalSelect({
   </div>
 
   return <>
-    <Typography.Text style={{ textAlign: 'center' }} className="text-gray-400">
-      <WarningOutlined style={{ marginRight: 5, color: 'orange' }} />
+    <Typography.Text style={{ textAlign: 'center' }} className="secondary-text">
+      <WarningOutlined style={{ marginRight: 5, color: '#FF5733' }} />
       Below, you are creating an approval.
       Approvals determine the rules for how badges can be transferred but do not actually transfer the badges.
       For any transfer to be successful, there must be a valid approval and sufficient balances.
     </Typography.Text>
     <br /><br />
-    <Row style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='dark:text-white'>
+    <Row style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
 
       <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title={<>From <LockOutlined /></>} md={8} xs={24} sm={24} subtitle='Who can send the badges?'>
@@ -519,7 +519,7 @@ export function ApprovalSelect({
 
           {distributionMethod !== DistributionMethod.Codes && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
 
-            <Typography.Text strong className='text-gray-400' style={{ fontSize: 12 }}>
+            <Typography.Text strong className='secondary-text' style={{ fontSize: 12 }}>
               <InfoCircleOutlined /> {distributionMethod === DistributionMethod.Whitelist ? "Incompatible with off-chain whitelists."
                 : "Code / password based approvals are incompatible with tally-based approvals and off-chain whitelists."}
 
@@ -595,7 +595,7 @@ export function ApprovalSelect({
               subtitle={'Select badges that the approver must own (or not own) at the time of transfer. Only works for badges with on-chain balances.'}
               span={24}
             >
-              <div className='dark:text-white'>
+              <div className='primary-text'>
                 <br />
 
                 <BalanceInput
@@ -723,8 +723,11 @@ export function ApprovalSelect({
                   setPredeterminedType(e.target.value === AmountType.Predetermined ? PredeterminedType.Dynamic : PredeterminedType.Same);
 
                 }}>
-                  <Radio.Button value={AmountType.Tally}>Standard {distributionMethod === DistributionMethod.Codes ? " - All or Nothing" : ""}</Radio.Button>
-                  <Radio.Button value={AmountType.Predetermined}>Partitions</Radio.Button>
+                  <Radio.Button value={AmountType.Tally}><div className='primary-text hover:text-gray-400'>
+                    Standard {distributionMethod === DistributionMethod.Codes ? " - All or Nothing" : ""}
+                  </div>
+                  </Radio.Button>
+                  <Radio.Button value={AmountType.Predetermined}><div className='primary-text hover:text-gray-400'>Partitions</div></Radio.Button>
                 </Radio.Group><br /><br />
               </>
               }
@@ -733,7 +736,7 @@ export function ApprovalSelect({
               {amountType === AmountType.Tally && <>
 
                 {distributionMethod !== DistributionMethod.Codes && <>
-                  <Radio.Group buttonStyle='solid' value={predeterminedType !== PredeterminedType.Same ?
+                  <Radio.Group buttonStyle='solid' className='primary-text hover:text-gray-400' value={predeterminedType !== PredeterminedType.Same ?
                     predeterminedType === PredeterminedType.NoLimit ? "none" :
 
                       "tally" : "all"} onChange={(e) => {
@@ -752,20 +755,21 @@ export function ApprovalSelect({
                         }
 
                       }}>
-                    <Radio.Button value={"all"}  >All or Nothing</Radio.Button>
-                    <Radio.Button value={"tally"}>Tally</Radio.Button>
-                    <Radio.Button value={"none"}>No Limit</Radio.Button>
+
+                    <Radio.Button value={"all"}>  <div className='primary-text hover:text-gray-400'>All or Nothing</div></Radio.Button>
+                    <Radio.Button value={"tally"}><div className='primary-text hover:text-gray-400'>Tally</div></Radio.Button>
+                    <Radio.Button value={"none"}><div className='primary-text hover:text-gray-400'>No Limit</div></Radio.Button>
                   </Radio.Group></>
                 }
                 {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.NoLimit && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
                       <InfoCircleOutlined /> No Limit - No amount restrictions. Amounts will not be tracked.
                     </div>
                   </div>
                 </>}
                 {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.Dynamic && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
                       <InfoCircleOutlined /> Tally - Approvals will correspond to the selected badge IDs ({getBadgeIdsString(approvalToAdd.badgeIds)}) and times ({getTimeRangesElement(approvalToAdd.ownershipTimes)}).
                       You can set the limit for the amount approved on an overall (all users), per recipient, per sender, and / or per approver basis.
@@ -773,7 +777,7 @@ export function ApprovalSelect({
                   </div>
                 </>}
                 {predeterminedType === PredeterminedType.Same && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
                       <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid though if they are all transferred together.
                     </div>
@@ -790,8 +794,8 @@ export function ApprovalSelect({
 
                   {!approvalHasApprovalAmounts(approvalToAdd.approvalCriteria.approvalAmounts) && <div style={{ textAlign: 'center' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <WarningOutlined style={{ color: 'orange' }} />
-                      <span style={{ marginLeft: 8, color: 'orange' }}>
+                      <WarningOutlined style={{ color: '#FF5733' }} />
+                      <span style={{ marginLeft: 8, color: '#FF5733' }}>
                         Without any selections, there will be no amount restrictions (unlimited quantity approved).
                       </span>
                     </div>
@@ -854,8 +858,8 @@ export function ApprovalSelect({
 
                     {!approvalHasMaxNumTransfers(approvalToAdd.approvalCriteria.maxNumTransfers) && <div style={{ textAlign: 'center' }}>
                       <div style={{ textAlign: 'center' }}>
-                        <WarningOutlined style={{ color: 'orange' }} />
-                        <span style={{ marginLeft: 8, color: 'orange' }}>
+                        <WarningOutlined style={{ color: '#FF5733' }} />
+                        <span style={{ marginLeft: 8, color: '#FF5733' }}>
                           This approval approves x{startBalances.length > 0 ? Number(startBalances[0].amount) : 0}{' '}of the selected badges
                           {' '}<b>per use</b> in an all or nothing manner.
                           However, you have not set a limit on max uses,
@@ -870,7 +874,7 @@ export function ApprovalSelect({
                 <br />
 
                 {predeterminedType === PredeterminedType.Dynamic &&
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
                       <InfoCircleOutlined /> Partitions -
 
@@ -879,7 +883,7 @@ export function ApprovalSelect({
                     </div>
                   </div>}
                 {predeterminedType === PredeterminedType.Same &&
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='text-gray-400'>
+                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
                       <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid if they are all transferred together.
                     </div>
@@ -997,7 +1001,7 @@ export function ApprovalSelect({
         </InformationDisplayCard>
         <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from scratch or from a prior approval.'>
           <br />
-          {isEdit && <Typography.Text className='text-gray-400'>
+          {isEdit && <Typography.Text className='secondary-text'>
             You are editing an existing approval. Anything tracked (amounts, number of transfers, etc.) will continue to be tracked as defined in the existing approval.
 
             To start from scratch, please create a new approval.
@@ -1026,7 +1030,7 @@ export function ApprovalSelect({
                   This approval will be  <Tag
                     style={{ margin: 4, backgroundColor: '#52c41a' }}
                     color='#52c41a'
-                    className='dark:text-white'
+                    className='primary-text'
                   >New</Tag> meaning it will have no prior history and not be based on any prior approvals.
 
 
@@ -1042,7 +1046,7 @@ export function ApprovalSelect({
                 <b style={{ fontSize: 16 }}> Approval ID</b >
                 <Input
                   disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='dark:text-white inherit-bg'
+                  className='primary-text inherit-bg'
                   value={approvalToAdd.approvalId}
                   onChange={(e) => {
                     setApprovalToAdd({
@@ -1055,7 +1059,7 @@ export function ApprovalSelect({
                 <b style={{ fontSize: 16 }}>Amount Tracker ID</b>
                 <Input
                   disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='dark:text-white inherit-bg'
+                  className='primary-text inherit-bg'
                   value={approvalToAdd.amountTrackerId}
                   onChange={(e) => {
                     setApprovalToAdd({
@@ -1069,7 +1073,7 @@ export function ApprovalSelect({
                 <b style={{ fontSize: 16 }}>Challenge Tracker ID</b>
                 <Input
                   disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='dark:text-white inherit-bg'
+                  className='primary-text inherit-bg'
                   value={approvalToAdd.challengeTrackerId}
                   onChange={(e) => {
                     setApprovalToAdd({
@@ -1081,7 +1085,7 @@ export function ApprovalSelect({
                 />
               </>}
             {!autoGenerateIds && <div style={{ textAlign: 'center' }}>
-              <div style={{ textAlign: 'center', color: 'orange' }}>
+              <div style={{ textAlign: 'center', color: '#FF5733' }}>
                 <br />
                 <span style={{ marginLeft: 8 }}>
                   <InfoCircleOutlined /> Editing IDs is advanced and not recommended.
@@ -1276,7 +1280,7 @@ export function ApprovalSelect({
       }>
       {plusButton ? <PlusOutlined /> : isEdit ? 'Edit Approval' : 'Set Approval'}
     </button >
-    {isEdit && <div className='flex-center text-gray-400'>
+    {isEdit && <div className='flex-center secondary-text'>
       <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
     </div>}
     <br />

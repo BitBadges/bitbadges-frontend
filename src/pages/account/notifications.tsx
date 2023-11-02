@@ -106,7 +106,7 @@ export function Notifications() {
 
 
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-      <Typography.Text className='dark:text-white' strong style={{ fontSize: 16 }}>
+      <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>
         {title}
       </Typography.Text>
       {'      '}
@@ -139,7 +139,7 @@ export function Notifications() {
                 <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
                   Notifications
                 </div>
-                <div className='dark:text-gray-400 flex-center'>
+                <div className='secondary-text flex-center'>
                   Last Fetched: {new Date(Number(chain.lastSeenActivity)).toLocaleDateString()} {new Date(Number(chain.lastSeenActivity)).toLocaleTimeString()}
                 </div>
                 {/* <div className='flex-center'>
@@ -232,7 +232,7 @@ export function Notifications() {
 
                       {listsView.length === 0 && !hasMoreAddressMappings && (
                         <Empty
-                          className='dark:text-white'
+                          className='primary-text'
                           description={
                             <span>
                               No lists found.

@@ -126,13 +126,13 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           />
           {!fromTransferabilityRow && sender === 'Mint' && <>
             <Divider />
-            <Typography.Text style={{ color: 'orange' }} >
+            <Typography.Text style={{ color: '#FF5733' }} >
               <WarningOutlined /> {"For minting with predetermined or dynamic balances (increments, all or nothing, etc), please use the Transferability tab. This modal only allows you to manually input balances."}
             </Typography.Text>
           </>}
 
           <Divider />
-          <Typography.Text className='text-gray-400'>
+          <Typography.Text className='secondary-text'>
             <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing approvals as well."}
           </Typography.Text>
         </InformationDisplayCard>
@@ -174,7 +174,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
-      displayMsg={<div className='dark:text-white'>
+      displayMsg={<div className='primary-text'>
         <TransferDisplay
 
           transfers={convertedTransfers}

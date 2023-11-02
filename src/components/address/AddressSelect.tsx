@@ -58,7 +58,7 @@ export function AddressSelect({
       <Input
         value={input}
         placeholder='Enter an address or username'
-        className='dark:text-white inherit-bg'
+        className='primary-text inherit-bg'
         onChange={async (e) => {
           e.preventDefault();
           setInput(e.target.value);
@@ -73,7 +73,7 @@ export function AddressSelect({
   return <>
     <div className='full-width'>
       {switchable &&
-        <div className='flex-center flex-wrap dark:text-white'>
+        <div className='flex-center flex-wrap primary-text'>
           <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
         </div>
       }
