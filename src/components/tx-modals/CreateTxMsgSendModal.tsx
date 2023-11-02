@@ -1,6 +1,6 @@
 import { InputNumber } from 'antd';
 import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { AddressSelect } from '../address/AddressSelect';
@@ -22,11 +22,13 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
 
   const currSelectedAccount = useAccount(currUserInfo);
 
-  const msgSend: MsgSend<bigint> = {
-    destinationAddress: currSelectedAccount?.cosmosAddress ?? '',
-    amount: BigInt(sendAmount),
-    denom: 'badge'
-  }
+  const msgSend: MsgSend<bigint> = useMemo(() => {
+    return {
+      destinationAddress: currSelectedAccount?.cosmosAddress ?? '',
+      amount: BigInt(sendAmount),
+      denom: 'badge'
+    }
+  }, [currSelectedAccount, sendAmount]);
 
   const msgSteps = [
     {

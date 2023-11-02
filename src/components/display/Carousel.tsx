@@ -1,5 +1,5 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Button, Carousel } from 'antd';
+import { Button, Carousel, Col } from 'antd';
 import React, { ReactNode } from 'react';
 
 interface CustomCarouselProps {
@@ -17,7 +17,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
     <div className="primary-text">
       <div className='flex-between flex-wrap'>
         {title}
-        <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
+        <div className="carousel-arrows flex-center invisible sm:visible" style={{ float: 'right', marginTop: 10 }}>
           <Button
             className='bg-vivid-blue hover:opacity-75 text-white border-0'
             type="primary"
@@ -57,33 +57,49 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
         </div>
       </div>
 
-      <Carousel
-        dots={false}
-        swipeToSlide={true}
-        swipe={true}
-        onSwipe={(direction) => {
-          if (direction === 'left') {
-            if (currPage === (total ? total - 1 : items.length - 1)) {
-              if (setPage) setPage(0);
-              setCurrPage(0);
+      <Col md={24} xs={0}>
+        <Carousel
+          dots={false}
+          swipeToSlide={true}
+          swipe={true}
+          onSwipe={(direction) => {
+            if (direction === 'left') {
+              if (currPage === (total ? total - 1 : items.length - 1)) {
+                if (setPage) setPage(0);
+                setCurrPage(0);
+              } else {
+                if (setPage) setPage(currPage + 1);
+                setCurrPage(currPage + 1);
+              }
             } else {
-              if (setPage) setPage(currPage + 1);
-              setCurrPage(currPage + 1);
+              if (currPage === 0) {
+                if (setPage) setPage((total ? total - 1 : items.length - 1));
+                setCurrPage((total ? total - 1 : items.length - 1));
+              } else {
+                if (setPage) setPage(currPage - 1);
+                setCurrPage(currPage - 1);
+              }
             }
-          } else {
-            if (currPage === 0) {
-              if (setPage) setPage((total ? total - 1 : items.length - 1));
-              setCurrPage((total ? total - 1 : items.length - 1));
-            } else {
-              if (setPage) setPage(currPage - 1);
-              setCurrPage(currPage - 1);
-            }
-          }
-        }}
-      >
-        {items[currPage]}
-      </Carousel>
+          }}
+        >
 
+          {items[currPage]}
+        </Carousel>
+      </Col>
+      <Col md={0} xs={24}>
+
+        <div className='snap-x snap-mandatory scroll-auto flex' style={{ width: '100%', display: 'inline', overflow: 'scroll' }}>
+          {items.map((item, index) => {
+
+
+            return (
+              <div key={index} className='snap-normal snap-center'>
+                {item}
+              </div>
+            );
+          })}
+        </div>
+      </Col>
     </div>
   );
 };

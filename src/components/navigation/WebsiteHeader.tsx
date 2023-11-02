@@ -60,16 +60,25 @@ export function WalletHeader() {
 
 
   const HomeTabMenu = <></>
-  const HomeTabWithIcon = { key: '', content: (<Avatar src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu };
-  const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
+  const HomeTabWithIcon = {
+    key: '', content: (<Avatar className='flex-center'
+      style={{ height: 72 }} src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu
+  };
+  const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
-  const BrowseTabWithIcon = { key: 'browse', content: (<Avatar src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithIcon = {
+    key: 'browse', content: (<Avatar className='flex-center'
+      style={{ height: 72 }} src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu
+  };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
-  const MintTabWithIcon = { key: 'collections/mint', content: (<Avatar src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm font-medium' style={{ fontSize: 18, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithIcon = {
+    key: 'collections/mint', content: (<Avatar className='flex-center'
+      style={{ height: 72 }} src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu
+  };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -167,7 +176,7 @@ export function WalletHeader() {
           </Tooltip>
         </div>
       </div>
-        : `Not Connected`}
+        : <div className='dark primary-text'>{`Not Connected`}</div>}
 
 
 
@@ -226,25 +235,33 @@ export function WalletHeader() {
   const UserTab = {
     key: `popup-user`,
     content: (
-      <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+      < >
         {!address ? (
-          <Avatar src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
+          <Avatar
+            className='flex-center'
+            style={{ height: 72 }}
+            src={<UserOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' size={40} />} />
         ) : (
-          <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
-            <Avatar src={
-              <BlockiesAvatar
-                fontSize={40}
-                shape='circle'
-                avatar={avatar}
-                address={address.toLowerCase()}
-              />
+          <Avatar
+            size={40}
+            className='flex-center'
+            style={{ height: 72 }}
+            src={<>
+              <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
 
-            }
-              size={40}
-            />
-          </Badge>
+                <BlockiesAvatar
+                  fontSize={40}
+                  shape='circle'
+                  avatar={avatar}
+                  address={address.toLowerCase()}
+                />
+
+
+
+              </Badge>
+            </>} />
         )}
-      </div>
+      </>
     ),
     subMenuOverlay: UserTabMenu,
     subMenuTrigger: ['hover', 'click']
@@ -285,7 +302,8 @@ export function WalletHeader() {
 
   const CollapsedSearchIconTab = {
     key: 'search',
-    content: <Avatar src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />,
+    content: <Avatar className='flex-center'
+      style={{ height: 72 }} src={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />,
     onClick: () => {
       setSearchIsVisible(!searchIsVisible);
     },
@@ -304,7 +322,8 @@ export function WalletHeader() {
   return (
     <>
       <Header className="dark App-header bg-slate-950" style={{ zIndex: 49 }} >
-        <div className='flex-between'>
+        <div className='flex-between flex-center-if-mobile'>
+
           <div onClick={() => router.push('/')}>
             <div className="navbar-super-collapsed ml-3">
               <Image

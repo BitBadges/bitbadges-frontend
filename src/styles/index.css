@@ -8,7 +8,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #001529;
+  background-color: black;
 }
 
 code {
@@ -502,18 +502,29 @@ transform: scale(1.01);
     height: 100%;
   }
 
-.inline-logo {
   @media (max-width: 920px) { 
-    height: 54px;
+    .collect-title {
+      font-size: 48px;
+      line-height: 59px; /* 105.952% */
+      letter-spacing: -2.5px;
+    }
+    .inline-logo {
+      height: 54px;
+    }
   }
-
+  
   @media (min-width: 920px) { 
-    height: 80px;
+   .collect-title {
+      font-size: 72px;
+      line-height: 89px; /* 105.952% */
+      letter-spacing: -3.5px;
+    }
+  
+  
+    .inline-logo {
+      height: 80px;
+    }
   }
-}
-
-
-
 
 .collect-title {
   font-feature-settings: 'clig' off, 'liga' off;
@@ -523,22 +534,10 @@ transform: scale(1.01);
   
   font-style: normal;
   font-weight: 600;
-
-  @media (max-width: 920px) { 
-    font-size: 48px;
-    line-height: 59px; /* 105.952% */
-    letter-spacing: -2.5px;
-  }
-
-  @media (min-width: 920px) { 
-    font-size: 72px;
-    line-height: 89px; /* 105.952% */
-    letter-spacing: -3.5px;
-  }
 }
-
-.flex-center-if-mobile {
-  @media (max-width: 920px) { 
+@media (max-width: 568px) { 
+  .flex-center-if-mobile {
+ 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -612,13 +611,13 @@ transform: scale(1.01);
   border: 1px solid #1890ff !important;
   color: #1890ff !important;
 } */
+@media (max-width: 920px) { 
+  .landing-logo {
+    max-height: 100%;
+    width: auto;
+    max-width: 400px;
 
-.landing-logo {
-  max-height: 100%;
-  width: auto;
-  max-width: 400px;
-
-  @media (max-width: 920px) { 
+  
     max-width: 300px;
     margin: 30px;
   }

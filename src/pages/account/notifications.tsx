@@ -136,7 +136,7 @@ export function Notifications() {
                 }}
               >
                 <br />
-                <div className="primary-title" style={{ fontSize: 25, textAlign: 'center' }}>
+                <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
                   Notifications
                 </div>
                 <div className='secondary-text flex-center'>

@@ -112,13 +112,17 @@ export function TxModal(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const msgStepsLength = useMemo(() => {
+    return msgSteps?.length ?? 0;
+  }, [msgSteps?.length]);
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: amount');
     //Simulates the transaction and sets the expected gas to be used.
     //This is used to calculate the transaction fee.
     //NOTE: This is not 100% accurate, but it is close enough. This is before the actual IPFS uris are added in, but we simulate their existince with beforeTx(..., true);
     setError('');
-    if (!visible || (msgSteps && currentStep != msgSteps.length)) return;
+    if (!visible || (msgStepsLength && currentStep != msgStepsLength)) return;
 
     async function simulate() {
       try {
@@ -179,7 +183,7 @@ export function TxModal(
       }
     }
     simulate();
-  }, [currentStep, visible, signedInAccount, beforeTx, txCosmosMsg, createTxFunction, chain, msgSteps, updateStatus]);
+  }, [currentStep, visible, signedInAccount, chain, beforeTx, createTxFunction, updateStatus, txCosmosMsg, msgStepsLength]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);
@@ -355,7 +359,7 @@ export function TxModal(
           </div>
         }
         <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-          <div style={{ marginRight: 40 }}>
+          <Col md={12} xs={24} style={{ textAlign: 'center' }}>
 
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Signer
@@ -371,67 +375,66 @@ export function TxModal(
               </Typography.Text>
             </div>
             <br />
-          </div>
-          {<>
+          </Col>
 
-            <div style={{ textAlign: 'center' }} className='primary-text'>
-              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
-                Transaction Fee
-                <Tooltip
-                  color='black'
-                  title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction."
-                >
-                  <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
-                </Tooltip>
-              </Typography.Text>
+
+          <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
+              Fee
+              <Tooltip
+                color='black'
+                title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction."
+              >
+                <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
+              </Tooltip>
+            </Typography.Text>
+            <br />
+            {txDetails?.fee && simulated ? <>
+              <Switch
+                checked={useRecommendedFee}
+                onChange={(checked) => {
+                  setUseRecommendedFee(checked)
+                  setAmount(checked ? recommendedAmount : BigIntify(txDetails.fee.amount));
+                }}
+                checkedChildren="Recommended"
+                unCheckedChildren="Custom"
+              />
               <br />
-              {txDetails?.fee && simulated ? <>
-                <Switch
-                  checked={useRecommendedFee}
-                  onChange={(checked) => {
-                    setUseRecommendedFee(checked)
-                    setAmount(checked ? recommendedAmount : BigIntify(txDetails.fee.amount));
+              <br />
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 16 }} className='primary-text flex-center'>
+
+
+                {useRecommendedFee ? <>{recommendedAmount.toString()}</> : <InputNumber
+                  value={Numberify(txDetails.fee.amount)}
+                  onChange={(value) => {
+
+
+                    value = value ? Math.round(value) : 0;
+                    setAmount(BigInt(value));
                   }}
-                  checkedChildren="Recommended"
-                  unCheckedChildren="Custom"
-                />
-                <br />
-                <br />
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 16 }} className='primary-text flex-center'>
+                  min={0}
+                  max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
+                  step={1}
+                  style={{ marginLeft: 5, marginRight: 5 }}
+                  className='primary-text inherit-bg'
+                />}
+                {' '}${txDetails.fee.denom.toUpperCase()}
+              </Typography.Text>
+            </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+              <Spin size='large' />
+              <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Simulating Transaction</Typography.Text>
+              <Divider />
+            </div>}
+          </Col>
 
+          {exceedsBalance &&
+            <div style={{ textAlign: 'center' }} className='primary-text'>
+              <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
+                This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
+              </Typography.Text>
+            </div>}
 
-                  {useRecommendedFee ? <>{recommendedAmount.toString()}</> : <InputNumber
-                    value={Numberify(txDetails.fee.amount)}
-                    onChange={(value) => {
-
-
-                      value = value ? Math.round(value) : 0;
-                      setAmount(BigInt(value));
-                    }}
-                    min={0}
-                    max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
-                    step={1}
-                    style={{ marginLeft: 5, marginRight: 5 }}
-                    className='primary-text inherit-bg'
-                  />}
-                  {' '}${txDetails.fee.denom.toUpperCase()}
-                </Typography.Text>
-              </> : <div style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-                <Spin size='large' />
-                <Typography.Text className='secondary-text' style={{ textAlign: 'center' }} strong>Simulating Transaction</Typography.Text>
-                <Divider />
-              </div>}
-            </div>
-
-            {exceedsBalance &&
-              <div style={{ textAlign: 'center' }} className='primary-text'>
-                <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
-                  This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {">"} {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
-                </Typography.Text>
-              </div>}
-
-            <Divider />
-          </>}
+          <Divider />
 
         </div>
         <div className='flex-center'>

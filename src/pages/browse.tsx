@@ -185,11 +185,11 @@ function BrowsePage() {
               }
               if (idx % numItems !== 0) return null
 
-              return <div key={idx} className='flex flex-center-if-mobile full-width'
+              return <div key={idx} className='flex flex-center-if-mobile'
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.collections[badgesTab]?.length) return null
                 collection = browseInfo?.collections[badgesTab][idx];
-                return <InformationDisplayCard title='' key={idx} style={{}}>
+                return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={[collection.collectionId]}
                     groupByCollection

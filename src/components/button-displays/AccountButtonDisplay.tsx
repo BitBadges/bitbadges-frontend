@@ -74,7 +74,7 @@ export function AccountButtonDisplay({
 
   return (
     <div>
-      {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10,  display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
+      {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10, display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">
@@ -313,7 +313,9 @@ export function AccountButtonDisplay({
       </div>}
 
       {!hideDisplay && <>
-        <Col md={0} sm={1} xs={1} style={{ height: '50px' }} /><Content
+        {!hideButtons &&
+          <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />}
+        <Content
           className='flex-center'
           style={{
             padding: '0',

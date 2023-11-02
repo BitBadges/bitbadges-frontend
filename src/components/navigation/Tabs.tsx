@@ -1,4 +1,4 @@
-import { Dropdown, Menu, MenuTheme, Popover, Typography } from 'antd';
+import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 
 export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
   tab: string;
@@ -35,9 +35,9 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
         id={tab.key}
         className={'primary-text inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
       >
-        <Typography.Text className='primary-text' style={{  fontWeight: 'bold' }}>
-          {tab.content}
-        </Typography.Text>
+
+        {tab.content}
+
       </Menu.Item>
     );
     if (tab.subMenuOverlay) {
