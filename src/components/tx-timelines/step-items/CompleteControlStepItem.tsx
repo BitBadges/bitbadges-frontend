@@ -68,7 +68,6 @@ export function ChooseControlTypeStepItem() {
                 canUpdateBadgeMetadata: [],
                 canUpdateCollectionApprovals: [],
                 canUpdateCollectionMetadata: [],
-                canUpdateContractAddress: [],
                 canUpdateCustomData: [],
                 canUpdateManager: [],
                 canUpdateOffChainBalancesMetadata: [],

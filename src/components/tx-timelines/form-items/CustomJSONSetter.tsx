@@ -140,9 +140,6 @@ export function JSONSetter({
           }
 
           if (el.isArchived && typeof el.isArchived !== 'boolean') throw new Error('isArchived must be a boolean');
-
-          if (el.contractAddress && typeof el.contractAddress !== 'string') throw new Error('contractAddress must be a string');
-
           if (el.collectionApprovals && !Array.isArray(el.collectionApprovals)) throw new Error('collectionApprovals must be an array');
           if (el.collectionApprovals && el.collectionApprovals.length > 0) {
             for (const approval of el.collectionApprovals) {

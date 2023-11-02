@@ -30,7 +30,6 @@ export function BeforeAfterPermission({
         flags = ActionPermissionUsedFlags;
         break;
       case 'canArchiveCollection':
-      case 'canUpdateContractAddress':
       case 'canUpdateOffChainBalancesMetadata':
       case 'canUpdateStandards':
       case 'canUpdateCustomData':
@@ -109,7 +108,6 @@ export function AfterPermission({
         flags = ActionPermissionUsedFlags;
         break;
       case 'canArchiveCollection':
-      case 'canUpdateContractAddress':
       case 'canUpdateOffChainBalancesMetadata':
       case 'canUpdateStandards':
       case 'canUpdateCustomData':

@@ -19,6 +19,7 @@ import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
+import { UserPermissionsOverview } from './PermissionsInfo';
 
 interface Props {
   approvals: CollectionApprovalWithDetails<bigint>[];
@@ -101,7 +102,7 @@ export const ApprovalsDisplay: FC<Props> = ({
               badgeId={filterByBadgeId ? badgeId : undefined}
               collectionId={collection.collectionId}
               filterFromMint={filterFromMint} mobileFriendly={mobile}
-              
+
             />
             return result
           })}
@@ -140,10 +141,18 @@ export const ApprovalsDisplay: FC<Props> = ({
     </>
   }
 
+
+
   return <>
     <br />
 
-    <InformationDisplayCard title={title ?? ''} span={24} subtitle={subtitle} >
+    <InformationDisplayCard
+
+
+      title={title ?? approvalLevel === "incoming" ? "Incoming Approvals" : approvalLevel === "outgoing" ? "Outgoing Approvals" : "Transferability"
+
+      }
+      span={24} subtitle={subtitle} >
       <br />
 
       <div style={{ float: 'right' }}>
@@ -228,6 +237,8 @@ export function UserApprovalsTab({
   hideUpdateHistory,
   hideOutgoingApprovals,
   showCollectionApprovals,
+  hideDefaults,
+  showingDefaults,
 }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -243,6 +254,8 @@ export function UserApprovalsTab({
   hideOutgoingApprovals?: boolean,
   showCollectionApprovals?: boolean,
   hideUpdateHistory?: boolean,
+  hideDefaults?: boolean,
+  showingDefaults?: boolean,
 }) {
 
   const chain = useChainContext();
@@ -266,7 +279,6 @@ export function UserApprovalsTab({
   const incomingApprovals = userIncomingApprovals ? userIncomingApprovals : collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.incomingApprovals ?? [];
   const updateHistory = collection?.owners.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.updateHistory ?? [];
 
-
   useEffect(() => {
     if (address) fetchBalanceForUser(collectionId, address);
   }, [address, collectionId])
@@ -278,10 +290,10 @@ export function UserApprovalsTab({
   const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? false;
   const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? false;
 
+  // console.log(appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? ''))
+
   const outgoingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? '')
   const incomingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForIncoming(incomingApprovals, approverAccount?.cosmosAddress ?? '')
-
-
 
   const castedOutgoingApprovals = approverAccount?.cosmosAddress
     ? castOutgoingTransfersToCollectionTransfers(
@@ -303,12 +315,14 @@ export function UserApprovalsTab({
     },
   ];
 
-  if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit && !hideUpdateHistory) {
+
+
+
+
+  if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit) {
     tabInfo.push({
-
-      key: 'history',
-      content: <>Update History</>
-
+      key: 'permissions',
+      content: <>Permissions</>
     })
   }
 
@@ -318,6 +332,21 @@ export function UserApprovalsTab({
       key: 'collection',
       content: <>Collection Transferability</>
 
+    })
+  }
+
+
+  if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit && !hideUpdateHistory) {
+    tabInfo.push({
+      key: 'history',
+      content: <>Update History</>
+    })
+  }
+
+  if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit && !hideDefaults) {
+    tabInfo.push({
+      key: 'defaults',
+      content: <>Collection Defaults</>
     })
   }
 
@@ -393,11 +422,41 @@ export function UserApprovalsTab({
           tabInfo={tabInfo}
         /></>}
 
+      {tab === 'defaults' && approverAccount?.address && <>
+        <br />
+        <div className="text-gray-400">
+          <InfoCircleOutlined /> Collections can define default values for incoming and outgoing approvals as well as default user permissions. 
+          These values are used upon initial creation.
+        </div>
+        <Divider />
+        <UserApprovalsTab
+          userIncomingApprovals={collection.defaultUserIncomingApprovals}
+          userOutgoingApprovals={collection.defaultUserOutgoingApprovals}
+          collectionId={collectionId}
+          hideUpdateHistory
+          hideSelect
+          defaultApprover={approverAccount?.address}
+          hideDefaults
+          showingDefaults
+        />
+      </>}
+
       {tab == 'collection' && <div>
         <TransferabilityTab
           collectionId={collectionId}
         />
 
+      </div>}
+
+      {tab == 'permissions' && <div>
+        <br />
+        <div className='flex-center'>
+          <UserPermissionsOverview
+            collectionId={collectionId}
+            addressOrUsername={approverAccount?.address ?? ''}
+            displayDefaults={showingDefaults}
+          />
+        </div>
       </div>}
 
       {tab === 'history' && <div className='dark:text-white'>
@@ -430,7 +489,9 @@ export function UserApprovalsTab({
 
       {approverAccount?.address && <>
         {tab === 'outgoing' && <>
+
           <ApprovalsDisplay
+            subtitle={appendDefaultOutgoing ? '' : ''}
             approvals={castedOutgoingApprovals}
             collection={collection}
             badgeId={badgeId}

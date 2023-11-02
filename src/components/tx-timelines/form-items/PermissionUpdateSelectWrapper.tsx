@@ -56,7 +56,6 @@ export function PermissionUpdateSelectWrapper({
 
           break;
         case 'canArchiveCollection':
-        case 'canUpdateContractAddress':
         case 'canUpdateOffChainBalancesMetadata':
         case 'canUpdateStandards':
         case 'canUpdateCustomData':
@@ -93,7 +92,6 @@ export function PermissionUpdateSelectWrapper({
         flags = ActionPermissionUsedFlags;
         break;
       case 'canArchiveCollection':
-      case 'canUpdateContractAddress':
       case 'canUpdateOffChainBalancesMetadata':
       case 'canUpdateStandards':
       case 'canUpdateCustomData':

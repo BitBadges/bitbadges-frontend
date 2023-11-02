@@ -52,7 +52,6 @@ export function CreateTxMsgUpdateCollectionModal(
       canUpdateBadgeMetadata: [],
       canUpdateCollectionMetadata: [],
       canUpdateCollectionApprovals: [],
-      canUpdateContractAddress: [],
       canUpdateCustomData: [],
       canUpdateManager: [],
       canUpdateOffChainBalancesMetadata: [],
@@ -72,8 +71,6 @@ export function CreateTxMsgUpdateCollectionModal(
     collectionApprovals: collection ? collection?.collectionApprovals : [],
     updateStandardsTimeline: txTimelineContext.updateStandardsTimeline,
     standardsTimeline: collection ? collection?.standardsTimeline : [],
-    updateContractAddressTimeline: txTimelineContext.updateContractAddressTimeline,
-    contractAddressTimeline: collection ? collection?.contractAddressTimeline : [],
     updateIsArchivedTimeline: txTimelineContext.updateIsArchivedTimeline,
     isArchivedTimeline: collection ? collection?.isArchivedTimeline : [],
   }

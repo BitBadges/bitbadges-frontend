@@ -88,8 +88,6 @@ export interface UpdateFlags {
   setUpdateCollectionApprovals: (value: boolean) => void;
   updateStandardsTimeline: boolean;
   setUpdateStandardsTimeline: (value: boolean) => void;
-  updateContractAddressTimeline: boolean;
-  setUpdateContractAddressTimeline: (value: boolean) => void;
   updateIsArchivedTimeline: boolean;
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
@@ -159,8 +157,6 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   setUpdateCollectionApprovals: () => { },
   updateStandardsTimeline: true,
   setUpdateStandardsTimeline: () => { },
-  updateContractAddressTimeline: true,
-  setUpdateContractAddressTimeline: () => { },
   updateIsArchivedTimeline: true,
   setUpdateIsArchivedTimeline: () => { },
 
@@ -253,7 +249,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [updateCustomDataTimeline, setUpdateCustomDataTimeline] = useState(true);
   const [updateCollectionApprovals, setUpdateCollectionApprovals] = useState(true);
   const [updateStandardsTimeline, setUpdateStandardsTimeline] = useState(true);
-  const [updateContractAddressTimeline, setUpdateContractAddressTimeline] = useState(true);
   const [updateIsArchivedTimeline, setUpdateIsArchivedTimeline] = useState(true);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
@@ -308,7 +303,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateCustomDataTimeline(true);
     setUpdateCollectionApprovals(true);
     setUpdateStandardsTimeline(true);
-    setUpdateContractAddressTimeline(true);
     setUpdateIsArchivedTimeline(true);
 
     setCompleteControl(false);
@@ -401,7 +395,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         collectionMetadataTimeline: [],
 
         isArchivedTimeline: [],
-        contractAddressTimeline: [],
         customDataTimeline: [],
         collectionPermissions: {
           canArchiveCollection: [],
@@ -410,7 +403,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateBadgeMetadata: [],
           canUpdateCollectionApprovals: [],
           canUpdateCollectionMetadata: [],
-          canUpdateContractAddress: [],
           canUpdateCustomData: [],
           canUpdateManager: [],
           canUpdateOffChainBalancesMetadata: [],
@@ -547,8 +539,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateCollectionApprovals,
     updateStandardsTimeline,
     setUpdateStandardsTimeline,
-    updateContractAddressTimeline,
-    setUpdateContractAddressTimeline,
     updateIsArchivedTimeline,
     setUpdateIsArchivedTimeline,
     isUpdateAddressMapping: existingAddressMappingId ? true : false,

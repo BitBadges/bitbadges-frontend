@@ -1,6 +1,6 @@
 import { AuditOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateContractAddressUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
@@ -68,7 +68,6 @@ export function UpdateSelectWrapper({
         flags = ActionPermissionUsedFlags;
         break;
       case 'canArchiveCollection':
-      case 'canUpdateContractAddress':
       case 'canUpdateOffChainBalancesMetadata':
       case 'canUpdateStandards':
       case 'canUpdateCustomData':
@@ -95,9 +94,6 @@ export function UpdateSelectWrapper({
     switch (permissionName) {
       case 'canArchiveCollection':
         validateFunction = validateIsArchivedUpdate;
-        break;
-      case 'canUpdateContractAddress':
-        validateFunction = validateContractAddressUpdate;
         break;
       case 'canUpdateOffChainBalancesMetadata':
         validateFunction = validateOffChainBalancesMetadataUpdate;
@@ -154,9 +150,6 @@ export function UpdateSelectWrapper({
       break;
     case 'canArchiveCollection':
       question = "Can archive the collection?";
-      break;
-    case 'canUpdateContractAddress':
-      question = "Can update the contract address?";
       break;
     case 'canUpdateOffChainBalancesMetadata':
       question = "Can update the off-chain balances metadata?";

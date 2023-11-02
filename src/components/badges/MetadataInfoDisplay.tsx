@@ -8,7 +8,7 @@ import {
   WarningFilled
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { BadgeMetadataTimeline, CollectionMetadataTimeline, ContractAddressTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
+import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
 import { Metadata, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 
 import { getTimeRangesElement } from '../../utils/dates';
@@ -146,20 +146,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               </div>
             </div>} labelSpan={7} valueSpan={17} />}
 
-          {(collection?.contractAddressTimeline ?? []).length > 0 &&
-            collection?.contractAddressTimeline.some(x => x.contractAddress) &&
-            <TableRow label={"Contract Address"} value={
-              <>
-                <TimelineFieldWrapper
-                  createNode={(contractVal: ContractAddressTimeline<bigint>) => {
-                    return <>{contractVal.contractAddress || 'None'}</>
-                  }}
-                  emptyNode={
-                    <>None</>
-                  }
-                  timeline={collection?.contractAddressTimeline ?? []}
-                />
-              </>} labelSpan={9} valueSpan={15} />}
+         
 
 
           {(collection?.customDataTimeline ?? []).length > 0 &&

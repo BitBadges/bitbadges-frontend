@@ -3,7 +3,7 @@ import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, castUserIncomingApprovalsToUniversalPermission, castUserOutgoingApprovalsToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../utils/badgeIds";
@@ -15,6 +15,7 @@ import { TableRow } from "../display/TableRow";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
 import { useState } from "react";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 
 
@@ -596,7 +597,32 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
 }
 
 
+export function UserPermissionsOverview({
+  collectionId,
+  addressOrUsername,
+  displayDefaults,
+}: {
+  collectionId: bigint
+  addressOrUsername: string,
+  displayDefaults?: boolean
+}) {
+  const collection = useCollection(collectionId);
+  const account = useAccount(addressOrUsername);
+  const permissions = displayDefaults ? collection?.defaultUserPermissions : collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress)?.userPermissions;
+  if (!permissions || !account) return <></>
 
+  return <InformationDisplayCard title={'User Permissions'} md={12} xs={24} sm={24}>
+    {<TableRow label={"Update incoming approvals?"} value={
+      <PermissionIcon permissions={castUserIncomingApprovalsToUniversalPermission(permissions.canUpdateIncomingApprovals, account.address)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+    {<TableRow label={"Update outgoing approvals?"} value={
+      <PermissionIcon permissions={castUserOutgoingApprovalsToUniversalPermission(permissions.canUpdateOutgoingApprovals, account.address)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+    {<TableRow label={"Update auto-approve self-initiated transfers (incoming)?"} value={
+      <PermissionIcon permissions={castActionPermissionToUniversalPermission(permissions.canUpdateAutoApproveSelfInitiatedIncomingTransfers)} usedFlags={ActionPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+    {<TableRow label={"Update auto-approve self-initiated transfers (outgoing)?"} value={
+      <PermissionIcon permissions={castActionPermissionToUniversalPermission(permissions.canUpdateAutoApproveSelfInitiatedOutgoingTransfers)} usedFlags={ActionPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+
+  </InformationDisplayCard>
+}
 
 export function PermissionsOverview({
   collectionId,
@@ -631,7 +657,6 @@ export function PermissionsOverview({
     {(!permissionName || permissionName == "canUpdateCollectionMetadata") && !isBadgeView && <TableRow label={"Update collection metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionMetadata)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canDeleteCollection") && !isBadgeView && <TableRow label={"Delete collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castActionPermissionToUniversalPermission(collection.collectionPermissions.canDeleteCollection)} usedFlags={ActionPermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canArchiveCollection") && !isBadgeView && <TableRow label={"Archive collection?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canArchiveCollection)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
-    {/* {(!permissionName || permissionName == "canUpdateContractAddress") && !isBadgeView && <TableRow label={"Update contract address?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateContractAddress)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />} */}
     {(!permissionName || permissionName == "canUpdateStandards") && !isBadgeView && <TableRow label={"Update standards?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateStandards)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canUpdateCustomData") && !isBadgeView && <TableRow label={"Update custom data?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateCustomData)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canUpdateManager") && !isBadgeView && <TableRow label={"Transfer manager?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={castTimedUpdatePermissionToUniversalPermission(collection.collectionPermissions.canUpdateManager)} usedFlags={TimedUpdatePermissionUsedFlags} neverHasManager={noManager} />} labelSpan={18} valueSpan={6} />}
