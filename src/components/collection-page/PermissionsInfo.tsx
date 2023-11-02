@@ -3,8 +3,11 @@ import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { AddressMapping, UintRange } from "bitbadgesjs-proto";
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, castUserIncomingApprovalsToUniversalPermission, castUserOutgoingApprovalsToUniversalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 
+import { useState } from "react";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { compareObjects } from "../../utils/compare";
@@ -13,9 +16,6 @@ import { AddressDisplayList } from "../address/AddressDisplayList";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
-import { useState } from "react";
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 
 
@@ -614,11 +614,14 @@ export function UserPermissionsOverview({
   const permissions = displayDefaults ? collection?.defaultUserPermissions : collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress)?.userPermissions;
   if (!permissions || !account) return <></>
 
+  const incomingToCollectionCasted = castUserIncomingApprovalPermissionToCollectionApprovalPermission(permissions.canUpdateIncomingApprovals, account.address);
+  const outgoingToCollectionCasted = castUserOutgoingApprovalPermissionToCollectionApprovalPermission(permissions.canUpdateOutgoingApprovals, account.address);
+
   return <InformationDisplayCard title={'User Permissions'} md={12} xs={24} sm={24}>
     {<TableRow label={"Update incoming approvals?"} value={
-      <PermissionIcon permissions={castUserIncomingApprovalsToUniversalPermission(permissions.canUpdateIncomingApprovals, account.address)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+      <PermissionIcon permissions={castCollectionApprovalPermissionToUniversalPermission(incomingToCollectionCasted)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
     {<TableRow label={"Update outgoing approvals?"} value={
-      <PermissionIcon permissions={castUserOutgoingApprovalsToUniversalPermission(permissions.canUpdateOutgoingApprovals, account.address)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
+      <PermissionIcon permissions={castCollectionApprovalPermissionToUniversalPermission(outgoingToCollectionCasted)} usedFlags={ApprovalPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
     {<TableRow label={"Update auto-approve self-initiated transfers (incoming)?"} value={
       <PermissionIcon permissions={castActionPermissionToUniversalPermission(permissions.canUpdateAutoApproveSelfInitiatedIncomingTransfers)} usedFlags={ActionPermissionUsedFlags} neverHasManager={false} />} labelSpan={18} valueSpan={6} />}
     {<TableRow label={"Update auto-approve self-initiated transfers (outgoing)?"} value={

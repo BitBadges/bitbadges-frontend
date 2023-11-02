@@ -245,7 +245,7 @@ export function TransferSelect({
             />
           </div>
           {isOffChainBalancesUpdate &&
-            <div className="text-gray-500 dark:text-gray-400">
+            <div className="secondary-text">
               <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
             </div>}
           <div className='flex flex-wrap flex-center' style={{ alignItems: 'normal' }}>

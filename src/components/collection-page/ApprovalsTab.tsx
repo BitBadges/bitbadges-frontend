@@ -424,7 +424,7 @@ export function UserApprovalsTab({
 
       {tab === 'defaults' && approverAccount?.address && <>
         <br />
-        <div className="text-gray-400">
+        <div className="secondary-text">
           <InfoCircleOutlined /> Collections can define default values for incoming and outgoing approvals as well as default user permissions.
           These values are used upon initial creation.
         </div>

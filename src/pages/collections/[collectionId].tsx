@@ -103,7 +103,6 @@ function CollectionPage({
         minHeight: '100vh',
       }}
     >
-      <br />
       <div
         title=''
         style={{

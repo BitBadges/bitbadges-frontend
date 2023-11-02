@@ -202,13 +202,10 @@ export const BlockinDisplay = ({
                   collectionId={1n}
                   size={100}
                   badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
-                  lightTheme
                 // showIds
-
-                /></div>
-
+                />
+              </div>
             },
-
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
           hideConnectVsSignInHelper={hideLogin}

@@ -27,7 +27,6 @@ export function BadgeAvatarDisplay({
   hideCollectionLink,
   fetchDirectly,
   showOnSinglePage,
-  lightTheme,
   fromMultiCollectionDisplay,
   // doNotAdaptToWidth,
   showPageJumper,
@@ -47,7 +46,6 @@ export function BadgeAvatarDisplay({
   hideCollectionLink?: boolean;
   fetchDirectly?: boolean;
   showOnSinglePage?: boolean;
-  lightTheme?: boolean;
   fromMultiCollectionDisplay?: boolean;
   // doNotAdaptToWidth?: boolean;
   showPageJumper?: boolean
@@ -119,7 +117,7 @@ export function BadgeAvatarDisplay({
 
   //Calculate pageSize based on the width of this componetnt
   return <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }} >
-    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage} lightTheme={lightTheme}
+    <Pagination currPage={currPage} onChange={setCurrPage} total={total} pageSize={pageSize} showOnSinglePage={showOnSinglePage}
       showPageJumper={showPageJumper}
     />
 
