@@ -4,7 +4,7 @@ const CACHE_NAME = 'my-pwa-cache-v1';
 // List of URLs to cache
 //TODO:
 const urlsToCache = [
-    '/',
+    // '/',
     // '/index.html',
     // '/css/styles.css',
     // '/js/main.js',
