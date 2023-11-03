@@ -1257,8 +1257,7 @@ export function TransferabilityRow({
       closeIcon={<CloseOutlined className='secondary-text' onClick={() => { onClose?.(); setShowMoreIsVisible(false) }} />}
       open={showMoreIsVisible}
       placement='bottom'
-      size='large'
-      zIndex={11}
+      height={600}
 
 
       onClose={() => { onClose?.(); setShowMoreIsVisible(false) }}
