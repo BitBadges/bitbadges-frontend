@@ -218,9 +218,18 @@ const App = ({ Component, pageProps }: AppProps) => {
                 <StatusContextProvider>
                   <TxTimelineContextProvider>
                     <Head>
+
+                      <meta property="og:title" content="iPhone" />
+                      <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+                      <meta
+                        name="description"
+                        content="Create, collect, and share digital badges and credentials with BitBadges."
+                      />
+                      <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
                       <link rel="manifest" href="/manifest.json" />
+                      <title>BitBadges</title>
                     </Head>
-                    
+
                     <div className="">
                       <div className="layout gradient-bg">
                         <WalletHeader />
