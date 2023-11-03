@@ -136,6 +136,8 @@ export const CookiePopup = ({ visible, onClose, placement }: {
   </>
 }
 
+
+
 const App = ({ Component, pageProps }: AppProps) => {
   //React cookies
   const [cookies, setCookie] = useCookies(['policies']);
@@ -151,6 +153,41 @@ const App = ({ Component, pageProps }: AppProps) => {
       document.documentElement.classList.remove('dark');
     }
   }, []);
+
+  useEffect(() => {
+    console.log("SERVICE WORKER REGISTERED")
+    console.log(navigator)
+    if ('serviceWorker' in navigator) {
+      console.log("SERVICE WORKER REGISTERED")
+      navigator.serviceWorker
+        .register('./service-worker.js') // Adjust the path to your service worker file
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
+  // let deferredPrompt: Event | null = null;
+  // let isInstallPromptShown = false;
+
+  const handleBeforeInstallPrompt: EventListenerOrEventListenerObject = (event) => {
+    event.preventDefault();
+    // deferredPrompt = event;
+    // isInstallPromptShown = true;
+  };
+
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+
+
 
   const [myCookieValue, setMyCookieValue] = useState(null);
   // const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
@@ -185,6 +222,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                         {/* {topPopupIsVisible &&
                           <PopupContent>
                             <div style={{ textAlign: 'center' }}>Important announcement</div>
+                            
                             <Button key="accept" className='bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3' onClick={() => setTopPopupIsVisible(false)}>
                               Close
                             </Button>
