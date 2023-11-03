@@ -171,6 +171,7 @@ const App = ({ Component, pageProps }: AppProps) => {
     }
 
     if ('Notification' in window) {
+      //TODO: Needs a notify permission request button to work on mobile
       Notification.requestPermission()
         .then(function (permission) {
           if (permission === 'granted') {
@@ -223,7 +224,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 
   const [myCookieValue, setMyCookieValue] = useState(null);
-  const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
+  // const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: cookie check');
@@ -265,49 +266,14 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <div className="">
                       <div className="layout gradient-bg">
                         <WalletHeader />
-                        {topPopupIsVisible &&
+                        {/* {topPopupIsVisible &&
                           <PopupContent>
                             <div style={{ textAlign: 'center' }}>Important announcement</div>
-                            <button className='landing-button' onClick={() => {
-                              if ('Notification' in window) {
-                                Notification.requestPermission()
-                                  .then(function (permission) {
-                                    if (permission === 'granted') {
-                                      alert('Notification permission granted.');
-                                      // You can now subscribe to push notifications.
-                                    } else {
-                                      alert('Notification permission denied.');
-                                    }
-                                  });
-
-                                // Sample notification.Works on desktop but not mobile ?
-                                const options = {
-                                  body: 'This is the body of a sample notification',
-                                  icon: '/images/bitbadgeslogo.png',
-                                  vibrate: [200, 100, 200],
-                                  data: {
-                                    dateOfArrival: Date.now(),
-                                    primaryKey: 1
-                                  }
-                                };
-
-                                navigator.serviceWorker.ready
-                                  .then(function (reg) {
-                                    reg.showNotification('Push Notification', options);
-                                  })
-                                  .catch(function (error) {
-                                    console.error('Error showing notification:', error);
-                                  });
-                              }
-
-                            }}>
-
-                              Notify
-                            </button>
+                           
                             <Button key="accept" className='bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3' onClick={() => setTopPopupIsVisible(false)}>
                               Close
                             </Button>
-                          </PopupContent>}
+                          </PopupContent>} */}
                         <Component {...pageProps} />
                         <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
                         <WalletFooter />
