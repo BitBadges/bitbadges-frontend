@@ -27,6 +27,7 @@ import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/con
 import thunk from 'redux-thunk';
 import type { } from 'redux-thunk/extend-redux';
 import { BitBadgesUserInfo, CollectionMap } from 'bitbadgesjs-utils';
+import Head from "next/head"
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -216,6 +217,10 @@ const App = ({ Component, pageProps }: AppProps) => {
               <BrowseContextProvider>
                 <StatusContextProvider>
                   <TxTimelineContextProvider>
+                    <Head>
+                      <link rel="manifest" href="/manifest.json" />
+                    </Head>
+                    
                     <div className="">
                       <div className="layout gradient-bg">
                         <WalletHeader />
