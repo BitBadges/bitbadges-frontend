@@ -169,6 +169,37 @@ const App = ({ Component, pageProps }: AppProps) => {
           console.error('Service Worker registration failed:', error);
         });
     }
+
+    if ('Notification' in window) {
+      Notification.requestPermission()
+        .then(function (permission) {
+          if (permission === 'granted') {
+            console.log('Notification permission granted.');
+            // You can now subscribe to push notifications.
+          } else {
+            console.log('Notification permission denied.');
+          }
+        });
+
+      const options = {
+        body: 'This is the body of a sample notification',
+        icon: '/images/bitbadgeslogo.png',
+        vibrate: [200, 100, 200],
+        data: {
+          dateOfArrival: Date.now(),
+          primaryKey: 1
+        }
+      };
+
+      navigator.serviceWorker.ready
+        .then(function (reg) {
+          reg.showNotification('Push Notification', options);
+        })
+        .catch(function (error) {
+          console.error('Error showing notification:', error);
+        });
+    }
+
   }, []);
 
   // let deferredPrompt: Event | null = null;
