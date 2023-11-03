@@ -6,7 +6,7 @@ export function FooterButtonDisplay({
   }) {
 
   const githubLink = "https://github.com/bitbadges";
-  const twitterLink = "https://twitter.com/BitBadges_";
+  const twitterLink = "https://twitter.com/bitbadges_io";
   const discordLink = "https://discord.com/invite/TJMaEd9bar";
   const linkedInLink = "https://linkedin.com/company/bitbadges";
   const facebookLink = "https://facebook.com/profile.php?id=100092259215026";

@@ -35,8 +35,9 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
         id={tab.key}
         className={'primary-text inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
       >
-
-        {tab.content}
+        <div className='primary-text'>
+          {tab.content}
+        </div>
 
       </Menu.Item>
     );

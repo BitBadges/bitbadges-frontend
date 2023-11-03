@@ -327,7 +327,7 @@ function PortfolioPage() {
         {/* Overview and Tabs */}
         {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
 
-        <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
+        <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
         {tab === 'overview' && (<>
           <br />
           <InformationDisplayCard
