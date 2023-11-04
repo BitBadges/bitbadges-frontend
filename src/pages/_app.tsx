@@ -156,10 +156,7 @@ const App = ({ Component, pageProps }: AppProps) => {
   }, []);
 
   useEffect(() => {
-    console.log("SERVICE WORKER REGISTERED")
-    console.log(navigator)
     if ('serviceWorker' in navigator) {
-      console.log("SERVICE WORKER REGISTERED")
       navigator.serviceWorker
         .register('./service-worker.js') // Adjust the path to your service worker file
         .then((registration) => {

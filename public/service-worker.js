@@ -21,7 +21,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate the service worker
+// // Activate the service worker
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -37,16 +37,16 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch resources from cache or network
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            // If the resource is found in the cache, return it
-            if (response) {
-                return response;
-            }
-            // Otherwise, fetch it from the network
-            return fetch(event.request);
-        })
-    );
-});
+// // Fetch resources from cache or network
+// self.addEventListener('fetch', (event) => {
+//     event.respondWith(
+//         caches.match(event.request).then((response) => {
+//             // If the resource is found in the cache, return it
+//             if (response) {
+//                 return response;
+//             }
+//             // Otherwise, fetch it from the network
+//             return fetch(event.request);
+//         })
+//     );
+// });
