@@ -9,7 +9,7 @@ import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE } from '../../../constants';
+import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
 
 import { ChainSpecificContextType } from '../ChainContext';
@@ -22,8 +22,8 @@ const BitBadgesKeplrSuggestChainInfo = {
   chainId: "bitbadges_1-2",
   chainName: "BitBadges",
   chainSymbolImageUrl: "https://avatars.githubusercontent.com/u/86890740",
-  rpc: `http://${HOSTNAME}:26657`,
-  rest: `http://${HOSTNAME}:1317`,
+  rpc: RPC_URL,
+  rest: NODE_API_URL,
   bip44: {
     coinType: 118,
   },

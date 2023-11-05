@@ -8,7 +8,7 @@ import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContex
 
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { NODE_URL } from '../../constants';
+import { NODE_API_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressSelect } from '../address/AddressSelect';
@@ -469,7 +469,7 @@ export function UserApprovalsTab({
               {' '}(Block #{update.block.toString()})
             </Typography.Text>
             {update.txHash &&
-              <p><a href={NODE_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+              <p><a href={NODE_API_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
                 See Blockchain Transaction
               </a></p>
             }

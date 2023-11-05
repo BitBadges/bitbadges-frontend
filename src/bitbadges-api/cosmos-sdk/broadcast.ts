@@ -2,7 +2,7 @@ import { BroadcastMode, TxToSend, generatePostBodyBroadcast } from "bitbadgesjs-
 import { broadcastTx } from "../api";
 import { DEV_MODE } from "../../constants";
 
-// Broadcasts a transaction to the blockchain. Uses NODE_URL from constants.ts.
+// Broadcasts a transaction to the blockchain. Uses NODE_API_URL from constants.ts.
 export async function broadcastTransaction(txRaw: TxToSend) {
   if (DEV_MODE) console.log("Broadcasting Tx...")
   let res = await broadcastTx(
