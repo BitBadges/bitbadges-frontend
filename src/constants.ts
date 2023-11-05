@@ -9,8 +9,12 @@ export const CHAIN_DETAILS = publicRuntimeConfig.MAINNET ? MAINNET_CHAIN_DETAILS
 export const NODE_PORT = '1317';
 export const NODE_API_URL = `http://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}:${NODE_PORT}`;
 export const RPC_PORT = '26657';
-export const RPC_URL = `http://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}:${RPC_PORT}`;
-export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
+
+const LOCAL_RPC = 'http://localhost:26657';
+const DEPLOYED_RPC = 'https://api.bitbadges.io/rpc';
+
+export const RPC_URL = `${HOSTNAME !== 'localhost' ? DEPLOYED_RPC : LOCAL_RPC}`;
+export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}/api`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 
 export const DEV_MODE = process.env.PRODUCTION ? false : false;
