@@ -1,6 +1,6 @@
 ## BitBadges Frontend
 Welcome to the BitBadges frontend! This is a Next.js project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) and the [Blockin quickstart repo](https://github.com/blockin).
-For the UI, this repo uses [Ant Design](https://ant.design/).
+For the UI, this repo uses [Ant Design](https://ant.design/) and [Tailwind CSS](https://tailwindcss.com/).
 
 Check this frontend out in production at [bitbadges.io](https://bitbadges.io). 
 
@@ -18,8 +18,15 @@ First, you will need to create a .env file with the BITBADGES_IO variable. Forma
 .env.example. This variable is used to determine whether or not to use the production BitBadges Indexer. If you are running a version of the BitBadges Indexer locally, you will want to set this variable to false. If you are using the production BitBadges Indexer, you will want to set this variable to true. 
 
 ```bash
-# production .env variable
-BITBADGES_IO=true
+# production .env file
+BITBADGES_IO="true"
+```
+
+
+```bash
+# development .env file
+BITBADGES_IO="false"
+BACKEND_PORT=":3001"
 ```
 
 Second, run the development server:
