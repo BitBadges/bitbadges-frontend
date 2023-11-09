@@ -113,8 +113,6 @@ export const fetchCollectionsWithOptions = async (collectionsToFetch: (
   await dispatch(fetchCollectionsRedux(collectionsToFetch));
 
   const updatedState = store.getState().collections;
-  console.log(updatedState);
-  console.log(collectionsToFetch);
 
   return collectionsToFetch.map(x => {
     return updatedState.collections[`${x.collectionId}`] as BitBadgesCollection<DesiredNumberType>;

@@ -8,13 +8,14 @@ import { getStatus, simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
+import axios from 'axios';
+import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { formatAndCreateGenericTx } from '../../bitbadges-api/cosmos-sdk/transactions';
-import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
+import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { useAccount, fetchAccountsWithOptions } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 const { Step } = Steps;
 
@@ -244,9 +245,24 @@ export function TxModal(
       console.log("Raw TX:", rawTx);
 
 
-      const msgResponse = await broadcastTransaction(rawTx);
+      const initialRes = await broadcastTransaction(rawTx);
 
-      if (DEV_MODE) console.log(msgResponse);
+      if (DEV_MODE) console.log(initialRes);
+
+      const txHash = initialRes.tx_response.txhash;
+      let fetchResponse = null
+      while (!fetchResponse) {
+        try {
+          const res = await axios.get(`${NODE_API_URL}/cosmos/tx/v1beta1/txs/${txHash}`);
+          fetchResponse = res;
+          return res;
+        } catch (e) {
+          //wait 1 sec
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      const msgResponse = fetchResponse.data;
 
       //If transaction fails with badges module error, throw error. Other errors are caught before this.
       if (msgResponse.tx_response.codespace === "badges" && msgResponse.tx_response.code !== 0) {

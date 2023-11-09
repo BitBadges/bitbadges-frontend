@@ -9,7 +9,7 @@ import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { CHAIN_DETAILS, COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
+import { COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
 
 import { ChainSpecificContextType } from '../ChainContext';
@@ -235,7 +235,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     if (!account) {
       throw new Error('Account does not exist');
     }
-    const chain = CHAIN_DETAILS;
     const sender = {
       accountAddress: cosmosAddress,
       sequence: account.sequence ? Numberify(account.sequence) : 0,
@@ -245,9 +244,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     await window.keplr?.enable(chainId);
 
     if (!simulate) {
-
-      console.log("PUBLIC KEY", sender.pubkey);
-      console.log(chainId, chain.cosmosChainId);
       const signResponse = await window?.keplr?.signDirect(
         chainId,
         sender.accountAddress,

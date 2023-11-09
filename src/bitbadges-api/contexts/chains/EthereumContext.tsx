@@ -220,7 +220,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         return cookies.pub_key.split('-')[1];
       }
 
-      console.log("currAccount", currAccount);
       if (currAccount && currAccount.publicKey) {
         return currAccount.publicKey
       }
@@ -239,7 +238,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       const pubKeyHex = pubKey.substring(2);
       const compressedPublicKey = Secp256k1.compressPubkey(new Uint8Array(Buffer.from(pubKeyHex, 'hex')));
       const base64PubKey = Buffer.from(compressedPublicKey).toString('base64');
-      console.log("base64PubKey", base64PubKey);
       setPublicKey(_cosmosAddress, base64PubKey);
       setCookies('pub_key', `${_cosmosAddress}-${base64PubKey}`, { path: '/' });
 

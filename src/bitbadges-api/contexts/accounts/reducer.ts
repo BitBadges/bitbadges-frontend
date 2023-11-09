@@ -181,7 +181,6 @@ export const fetchAccountsRedux = (
       }
 
       // Dispatch success action with fetched data
-      console.log('batchRequestBody', batchRequestBody);
       if (batchRequestBody.accountsToFetch.length > 0) {
 
 

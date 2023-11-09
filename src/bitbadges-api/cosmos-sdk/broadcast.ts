@@ -6,7 +6,7 @@ import { DEV_MODE } from "../../constants";
 export async function broadcastTransaction(txRaw: TxToSend) {
   if (DEV_MODE) console.log("Broadcasting Tx...")
   let res = await broadcastTx(
-    generatePostBodyBroadcast(txRaw, BroadcastMode.Block),
+    generatePostBodyBroadcast(txRaw, BroadcastMode.Sync),
   )
 
   if (DEV_MODE) console.log("Tx Response:", res)

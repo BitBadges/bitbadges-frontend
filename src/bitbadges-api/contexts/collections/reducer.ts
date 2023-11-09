@@ -229,7 +229,6 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
       ? !isUpdate ? deepCopy(newCollection.cachedBadgeMetadata) : batchUpdateBadgeMetadata(cachedCollection.cachedBadgeMetadata, deepCopy(newCollection.cachedBadgeMetadata))
       : cachedCollection.cachedBadgeMetadata;
 
-    console.log(newBadgeMetadata, cachedCollection.cachedBadgeMetadata, newCollection.cachedBadgeMetadata);
 
     const newViews = cachedCollection?.views || {};
     if (newCollection.views) {
@@ -327,7 +326,6 @@ export const fetchAndUpdateMetadataRedux = (collectionId: DesiredNumberType, met
 
 
     if (!fetchDirectly) {
-      console.log('fetch and update metadata');
       //IMPORTANT: These are just the fetchedCollections so potentially have incomplete cachedCollectionMetadata or cachedBadgeMetadata
       await dispatch(fetchCollectionsRedux([{
         collectionId: collectionId,
@@ -359,10 +357,8 @@ export const fetchAndUpdateMetadataDirectlyFromCollectionRedux = (collectionId: 
     const updatedCollection = getCollection(getState().collections, collectionId);
     if (!updatedCollection) throw new Error('Collection does not exist');
 
-    console.log('FETCHING METADATA', collectionId, metadataToFetch, updatedCollection);
     //Check if we have all metadata corresponding to the badgeIds. If not, fetch directly.
     const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(updatedCollection, metadataToFetch);
-    console.log('pruned metadata to fetch', prunedMetadataToFetch);
     const fetchingNothing = !prunedMetadataToFetch.uris || prunedMetadataToFetch.uris.length === 0 && prunedMetadataToFetch.doNotFetchCollectionMetadata;
     if (fetchingNothing) {
       return [updatedCollection];
@@ -417,7 +413,6 @@ export const fetchAndUpdateMetadataDirectlyFromCollectionRedux = (collectionId: 
         }
       }
     }
-    console.log('UPDATED COLLECTION', updatedCollection);
 
     dispatch(updateCollectionsRedux(updatedCollection, true));
   }
@@ -480,10 +475,10 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
           }
 
           await dispatch(fetchAndUpdateMetadataRedux(existingCollectionId, { badgeIds: next250Badges }));
-          console.log('dispatched orig fetch')
+      
           const res = getCollection(getState().collections, existingCollectionId);
           if (!res) throw new Error('Collection does not exist');
-          console.log(res);
+          
 
 
           //Just a note for the future: I had a lot of trouble with synchronizing existing and preview metadata
@@ -505,7 +500,6 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
         }
 
         if (currPreviewCollection && performUpdate) {
-          console.log('updating preview collection', badgeMetadataToReturn);
           dispatch(updateCollectionsRedux({
             ...currPreviewCollection,
             cachedBadgeMetadata: badgeMetadataToReturn
@@ -607,16 +601,12 @@ export const fetchCollectionsRedux = (
         }
       }
 
-      console.log(collectionsToFetch, batchRequestBody, state.queue, state.fetching);
       if (batchRequestBody.collectionsToFetch.length === 0) {
         // dispatch(fetchAccountsRedux(accountsToFetch));
         return;
       }
 
-      console.log("FETCHING COLLECTIONS", batchRequestBody);
       const res = await getCollections(batchRequestBody);
-
-      console.log("COLLECTIONS RES", batchRequestBody, res);
 
       //Update collections map
       for (let i = 0; i < res.collections.length; i++) {
@@ -637,7 +627,6 @@ export const fetchCollectionsRedux = (
 
 
 export const collectionReducer = (state = initialState, action: { type: string; payload: any }): CollectionReducerState => {
-  console.log("REDUCER", action.type, action.payload);
   switch (action.type) {
     case 'SET_COLLECTION':
       const newCollection = action.payload as BitBadgesCollection<DesiredNumberType>;
@@ -660,7 +649,6 @@ export const collectionReducer = (state = initialState, action: { type: string; 
             ...action.payload.newCollection.collectionPermissions
           }
         };
-        console.log('updating', newCollection);
         return updateCollection(state, newCollection, true);
       }
       throw new Error("Collection not found and onlyUpdateProvidedFields is true");
@@ -676,7 +664,7 @@ export const collectionReducer = (state = initialState, action: { type: string; 
     // return { ...state, loading: false, error: action.payload };
     case 'FETCH_COLLECTIONS_SUCCESS':
       // return state;
-      console.log('new fetching', state.fetching, state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))));
+      // console.log('new fetching', state.fetching, state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))));
     // return { ...state, loading: false, error: '', fetching: state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))) };
     default:
       return state;

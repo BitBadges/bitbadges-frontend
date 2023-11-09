@@ -19,8 +19,4 @@ const nextConfig = {
 
 require('dotenv').config();
 
-console.log(process.env.BITBADGES_IO);
-console.log('true')
-console.log(process.env.BITBADGES_IO === 'true');
-
 module.exports = nextConfig;
