@@ -211,10 +211,10 @@ function PortfolioPage() {
   const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
   const collectedHasMore = editMode ? accountInfo?.views['badgesCollectedWithHidden']?.pagination?.hasMore ?? true :
     accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
-  const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
+  
 
   const createdView = accountInfo?.views['createdBy'];
-
+  const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
     //Fetch on tab change but only if empty and has mroe
@@ -222,6 +222,7 @@ function PortfolioPage() {
     const listsIsEmpty = !accountInfo?.views['addressMappings']?.ids.length;
     const createdByIsEmpty = !accountInfo?.views['createdBy']?.ids.length;
     const managingIsEmpty = !accountInfo?.views['managing']?.ids.length;
+    const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
 
     if (!accountInfo || !accountInfo.address) return;
     if (tab === 'collected' && collectedIsEmpty && (accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true)) {
@@ -233,8 +234,7 @@ function PortfolioPage() {
     } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
       fetchMoreManaging(accountInfo?.address ?? '', 'managing');
     }
-  }, [tab, accountInfo, fetchMoreCollected, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, listsTab, hasMoreAddressMappings]);
-
+  }, [tab, accountInfo, fetchMoreCollected, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, listsTab]);
   useEffect(() => {
     if (tab === 'lists') {
       const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
