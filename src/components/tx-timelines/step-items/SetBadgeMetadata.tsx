@@ -2,13 +2,12 @@ import { BitBadgesCollection, MetadataAddMethod, TimedUpdateWithBadgeIdsPermissi
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
-import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export const getBadgesWithUpdatableMetadata = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
   const collectionToCheck = currentCollection ? collection : startingCollection;

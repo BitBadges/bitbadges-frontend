@@ -2,11 +2,10 @@ import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-import { InformationDisplayCard } from "../../display/InformationDisplayCard";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { getBadgesWithUpdatableMetadata } from "./SetBadgeMetadata";
-import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function SetCollectionMetadataStepItem() {
 
