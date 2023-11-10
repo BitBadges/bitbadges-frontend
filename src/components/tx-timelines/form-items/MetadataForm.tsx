@@ -355,8 +355,8 @@ export function MetadataForm({
                 setAddMethod?.(e ? MetadataAddMethod.Manual : MetadataAddMethod.UploadUrl);
               }}
             />
-            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='secondary-text' style={{ marginTop: 4 }}>
-              {`Enter your metadata directly into this form, and we handle the metadata storage for you in a decentralized manner using IPFS.`}
+            {addMethod === MetadataAddMethod.Manual && <Typography.Text strong className='secondary-text' style={{ marginTop: 4, textAlign: 'center' }}>
+              {`We handle the metadata storage for you in a decentralized manner using IPFS.`}
               <Tooltip
                 placement='bottom'
                 title={`IPFS, or Interplanetary File System, is a way of sharing files and information on the internet that doesn't rely on traditional servers and makes the web more resilient to censorship and centralization.`}

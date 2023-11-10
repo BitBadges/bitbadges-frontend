@@ -52,7 +52,7 @@ export function SetBadgeMetadataStepItem() {
       jsonPropertyPath='badgeMetadataTimeline'
       permissionName='canUpdateBadgeMetadata'
       disableJson
-      node={<InformationDisplayCard title='Badge Metadata'>
+      node={<div>
         {
           collection && <>
             <MetadataForm
@@ -60,7 +60,7 @@ export function SetBadgeMetadataStepItem() {
               addMethod={addMethod} setAddMethod={setAddMethod} />
           </>
         }
-      </InformationDisplayCard>}
+      </div>}
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && (collection.cachedBadgeMetadata.length == 0))
       || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0) || (collection.badgeMetadataTimeline.length == 0)))

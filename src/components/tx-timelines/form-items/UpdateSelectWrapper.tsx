@@ -270,7 +270,6 @@ export function UpdateSelectWrapper({
 
         {(err) && <><br /><ErrDisplay err={err} /></>}
       </div>
-      <span color='black' style={{ margin: 16 }} />
 
       {!updateFlag &&
         <div style={{ textAlign: 'center' }} className='primary-text' >

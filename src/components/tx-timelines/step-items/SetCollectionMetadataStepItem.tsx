@@ -38,7 +38,7 @@ export function SetCollectionMetadataStepItem() {
       jsonPropertyPath='collectionMetadataTimeline'
       permissionName='canUpdateCollectionMetadata'
       disableJson
-      node={<InformationDisplayCard title='Collection Metadata'>{
+      node={<div>{
         collection && <div>
           <MetadataForm
             isCollectionSelect
@@ -47,7 +47,7 @@ export function SetCollectionMetadataStepItem() {
             setAddMethod={setAddMethod}
           />
         </div>
-      }</InformationDisplayCard>
+      }</div>
       }
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
