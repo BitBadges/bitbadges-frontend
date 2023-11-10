@@ -255,7 +255,6 @@ export function TxModal(
         try {
           const res = await axios.get(`${NODE_API_URL}/cosmos/tx/v1beta1/txs/${txHash}`);
           fetchResponse = res;
-          return res;
         } catch (e) {
           //wait 1 sec
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -316,12 +315,12 @@ export function TxModal(
         }
       }
 
-      await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+
 
 
       //If it is a new collection, redirect to collection page
-      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/bitbadges.bitbadgeschain.badges.MsgUpdateCollection") {
-        const collectionIdStr = msgResponse.tx_response.logs[0]?.events[0].attributes.find((attr: any) => attr.key === "collectionId")?.value;
+      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/badges.MsgUpdateCollection") {
+        const collectionIdStr = msgResponse.tx_response.logs[0]?.events[1].attributes.find((attr: any) => attr.key === "collectionId")?.value;
         if (collectionIdStr) {
           const collectionId = Numberify(collectionIdStr)
           Modal.destroyAll()
@@ -334,7 +333,10 @@ export function TxModal(
         message: 'Transaction Successful!',
       });
 
+      console.log("fdjhaskhk");
       setTransactionStatus(TransactionStatus.None);
+      await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+      
     } catch (err: any) {
       console.error(err);
       if (err?.response?.data?.message) {

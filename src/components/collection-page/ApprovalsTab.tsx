@@ -142,14 +142,14 @@ export const ApprovalsDisplay: FC<Props> = ({
   }
 
 
-
+  console.log(title);
   return <>
     <br />
 
     <InformationDisplayCard
 
 
-      title={title ?? approvalLevel === "incoming" ? "Incoming Approvals" : approvalLevel === "outgoing" ? "Outgoing Approvals" : "Transferability"
+      title={title ?? (approvalLevel === "incoming" ? "Incoming Approvals" : approvalLevel === "outgoing" ? "Outgoing Approvals" : "Transferability")
 
       }
       span={24} subtitle={subtitle} >

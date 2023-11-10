@@ -41,12 +41,17 @@ const FETCH_ACCOUNTS_REQUEST = 'FETCH_ACCOUNTS_REQUEST';
 const FETCH_ACCOUNTS_START = 'FETCH_ACCOUNTS_START';
 const FETCH_ACCOUNTS_FAILURE = 'FETCH_ACCOUNTS_FAILURE';
 const FETCH_ACCOUNTS_SUCCESS = 'FETCH_ACCOUNTS_SUCCESS';
+const DELETE_ACCOUNTS = 'DELETE_ACCOUNTS';
 
 interface FetchAccountsSuccessAction {
   type: typeof FETCH_ACCOUNTS_SUCCESS;
   payload: AccountRequestParams[]
 }
 
+interface DeleteAccountsAction {
+  type: typeof DELETE_ACCOUNTS;
+  payload: string[];
+}
 
 interface FetchAccountsRequestAction {
   type: typeof FETCH_ACCOUNTS_REQUEST;
@@ -68,12 +73,19 @@ export type AccountsActionTypes =
   | FetchAccountsStartAction
   | FetchAccountsFailureAction
   | UpdateAccountsReduxAction
-  | FetchAccountsSuccessAction;
+  | FetchAccountsSuccessAction
+  | DeleteAccountsAction;
 
 // const fetchAccountsSuccess = (accountsToFetch: AccountRequestParams[]): FetchAccountsSuccessAction => ({
 //   type: FETCH_ACCOUNTS_SUCCESS,
 //   payload: accountsToFetch,
 // });
+
+
+export const deleteAccountsRedux = (accountsToDelete: string[]): DeleteAccountsAction => ({
+  type: DELETE_ACCOUNTS,
+  payload: accountsToDelete
+});
 
 // Define your action creators
 export const fetchAccountsRequest = (accountsToFetch: AccountRequestParams[]): FetchAccountsRequestAction => ({
@@ -107,6 +119,8 @@ const getAccount = (state: AccountReducerState, addressOrUsername: string, force
   }
   return accountToReturn ? convertBitBadgesUserInfo(accountToReturn, BigIntify) : undefined;
 }
+
+
 
 export const fetchAccountsRedux = (
   accountsToFetch: AccountRequestParams[],
@@ -317,6 +331,23 @@ export const accountReducer = (state = initialState, action: { type: string; pay
       return updateAccounts(state, userInfos, forcefulRefresh);
     case 'FETCH_ACCOUNTS_REQUEST':
       return { ...state, loading: true, error: '' };
+
+    case 'DELETE_ACCOUNTS':
+      const accounts = state.accounts;
+      const cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
+      const accountsToDelete = action.payload as string[];
+      for (const accountToDelete of accountsToDelete) {
+        const account = getAccount(state, accountToDelete);
+
+        if (account) {
+          delete accounts[account.cosmosAddress];
+          if (account.username) {
+            delete cosmosAddressesByUsernames[account.username];
+          }
+        }
+      }
+      return { ...state, accounts, cosmosAddressesByUsernames };
+      
     // return { ...state, loading: true, error: '', queue: [...state.queue, ...action.payload] };
     // case 'FETCH_ACCOUNTS_START':
     //   return { ...state, loading: false, error: '', queue: [], fetching: [...state.fetching, ...action.payload] }

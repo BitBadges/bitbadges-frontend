@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
 import { updateAccountsRedux } from './actions';
-import { fetchAccountsRedux } from './reducer';
+import { deleteAccountsRedux, fetchAccountsRedux } from './reducer';
 export const defaultAccount = convertBitBadgesUserInfo(MINT_ACCOUNT, Stringify)
 
 export function useAccount(_addressOrUsername?: string) {
@@ -113,7 +113,7 @@ export const fetchAccountsWithOptions = async (accountsToFetch: {
   if (accountsToFetch.length === 0) return;
 
   if (forcefulRefresh) {
-    //TODO: RESET
+    dispatch(deleteAccountsRedux(accountsToFetch.map(x => x.address || x.username) as string[]));
   }
 
   dispatch(fetchAccountsRedux(accountsToFetch));
