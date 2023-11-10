@@ -1,0 +1,38 @@
+{
+  "creator": "cosmos178m3nrv6arrfwh6r6gcr60v6m63cyxrycf4ywe",
+  "collectionId": "15",
+  "transfers": [
+    {
+      "from": "Mint",
+      "balances": [
+        {
+          "amount": "1",
+          "badgeIds": [
+            {
+              "start": "1",
+              "end": "1"
+            }
+          ],
+          "ownershipTimes": [
+            {
+              "start": "1",
+              "end": "18446744073709551615"
+            }
+          ]
+        }
+      ],
+      "toAddresses": [
+        "cosmos178m3nrv6arrfwh6r6gcr60v6m63cyxrycf4ywe"
+      ],
+      "precalculateBalancesFromApproval": {
+        "approvalId": "",
+        "approvalLevel": "",
+        "approverAddress": ""
+      },
+      "merkleProofs": [],
+      "memo": "",
+      "prioritizedApprovals": [],
+      "onlyCheckPrioritizedApprovals": false
+    }
+  ]
+}

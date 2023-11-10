@@ -1,21 +1,28 @@
-import { DownOutlined } from '@ant-design/icons';
-import { Button, Divider, Input, Layout, Select, Typography } from 'antd';
+import { DownOutlined, WarningOutlined } from '@ant-design/icons';
+import { Col, Divider, Input, Row, Select, Typography } from 'antd';
 import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { useState } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TxModal } from '../../components/tx-modals/TxModal';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+const style = require('react-syntax-highlighter/dist/cjs/styles/prism').oneDark;
 
-const { Content } = Layout;
-
-const sample = require('./sample.json');
-const sample2 = require('./sample2.json');
+const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
+const sampleMsgDeleteCollection = require('./sample-msgdelete.json');
+const sampleMsgCreateAddressMappings = require('./sample-msgcreateaddress.json');
+const sampleMsgUpdateUserApprovals = require('./sample-msgupdateapprovals.json');
+const sampleMsgTransferBadges = require('./sample-msgtransfer.json');
 
 function Broadcast() {
-  const [msg, setMsg] = useState<object>(convertMsgUpdateCollection(sample, BigIntify));
+  const [msg, setMsg] = useState<object>(convertMsgUpdateCollection(sampleMsgUpdateCollection, BigIntify));
   const [visible, setVisible] = useState(false);
-  const [err, setErr] = useState('');
+  const [err, setErr] = useState<Error | null>();
+  const chain = useChainContext();
 
   const [txType, setTxType] = useState('MsgUpdateCollection');
+  const [inputMsg, setInputMsg] = useState(JSON.stringify(sampleMsgUpdateCollection, null, 2));
 
   const convertFunction = txType === 'MsgUpdateCollection' ? createTxMsgUpdateCollection
     : txType === 'MsgDeleteCollection' ? createTxMsgDeleteCollection
@@ -23,67 +30,99 @@ function Broadcast() {
         : txType === 'MsgUpdateUserApprovals' ? createTxMsgUpdateUserApprovals
           : txType === 'MsgTransferBadges' ? createTxMsgTransferBadges
             : undefined
+
+  const getJSON = (txType: string) => {
+    return txType === 'MsgUpdateCollection' ? sampleMsgUpdateCollection
+      : txType === 'MsgDeleteCollection' ? sampleMsgDeleteCollection
+        : txType === 'MsgCreateAddressMappings' ? sampleMsgCreateAddressMappings
+          : txType === 'MsgUpdateUserApprovals' ? sampleMsgUpdateUserApprovals
+            : txType === 'MsgTransferBadges' ? sampleMsgTransferBadges
+              : undefined
+  }
+
   return (
     <DisconnectedWrapper
       requireLogin
       message='Please connect a wallet and sign in to access this page.'
       node={
-        <Layout>
-          <Content
-            style={{
-              background: `linear-gradient(0deg, #3e83f8 0, #001529 0%)`,
-              textAlign: 'center',
-              minHeight: '100vh',
-            }}
-          >
-            <div className='primary-blue-bg'
-              style={{
-                marginLeft: '3vw',
-                marginRight: '3vw',
-                paddingLeft: '1vw',
-                paddingRight: '1vw',
-                paddingTop: '20px',
+        <div
+          style={{
+            marginLeft: '3vw',
+            marginRight: '3vw',
+            paddingLeft: '1vw',
+            paddingRight: '1vw',
+            paddingTop: '20px',
+          }}
+        >
+          <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
+            <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
+              Custom JSON Tx Form
+            </Typography.Text>
+
+            <div className='primary-text full-width' style={{ textAlign: 'center' }}>
+              <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: '#FF5733' }} />
+              This is an advanced and experimental feature. Use at your own risk.
+            </div>
+            <div>
+              If there are bugs or issues, please report them via our Discord or GitHub.
+
+              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more information.
+            </div>
+            <br />
+            <Select
+              className="selector primary-text inherit-bg"
+              style={{ marginLeft: 4 }}
+              defaultValue={txType}
+              onChange={(value) => {
+                setTxType(value);
+                const json = getJSON(value);
+                json.creator = chain.cosmosAddress;
+
+                setInputMsg(JSON.stringify(getJSON(value), null, 2));
+                setMsg(getJSON(value));
               }}
+              suffixIcon={
+                <DownOutlined
+                  className='primary-text'
+                />
+              }
             >
-              <Select
-                className="selector primary-text inherit-bg"
-                style={{ marginLeft: 4 }}
-                defaultValue={txType}
-                onChange={(value) => {
-                  setTxType(value);
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-              >
-                <Select.Option key={0} value={'MsgUpdateCollection'}>
-                  MsgUpdateCollection
-                </Select.Option>
-                <Select.Option key={1} value={'MsgDeleteCollection'}>
-                  MsgDeleteCollection
-                </Select.Option>
-                <Select.Option key={2} value={'MsgCreateAddressMappings'}>
-                  MsgCreateAddressMappings
-                </Select.Option>
-                <Select.Option key={3} value={'MsgUpdateUserApprovals'}>
-                  MsgUpdateUserApprovals
-                </Select.Option>
-                <Select.Option key={4} value={'MsgTransferBadges'}>
-                  MsgTransferBadges
-                </Select.Option>
-              </Select>
+              <Select.Option key={0} value={'MsgUpdateCollection'}>
+                MsgUpdateCollection
+              </Select.Option>
+              <Select.Option key={1} value={'MsgDeleteCollection'}>
+                MsgDeleteCollection
+              </Select.Option>
+              <Select.Option key={2} value={'MsgCreateAddressMappings'}>
+                MsgCreateAddressMappings
+              </Select.Option>
+              <Select.Option key={3} value={'MsgUpdateUserApprovals'}>
+                MsgUpdateUserApprovals
+              </Select.Option>
+              <Select.Option key={4} value={'MsgTransferBadges'}>
+                MsgTransferBadges
+              </Select.Option>
+            </Select>
 
+            <br />
+            <br />
+          </Col>
+
+
+          <Row className='full-width'>
+            <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+              <b className='primary-text'>Enter Value</b>
               <Input.TextArea
-                rows={30}
-
+                value={inputMsg}
+                autoSize
                 className='primary-text inherit-bg'
-                placeholder={'Enter JSON here'}
+                placeholder={'Enter your value here here'}
                 onChange={(e) => {
-                  setErr('');
+                  setErr(null)
                   try {
                     const msg = JSON.parse(e.target.value);
+
+                    setInputMsg(e.target.value);
 
                     if (txType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
                     else if (txType === 'MsgDeleteCollection') setMsg(convertMsgDeleteCollection(msg, BigIntify));
@@ -96,48 +135,45 @@ function Broadcast() {
                   }
                 }}
               />
-              {err && <div className='flex-center' style={{ color: 'red' }}>
-                {err}
-              </div>}
+
               <br />
-              {txType === 'MsgUpdateCollection' && <>
-                <Typography.Text copyable={
-                  {
-                    text: JSON.stringify(sample, null, 2),
-                    tooltips: ['Copy', 'Copied!'],
-                  }
-                } className='primary-text'>
-                  Copy Sample
-                </Typography.Text>
-                <Typography.Text copyable={
-                  {
-                    text: JSON.stringify(sample2, null, 2),
-                    tooltips: ['Copy', 'Copied!'],
-                  }
-                } className='primary-text'>
-                  Copy Sample 2
-                </Typography.Text>
-              </>}
-              <Divider />
+              <br />
+
+            </InformationDisplayCard>
+            <InformationDisplayCard title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+              <b className='primary-text'>Set Value</b>
+
+              <SyntaxHighlighter language="json" style={style}>
+                {JSON.stringify(msg, null, 2)}
+              </SyntaxHighlighter>
+
+            </InformationDisplayCard>
+          </Row>
+
+          {err && <div className='flex-center' style={{ color: 'red' }}>
+            {err.toString()}
+          </div>}
+          <br />
+          <Divider />
 
 
-              <Button type='primary' onClick={() => {
-                setVisible(true);
-              }}>Broadcast Transaction</Button>
+          <button className='landing-button'
+            style={{ width: '100%' }}
+            onClick={() => {
+              setVisible(true);
+            }}>Broadcast</button>
 
 
 
-              {msg &&
-                <TxModal
-                  visible={visible}
-                  setVisible={setVisible}
-                  createTxFunction={convertFunction}
-                  txCosmosMsg={msg}
-                  txName={txType}
-                />}
-            </div>
-          </Content>
-        </Layout>
+          {msg &&
+            <TxModal
+              visible={visible}
+              setVisible={setVisible}
+              createTxFunction={convertFunction}
+              txCosmosMsg={msg}
+              txName={txType}
+            />}
+        </div>
       }
     />
   );

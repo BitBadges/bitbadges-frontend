@@ -1,0 +1,19 @@
+{
+  "creator": "cosmos178m3nrv6arrfwh6r6gcr60v6m63cyxrycf4ywe",
+  "collectionId": "15",
+  "updateOutgoingApprovals": false,
+  "outgoingApprovals": [],
+  "updateIncomingApprovals": true,
+  "incomingApprovals": [],
+  "updateAutoApproveSelfInitiatedOutgoingTransfers": false,
+  "autoApproveSelfInitiatedOutgoingTransfers": false,
+  "updateAutoApproveSelfInitiatedIncomingTransfers": false,
+  "autoApproveSelfInitiatedIncomingTransfers": false,
+  "updateUserPermissions": false,
+  "userPermissions": {
+    "canUpdateIncomingApprovals": [],
+    "canUpdateOutgoingApprovals": [],
+    "canUpdateAutoApproveSelfInitiatedIncomingTransfers": [],
+    "canUpdateAutoApproveSelfInitiatedOutgoingTransfers": []
+  }
+}
