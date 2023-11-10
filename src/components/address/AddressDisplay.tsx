@@ -34,7 +34,7 @@ export function AddressDisplay({
 }) {
   return <>
     {title && <AddressDisplayTitle title={title} icon={icon} />}
-    <div className='flex-center' style={{ paddingRight: 0, }}>
+    <div className='' style={{ paddingRight: 0, alignItems: 'center' }}>
       <AddressWithBlockies
         addressOrUsername={addressOrUsername}
         fontSize={fontSize}

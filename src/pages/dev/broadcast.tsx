@@ -66,7 +66,7 @@ function Broadcast() {
             <div>
               If there are bugs or issues, please report them via our Discord or GitHub.
 
-              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more information.
+              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for documentation on each Msg type.
             </div>
             <br />
             <Select
@@ -120,9 +120,10 @@ function Broadcast() {
                 onChange={(e) => {
                   setErr(null)
                   try {
+                    setInputMsg(e.target.value);
                     const msg = JSON.parse(e.target.value);
 
-                    setInputMsg(e.target.value);
+                    
 
                     if (txType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
                     else if (txType === 'MsgDeleteCollection') setMsg(convertMsgDeleteCollection(msg, BigIntify));
@@ -159,6 +160,7 @@ function Broadcast() {
 
           <button className='landing-button'
             style={{ width: '100%' }}
+            disabled={err !== null}
             onClick={() => {
               setVisible(true);
             }}>Broadcast</button>

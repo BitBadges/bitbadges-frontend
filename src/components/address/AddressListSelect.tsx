@@ -1,5 +1,5 @@
-import { DeleteOutlined, SwapOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Divider, Tooltip, Typography } from "antd";
+import { DeleteOutlined, DownOutlined, SwapOutlined, UserAddOutlined } from "@ant-design/icons";
+import { Button, Divider, Select, Tooltip, Typography } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { useState } from "react";
 import { } from "../../constants";
@@ -25,7 +25,7 @@ export function AddressListSelect({
   allowMintSearch?: boolean
 }) {
 
-
+  const [delimiter, setDelimiter] = useState<string>('\n');
   const [enterMethod, setEnterMethod] = useState(EnterMethod.Single);
   const [loading, setLoading] = useState<boolean>(false);
   const [batchAddAddressListInput, setBatchAddAddressListInput] = useState<string>('');
@@ -35,7 +35,7 @@ export function AddressListSelect({
   //For EnterMethod.Batch, set the user list when the batch add is clicked.
   async function handleAddBatchUsers() {
     setLoading(true);
-    const addressesList: string[] = batchAddAddressListInput.split('\n').filter((a) => a !== '').map(x => x.trim());
+    const addressesList: string[] = batchAddAddressListInput.split(delimiter).filter((a) => a !== '').map(x => x.trim());
 
 
     //Manually generate blank accounts with the addresses if not already in context
@@ -116,10 +116,34 @@ export function AddressListSelect({
       enterMethod === EnterMethod.Batch &&
       <>
         <br />
+        <div style={{ float: 'right' }}>
+          <Select
+            className="selector primary-text inherit-bg"
+            style={{ marginLeft: 4 }}
+            defaultValue={delimiter}
+            onChange={(value) => {
+              setDelimiter(value);
+            }}
+            suffixIcon={
+              <DownOutlined
+                className='primary-text'
+              />
+            }
+          >
+            <Select.Option key={0} value={"\n"}>
+              Separate By New Line
+            </Select.Option>
+            <Select.Option key={1} value={","}>
+              Separate By Comma
+            </Select.Option>
+          </Select>
+        </div>
+        <br />
+        <br />
         <TextArea
           className="primary-text inherit-bg"
           style={{ minHeight: 200 }}
-          placeholder="Enter addresses here (one per line)"
+          placeholder="Enter addresses here"
           value={batchAddAddressListInput}
           disabled={disabled}
           onChange={(e) => setBatchAddAddressListInput(e.target.value)}

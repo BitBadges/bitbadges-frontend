@@ -3,10 +3,12 @@ import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 
 import { SearchDropdown } from '../navigation/SearchDropdown';
-import { MinusOutlined, SwapOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, MinusOutlined, SwapOutlined } from '@ant-design/icons';
 import IconButton from '../display/IconButton';
 import { AddressDisplay } from './AddressDisplay';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { Divider } from '../display/Divider';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -28,11 +30,13 @@ export function AddressSelect({
 }) {
 
   const defaultAccount = useAccount(defaultValue);
+  const chain = useChainContext();
 
   const [changed, setChanged] = useState<boolean>(false);
   const [input, setInput] = useState<string>(defaultAccount ? defaultAccount?.address : '');
   const [showSelect, setShowSelect] = useState<boolean>(switchable ? false : true);
   const [latestAddress, setLatestAddress] = useState<string | undefined>(defaultAccount?.address);
+
 
   const AddressInput = <Input.Group compact className='flex'>
     <Dropdown
@@ -77,7 +81,32 @@ export function AddressSelect({
           <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
         </div>
       }
-      {showSelect && AddressInput}
+      {showSelect && <>
+        <br />
+        <b>Select Address</b>
+        {AddressInput}
+        <div className='secondary-text' style={{ textAlign: 'left', marginTop: 4 }}>
+
+          <div className='flex-center flex-wrap' style={{ alignItems: 'center' }}>
+            <InfoCircleOutlined style={{ marginRight: 3 }} />{' '}Suggested addresses:
+            <div className='mx-2'>
+              <AddressDisplay
+                addressOrUsername={chain.address}
+                fontSize={12}
+                hidePortfolioLink
+              />
+            </div>
+
+            {allowMintSearch && <div className='mr-4'><AddressDisplay
+              addressOrUsername={'Mint'}
+              fontSize={12}
+              hidePortfolioLink
+            /></div>}
+
+          </div>
+        </div>
+        <Divider />
+      </>}
     </div>
   </>
 }
