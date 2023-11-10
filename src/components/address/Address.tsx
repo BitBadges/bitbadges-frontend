@@ -58,7 +58,6 @@ export function Address({
     <Tooltip
       placement="bottom"
       color='black'
-      className='primary-text'
       title={
         <>
           <div className='dark'>{
@@ -130,7 +129,8 @@ export function Address({
         </>
       }
       overlayStyle={{
-        minWidth: 320
+        minWidth: 320,
+
       }}
     >
       {displayAddress}
@@ -141,6 +141,8 @@ export function Address({
 
   const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address && address != 'All' && address != 'All Other';
   const invalidAddress = !isValidAddress;
+
+  console.log(address, fontColor);
   return (
     <div style={{}}>
       <div
@@ -152,7 +154,7 @@ export function Address({
         className='whitespace-nowrap'
       >
         <Text
-          className={'primary-text' + (!showLink ? '' : ' link-button-nav')}
+          className={'primary-text ' + (!showLink ? '' : ' link-button-nav')}
 
           onClick={!showLink ? undefined : () => {
             router.push(`/account/${address}`);
