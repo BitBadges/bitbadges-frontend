@@ -40,6 +40,7 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
   return <Col lg={6} md={24} sm={24} xs={24} style={{
     padding: 6, display: 'flex',
   }}>
+
     <div style={{ display: 'flex' }}>
 
       <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'

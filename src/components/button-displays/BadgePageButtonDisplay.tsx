@@ -6,12 +6,19 @@ import {
   TwitterOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Tooltip, message } from 'antd';
+import { useState } from 'react';
+import { ReportModal } from '../tx-modals/ReportModal';
 
 export function BadgeButtonDisplay({
   website,
+  collectionId,
+  mappingId,
 }: {
   website?: string,
+  collectionId?: bigint,
+  mappingId?: string,
 }) {
+  const [reportIsVisible, setReportIsVisible] = useState(false);
 
   return (
     <div>
@@ -31,14 +38,14 @@ export function BadgeButtonDisplay({
           </a>
         )}
 
-        <Tooltip title={<>
+        {!(global.navigator && global.navigator.canShare && global.navigator.canShare()) ? <Tooltip title={<>
           <div style={{ textAlign: 'center' }}>
             <b>Share</b>
             <Tooltip title="Copy Link" placement="left">
               <Avatar
                 size="large"
                 onClick={() => {
-                  navigator.clipboard.writeText(
+                  global.navigator.clipboard.writeText(
                     window.location.href
                   );
                   message.success('Copied to clipboard!');
@@ -56,6 +63,7 @@ export function BadgeButtonDisplay({
                     window.location.href
                   )}`;
 
+
                   window.open(shareUrl, '_blank');
                 }}
                 className="styled-button account-socials-button"
@@ -71,7 +79,26 @@ export function BadgeButtonDisplay({
           >
             <ShareAltOutlined />
           </Avatar>
-        </Tooltip>
+        </Tooltip> : <Tooltip title={<>
+          Share
+        </>} placement="bottom">
+          <Avatar
+            size="large"
+            className="styled-button account-socials-button"
+            onClick={() => {
+              navigator.share({
+
+                url: window.location.href,
+              });
+
+            }}
+          >
+            <ShareAltOutlined />
+          </Avatar>
+        </Tooltip>}
+
+
+
         <Tooltip title={<>
           Report
         </>} placement="bottom">
@@ -79,12 +106,17 @@ export function BadgeButtonDisplay({
             size="large"
             className="styled-button account-socials-button"
             onClick={() => {
-              //send email
-              window.open('mailto:andrew@bitbadges.org');
+              setReportIsVisible(true);
             }}
           >
             <FlagOutlined />
           </Avatar>
+          <ReportModal
+            visible={reportIsVisible}
+            setVisible={setReportIsVisible}
+            collectionId={collectionId}
+            mappingId={mappingId}
+          />
         </Tooltip>
       </div>
       <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />

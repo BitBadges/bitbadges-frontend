@@ -15,6 +15,8 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
+import { ReportModal } from '../tx-modals/ReportModal';
+import { useState } from 'react';
 
 const { Content } = Layout;
 
@@ -51,6 +53,8 @@ export function AccountButtonDisplay({
 
   const router = useRouter();
   const accountInfo = useAccount(addressOrUsername);
+
+  const [reportIsVisible, setReportIsVisible] = useState(false);
 
   const address = accountInfo?.address
   const avatar = accountInfo?.profilePicUrl ?? accountInfo?.avatar;
@@ -285,12 +289,17 @@ export function AccountButtonDisplay({
               size="large"
               className="styled-button account-socials-button"
               onClick={() => {
-                //send email
-                window.open('mailto:andrew@bitbadges.org');
+                setReportIsVisible(true);
               }}
             >
               <FlagOutlined />
             </Avatar>
+
+            <ReportModal
+              addressOrUsername={address}
+              visible={reportIsVisible}
+              setVisible={setReportIsVisible}
+            />
           </Tooltip>
         }
 

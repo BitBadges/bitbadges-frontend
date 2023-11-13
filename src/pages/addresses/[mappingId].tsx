@@ -117,7 +117,7 @@ function AddressMappingPage() {
           paddingTop: '20px',
         }}
       >
-        <BadgeButtonDisplay website={metadata?.externalUrl} />
+        <BadgeButtonDisplay website={metadata?.externalUrl} mappingId={mappingId as string} />
         <CollectionHeader collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />
         {!mapping && <Spin size='large' />}
         <Tabs

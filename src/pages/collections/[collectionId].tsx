@@ -114,7 +114,7 @@ function CollectionPage({
         }}
       >
         {collection && <>
-          {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} />}
+          {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} collectionId={collectionIdNumber} />}
 
           {/* Overview and Tabs */}
           {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
