@@ -20,6 +20,10 @@ export function BadgeButtonDisplay({
 }) {
   const [reportIsVisible, setReportIsVisible] = useState(false);
 
+
+  console.log(global.navigator && global.navigator.canShare && global.navigator.canShare({
+    url: window.location.href,
+  }));
   return (
     <div>
 
@@ -38,7 +42,11 @@ export function BadgeButtonDisplay({
           </a>
         )}
 
-        {!(global.navigator && global.navigator.canShare && global.navigator.canShare()) ? <Tooltip title={<>
+        {!(global.navigator && global.navigator.canShare && global.navigator.canShare(
+          {
+            url: window.location.href,
+          }
+        )) ? <Tooltip title={<>
           <div style={{ textAlign: 'center' }}>
             <b>Share</b>
             <Tooltip title="Copy Link" placement="left">
