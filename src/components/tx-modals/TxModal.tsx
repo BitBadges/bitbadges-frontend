@@ -257,6 +257,7 @@ export function TxModal(
           fetchResponse = res;
         } catch (e) {
           //wait 1 sec
+          console.log("Waiting 1 second for transaction to be included in block...");
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
@@ -336,7 +337,7 @@ export function TxModal(
       console.log("fdjhaskhk");
       setTransactionStatus(TransactionStatus.None);
       await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
-      
+
     } catch (err: any) {
       console.error(err);
       if (err?.response?.data?.message) {

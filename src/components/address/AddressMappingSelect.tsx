@@ -79,6 +79,7 @@ export function AddressMappingSelect({
           <br /><span style={{ color: 'red' }}> <WarningOutlined /> Whitelists must have at least one address.</span></>}
       </div>
       <br />
+      <div className='flex-center'>
       <AddressDisplayList
         users={addressMapping.addresses}
         allExcept={!addressMapping.includeAddresses}
@@ -89,7 +90,7 @@ export function AddressMappingSelect({
           }));
         }}
         hideIcons={disabled}
-      /></div>
+      /></div></div>
     {!disabled && <><br />
       <div className='flex-center'>
 

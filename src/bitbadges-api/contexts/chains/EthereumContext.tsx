@@ -191,6 +191,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     };
     let sig = '';
     if (!simulate) {
+      console.log(txn.eipToSign);
+
       sig = await signTypedData({
         message: txn.eipToSign.message,
         types: txn.eipToSign.types,
